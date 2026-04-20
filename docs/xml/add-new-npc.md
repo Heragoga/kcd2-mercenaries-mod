@@ -1,27 +1,27 @@
 # Adding a New NPC to KCD2
 
-If you are reading this and are serious about adding a custom NPC, you are in for a wild ride. This workflow took me about 10 hours to figure out and master, so enjoy every word.
+If you are reading this and are serious about adding a custom NPC, you are in for a wild ride. This basic workflow took me about 10 hours to figure out and master, so enjoy every word of this guide. You're welcome.
 
 ---
 
 ## Overview
 
-An NPC is entirely defined across two directories: `data/libs/Storm` and `data/libs/tables`. That covers all the core NPC data — who they are, what they look like, what they wear, how they behave socially, and what dialog they can speak. If you want a *completely* custom face or body model, that lives elsewhere and is not covered here. This guide only covers NPCs that use in-game bodies and equipment.
+An NPC is entirely defined across two directories: `data/libs/Storm` and `data/libs/tables`. That covers everything — who they are, what they look like, what they wear, how they behave socially, and what dialog they can speak. If you want a completely custom face or body model, that lives elsewhere and is not my area of expertise. This guide only covers NPCs that use in-game bodies and equipment, which is probably what you want anyway.
 
-Here is the full list of files you will be touching, and what each one is responsible for:
+Here is a map of everything you will be touching. Keep it open in another tab.
 
 | File | Purpose |
 |---|---|
 | `tables/rpg/soul.xml` | The soul — the NPC's core identity |
-| `tables/rpg/faction__yourmod.xml` | Faction and relationship definitions |
-| `tables/rpg/role__yourmod.xml` | Role definition (ties to dialog) |
+| `tables/rpg/FactionTree__yourmod.xml` | Who likes them and who wants to kill them |
+| `tables/rpg/role__yourmod.xml` | Role definition — ties to dialog |
 | `tables/skald/skald_character__yourmod.xml` | Voice, display name, gender |
 | `tables/skald/skald_character2profession__yourmod.xml` | Profession assignment |
 | `tables/skald/skald_character2role__yourmod.xml` | Ties Skald character to role |
 | `tables/item/clothing_preset__yourmod.xml` | What clothes the NPC wears |
-| `tables/item/item__yourmod.xml` | Inventory preset (weapons, items) |
+| `tables/item/item__yourmod.xml` | Inventory preset — weapons, carried items |
 | `storm/storm__yourmod.xml` | Storm entry point |
-| `storm/appearance/yourmod_appearance.xml` | Body, head, hair, beard assignment |
+| `storm/appearance/yourmod_appearance.xml` | Body, head, hair, beard |
 | `storm/equipment/yourmod_equipment.xml` | Ties inventory preset to soul |
 | `storm/roles/yourmod_roles.xml` | Ties role to soul |
 
@@ -33,7 +33,7 @@ Work through these in order. Each one depends on the ones before it.
 
 `data/libs/tables/rpg/soul.xml`
 
-The soul is the heart of any NPC — everything else is built on top of it. The file already exists and contains every NPC soul in the game. Add your entry to it:
+In `data/libs/tables/rpg` there lives a cute little file called `soul.xml`. It contains all the souls of the little NPCs that walk around the game. We as modders have full control over them — you can change everything about them, destroy souls, add souls. I am a benevolent god, so I'll add one.
 
 ```xml
 <soul
@@ -54,13 +54,13 @@ The soul is the heart of any NPC — everything else is built on top of it. The 
 
 ### Attribute reference
 
-**`brain_id`** — Ties the soul to an AI brain, which governs behavior, combat routines, schedules and everything else that makes an NPC actually function. `4b914d1c-724a-a92d-3e6b-d183d35b8b98` is a working in-game brain ID you can use for testing. The brain system is complex enough to warrant its own guide and will be covered separately.
+**`soul_id`** — Must be globally unique. Generate one at [uuidgenerator.net/version4](https://www.uuidgenerator.net/version4). Write it down somewhere — you will reference it in multiple other files and you will regret not writing it down.
 
-**`soul_id`** — Must be globally unique. Generate one at [uuidgenerator.net/version4](https://www.uuidgenerator.net/version4). Write it down somewhere — you will reference this in multiple other files.
+**`soul_name`** — References a localization string. If you don't define it in your localization file it will display as `@soul_merc_weak_1` in-game, which is fine for testing and mildly funny in production.
 
-**`soul_name`** — References a localization string. If you don't define it in your localization file it will display as `@soul_merc_weak_1` in-game, which is fine for testing.
+**`brain_id`** — Ties the soul to an AI brain, which governs behavior, combat, schedules, and everything else that makes an NPC actually function rather than stand there like a confused statue. `4b914d1c-724a-a92d-3e6b-d183d35b8b98` is a working in-game brain ID you can borrow for testing. The brain system is complex enough to warrant its own guide, which will come separately.
 
-**`soul_archetype_id`** — Determines the fundamental body type. The relevant values are:
+**`soul_archetype_id`** — The fundamental body type. You cannot mix these with the wrong appearance assets later without the game producing something deeply unsettling.
 
 | ID | Type |
 |---|---|
@@ -72,21 +72,23 @@ The soul is the heart of any NPC — everything else is built on top of it. The 
 | `13` | Hero (male) |
 | `15` | Hero (female) |
 
-Everything else is various animals. Male souls can only be assigned male body assets in Storm, and vice versa — mixing them will either produce nothing or cause a crash.
+Everything else is various animals. There are a lot of animals in this game apparently.
 
-**`combat_level`** — A float between 0 and 1. This controls which combat techniques the NPC has access to: master strikes, combos, perfect blocks. 0.5 is a competent fighter. 1.0 is a nightmare.
+**`combat_level`** — A float between 0 and 1. Controls which combat techniques the NPC has access to: master strikes, combos, perfect blocks. `0.5` is a competent fighter. `1.0` is your problem now.
 
-**`digestion_multiplier`** — Set to `0` to make the NPC immune to starvation. Set to anything greater than `0` if you want to subject them to the horrors of hunger. For any mod NPC, just set this to `0`.
+**`digestion_multiplier`** — Set to `0` to make the NPC immune to starvation. Set to anything greater than `0` if you want to subject them to the full horror of the hunger system. For any mod NPC, just set this to `0`. Nobody asked for realism here.
 
-**`xp_multiplier`** — How much XP the player gets for interacting with (or killing) this NPC. `0` means no XP reward.
+**`xp_multiplier`** — How much XP the player gets from killing this NPC. `0` means no reward, which is probably fine unless you specifically want the player farming your lads for levels.
 
-**`factionName`** — Controls who is hostile toward this NPC and who they are friendly with. Covered in the next section.
+**`factionName`** — Controls who is hostile toward this NPC and who they're friendly with. Covered next.
 
-**`social_class_id`** — Determines how severely crimes against this NPC are punished. Higher values mean more serious crime penalties. `3` is a commoner.
+**`social_class_id`** — How severely crimes against this NPC are punished. Higher is more serious.
 
-**`skald_character_name`** — Links this soul to a Skald character definition for voice and dialog purposes. More on this below.
+**`skald_character_name`** — Links this soul to its Skald character definition. More on this below.
 
-**`soul_vip_class_id`** — Governs what protections the NPC has from player interference:
+**`initial_clothing_dirt`** — How dirty they spawn. `0` is clean.
+
+**`soul_vip_class_id`** — What protections the NPC has from the player's more criminal instincts:
 
 | ID | Protection |
 |---|---|
@@ -103,17 +105,15 @@ Everything else is various animals. Male souls can only be assigned male body as
 | `23` | Immortality + attack + pickpocket + loot protection |
 | `31` | Untouchable — everything |
 
-Use `16` if you don't want the player to loot the corpse. Use `0` if you don't care. Use `4` or higher if this is a quest-critical NPC.
-
-**`initial_clothing_dirt`** — How dirty the NPC starts. `0` is clean.
+Use `16` if you don't want the player looting their corpse. Use `0` if you don't care. Use `4` or higher if this NPC dying would break your quest. Use `31` if you are truly paranoid.
 
 ---
 
 ## Factions
 
-`data/libs/tables/rpg/faction__yourmod.xml`
+`data/libs/tables/rpg/FactionTree__yourmod.xml`
 
-A faction defines who your NPC is friends with and who they will fight. Create this as a new file:
+A faction defines who your NPC is friends with and who they will fight. The following entry covers the complete set of relations you need for an NPC allied with the player and hostile to bandits and enemy armies:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -137,9 +137,7 @@ A faction defines who your NPC is friends with and who they will fight. Create t
 </database>
 ```
 
-`reputation` is a float, but `1` (friendly) and `-1` (hostile) cover all practical cases. The relations listed above are the complete set you need for an NPC that is allied with the player and hostile to bandits and enemy armies. Add or remove relations as needed for your use case.
-
-The faction name must exactly match the `factionName` attribute in your soul definition.
+`reputation` is a float, but `1` and `-1` are all you need. The faction name must exactly match the `factionName` in your soul.
 
 ---
 
@@ -147,7 +145,13 @@ The faction name must exactly match the `factionName` attribute in your soul def
 
 `data/libs/tables/rpg/role__yourmod.xml`
 
-Roles are the mechanism that ties an NPC to dialog. A soul gets one or more roles assigned to it in Storm, and Skald dialog lines are tagged with a role — if an NPC has a matching role and the relevant quest is loaded, that NPC can speak those lines.
+Roles are how an NPC gets dialog. There are three references of roles across the whole mod:
+
+1. **This file** — the definition itself
+2. **Storm roles file** — ties the role to a specific soul
+3. **Skald** — dialog lines are tagged with a role name; any soul with that role will speak those lines when the quest is active
+
+All three need to exist. Don't skip any of them.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -164,13 +168,7 @@ Roles are the mechanism that ties an NPC to dialog. A soul gets one or more role
 </database>
 ```
 
-There are three places a role is referenced:
-
-1. **This file** — the definition itself
-2. **Storm roles file** — ties the role to a specific soul
-3. **Skald** — dialog lines are tagged with the role name; any soul with that role assigned can speak those lines when the quest is active
-
-`metarole_name` can be `NPC` for standard NPCs. `role_name` is the identifier you will reference in the other two places — keep it memorable.
+`metarole_name` can be `NPC` for standard NPCs. Pick a `role_name` you'll actually remember.
 
 ---
 
@@ -178,7 +176,7 @@ There are three places a role is referenced:
 
 `data/libs/tables/skald/skald_character__yourmod.xml`
 
-This is the most important Skald file. It defines the voice, display name, and gender presentation of your NPC as Skald sees it. Create one character per soul, or share one character across multiple souls if you want them to share voice lines and names.
+This is the most important Skald file. It defines the voice, display name, and gender of your NPC. Create one character per soul, or share one character across multiple souls if you want them to share voices and names (and don't mind them being philosophically the same person).
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -211,15 +209,15 @@ This is the most important Skald file. It defines the voice, display name, and g
 
 ### Attribute reference
 
-**`skald_character_name`** — The internal identifier. Must exactly match the `skald_character_name` in your soul definition. This is the link between the two.
+**`age`** and **`body_type`** — No idea honestly. The values above work, so I left them in.
 
-**`ui_name_string_name`** — References a localization string that is displayed as the NPC's name when the player looks at them or interacts with them. This is the one your players will actually see. Define it in your localization file.
+**`skald_character_name`** — The internal identifier. Must exactly match the `skald_character_name` in your soul. This is the actual link between the two systems.
 
-**`skald_character_full_name_string_name`** — Used in Skald dialog trees to refer to the character by full name.
+**`ui_name_string_name`** — References a localization string displayed as the NPC's name when the player looks at them. This is the name your players will actually see. Define it in your localization file or it will show as `@char_mercenary_test_uiName`, which is a great name for a medieval soldier.
 
-**`description_string_name`** — Internal description used in Skald. Doesn't appear in-game.
+**`description_string_name`** and **`skald_character_full_name_string_name`** — Used internally in Skald. Don't stress about these too much.
 
-**`gender`** — Controls which body and hair assets are available for this character in Skald's tooling:
+**`gender`** — Locks which body and hair assets are available for this character in Skald's tooling:
 
 | ID | Meaning |
 |---|---|
@@ -228,48 +226,36 @@ This is the most important Skald file. It defines the voice, display name, and g
 | `2` | Female |
 | `3` | Unisex |
 
-Assigning `1` or `2` locks the character to that gender's assets. `0` is more permissive and fine for generic NPCs.
+Assigning male or female locks you to that gender's assets everywhere.
 
-**`mortality_id`** — Whether the character is mortal. `0` is mortal (can die normally).
+**`mortality_id`** — `0` is mortal. They can die. Usually fine.
 
-**`voice_id`** — Determines which voice actor's recorded lines this NPC uses. For a full list of valid IDs, check `libs/tables/skald/voice.xml` in the base game files.
+**`voice_id`** — Which voice actor's lines this NPC uses. For a full list, see `libs/tables/skald/voice.xml` in the base game files.
 
-**`voice_categories`** — Fallback voice categories used when your specific `voice_id` doesn't have a line for a given situation. `"generic christian"` is a safe default for male commoner NPCs.
+**`voice_categories`** — Fallback categories used when your `voice_id` doesn't have a line for a given situation. `"generic christian"` is a safe default for a standard NPC.
 
-**Voice lines and localization** — Custom voice lines are defined in your localization file with IDs that follow the pattern `rlaz_yourstringid`, where `rlaz` is the short name of the voice actor tied to your `voice_id`. If the prefix and voice ID don't match, the line will have no audio. Look up the actor abbreviation for your chosen voice ID in `voice.xml`.
+**A note on custom voice lines** — They are defined in your localization file with IDs following the pattern `rlaz_yourstringid`, where `rlaz` is the abbreviated name of the voice actor tied to your `voice_id` 243. If the prefix and the voice ID don't match, the line will play silently. Check `voice.xml` for the correct abbreviation for your chosen ID.
 
-### Supplementary Skald files
+### Two small files you also need
 
-You also need two small linking files.
-
-**`skald_character2profession__yourmod.xml`** — Ties the character to a profession, which affects which ambient dialog lines they speak:
+**`skald_character2profession__yourmod.xml`** — Ties the character to a profession:
 
 ```xml
-<?xml version="1.0" encoding="utf-8"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="yourmod">
-    <SkaldCharacter2Professions version="1">
-        <skald_character2profession
-            profession_name="pocestny"
-            skald_character_name="char_mercenary_test"
-        />
-    </SkaldCharacter2Professions>
-</database>
+<skald_character2profession
+    profession_name="pocestny"
+    skald_character_name="char_mercenary_test"
+/>
 ```
 
-`pocestny` is a generic non-criminal profession that works for most honest NPCs. Use it as a default unless you need something more specific.
+`pocestny` is a generic non-criminal profession. It just means honest person, basically. Safe default for most NPCs.
 
-**`skald_character2role__yourmod.xml`** — Ties the Skald character to the role you defined earlier:
+**`skald_character2role__yourmod.xml`** — Ties the Skald character to the role you defined earlier, I actually don't know if this has gameplay impacts, but best to leave it in:
 
 ```xml
-<?xml version="1.0" encoding="utf-8"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="yourmod">
-    <SkaldCharacter2Roles version="1">
-        <skald_character2role
-            role_id="role_mercenary_test"
-            skald_character_id="char_mercenary_test"
-        />
-    </SkaldCharacter2Roles>
-</database>
+<skald_character2role
+    role_id="role_mercenary_test"
+    skald_character_id="char_mercenary_test"
+/>
 ```
 
 ---
@@ -280,77 +266,60 @@ You also need two small linking files.
 
 `data/libs/tables/item/clothing_preset__yourmod.xml`
 
-A clothing preset defines the specific items an NPC wears. Each `<Guid>` references an item ID from the base game or your own item definitions.
+A clothing preset is the list of specific items an NPC wears. Each `<Guid>` references an item from the base game or your own item definitions.
 
 ```xml
-<?xml version="1.0" encoding="utf-8"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="yourmod">
-    <ItemClasses version="8">
-        <clothing_preset
-            clothing_preset_id="YOUR-UUID-HERE"
-            clothing_preset_name="clothing_preset_mercenary_test"
-            gender="Male"
-            prefers_hood_on="false"
-            social_class_id="3"
-            Quality="2"
-            Condition="0.85">
-            <Items>
-                <!-- Gambeson -->
-                <Guid>d03ab313-df4c-4073-a58b-7e6ebe615072</Guid>
-                <!-- Chainmail hauberk -->
-                <Guid>071caaed-731e-418b-93e8-551abc68409e</Guid>
-                <!-- Chausses -->
-                <Guid>abb3e8b3-8c25-47f1-8e44-9b4b61380bef</Guid>
-                <!-- Boots -->
-                <Guid>ffd9af7c-d24d-4e70-8c25-ad22a37a64e7</Guid>
-                <!-- Belt -->
-                <Guid>c69361d6-84d5-4c74-a399-97890561087f</Guid>
-            </Items>
-        </clothing_preset>
-    </ItemClasses>
-</database>
+<clothing_preset
+    clothing_preset_id="YOUR-UUID-HERE"
+    clothing_preset_name="clothing_preset_mercenary_test"
+    gender="Male"
+    prefers_hood_on="false"
+    social_class_id="3"
+    Quality="2"
+    Condition="0.85">
+    <Items>
+        <Guid>d03ab313-df4c-4073-a58b-7e6ebe615072</Guid>
+        <Guid>071caaed-731e-418b-93e8-551abc68409e</Guid>
+        <Guid>abb3e8b3-8c25-47f1-8e44-9b4b61380bef</Guid>
+        <Guid>ffd9af7c-d24d-4e70-8c25-ad22a37a64e7</Guid>
+        <Guid>c69361d6-84d5-4c74-a399-97890561087f</Guid>
+    </Items>
+</clothing_preset>
 ```
 
-Comment every GUID — you will absolutely forget what each one is. If two items occupy the same equipment slot, the game tends to equip neither of them rather than picking one. Avoid conflicts between items in the same category.
+Comment every GUID. As you can see I neglected to do that in the actual example, and I have suffered for it. If two items occupy the same equipment slot, the game tends to equip neither rather than picking one — so your NPC will be partially naked and you will have no idea why. You can make an NPC wear a chestplate without padding. Nobody asks the NPC how comfortable that is.
 
 `Condition` is a float from 0 to 1. `Quality` affects item stats.
 
 ### Inventory preset
 
-`data/libs/tables/item/item__yourmod.xml` (or a dedicated inventory file)
-
-The inventory preset ties the clothing preset to a full inventory setup including weapons and carried items:
-
 ```xml
 <InventoryPreset Name="inventory_mercenary_test">
-    <!-- Reference the clothing preset defined above -->
     <ClothingPresetRef Name="clothing_preset_mercenary_test"/>
-
-    <!-- Weapons -->
     <WeaponPresetRef Name="longsword_3_01"/>
 
-    <!-- Optional: carried items -->
-    <PresetItem Name="apple"                Amount="1" Health="1" HealthVariation="0.3"/>
-    <PresetItem Name="repairKit_weaponSmall" Amount="1"/>
+    <!-- Optional carried items -->
+    <PresetItem Name="apple"                 Amount="1" Health="1" HealthVariation="0.3"/>
+    <PresetItem Name="repairKit_weaponSmall"  Amount="1"/>
 
-    <!-- Optional: shared pocket inventory reference -->
+    <!-- Optional shared pocket inventory -->
     <InventoryPresetRef Name="pockets_soldiers_all"/>
 </InventoryPreset>
 ```
 
-You can reference vanilla weapon and inventory presets directly instead of defining your own — check the base game files for available preset names.
+You can reference vanilla weapon and inventory presets directly. No need to reinvent the sword.
 
 ---
 
 ## Storm
 
-Storm is the rule engine that connects all the pieces above. It looks at an NPC's soul name and applies the correct appearance, equipment and roles based on rules you define. Think of it as a big pattern-matching system: "if soul name matches X, give it Y."
+Stormy waters are approaching, as this is the most fun part. Storm is a rule engine that connects everything you've defined so far. It looks at an NPC's soul name and applies the correct appearance, equipment and roles based on rules you write. Think of it as a big pattern-matching system: if soul name matches X, do Y. Simple in principle, three separate files in practice.
 
 ### Entry point
 
 `data/libs/storm/storm__yourmod.xml`
 
-This file tells Storm where to find your rules:
+This tells Storm where your rule files live:
 
 ```xml
 <?xml version="1.0"?>
@@ -373,7 +342,7 @@ This file tells Storm where to find your rules:
 
 `data/libs/storm/appearance/mercenariesappearance.xml`
 
-Assigns body, head, hair, beard and underwear to the soul. Only the soul name is needed as a selector.
+Only needs the soul name as a selector. Give it a body, head, hair and beard and you're done.
 
 ```xml
 <?xml version="1.0"?>
@@ -396,13 +365,13 @@ Assigns body, head, hair, beard and underwear to the soul. Only the soul name is
 </storm>
 ```
 
-You cannot assign a male body to a female soul or vice versa. For more body, head, hair and beard options, browse the vanilla Storm appearance files or just change the numbers and see what appears in-game — surprisingly effective.
+You cannot assign a male body to a female soul or vice versa. For more bodies, heads, hairs and beards, browse the vanilla Storm appearance files or just randomly change the numbers and see what appears in-game — surprisingly effective.
 
 ### Equipment
 
 `data/libs/storm/equipment/mercenariesequipment.xml`
 
-Ties the inventory preset to the soul. You can reference vanilla presets here if you don't need a custom one.
+Ties the inventory preset to the soul. You can reference vanilla presets here if your needs are simple.
 
 ```xml
 <?xml version="1.0"?>
@@ -425,7 +394,7 @@ Ties the inventory preset to the soul. You can reference vanilla presets here if
 
 `data/libs/storm/roles/mercenariesroles.xml`
 
-Assigns the role to the soul. A soul can have multiple `addRole` operations — just stack them.
+Assigns the role to the soul. A soul can have any number of `addRole` operations stacked on it. You can also assign roles to existing vanilla souls from here if you want your dialog attached to NPCs that already walk around the world.
 
 ```xml
 <?xml version="1.0"?>
@@ -444,14 +413,10 @@ Assigns the role to the soul. A soul can have multiple `addRole` operations — 
 </storm>
 ```
 
-You can also add roles to existing vanilla souls from here — your Storm rules are merged with the base game's at load time.
-
 ---
 
-## You're Done. Sort Of.
+## Finally
 
-If you followed every step correctly, you have a fully defined NPC. They have an identity, a faction, a voice, a face, clothes, weapons and dialog hooks.
+This guide has been a doozy. If you followed all these steps correctly, you should have your own NPC! But you won't see them yet, because you still need to spawn them — that's covered in a separate guide. And you'll need to give them a proper brain, which is also in another guide, because the brain system alone is enough to break a person.
 
-What you don't have yet is a way to see them in the world — that requires spawning, which will be covered in a separate guide. You also haven't given them a proper brain, which is the most complex part of the whole process and also gets its own guide.
-
-But the hard part is done. Everything you just defined will survive a game load, will work with the quest system, and will behave correctly with the crime and relationship systems. The rest is just putting them in the world and telling them what to do when they get there.
+But the foundation is done. Everything you've just defined will survive a game load, play nicely with the quest and crime systems, and respond correctly to factions and relationships. Go touch some grass and come back for the spawning guide.
