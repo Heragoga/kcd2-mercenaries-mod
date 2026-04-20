@@ -1,4 +1,4 @@
-# Welcome to the KCD2 Modding Wiki
+# Welcome Alex's KCD2 Modding Wiki
 
 This is a small documentation where I am going to write down the knowledge I gained about KCD2 modding while I create the mercenaries mod. Since Warhorse gives us barely any docs about modding, it all falls to us. 
 
