@@ -1,0 +1,255 @@
+<Table>
+  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Я хочу нанять наемников.</Cell></Row>
+  
+  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>Я могу найти для тебя обычных наемников, или у меня есть на примете особые бойцы. Кого ты ищешь?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>Обычных наемников.</Cell></Row>
+  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>Просто обычных наемников.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>Особых бойцов.</Cell></Row>
+  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>Я ищу конкретных людей.</Cell></Row>
+  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>А, особый список. Кто именно тебе нужен?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>Самых слабых (50 грошей).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>Неплохих ребят (100 грошей).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>Опытных солдат (300 грошей).</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>Только одного.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>Двоих.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>Троих.</Cell></Row>
+
+  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Я хочу нанять наемников.</Cell></Row>
+  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>Есть тут парни, готовые подзаработать. Насколько сильные тебе нужны?</Cell></Row>
+  
+  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>Самые слабые подойдут.</Cell></Row>
+  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>Хорошо, 50 грошей за голову. Сколько тебе нужно?</Cell></Row>
+  
+  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>Неплохих ребят.</Cell></Row>
+  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>Хорошо, 100 грошей за голову. Сколько тебе нужно?</Cell></Row>
+  
+  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>Опытных солдат.</Cell></Row>
+  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>Высший сорт. Это обойдется в 300 грошей за голову. Сколько тебе нужно?</Cell></Row>
+  
+  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>Только одного.</Cell></Row>
+  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>Я возьму двоих.</Cell></Row>
+  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>Давай троих.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Ждите меня здесь.</Cell></Row>
+  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>За мной.</Cell></Row>
+  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>Я хочу распустить вас всех.</Cell></Row>
+
+  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Ждите меня здесь.</Cell></Row>
+  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>Как скажешь, босс.</Cell></Row>
+  
+  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>За мной.</Cell></Row>
+  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>Прямо за тобой.</Cell></Row>
+
+  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>Вы все свободны.</Cell></Row>
+  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>Бывай.</Cell></Row>
+
+  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>Наемник нанят.</Cell></Row>
+  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>Наемники наняты.</Cell></Row>
+  <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Не хватает грошей!</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>У тебя уже слишком много людей! Максимум 5.</Cell></Row>
+  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Все наемники распущены.</Cell></Row>
+  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Наемники ждут.</Cell></Row>
+  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Наемники следуют за вами.</Cell></Row>
+  
+  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Особый спутник нанят.</Cell></Row>
+  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Этот спутник уже на вас работает!</Cell></Row>
+
+  <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Наемник</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>Сменить снаряжение...</Cell></Row>
+  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>Мне нужно, чтобы вы переоделись.</Cell></Row>
+  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>Что нам надеть?</Cell></Row>
+  
+  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>Обычные наемники</Cell></Row>
+  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>Надевайте свое обычное снаряжение.</Cell></Row>
+  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>Сейчас же переоденемся.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>Разбойники</Cell></Row>
+  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>Оденьтесь как разбойники.</Cell></Row>
+  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>Надеюсь, это не доведет нас до тюрьмы.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>Половцы</Cell></Row>
+  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>Наденьте половецкие доспехи.</Cell></Row>
+  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>Хрмпф.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>Скалица</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Наденьте цвета Скалицы и Липы.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>За пана Рацига!</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>Кутна-Гора</Cell></Row>
+  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>Наденьте цвета Кутны-Горы.</Cell></Row>
+  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>Сию же минуту.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Неважно)</Cell></Row>
+  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Вообще-то, неважно.</Cell></Row>
+
+
+  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(Неважно)</Cell></Row>
+  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>Вообще-то, неважно.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>Кубенка (1500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>Я возьму Кубенку.</Cell></Row>
+  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>Пойду посмотрю, не допился ли он еще до смерти.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_vasko</Cell><Cell>Vasko (1000 groschen).</Cell><Cell>Вашко (1000 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>Пошли за Вашко.</Cell></Row>
+  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>Он как раз ищет работу.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jasak</Cell><Cell>Jasak (800 groschen).</Cell><Cell>Ясак (800 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>Я возьму Ясака.</Cell></Row>
+  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>Его лук точно пригодится.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_bartosch</Cell><Cell>Black Bartosch (2000 groschen).</Cell><Cell>Черный Бартош (2000 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_bartosch</Cell><Cell>I need Black Bartosch.</Cell><Cell>Мне нужен Черный Бартош.</Cell></Row>
+  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>Замок Троски ему все равно уже начал надоедать.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_gnarly</Cell><Cell>Gnarly (2000 groschen).</Cell><Cell>Гнарли (2000 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>Приведи мне Гнарли.</Cell></Row>
+  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>Он согласился выехать на последнюю вылазку.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>Ян Посы (1500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>Я возьму Яна Посы.</Cell></Row>
+  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>Думаю, с ним тебе больше никто не понадобится.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>Мирослав Костотяг (1500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>Пошли за Мирославом.</Cell></Row>
+  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>Будем надеяться, его кость нигде не застряла.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_menhard</Cell><Cell>Menhard (1000 groschen).</Cell><Cell>Менгард (1000 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>Мне нужен Менгард.</Cell></Row>
+  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>Лучший мастер фехтования из Франкфурта к твоим услугам.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_arne</Cell><Cell>Arne (500 groschen).</Cell><Cell>Арне (500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>Я возьму Арне.</Cell></Row>
+  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>Ладно, но я не думаю, что он говорит по-чешски...</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>Янек из Скалицы (800 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>Приведи мне Янека.</Cell></Row>
+  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>Я смотрю, старая компания снова в сборе.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jaroslav</Cell><Cell>Jaroslav (800 groschen).</Cell><Cell>Ярослав (800 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_jaroslav</Cell><Cell>I need Jaroslav.</Cell><Cell>Мне нужен Ярослав.</Cell></Row>
+  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>Кажется, он выигрывает спор на самую длинную бороду.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_adder</Cell><Cell>Adder (1500 groschen).</Cell><Cell>Эддер (1500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>Я возьму Эддера.</Cell></Row>
+  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>Сейчас позову местного мясника.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janosh</Cell><Cell>Janosh (1500 groschen).</Cell><Cell>Янош (1500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>Пошли за Яношем.</Cell></Row>
+  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>Я вижу, ты настоящий гурман.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>Матуш Сборщик (500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>Мне нужен Матуш Сборщик.</Cell></Row>
+  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>Я смотрю, ты хочешь собрать всю чертову шайку.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_zizka</Cell><Cell>Jan Zizka (3000 groschen).</Cell><Cell>Ян Жижка (3000 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_zizka</Cell><Cell>I need Jan Zizka.</Cell><Cell>Мне нужен Ян Жижка.</Cell></Row>
+  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>Он согласился тебе помочь.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_devil</Cell><Cell>The Devil (3000 groschen).</Cell><Cell>Сухой Черт (3000 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>Мне нужен Сухой Черт.</Cell></Row>
+  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>Он готов выступать.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_godwin</Cell><Cell>Father Godwin (2500 groschen).</Cell><Cell>Отец Богута (2500 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>Отец Богута. Позови его.</Cell></Row>
+  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>Из священников в наемники... что за человек.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_capon</Cell><Cell>Sir Hans Capon (3000 groschen).</Cell><Cell>Пан Ян Птачек (3000 грошей).</Cell></Row>
+  <Row><Cell>merc_henry_capon</Cell><Cell>Sir Hans Capon.</Cell><Cell>Пан Ян Птачек.</Cell></Row>
+  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>Его милость к твоим услугам.</Cell></Row>
+
+  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>Ваши наемники уже в пути.</Cell></Row>
+  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>Отозвать моих людей.</Cell></Row>
+  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>Передайте моим людям. Они нужны мне обратно.</Cell></Row>
+  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>Считай, сделано. Я немедленно отправлю гонца.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>Подлатайте себя.</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>Возьмите эти припасы и подлатайте себя. Вы ужасно выглядите.</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>Мы сделаем всё возможное, босс, но настоящий лекарь нам бы не помешал.</Cell></Row>
+  <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>Ваши наемники вылечены.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>Как только я наскребу достаточно грошей...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>Куплю себе небольшой клочок земли.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>Буду весь день сидеть на заднице...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>И смотреть, как холопы гнут спину.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>Только я, овцы и полный живот.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>Господи, вот это будет жизнь.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>Еще один год в этом проклятом ремесле.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>А потом я куплю тот пустой участок в Горшане...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>Чтобы наконец-то обрести тишину и покой.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>Повешу свой меч на стропила...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>И пусть эта проклятая железка ржавеет в пыль.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>Может, буду варить собственный эль.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>И напиваться до беспамятства каждый вечер... хе-хе.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>Я до сих пор помню это... еще до того, как стал мужчиной.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>Ферма моего отца.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>Крепкий дом. С красной дверью.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>А потом пришли эти половецкие ублюдки.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>Перерезали их, как свиней... только мне удалось сбежать в лес.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>С тех самых пор я живу мечом.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>Может быть, однажды... я вернусь и отстрою ее заново.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>Боже, что это была за ночь...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>Здена, так ее звали...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>Волосы как пряденое золото...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>Груди мягкие, словно поднимающееся тесто...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>Я бы сразился с самим дьяволом за еще одну ночь с ней.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>Прошло слишком много времени...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>С тех пор, как я чувствовал тепло женской кожи...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>В каждой корчме, куда ни зайди, одни лишь беззубые старые карги.</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>У мужчины есть свои нужды, черт побери.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>Каждый раз, когда я вспоминаю Бетти, у меня замирает сердце...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>Мне нравится думать, что она всё еще ждет у очага.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>Латает мою тунику...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>Смотрит, как селяне занимаются своими делами...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>Но потом я вспоминаю... что это мой нож оказался в ее груди.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*тяжело вздыхает*</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>Едва минуло две недели с тех пор, как я оставил свою Данку...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>Она выплакала все глаза, когда я уезжал.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>Этот ублюдок Сигизмунд... разрушает семьи.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>А теперь я торчу в этой богом забытой грязевой яме!</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>Пытаюсь просто заработать достаточно монет, чтобы вернуться к ней...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>Но каждый раз, когда мы проходим мимо корчмы...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>Мой кошель становится легче, чем был.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>Моя милая Матильда...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>Надеюсь, она крепко спит под тем старым дубом.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>Раны Господни, ну и адская же была ночка...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>Она кричала, пока не сорвала голос.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>Ее слышала вся деревня.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>Пришлось похоронить бедного маленького Яна прямо там, рядом с ней.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>Он был всего лишь младенцем...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>После этого я просто не мог смотреть на наш дом.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>Ах, виноградники Мельника...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>Какое вино они давят!</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>Красное, как рубин.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>Сладкое, как грех.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>Каждый грош, за который я проливаю кровь...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>Нужен только для того, чтобы еще одна капля этого нектара попала мне на язык.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>Я больше этого не вынесу!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>Четыре дня ни капли в рот!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>Весь мир обретает куда больше смысла после пинты эля.</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>Молю Бога, чтобы следующая корчма была недалеко.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>Где выпивка?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>Кто спрятал проклятый шнапс?!</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>Индржих! Это ты выпил последнюю флягу?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>Это просто настоящая пытка!</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>Пиво... стоит мне только подумать о нем, как у меня подкашиваются колени.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>Если вино — это кровь Христа, а хлеб — Его тело...</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>То пиво должно быть самой Его душой.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>Аминь.</Cell></Row>
+</Table>

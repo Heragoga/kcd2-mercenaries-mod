@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <BehaviorTree name="mercenary_follow" is_function="0">
+        <Variables>
+            <Variable name="followTarget" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="playerWUID" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="formationSlot" type="_int" values="-1" isPersistent="0" form="single" />
+            <Variable name="previousTarget" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="goFlee" type="_bool" values="false" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <Sequence>
+
+                    <Expression expressions="$playerWUID = $__player &#10; $followTarget = $__player &#10; $previousTarget = $__player" />
+
+                    <Parallel successMode="Any" failureMode="Any">
+                        
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
+
+                                <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
+                                
+                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="" />
+                            </Sequence>
+                        </Loop>
+
+                        
+                        <ContinuousSwitch>
+                            <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
+                                <Sequence>
+                                    <Expression expressions="$previousTarget = $followTarget" />
+                                    <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="" />
+                                </Sequence>
+                            </IfCondition>
+                            
+                            <IfCondition failOnCondition="false" condition="$followTarget == $previousTarget &amp; ~$goFlee">
+                                <Sequence>
+
+                                    <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="" />
+                                </Sequence>
+                            </IfCondition>
+                        </ContinuousSwitch>
+
+                    </Parallel>
+                </Sequence>
+            </Behavior>
+        </Root>
+        <ForestContainer />
+    </BehaviorTree>
+</BehaviorTrees>

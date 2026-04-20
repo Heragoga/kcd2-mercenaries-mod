@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<soul2perks version="1">
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="74db1d52-7360-4ed3-b716-f6a53f47f2f9" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11801" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11802" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11803" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11804" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11805" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11806" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11807" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11808" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11809" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11810" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11811" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11812" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11813" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11814" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11815" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11816" />
+        <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11817" />
+	</soul2perks>
+</database>

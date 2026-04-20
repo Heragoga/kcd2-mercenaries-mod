@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<mailbox_groups version="1">
+		<!--mailbox_group mailbox_group_file_name="animal/basic/switch/animal_horseBrain.xml" mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66856" mailbox_group_tree_name="switch_animal_horseBrain" />-->
+		<!-- coulnd't associate mailbox_group_id with another path, it would overwrite animal_horseBrain-->
+
+		<mailbox_group mailbox_group_file_name="mercenary_scheduler.xml" mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66857" mailbox_group_tree_name="onUpdate" />
+	</mailbox_groups>
+</database>

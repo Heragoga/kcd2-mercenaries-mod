@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="farm_1_monolog">
+            <Text StringName="merc_test_bark_title" Text="Mercenary Custom Test Bark" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jstra" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+
+                <!-- Farm Dream 1 -->
+                <Decision Name="dec_farm_1" Priority="General" Alias="bark_test_dialog_farm_1">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_farm_1">
+                            <DesignName StringName="merc_dream_farm_1_1" Text="seq_farm_1" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_1_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_1_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_1_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_1_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_1_5"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_1_6"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+
+                <!-- Farm Dream 2 -->
+                <!-- <Decision Name="dec_farm_2" Priority="General" Alias="bark_test_dialog_farm_2">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_farm_2">
+                            <DesignName StringName="merc_dream_farm_2_1" Text="seq_farm_2" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_2_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_2_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_2_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_2_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_2_5"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_2_6"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_2_7"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+ -->
+                <!-- Farm Dream 3 -->
+                <!-- <Decision Name="dec_farm_3" Priority="General" Alias="bark_test_dialog_farm_3">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_farm_3">
+                            <DesignName StringName="merc_dream_farm_3_1" Text="seq_farm_3" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_3_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_3_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_3_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_3_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_3_5"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_3_6"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_farm_3_7"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+ -->
+                <!-- Woman Dream 1 -->
+                <!-- <Decision Name="dec_woman_1" Priority="General" Alias="bark_test_dialog_woman_1">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_woman_1">
+                            <DesignName StringName="merc_dream_woman_1_1" Text="seq_woman_1" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_1_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_1_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_1_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_1_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_1_5"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Woman Dream 2 -->
+                <!-- <Decision Name="dec_woman_2" Priority="General" Alias="bark_test_dialog_woman_2">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_woman_2">
+                            <DesignName StringName="merc_dream_woman_2_1" Text="seq_woman_2" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_2_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_2_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_2_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_2_4"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+ -->
+                <!-- Woman Dream 3 -->
+            <!--     <Decision Name="dec_woman_3" Priority="General" Alias="bark_test_dialog_woman_3">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_woman_3">
+                            <DesignName StringName="merc_dream_woman_3_1" Text="seq_woman_3" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_3_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_3_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_3_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_3_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_3_5"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_3_6"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Woman Dream 4 -->
+              <!--   <Decision Name="dec_woman_4" Priority="General" Alias="bark_test_dialog_woman_4">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_woman_4">
+                            <DesignName StringName="merc_dream_woman_4_1" Text="seq_woman_4" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_4_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_4_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_4_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_4_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_4_5"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_4_6"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_4_7"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Woman Dream 5 -->
+               <!--  <Decision Name="dec_woman_5" Priority="General" Alias="bark_test_dialog_woman_5">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_woman_5">
+                            <DesignName StringName="merc_dream_woman_5_1" Text="seq_woman_5" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_5"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_6"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_7"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_woman_5_8"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Drink Dream 1 -->
+              <!--   <Decision Name="dec_drink_1" Priority="General" Alias="bark_test_dialog_drink_1">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_drink_1">
+                            <DesignName StringName="merc_dream_drink_1_1" Text="seq_drink_1" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_1_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_1_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_1_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_1_4"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_1_5"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_1_6"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Drink Dream 2 -->
+             <!--    <Decision Name="dec_drink_2" Priority="General" Alias="bark_test_dialog_drink_2">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_drink_2">
+                            <DesignName StringName="merc_dream_drink_2_1" Text="seq_drink_2" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_4"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Drink Dream 3 -->
+                <!-- <Decision Name="dec_drink_3" Priority="General" Alias="bark_test_dialog_drink_3">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_drink_3">
+                            <DesignName StringName="merc_dream_drink_3_1" Text="seq_drink_3" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_4"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Drink Dream 4 -->
+              <!--   <Decision Name="dec_drink_4" Priority="General" Alias="bark_test_dialog_drink_4">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_drink_4">
+                            <DesignName StringName="merc_dream_drink_4_1" Text="seq_drink_4" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_4"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

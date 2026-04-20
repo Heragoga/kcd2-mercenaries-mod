@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="item.xsd">
+    <ItemClasses version="8">
+        <!-- Items used to communicate between skald dialog and the lua script -->
+        <!-- Generic merc recruitment (first item tier one, second item tier tow and third itme tier three) -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be41d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be42d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be43d" Name="loot_sackOfNails" />
+        <!-- Items used to pass orders (dimiss, idle, follow) -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be44d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be45d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be46d" Name="loot_sackOfNails" />
+        <!-- Item used to indicate which style should be chosen (one of these items: common merc, two bandit, three cuman, four skalitz and five kuttenberg) -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be47d" Name="loot_sackOfNails" />
+        <!-- Item used to indicate the recruitment of a custom companion, one means custom companion 1, two custom companion 2 etc -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be48d" Name="loot_sackOfNails" />
+        <!-- Item to handle recalling your mercs via innkeeper -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be49d" Name="loot_sackOfNails" />
+        <!-- ITem to handle healing, number of this item corresponds to number of mercs healed -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be50d" Name="loot_sackOfNails" />
+
+    </ItemClasses>
+</database>

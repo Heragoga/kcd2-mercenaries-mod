@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<mailbox_group2mailboxs version="1">
+		<!-- mailbox_group2mailbox mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66856" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" /-->
+		<!-- this xml does support connecting multiple mailbox_group to one mailbox_id -->
+		<mailbox_group2mailbox mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66857" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+
+	</mailbox_group2mailboxs>
+</database>

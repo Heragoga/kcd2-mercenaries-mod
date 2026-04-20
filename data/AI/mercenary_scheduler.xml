@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <BehaviorTree name="onUpdate" is_function="0">
+        <Variables>
+            <Variable name="testBarkIndex"       type="_int"                 values="1"                                 isPersistent="0" form="single" />
+            <Variable name="distanceToPlayer"    type="_float"               values="0"                                 isPersistent="0" form="single" />
+            <Variable name="followStopDistance"  type="_float"               values="2.0"                               isPersistent="0" form="single" />
+            <Variable name="followRunThresh"     type="_float"               values="4.5"                               isPersistent="0" form="single" />
+            <Variable name="followSprintThresh"  type="_float"               values="8.0"                               isPersistent="0" form="single" />
+            <Variable name="MoveParams_follow"   type="additionalMoveParams" values="destChangedThreshold('300ms')"     isPersistent="0" form="single" />
+            <Variable name="MoveParams_fleeing"  type="additionalMoveParams" values="destChangedThreshold('1s')"        isPersistent="0" form="single" />
+            <Variable name="pathParams_fleeing"  type="pathFindingParams"    values="usePaths(true),useGeneratedNSO(true),useSmartObjects(true)" isPersistent="0" form="single" />
+            <Variable name="distanceToFlee"      type="_float"               values="50.0"                              isPersistent="0" form="single" />
+            <Variable name="keepMinimalDistance" type="_float"               values="10.0"                              isPersistent="0" form="single" />
+            <Variable name="formationSlot"       type="_int"                 values="-1"                                isPersistent="0" form="single" />
+
+            <Variable name="inCombat"            type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="goFlee"              type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="isIdle"              type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="isFollowingActive"   type="_bool"                values="false"                             isPersistent="0" form="single" />
+
+            <Variable name="isFriendly"          type="_bool"                values="true"                              isPersistent="0" form="single" />
+            <Variable name="mercWeaponDrawn"     type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="playerTarget"        type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <Variable name="currentTarget"       type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <Variable name="mercTarget"          type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <Variable name="playerWUID"          type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <Variable name="idleTicks"           type="_int"                 values="0"                                 isPersistent="0" form="single" />
+            
+            <Variable name="enemiesArray"        type="_wuid"                values=""                                  isPersistent="0" form="array"  />
+            <Variable name="candidate"           type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <Variable name="candidateTarget"     type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <Variable name="foundTarget"         type="_bool"                values="false"                             isPersistent="0" form="single" />
+            
+            <Variable name="dialogRequest"       type="dialogModule:onDialogRequest" values=""                          isPersistent="0" form="single" />
+
+            <Variable name="attackData"          type="switch:interruptData:attack" values=""                           isPersistent="0" form="single" />
+            <Variable name="crimeInformation"    type="information"          values=""                                  isPersistent="0" form="single" />
+            <Variable name="mrkev"               type="_wuid"                values=""                                  isPersistent="0" form="single" />
+
+            <Variable name="currentSpeed" type="_float" values="0" isPersistent="0" form="single" />
+            <Variable name="playerSpeed" type="_float" values="0" isPersistent="0" form="single" />
+
+            <Variable name="isInjured" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="playerStinks" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="barkRandom" type="_int" values="1" isPersistent="0" form="single" />
+
+            <Variable name="wasInCombat" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="canSpeak" type="_bool" values="false" isPersistent="0" form="single" />
+
+        </Variables>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <SuppressFailure>
+                    <Parallel successMode="Any" failureMode="Any">
+
+                        <Loop count="-1">
+                            <Sequence>
+
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
+
+                                <AtomicDecorator>
+                                    <Sequence>
+                                        <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
+                                        <ExecuteLua code="data.isIdle = _G.MercIdle or false" />
+
+                                        <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
+
+                                        
+                                        <!-- Skip enemy scanning entirely when already in combat.
+                                             The merc is already fighting via mercenary_attack — no need
+                                             to find new targets until the current fight ends. -->
+                                        <SuppressFailure>
+                                            <IfCondition failOnCondition="false" condition="~$inCombat">
+                                                <Sequence>
+                                                    <ExecuteLua code="mercenaries:ScanForEnemies(data, entity.this.id)" />
+
+                                                    <For startIndex="0" endIndex="-1" step="1" array="$enemiesArray" iterator="" value="$candidate" break="$foundTarget">
+                                                        <Sequence>
+                                                            <Expression expressions="$candidateTarget = $__null" />
+                                                            <SuppressFailure>
+                                                                <GetTarget ReferenceNPC="$candidate" TargetVarOut="$candidateTarget" />
+                                                            </SuppressFailure>
+                                                            
+                                                            <ExecuteLua code="mercenaries:EvaluateCombatTarget(data)" />
+                                                        </Sequence>
+                                                    </For>
+                                                </Sequence>
+                                            </IfCondition>
+                                        </SuppressFailure>
+
+                                        <SuppressFailure><GetTarget ReferenceNPC="$this.id" TargetVarOut="$mercTarget" /></SuppressFailure>
+                                        
+                                        <IfElseCondition failOnCondition="false" condition="$playerTarget == $__null" saveVersion="2">
+                                            <Then canSkip="1"><Expression expressions="$idleTicks = $idleTicks + 1" /></Then>
+                                            <Else canSkip="1"><Expression expressions="$idleTicks = 0" /></Else>
+                                        </IfElseCondition>
+                                        <IfCondition failOnCondition="false" condition="$idleTicks &gt; 40">
+                                            <Expression expressions="$idleTicks = 40" />
+                                        </IfCondition>
+                                    </Sequence>
+                                </AtomicDecorator>
+
+                                <IfCondition failOnCondition="false" condition="~$goFlee">
+                                    <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
+                                        <Then canSkip="1">
+                                            <Sequence>
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 20.0 | $idleTicks &gt; 33">
+                                                    <Sequence>
+                                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end)" />
+                                                        <Expression expressions="$currentTarget = $__null" />
+                                                    </Sequence>
+                                                </IfCondition>
+                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            </Sequence>
+                                        </Then>
+                                        <Else canSkip="1">
+                                            <Sequence>
+                                                <SuppressFailure>
+                                                    <ProcessMessage Atomic="false" timeout="'0ms'" timeType="GameTime" variable="$dialogRequest" senderInfo="" inbox="'dialogMailbox'" condition="" answerVar="">
+                                                        <Function_switch_handleDialog dialogRequest="$dialogRequest" nodeLabel="68945293" />
+                                                    </ProcessMessage>
+                                                </SuppressFailure>
+                                                <IfElseCondition failOnCondition="false" condition="$playerTarget ~= $__null &amp; ~$isFriendly &amp; $playerTarget ~= $this.id &amp; $playerTarget ~= $currentTarget" saveVersion="2">
+                                                    <Then canSkip="1">
+                                                        <Sequence>
+                                                            <Expression expressions="$currentTarget = $playerTarget" />
+                                                            <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
+                                                            <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$playerTarget" Information="$crimeInformation" />
+                                                            <LockDynamicInformationValues Information="$crimeInformation">
+                                                                <SetDynamicInformationValue Information="$crimeInformation" Tag="'stimulusKind'" Variable="$enum:crime_stimulusKind.combat" Type="" Value="" />
+                                                            </LockDynamicInformationValues>
+                                                            <SuppressFailure><Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898990" /></SuppressFailure>
+                                                            <Expression expressions="$attackData.target = $playerTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
+                                                            <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'mercenary_attack'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                        </Sequence>
+                                                    </Then>
+                                                    <Else canSkip="1">
+                                                        <AtomicDecorator>
+                                                            <IfCondition failOnCondition="false" condition="$idleTicks &gt; 33">
+                                                                <Sequence>
+                                                                    <Expression expressions="$currentTarget = $__null" />
+                                                                    <ExecuteLua code="
+                                                                        pcall(function()
+                                                                        if entity.human:IsWeaponDrawn() then
+                                                                            entity.human:DrawWeapon(false)
+                                                                        end
+                                                                        end)
+                                                                    " />
+                                                                </Sequence>
+                                                            </IfCondition>
+                                                        </AtomicDecorator>
+                                                    </Else>
+                                                </IfElseCondition>
+                                            </Sequence>
+                                        </Else>
+                                    </EntityContextCheck>
+                                </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        <Loop count="-1">
+                            <Sequence>
+                                <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
+                                    <Then canSkip="1">
+                                        <Expression expressions="$inCombat = true" />
+                                    </Then>
+                                    <Else canSkip="1">
+                                        <Expression expressions="$inCombat = false" />
+                                    </Else>
+                                </EntityContextCheck>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                
+                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$goFlee &amp; ~$inCombat &amp; ~$isIdle">
+                                    <Sequence>
+                                        <MeasureDistance position1="$this.id" position2="$__player" mode="TwoDimensions" result="$distanceToPlayer" />
+                                        
+                                        <ExecuteLua code="
+                                            local vel = entity:GetVelocity()
+                                            data.currentSpeed = vel and math.sqrt(vel.x^2 + vel.y^2) or 0
+                                            
+                                            local pVel = player:GetVelocity()
+                                            data.playerSpeed = pVel and math.sqrt(pVel.x^2 + pVel.y^2) or 0
+                                        " />
+                                        
+                                        <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 5.0 &amp; $currentSpeed &lt; 0.2 &amp; $playerSpeed &gt; 0.5">
+                                            <Sequence>
+                                                <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="'30ms'" />
+                                                
+                                                <ExecuteLua code="
+                                                    local vel = entity:GetVelocity()
+                                                    data.currentSpeed = vel and math.sqrt(vel.x^2 + vel.y^2) or 0
+                                                    
+                                                    local pVel = player:GetVelocity()
+                                                    data.playerSpeed = pVel and math.sqrt(pVel.x^2 + pVel.y^2) or 0
+                                                " />
+                                                
+                                                <IfCondition failOnCondition="false" condition="$currentSpeed &lt; 0.2 &amp; $playerSpeed &gt; 0.5">
+                                                    <Sequence>
+                                                        <Expression expressions="$isFollowingActive = false" />
+                                                    </Sequence>
+                                                </IfCondition>
+                                                
+                                            </Sequence>
+                                        </IfCondition>
+                                    </Sequence>
+                                </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        <Loop count="-1">
+                            <Sequence>
+                                <AtomicDecorator>
+                                    <Sequence>
+                                        <ExecuteLua code="
+                                            local ok = pcall(function()
+                                                local isDead = false
+                                                if not entity.actor then isDead = true end
+                                                if entity.actor and entity.actor.IsDead and entity.actor:IsDead() then isDead = true end
+                                                local ok2, health = pcall(function() return entity.soul:GetState('health') end)
+                                                if not ok2 or health == nil or health &lt;= 0 or entity.actor:IsUnconscious() then isDead = true end
+                                                
+                                                if isDead then
+                                                    data.distanceToPlayer = 0.0
+                                                    return
+                                                end
+
+                                                local pe = XGenAIModule.GetEntityByWUID(data.playerWUID)
+                                                if not pe then return end
+                                                local pp = pe:GetPos()
+                                                local mp = entity:GetPos()
+                                                if pp and mp then
+                                                    local dx,dy,dz = pp.x-mp.x, pp.y-mp.y, pp.z-mp.z
+                                                    data.distanceToPlayer = math.sqrt(dx*dx+dy*dy+dz*dz)
+                                                end
+                                            end)
+                                        " />
+                                        
+                                        <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 50.0 &amp; ~$inCombat">
+                                            <ExecuteLua code="
+                                                local ok, err = pcall(function()
+                                                    if _G.MercIdle then return end
+
+                                                    local isDead = false
+                                                    if not entity.actor then isDead = true end
+                                                    if entity.actor and entity.actor.IsDead and entity.actor:IsDead() then isDead = true end
+                                                    if entity.actor:IsUnconscious() then isDead = true end
+                                                    local ok2, health = pcall(function() return entity.soul:GetState('health') end)
+
+                                                    if not ok2 or health == nil or health &lt;= 0 then isDead = true end
+                                                    
+                                                    if isDead then return end
+
+                                                    if data.goFlee then return end
+
+                                                    local pe = XGenAIModule.GetEntityByWUID(data.playerWUID)
+                                                    if not pe then return end
+
+                                                    local distance = 10
+                                                    local playerPos = pe:GetWorldPos()
+                                                    local playerDir = pe:GetDirectionVector()
+                                                    local eyePos = {x=playerPos.x, y=playerPos.y, z=playerPos.z + 1.6}
+                                                    local rayDistance = distance + 2
+                                                    local hitTable = {}
+                                                    local numRays = 10
+                                                    local arcAngle = 100
+                                                    local startAngle = -arcAngle / 2
+                                                    local angleStep = arcAngle / (numRays - 1)
+                                                    local bestDir = nil
+                                                    local bestDist = -1
+                                                    local backDir = {x = -playerDir.x, y = -playerDir.y, z = -playerDir.z}
+
+                                                    for i = 0, numRays - 1 do
+                                                        local angleOffset = startAngle + (i * angleStep)
+                                                        local rotatedDir = VectorUtils.Rotate2D(backDir, angleOffset)
+                                                        local checkVec = VectorUtils.Scale(rotatedDir, rayDistance)
+                                                        local hits = Physics.RayWorldIntersection(eyePos, checkVec, 2, ent_all, pe.id, nil, hitTable)
+                                                        local clearDist = rayDistance
+                                                        if hits &gt; 0 and hitTable[1] then
+                                                            clearDist = hitTable[1].dist
+                                                        end
+                                                        clearDist = clearDist - (math.abs(angleOffset)/180)
+                                                        if clearDist &gt; bestDist then
+                                                            bestDist = clearDist
+                                                            bestDir = rotatedDir
+                                                        end
+                                                    end
+
+                                                    local spawnPos = {}
+                                                    if bestDist &lt; rayDistance then
+                                                        local safeDistance = math.max(bestDist - 2.0, 3.0)
+                                                        spawnPos.x = playerPos.x + bestDir.x * safeDistance
+                                                        spawnPos.y = playerPos.y + bestDir.y * safeDistance
+                                                        spawnPos.z = playerPos.z
+                                                    else
+                                                        spawnPos.x = playerPos.x + bestDir.x * distance
+                                                        spawnPos.y = playerPos.y + bestDir.y * distance
+                                                        spawnPos.z = playerPos.z
+                                                    end
+
+                                                    local groundCheckStart = {x=spawnPos.x, y=spawnPos.y, z=spawnPos.z + 2.0}
+                                                    local groundCheckDir = {x=0, y=0, z=-100}
+                                                    local groundHits = Physics.RayWorldIntersection(groundCheckStart, groundCheckDir, 2, ent_terrain + ent_static, 0, nil, hitTable)
+                                                    if groundHits &gt; 0 and hitTable[1] then
+                                                        spawnPos.z = hitTable[1].pos.z
+                                                    else
+                                                        spawnPos.z = playerPos.z
+                                                    end
+
+                                                    entity:SetPos({x = spawnPos.x, y = spawnPos.y, z = spawnPos.z})
+                                                end)
+                                                if not ok then System.LogAlways('[Mercenary] Teleport Error: ' .. tostring(err)) end
+                                            " />
+                                        </IfCondition>
+
+                                    </Sequence>
+                                </AtomicDecorator>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+                        <Loop count="-1">
+                            <ContinuousSwitch>
+                                
+                                <IfCondition failOnCondition="false" condition="$goFlee">
+                                    <Sequence>
+                                        <Expression expressions="$isFollowingActive = false" />
+                                        <Move stopWithinDistance="5.0" stopDistanceVariation="2.5" rayCasteFlee="false" successDistance="0.0" changeNPCState="false" fastForwardIncludesMove="false" destinationSpecification="$__player" destinationSpecification2="$distanceToFlee" destinationSpecification3="$keepMinimalDistance" speed="Sprint" additionalParams="$MoveParams_fleeing" pathFindingParams="$pathParams_fleeing" staminaPolicy="" pathInfo="" />
+                                        <Despawn DeSpawnedEntity="$this.id" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <IfCondition failOnCondition="false" condition="$isIdle">
+                                    <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
+                                        <Sequence>
+                                            <IfCondition failOnCondition="false" condition="$isFollowingActive">
+                                                <Sequence>
+                                                    <Expression expressions="$isFollowingActive = false" />
+                                                    <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
+                                                </Sequence>
+                                            </IfCondition>
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        </Sequence>
+                                    </EntityContext>
+                                </IfCondition>
+
+                                <IfCondition failOnCondition="false" condition="$inCombat | $mercTarget ~= $__null">
+                                    <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
+                                        <Sequence>
+                                            <Expression expressions="$isFollowingActive = false" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        </Sequence>
+                                    </EntityContext>
+                                </IfCondition>
+
+                                <IfCondition failOnCondition="false" condition="true">
+                                    <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
+                                        <Sequence>
+                                            <IfCondition failOnCondition="false" condition="~$isFollowingActive">
+                                                <Sequence>
+                                                    <SuppressFailure>
+                                                        <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
+                                                        <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$__player" Information="$crimeInformation" />
+                                                        <LockDynamicInformationValues Information="$crimeInformation">
+                                                            <SetDynamicInformationValue Information="$crimeInformation" Tag="'stimulusKind'" Variable="$enum:crime_stimulusKind.combat" Type="" Value="" />
+                                                        </LockDynamicInformationValues>
+                                                        <Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898990" />
+                                                    </SuppressFailure>
+                                                    
+                                                    <Expression expressions="$attackData.target = $__player &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
+                                                    <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'mercenary_follow'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                    <Expression expressions="$isFollowingActive = true" />
+
+                                                </Sequence>
+                                            </IfCondition>
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        </Sequence>
+                                    </EntityContext>
+                                </IfCondition>
+                            </ContinuousSwitch>
+                        </Loop>
+                        
+            
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'30s'" timeType="GameTime" doFail="false" variation="'25s'" />
+                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; ~$goFlee">
+                                    <Sequence>
+
+                                        <!-- Death/despawn guard -->
+                                        <ExecuteLua code="
+                                            local isDead = false
+                                            if not entity.actor then isDead = true end
+                                            if entity.actor and entity.actor:IsUnconscious() then isDead = true end
+                                            local ok, health = pcall(function() return entity.soul:GetState('health') end)
+                                            if not ok or health == nil or health &lt;= 0 then isDead = true end
+                                            if isDead and _G.MercSpeakingOwner == tostring(entity.this.id) then
+                                                _G.MercSpeakingLock = false
+                                                _G.MercSpeakingOwner = nil
+                                                System.LogAlways('[Mercenary] Speaking lock force-released: owner died/despawned.')
+                                            end
+                                        " />
+
+                                        <ExecuteLua code="
+                                            local ok, health = pcall(function() return entity.soul:GetState('health') end)
+                                            if ok and health ~= nil and health &lt; 50 then
+                                                data.isInjured = true
+                                            else
+                                                data.isInjured = false
+                                            end
+                                        " />
+
+                                        <IfElseCondition failOnCondition="false" condition="$isInjured" saveVersion="2">
+                                            <Then canSkip="1">
+                                                <Sequence>
+                                                    <Wait duration="'5s'" timeType="GameTime" doFail="false" variation="'2s'" />
+                                                    <SuppressFailure>
+                                                        <Sequence>
+                                                            <AtomicDecorator>
+                                                                <ExecuteLua code="
+                                                                    if _G.MercSpeakingLock then
+                                                                        data.canSpeak = false
+                                                                    else
+                                                                        data.canSpeak = true
+                                                                        _G.MercSpeakingLock = true
+                                                                        _G.MercSpeakingOwner = tostring(entity.this.id)
+                                                                    end
+                                                                " />
+                                                            </AtomicDecorator>
+                                                            <IfCondition failOnCondition="false" condition="$canSpeak">
+                                                                <Sequence>
+                                                                    <SuppressFailure>
+                                                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="'NPC_SI_ZASTAVUJE_KRVACENI'" skipInLod="false" subtitlesDown="false" />
+                                                                    </SuppressFailure>
+                                                                    <ExecuteLua code="Script.SetTimerForFunction(10000, 'mercenaries.ReleaseSpeakingLock')" />
+                                                                    <Wait duration="'20s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                                                </Sequence>
+                                                            </IfCondition>
+                                                        </Sequence>
+                                                    </SuppressFailure>
+                                                </Sequence>
+                                            </Then>
+                                            <Else canSkip="1">
+                                                <Sequence>
+                                                    <ExecuteLua code="data.barkRandom = math.random(1, 18)" />
+                                                    <ExecuteLua code="System.LogAlways('[Mercenary] Going to play random line ' .. tostring(data.barkRandom))" />
+                                                    <IfCondition failOnCondition="false" condition="~$isInjured">
+                                                        <SuppressFailure>
+                                                            <Sequence>
+                                                                <AtomicDecorator>
+                                                                    <ExecuteLua code="
+                                                                        if _G.MercSpeakingLock then
+                                                                            data.canSpeak = false
+                                                                        else
+                                                                            data.canSpeak = true
+                                                                            _G.MercSpeakingLock = true
+                                                                            _G.MercSpeakingOwner = tostring(entity.this.id)
+                                                                        end
+                                                                    " />
+                                                                </AtomicDecorator>
+                                                                <IfCondition failOnCondition="false" condition="$canSpeak">
+                                                                    <Sequence>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 1">
+                                                                                <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="'ZAKAZNIK_CEKA_MUZ'" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 2">
+                                                                                <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="'ZAKAZNIK_SAMOMLUVA'" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 3">
+                                                                                <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="'SAMOMLUVA'" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 4">
+                                                                                <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="'LEAN_BARK'" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 5">
+                                                                                <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="'BFF_REAGUJE_NA_HRACE_TROPICIHO_HLOUPOSTI'" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 6">
+                                                                                <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="'BUDDY_SI_VSIML_ZMIZENI_NPC_A_JDE_HO_HLEDAT'" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 7">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_farm_1'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 8">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_farm_2_monolog'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 9">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_farm_3'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 10">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_1'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 11">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_2'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 12">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_3'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 13">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_4'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 14">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_5'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 15">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_1'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 16">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_2'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 17">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_3'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 18">
+                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_4'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <ExecuteLua code="
+                                                                            local duration = (data.barkRandom &lt;= 6) and 10000 or 20000
+                                                                            Script.SetTimerForFunction(duration, 'mercenaries.ReleaseSpeakingLock')
+                                                                        " />
+                                                                        <Wait duration="'40s'" timeType="GameTime" doFail="false" variation="'30s'" />
+                                                                    </Sequence>
+                                                                </IfCondition>
+                                                            </Sequence>
+                                                        </SuppressFailure>
+                                                    </IfCondition>
+                                                </Sequence>
+                                            </Else>
+                                        </IfElseCondition>
+                                    </Sequence>
+                                </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        
+                    </Parallel>
+                </SuppressFailure>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

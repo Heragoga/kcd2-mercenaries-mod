@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<buffs version="1">
+        <buff buff_class_id="15"
+        buff_exclusivity_id="1"
+        buff_id="b8f4a2c1-3d7e-4f90-8b5a-6c2d9e1f0a3b"
+        buff_lifetime_id="1"
+        buff_name="mercenary_speed_boost"
+        buff_params="rms*1.15"
+        duration="-1"
+        implementation="Cpp:Constant"
+        is_persistent="false" />
+	</buffs>
+
+        <buff buff_class_id="15" buff_exclusivity_id="1" buff_id="f123ee45-aade-4a13-a776-597c97d34bab" buff_lifetime_id="0" buff_name="merc_decreaseddamageintake" buff_params="hlh*0.7,slh*0.7" duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
+
+</database>

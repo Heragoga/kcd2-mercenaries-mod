@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="InventoryPreset.xsd">
+    <InventoryPresets version="2" >
+        
+        <InventoryPreset Name="inventory_mercenary_test">
+            <ClothingPresetRef Name="soldier_generic_3_01"/>
+            <WeaponPresetRef Name="longsword_3_01"/>
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_mercenary_weak_1">
+            <ClothingPresetRef Name="soldierLight_generic_1_01"/>
+            <WeaponPresetRef Name="huntingsword_1_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_2">
+            <ClothingPresetRef Name="soldierLight_generic_2_03"/>
+            <WeaponPresetRef Name="mace_1_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_3">
+            <ClothingPresetRef Name="soldier_generic_1_05"/>
+            <WeaponPresetRef Name="axe_1_02"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_4">
+            <ClothingPresetRef Name="soldier_generic_2_04"/>
+            <WeaponPresetRef Name="polearm_1_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_5">
+            <ClothingPresetRef Name="soldier_generic_2_10"/>
+            <WeaponPresetRef Name="huntingsword_2_01"/>
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_mercenary_medium_1">
+            <ClothingPresetRef Name="soldier_generic_3_05"/>
+            <WeaponPresetRef Name="sword_shield_3_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_2">
+            <ClothingPresetRef Name="soldier_generic_4_02"/>
+            <WeaponPresetRef Name="longsword_3_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_3">
+            <ClothingPresetRef Name="soldier_kh_3_04"/>
+            <WeaponPresetRef Name="mace_shield_3_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_4">
+            <ClothingPresetRef Name="soldier_pisek_3_02"/>
+            <WeaponPresetRef Name="polearm_3_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_5">
+            <ClothingPresetRef Name="soldier_bergov_4_03"/>
+            <WeaponPresetRef Name="axe_shield_3_01"/>
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_mercenary_good_1">
+            <ClothingPresetRef Name="soldier_generic_5_04"/>
+            <WeaponPresetRef Name="longsword_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_2">
+            <ClothingPresetRef Name="soldier_generic_6_05"/>
+            <WeaponPresetRef Name="mace_shield_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_3">
+            <ClothingPresetRef Name="soldier_kh_5_06"/>
+            <WeaponPresetRef Name="sword_shield_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_4">
+            <ClothingPresetRef Name="soldier_kh_6_01"/>
+            <WeaponPresetRef Name="polearm_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_5">
+            <ClothingPresetRef Name="soldier_prague_4_05"/>
+            <WeaponPresetRef Name="hammer_shield_5_01"/>
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_mercenary_miroslav">
+			<ClothingPresetRef Name="bratriZCimburka_miroslavForBattle" />
+            <WeaponPresetRef Name="polearm_5_01"/>
+		</InventoryPreset>
+
+        <InventoryPreset Name="inventory_mercenary_capon">
+			<ClothingPresetRef Name="UC_CaponTrailerArmor" /> 
+			<InventoryPresetRef Name="pockets_noble" />
+            <WeaponPresetRef Name="longsword_5_01"/>
+		</InventoryPreset>
+
+        <InventoryPreset Name="kubenka_merc" Health="1">
+			<ClothingPresetRef Name="test_Kubenka_battleM44b" />
+			<WeaponPresetRef Name="UC_Kubenka" />
+			<InventoryPresetRef Name="pockets_soldiers_all" />
+		</InventoryPreset>
+
+        <InventoryPreset Name="inventory_jasak_merc"> <!--kumansky pobocnik Jasak-->
+			<ClothingPresetRef Name="merc_jasak"/>
+			<WeaponPresetRef Name="tvez_man_8"/>
+			<InventoryPresetRef Name="pockets_bandit_medium"/>
+			<InventoryPresetRef Name="inventory_chanceOfSingleBurgherValuable"/>
+			<PresetItem Name="apple" Amount="1" Health="1" HealthVariation="0.3"/>
+			<PresetItem Name="repairKit_weaponSmall" Amount="1"/>
+			<PresetItem Name="repairKit_bowyerSmall" Amount="1"/>
+			<!-- netreba kapes -->
+		</InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_gnarly">
+			<ClothingPresetRef Name="merc_gnarly"/>
+			<WeaponPresetRef Name="tsem_suk"/>
+			<InventoryPresetRef Name="pockets_soldiers_all"/>
+		</InventoryPreset>
+
+        
+
+        <InventoryPreset Name="inventory_merc_menhart">
+			<ClothingPresetRef Name="merc_menhard"/>
+			<WeaponPresetRef Name="kkut_menhart"/>
+			<InventoryPresetRef Name="pockets_burgher"/>
+		</InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_arne">
+			<ClothingPresetRef Name="merc_arne"/>
+			<WeaponPresetRef Name="kkut_arne"/>
+			<InventoryPresetRef Name="pockets_burgher"/>
+		</InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_janosh" Health="1">
+			<ClothingPresetRef Name="UC_UherArmor" />
+			<WeaponPresetRef Name="UC_Uher" />
+			<InventoryPresetRef Name="pockets_soldiers_all" />
+		</InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_godwin" Health="1">
+			<ClothingPresetRef Name="UC_GodwinArmorAndHelmet" />
+			<WeaponPresetRef Name="UC_Godwin" />
+			<InventoryPresetRef Name="inventory_money_niceChalice" />
+			<PresetItem Name="bandage_classic" Amount="5" />
+			<PresetItem Name="potion_marigold" Amount="2" />
+			<PresetItem Name="beer" Amount="1" />
+			<PresetItem Name="bread" Amount="1" />
+			<PresetItem Name="spirits" Amount="1" />
+			<PresetItem Name="potion_saviourSchnapps" Amount="1" />
+			<PresetItem Name="lorebook_onEvilMorals" Amount="1" />
+			<PresetItem Name="lorebook_meadBrewing" Amount="1" />
+		</InventoryPreset>
+                
+    </InventoryPresets>
+</database>

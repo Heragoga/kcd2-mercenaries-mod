@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="FactionTree.xsd">
+	<FactionTree version="1">
+
+        <Faction Name="mercenariesFaction">
+			<Relations>
+				<Relation target="player" reputation="1" />
+				<Relation target="players_friends" reputation="1" />
+				<Relation target="kutnohorsko_allies" reputation="1" />
+				<Relation target="trosecko_allies" reputation="1" />
+				<Relation target="players_enemies" reputation="-1" />
+				<Relation target="trosecko_enemies" reputation="-1" />
+				<Relation target="kutnohorsko_enemies" reputation="-1" />
+				<Relation target="kutnohorsko_enemies_oblehaniSuchdoleEnemyArmy" reputation="-1" />
+			</Relations>
+		</Faction>
+    </FactionTree>
+</database>

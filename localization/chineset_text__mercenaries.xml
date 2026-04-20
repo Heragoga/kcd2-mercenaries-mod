@@ -1,0 +1,254 @@
+<Table>
+  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>我想僱傭一些傭兵。</Cell></Row>
+  
+  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>我可以給你找些普通的傭兵，或者我也有一些特殊的同伴。你在找什麼樣的？</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>普通傭兵。</Cell></Row>
+  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>只要標準的傭兵。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>特殊同伴。</Cell></Row>
+  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>我在找一些特定的人。</Cell></Row>
+  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>啊，特殊名單。你心裡有誰的人選嗎？</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>最弱的（50格羅申）。</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>一些不錯的伙子（100格羅申）。</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>經驗豐富的老兵（300格羅申）。</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>只要一個。</Cell></Row>
+  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>兩個。</Cell></Row>
+  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>三個。</Cell></Row>
+
+  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>我想僱傭一些傭兵。</Cell></Row>
+  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>有些小伙子願意幫忙。你要多強的？</Cell></Row>
+  
+  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>最弱的就行。</Cell></Row>
+  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>好的，每人50格羅申。你需要幾個？</Cell></Row>
+  
+  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>一些不錯的伙子。</Cell></Row>
+  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>好的，每人100格羅申。你需要幾個？</Cell></Row>
+  
+  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>經驗豐富的老兵。</Cell></Row>
+  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>頂級品質。每人300格羅申。你需要幾個？</Cell></Row>
+  
+  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>只要一個。</Cell></Row>
+  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>我要兩個。</Cell></Row>
+  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>給我來三個。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>在這等我。</Cell></Row>
+  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>跟我來。</Cell></Row>
+  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>我想解散你們所有人。</Cell></Row>
+
+  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>在這等我。</Cell></Row>
+  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>遵命，老闆。</Cell></Row>
+  
+  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>跟我來。</Cell></Row>
+  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>就在你身後。</Cell></Row>
+
+  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>你們被解散了。</Cell></Row>
+  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>再見。</Cell></Row>
+
+  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>傭兵已僱傭。</Cell></Row>
+  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>傭兵們已僱傭。</Cell></Row>
+  <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>格羅申不足！</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>你的人已經太多了！最多5個。</Cell></Row>
+  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>所有傭兵已解散。</Cell></Row>
+  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>傭兵待命中。</Cell></Row>
+  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>傭兵跟隨中。</Cell></Row>
+  
+  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>特殊同伴已僱傭。</Cell></Row>
+  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>這個同伴已經在為你效勞了！</Cell></Row>
+
+  <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>傭兵</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>更換裝備...</Cell></Row>
+  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>我需要你們換一下裝備。</Cell></Row>
+  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>我們該穿什麼？</Cell></Row>
+  
+  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>普通傭兵</Cell></Row>
+  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>穿上你們平時的裝備。</Cell></Row>
+  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>我們馬上換。</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>強盜</Cell></Row>
+  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>打扮成強盜的樣子。</Cell></Row>
+  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>希望這不會讓我們進監獄。</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>庫曼人</Cell></Row>
+  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>穿上庫曼盔甲。</Cell></Row>
+  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>哼。</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>斯卡里茨</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>穿上斯卡里茨和萊帕的顏色。</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>為了拉德季大人！</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>庫滕堡</Cell></Row>
+  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>穿上庫滕堡的顏色。</Cell></Row>
+  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>馬上。</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(算了)</Cell></Row>
+  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>其實，算了吧。</Cell></Row>
+
+
+  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(算了)</Cell></Row>
+  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>其實，算了吧。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>庫邊卡（1500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>我要庫邊卡。</Cell></Row>
+  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>我去看看他是不是還沒喝死。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_vasko</Cell><Cell>Vasko (1000 groschen).</Cell><Cell>瓦斯科（1000格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>去叫瓦斯科。</Cell></Row>
+  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>他確實正在找活幹。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jasak</Cell><Cell>Jasak (800 groschen).</Cell><Cell>亞薩克（800格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>我要亞薩克。</Cell></Row>
+  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>他的弓會派上用場的。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_bartosch</Cell><Cell>Black Bartosch (2000 groschen).</Cell><Cell>黑巴托什（2000格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_bartosch</Cell><Cell>I need Black Bartosch.</Cell><Cell>我需要黑巴托什。</Cell></Row>
+  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>反正特羅斯基城堡也開始讓他覺得無聊了。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_gnarly</Cell><Cell>Gnarly (2000 groschen).</Cell><Cell>納利（2000格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>給我找納利來。</Cell></Row>
+  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>他同意進行最後一次出擊。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>揚·波西（1500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>我要揚·波西。</Cell></Row>
+  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>有他在，我想你就不需要其他人了。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>“拖骨”米羅斯拉夫（1500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>去叫米羅斯拉夫。</Cell></Row>
+  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>希望他的骨頭沒卡在什麼地方。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_menhard</Cell><Cell>Menhard (1000 groschen).</Cell><Cell>門哈德（1000格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>我要門哈德。</Cell></Row>
+  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>法蘭克福最優秀的劍術大師竭誠為您服務。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_arne</Cell><Cell>Arne (500 groschen).</Cell><Cell>阿內（500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>我要阿內。</Cell></Row>
+  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>好吧，但我覺得他一句捷克語都不會說……</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>斯卡里茨的亞內克（800格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>給我找亞內克。</Cell></Row>
+  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>看來老伙計們又聚在一起了。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jaroslav</Cell><Cell>Jaroslav (800 groschen).</Cell><Cell>雅羅斯拉夫（800格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_jaroslav</Cell><Cell>I need Jaroslav.</Cell><Cell>我需要雅羅斯拉夫。</Cell></Row>
+  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>我覺得他贏了留鬍子的賭局。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_adder</Cell><Cell>Adder (1500 groschen).</Cell><Cell>毒蛇（1500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>我要毒蛇。</Cell></Row>
+  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>我去叫那個當地的屠夫。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janosh</Cell><Cell>Janosh (1500 groschen).</Cell><Cell>亞諾什（1500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>去叫亞諾什。</Cell></Row>
+  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>看來你是個真正的美食家。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>“收藏家”馬修（500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>我要“收藏家”馬修。</Cell></Row>
+  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>看來你想要整個惡魔幫。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_zizka</Cell><Cell>Jan Zizka (3000 groschen).</Cell><Cell>揚·傑式卡（3000格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_zizka</Cell><Cell>I need Jan Zizka.</Cell><Cell>我需要揚·傑式卡。</Cell></Row>
+  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>他同意幫助你了。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_devil</Cell><Cell>The Devil (3000 groschen).</Cell><Cell>惡魔（3000格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>我要惡魔。</Cell></Row>
+  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>他準備好出發了。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_godwin</Cell><Cell>Father Godwin (2500 groschen).</Cell><Cell>古德溫神父（2500格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>古德溫神父。去叫他。</Cell></Row>
+  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>從神父到傭兵……真是個猛漢。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_capon</Cell><Cell>Sir Hans Capon (3000 groschen).</Cell><Cell>漢斯·卡蓬少主（3000格羅申）。</Cell></Row>
+  <Row><Cell>merc_henry_capon</Cell><Cell>Sir Hans Capon.</Cell><Cell>漢斯·卡蓬少主。</Cell></Row>
+  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>大人很樂意為您效勞。</Cell></Row>
+  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>你的傭兵已經在路上了。</Cell></Row>
+  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>召回我的人。</Cell></Row>
+  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>給我的手下傳個話。我需要他們回來。</Cell></Row>
+  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>包在我身上。我馬上派個信使去。</Cell></Row>
+
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>趕緊包紮一下。</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>拿上這些物資，趕緊包紮一下。你們看起來糟透了。</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>我們會盡力的，老大，不過要是能有個真正的醫生就更好了。</Cell></Row>
+  <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>你的傭兵已經痊癒了。</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>等我湊夠了格羅申……</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>我就去買一小塊地。</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>整天閒坐在那兒……</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>看著農奴們幹體力活。</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>就只有我，羊群，還有吃飽的肚子。</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>老天，那才叫生活。</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>在這倒楣行當裡再幹一年。</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>然後我就把霍爾尚那塊空地買下來……</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>總算能過上安生日了。</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>我會把劍掛在房樑上……</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>讓那破銅爛鐵慢慢生鏽成灰。</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>也許還能自己釀點麥酒。</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>每天晚上都能喝到不省人事……嘿嘿。</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>我還記得……那是在我成年之前。</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>我父親的農場。</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>一棟結實的房子。有扇紅色的門。</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>後來那些庫曼雜種來了。</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>像宰豬一樣屠殺了他們……只有我逃進了樹林。</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>從那以後我就一直在刀尖上舔血。</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>也許有一天……我會回去把它重建起來。</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>天哪，那真是一個美妙的夜晚……</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>茲德娜，她叫這名字……</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>頭髮像金絲一樣……</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>胸部像剛發酵的麵團一樣柔軟……</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>為了能和她再共度一宵，我連魔鬼都敢打。</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>已經太久了……</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>太久沒感受過女人肌膚的溫暖了……</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>我們去的每一間酒館，全是些沒牙的老妖婆。</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>男人也有需求啊，該死的。</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>每次想起貝蒂，我的心跳就會漏掉一拍……</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>我願意相信她還在爐火旁等著我。</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>縫補著我的罩袍……</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>看著村民們忙碌著度過一天……</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>但接著我想起來了……是我的刀最後插進了她的胸膛。</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*沉重地嘆了口氣*</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>我離開我的丹卡還不到半個月……</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>我騎馬離開時她哭乾了眼淚。</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>西吉斯蒙德那個雜種……害得人們家破人亡。</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>現在我卻被困在這個鳥不拉屎的泥坑裡！</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>只是想賺夠錢回到她身邊……</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>可每次我們路過酒館……</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>我的錢袋最後都會比以前更癟。</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>我親愛的瑪蒂爾達……</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>希望她在老橡樹下睡得安穩。</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>老天爺啊，那真是個地獄般的夜晚……</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>她尖叫著，直到嗓子都啞了。</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>整個村子都聽見了。</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>我不得不把可憐的小揚埋在她旁邊。</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>他還是個嬰兒啊……</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>從那以後我就再也不忍心看那房子一眼了。</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>啊，梅爾尼克的葡萄園……</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>他們釀出的葡萄酒啊！</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>紅得像紅寶石。</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>甜美得如同罪惡。</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>我流血賺來的每一個格羅申……</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>只是為了讓舌頭能再嚐一滴那神仙玉液。</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>我受不了了！</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>整整四天滴酒未沾！</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>喝下一品脫後，整個世界才變得合理。</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>向上帝祈禱下一家酒館就在不遠處吧。</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>烈酒在哪兒？</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>誰把那該死的燒酒藏起來了？！</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>亨利！是你把最後一壺酒喝了嗎？</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>這簡直是徹頭徹尾的折磨！</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>啤酒……我只要一想到它，連膝蓋都軟了。</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>如果葡萄酒是基督的血，麵包是祂的身體……</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>那啤酒一定就是祂的靈魂了。</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>阿門。</Cell></Row>
+</Table>

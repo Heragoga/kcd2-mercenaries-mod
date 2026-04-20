@@ -1,0 +1,256 @@
+<Table>
+  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Chci najmout nějaké žoldáky.</Cell></Row>
+  
+  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>Můžu ti sehnat obyčejné žoldáky, nebo tu mám pár speciálních společníků. Koho přesně hledáš?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>Obyčejné žoldáky.</Cell></Row>
+  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>Jen běžné žoldáky.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>Speciální společníky.</Cell></Row>
+  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>Hledám konkrétní lidi.</Cell></Row>
+  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>Aha, speciální seznam. Koho máš na mysli?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>Ty nejslabší (50 grošů).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>Nějaké slušné chlapy (100 grošů).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>Zkušené vojáky (300 grošů).</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>Jen jednoho.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>Dva.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>Tři.</Cell></Row>
+
+  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Chci najmout nějaké žoldáky.</Cell></Row>
+  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>Je tu pár chlapů, co rádi pomůžou. Jak silní by měli být?</Cell></Row>
+  
+  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>Ti nejslabší budou stačit.</Cell></Row>
+  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>Dobrá, 50 grošů za hlavu. Kolik jich potřebuješ?</Cell></Row>
+  
+  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>Nějaké slušné chlapy.</Cell></Row>
+  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>Dobrá, 100 grošů za hlavu. Kolik jich potřebuješ?</Cell></Row>
+  
+  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>Zkušené vojáky.</Cell></Row>
+  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>Prvotřídní kvalita. To je 300 grošů za hlavu. Kolik jich potřebuješ?</Cell></Row>
+  
+  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>Jen jednoho.</Cell></Row>
+  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>Vezmu si dva.</Cell></Row>
+  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>Dej mi jich tři.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Počkejte tady na mě.</Cell></Row>
+  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>Za mnou.</Cell></Row>
+  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>Chci vás všechny propustit.</Cell></Row>
+
+  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Počkejte tady na mě.</Cell></Row>
+  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>Jak myslíš, šéfe.</Cell></Row>
+  
+  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>Za mnou.</Cell></Row>
+  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>Hned za tebou.</Cell></Row>
+
+  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>Jste propuštěni.</Cell></Row>
+  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>Mějte se.</Cell></Row>
+
+  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>Žoldák najmut.</Cell></Row>
+  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>Žoldáci najmuti.</Cell></Row>
+  <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Nemáš dost grošů!</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Už máš moc mužů! Maximum je 5.</Cell></Row>
+  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Všichni žoldáci propuštěni.</Cell></Row>
+  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Žoldáci čekají.</Cell></Row>
+  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Žoldáci tě následují.</Cell></Row>
+  
+  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Speciální společník najmut.</Cell></Row>
+  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Tento společník už je ve tvých službách!</Cell></Row>
+
+  <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Žoldák</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>Změnit vybavení...</Cell></Row>
+  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>Potřebuju, abyste se převlékli.</Cell></Row>
+  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>Co si máme vzít na sebe?</Cell></Row>
+  
+  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>Běžní žoldáci</Cell></Row>
+  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>Vezměte si své obvyklé vybavení.</Cell></Row>
+  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>Hned se převlékneme.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>Lapkové</Cell></Row>
+  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>Oblečte se jako lapkové.</Cell></Row>
+  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>Doufám, že nás to nedostane do vězení.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>Kumáni</Cell></Row>
+  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>Oblečte si kumánskou zbroj.</Cell></Row>
+  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>Hrmpf.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>Skalice</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Vezměte si barvy Skalice a Lipé.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>Za pana Racka!</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>Kutná Hora</Cell></Row>
+  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>Vezměte si barvy Kutné Hory.</Cell></Row>
+  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>Hned to bude.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Zapomeň na to)</Cell></Row>
+  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Vlastně, zapomeň na to.</Cell></Row>
+
+
+  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(Zapomeň na to)</Cell></Row>
+  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>Vlastně, zapomeň na to.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>Kuběnka (1500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>Vezmu si Kuběnku.</Cell></Row>
+  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>Podívám se, jestli se ještě neuchlastal k smrti.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_vasko</Cell><Cell>Vasko (1000 groschen).</Cell><Cell>Vaško (1000 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>Pošli pro Vaška.</Cell></Row>
+  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>Zrovna shání práci.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jasak</Cell><Cell>Jasak (800 groschen).</Cell><Cell>Jasák (800 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>Vezmu si Jasáka.</Cell></Row>
+  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>Jeho luk přijde vhod.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_bartosch</Cell><Cell>Black Bartosch (2000 groschen).</Cell><Cell>Černý Bartoš (2000 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_bartosch</Cell><Cell>I need Black Bartosch.</Cell><Cell>Potřebuju Černého Bartoše.</Cell></Row>
+  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>Na Troskách se beztak už začínal nudit.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_gnarly</Cell><Cell>Gnarly (2000 groschen).</Cell><Cell>Hejtman Suk (2000 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>Sežeň mi Suka.</Cell></Row>
+  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>Souhlasil, že vyjede na jednu poslední výpravu.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>Jan Posy (1500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>Vezmu si Jana Posyho.</Cell></Row>
+  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>S ním po boku už nikoho dalšího potřebovat nebudeš.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>Miroslav Kostitah (1500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>Pošli pro Miroslava.</Cell></Row>
+  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>Doufejme, že mu ta jeho kost někde neuvízla.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_menhard</Cell><Cell>Menhard (1000 groschen).</Cell><Cell>Menhart (1000 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>Chci Menharta.</Cell></Row>
+  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>Nejlepší frankfurtský mistr šermu je ti k službám.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_arne</Cell><Cell>Arne (500 groschen).</Cell><Cell>Arne (500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>Vezmu si Arneho.</Cell></Row>
+  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>Dobrá, ale myslím, že neumí ani slovo česky...</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>Janek ze Skalice (800 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>Sežeň mi Janka.</Cell></Row>
+  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>Koukám, že se stará parta dává zase dohromady.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jaroslav</Cell><Cell>Jaroslav (800 groschen).</Cell><Cell>Jaroslav (800 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_jaroslav</Cell><Cell>I need Jaroslav.</Cell><Cell>Potřebuju Jaroslava.</Cell></Row>
+  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>Myslím, že vyhrává tu sázku o nejdelší plnovous.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_adder</Cell><Cell>Adder (1500 groschen).</Cell><Cell>Komár (1500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>Vezmu si Komára.</Cell></Row>
+  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>Dojdu pro našeho místního řezníka.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janosh</Cell><Cell>Janosh (1500 groschen).</Cell><Cell>Janoš (1500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>Pošli pro Janoše.</Cell></Row>
+  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>Vidím, že jsi opravdový gurmán.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>Matěj Výběrčí (500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>Chci Matěje Výběrčího.</Cell></Row>
+  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>Koukám, že chceš dát dohromady celou Čertovu rotu.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_zizka</Cell><Cell>Jan Zizka (3000 groschen).</Cell><Cell>Jan Žižka (3000 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_zizka</Cell><Cell>I need Jan Zizka.</Cell><Cell>Potřebuju Jana Žižku.</Cell></Row>
+  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>Souhlasil, že ti pomůže.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_devil</Cell><Cell>The Devil (3000 groschen).</Cell><Cell>Suchý Čert (3000 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>Chci Suchého Čerta.</Cell></Row>
+  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>Je připraven vyrazit.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_godwin</Cell><Cell>Father Godwin (2500 groschen).</Cell><Cell>Otec Bohuta (2500 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>Otec Bohuta. Sežeň ho.</Cell></Row>
+  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>Od faráře k žoldákovi... to je ale chlap.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_capon</Cell><Cell>Sir Hans Capon (3000 groschen).</Cell><Cell>Pan Jan Ptáček (3000 grošů).</Cell></Row>
+  <Row><Cell>merc_henry_capon</Cell><Cell>Sir Hans Capon.</Cell><Cell>Pan Jan Ptáček.</Cell></Row>
+  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>Urozený pán je ti k službám.</Cell></Row>
+
+
+  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>Tví žoldnéři jsou na cestě.</Cell></Row>
+  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>Zavolej mé muže zpět.</Cell></Row>
+  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>Pošli zprávu mým mužům. Potřebuji je zpátky.</Cell></Row>
+  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>Považuj to za vyřízené. Hned pošlu posla.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>Dejte se do kupy.</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>Vezměte si tyhle zásoby a ošetřete se. Vypadáte hrozně.</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>Uděláme, co bude v našich silách, šéfe, ale pořádný felčar by neškodil.</Cell></Row>
+  <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>Tví žoldnéři byli vylečeni.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>Hned jak našetřím dost grošů...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>Koupím si malý statek.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>Celý dny budu jen sedět na zadku...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>A dívat se, jak se poddaní dřou.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>Jenom já, ovce a plný břicho.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>Kristepane, to bude život.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>Ještě jeden rok v tomhle zatraceným řemesle.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>Pak si koupím ten prázdnej pozemek dole v Hořanech...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>Konečně budu mít trochu klidu.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>Pověsím meč na hřebík...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>A nechám tu zatracenou věc zreznout na prach.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>Možná si budu vařit vlastní pivo.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>A každej večer se uchlastám ke spánku... hehe.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>Pořád si to pamatuju... než jsem vůbec dospěl.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>Otcův statek.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>Pevnej dům. Měl červený dveře.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>Pak přitáhli ti kumánští parchanti.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>Podřezali je jako svině... jen mně se podařilo utéct do lesů.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>Od té doby se živím mečem.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>Možná jednoho dne... se tam vrátím a znovu to postavím.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>Panebože, to byla noc...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>Jmenovala se Zdena...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>Vlasy jako spředený zlato...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>Prsa měkká jako kynoucí těsto...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>Klidně bych bojoval se samotným ďáblem za další noc s ní.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>Už je to moc dlouho...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>Co jsem naposled cejtil teplo ženský kůže...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>V každý hospodě, kam vlezem, jsou jen bezzubý starý babizny.</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>Chlap má svý potřeby, sakra.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>Pokaždý, když si vzpomenu na Betti, srdce se mi zastaví...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>Rád si myslím, že pořád čeká u krbu.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>Spravuje mi tuniku...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>A dívá se na vesničany, jak si hledí svýho...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>Ale pak si vzpomenu... že to byl můj nůž, co skončil v její hrudi.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*těžce si povzdechne*</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>Je to sotva čtrnáct dní, co jsem opustil svou Danku...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>Vyplakala si oči, když jsem odjížděl.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>Ten parchant Zikmund... rozděluje rodiny.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>A teď trčím v týhle bohem zapomenutý díře plný bláta!</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>Snažím se jen vydělat dost mincí, abych se k ní mohl vrátit...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>Ale pokaždý, když projdeme kolem hospody...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>Můj měšec je zas o něco lehčí.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>Moje sladká Matylda...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>Doufám, že spí klidně pod tím starým dubem.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>Kristovy rány, to byla pekelná noc...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>Křičela, dokud neztratila hlas.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>Slyšela ji celá vesnice.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>Musel jsem pohřbít ubohého malého Jana hned vedle ní.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>Vždyť to bylo ještě nemluvně...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>Pak už jsem se na ten dům nedokázal ani podívat.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>Ach, ty mělnické vinice...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>Takové víno tam lisují!</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>Červené jako rubín.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>Sladké jako hřích.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>Každý groš, za který krvácím...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>Je jen pro další kapku toho nektaru na mém jazyku.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>Tohle už nemůžu vydržet!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>Čtyři dny bez kapky!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>Celej svět dává po žejdlíku mnohem větší smysl.</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>Modlím se k Bohu, aby další hospoda nebyla daleko.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>Kde je ta kořalka?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>Kdo sakra schoval tu pálenku?!</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>Jindro! Tys vypil tu poslední čutoru?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>Tohle je absolutní mučení!</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>Pivo... jen na něj pomyslím a podlamují se mi kolena.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>Jestli je víno Kristova krev a chléb jeho tělo...</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>Pak pivo musí být jeho samotná duše.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>Amen.</Cell></Row>
+</Table>

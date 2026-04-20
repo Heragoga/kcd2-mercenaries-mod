@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<perk_buffs version="1">
+		<perk_buff buff_id="f123ee45-aade-4a13-a776-597c97d34bab" perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" />
+	</perk_buffs>
+</database>

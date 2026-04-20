@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<brain_variables version="1">
+		<brain_variable ai_variable_form_id="0" ai_variable_sync_id="0" brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" brain_variable_name="cooldown" is_persistent="true" type="float" />
+	</brain_variables>
+</database>

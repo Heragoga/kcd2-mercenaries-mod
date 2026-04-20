@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<brain2subbrains version="1">
+		<!-- Custom subbrain switch, supposed to overwrite npc_basic_switch so that mercenary follows player, but in combat, npc_basic_switch should take over -->
+		<brain2subbrain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" priority="0" subbrain_id="26e83d2a-964c-4fd3-b077-6de567b0d081" />
+
+		<!-- Vanilla basic npc subrrain SWITCH switch is a file defined in data/ai -->
+       <!--  <brain2subbrain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec81" /> -->
+
+		<!-- Vanilla basic npc subrrain SCHEDULER not a single reference to this anywhere, probably hard coded or something-->
+		<brain2subbrain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
+	</brain2subbrains>  
+</database>

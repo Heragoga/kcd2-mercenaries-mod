@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Quest Name="mercenaries_background_quest" Type="Activity" Players="0" Repeatable="true">
+            <Ports>
+                <Port Name="run" Direction="In" Type="trigger" />
+            </Ports>
+            <Definitions>
+                <Definition File="mercenaries_background_quest/hire_dialog.xml" />
+                <Definition File="mercenaries_background_quest/dismissal_dialog.xml" />
+                <Definition File="mercenaries_background_quest/farm_1_monolog.xml" />
+                <Definition File="mercenaries_background_quest/farm_2_monolog.xml" />
+                <Definition File="mercenaries_background_quest/farm_3_monolog.xml" />
+                <Definition File="mercenaries_background_quest/love_1_monolog.xml" />
+                <Definition File="mercenaries_background_quest/love_2_monolog.xml" />
+                <Definition File="mercenaries_background_quest/love_3_monolog.xml" />
+                <Definition File="mercenaries_background_quest/love_4_monolog.xml" />
+                <Definition File="mercenaries_background_quest/love_5_monolog.xml" />
+                <Definition File="mercenaries_background_quest/drink_1_monolog.xml" />
+                <Definition File="mercenaries_background_quest/drink_2_monolog.xml" />
+                <Definition File="mercenaries_background_quest/drink_3_monolog.xml" />
+                <Definition File="mercenaries_background_quest/drink_4_monolog.xml" />
+            </Definitions>
+
+            <Nodes>
+
+                <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
+                   
+
+                <dismissal_dialog Name="dismissal_dialog" PositionY="150" PositionX="300" />
+                <farm_1_monolog Name="farm_1_monolog" PositionY="150" PositionX="400" />
+                <farm_2_monolog Name="farm_2_monolog" PositionY="150" PositionX="400" />
+                <farm_3_monolog Name="farm_3_monolog" PositionY="150" PositionX="400" />
+                <love_1_monolog Name="love_1_monolog" PositionY="150" PositionX="400" />
+                <love_2_monolog Name="love_2_monolog" PositionY="150" PositionX="400" />
+                <love_3_monolog Name="love_3_monolog" PositionY="150" PositionX="400" />
+                <love_4_monolog Name="love_4_monolog" PositionY="150" PositionX="400" />
+                <love_5_monolog Name="love_5_monolog" PositionY="150" PositionX="400" />
+                <drink_1_monolog Name="drink_1_monolog" PositionY="150" PositionX="400" />
+                <drink_2_monolog Name="drink_2_monolog" PositionY="150" PositionX="400" />
+                <drink_3_monolog Name="drink_3_monolog" PositionY="150" PositionX="400" />
+                <drink_4_monolog Name="drink_4_monolog" PositionY="150" PositionX="400" />
+
+
+                <EventFunction Name="exec_clothes_1" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be47d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.equip_generic_mercenaries" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_clothes_2" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be47d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.equip_bandits" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_clothes_3" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be47d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.equip_cumans" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_clothes_4" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be47d" />
+                    <Constant Name="Amount" Value="4" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.equip_skalitz" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_clothes_5" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be47d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.equip_kuttenberg" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_dismissal" PositionY="0" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be44d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_dismissed" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_wait" PositionY="100" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be45d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_wait" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_follow" PositionY="200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be46d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_follow" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_kubenka" PositionY="200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c1" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_vasko" PositionY="400" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c2" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_jasak" PositionY="600" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c3" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_bartosch" PositionY="800" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="4" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c4" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_gnarly" PositionY="1000" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c5" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_jan_posy" PositionY="1200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="6" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c6" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_miroslav" PositionY="1400" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="7" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c7" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_menhard" PositionY="1600" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="8" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c8" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_arne" PositionY="1800" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="9" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c9" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_janek" PositionY="2000" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c10" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_jaroslav" PositionY="2200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="11" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c11" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_adder" PositionY="2400" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="12" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c12" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_janosh" PositionY="2600" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="13" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c13" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_mathew" PositionY="2800" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="14" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c14" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_zizka" PositionY="3000" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="15" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c15" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_devil" PositionY="3200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="16" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c16" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_godwin" PositionY="3400" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="17" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c17" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_recruit_capon" PositionY="3600" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
+                    <Constant Name="Amount" Value="18" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_c18" To="Exec" />
+                </EventFunction>
+
+                
+
+                <EventFunction Name="exec_w1" PositionY="300" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be41d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_w1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_w2" PositionY="450" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be41d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_w2" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_w3" PositionY="600" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be41d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_w3" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="exec_d1" PositionY="750" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be42d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_d1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_d2" PositionY="900" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be42d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_d2" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_d3" PositionY="1050" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be42d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_d3" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="exec_p1" PositionY="1200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be43d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_p1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_p2" PositionY="1350" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be43d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_p2" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_p3" PositionY="1500" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be43d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_p3" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="exec_return" PositionY="1500" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be49d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_return" To="Exec" />
+                </EventFunction>
+
+
+
+
+                <IfFunction Name="reset_loop" PositionY="-1000" PositionX="300" MethodName="Control::Compare" DeclaringType="Control" TypeT="int">
+                    <Constant Name="Op" Value="Greater" />
+                    <Constant Name="ValueB" Value="0" />
+                    <Edge From="injured_mercs_count.State" To="ValueA" />
+                    <Edge From="dismissal_dialog.mercenary_open_heal_menu" To="Exec" />
+                    <Edge From="injured_mercs_count.OnDecrease" To="Exec" />
+                </IfFunction>
+
+                <State Name="injured_mercs_count" PositionY="-800" PositionX="600" TypeT="int">
+                    <Edge From="check_injured.True" To="Increment" />
+                    <Edge From="reset_loop.True" To="Decrement" />
+                </State>
+
+                <ForEach Name="scan_mercs" PositionY="-400" PositionX="-300" TypeT="wh::rpgmodule::Souls">
+                    <Asset Name="Array" Alias="mercs" />
+                    <Edge From="reset_loop.False" To="Begin" />
+                </ForEach>
+
+                <MemberFunction Name="get_health" PositionY="-200" PositionX="-50" MethodName="GetState" DeclaringType="wh::rpgmodule::I_Soul">
+                    <Constant Name="State" Value="health" />
+                    <Edge From="scan_mercs.Value" To="Soul" />
+                </MemberFunction>
+
+                <IfFunction Name="check_health" PositionY="-400" PositionX="300" MethodName="Control::Compare" DeclaringType="Control" TypeT="float">
+                    <Constant Name="Op" Value="Greater" />
+                    <Constant Name="ValueB" Value="0" />
+                    <Edge From="scan_mercs.OnValue" To="Exec" />
+                    <Edge From="get_health.Value" To="ValueA" />
+                </IfFunction>
+
+                <IfFunction Name="check_injured" PositionY="-200" PositionX="600" MethodName="Control::Compare" DeclaringType="Control" TypeT="float">
+                    <Constant Name="Op" Value="Less" />
+                    <Constant Name="ValueB" Value="80" />
+                    <Edge From="check_health.True" To="Exec" />
+                    <Edge From="get_health.Value" To="ValueA" />
+                </IfFunction>
+
+                <IfFunction Name="has_injured" PositionY="-400" PositionX="900" MethodName="Control::Compare" DeclaringType="Control" TypeT="int">
+                    <Constant Name="Op" Value="Greater" />
+                    <Constant Name="ValueB" Value="0" />
+                    <Edge From="scan_mercs.OnEnd" To="Exec" />
+                    <Edge From="injured_mercs_count.State" To="ValueA" />
+                </IfFunction>
+
+
+                <State Name="delivery_lock" PositionY="-600" PositionX="1500" TypeT="bool">
+                    <Constant Name="DefaultValue" Value="false" />
+                    <Edge From="reset_loop.False" To="SetFalse" />
+                    <Edge From="open_ui_if.False" To="SetTrue" />
+                </State>
+
+                <ForEach Name="find_target_loop" PositionY="-400" PositionX="1200" TypeT="wh::rpgmodule::Souls">
+                    <Asset Name="Array" Alias="mercs" />
+                    <Edge From="has_injured.True" To="Begin" />
+                </ForEach>
+
+                <MemberFunction Name="get_health_target" PositionY="-200" PositionX="1500" MethodName="GetState" DeclaringType="wh::rpgmodule::I_Soul">
+                    <Constant Name="State" Value="health" />
+                    <Edge From="find_target_loop.Value" To="Soul" />
+                </MemberFunction>
+
+                <IfFunction Name="check_health_target" PositionY="-400" PositionX="1800" MethodName="Control::Compare" DeclaringType="Control" TypeT="float">
+                    <Constant Name="Op" Value="Greater" />
+                    <Constant Name="ValueB" Value="0" />
+                    <Edge From="find_target_loop.OnValue" To="Exec" />
+                    <Edge From="get_health_target.Value" To="ValueA" />
+                </IfFunction>
+
+                <If Name="open_ui_if" PositionY="-400" PositionX="2100">
+                    <Edge From="check_health_target.True" To="Exec" />
+                    <Edge From="delivery_lock.State" To="Condition" />
+                </If>
+
+                <ObjectProperties Name="alive_merc_props" PositionY="-150" PositionX="2100" DeclaringType="wh::rpgmodule::I_Soul">
+                    <Edge From="find_target_loop.Value" To="I_Soul" />
+                </ObjectProperties>
+
+
+                <Function Name="descriptor_food" PositionY="-1000" PositionX="2100" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="Category" Value="Food" />
+                    <Constant Name="Type" Value="1" />
+                    <Edge From="injured_mercs_count.State" To="Amount" />
+                </Function>
+                
+                <Function Name="descriptor_potion" PositionY="-750" PositionX="2100" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="Category" Value="Food" />
+                    <Constant Name="Type" Value="2" />
+                    <Edge From="injured_mercs_count.State" To="Amount" />
+                </Function>
+                
+                <MakeArray Name="descriptors_array" PositionY="-900" PositionX="2500" TypeT="wh::entitymodule::ItemDescriptors">
+                    <Edge From="descriptor_food.ItemDescriptor" To="A" />
+                    <Edge From="descriptor_potion.ItemDescriptor" To="B" />
+                </MakeArray>
+
+                <MakeArray Name="labels_array" PositionY="-700" PositionX="2500" TypeT="wh::framework::LocalizedStrings">
+                    <Constant Name="A" Value="ui_mercenary_heal_yourselves" />
+                    <Constant Name="B" Value="ui_mercenary_heal_yourselves" />
+                </MakeArray>
+
+                <Function Name="create_delivery" PositionY="-300" PositionX="2500" MethodName="wh::entitymodule::CreateItemDelivery" DeclaringType="wh::entitymodule">
+                    <Constant Name="DeliveryMode" Value="Any" />
+                    <Edge From="descriptors_array.Array" To="DeliveryDescriptors" />
+                    <Edge From="descriptors_array.Array" To="PlayerInventoryFilters" />
+                    <Edge From="labels_array.Array" To="Labels" />
+                    <Edge From="alive_merc_props.Inventory" To="DeliveryInventory" />
+                </Function>
+
+                <ItemDeliveryHandler Name="delivery_handler" PositionY="-50" PositionX="2900">
+                    <Edge From="open_ui_if.False" To="BeginDelivery" />
+                    <Edge From="create_delivery.ItemDelivery" To="ItemDelivery" />
+                    <Edge From="compare_result.True" To="AcceptDelivery" />
+                    <Edge From="compare_result.False" To="RejectDelivery" />
+                </ItemDeliveryHandler>
+
+                <IfFunction Name="compare_result" PositionY="-150" PositionX="3300" TypeT="DeliveryResult" MethodName="Control::Compare" DeclaringType="Control">
+                    <Constant Name="Op" Value="Equals" />
+                    <Constant Name="ValueB" Value="Success" />
+                    <Edge From="delivery_handler.OnResultAvailable" To="Exec" />
+                    <Edge From="delivery_handler.DeliveryResult" To="ValueA" />
+                </IfFunction>
+
+                <EventFunction Name="exec_heal" PositionY="100" PositionX="3300" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be50d" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="delivery_handler.OnAccept" To="Exec" />
+                    <Edge From="injured_mercs_count.State" To="Amount" />
+                </EventFunction>
+
+                
+
+            </Nodes>
+            <Assets>
+                <SoulAsset Name="mercs" SharedSoulGuids="96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817" />
+                <SoulAsset Name="player" SharedSoulGuids="4c2dcffb-dea1-6263-72d7-b39f4db2d8b5" />
+            </Assets>
+        </Quest>
+    </Skald>
+</Database>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="drink_2_monolog">
+            <Text StringName="merc_test_bark_title" Text="Mercenary Custom Test Bark" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jstra" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+
+               
+
+              
+
+                <!-- Drink Dream 2 -->
+                <Decision Name="dec_drink_2" Priority="General" Alias="bark_test_dialog_drink_2">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_drink_2">
+                            <DesignName StringName="merc_dream_drink_2_1" Text="seq_drink_2" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_2_4"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+
+                <!-- Drink Dream 3 -->
+                <!-- <Decision Name="dec_drink_3" Priority="General" Alias="bark_test_dialog_drink_3">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_drink_3">
+                            <DesignName StringName="merc_dream_drink_3_1" Text="seq_drink_3" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_3_4"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+                <!-- Drink Dream 4 -->
+              <!--   <Decision Name="dec_drink_4" Priority="General" Alias="bark_test_dialog_drink_4">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_drink_4">
+                            <DesignName StringName="merc_dream_drink_4_1" Text="seq_drink_4" />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_1"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_2"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_3"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="merc_dream_drink_4_4"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision> -->
+
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

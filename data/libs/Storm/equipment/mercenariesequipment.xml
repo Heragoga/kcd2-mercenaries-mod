@@ -1,0 +1,324 @@
+<?xml version="1.0"?>
+<!DOCTYPE storm SYSTEM "..\storm.dtd">
+<storm>
+    <rules>
+        
+        <rule name="inventory_mercenary_test" Mode="and">
+            <selectors>
+                <hasName name="soul_mercenary_test" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_test" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_test_1" Mode="and">
+            <selectors>
+                <hasName name="soul_mercenary_test_1" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_test" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_test_2" Mode="and">
+            <selectors>
+                <hasName name="soul_mercenary_test_2" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_test" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_test_3" Mode="and">
+            <selectors>
+                <hasName name="soul_mercenary_test_3" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_test" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_weak_1" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_weak_1" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_weak_1" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_weak_2" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_weak_2" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_weak_2" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_weak_3" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_weak_3" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_weak_3" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_weak_4" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_weak_4" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_weak_4" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_weak_5" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_weak_5" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_weak_5" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_medium_1" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_medium_1" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_medium_1" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_medium_2" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_medium_2" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_medium_2" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_medium_3" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_medium_3" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_medium_3" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_medium_4" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_medium_4" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_medium_4" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_medium_5" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_medium_5" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_medium_5" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_good_1" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_good_1" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_good_1" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_good_2" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_good_2" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_good_2" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_good_3" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_good_3" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_good_3" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_good_4" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_good_4" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_good_4" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_good_5" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_good_5" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_good_5" />
+            </operations>
+        </rule>
+
+        <!-- custom companions -->
+        <rule name="inventory_mercenary_kubenka" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_kubyenka" />
+            </selectors>
+            <operations>
+                <setInventory preset="kubenka_merc" />
+            </operations>
+        </rule>
+        <rule name="inventory_mercenary_vasko" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_vasko" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_tvez_vasko" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_jasak" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_jasak" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_jasak_merc" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_black_bartosch" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_black_bartosch" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_ttro_cernyBartos" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_gnarly" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_gnarly" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_gnarly" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_jan_posy" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_jan_posy" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_kbyl_jan" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_miroslav" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_miroslav" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_miroslav" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_menhard" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_menhard" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_menhart" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_arne" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_arne" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_arne" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_janek" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_janek" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_oblehaniSuchdole_janek" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_jaroslav" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_jaroslav" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_oblehaniSuchdole_jaroslav" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_adder" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_adder" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_kpri_komar" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_janosh" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_janosh" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_janosh" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_mathew" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_mathew" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_kkop_bandit_1" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_zizka" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_zizka" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_tneb_zizka" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_devil" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_devil" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_kcer_suchyCert" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_godwin" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_godwin" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_godwin" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_hans_capon" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_hans_capon" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_capon" />
+            </operations>
+        </rule>
+    </rules>
+</storm>

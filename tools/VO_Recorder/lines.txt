@@ -1,0 +1,79 @@
+<Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>Soon as I scrape together enough Groschen...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>I’m buying a little freehold.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>Sit on my arse all day...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>Watch the serfs do the heavy lifting.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>Just me, the sheep, and a full belly.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>Christ, that'll be the life.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>Just one more year in this bloody trade.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>Finally get some peace and quiet.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>I'll hang my sword in the rafters...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>Let the damn thing rust to dust.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>Maybe brew my own ale.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>Drink myself to sleep every night... heheh.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>I still remember it... before I was a man grown.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>My father's farm.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>A sturdy house. Had a red door.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>Then those Cuman bastards came.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>Been living by the sword ever since.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>Lord, what a night that was...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>Zdena, her name was...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>Hair like spun gold...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>Breasts as soft as rising dough...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>It’s been too long...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>A man has needs, damn it.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>Mending my tunic...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>Watching the villagers go about their day...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*sighs heavily*</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>Barely a fortnight since I left my Danka...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>Wept her eyes dry when I rode off.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>But every time we pass an alehouse...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>My purse ends up lighter than before.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>My sweet Matilda...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>God's wounds, what a hellish night that was...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>Screamed until her voice gave out.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>The whole village heard her.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>Just an infant...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>Couldn't bear to look at the house after that.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>Ah, the vineyards of Mělník...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>Such wine they press!</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>Red as a ruby.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>Sweet as sin.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>Every Groschen I bleed for...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>I can't stomach this!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>Four days without a drop!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>The whole world makes more sense after a pint.</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>Pray to God the next tavern isn't far.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>Where’s the spirits?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>Who hid the damn schnapps?!</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>Henry! Did you drink the last flask?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>This is absolute torture!</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>Then beer must be His very soul.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>Amen to that.</Cell></Row>

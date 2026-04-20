@@ -1,0 +1,255 @@
+<Table>
+  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Ich möchte ein paar Söldner anheuern.</Cell></Row>
+  
+  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>Ich kann Euch ein paar gewöhnliche Söldner besorgen, oder ich habe ein paar besondere Gefährten zur Auswahl. Wonach sucht Ihr?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>Gewöhnliche Söldner.</Cell></Row>
+  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>Einfach normale Söldner.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>Besondere Gefährten.</Cell></Row>
+  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>Ich suche nach bestimmten Leuten.</Cell></Row>
+  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>Ah, die Sonderliste. An wen hattet Ihr da gedacht?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>Die Schwächsten (50 Groschen).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>Ein paar ordentliche Kerle (100 Groschen).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>Einen erfahrenen Soldaten (300 Groschen).</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>Nur einen.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>Zwei.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>Drei.</Cell></Row>
+
+  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Ich möchte ein paar Söldner anheuern.</Cell></Row>
+  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>Es gibt ein paar Kerle, die bereit sind zu helfen. Wie stark sollen sie sein?</Cell></Row>
+  
+  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>Die Schwächsten reichen völlig.</Cell></Row>
+  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>In Ordnung, 50 Groschen pro Kopf. Wie viele braucht Ihr?</Cell></Row>
+  
+  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>Ein paar ordentliche Kerle.</Cell></Row>
+  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>In Ordnung, 100 Groschen pro Kopf. Wie viele braucht Ihr?</Cell></Row>
+  
+  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>Einen erfahrenen Soldaten.</Cell></Row>
+  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>Beste Qualität. Das macht 300 Groschen pro Kopf. Wie viele braucht Ihr?</Cell></Row>
+  
+  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>Nur einen.</Cell></Row>
+  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>Ich nehme zwei.</Cell></Row>
+  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>Gebt mir drei von ihnen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Wartet hier auf mich.</Cell></Row>
+  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>Folgt mir.</Cell></Row>
+  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>Ich möchte euch alle entlassen.</Cell></Row>
+
+  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Wartet hier auf mich.</Cell></Row>
+  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>Wie Ihr meint, Boss.</Cell></Row>
+  
+  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>Folgt mir.</Cell></Row>
+  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>Direkt hinter Euch.</Cell></Row>
+
+  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>Ihr seid alle entlassen.</Cell></Row>
+  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>Macht's gut.</Cell></Row>
+
+  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>Söldner angeheuert.</Cell></Row>
+  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>Söldner angeheuert.</Cell></Row>
+  <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Nicht genug Groschen!</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Ihr habt bereits zu viele Männer! Maximal 5.</Cell></Row>
+  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Alle Söldner entlassen.</Cell></Row>
+  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Söldner warten.</Cell></Row>
+  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Söldner folgen.</Cell></Row>
+  
+  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Besonderer Gefährte angeheuert.</Cell></Row>
+  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Dieser Gefährte steht bereits in Euren Diensten!</Cell></Row>
+
+  <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Söldner</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>Ausrüstung ändern ...</Cell></Row>
+  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>Ich möchte, dass ihr eure Ausrüstung wechselt.</Cell></Row>
+  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>Was sollen wir anziehen?</Cell></Row>
+  
+  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>Normale Söldner</Cell></Row>
+  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>Zieht eure übliche Ausrüstung an.</Cell></Row>
+  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>Wir ziehen uns sofort um.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>Banditen</Cell></Row>
+  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>Kleidet euch wie Banditen.</Cell></Row>
+  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>Hoffentlich landen wir deswegen nicht im Kerker.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>Kumanen</Cell></Row>
+  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>Legt kumanische Rüstungen an.</Cell></Row>
+  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>Hrmpf.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>Skalitz</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Tragt die Farben von Skalitz und Leipa.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>Für Herrn Radzig!</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>Kuttenberg</Cell></Row>
+  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>Tragt die Kuttenberger Farben.</Cell></Row>
+  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>Sofort.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Schon gut)</Cell></Row>
+  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Ach, schon gut.</Cell></Row>
+
+
+  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(Schon gut)</Cell></Row>
+  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>Ach, schon gut.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>Kubenka (1500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>Ich nehme Kubenka.</Cell></Row>
+  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>Ich werde sehen, ob er sich noch nicht zu Tode gesoffen hat.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_vasko</Cell><Cell>Vasko (1000 groschen).</Cell><Cell>Vasko (1000 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>Schickt nach Vasko.</Cell></Row>
+  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>Er sucht in der Tat nach Arbeit.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jasak</Cell><Cell>Jasak (800 groschen).</Cell><Cell>Jasak (800 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>Ich nehme Jasak.</Cell></Row>
+  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>Sein Bogen wird nützlich sein.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_bartosch</Cell><Cell>Black Bartosch (2000 groschen).</Cell><Cell>Der Schwarze Bartosch (2000 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_bartosch</Cell><Cell>I need Black Bartosch.</Cell><Cell>Ich brauche den Schwarzen Bartosch.</Cell></Row>
+  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>Die Burg Trosky fängt ohnehin an, ihn zu langweilen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_gnarly</Cell><Cell>Gnarly (2000 groschen).</Cell><Cell>Gnarly (2000 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>Holt mir Gnarly.</Cell></Row>
+  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>Er hat zugestimmt, zu einem letzten Ausfall mitzureiten.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>Jan Posy (1500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>Ich nehme Jan Posy.</Cell></Row>
+  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>Mit ihm werdet Ihr wohl sonst niemanden brauchen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>Miroslav Tugbone (1500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>Schickt nach Miroslav.</Cell></Row>
+  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>Hoffen wir, dass sein Knochen nicht irgendwo feststeckt.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_menhard</Cell><Cell>Menhard (1000 groschen).</Cell><Cell>Menhard (1000 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>Ich will Menhard.</Cell></Row>
+  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>Frankfurts bester Fechtmeister steht zu Euren Diensten.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_arne</Cell><Cell>Arne (500 groschen).</Cell><Cell>Arne (500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>Ich nehme Arne.</Cell></Row>
+  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>In Ordnung, aber ich glaube nicht, dass er ein Wort Tschechisch spricht ...</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>Janek aus Skalitz (800 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>Besorgt mir Janek.</Cell></Row>
+  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>Ich sehe, die alte Truppe kommt wieder zusammen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jaroslav</Cell><Cell>Jaroslav (800 groschen).</Cell><Cell>Jaroslav (800 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_jaroslav</Cell><Cell>I need Jaroslav.</Cell><Cell>Ich brauche Jaroslav.</Cell></Row>
+  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>Ich glaube, er gewinnt die Wette im Bartwachsen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_adder</Cell><Cell>Adder (1500 groschen).</Cell><Cell>Adder (1500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>Ich nehme Adder.</Cell></Row>
+  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>Ich werde den hiesigen Fleischer rufen lassen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janosh</Cell><Cell>Janosh (1500 groschen).</Cell><Cell>Janosch (1500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>Schickt nach Janosch.</Cell></Row>
+  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>Ich sehe, Ihr seid ein wahrer Feinschmecker.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>Mathew der Sammler (500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>Ich will Mathew den Sammler.</Cell></Row>
+  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>Ich sehe, Ihr wollt die ganze Teufelsbande.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_zizka</Cell><Cell>Jan Zizka (3000 groschen).</Cell><Cell>Jan Zizka (3000 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_zizka</Cell><Cell>I need Jan Zizka.</Cell><Cell>Ich brauche Jan Zizka.</Cell></Row>
+  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>Er hat zugestimmt, Euch zu helfen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_devil</Cell><Cell>The Devil (3000 groschen).</Cell><Cell>Der Teufel (3000 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>Ich will den Teufel.</Cell></Row>
+  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>Er ist bereit aufzubrechen.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_godwin</Cell><Cell>Father Godwin (2500 groschen).</Cell><Cell>Pater Godwin (2500 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>Pater Godwin. Holt ihn.</Cell></Row>
+  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>Vom Priester zum Söldner ... was für ein Mann.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_capon</Cell><Cell>Sir Hans Capon (3000 groschen).</Cell><Cell>Herr Hans Capon (3000 Groschen).</Cell></Row>
+  <Row><Cell>merc_henry_capon</Cell><Cell>Sir Hans Capon.</Cell><Cell>Herr Hans Capon.</Cell></Row>
+  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>Seine Herrschaft steht zu Euren Diensten.</Cell></Row>
+
+  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>Eure Söldner sind auf dem Weg.</Cell></Row>
+  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>Meine Männer zurückrufen.</Cell></Row>
+  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>Schickt meinen Männern eine Nachricht. Ich brauche sie zurück.</Cell></Row>
+  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>Betrachte es als erledigt. Ich schicke sofort einen Läufer los.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>Flickt euch zusammen.</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>Nehmt diese Vorräte und flickt euch zusammen. Ihr seht furchtbar aus.</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>Wir tun, was wir können, Boss, aber ein richtiger Heiler wäre nicht verkehrt.</Cell></Row>
+  <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>Eure Söldner wurden geheilt.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>Sobald ich genug Groschen zusammengekratzt habe...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>Kaufe ich mir ein kleines Stück Land.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>Werde den ganzen Tag auf meinem Hintern sitzen...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>Und den Leibeigenen bei der Schwerstarbeit zusehen.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>Nur ich, die Schafe und ein voller Bauch.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>Herrgott, das wird ein Leben.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>Nur noch ein Jahr in diesem verdammten Gewerbe.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>Dann kaufe ich dieses leere Grundstück unten in Horschan...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>Um endlich etwas Frieden und Ruhe zu finden.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>Ich werde mein Schwert ins Gebälk hängen...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>Und das verdammte Ding zu Staub rosten lassen.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>Vielleicht braue ich mein eigenes Bier.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>Und trinke mich jeden Abend in den Schlaf... heheh.</Cell></Row>
+
+  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>Ich erinnere mich noch daran... bevor ich ein erwachsener Mann war.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>Der Hof meines Vaters.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>Ein robustes Haus. Es hatte eine rote Tür.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>Dann kamen diese Kumanen-Bastarde.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>Haben sie wie Schweine abgeschlachtet... nur ich konnte in die Wälder entkommen.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>Seitdem lebe ich durch das Schwert.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>Vielleicht eines Tages... gehe ich zurück und baue es wieder auf.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>Herr, was für eine Nacht das war...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>Zdena, so war ihr Name...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>Haare wie gesponnenes Gold...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>Brüste so weich wie aufgehender Teig...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>Ich würde gegen den Teufel selbst kämpfen für eine weitere Nacht mit ihr.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>Es ist zu lange her...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>Dass ich die Wärme weiblicher Haut gespürt habe...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>Jede Taverne, die wir aufsuchen, ist voll von zahnlosen alten Schabracken.</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>Ein Mann hat schließlich Bedürfnisse, verdammt noch mal.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>Jedes Mal, wenn ich an Betti denke, setzt mein Herz einen Schlag aus...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>Ich stelle mir gerne vor, dass sie immer noch am Herd wartet.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>Meine Tunika flickt...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>Und den Dorfbewohnern bei ihrem Tagwerk zusieht...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>Aber dann erinnere ich mich... es war mein Messer, das in ihrer Brust landete.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*seufzt schwer*</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>Kaum zwei Wochen ist es her, dass ich meine Danka verlassen habe...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>Sie hat sich die Augen aus dem Kopf geweint, als ich fortgeritten bin.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>Dieser Bastard Sigismund... reißt Familien auseinander.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>Jetzt stecke ich in diesem gottverlassenen Schlammloch fest!</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>Ich versuche nur, genug Münzen zu verdienen, um zu ihr zurückzukehren...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>Aber jedes Mal, wenn wir an einem Wirtshaus vorbeikommen...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>Ist mein Geldbeutel am Ende leichter als zuvor.</Cell></Row>
+
+  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>Meine süße Matilda...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>Ich hoffe, sie schläft friedlich unter dieser alten Eiche.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>Gottes Wunden, was für eine höllische Nacht das war...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>Hat geschrien, bis ihre Stimme versagte.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>Das ganze Dorf hat sie gehört.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>Ich musste den armen kleinen Jan direkt neben ihr begraben.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>Er war doch nur ein Säugling...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>Danach konnte ich den Anblick des Hauses nicht mehr ertragen.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>Ah, die Weinberge von Mělník...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>Solchen Wein pressen sie!</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>Rot wie ein Rubin.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>Süß wie die Sünde.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>Jeder Groschen, für den ich blute...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>Ist nur für einen weiteren Tropfen dieses Nektars auf meiner Zunge.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>Ich ertrage das nicht!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>Vier Tage ohne einen Tropfen!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>Die ganze Welt ergibt nach einem Bier viel mehr Sinn.</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>Bete zu Gott, dass die nächste Taverne nicht weit ist.</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>Wo ist der Schnaps?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>Wer hat den verdammten Schnaps versteckt?!</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>Heinrich! Hast du die letzte Flasche getrunken?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>Das ist die absolute Folter!</Cell></Row>
+
+  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>Bier... ich muss nur daran denken und meine Knie werden weich.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>Wenn Wein das Blut Christi ist, und Brot sein Leib...</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>Dann muss Bier seine wahre Seele sein.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>Amen dazu.</Cell></Row>
+</Table>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<subbrain_switchings version="1">
+        <subbrain_switching file_name="mercenary_scheduler.xml" subbrain_id="26e83d2a-964c-4fd3-b077-6de567b0d081" tree_name="onUpdate" />
+	</subbrain_switchings>
+</database>

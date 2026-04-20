@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<brain2mailboxs version="1">
+        <!-- <brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="08d8287d-d563-4e11-ba53-3af4ee30c266" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="0cdd99cb-44f3-40b2-81e2-940073888dd6" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="37cc8d56-7f60-4143-bd7d-9d8ac4e7dcd5" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="39749fea-31d8-4aec-a8c5-1120c45c0f5e" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4267d278-6a49-acf4-f7d4-32eea6dc9a81" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="42d152c5-8979-fb77-0259-faf2e6baf3b4" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="467895df-2982-d186-ef16-8405e4deccb4" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4b0f5ef0-8c24-d84d-0c44-c47f874637a3" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4c173392-88c1-9dcb-965b-e900e3ab1ca7" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4d11d7a3-f551-dc33-67d0-b83b956dcd9c" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4d9864b6-1e2e-1a55-42de-d08b0f3379b3" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4e83fc86-ecb1-d819-c53b-bffe0df27e97" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4f514496-89d8-928e-1440-c9faa02c1fbc" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4f786ffb-d0ad-da48-0cdc-3fca6d9ea389" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="5450a641-8c06-4839-a5d8-dd750a977c19" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="77210d41-9c6e-4ec3-a035-54560338368f" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="8c3e7f03-910d-4b9f-acbd-631e201bc149" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="9e90f33a-6094-4389-9eee-f4e10cbde938" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="b16d56d2-417b-4818-89fa-5d0ebf582386" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="b4c700f0-eb28-4605-a0dd-a7188900f83a" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="cdf79a16-8e04-4daa-b41a-69120f4e2ae6" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="d9d9332e-5ac1-4f1a-92ba-2f78fdb78f88" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="eb69e9da-d2a7-4103-bfef-3f7d33be0aaf" priority="0" />
+        <brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="6148aefd-39a7-431a-bd15-7b93564e35f2" priority="0" /> -->
+
+
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+		<!--brain brain_id="29a19b61-6d1e-4d24-9de7-c8f46b522d43" brain_name="test_pathfollower_dummy">
+		<mailbox mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" mailbox_name="horseModule" message_limit="8" on_accept="1" /-->
+
+
+		<!-- connected following mailboxes too in case, not used right now (2026_01_02) -->
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="08d8287d-d563-4e11-ba53-3af4ee30c266" priority="0" />
+
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="0cdd99cb-44f3-40b2-81e2-940073888dd6" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="37cc8d56-7f60-4143-bd7d-9d8ac4e7dcd5" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="39749fea-31d8-4aec-a8c5-1120c45c0f5e" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4267d278-6a49-acf4-f7d4-32eea6dc9a81" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="42d152c5-8979-fb77-0259-faf2e6baf3b4" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="467895df-2982-d186-ef16-8405e4deccb4" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4b0f5ef0-8c24-d84d-0c44-c47f874637a3" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4c173392-88c1-9dcb-965b-e900e3ab1ca7" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4d11d7a3-f551-dc33-67d0-b83b956dcd9c" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4d9864b6-1e2e-1a55-42de-d08b0f3379b3" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4e83fc86-ecb1-d819-c53b-bffe0df27e97" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4f514496-89d8-928e-1440-c9faa02c1fbc" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="4f786ffb-d0ad-da48-0cdc-3fca6d9ea389" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="5450a641-8c06-4839-a5d8-dd750a977c19" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="77210d41-9c6e-4ec3-a035-54560338368f" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="8c3e7f03-910d-4b9f-acbd-631e201bc149" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="9e90f33a-6094-4389-9eee-f4e10cbde938" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="b16d56d2-417b-4818-89fa-5d0ebf582386" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="b4c700f0-eb28-4605-a0dd-a7188900f83a" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="cdf79a16-8e04-4daa-b41a-69120f4e2ae6" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="d9d9332e-5ac1-4f1a-92ba-2f78fdb78f88" priority="0" />
+		<brain2mailbox brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" mailbox_id="eb69e9da-d2a7-4103-bfef-3f7d33be0aaf" priority="0" />
+    </brain2mailboxs>
+</database>

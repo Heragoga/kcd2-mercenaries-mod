@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <FaderDialog Name="dismissal_dialog">
+            <Ports>
+                <Port Name="mercenary_dismissed" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_wait" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_follow" Direction="Out" Type="trigger" />
+                
+                <Port Name="equip_generic_mercenaries" Direction="Out" Type="trigger" />
+                <Port Name="equip_bandits" Direction="Out" Type="trigger" />
+                <Port Name="equip_cumans" Direction="Out" Type="trigger" />
+                <Port Name="equip_skalitz" Direction="Out" Type="trigger" />
+                <Port Name="equip_kuttenberg" Direction="Out" Type="trigger" />
+
+                <Port Name="mercenary_open_heal_menu" Direction="Out" Type="trigger" />
+            </Ports>
+            <Text StringName="ui_mercenary_dismissal_root" />
+            <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
+                <Decision Name="dec_dismiss_mercenary" Priority="General">
+                    <Sequences>
+                        
+                        <Sequence EndType="EndDialogue" Name="seq_heal_action">
+                            <UiPrompt StringName="ui_mercenary_heal_yourselves" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_heal_henry_1" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_heal_merc" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                            <Triggers><Port Name="mercenary_open_heal_menu" /></Triggers>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_wait_action">
+                            <UiPrompt StringName="ui_mercenary_wait_action" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_wait_action" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_wait_action" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                            <Triggers><Port Name="mercenary_wait" /></Triggers>
+                        </Sequence>
+
+                        <Sequence EndType="EndDialogue" Name="seq_follow_action">
+                            <UiPrompt StringName="ui_mercenary_follow_action" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_follow_action" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_follow_action" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                            <Triggers><Port Name="mercenary_follow" /></Triggers>
+                        </Sequence>
+
+                        <Sequence EndType="EndDialogue" Name="seq_dismiss_action">
+                            <UiPrompt StringName="ui_mercenary_dismiss_action" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_dismiss_action" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_dismiss_action" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                            <Triggers><Port Name="mercenary_dismissed" /></Triggers>
+                        </Sequence>
+
+                        <Sequence EndType="Decision" Name="seq_change_equipment_hub">
+                            <UiPrompt StringName="ui_mercenary_change_equipment" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_equip_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_equip_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                            
+                            <Decision Name="dec_equipment_choices">
+                                <Sequences>
+                                    
+                                    <Sequence EndType="EndDialogue" Name="seq_equip_generic">
+                                        <UiPrompt StringName="ui_merc_equip_gen" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_equip_gen" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_equip_gen" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="equip_generic_mercenaries" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_equip_bandits">
+                                        <UiPrompt StringName="ui_merc_equip_ban" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_equip_ban" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_equip_ban" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="equip_bandits" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_equip_cumans">
+                                        <UiPrompt StringName="ui_merc_equip_cum" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_equip_cum" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_equip_cum" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="equip_cumans" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_equip_skalitz">
+                                        <UiPrompt StringName="ui_merc_equip_ska" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_equip_ska" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_equip_ska" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="equip_skalitz" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_equip_kuttenberg">
+                                        <UiPrompt StringName="ui_merc_equip_kut" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_equip_kut" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_equip_kut" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="equip_kuttenberg" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_equip_cancel">
+                                        <UiPrompt StringName="ui_merc_equip_can" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_equip_can" />
+                                            </Response>
+                                        </Elements>
+                                    </Sequence>
+
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </FaderDialog>
+    </Skald>
+</Database>

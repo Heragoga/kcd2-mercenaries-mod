@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Level Name="kutnohorsko" HibernateMode="Auto" VoiceNamespace="false">
+			<Definitions>
+				<Definition File="kutnohorsko/mercenaries_background_quest.xml" />
+			</Definitions>
+			<Nodes>
+				<mercenaries_background_quest Name="mercenaries_background_quest" RequiredForOutput="kutnohorsko">
+					<Edge From="OnWake" To="run" />
+				</mercenaries_background_quest>
+			</Nodes>
+			<Text Text="kutnohorsko" />
+		</Level>
+	</Skald>
+</Database>
