@@ -6,7 +6,7 @@ This is the part of KCD2 modding with the smallest amount of documentation. That
 
 ## What is a Behaviour Tree?
 
-It is the brain of every NPC in KCD2. It handles NPCs walking around the open world, talking with each other, and reacting to the player. It also handles a large amount of quest-related behaviour — the soldiers climbing the walls at Neuhof? Behaviour trees. The sheep Ignaz following you if you have a carrot in your inventory? Behaviour trees. Guiding an NPC through a tunnel? Behaviour trees.
+It is the brain of every NPC in KCD2. It handles NPCs walking around the open world, talking with each other, and reacting to the player. It also handles a large amount of quest-related behaviour — the soldiers climbing the walls at Nebakov? Behaviour trees. The sheep Ignaz following you if you have a carrot in your inventory? Behaviour trees. Guiding an NPC through a tunnel? Behaviour trees.
 
 Behaviour tree nodes fall into a few broad categories:
 
@@ -313,4 +313,4 @@ The engine exposes a few built-in WUID variables you can use in expressions and 
 
 ## Where to Learn More
 
-Look at vanilla behaviour trees. They are a goldmine of information and will tell you everything you need to know to implement whatever feature you want. They live in `Libs/AI/BehaviorTrees/` inside the game's data paks. Unpack them with a PAK extractor and read through them — every mechanic in the game is in there somewhere.
+Look at vanilla behaviour trees. They are a goldmine of information and will tell you everything you need to know to implement whatever feature you want. They live in `Libs/AI/` inside the game's data paks. Extract them with any compression program — every mechanic in the game is in there somewhere.
