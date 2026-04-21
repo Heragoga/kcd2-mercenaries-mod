@@ -14,24 +14,24 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 
 ### General
 * [How to mod](general/how-to-mod.md) (How to set up a project, how to understand the base game's structure, how to test out your creation)
-* [Communicating between Lua and Skald](general/lua-skald-communication.md)
+* [Communicating between Lua and Skald](general/lua-skald-communication.md) (How to call lua code from your quest)
 
 ### Lua
-*(Guides coming soon)*
+* [Spawning NPCs](spawning-npcs.md) (How to spawn an NPC you defined in the other guides)
 
 ### XML
-* [How to add a new NPC](xml/add-new-npc.md)
-* [How to make an NPC Brain](xml/make-npc-brain.md)
+* [How to add a new NPC](xml/add-new-npc.md) (Covers defining the soul, inventory and appearance)
+* [How to make an NPC Brain](xml/make-npc-brain.md) (Bridge between the NPC soul and the Behaviour Tree)
 
 ### Skald
-* [How to add a top level quest](skald/add-top-level-quest.md)
-* [How to add dialog](skald/add-dialog.md)
+* [How to add a top level quest](skald/add-top-level-quest.md) (Basic management quest, adds dialog and may create new quests)
+* [How to add dialog](skald/add-dialog.md) (Creating dialog, both ingame chatter and player to NPC conversation)
 
 ### Behavior Trees
-* [Basic structure](behaviour-trees/basic-structure.md)
-* [Combat](behaviour-trees/combat.md)
-* [Movement](behaviour-trees/movement.md)
-* [Talking](behaviour-trees/talking.md)
+* [Basic structure](behaviour-trees/basic-structure.md) (Covers the basic structure of the Behaviour Tree and some basic logical components)
+* [Combat](behaviour-trees/combat.md) (How to make your NPC fight)
+* [Movement](behaviour-trees/movement.md) (How to make your NPC move)
+* [Talking](behaviour-trees/talking.md) (How to make the NPC talk to the player or just talk in general)
 
 ---
 
