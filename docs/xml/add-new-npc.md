@@ -12,7 +12,7 @@ Here is a map of everything you will be touching. Keep it open in another tab.
 
 | File | Purpose |
 |---|---|
-| `tables/rpg/soul.xml` | The soul — the NPC's core identity |
+| `tables/rpg/soul__yourmod.xml` | The soul — the NPC's core identity |
 | `tables/rpg/FactionTree__yourmod.xml` | Who likes them and who wants to kill them |
 | `tables/rpg/role__yourmod.xml` | Role definition — ties to dialog |
 | `tables/skald/skald_character__yourmod.xml` | Voice, display name, gender |
@@ -56,7 +56,7 @@ In `data/libs/tables/rpg` there lives a cute little file called `soul.xml`. It c
 
 **`soul_id`** — Must be globally unique. Generate one at [uuidgenerator.net/version4](https://www.uuidgenerator.net/version4). Write it down somewhere — you will reference it in multiple other files and you will regret not writing it down.
 
-**`soul_name`** — References a localization string. If you don't define it in your localization file it will display as `@soul_merc_weak_1` in-game, which is fine for testing and mildly funny in production.
+**`soul_name`** — Internal soul name, mostly used for Storm rules.
 
 **`brain_id`** — Ties the soul to an AI brain, which governs behavior, combat, schedules, and everything else that makes an NPC actually function rather than stand there like a confused statue. `4b914d1c-724a-a92d-3e6b-d183d35b8b98` is a working in-game brain ID you can borrow for testing. The brain system is complex enough to warrant its own guide, which will come separately.
 
