@@ -48,14 +48,7 @@ set "DATA_PAK=%OUT_DIR%\data\mercenaries.pak"
 if not exist "%DATA_SRC%" (
     echo       WARNING: data folder not found, skipping.
 ) else (
-    powershell -NoProfile -Command ^
-        "Add-Type -Assembly 'System.IO.Compression.FileSystem';" ^
-        "[System.IO.Compression.ZipFile]::CreateFromDirectory(" ^
-        "  '%DATA_SRC%'," ^
-        "  '%DATA_PAK%'," ^
-        "  [System.IO.Compression.CompressionLevel]::NoCompression," ^
-        "  $false" ^
-        ")"
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%DATA_SRC%', '%DATA_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
     if errorlevel 1 (
         echo       ERROR: Failed to create data pak.
         goto :error
@@ -77,24 +70,16 @@ if not exist "%LOC_SRC%" (
     for %%L in (Chineses_xml Chineset_xml Czech_xml English_xml French_xml German_xml Russian_xml Turkish_xml) do (
         set "SRC_FILE=%LOC_SRC%\%%L.xml"
         set "PAK_FILE=%LOC_OUT%\%%L.pak"
+        set "TMP_LOC=%TEMP%\kcd2_loc_%%L"
 
         if not exist "!SRC_FILE!" (
             echo       WARNING: !SRC_FILE! not found, skipping %%L.
         ) else (
-            :: Use a temp folder so CreateFromDirectory (which worked for data) handles it
-            set "TMP_LOC=%TEMP%\kcd2_loc_%%L"
             if exist "!TMP_LOC!" rd /s /q "!TMP_LOC!"
             mkdir "!TMP_LOC!"
             copy /y "!SRC_FILE!" "!TMP_LOC!\test__mercenaries.xml" >nul
 
-            powershell -NoProfile -Command ^
-                "Add-Type -Assembly 'System.IO.Compression.FileSystem';" ^
-                "[System.IO.Compression.ZipFile]::CreateFromDirectory(" ^
-                "  '!TMP_LOC!'," ^
-                "  '!PAK_FILE!'," ^
-                "  [System.IO.Compression.CompressionLevel]::NoCompression," ^
-                "  $false" ^
-                ")"
+            powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!TMP_LOC!', '!PAK_FILE!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
             rd /s /q "!TMP_LOC!"
 
             if errorlevel 1 (
@@ -115,20 +100,19 @@ echo [5/5] Packing voice files (optional)...
 set "VOICE_SRC=%REPO_ROOT%\voice"
 set "VOICE_PAK=%LOC_OUT%\english.pak"
 
+:: Declare temp paths OUTSIDE the if block so %var% expansion works correctly
+set "TMP_VOICE=%TEMP%\kcd2_voice_tmp"
+set "TMP_VOICE_INNER=%TEMP%\kcd2_voice_tmp\dialog\mercenaries_background_quest"
+
 if not exist "%VOICE_SRC%" (
     echo       No voice folder found, skipping.
 ) else (
-    set "TMP_VOICE=%TEMP%\kcd2_voice_tmp"
-    set "TMP_VOICE_INNER=%TEMP%\kcd2_voice_tmp\dialog\mercenaries_background_quest"
     if exist "%TMP_VOICE%" rd /s /q "%TMP_VOICE%"
     mkdir "%TMP_VOICE_INNER%"
 
-    powershell -NoProfile -Command ^
-        "Get-ChildItem -Path '%VOICE_SRC%' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '%TMP_VOICE_INNER%\' }; $n = (Get-ChildItem '%TMP_VOICE_INNER%').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
+    powershell -NoProfile -Command "Get-ChildItem -Path '%VOICE_SRC%' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '%TMP_VOICE_INNER%\' }; $n = (Get-ChildItem '%TMP_VOICE_INNER%').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
 
-    powershell -NoProfile -Command ^
-        "Add-Type -Assembly 'System.IO.Compression.FileSystem';" ^
-        "[System.IO.Compression.ZipFile]::CreateFromDirectory('%TMP_VOICE%', '%VOICE_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%TMP_VOICE%', '%VOICE_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
 
     rd /s /q "%TMP_VOICE%"
 

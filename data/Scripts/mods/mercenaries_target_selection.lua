@@ -56,7 +56,7 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid)
     or ent.soul:HasScriptContext("combat_surrender")
     or ent.soul:HasScriptContext("crime_interruptFlee")
     or ent.soul:HasScriptContext("crime_fleeAfterSurrender")
-    or ent.soul:HasScriptContext("combat_arrangedFight")
+    
     or ent.soul:HasScriptContext("combat_immortalityProtection")then 
         return false
     end
@@ -80,11 +80,11 @@ function mercenaries:UpdateEnemyCache()
         if not playerPos then return end
 
         local playerWuid = player.this and player.this.id or player.id
-        local entsInArea = System.GetPhysicalEntitiesInBoxByClass(playerPos, 15.0, 'NPC')
+        local entsInArea = System.GetEntitiesInSphere(playerPos, 15.0)
         if not entsInArea then return end
 
         for _, ent in pairs(entsInArea) do
-            if ent and type(ent) == "table" and ent.soul and ent.human then
+            if ent and type(ent) == "table" and ent.soul then
                 if self:IsValidEnemy(ent, player, playerWuid) then
                     local entWuid = ent.this and ent.this.id or ent.id
                     table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid })

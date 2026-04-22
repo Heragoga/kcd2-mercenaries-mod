@@ -387,7 +387,7 @@
             
                         <Loop count="-1">
                             <Sequence>
-                                <Wait duration="'30s'" timeType="GameTime" doFail="false" variation="'25s'" />
+                                <Wait duration="'1800s'" timeType="GameTime" doFail="false" variation="'900s'" />
                                 <IfCondition failOnCondition="false" condition="~$inCombat &amp; ~$goFlee">
                                     <Sequence>
 

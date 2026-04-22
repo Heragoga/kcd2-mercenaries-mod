@@ -1,0 +1,72 @@
+GENERAL TODO:
+- add equipment style customization
+- wolf attack bug
+- configurable prices&gear
+- wages
+- difficulty scaling
+- new encounters
+
+
+FOR NEXT UPDATE:
+
+
+IN PROGRESS:
+
+
+DONE: 
+- made voicelines rarer
+- made mercs attack wolves and wild dogs
+
+
+
+UPDATE 1.5:
+- added 12 custom voiced (by yours truly) monologs, that play at random when the mercs walk around
+- added UI interaction option when looking at the mercs to toggle wait/follow
+- added more chatter for the mercs using vanilla lines
+- massive performance improvements, the only bottleneck that limits the number of mercs should be your GPU now
+- added fast travel detection, waiting detection to disable emergency teleport and reduce lag
+- fixed bug where mercs wouldn't target wolves and dogs
+- fixed a bug where the mercs state would not save properly, massive rewrite of the internal saving system
+- fixed compatibility with third person mods
+
+
+UPDATE 1.4:
+- organize codebase
+- issue where they disappear after a scripted fight (hardcore, duel the scribe) after ars dimicatoria
+- improve enemy detection mercs will reliably attack any player enemy, except enemies in friendly fights, immortal enemies or enemies in scripted duels
+- lobotomize mercenary attack
+- disable targeting of immortal characters
+- made mercs sheathe their weapons reliably after combat
+- reorg following logic
+- Sometimes when misclicking the type of mercenary you want, there's no way to go back, forcing you to hire at least 1 mercenary.
+When you fire mercenaries they run away but then you have to wait days to rehire new ones, say you hire the max amount (6) and fire them, they all run away to god knows where but then you can rehire new ones right after
+- fix translation
+- fixed pro tier skalitz gear
+- reduced lag while waiting or sleeping
+- fixed rare bug where mercs would stop moving after certain cutscenes
+
+UPDATE 1.3
+- use CrimeFollower to make mercenary following a hundred times smoother and more natural
+- make mercenaries follow player in a proper double line (I can't believe how smooth this is!)
+- mercenaries will try to get out of the player's way when possible
+- add voice diversity
+- improved custom companion merc gear, added reduced damage intake buff
+- fixed dead or unconscious mercs teleporting to player for good
+- added missing innkeeper dialog in kuttenberg
+- added Turkish translation (credit goes to OzelHarekaTR)
+- add the option to recall them via innkeeper dialog
+- add option to heal the mercs, just talk to any of them, per merc to heal one potion (any one for now, will be changed later) or any food item
+
+UPDATE 1.2
+- no Looting mercenaries
+- custom companions, for now only base game characters (Kuběnka, Vasko, Jasak, Black Bartosch, Gnarly, Jan Posy, Miroslav Tugbone, Menhard, Arne, Janek of Skalitz, Jaroslav, Adder, Janosh, Mathew the Collector, Jan Žižka, The Devil, Father Godwin, Sir Hans Capon)
+- fixed mercs attacking player in rare cases or when mercs attacked by player dog
+- increased initial merc recruitment prices, further economy and balance will be added once I add wages
+- added Ai generated translations: Chinese (standart&traditional), Czech, German, French and Russian
+
+UPDATE 1.1
+- no attacking during brawls, tournaments and practice fights
+- add innkeeper slivka (suchdol)
+- play dressup + add option to equip as cumin
+- make mercs sheache their weapons after combat
+- mod compatibility sorted inventory, Loot Info - Container is empty or I already opened-looted it and In-Game Horse Customization Tool
