@@ -129,6 +129,7 @@ echo ============================================================
 echo  Packaging complete!
 echo  Output: %OUT_DIR%
 echo ============================================================
+start "" "C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
 goto :end
 
 :error

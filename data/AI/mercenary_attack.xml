@@ -94,7 +94,7 @@
                                                     end)
                                                 " />
                                                 
-                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer > 10.0">
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer > 20.0">
                                                     <Sequence>
                                                         <Fail />
                                                     </Sequence>

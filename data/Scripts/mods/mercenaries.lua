@@ -26,9 +26,9 @@ mercenaries.TokenIDReturn = "679a655e-189d-4519-b437-ccc4b92be49d"
 --heal mercs token
 mercenaries.TokenIDHeal = "679a655e-189d-4519-b437-ccc4b92be50d"
 
-mercenaries.MaxCompanions = 6
+mercenaries.MaxCompanions = 999
 
-mercenaries.TargetDetectionRadius = 999
+mercenaries.TargetDetectionRadius = 50
 
 mercenaries.IsHiddenForCutscene = false
 mercenaries.timersStarted = false
@@ -306,14 +306,20 @@ function mercenaries.MonitorLoop()
         mercenaries:MonitorInventory()
     end
     mercenaries:MonitorMainQuestLoop()
-    mercenaries:UpdateEnemyCache()
+
+    if not _G.MercIdle then
+        mercenaries:UpdateEnemyCache()
+    end
 
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
 end
 
 function mercenaries.LowPriorityMonitorLoop()
-    mercenaries:PruneMercCache()
-    mercenaries:UpdateFormationSlots()
+    if not _G.MercIdle then
+
+        mercenaries:PruneMercCache()
+        mercenaries:UpdateFormationSlots()
+    end
 
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 

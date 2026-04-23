@@ -72,6 +72,7 @@ end
 -- mercenaries.CachedEnemies for all mercs to read from.
 -- =======================================================================
 function mercenaries:UpdateEnemyCache()
+    
     local ok, err = pcall(function()
         self.CachedEnemies = {}
 
@@ -80,14 +81,18 @@ function mercenaries:UpdateEnemyCache()
         if not playerPos then return end
 
         local playerWuid = player.this and player.this.id or player.id
-        local entsInArea = System.GetEntitiesInSphere(playerPos, 15.0)
-        if not entsInArea then return end
 
-        for _, ent in pairs(entsInArea) do
-            if ent and type(ent) == "table" and ent.soul then
-                if self:IsValidEnemy(ent, player, playerWuid) then
-                    local entWuid = ent.this and ent.this.id or ent.id
-                    table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid })
+        local classes = { "NPC", "Wolf", "Dog" }
+        for _, className in ipairs(classes) do
+            local ents = System.GetEntitiesInSphereByClass(playerPos, 15.0, className)
+            if ents then
+                for _, ent in pairs(ents) do
+                    if ent and type(ent) == "table" and ent.soul then
+                        if self:IsValidEnemy(ent, player, playerWuid) then
+                            local entWuid = ent.this and ent.this.id or ent.id
+                            table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid })
+                        end
+                    end
                 end
             end
         end
@@ -96,6 +101,7 @@ function mercenaries:UpdateEnemyCache()
     if not ok then
         System.LogAlways('[Mercenary Jeff] UpdateEnemyCache Error: ' .. tostring(err))
     end
+    
 end
 
 -- =======================================================================

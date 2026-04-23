@@ -15,6 +15,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 ### General
 * [How to mod](general/how-to-mod.md) (How to set up a project, how to understand the base game's structure, how to test out your creation)
 * [Communicating between Lua and Skald](general/lua-skald-communication.md) (How to call lua code from your quest)
+* [How to add new equipment presets](general/adding-new-outfits.md) (How to change the equipment of the Mercenaries)
 
 ### Lua
 * [Spawning NPCs](spawning-npcs.md) (How to spawn an NPC you defined in the other guides)
