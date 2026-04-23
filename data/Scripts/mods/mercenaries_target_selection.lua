@@ -72,7 +72,6 @@ end
 -- mercenaries.CachedEnemies for all mercs to read from.
 -- =======================================================================
 function mercenaries:UpdateEnemyCache()
-    
     local ok, err = pcall(function()
         self.CachedEnemies = {}
 
@@ -82,15 +81,32 @@ function mercenaries:UpdateEnemyCache()
 
         local playerWuid = player.this and player.this.id or player.id
 
-        local classes = { "NPC", "Wolf", "Dog" }
-        for _, className in ipairs(classes) do
-            local ents = System.GetEntitiesInSphereByClass(playerPos, 15.0, className)
-            if ents then
-                for _, ent in pairs(ents) do
-                    if ent and type(ent) == "table" and ent.soul then
-                        if self:IsValidEnemy(ent, player, playerWuid) then
-                            local entWuid = ent.this and ent.this.id or ent.id
-                            table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid })
+        -- NPC query runs every tick (once/sec)
+        local ents = System.GetPhysicalEntitiesInBoxByClass(playerPos, 15.0, "NPC")
+        if ents then
+            for _, ent in pairs(ents) do
+                if ent and type(ent) == "table" and ent.soul then
+                    if self:IsValidEnemy(ent, player, playerWuid) then
+                        local entWuid = ent.this and ent.this.id or ent.id
+                        table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid })
+                    end
+                end
+            end
+        end
+
+        -- Animal queries run every 3 seconds — animals don't need per-second precision
+        self._animalQueryTick = (self._animalQueryTick or 0) + 1
+        if self._animalQueryTick >= 3 then
+            self._animalQueryTick = 0
+            for _, className in ipairs({ "Wolf", "Dog" }) do
+                local aEnts = System.GetPhysicalEntitiesInBoxByClass(playerPos, 15.0, className)
+                if aEnts then
+                    for _, ent in pairs(aEnts) do
+                        if ent and type(ent) == "table" and ent.soul then
+                            if self:IsValidEnemy(ent, player, playerWuid) then
+                                local entWuid = ent.this and ent.this.id or ent.id
+                                table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid })
+                            end
                         end
                     end
                 end
@@ -101,7 +117,6 @@ function mercenaries:UpdateEnemyCache()
     if not ok then
         System.LogAlways('[Mercenary Jeff] UpdateEnemyCache Error: ' .. tostring(err))
     end
-    
 end
 
 -- =======================================================================
