@@ -70,6 +70,8 @@ function mercenaries:Hire(cost, amount, tier)
             local ent = System.GetEntityByName(entityName)
 
             if ent then
+                mercenaries:EnsureMercIsAlwaysRendered(ent)
+
                 self:EquipMercenary(ent, currentPreset)
                 -- PERFORMANCE: Register in cache immediately so the next
                 -- MonitorLoop tick doesn't need a full world scan to find them.
@@ -169,6 +171,8 @@ function mercenaries:HireCustomCompanion(ccID)
         -- PERFORMANCE: Register in cache immediately
         local ent = System.GetEntityByName(entityName)
         if ent then
+            mercenaries:EnsureMercIsAlwaysRendered(ent)
+
             self.ActiveMercs[entityName] = ent
             self:InjectInteraction(ent)
 

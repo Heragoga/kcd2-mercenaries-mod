@@ -67,7 +67,7 @@ set "LOC_OUT=%OUT_DIR%\localization"
 if not exist "%LOC_SRC%" (
     echo       WARNING: localization folder not found, skipping.
 ) else (
-    for %%L in (Chineses_xml Chineset_xml Czech_xml English_xml French_xml German_xml Russian_xml Turkish_xml) do (
+    for %%L in (Chineses_xml Chineset_xml Czech_xml English_xml French_xml German_xml Russian_xml Turkish_xml Japanese_xml) do (
         set "SRC_FILE=%LOC_SRC%\%%L.xml"
         set "PAK_FILE=%LOC_OUT%\%%L.pak"
         set "TMP_LOC=%TEMP%\kcd2_loc_%%L"

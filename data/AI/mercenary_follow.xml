@@ -7,6 +7,9 @@
             <Variable name="formationSlot" type="_int" values="-1" isPersistent="0" form="single" />
             <Variable name="previousTarget" type="_wuid" values="" isPersistent="0" form="single" />
             <Variable name="goFlee" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="playerIsMounted" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="horse" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="horseSpawned" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -14,38 +17,184 @@
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">
                 <Sequence>
-
-                    <Expression expressions="$playerWUID = $__player &#10; $followTarget = $__player &#10; $previousTarget = $__player" />
-
+                    <Expression expressions="$playerWUID = $__player &#10; $followTarget = $__player &#10; $previousTarget = $__player &#10; $horseSpawned = false &#10; $playerIsMounted = false" />
                     <Parallel successMode="Any" failureMode="Any">
-                        
-                        <Loop count="-1">
-                            <Sequence>
-                                <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
 
-                                <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
-                                
-                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="" />
-                            </Sequence>
-                        </Loop>
-
-                        
-                        <ContinuousSwitch>
-                            <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
+                        <!-- Formation update loop -->
+                        <SuppressFailure>
+                            <Loop count="-1">
                                 <Sequence>
-                                    <Expression expressions="$previousTarget = $followTarget" />
-                                    <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="" />
+                                    <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
+                                    <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
+                                    <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="" />
                                 </Sequence>
-                            </IfCondition>
-                            
-                            <IfCondition failOnCondition="false" condition="$followTarget == $previousTarget &amp; ~$goFlee">
-                                <Sequence>
+                            </Loop>
+                        </SuppressFailure>
 
-                                    <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
-                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="" />
+                        <!-- Mount state poll + horse lifecycle -->
+                        <SuppressFailure>
+                            <Loop count="-1">
+                                <Sequence>
+                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+
+                                    <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
+                                        <Then canSkip="1">
+                                            <Sequence>
+                                                <Expression expressions="$playerIsMounted = true" />
+                                            </Sequence>
+                                        </Then>
+                                        <Else canSkip="1">
+                                            <Sequence>
+                                                <Expression expressions="$playerIsMounted = false" />
+                                            </Sequence>
+                                        </Else>
+                                    </StanceCheck>
+
+                                    <IfCondition failOnCondition="false" condition="$playerIsMounted &amp; ~$horseSpawned">
+                                        <Sequence>
+                                            <ExecuteLua code="System.LogAlways('[MercHorse] Spawn condition MET - attempting spawn')" />
+                                            <ExecuteLua code="
+                                                local ok, err = pcall(function()
+                                                    local me = entity
+                                                    if not me then
+                                                        return
+                                                    end
+                                                    local pos = me:GetPos()
+                                                    if not pos then
+                                                        return
+                                                    end
+                                                    local horseName = 'MercenaryHorse_' .. tostring(me:GetName())
+                                                    local horsePos = {
+                                                        x = pos.x + (math.random() - 0.5) * 2.0,
+                                                        y = pos.y + (math.random() - 0.5) * 2.0,
+                                                        z = pos.z
+                                                    }
+                                                    local horseSouls = {
+                                                        '00af7178-368d-44f0-9368-a7b7750c098c',
+                                                        '08672b2a-14dd-48df-98e3-e8b4ef7694fb',
+                                                        '12ae5a12-fd57-4765-9fd2-da839545b61e',
+                                                        '1834d21b-f362-4079-a847-97decfe438d7',
+                                                        '2629b487-e123-4012-a9ab-dc53ea7a2ada',
+                                                        '2f91a84b-36ac-4980-8343-90f9634004e2',
+                                                        '35d35777-3bc4-450c-9d0c-218f906b7b9d',
+                                                        '3e35d2f2-9638-449f-afe0-2879a9a67dfb',
+                                                        '45b7dbbf-d1f1-4bdd-abc0-ea86dc30ba47',
+                                                        '4ddb9978-e582-4d27-82d5-25bad9d56c51',
+                                                        '55353ccc-b4bb-4d38-ba64-10d95607421c',
+                                                        '5d58ed68-d06e-4ce5-bb6f-e5bf801ffc3c',
+                                                        '63415fa6-4b96-4a8a-a72c-f6d3081d6189',
+                                                        '6d299a92-4857-400c-8448-bfdaceb92523',
+                                                        '748c4f4e-e6ef-423c-89d9-a26c23f787d9',
+                                                        '7c6d76e6-6ad2-4771-b579-3cf7224b6bdc',
+                                                        '83a92d89-63a1-428f-bc2b-9377104ae77a',
+                                                        '8b2c12ef-a87c-492a-9adf-2b8e917c7e3b',
+                                                        '93f4d43d-36e5-40ba-b98d-44fd8564e8b7',
+                                                        '9d3ccd40-2c39-40ff-a149-ba3c260bd8a2',
+                                                        'a42123d7-6f90-48f7-95df-048446b729fc',
+                                                        'b12466d8-d4cd-4746-abd5-fcb18301e7e4',
+                                                        'b9693f42-6ee9-4a75-9b62-5bc1bdd9138a',
+                                                        'c4dd79ae-fa05-4c7f-b1b5-20ecb08e7ebc',
+                                                        'd216ce2d-15ae-434b-b714-cacfcd3c7d53',
+                                                        'e3114d8a-e817-407d-8efb-da6c05d91dd8',
+                                                        'f0021bd4-ed58-4c01-ac07-ac0ad2cfaf5d',
+                                                        'f3d4dec9-1c07-4fb4-9fe5-7694f6756058',
+                                                        'fc0e6251-b314-4398-b83f-3a66a52961ee',
+                                                        'ffedd2f9-b766-4985-b384-8bbe8229ae4a',
+                                                    }
+                                                    local soulId = horseSouls[math.random(1, #horseSouls)]
+                                                    System.SpawnEntity({
+                                                        class = 'Horse',
+                                                        name = horseName,
+                                                        position = horsePos,
+                                                        orientation = {x = 0, y = 0, z = 0},
+                                                        properties = {guidSharedSoulId = soulId}
+                                                    })
+                                                    local horseEnt = System.GetEntityByName(horseName)
+                                                    local ent = XGenAIModule.GetEntityByWUID(data.horse)
+
+                                                   
+
+                                                    if horseEnt then
+                                                        data.horse = horseEnt.this.id
+
+                                                    end
+                                                end)
+                                                if not ok then System.LogAlways('[MercHorse] EXCEPTION in spawn: ' .. tostring(err)) end
+                                            " />
+                                            <Expression expressions="$horseSpawned = true" />
+                                            
+                                        </Sequence>
+                                    </IfCondition>
+
+                                    <IfCondition failOnCondition="false" condition="~$playerIsMounted &amp; $horseSpawned">
+                                        <Sequence>
+                                            <ExecuteLua code="
+                                                local ok, err = pcall(function()
+                                                    local horseName = 'MercenaryHorse_' .. tostring(entity:GetName())
+                                                    System.LogAlways('[MercHorse] Looking up horse by name: ' .. horseName)
+                                                    local horseEnt = System.GetEntityByName(horseName)
+                                                    if horseEnt then
+                                                        System.LogAlways('[MercHorse] Found horse, calling RemoveEntity')
+                                                        System.RemoveEntity(horseEnt.id)
+                                                        System.LogAlways('[MercHorse] RemoveEntity called')
+                                                    else
+                                                        System.LogAlways('[MercHorse] FAIL: horse not found by name for despawn')
+                                                    end
+                                                end)
+                                                if not ok then System.LogAlways('[MercHorse] EXCEPTION in despawn: ' .. tostring(err)) end
+                                            " />
+                                            <Expression expressions="$horseSpawned = false" />
+                                        </Sequence>
+                                    </IfCondition>
+
                                 </Sequence>
-                            </IfCondition>
-                        </ContinuousSwitch>
+                            </Loop>
+                        </SuppressFailure>
+
+                        <!-- Movement -->
+                       <!-- Movement -->
+
+                        <SuppressFailure>
+                            <ContinuousSwitch>
+
+                                    <!-- Target changed: update previousTarget, ContinuousSwitch will restart follow -->
+                                    <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
+                                        <Sequence>
+                                            <Expression expressions="$previousTarget = $followTarget" />
+                                            <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="" />
+                                        </Sequence>
+                                    </IfCondition>
+
+                                    <!-- On foot: follow formation target -->
+                                    <IfCondition failOnCondition="false" condition="~$playerIsMounted &amp; ~$goFlee &amp; $followTarget == $previousTarget">
+                                        <Sequence>
+                                            <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                            </MoveParamsDecorator>
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="" />
+
+                                        </Sequence>
+                                    </IfCondition>
+
+                                    <!-- Mounted: teleport to horse if needed, then mount and follow -->
+                                    <IfCondition failOnCondition="false" condition="$playerIsMounted &amp; $horseSpawned &amp; ~$goFlee">
+                                        <Sequence>
+                                            <DistanceCondition Origin="$this.id" ReferencePt="$horse" Low="10.000000" High="20.000000" Negation="true" ValueOnMiddle="false" failOnCondition="false">
+                                                <Sequence>
+                                                    <AddInterrupt_teleport destination="$this.id" Target="$horse" Host="$__land" Behavior="'teleport'" Priority="200" IgnorePriorityOnPreviousInterrupt="false" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
+                                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                                </Sequence>
+                                            </DistanceCondition>
+                                            <StanceElement smartObject="$horse" stance="horse" allowAny="false" enabled="true">
+                                                <CrimeFollower Target="$followTarget" Mode="Default" Role="Assist" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                            </StanceElement>
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="" />
+
+                                        </Sequence>
+                                    </IfCondition>
+                            </ContinuousSwitch>
+
+                        </SuppressFailure>
 
                     </Parallel>
                 </Sequence>

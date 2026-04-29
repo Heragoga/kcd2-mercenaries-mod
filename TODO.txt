@@ -1,21 +1,30 @@
 GENERAL TODO:
-- add equipment style customization
-- wolf attack bug
-- configurable prices&gear
-- wages
-- difficulty scaling
-- new encounters
 
+- tactical system, create multiple squads and give them different behaviours
+- wages
+- new encounters, ambushes at set locations on the map
+
+BUGS:
+-I have found that very rarely, it can cause crashes with Fast Travel - 1.5 Update DLC. The crash is very rare, so its not a huge issue. But I think it has something to do with opening and closing the map rapidly after fast traveling while Mercenaries is still resuming from a fast travel interrupt.  
+-All missions will be affected by the presence of bandits or bandit-like individuals, as mercenaries will indiscriminately attack all bandits. For example, my mercenary killed the person with an arrow in their head who was still alive without saying a word, causing the mission to fail immediately.
+- The bodies of mercenaries won't bo removed
+-Mercenaries become invisible in major battle
 
 FOR NEXT UPDATE:
-
+- try archers/handcannoneers
+- integration with kobyla armor
+- improve audio mixing, more voicelines, voiced dialog?
 
 IN PROGRESS:
-
+- try horses
 
 DONE: 
 - made voicelines rarer
 - made mercs attack wolves and wild dogs
+- fix bug where the state doesn't save properly
+- make them not close doors
+- Japanese translation, Credit goes to takuspore0729
+
 
 
 

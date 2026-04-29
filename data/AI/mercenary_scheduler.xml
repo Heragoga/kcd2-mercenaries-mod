@@ -48,6 +48,9 @@
             <Variable name="wasInCombat" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="canSpeak" type="_bool" values="false" isPersistent="0" form="single" />
 
+            <Variable name="playerIsMounted" type="_bool" values="false" isPersistent="0" form="single" />
+
+
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">
@@ -240,8 +243,19 @@
                                                 end
                                             end)
                                         " />
-                                        
-                                        <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 50.0 &amp; ~$inCombat">
+                                        <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
+                                            <Then canSkip="1">
+                                                <Sequence>
+                                                    <Expression expressions="$playerIsMounted = true" />
+                                                </Sequence>
+                                            </Then>
+                                            <Else canSkip="1">
+                                                <Sequence>
+                                                    <Expression expressions="$playerIsMounted = false" />
+                                                </Sequence>
+                                            </Else>
+                                        </StanceCheck>
+                                        <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 50.0 &amp; ~$inCombat &amp; ~$playerIsMounted">
                                             <ExecuteLua code="
                                                 local ok, err = pcall(function()
                                                     if _G.MercIdle then return end
@@ -316,6 +330,7 @@
                                                 end)
                                                 if not ok then System.LogAlways('[Mercenary] Teleport Error: ' .. tostring(err)) end
                                             " />
+                                            
                                         </IfCondition>
 
                                     </Sequence>

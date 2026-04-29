@@ -4,6 +4,15 @@
 -- PruneMercCache:   called once per second in MonitorLoop to remove dead refs.
 -- All hot-path functions iterate ActiveMercs instead of GetEntitiesByClass.
 -- =======================================================================
+
+function mercenaries:EnsureMercIsAlwaysRendered(ent)
+    if ent then
+        ent:RenderAlways(1)
+        ent:SetViewDistRatio(254)
+        ent:SetViewDistRatio(0)
+
+    end
+end
 function mercenaries:RebuildMercCache()
     self.ActiveMercs = {}
      if _G.MercenariesDismissed then
@@ -18,9 +27,11 @@ function mercenaries:RebuildMercCache()
                 -- Only cache entities that are actually alive
                 if self:IsAliveAndWell(e, true) then
                     self.ActiveMercs[name] = e
+                    mercenaries:EnsureMercIsAlwaysRendered(e)
                     -- Restore the interaction button that was injected at hire time.
                     -- Without this, GetActions is never overridden after a save/load.
                     self:InjectInteraction(e)
+                    self:EquipMercenary(e, _G.MercCurrentOutfit or 1)
                 end
             end
         end
@@ -36,7 +47,14 @@ function mercenaries:PruneMercCache()
     for name, ent in pairs(self.ActiveMercs) do
         if not self:IsAliveAndWell(ent, true) then
             self.ActiveMercs[name] = nil
+            Script.SetTimerForFunction(10000, "mercenaries.DespawnMerc", ent.id)
         end
+    end
+end
+
+function mercenaries:DespawnMerc(entID)
+    if entID then 
+      System.RemoveEntity(entID)  
     end
 end
 
@@ -190,3 +208,5 @@ function mercenaries.ReleaseSpeakingLock()
     _G.MercSpeakingOwner = nil
     -- System.LogAlways('[Mercenary] Speaking lock released.')
 end
+
+

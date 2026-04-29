@@ -302,6 +302,7 @@ end
 
 -- The looping function
 function mercenaries.MonitorLoop()
+
     if player and player.inventory then
         mercenaries:MonitorInventory()
     end

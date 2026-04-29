@@ -56,6 +56,7 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid)
     or ent.soul:HasScriptContext("combat_surrender")
     or ent.soul:HasScriptContext("crime_interruptFlee")
     or ent.soul:HasScriptContext("crime_fleeAfterSurrender")
+--[[     or ent.soul:HasScriptContext("combat_arrangedFight") ]]
     
     or ent.soul:HasScriptContext("combat_immortalityProtection")then 
         return false
