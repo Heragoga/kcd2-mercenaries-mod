@@ -20,13 +20,31 @@
                 <Definition File="mercenaries_background_quest/drink_2_monolog.xml" />
                 <Definition File="mercenaries_background_quest/drink_3_monolog.xml" />
                 <Definition File="mercenaries_background_quest/drink_4_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story1_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story2_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story3_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story4_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story5_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story6_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story7_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story8_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story9_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story10_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story11_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story12_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story13_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story14_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story15_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story16_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story17_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story18_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story19_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story20_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story21_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/story22_monolog.xml" />
             </Definitions>
-
             <Nodes>
-
                 <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
-                   
-
                 <dismissal_dialog Name="dismissal_dialog" PositionY="150" PositionX="300" />
                 <farm_1_monolog Name="farm_1_monolog" PositionY="150" PositionX="400" />
                 <farm_2_monolog Name="farm_2_monolog" PositionY="150" PositionX="400" />
@@ -40,6 +58,28 @@
                 <drink_2_monolog Name="drink_2_monolog" PositionY="150" PositionX="400" />
                 <drink_3_monolog Name="drink_3_monolog" PositionY="150" PositionX="400" />
                 <drink_4_monolog Name="drink_4_monolog" PositionY="150" PositionX="400" />
+                <story_1_monolog Name="story_1_monolog" PositionY="150" PositionX="500" />
+                <story_2_monolog Name="story_2_monolog" PositionY="150" PositionX="500" />
+                <story_3_monolog Name="story_3_monolog" PositionY="150" PositionX="500" />
+                <story_4_monolog Name="story_4_monolog" PositionY="150" PositionX="500" />
+                <story_5_monolog Name="story_5_monolog" PositionY="150" PositionX="500" />
+                <story_6_monolog Name="story_6_monolog" PositionY="150" PositionX="500" />
+                <story_7_monolog Name="story_7_monolog" PositionY="150" PositionX="500" />
+                <story_8_monolog Name="story_8_monolog" PositionY="150" PositionX="500" />
+                <story_9_monolog Name="story_9_monolog" PositionY="150" PositionX="500" />
+                <story_10_monolog Name="story_10_monolog" PositionY="150" PositionX="500" />
+                <story_11_monolog Name="story_11_monolog" PositionY="150" PositionX="500" />
+                <story_12_monolog Name="story_12_monolog" PositionY="150" PositionX="500" />
+                <story_13_monolog Name="story_13_monolog" PositionY="150" PositionX="500" />
+                <story_14_monolog Name="story_14_monolog" PositionY="150" PositionX="500" />
+                <story_15_monolog Name="story_15_monolog" PositionY="150" PositionX="500" />
+                <story_16_monolog Name="story_16_monolog" PositionY="150" PositionX="500" />
+                <story_17_monolog Name="story_17_monolog" PositionY="150" PositionX="500" />
+                <story_18_monolog Name="story_18_monolog" PositionY="150" PositionX="500" />
+                <story_19_monolog Name="story_19_monolog" PositionY="150" PositionX="500" />
+                <story_20_monolog Name="story_20_monolog" PositionY="150" PositionX="500" />
+                <story_21_monolog Name="story_21_monolog" PositionY="150" PositionX="500" />
+                <story_22_monolog Name="story_22_monolog" PositionY="150" PositionX="500" />
 
 
                 <EventFunction Name="exec_clothes_1" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">

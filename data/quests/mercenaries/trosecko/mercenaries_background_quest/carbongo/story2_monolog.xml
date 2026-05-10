@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="story_2_monolog">
+            <Text StringName="614a_story2" Text="Mercenary Story Bark 2" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_story_2" Priority="General" Alias="614a_story2">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_story_2">
+                            <DesignName StringName="614a_story2" Text="I once trusted a man who said shortcut, we arrived older." />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="614a_story2"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

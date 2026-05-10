@@ -6,17 +6,16 @@ GENERAL TODO:
 
 BUGS:
 - Mercs attacking bandits indiscriminantly, even if those bandits are part of quests.
--Mercenaries become invisible in major battle
+- Mercenaries become invisible in major battle
 
 FOR NEXT UPDATE:
-- integrate carbongo voicelines
-- add contributer section
+- add contributer section (takuspore0729 - Japanese translation, carbongo - voicelines, OzelHarekaTR - Turkish translation, 小邮票 - Chinese version)
 - try archers/handcannoneers
 - integration with kobyla armor
 - improve audio mixing, more voicelines, voiced dialog?
 
 IN PROGRESS:
-
+- integrate carbongo voicelines
 
 DONE: 
 - made voicelines rarer

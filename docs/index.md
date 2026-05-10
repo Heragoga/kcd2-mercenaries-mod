@@ -36,4 +36,12 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 
 ---
 
+---
+##Random pieces of adivse
+
+* Do not prefix string ids with a number or special character, they always have to begin with a letter
+* Lua comments should not be put into behaviour trees
+
+---
+
 *This wiki will get expanded as I continue to mod.*
