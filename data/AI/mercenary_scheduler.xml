@@ -49,7 +49,7 @@
             <Variable name="canSpeak" type="_bool" values="false" isPersistent="0" form="single" />
 
             <Variable name="playerIsMounted" type="_bool" values="false" isPersistent="0" form="single" />
-
+            <Variable name="mercIsDead" type="_bool" values="false" isPersistent="0" form="single" />
 
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
@@ -582,6 +582,36 @@
                                                 </Sequence>
                                             </Else>
                                         </IfElseCondition>
+                                    </Sequence>
+                                </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Despawn dead merc after 1 minute -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'60s'" timeType="GameTime" doFail="false" variation="'10s'" />
+                                <ExecuteLua code="
+                                    local ok, err = pcall(function()
+
+                                        if not entity.actor then return end
+                                        local isDead = false
+
+                                        if entity.actor.IsDead and entity.actor:IsDead() then isDead = true end
+                                        if entity.actor:IsUnconscious() then
+                                            local ok2, health = pcall(function() return entity.soul:GetState('health') end)
+                                            if not ok2 or health == nil or health &lt;= 0 then isDead = true end
+                                        end
+
+                                        data.mercIsDead = isDead
+                                    end)
+                                    if not ok then System.LogAlways('[Mercenary] Death check error: ' .. tostring(err)) end
+                                " />
+                                <IfCondition failOnCondition="false" condition="$mercIsDead">
+                                    <Sequence>
+                                        <Wait duration="'120s'" timeType="GameTime" doFail="false" variation="'10s'" />
+                                        <Despawn DeSpawnedEntity="$this.id" />
+
                                     </Sequence>
                                 </IfCondition>
                             </Sequence>

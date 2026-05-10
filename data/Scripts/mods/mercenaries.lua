@@ -26,12 +26,12 @@ mercenaries.TokenIDReturn = "679a655e-189d-4519-b437-ccc4b92be49d"
 --heal mercs token
 mercenaries.TokenIDHeal = "679a655e-189d-4519-b437-ccc4b92be50d"
 
-mercenaries.MaxCompanions = 999
+mercenaries.MaxCompanions = 6
 
 mercenaries.TargetDetectionRadius = 50
 
 mercenaries.IsHiddenForCutscene = false
-mercenaries.timersStarted = false
+
 
 -- =======================================================================
 -- PERFORMANCE: Centralized caches — rebuilt/pruned once per second
@@ -321,10 +321,10 @@ function mercenaries.LowPriorityMonitorLoop()
         mercenaries:PruneMercCache()
         mercenaries:UpdateFormationSlots()
     end
-
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
 end
+
 
 -- Mod Initialization
 function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
@@ -359,15 +359,14 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 
     self:ReleaseSpeakingLock()
 
+    _G.PlayerMounted = false
+
     -- PERFORMANCE: Rebuild the merc entity cache after each load.
     -- This is the ONE permitted full-world NPC scan — done once on load,
     -- not every second in the monitor loop.
     Script.SetTimerForFunction(2000, "mercenaries.RebuildMercCacheDelayed")
-    if not mercenaries.timersStarted then
-        mercenaries.timersStarted = true
-        Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
-        Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
-    end
+    Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
+    Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
 
 end
@@ -404,6 +403,7 @@ System.AddCCommand("merc_hire_p2", "mercenaries:Hire(0, 2, 'strong')", "")
 System.AddCCommand("merc_hire_p3", "mercenaries:Hire(0, 3, 'strong')", "")
 
 System.AddCCommand("merc_hire_strong_army", "mercenaries:Hire(0, 10, 'strong')", "")
+System.AddCCommand("merc", "mercenaries:Hire(0, 6, 'strong')", "")
 System.AddCCommand("merc_hire_weak_horde", "mercenaries:Hire(0, 10, 'weak')", "")
 
 -- Usage in console: merc_save_string global_idle 1|true|105.5

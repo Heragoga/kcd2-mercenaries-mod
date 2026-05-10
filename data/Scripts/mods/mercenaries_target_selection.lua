@@ -99,6 +99,8 @@ function mercenaries:UpdateEnemyCache()
         self._animalQueryTick = (self._animalQueryTick or 0) + 1
         if self._animalQueryTick >= 3 then
             self._animalQueryTick = 0
+
+            -- Wolf/Dog enemy detection
             for _, className in ipairs({ "Wolf", "Dog" }) do
                 local aEnts = System.GetPhysicalEntitiesInBoxByClass(playerPos, 15.0, className)
                 if aEnts then
@@ -112,6 +114,43 @@ function mercenaries:UpdateEnemyCache()
                     end
                 end
             end
+
+            -- Orphan horse cleanup
+            -- Scans for Horse entities near the player following the MercenaryHorse_ convention.
+            -- Despawns if: owning merc is dead/missing, or owning merc is not mounted.
+            local horses = System.GetPhysicalEntitiesInBoxByClass(playerPos, 100.0, "Horse")
+            if horses then
+                for _, horseEnt in pairs(horses) do
+                    if horseEnt and horseEnt:GetName() then
+                        local horseName = horseEnt:GetName()
+                        if string.find(horseName, 'MercenaryHorse_', 1, true) then
+                            local mercName = string.sub(horseName, string.len('MercenaryHorse_') + 1)
+                            local shouldDespawn = false
+                            local reason = ""
+
+                            local mercEnt = self.ActiveMercs[mercName]
+
+                            if not mercEnt then
+                                -- Merc not in cache — dead or already cleaned up
+                                shouldDespawn = true
+                                reason = "merc not in ActiveMercs"
+                            else
+                                -- Check if merc is alive
+                                if not self:IsAliveAndWell(mercEnt, true) then
+                                    shouldDespawn = true
+                                    reason = "merc dead or unconscious"
+                                end
+                            end
+
+                            if shouldDespawn then
+                                System.LogAlways('[MercHorse] Despawning orphan horse: ' .. horseName .. ' (' .. reason .. ')')
+                                pcall(function() System.RemoveEntity(horseEnt.id) end)
+                            end
+                        end
+                    end
+                end
+            end
+
         end
     end)
 

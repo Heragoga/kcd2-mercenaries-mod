@@ -7,9 +7,9 @@
 
 function mercenaries:EnsureMercIsAlwaysRendered(ent)
     if ent then
-        ent:RenderAlways(1)
+        --[[ ent:RenderAlways(1)
         ent:SetViewDistRatio(254)
-        ent:SetViewDistRatio(0)
+        ent:SetViewDistRatio(0) ]]
 
     end
 end
@@ -36,6 +36,11 @@ function mercenaries:RebuildMercCache()
             end
         end
     end
+    -- Always recount after rebuild so MercCount reflects reality
+    local c = 0
+    for _ in pairs(self.ActiveMercs) do c = c + 1 end
+    _G.MercCount = c
+    System.LogAlways('[Mercenary Jeff] Merc cache rebuilt. Active mercs: ' .. tostring(_G.MercCount))
     System.LogAlways('[Mercenary Jeff] Merc cache rebuilt. Active mercs: ' .. tostring(self:_TableCount(self.ActiveMercs)))
 end
 function mercenaries.RebuildMercCacheDelayed()
@@ -210,3 +215,13 @@ function mercenaries.ReleaseSpeakingLock()
 end
 
 
+function mercenaries.DespawnHorseByName(horseName)
+    if not horseName then return end
+    local horseEnt = System.GetEntityByName(horseName)
+    if horseEnt then
+        System.RemoveEntity(horseEnt.id)
+        System.LogAlways('[MercHorse] Deferred despawn complete: ' .. horseName)
+    else
+        System.LogAlways('[MercHorse] Deferred despawn: already gone: ' .. horseName)
+    end
+end
