@@ -6,7 +6,7 @@
         buff_id="b8f4a2c1-3d7e-4f90-8b5a-6c2d9e1f0a3b"
         buff_lifetime_id="1"
         buff_name="mercenary_speed_boost"
-        buff_params="rms*1.15"
+        buff_params="rms*1.15,drd-30,strength+10,agility+10,vitality+10,fencing+10,defense+10,weapon_sword+10,weapon_unarmed+10,weapon_large+10,heavy_weapons+10,marksmanship+10,mor+1.0,dmd*0.0,dmh*0.0,drn*0.0"
         duration="-1"
         implementation="Cpp:Constant"
         is_persistent="false" />

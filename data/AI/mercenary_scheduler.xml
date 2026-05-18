@@ -377,6 +377,9 @@
                                         <Sequence>
                                             <IfCondition failOnCondition="false" condition="~$isFollowingActive">
                                                 <Sequence>
+
+                                                    
+                                                    <ExecuteLua code="System.LogAlways('[MERC JEFF] issuing follow order')"/>
                                                     <SuppressFailure>
                                                         <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
                                                         <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$__player" Information="$crimeInformation" />
@@ -402,7 +405,7 @@
             
                         <Loop count="-1">
                             <Sequence>
-                                <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                <Wait duration="'1200s'" timeType="GameTime" doFail="false" variation="'600s'" />
                                 <IfCondition failOnCondition="false" condition="~$inCombat &amp; ~$goFlee">
                                     <Sequence>
 

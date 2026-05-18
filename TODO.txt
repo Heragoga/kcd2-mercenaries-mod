@@ -1,8 +1,9 @@
 GENERAL TODO:
-
 - tactical system, create multiple squads and give them different behaviours
 - wages
 - new encounters, ambushes at set locations on the map
+- integration with kobyla armor
+- more voicelines, voiced dialog
 
 BUGS:
 - Mercs attacking bandits indiscriminantly, even if those bandits are part of quests.
@@ -11,21 +12,19 @@ BUGS:
 FOR NEXT UPDATE:
 - add contributer section (takuspore0729 - Japanese translation, carbongo - voicelines, OzelHarekaTR - Turkish translation, 小邮票 - Chinese version)
 - try archers/handcannoneers
-- integration with kobyla armor
-- improve audio mixing, more voicelines, voiced dialog?
 
 IN PROGRESS:
-- integrate carbongo voicelines
+
 
 DONE: 
-- made voicelines rarer
 - made mercs attack wolves and wild dogs
 - fix bug where the state doesn't save properly
 - make them not close doors
 - Japanese translation, Credit goes to takuspore0729
 - Fixed Travelling between regions makes the mercs no longer work
-- Made mercs use horses
+- Made mercs use horses, horses appear when the player mounts and disappear once he dismounts
 - fixed bug where merc bodies wouldn't despawn
+- Added 22 new ambient voicelines made by carbongo
 
 
 

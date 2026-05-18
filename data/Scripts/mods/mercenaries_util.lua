@@ -225,3 +225,4 @@ function mercenaries.DespawnHorseByName(horseName)
         System.LogAlways('[MercHorse] Deferred despawn: already gone: ' .. horseName)
     end
 end
+

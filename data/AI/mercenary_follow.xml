@@ -10,6 +10,7 @@
             <Variable name="playerIsMounted" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="horse" type="_wuid" values="" isPersistent="0" form="single" />
             <Variable name="horseSpawned" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="mountAbandoned" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -17,184 +18,217 @@
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">
                 <Sequence>
+                    <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] BT START: mercenary_follow initializing.')" />
                     <Expression expressions="$playerWUID = $__player &#10; $followTarget = $__player &#10; $previousTarget = $__player" />
                     <Parallel successMode="Any" failureMode="Any">
 
                         <!-- Formation update loop -->
-                        <SuppressFailure>
-                            <Loop count="-1">
-                                <Sequence>
-                                    <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
-                                    <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
-                                    <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="" />
-                                </Sequence>
-                            </Loop>
-                        </SuppressFailure>
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
+                                <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
+                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="" />
+                            </Sequence>
+                        </Loop>
 
-                        <!-- Mount state poll + horse lifecycle -->
                         <!-- StanceCheck: runs every 1s, writes to _G.PlayerMounted on transition -->
-                        <SuppressFailure>
-                            <Loop count="-1">
-                                <Sequence>
-                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
-                                    <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
-                                        <Then canSkip="1">
-                                            <ExecuteLua code="
-                                                if not _G.PlayerMounted then
-                                                    System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DETECT: Player mounted. Updating global.')
-                                                    _G.PlayerMounted = true
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] STANCECHECK: Polling player mount state. Current _G.PlayerMounted=' .. tostring(_G.PlayerMounted))" />
+                                <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
+                                    <Then canSkip="1">
+                                        <ExecuteLua code="
+                                            System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] STANCECHECK: Result=MOUNTED')
+                                            if not _G.PlayerMounted then
+                                                System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DETECT: Player mounted. Updating global.')
+                                                _G.PlayerMounted = true
+                                            end
+                                        " />
+                                    </Then>
+                                    <Else canSkip="1">
+                                        <ExecuteLua code="
+                                            System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] STANCECHECK: Result=UNMOUNTED')
+                                            if _G.PlayerMounted then
+                                                System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DETECT: Player unmounted. Updating global.')
+                                                _G.PlayerMounted = false
+                                            end
+                                        " />
+                                    </Else>
+                                </StanceCheck>
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Global sync + horse lifecycle -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="" />
+
+                                <ExecuteLua code="data.playerIsMounted = _G.PlayerMounted or false" />
+
+                                <!-- Spawn horse when player mounts: only if not already spawned AND not abandoned -->
+                                <IfCondition failOnCondition="false" condition="$playerIsMounted &amp; ~$horseSpawned &amp; ~$mountAbandoned">
+                                    <Sequence>
+                                        <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] SPAWN: Conditions met.')" />
+                                        <Expression expressions="$playerWUID = $__player" />
+
+                                        <ExecuteLua code="
+                                            local ok, err = pcall(function()
+                                                local me = entity
+                                                if not me then return end
+                                                local pos = me:GetPos()
+                                                if not pos then return end
+                                                System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] SPAWN: Merc pos=(' .. pos.x .. ',' .. pos.y .. ',' .. pos.z .. ')')
+
+                                                local horseName = 'MercenaryHorse_' .. tostring(me:GetName())
+
+                                                local existingHorse = System.GetEntityByName(horseName)
+                                                if existingHorse then
+                                                    System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] Pre-spawn cleanup of stale horse.')
+                                                    System.RemoveEntity(existingHorse.id)
                                                 end
-                                            " />
-                                        </Then>
-                                        <Else canSkip="1">
-                                            <ExecuteLua code="
-                                                if _G.PlayerMounted then
-                                                    System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DETECT: Player unmounted. Updating global.')
-                                                    _G.PlayerMounted = false
+
+                                                local angle = math.random() * 2 * math.pi
+                                                local offset = 5.0
+                                                local horsePos = {
+                                                    x = pos.x + math.cos(angle) * offset,
+                                                    y = pos.y + math.sin(angle) * offset,
+                                                    z = pos.z
+                                                }
+                                                System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] SPAWN: Spawning at (' .. horsePos.x .. ',' .. horsePos.y .. ',' .. horsePos.z .. ')')
+
+                                                local horseSouls = {
+                                                    '00af7178-368d-44f0-9368-a7b7750c098c', '08672b2a-14dd-48df-98e3-e8b4ef7694fb',
+                                                    '12ae5a12-fd57-4765-9fd2-da839545b61e', '1834d21b-f362-4079-a847-97decfe438d7',
+                                                    '2629b487-e123-4012-a9ab-dc53ea7a2ada', '2f91a84b-36ac-4980-8343-90f9634004e2',
+                                                    '35d35777-3bc4-450c-9d0c-218f906b7b9d', '3e35d2f2-9638-449f-afe0-2879a9a67dfb',
+                                                    '45b7dbbf-d1f1-4bdd-abc0-ea86dc30ba47', '4ddb9978-e582-4d27-82d5-25bad9d56c51',
+                                                    '55353ccc-b4bb-4d38-ba64-10d95607421c', '5d58ed68-d06e-4ce5-bb6f-e5bf801ffc3c',
+                                                    '63415fa6-4b96-4a8a-a72c-f6d3081d6189', '6d299a92-4857-400c-8448-bfdaceb92523',
+                                                    '748c4f4e-e6ef-423c-89d9-a26c23f787d9', '7c6d76e6-6ad2-4771-b579-3cf7224b6bdc',
+                                                    '83a92d89-63a1-428f-bc2b-9377104ae77a', '8b2c12ef-a87c-492a-9adf-2b8e917c7e3b',
+                                                    '93f4d43d-36e5-40ba-b98d-44fd8564e8b7', '9d3ccd40-2c39-40ff-a149-ba3c260bd8a2',
+                                                    'a42123d7-6f90-48f7-95df-048446b729fc', 'b12466d8-d4cd-4746-abd5-fcb18301e7e4',
+                                                    'b9693f42-6ee9-4a75-9b62-5bc1bdd9138a', 'c4dd79ae-fa05-4c7f-b1b5-20ecb08e7ebc',
+                                                    'd216ce2d-15ae-434b-b714-cacfcd3c7d53', 'e3114d8a-e817-407d-8efb-da6c05d91dd8',
+                                                    'f0021bd4-ed58-4c01-ac07-ac0ad2cfaf5d', 'f3d4dec9-1c07-4fb4-9fe5-7694f6756058',
+                                                    'fc0e6251-b314-4398-b83f-3a66a52961ee', 'ffedd2f9-b766-4985-b384-8bbe8229ae4a'
+                                                }
+                                                local soulId = horseSouls[math.random(1, #horseSouls)]
+                                                System.SpawnEntity({
+                                                    class = 'Horse', name = horseName, position = horsePos,
+                                                    orientation = {x = 0, y = 0, z = 0}, properties = {guidSharedSoulId = soulId}
+                                                })
+                                                local horseEnt = System.GetEntityByName(horseName)
+                                                if horseEnt then
+                                                    data.horse = horseEnt.this.id
+                                                    System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] SPAWN SUCCESS: wuid=' .. tostring(horseEnt.this.id))
+                                                else
+                                                    System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] SPAWN FAIL: entity not found after spawn.')
                                                 end
-                                            " />
-                                        </Else>
-                                    </StanceCheck>
-                                </Sequence>
-                            </Loop>
-                        </SuppressFailure>
+                                            end)
+                                            if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION in spawn: ' .. tostring(err)) end
+                                        " />
+                                        <Expression expressions="$horseSpawned = true" />
+                                    </Sequence>
+                                </IfCondition>
 
-                        <!-- Global sync + horse lifecycle: runs every 100ms, reads _G.PlayerMounted -->
-                        <SuppressFailure>
-                            <Loop count="-1">
-                                <Sequence>
-                                    <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="" />
+                                <!-- Despawn / reset when player dismounts (covers both successful mounts and abandoned attempts) -->
+                                <IfCondition failOnCondition="false" condition="~$playerIsMounted &amp; ($horseSpawned | $mountAbandoned)">
+                                    <Sequence>
+                                        <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DESPAWN: Player dismounted, cleaning up. horseSpawned=' .. tostring(data.horseSpawned) .. ' mountAbandoned=' .. tostring(data.mountAbandoned))" />
+                                        <ExecuteLua code="
+                                            local ok, err = pcall(function()
+                                                local horseName = 'MercenaryHorse_' .. tostring(entity:GetName())
+                                                local horseEnt = System.GetEntityByName(horseName)
+                                                if horseEnt then
+                                                    System.RemoveEntity(horseEnt.id)
+                                                    System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DESPAWN: horse removed by name.')
+                                                end
+                                            end)
+                                            if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION in despawn: ' .. tostring(err)) end
+                                        " />
+                                        <Expression expressions="$horseSpawned = false &#10; $mountAbandoned = false &#10; $horse = $__null" />
+                                        <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DESPAWN: Complete. Ready for next mount cycle.')" />
+                                    </Sequence>
+                                </IfCondition>
 
-                                    <!-- Sync local BT variable from global -->
-                                    <ExecuteLua code="data.playerIsMounted = _G.PlayerMounted or false" />
-
-                                    <!-- Spawn horse when global says mounted and no horse yet -->
-                                    <IfCondition failOnCondition="false" condition="$playerIsMounted &amp; ~$horseSpawned">
-                                        <Sequence>
-                                            <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] SPAWN: Conditions met.')" />
-                                            <ExecuteLua code="
-                                                local ok, err = pcall(function()
-                                                    local me = entity
-                                                    if not me then return end
-                                                    local pos = me:GetPos()
-                                                    if not pos then return end
-
-                                                    local horseName = 'MercenaryHorse_' .. tostring(me:GetName())
-
-                                                    local existingHorse = System.GetEntityByName(horseName)
-                                                    if existingHorse then
-                                                        System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] Pre-spawn cleanup of stale horse.')
-                                                        System.RemoveEntity(existingHorse.id)
-                                                    end
-
-                                                    local horsePos = {
-                                                        x = pos.x + (math.random() - 0.5) * 2.0,
-                                                        y = pos.y + (math.random() - 0.5) * 2.0,
-                                                        z = pos.z
-                                                    }
-                                                    local horseSouls = {
-                                                        '00af7178-368d-44f0-9368-a7b7750c098c', '08672b2a-14dd-48df-98e3-e8b4ef7694fb',
-                                                        '12ae5a12-fd57-4765-9fd2-da839545b61e', '1834d21b-f362-4079-a847-97decfe438d7',
-                                                        '2629b487-e123-4012-a9ab-dc53ea7a2ada', '2f91a84b-36ac-4980-8343-90f9634004e2',
-                                                        '35d35777-3bc4-450c-9d0c-218f906b7b9d', '3e35d2f2-9638-449f-afe0-2879a9a67dfb',
-                                                        '45b7dbbf-d1f1-4bdd-abc0-ea86dc30ba47', '4ddb9978-e582-4d27-82d5-25bad9d56c51',
-                                                        '55353ccc-b4bb-4d38-ba64-10d95607421c', '5d58ed68-d06e-4ce5-bb6f-e5bf801ffc3c',
-                                                        '63415fa6-4b96-4a8a-a72c-f6d3081d6189', '6d299a92-4857-400c-8448-bfdaceb92523',
-                                                        '748c4f4e-e6ef-423c-89d9-a26c23f787d9', '7c6d76e6-6ad2-4771-b579-3cf7224b6bdc',
-                                                        '83a92d89-63a1-428f-bc2b-9377104ae77a', '8b2c12ef-a87c-492a-9adf-2b8e917c7e3b',
-                                                        '93f4d43d-36e5-40ba-b98d-44fd8564e8b7', '9d3ccd40-2c39-40ff-a149-ba3c260bd8a2',
-                                                        'a42123d7-6f90-48f7-95df-048446b729fc', 'b12466d8-d4cd-4746-abd5-fcb18301e7e4',
-                                                        'b9693f42-6ee9-4a75-9b62-5bc1bdd9138a', 'c4dd79ae-fa05-4c7f-b1b5-20ecb08e7ebc',
-                                                        'd216ce2d-15ae-434b-b714-cacfcd3c7d53', 'e3114d8a-e817-407d-8efb-da6c05d91dd8',
-                                                        'f0021bd4-ed58-4c01-ac07-ac0ad2cfaf5d', 'f3d4dec9-1c07-4fb4-9fe5-7694f6756058',
-                                                        'fc0e6251-b314-4398-b83f-3a66a52961ee', 'ffedd2f9-b766-4985-b384-8bbe8229ae4a'
-                                                    }
-                                                    local soulId = horseSouls[math.random(1, #horseSouls)]
-                                                    System.SpawnEntity({
-                                                        class = 'Horse', name = horseName, position = horsePos,
-                                                        orientation = {x = 0, y = 0, z = 0}, properties = {guidSharedSoulId = soulId}
-                                                    })
-                                                    local horseEnt = System.GetEntityByName(horseName)
-                                                    if horseEnt then
-                                                        data.horse = horseEnt.this.id
-                                                        System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] Spawned. wuid=' .. tostring(horseEnt.this.id))
-                                                    else
-                                                        System.LogAlways('[MercHorse_' .. tostring(me:GetName()) .. '] FAIL: entity not found after spawn.')
-                                                    end
-                                                end)
-                                                if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION in spawn: ' .. tostring(err)) end
-                                            " />
-                                            <Expression expressions="$horseSpawned = true" />
-                                        </Sequence>
-                                    </IfCondition>
-
-                                    <!-- Despawn when global says dismounted -->
-                                    <!-- Despawn when global says dismounted -->
-                                    <IfCondition failOnCondition="false" condition="~$playerIsMounted &amp; $horseSpawned">
-                                        <Sequence>
-                                            <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DESPAWN: Global dismount detected. WUID: ' .. tostring(data.horse))" />
-                                            <Expression expressions="$horseSpawned = false" />
-                                            <ExecuteLua code="
-                                                local ok, err = pcall(function()
-                                                    local horseName = 'MercenaryHorse_' .. tostring(entity:GetName())
-                                                    local horseEnt = System.GetEntityByName(horseName)
-                                                    if horseEnt then
-                                                        data.horse = horseEnt.this.id
-                                                        System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] Resolved horse for despawn: ' .. horseName)
-                                                    else
-                                                        System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] Horse not found by name, using cached wuid.')
-                                                    end
-                                                end)
-                                                if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION resolving horse: ' .. tostring(err)) end
-                                            " />
-                                            <Despawn DeSpawnedEntity="$horse" />
-                                            <Expression expressions="$horse = $__null" />
-                                        </Sequence>
-                                    </IfCondition>
-
-                                </Sequence>
-                            </Loop>
-                        </SuppressFailure>
+                            </Sequence>
+                        </Loop>
 
                         <!-- Movement -->
-                        <SuppressFailure>
-                            <Loop count="-1">
-                                <ContinuousSwitch>
+                        <Loop count="-1">
+                            <ContinuousSwitch>
 
-                                    <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
-                                        <Sequence>
-                                            <Expression expressions="$previousTarget = $followTarget" />
-                                            <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="" />
-                                        </Sequence>
-                                    </IfCondition>
+                                <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
+                                    <Sequence>
+                                        <Expression expressions="$previousTarget = $followTarget" />
+                                        <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="" />
+                                    </Sequence>
+                                </IfCondition>
 
-                                    <IfCondition failOnCondition="false" condition="~$playerIsMounted &amp; ~$goFlee &amp; $followTarget == $previousTarget">
-                                        <Sequence>
-                                            <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
-                                                <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
-                                            </MoveParamsDecorator>
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="" />
-                                        </Sequence>
-                                    </IfCondition>
+                                <!-- Foot follow: player not mounted OR we abandoned the mount attempt -->
+                                <IfCondition failOnCondition="false" condition="(~$playerIsMounted | $mountAbandoned) &amp; ~$goFlee &amp; $followTarget == $previousTarget">
+                                    <Sequence>
+                                        <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                            <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                        </MoveParamsDecorator>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="" />
+                                    </Sequence>
+                                </IfCondition>
 
-                                    <IfCondition failOnCondition="false" condition="$playerIsMounted &amp; $horseSpawned &amp; ~$goFlee">
-                                        <Sequence>
-                                            <DistanceCondition Origin="$this.id" ReferencePt="$horse" Low="10.000000" High="20.000000" Negation="true" ValueOnMiddle="false" failOnCondition="false">
+                                <!-- Mount attempt: 10s timeout, then verify, then either stay on horse or abandon for good -->
+                                <IfCondition failOnCondition="false" condition="$playerIsMounted &amp; $horseSpawned &amp; ~$goFlee &amp; ~$mountAbandoned">
+                                    <Sequence>
+                                        <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: Attempting StanceElement with 10s timeout.')" />
+
+                                        <!-- Up to 10s to run to horse and mount -->
+                                        <SuppressFailure>
+                                            <Parallel successMode="Any" failureMode="Any">
+                                                <StanceElement smartObject="$horse" stance="horse" allowAny="true" enabled="true">
+                                                    <CrimeFollower Target="$followTarget" Mode="Default" Role="Assist" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                                </StanceElement>
+                                                <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="" />
+                                            </Parallel>
+                                        </SuppressFailure>
+
+                                        <!-- Verify mount status -->
+                                        <StanceCheck soul="$this.id" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
+                                            <Then canSkip="1">
+                                                <!-- SUCCESS: merc is on the horse, stay there with an untimed StanceElement -->
                                                 <Sequence>
-                                                    <AddInterrupt_teleport destination="$this.id" Target="$horse" Host="$__land" Behavior="'teleport'" Priority="200" IgnorePriorityOnPreviousInterrupt="false" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
-                                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                                    <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: Mount confirmed, riding.')" />
+                                                    <SuppressFailure>
+                                                        <StanceElement smartObject="$horse" stance="horse" allowAny="true" enabled="true">
+                                                            <CrimeFollower Target="$followTarget" Mode="Default" Role="Assist" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                                        </StanceElement>
+                                                    </SuppressFailure>
                                                 </Sequence>
-                                            </DistanceCondition>
-                                            <StanceElement smartObject="$horse" stance="horse" allowAny="false" enabled="true">
-                                                <CrimeFollower Target="$followTarget" Mode="Default" Role="Assist" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
-                                            </StanceElement>
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="" />
-                                        </Sequence>
-                                    </IfCondition>
+                                            </Then>
+                                            <Else canSkip="1">
+                                                <!-- FAILURE: 10s elapsed, merc still on foot. Abandon, despawn horse, foot-follow. -->
+                                                <Sequence>
+                                                    <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: Mount failed after 10s. Abandoning and despawning horse.')" />
+                                                    <ExecuteLua code="
+                                                        local ok, err = pcall(function()
+                                                            local horseName = 'MercenaryHorse_' .. tostring(entity:GetName())
+                                                            local horseEnt = System.GetEntityByName(horseName)
+                                                            if horseEnt then
+                                                                System.RemoveEntity(horseEnt.id)
+                                                                System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] ABANDONED: horse removed.')
+                                                            end
+                                                        end)
+                                                        if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION in abandon-despawn: ' .. tostring(err)) end
+                                                    " />
+                                                    <Expression expressions="$horseSpawned = false &#10; $horse = $__null &#10; $mountAbandoned = true" />
+                                                </Sequence>
+                                            </Else>
+                                        </StanceCheck>
+                                    </Sequence>
+                                </IfCondition>
 
-                                </ContinuousSwitch>
-                            </Loop>
-                        </SuppressFailure>
+                            </ContinuousSwitch>
+                        </Loop>
 
                     </Parallel>
                 </Sequence>

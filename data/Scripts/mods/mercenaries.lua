@@ -26,7 +26,7 @@ mercenaries.TokenIDReturn = "679a655e-189d-4519-b437-ccc4b92be49d"
 --heal mercs token
 mercenaries.TokenIDHeal = "679a655e-189d-4519-b437-ccc4b92be50d"
 
-mercenaries.MaxCompanions = 6
+mercenaries.MaxCompanions = 999
 
 mercenaries.TargetDetectionRadius = 50
 
@@ -41,7 +41,8 @@ mercenaries.ActiveMercs   = {}  -- [entityName] = entity ref; pruned each tick
 mercenaries.CachedEnemies = {}  -- [{entity, wuid}] valid hostile enemies near player
 mercenaries.FormationSlots = {} -- [tostring(wuid)] = {slot, followTarget, totalMercs}
 
-
+_G.MercHorseState = {}
+_G.PlayerMounted = false
 -- Soul dictionaries for different faces (only includes the generic mercs)
 mercenaries.Souls = {
     weak = {
