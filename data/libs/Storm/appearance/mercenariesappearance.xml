@@ -215,7 +215,7 @@
         </rule>
 
         <!-- custom characters -->
-        <rule name="appearance_mercenary_kubyenka">
+        <!-- <rule name="appearance_mercenary_kubyenka">
             <selectors>
                 <hasName Name="soul_merc_kubyenka" />
             </selectors>
@@ -224,7 +224,17 @@
 				<setHair name="m_hair_009_black" />
 				<setBeard name="m_beard_00" />
 			</operations>
+        </rule> -->
+        <rule name="appearance_mercenary_kubyenka">
+            <selectors>
+                <hasName Name="soul_merc_kubyenka" />
+            </selectors>
+            <operations>
+				<setHead name="m_head_999" />
+
+			</operations>
         </rule>
+        				
 
         <rule name="appearance_mercenary_vasko">
             <selectors>

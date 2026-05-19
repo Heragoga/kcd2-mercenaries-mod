@@ -8,6 +8,7 @@ GENERAL TODO:
 BUGS:
 - Mercs attacking bandits indiscriminantly, even if those bandits are part of quests.
 - Mercenaries become invisible in major battle
+- Bugs where mercs do not attack???
 
 FOR NEXT UPDATE:
 - add contributer section (takuspore0729 - Japanese translation, carbongo - voicelines, OzelHarekaTR - Turkish translation, 小邮票 - Chinese version)

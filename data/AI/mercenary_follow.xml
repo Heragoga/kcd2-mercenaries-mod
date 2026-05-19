@@ -137,6 +137,12 @@
                                 <IfCondition failOnCondition="false" condition="~$playerIsMounted &amp; ($horseSpawned | $mountAbandoned)">
                                     <Sequence>
                                         <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DESPAWN: Player dismounted, cleaning up. horseSpawned=' .. tostring(data.horseSpawned) .. ' mountAbandoned=' .. tostring(data.mountAbandoned))" />
+                                        
+                                        <!-- Clear flag first so ContinuousSwitch exits StanceElement on next tick -->
+                                        <Expression expressions="$horseSpawned = false" />
+                                        <!-- Wait for dismount animation to complete before removing the horse entity -->
+                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="" />
+                                        <!-- Now safe to remove -->
                                         <ExecuteLua code="
                                             local ok, err = pcall(function()
                                                 local horseName = 'MercenaryHorse_' .. tostring(entity:GetName())
@@ -148,7 +154,7 @@
                                             end)
                                             if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION in despawn: ' .. tostring(err)) end
                                         " />
-                                        <Expression expressions="$horseSpawned = false &#10; $mountAbandoned = false &#10; $horse = $__null" />
+                                        <Expression expressions="$mountAbandoned = false &#10; $horse = $__null" />
                                         <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] DESPAWN: Complete. Ready for next mount cycle.')" />
                                     </Sequence>
                                 </IfCondition>
@@ -185,7 +191,7 @@
                                         <!-- Up to 10s to run to horse and mount -->
                                         <SuppressFailure>
                                             <Parallel successMode="Any" failureMode="Any">
-                                                <StanceElement smartObject="$horse" stance="horse" allowAny="true" enabled="true">
+                                                <StanceElement smartObject="$horse" stance="horse" allowAny="false" enabled="true">
                                                     <CrimeFollower Target="$followTarget" Mode="Default" Role="Assist" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                                 </StanceElement>
                                                 <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="" />
@@ -199,7 +205,7 @@
                                                 <Sequence>
                                                     <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: Mount confirmed, riding.')" />
                                                     <SuppressFailure>
-                                                        <StanceElement smartObject="$horse" stance="horse" allowAny="true" enabled="true">
+                                                        <StanceElement smartObject="$horse" stance="horse" allowAny="false" enabled="true">
                                                             <CrimeFollower Target="$followTarget" Mode="Default" Role="Assist" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                                         </StanceElement>
                                                     </SuppressFailure>

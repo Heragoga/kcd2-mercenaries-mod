@@ -1,55 +1,65 @@
--- =======================================================================
--- CORE: Runs ONCE per second in MonitorLoop (not per-merc per-tick).
--- Computes formation slots for all active mercs and stores results in
--- mercenaries.FormationSlots[tostring(wuid)].
--- Each merc's CalculateFormationTarget call then just does a table lookup.
--- =======================================================================
 function mercenaries:UpdateFormationSlots()
     local ok, err = pcall(function()
         self.FormationSlots = {}
 
-        local heroes   = {}
-        local regulars = {}
+        local mounted   = {}
+        local unmounted = {}
 
         for name, ent in pairs(self.ActiveMercs) do
-            -- Cache is already pruned, but IsAliveAndWell is cheap so guard anyway
             if self:IsAliveAndWell(ent, false) then
                 local mercType = self:GetMercType(ent)
                 local entWuid  = ent.this and ent.this.id or ent.id
                 local entName  = ent:GetName() or name
+                local hp       = 0
+                local isMounted = false
 
-                if mercType == "hero" then
-                    table.insert(heroes, { wuid = entWuid, name = entName })
+                pcall(function()
+                    local rawHp = ent.soul:GetState('health')
+                    hp = tonumber(rawHp) or 0
+                end)
+
+                pcall(function()
+                    isMounted = ent.human:IsMounted()
+                end)
+
+                local entry = { wuid = entWuid, name = entName, hp = hp, mercType = mercType }
+
+                if isMounted then
+                    table.insert(mounted, entry)
                 else
-                    local hp = 0
-                    pcall(function()
-                        local rawHp = ent.soul:GetState('health')
-                        hp = tonumber(rawHp) or 0
-                    end)
-                    table.insert(regulars, { wuid = entWuid, name = entName, hp = hp })
+                    table.insert(unmounted, entry)
                 end
             end
         end
 
-        -- Heroes always go first, sorted by name for stability
-        table.sort(heroes, function(a, b) return a.name < b.name end)
+        -- Mounted mercs: heroes first by name, then regulars by name
+        table.sort(mounted, function(a, b)
+            local aHero = (a.mercType == "hero") and 0 or 1
+            local bHero = (b.mercType == "hero") and 0 or 1
+            if aHero ~= bHero then return aHero < bHero end
+            return a.name < b.name
+        end)
 
-        -- Regulars sorted by descending health; fall back to name to prevent flickering
-        table.sort(regulars, function(a, b)
+        -- Unmounted mercs: heroes first by name, then regulars by descending health
+        table.sort(unmounted, function(a, b)
+            local aHero = (a.mercType == "hero") and 0 or 1
+            local bHero = (b.mercType == "hero") and 0 or 1
+            if aHero ~= bHero then return aHero < bHero end
+            if a.mercType == "hero" then return a.name < b.name end
             if a.hp == b.hp then return a.name < b.name end
             return a.hp > b.hp
         end)
 
         local alive = {}
-        for _, v in ipairs(heroes)   do table.insert(alive, v) end
-        for _, v in ipairs(regulars) do table.insert(alive, v) end
+        for _, v in ipairs(mounted)   do table.insert(alive, v) end
+        for _, v in ipairs(unmounted) do table.insert(alive, v) end
 
         local totalMercs = #alive
         local width = (totalMercs >= 15) and 3 or 2
 
         for i, v in ipairs(alive) do
             local slot = i - 1
-            local followTarget = nil  -- nil means "follow the player" (resolved in BT)
+            local followTarget = nil
 
             if slot >= width then
                 local targetIndex = slot - width + 1
@@ -60,9 +70,9 @@ function mercenaries:UpdateFormationSlots()
             end
 
             self.FormationSlots[tostring(v.wuid)] = {
-                slot        = slot,
+                slot         = slot,
                 followTarget = followTarget,
-                totalMercs  = totalMercs,
+                totalMercs   = totalMercs,
             }
         end
     end)
@@ -72,10 +82,6 @@ function mercenaries:UpdateFormationSlots()
     end
 end
 
--- =======================================================================
--- CORE: Called per-merc from the behavior tree.
--- Now a simple table lookup — no GetEntitiesInSphere, no sorting.
--- =======================================================================
 function mercenaries:CalculateFormationTarget(bt_data, myWuid)
     local ok, err = pcall(function()
         local key  = tostring(myWuid)
@@ -85,7 +91,6 @@ function mercenaries:CalculateFormationTarget(bt_data, myWuid)
             bt_data.formationSlot = data.slot
             bt_data.followTarget  = data.followTarget or bt_data.playerWUID
         else
-            -- Fallback: slot 0, follow the player directly
             bt_data.formationSlot = 0
             bt_data.followTarget  = bt_data.playerWUID
         end
