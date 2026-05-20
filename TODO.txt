@@ -11,7 +11,6 @@ BUGS:
 - Bugs where mercs do not attack???
 
 FOR NEXT UPDATE:
-- add contributer section (takuspore0729 - Japanese translation, carbongo - voicelines, OzelHarekaTR - Turkish translation, 小邮票 - Chinese version)
 - try archers/handcannoneers
 
 IN PROGRESS:
