@@ -3,6 +3,9 @@ function mercenaries:EquipMercenary(ent, currentPreset)
     if not ent or not ent.actor then return end
     
     local name = ent:GetName() or ''
+    if string.find(name, 'MercenaryCustomCompanion') then
+        return
+    end    
     local tier = "weak"
     
     -- Parse tier directly from their entity name
