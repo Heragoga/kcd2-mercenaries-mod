@@ -17,6 +17,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Communicating between Lua and Skald](general/lua-skald-communication.md) (How to call lua code from your quest)
 * [How to add new equipment presets](general/adding-new-outfits.md) (How to change the equipment of the Mercenaries)
 * [How to add new custom weapons](general/adding-new-weapons.md) (How to change the weapons of the Mercenaries)
+* [How to create new voice-lines](general/voice-acting.md) (If you want to contribute some new voice-lines)
 
 
 ### Lua
