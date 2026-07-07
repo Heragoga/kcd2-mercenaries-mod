@@ -52,6 +52,8 @@ function mercenaries:PruneMercCache()
     for name, ent in pairs(self.ActiveMercs) do
         if not self:IsAliveAndWell(ent, true) then
             self.ActiveMercs[name] = nil
+            local wuid = ent.this and ent.this.id or ent.id
+            self.MercTargetOf[tostring(wuid)] = nil
             Script.SetTimerForFunction(10000, "mercenaries.DespawnMerc", ent.id)
         end
     end

@@ -19,6 +19,8 @@
             <Variable name="playerTarget" type="_wuid" values="" isPersistent="0" form="single" />
             <Variable name="foundTarget" type="_bool" values="false" isPersistent="0" form="single" />
 			<Variable name="isTargetAlive" type="_bool" values="true" isPersistent="0" form="single" />
+			<Variable name="myHealthCritical" type="_bool" values="false" isPersistent="0" form="single" />
+			<Variable name="stanceIsPassive" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -103,12 +105,43 @@
                                             </Sequence>
                                         </Loop>
 
+                                        <Loop count="-1">
+                                            <Sequence>
+                                                <ExecuteLua code="
+                                                    pcall(function()
+                                                        local hp = entity.soul:GetState('health')
+                                                        data.myHealthCritical = (hp ~= nil and hp &lt;= 15)
+                                                    end)
+                                                " />
+                                                <IfCondition failOnCondition="false" condition="$myHealthCritical">
+                                                    <Sequence>
+                                                        <ExecuteLua code="System.LogAlways('[Mercenary Jeff] disengaging - health critical')" />
+                                                        <Fail />
+                                                    </Sequence>
+                                                </IfCondition>
+                                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                            </Sequence>
+                                        </Loop>
+
+                                        <Loop count="-1">
+                                            <Sequence>
+                                                <ExecuteLua code="data.stanceIsPassive = (_G.MercStance == 'passive')" />
+                                                <IfCondition failOnCondition="false" condition="$stanceIsPassive">
+                                                    <Sequence>
+                                                        <ExecuteLua code="System.LogAlways('[Mercenary Jeff] disengaging - passive stance')" />
+                                                        <Fail />
+                                                    </Sequence>
+                                                </IfCondition>
+                                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                            </Sequence>
+                                        </Loop>
+
                                     </Parallel>
                                 </Child>
                                 
                                 <OnFail canSkip="1">
                                     <Sequence>
-                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end)" />
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
                                         <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
                                     </Sequence>
                                 </OnFail>

@@ -76,6 +76,15 @@ function mercenaries:UpdateEnemyCache()
     local ok, err = pcall(function()
         self.CachedEnemies = {}
 
+        -- Anti-swarm load: rebuilt from MercTargetOf once per second.
+        -- O(mercs), so every merc's per-tick swarm check is a plain lookup
+        -- instead of an O(mercs) position scan.
+        local load = {}
+        for _, targetWuidStr in pairs(self.MercTargetOf) do
+            load[targetWuidStr] = (load[targetWuidStr] or 0) + 1
+        end
+        self.TargetLoad = load
+
         if not player then return end
         local playerPos = player:GetPos()
         if not playerPos then return end
@@ -195,7 +204,13 @@ function mercenaries:ScanForEnemies(bt_data, myWuid)
             return a.distance < b.distance
         end)
 
-        for _, v in ipairs(potentialTargets) do
+        -- Cap how many candidates get checked (each costs one engine
+        -- GetTarget call in the behavior tree) — the nearest few are what
+        -- matter, and this bounds the per-merc cost regardless of how many
+        -- enemies are on the field.
+        local maxCandidates = 8
+        for i, v in ipairs(potentialTargets) do
+            if i > maxCandidates then break end
             table.insert(bt_data.enemiesArray, v.wuid)
         end
     end)
@@ -206,40 +221,107 @@ function mercenaries:ScanForEnemies(bt_data, myWuid)
 end
 
 -- =======================================================================
--- CORE: Evaluates a candidate in a loop to see if they are a valid target
+-- HELPER: True if the entity behind wuid is hurting badly enough that it
+-- should look after itself instead of picking a fresh fight.
 -- =======================================================================
-function mercenaries:EvaluateCombatTarget(bt_data)
+function mercenaries:IsHealthCritical(wuid, threshold)
+    local ok, result = pcall(function()
+        local ent = wuid and XGenAIModule.GetEntityByWUID(wuid)
+        if not ent or not ent.soul then return false end
+        local hp = ent.soul:GetState('health')
+        return hp ~= nil and hp <= (threshold or 25)
+    end)
+    return ok and result or false
+end
+
+-- =======================================================================
+-- HELPER: Claims a target for a merc, respecting the anti-swarm cap.
+-- Returns true if the claim succeeded (and records it in MercTargetOf so
+-- next second's TargetLoad rebuild sees it).
+-- =======================================================================
+function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid)
+    local targetWuidStr = tostring(targetWuid)
+    if (self.TargetLoad[targetWuidStr] or 0) >= self.SwarmCap then return false end
+
+    bt_data.playerTarget = targetWuid
+    bt_data.isFriendly = false
+    bt_data.foundTarget = true
+    self.MercTargetOf[tostring(myWuid)] = targetWuidStr
+    return true
+end
+
+-- =======================================================================
+-- STANCE "everyone": grab the nearest valid hostile, no engine calls
+-- needed beyond position reads already available on cached entities.
+-- =======================================================================
+function mercenaries:PickNearestValidTarget(bt_data, myWuid)
     local ok, err = pcall(function()
         if bt_data.foundTarget then return end
+        if myWuid and self:IsHealthCritical(myWuid, 25) then return end
 
-        -- Candidates in enemiesArray already passed IsValidEnemy inside
-        -- UpdateEnemyCache, so we only need the squad-targeting check here.
-        local isTargetingSquad = false
+        local me = XGenAIModule.GetEntityByWUID(myWuid)
+        local myPos = me and me:GetPos()
+        if not myPos then return end
 
-        if bt_data.candidateTarget then
-            local targetWuidStr = tostring(bt_data.candidateTarget)
-            local playerWuidStr = tostring(bt_data.playerWUID)
-
-            -- 1. Are they targeting the player directly?
-            if targetWuidStr == playerWuidStr then
-                isTargetingSquad = true
-            else
-                -- 2. Are they targeting the dog or another mercenary?
-                local targetEnt = XGenAIModule.GetEntityByWUID(bt_data.candidateTarget)
-                if targetEnt then
-                    local tName = targetEnt:GetName() or ""
-                    if tName == "companion_dog" or self:GetMercType(targetEnt) ~= nil then
-                        isTargetingSquad = true
-                    end
+        local best, bestDist = nil, nil
+        for _, entry in ipairs(self.CachedEnemies or {}) do
+            local ep = entry.entity and entry.entity:GetPos()
+            if ep and (self.TargetLoad[tostring(entry.wuid)] or 0) < self.SwarmCap then
+                local dx, dy, dz = ep.x - myPos.x, ep.y - myPos.y, ep.z - myPos.z
+                local d = dx*dx + dy*dy + dz*dz
+                if not bestDist or d < bestDist then
+                    best, bestDist = entry.wuid, d
                 end
             end
         end
 
-        if isTargetingSquad then
-            bt_data.playerTarget = bt_data.candidate
-            bt_data.isFriendly = false
-            bt_data.foundTarget = true
-        end
+        if best then self:TryClaimTarget(bt_data, myWuid, best) end
+    end)
+
+    if not ok then
+        System.LogAlways('[Mercenary Jeff] PickNearestValidTarget Error: ' .. tostring(err))
+    end
+end
+
+-- =======================================================================
+-- STANCE "player_target": only join whatever the player is currently
+-- fighting. bt_data.playerCombatTarget is filled by a single GetTarget
+-- node on the player (once per merc, not once per candidate).
+-- =======================================================================
+function mercenaries:PickPlayersTarget(bt_data, myWuid)
+    local ok, err = pcall(function()
+        if bt_data.foundTarget then return end
+        if myWuid and self:IsHealthCritical(myWuid, 25) then return end
+        if not bt_data.playerCombatTarget then return end
+
+        local targetWuidStr = tostring(bt_data.playerCombatTarget)
+        if targetWuidStr == "" or targetWuidStr == tostring(bt_data.playerWUID) then return end
+
+        local targetEnt = XGenAIModule.GetEntityByWUID(bt_data.playerCombatTarget)
+        if not targetEnt or not targetEnt.soul then return end
+        if not self:IsValidEnemy(targetEnt, player, bt_data.playerWUID) then return end
+
+        self:TryClaimTarget(bt_data, myWuid, bt_data.playerCombatTarget)
+    end)
+
+    if not ok then
+        System.LogAlways('[Mercenary Jeff] PickPlayersTarget Error: ' .. tostring(err))
+    end
+end
+
+-- =======================================================================
+-- STANCE "defend": only fight back if a candidate is personally targeting
+-- ME. This is the only stance that needs to walk enemiesArray and ask the
+-- engine who each candidate is targeting (capped to 8 nearest already).
+-- =======================================================================
+function mercenaries:EvaluateCombatTarget(bt_data, myWuid)
+    local ok, err = pcall(function()
+        if bt_data.foundTarget then return end
+        if myWuid and self:IsHealthCritical(myWuid, 25) then return end
+        if not bt_data.candidateTarget then return end
+        if tostring(bt_data.candidateTarget) ~= tostring(myWuid) then return end
+
+        self:TryClaimTarget(bt_data, myWuid, bt_data.candidate)
     end)
 
     if not ok then

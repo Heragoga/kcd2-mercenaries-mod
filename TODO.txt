@@ -4,19 +4,23 @@ GENERAL TODO:
 - new encounters, ambushes at set locations on the map
 - integration with kobyla armor
 - more voicelines, voiced dialog
-
+- Could you please release an updated version where the troops do not ride horses? The mounted units tend to be disorganized—lacking proper formations and appearing very chaotic. Furthermore, there is a bug where bandits or mercenaries encountered during travel are delayed in spawning. I would simply be grateful for a new version that removes the mounted units. Thank you!
+- try archers/handcannoneers
 BUGS:
 - Mercs attacking bandits indiscriminantly, even if those bandits are part of quests.
 - Mercenaries become invisible in major battle
 - Bugs where mercs do not attack???
 
 FOR NEXT UPDATE:
-- try archers/handcannoneers
+- added 4 combat stances, set by talking to a mercenary, apply while idle too: attack everyone, only attack whoever you attack, only defend themselves, fully passive
+- mercs now spread out across targets instead of dogpiling one enemy (anti-swarm cap tracked via O(1) lookup instead of O(mercs) position scan)
+- badly wounded mercs disengage instead of fighting to the death
+- perf: cut per-merc combat scan cost - "everyone"/"player_target" stances skip the expensive per-candidate engine GetTarget calls entirely, "defend" caps candidates checked to the nearest 8
 
 IN PROGRESS:
 
 
-DONE: 
+UPDATE 1.6:
 - made mercs attack wolves and wild dogs
 - fix bug where the state doesn't save properly
 - make them not close doors

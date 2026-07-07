@@ -1,4 +1,4 @@
-<Table>
+﻿<Table>
   <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>我想雇佣一些佣兵。</Cell></Row>
   
   <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>我可以给你找些普通的佣兵，或者我也有一些特殊的同伴。你在找什么样的？</Cell></Row>
@@ -87,6 +87,34 @@
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(算了)</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>其实，算了吧。</Cell></Row>
 
+  <Row><Cell>ui_mercenary_change_stance</Cell><Cell>Change combat stance...</Cell><Cell>改变战斗姿态...</Cell></Row>
+  <Row><Cell>merc_henry_stance_hub_prompt</Cell><Cell>I want to talk tactics.</Cell><Cell>我想谈谈战术。</Cell></Row>
+  <Row><Cell>merc_test_stance_hub_prompt</Cell><Cell>How do you want us to fight?</Cell><Cell>你希望我们怎么打？</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>攻击任何敌人，不用等我。</Cell></Row>
+  <Row><Cell>merc_henry_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>攻击任何敌人，不用等我。</Cell></Row>
+  <Row><Cell>merc_test_stance_everyone</Cell><Cell>Understood. We'll take the fight to them.</Cell><Cell>明白了，我们主动出击。</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>只攻击我正在战斗的对象。</Cell></Row>
+  <Row><Cell>merc_henry_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>只攻击我正在战斗的对象。</Cell></Row>
+  <Row><Cell>merc_test_stance_player_target</Cell><Cell>明白，我们听你指挥。</Cell><Cell>明白，我们听你指挥。</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>只有你们被攻击时才自卫。</Cell></Row>
+  <Row><Cell>merc_henry_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>只有你们被攻击时才自卫。</Cell></Row>
+  <Row><Cell>merc_test_stance_defend</Cell><Cell>Fair enough, we'll hold back.</Cell><Cell>好，我们按兵不动。</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>无论如何都不要战斗。</Cell></Row>
+  <Row><Cell>merc_henry_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>无论如何都不要战斗。</Cell></Row>
+  <Row><Cell>merc_test_stance_passive</Cell><Cell>既然你这么说...希望不会走到那一步。</Cell><Cell>既然你这么说...希望不会走到那一步。</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_can</Cell><Cell>(Nevermind)</Cell><Cell>(算了)</Cell></Row>
+  <Row><Cell>merc_henry_stance_can</Cell><Cell>Actually, nevermind.</Cell><Cell>其实，算了吧。</Cell></Row>
+
+  <Row><Cell>merc_info_stance_everyone</Cell><Cell>佣兵：攻击所有敌人。</Cell><Cell>佣兵：攻击所有敌人。</Cell></Row>
+  <Row><Cell>merc_info_stance_player_target</Cell><Cell>佣兵：攻击你的目标。</Cell><Cell>佣兵：攻击你的目标。</Cell></Row>
+  <Row><Cell>merc_info_stance_defend</Cell><Cell>佣兵：仅自卫。</Cell><Cell>佣兵：仅自卫。</Cell></Row>
+  <Row><Cell>merc_info_stance_passive</Cell><Cell>佣兵：消极，不战斗。</Cell><Cell>佣兵：消极，不战斗。</Cell></Row>
+
   <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(算了)</Cell></Row>
   <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>其实，算了吧。</Cell></Row>
 
@@ -173,85 +201,17 @@
   <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>我们会尽力的，老大，不过要是能有个真正的医生就更好了。</Cell></Row>
   <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>你的佣兵已经痊愈了。</Cell></Row>
 
-  <Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>等我攒够了格罗申……</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>我就去买一小块地。</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>整天闲坐在那儿……</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>看着农奴们干体力活。</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>就只有我，羊群，还有吃饱的肚子。</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>老天，那才叫生活。</Cell></Row>
 
-  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>在这倒霉行当里再干一年。</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>然后我就把霍尔尚那块空地买下来……</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>总算能过上安生日子了。</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>我会把剑挂在房梁上……</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>让那破铜烂铁慢慢生锈成灰。</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>也许还能自己酿点麦酒。</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>每天晚上都能喝到不省人事……嘿嘿。</Cell></Row>
 
-  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>我还记得……那是在我成年之前。</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>我父亲的农场。</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>一栋结实的房子。有扇红色的门。</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>后来那些库曼杂种来了。</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>像宰猪一样屠杀了他们……只有我逃进了树林。</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>从那以后我就一直在刀尖上舔血。</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>也许有一天……我会回去把它重建起来。</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>天哪，那真是一个美妙的夜晚……</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>兹德娜，她叫这个名字……</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>头发像金丝一样……</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>胸部像刚发酵的面团一样柔软……</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>为了能和她再共度一宵，我连魔鬼都敢打。</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>已经太久了……</Cell></Row>
-  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>太久没感受过女人肌肤的温暖了……</Cell></Row>
-  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>我们去的每一间酒馆，全是些没牙的老妖婆。</Cell></Row>
-  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>男人也有需求啊，该死的。</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>每次想起贝蒂，我的心跳就会漏掉一拍……</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>我愿意相信她还在炉火旁等着我。</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>缝补着我的罩袍……</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>看着村民们忙碌着度过一天……</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>但接着我想起来了……是我的刀最后插进了她的胸膛。</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*沉重地叹了口气*</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>我离开我的丹卡还不到半个月……</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>我骑马离开时她哭干了眼泪。</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>西吉斯蒙德那个杂种……害得人们家破人亡。</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>现在我却被困在这个鸟不拉屎的泥坑里！</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>只是想赚够钱回到她身边……</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>可每次我们路过酒馆……</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>我的钱袋最后都会比以前更瘪。</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>我亲爱的玛蒂尔达……</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>希望她在老橡树下睡得安稳。</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>老天爷啊，那真是个地狱般的夜晚……</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>她尖叫着，直到嗓子都哑了。</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>整个村子都听见了。</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>我不得不把可怜的小扬埋在她旁边。</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>他还是个婴儿啊……</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>从那以后我就再也不忍心看那房子一眼了。</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>啊，梅尔尼克的葡萄园……</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>他们酿出的葡萄酒啊！</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>红得像红宝石。</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>甜美得如同罪恶。</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>我流血赚来的每一个格罗申……</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>只是为了让舌头能再尝一滴那神仙玉液。</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>我受不了了！</Cell></Row>
-  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>整整四天滴酒未沾！</Cell></Row>
-  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>喝下一品脱后，整个世界才变得合理。</Cell></Row>
-  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>向上帝祈祷下一家酒馆就在不远处吧。</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>烈酒在哪儿？</Cell></Row>
-  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>谁把那该死的烧酒藏起来了？！</Cell></Row>
-  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>亨利！是你把最后一壶酒喝了吗？</Cell></Row>
-  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>这简直是彻头彻尾的折磨！</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>啤酒……我只要一想到它，连膝盖都软了。</Cell></Row>
-  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>如果葡萄酒是基督的血，面包是祂的身体……</Cell></Row>
-  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>那啤酒一定就是祂的灵魂了。</Cell></Row>
-  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>阿门。</Cell></Row>
 
   <Row><Cell>a614a_story1</Cell><Cell>我不怕死，我怕自信满满的人做的汤。</Cell><Cell>我不怕死，我怕自信满满的人做的汤。</Cell></Row>
   <Row><Cell>a614a_story2</Cell><Cell>我曾信任一个说走捷径的人，我们老了才到。</Cell><Cell>我曾信任一个说走捷径的人，我们老了才到。</Cell></Row>

@@ -31,6 +31,9 @@
             <Variable name="candidate"           type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="candidateTarget"     type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="foundTarget"         type="_bool"                values="false"                             isPersistent="0" form="single" />
+
+            <Variable name="stanceMode"          type="_int"                 values="1"                                 isPersistent="0" form="single" />
+            <Variable name="playerCombatTarget"  type="_wuid"                values=""                                  isPersistent="0" form="single" />
             
             <Variable name="dialogRequest"       type="dialogModule:onDialogRequest" values=""                          isPersistent="0" form="single" />
 
@@ -66,28 +69,51 @@
                                     <Sequence>
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                         <ExecuteLua code="data.isIdle = _G.MercIdle or false" />
+                                        <ExecuteLua code="data.stanceMode = mercenaries:GetStanceCode()" />
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
-                                        
-                                        <!-- Skip enemy scanning entirely when already in combat.
-                                             The merc is already fighting via mercenary_attack — no need
-                                             to find new targets until the current fight ends. -->
-                                        <SuppressFailure>
-                                            <IfCondition failOnCondition="false" condition="~$inCombat">
-                                                <Sequence>
-                                                    <ExecuteLua code="mercenaries:ScanForEnemies(data, entity.this.id)" />
 
-                                                    <For startIndex="0" endIndex="-1" step="1" array="$enemiesArray" iterator="" value="$candidate" break="$foundTarget">
+                                        <!-- Skip enemy scanning entirely when already in combat, or when
+                                             the passive stance (3) is active. Combat stance also applies
+                                             while idle/waiting, so there is no isIdle check here.
+                                             Which branch runs depends on the stance:
+                                               0 everyone      - nearest valid hostile, no engine calls
+                                               1 player_target - one GetTarget on the player, not per-candidate
+                                               2 defend        - only stance that walks candidates (capped to 8) -->
+                                        <SuppressFailure>
+                                            <IfCondition failOnCondition="false" condition="~$inCombat &amp; $stanceMode ~= 3">
+                                                <Sequence>
+                                                    <IfCondition failOnCondition="false" condition="$stanceMode == 0">
+                                                        <ExecuteLua code="mercenaries:PickNearestValidTarget(data, entity.this.id)" />
+                                                    </IfCondition>
+
+                                                    <IfCondition failOnCondition="false" condition="$stanceMode == 1">
                                                         <Sequence>
-                                                            <Expression expressions="$candidateTarget = $__null" />
+                                                            <Expression expressions="$playerCombatTarget = $__null" />
                                                             <SuppressFailure>
-                                                                <GetTarget ReferenceNPC="$candidate" TargetVarOut="$candidateTarget" />
+                                                                <GetTarget ReferenceNPC="$playerWUID" TargetVarOut="$playerCombatTarget" />
                                                             </SuppressFailure>
-                                                            
-                                                            <ExecuteLua code="mercenaries:EvaluateCombatTarget(data)" />
+                                                            <ExecuteLua code="mercenaries:PickPlayersTarget(data, entity.this.id)" />
                                                         </Sequence>
-                                                    </For>
+                                                    </IfCondition>
+
+                                                    <IfCondition failOnCondition="false" condition="$stanceMode == 2">
+                                                        <Sequence>
+                                                            <ExecuteLua code="mercenaries:ScanForEnemies(data, entity.this.id)" />
+
+                                                            <For startIndex="0" endIndex="-1" step="1" array="$enemiesArray" iterator="" value="$candidate" break="$foundTarget">
+                                                                <Sequence>
+                                                                    <Expression expressions="$candidateTarget = $__null" />
+                                                                    <SuppressFailure>
+                                                                        <GetTarget ReferenceNPC="$candidate" TargetVarOut="$candidateTarget" />
+                                                                    </SuppressFailure>
+
+                                                                    <ExecuteLua code="mercenaries:EvaluateCombatTarget(data, entity.this.id)" />
+                                                                </Sequence>
+                                                            </For>
+                                                        </Sequence>
+                                                    </IfCondition>
                                                 </Sequence>
                                             </IfCondition>
                                         </SuppressFailure>
@@ -108,9 +134,9 @@
                                     <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
                                         <Then canSkip="1">
                                             <Sequence>
-                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 20.0 | $idleTicks &gt; 33">
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 20.0 | $idleTicks &gt; 33 | $stanceMode == 3">
                                                     <Sequence>
-                                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end)" />
+                                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
                                                         <Expression expressions="$currentTarget = $__null" />
                                                     </Sequence>
                                                 </IfCondition>
@@ -464,7 +490,7 @@
                                             </Then>
                                             <Else canSkip="1">
                                                 <Sequence>
-                                                    <ExecuteLua code="data.barkRandom = math.random(1, 40)" />
+                                                    <ExecuteLua code="data.barkRandom = math.random(1, 28)" />
                                                     <ExecuteLua code="System.LogAlways('[Mercenary] Going to play random line ' .. tostring(data.barkRandom))" />
                                                     <IfCondition failOnCondition="false" condition="~$isInjured">
                                                         <SuppressFailure>
@@ -514,171 +540,111 @@
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
                                                                             <IfCondition failOnCondition="false" condition="$barkRandom == 7">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_farm_1'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 8">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_farm_2_monolog'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 9">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_farm_3'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 10">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_1'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 11">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_2'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 12">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_3'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 13">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_4'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 14">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_woman_5'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 15">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_1'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 16">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_2'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 17">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_3'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 18">
-                                                                                <Function_speech_schedulerMonolog alias="'bark_test_dialog_drink_4'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                                                            </IfCondition>
-                                                                        </SuppressFailure>
-                                                                        <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 19">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story1'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 20">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 8">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story2'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 21">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 9">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story3'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 22">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 10">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story4'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 23">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 11">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story5'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 24">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 12">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story6'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 25">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 13">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story7'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 26">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 14">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story8'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 27">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 15">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story9'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 28">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 16">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story10'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 29">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 17">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story11'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 30">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 18">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story12'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 31">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 19">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story13'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 32">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 20">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story14'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 33">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 21">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story15'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 34">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 22">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story16'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 35">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 23">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story17'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 36">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 24">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story18'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 37">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 25">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story19'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 38">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 26">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story20'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 39">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 27">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story21'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <SuppressFailure>
-                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 40">
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom == 28">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story22'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>

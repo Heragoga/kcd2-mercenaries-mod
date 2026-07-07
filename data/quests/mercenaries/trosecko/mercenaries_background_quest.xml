@@ -8,18 +8,6 @@
             <Definitions>
                 <Definition File="mercenaries_background_quest/hire_dialog.xml" />
                 <Definition File="mercenaries_background_quest/dismissal_dialog.xml" />
-                <Definition File="mercenaries_background_quest/farm_1_monolog.xml" />
-                <Definition File="mercenaries_background_quest/farm_2_monolog.xml" />
-                <Definition File="mercenaries_background_quest/farm_3_monolog.xml" />
-                <Definition File="mercenaries_background_quest/love_1_monolog.xml" />
-                <Definition File="mercenaries_background_quest/love_2_monolog.xml" />
-                <Definition File="mercenaries_background_quest/love_3_monolog.xml" />
-                <Definition File="mercenaries_background_quest/love_4_monolog.xml" />
-                <Definition File="mercenaries_background_quest/love_5_monolog.xml" />
-                <Definition File="mercenaries_background_quest/drink_1_monolog.xml" />
-                <Definition File="mercenaries_background_quest/drink_2_monolog.xml" />
-                <Definition File="mercenaries_background_quest/drink_3_monolog.xml" />
-                <Definition File="mercenaries_background_quest/drink_4_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story1_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story2_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story3_monolog.xml" />
@@ -46,18 +34,6 @@
             <Nodes>
                 <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
                 <dismissal_dialog Name="dismissal_dialog" PositionY="150" PositionX="300" />
-                <farm_1_monolog Name="farm_1_monolog" PositionY="150" PositionX="400" />
-                <farm_2_monolog Name="farm_2_monolog" PositionY="150" PositionX="400" />
-                <farm_3_monolog Name="farm_3_monolog" PositionY="150" PositionX="400" />
-                <love_1_monolog Name="love_1_monolog" PositionY="150" PositionX="400" />
-                <love_2_monolog Name="love_2_monolog" PositionY="150" PositionX="400" />
-                <love_3_monolog Name="love_3_monolog" PositionY="150" PositionX="400" />
-                <love_4_monolog Name="love_4_monolog" PositionY="150" PositionX="400" />
-                <love_5_monolog Name="love_5_monolog" PositionY="150" PositionX="400" />
-                <drink_1_monolog Name="drink_1_monolog" PositionY="150" PositionX="400" />
-                <drink_2_monolog Name="drink_2_monolog" PositionY="150" PositionX="400" />
-                <drink_3_monolog Name="drink_3_monolog" PositionY="150" PositionX="400" />
-                <drink_4_monolog Name="drink_4_monolog" PositionY="150" PositionX="400" />
                 <story_1_monolog Name="story_1_monolog" PositionY="150" PositionX="500" />
                 <story_2_monolog Name="story_2_monolog" PositionY="150" PositionX="500" />
                 <story_3_monolog Name="story_3_monolog" PositionY="150" PositionX="500" />
@@ -132,6 +108,34 @@
                     <Constant Name="Amount" Value="1" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="dismissal_dialog.mercenary_follow" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_stance_everyone" PositionY="250" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be51d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_stance_everyone" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_stance_player_target" PositionY="300" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be52d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_stance_player_target" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_stance_defend" PositionY="350" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be53d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_stance_defend" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_stance_passive" PositionY="400" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be54d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_stance_passive" To="Exec" />
                 </EventFunction>
 
                 <EventFunction Name="execute_recruit_kubenka" PositionY="200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">

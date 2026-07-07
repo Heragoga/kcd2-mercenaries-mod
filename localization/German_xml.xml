@@ -1,4 +1,4 @@
-<Table>
+﻿<Table>
   <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Ich möchte ein paar Söldner anheuern.</Cell></Row>
   
   <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>Ich kann Euch ein paar gewöhnliche Söldner besorgen, oder ich habe ein paar besondere Gefährten zur Auswahl. Wonach sucht Ihr?</Cell></Row>
@@ -87,6 +87,34 @@
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Schon gut)</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Ach, schon gut.</Cell></Row>
 
+  <Row><Cell>ui_mercenary_change_stance</Cell><Cell>Change combat stance...</Cell><Cell>Kampfhaltung ändern...</Cell></Row>
+  <Row><Cell>merc_henry_stance_hub_prompt</Cell><Cell>I want to talk tactics.</Cell><Cell>Ich will über Taktik reden.</Cell></Row>
+  <Row><Cell>merc_test_stance_hub_prompt</Cell><Cell>How do you want us to fight?</Cell><Cell>Wie sollen wir kämpfen?</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>Greift jeden Feind an, wartet nicht auf mich.</Cell></Row>
+  <Row><Cell>merc_henry_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>Greift jeden Feind an, wartet nicht auf mich.</Cell></Row>
+  <Row><Cell>merc_test_stance_everyone</Cell><Cell>Understood. We'll take the fight to them.</Cell><Cell>Verstanden. Wir gehen in die Offensive.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>Greift nur an, wen ich gerade bekämpfe.</Cell></Row>
+  <Row><Cell>merc_henry_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>Greift nur an, wen ich gerade bekämpfe.</Cell></Row>
+  <Row><Cell>merc_test_stance_player_target</Cell><Cell>Verstanden, wir folgen deinem Beispiel.</Cell><Cell>Verstanden, wir folgen deinem Beispiel.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>Verteidigt euch nur, wenn ihr angegriffen werdet.</Cell></Row>
+  <Row><Cell>merc_henry_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>Verteidigt euch nur, wenn ihr angegriffen werdet.</Cell></Row>
+  <Row><Cell>merc_test_stance_defend</Cell><Cell>Fair enough, we'll hold back.</Cell><Cell>In Ordnung, wir halten uns zurück.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>Kämpft gar nicht, egal was passiert.</Cell></Row>
+  <Row><Cell>merc_henry_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>Kämpft gar nicht, egal was passiert.</Cell></Row>
+  <Row><Cell>merc_test_stance_passive</Cell><Cell>Wenn du meinst... hoffen wir, es kommt nicht dazu.</Cell><Cell>Wenn du meinst... hoffen wir, es kommt nicht dazu.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_can</Cell><Cell>(Nevermind)</Cell><Cell>(Schon gut)</Cell></Row>
+  <Row><Cell>merc_henry_stance_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Ach, schon gut.</Cell></Row>
+
+  <Row><Cell>merc_info_stance_everyone</Cell><Cell>Söldner: greifen jeden Feind an.</Cell><Cell>Söldner: greifen jeden Feind an.</Cell></Row>
+  <Row><Cell>merc_info_stance_player_target</Cell><Cell>Söldner: greifen dein Ziel an.</Cell><Cell>Söldner: greifen dein Ziel an.</Cell></Row>
+  <Row><Cell>merc_info_stance_defend</Cell><Cell>Söldner: verteidigen sich nur.</Cell><Cell>Söldner: verteidigen sich nur.</Cell></Row>
+  <Row><Cell>merc_info_stance_passive</Cell><Cell>Söldner: passiv, kämpfen nicht.</Cell><Cell>Söldner: passiv, kämpfen nicht.</Cell></Row>
+
 
   <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(Schon gut)</Cell></Row>
   <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>Ach, schon gut.</Cell></Row>
@@ -173,85 +201,17 @@
   <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>Wir tun, was wir können, Boss, aber ein richtiger Heiler wäre nicht verkehrt.</Cell></Row>
   <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>Eure Söldner wurden geheilt.</Cell></Row>
 
-  <Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>Sobald ich genug Groschen zusammengekratzt habe...</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>Kaufe ich mir ein kleines Stück Land.</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>Werde den ganzen Tag auf meinem Hintern sitzen...</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>Und den Leibeigenen bei der Schwerstarbeit zusehen.</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>Nur ich, die Schafe und ein voller Bauch.</Cell></Row>
-  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>Herrgott, das wird ein Leben.</Cell></Row>
 
-  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>Nur noch ein Jahr in diesem verdammten Gewerbe.</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>Dann kaufe ich dieses leere Grundstück unten in Horschan...</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>Um endlich etwas Frieden und Ruhe zu finden.</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>Ich werde mein Schwert ins Gebälk hängen...</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>Und das verdammte Ding zu Staub rosten lassen.</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>Vielleicht braue ich mein eigenes Bier.</Cell></Row>
-  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>Und trinke mich jeden Abend in den Schlaf... heheh.</Cell></Row>
 
-  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>Ich erinnere mich noch daran... bevor ich ein erwachsener Mann war.</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>Der Hof meines Vaters.</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>Ein robustes Haus. Es hatte eine rote Tür.</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>Dann kamen diese Kumanen-Bastarde.</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>Haben sie wie Schweine abgeschlachtet... nur ich konnte in die Wälder entkommen.</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>Seitdem lebe ich durch das Schwert.</Cell></Row>
-  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>Vielleicht eines Tages... gehe ich zurück und baue es wieder auf.</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>Herr, was für eine Nacht das war...</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>Zdena, so war ihr Name...</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>Haare wie gesponnenes Gold...</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>Brüste so weich wie aufgehender Teig...</Cell></Row>
-  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>Ich würde gegen den Teufel selbst kämpfen für eine weitere Nacht mit ihr.</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>Es ist zu lange her...</Cell></Row>
-  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>Dass ich die Wärme weiblicher Haut gespürt habe...</Cell></Row>
-  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>Jede Taverne, die wir aufsuchen, ist voll von zahnlosen alten Schabracken.</Cell></Row>
-  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>Ein Mann hat schließlich Bedürfnisse, verdammt noch mal.</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>Jedes Mal, wenn ich an Betti denke, setzt mein Herz einen Schlag aus...</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>Ich stelle mir gerne vor, dass sie immer noch am Herd wartet.</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>Meine Tunika flickt...</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>Und den Dorfbewohnern bei ihrem Tagwerk zusieht...</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>Aber dann erinnere ich mich... es war mein Messer, das in ihrer Brust landete.</Cell></Row>
-  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*seufzt schwer*</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>Kaum zwei Wochen ist es her, dass ich meine Danka verlassen habe...</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>Sie hat sich die Augen aus dem Kopf geweint, als ich fortgeritten bin.</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>Dieser Bastard Sigismund... reißt Familien auseinander.</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>Jetzt stecke ich in diesem gottverlassenen Schlammloch fest!</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>Ich versuche nur, genug Münzen zu verdienen, um zu ihr zurückzukehren...</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>Aber jedes Mal, wenn wir an einem Wirtshaus vorbeikommen...</Cell></Row>
-  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>Ist mein Geldbeutel am Ende leichter als zuvor.</Cell></Row>
 
-  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>Meine süße Matilda...</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>Ich hoffe, sie schläft friedlich unter dieser alten Eiche.</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>Gottes Wunden, was für eine höllische Nacht das war...</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>Hat geschrien, bis ihre Stimme versagte.</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>Das ganze Dorf hat sie gehört.</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>Ich musste den armen kleinen Jan direkt neben ihr begraben.</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>Er war doch nur ein Säugling...</Cell></Row>
-  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>Danach konnte ich den Anblick des Hauses nicht mehr ertragen.</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>Ah, die Weinberge von Mělník...</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>Solchen Wein pressen sie!</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>Rot wie ein Rubin.</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>Süß wie die Sünde.</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>Jeder Groschen, für den ich blute...</Cell></Row>
-  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>Ist nur für einen weiteren Tropfen dieses Nektars auf meiner Zunge.</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>Ich ertrage das nicht!</Cell></Row>
-  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>Vier Tage ohne einen Tropfen!</Cell></Row>
-  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>Die ganze Welt ergibt nach einem Bier viel mehr Sinn.</Cell></Row>
-  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>Bete zu Gott, dass die nächste Taverne nicht weit ist.</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>Wo ist der Schnaps?</Cell></Row>
-  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>Wer hat den verdammten Schnaps versteckt?!</Cell></Row>
-  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>Heinrich! Hast du die letzte Flasche getrunken?</Cell></Row>
-  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>Das ist die absolute Folter!</Cell></Row>
 
-  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>Bier... ich muss nur daran denken und meine Knie werden weich.</Cell></Row>
-  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>Wenn Wein das Blut Christi ist, und Brot sein Leib...</Cell></Row>
-  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>Dann muss Bier seine wahre Seele sein.</Cell></Row>
-  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>Amen dazu.</Cell></Row>
 
   <Row><Cell>a614a_story1</Cell><Cell>Ich fürchte nicht den Tod, ich fürchte die Suppe von jemandem, der von sich überzeugt ist.</Cell><Cell>Ich fürchte nicht den Tod, ich fürchte die Suppe von jemandem, der von sich überzeugt ist.</Cell></Row>
   <Row><Cell>a614a_story2</Cell><Cell>Ich habe einmal einem Mann vertraut, der Abkürzung sagte – wir kamen älter an.</Cell><Cell>Ich habe einmal einem Mann vertraut, der Abkürzung sagte – wir kamen älter an.</Cell></Row>

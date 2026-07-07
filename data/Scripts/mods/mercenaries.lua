@@ -26,9 +26,27 @@ mercenaries.TokenIDReturn = "679a655e-189d-4519-b437-ccc4b92be49d"
 --heal mercs token
 mercenaries.TokenIDHeal = "679a655e-189d-4519-b437-ccc4b92be50d"
 
+-- Combat stance tokens (set via dialogue with a mercenary)
+mercenaries.TokenIDStanceEveryone = "679a655e-189d-4519-b437-ccc4b92be51d"
+mercenaries.TokenIDStancePlayerTarget = "679a655e-189d-4519-b437-ccc4b92be52d"
+mercenaries.TokenIDStanceDefend = "679a655e-189d-4519-b437-ccc4b92be53d"
+mercenaries.TokenIDStancePassive = "679a655e-189d-4519-b437-ccc4b92be54d"
+
+-- Combat stance codes, cheap to check from the behavior tree (int compare
+-- instead of string compare on every merc, every tick).
+mercenaries.StanceCode = { everyone = 0, player_target = 1, defend = 2, passive = 3 }
+
+function mercenaries:GetStanceCode()
+    return self.StanceCode[_G.MercStance or "player_target"] or 1
+end
+
 mercenaries.MaxCompanions = 999
 
 mercenaries.TargetDetectionRadius = 50
+
+-- Max number of mercs allowed to already be closer to a given enemy before
+-- another merc will look for a different target instead of piling on.
+mercenaries.SwarmCap = 2
 
 mercenaries.IsHiddenForCutscene = false
 
@@ -40,6 +58,13 @@ mercenaries.IsHiddenForCutscene = false
 mercenaries.ActiveMercs   = {}  -- [entityName] = entity ref; pruned each tick
 mercenaries.CachedEnemies = {}  -- [{entity, wuid}] valid hostile enemies near player
 mercenaries.FormationSlots = {} -- [tostring(wuid)] = {slot, followTarget, totalMercs}
+
+-- Anti-swarm bookkeeping. MercTargetOf tracks each merc's current combat
+-- target (set/cleared by the target-selection + attack behavior trees).
+-- TargetLoad is rebuilt from it once per second — O(mercs), not O(mercs^2) —
+-- so checking "is this target already swarmed" is a plain table lookup.
+mercenaries.MercTargetOf = {} -- [myWuidStr] = targetWuidStr
+mercenaries.TargetLoad = {}   -- [targetWuidStr] = number of mercs currently on it
 
 _G.MercHorseState = {}
 _G.PlayerMounted = false
@@ -208,9 +233,22 @@ function mercenaries:SetState(state)
     elseif state == "follow" then
         _G.MercIdle = false
         _G.MercPersistentIdleFlag = false
-        mercenaries:SaveString("MercIdlePersistent", "0") 
+        mercenaries:SaveString("MercIdlePersistent", "0")
         Game.SendInfoText('merc_info_following', false, 0, 3)
     end
+end
+
+-- Combat stance, set through dialogue with a mercenary. Applies whether the
+-- squad is following or waiting.
+--   everyone      - attack any hostile, drawn-weapon NPC nearby
+--   player_target - only join whatever fight the player is currently in (default)
+--   defend        - only fight back if personally attacked
+--   passive       - never engage, even if attacked
+function mercenaries:SetStance(stance)
+    if not self.StanceCode[stance] then stance = "player_target" end
+    _G.MercStance = stance
+    self:SaveString("MercStancePersistent", stance)
+    Game.SendInfoText('merc_info_stance_' .. stance, false, 0, 3)
 end
 
 
@@ -234,6 +272,11 @@ function mercenaries:MonitorInventory()
     local countCustomCompanion = p:GetCountOfClass(self.TokenIDCustomComp)
     local countRetrieve = p:GetCountOfClass(self.TokenIDReturn)
     local countHeal = p:GetCountOfClass(self.TokenIDHeal)
+
+    local countStanceEveryone = p:GetCountOfClass(self.TokenIDStanceEveryone)
+    local countStancePlayerTarget = p:GetCountOfClass(self.TokenIDStancePlayerTarget)
+    local countStanceDefend = p:GetCountOfClass(self.TokenIDStanceDefend)
+    local countStancePassive = p:GetCountOfClass(self.TokenIDStancePassive)
 
 
     
@@ -295,9 +338,29 @@ function mercenaries:MonitorInventory()
     --heal & wash x number of mercs
     if countHeal and countHeal > 0 then
         p:DeleteItemOfClass(self.TokenIDHeal, countHeal)
-        self:FullHealAndWashNumberOfMercs(countHeal) 
+        self:FullHealAndWashNumberOfMercs(countHeal)
     end
 
+    -- Combat stance chosen via dialogue
+    if countStanceEveryone and countStanceEveryone > 0 then
+        p:DeleteItemOfClass(self.TokenIDStanceEveryone, countStanceEveryone)
+        self:SetStance("everyone")
+    end
+
+    if countStancePlayerTarget and countStancePlayerTarget > 0 then
+        p:DeleteItemOfClass(self.TokenIDStancePlayerTarget, countStancePlayerTarget)
+        self:SetStance("player_target")
+    end
+
+    if countStanceDefend and countStanceDefend > 0 then
+        p:DeleteItemOfClass(self.TokenIDStanceDefend, countStanceDefend)
+        self:SetStance("defend")
+    end
+
+    if countStancePassive and countStancePassive > 0 then
+        p:DeleteItemOfClass(self.TokenIDStancePassive, countStancePassive)
+        self:SetStance("passive")
+    end
 
 end
 
@@ -309,17 +372,18 @@ function mercenaries.MonitorLoop()
     end
     mercenaries:MonitorMainQuestLoop()
 
-    if not _G.MercIdle then
-        mercenaries:UpdateEnemyCache()
-    end
+    -- Combat stance applies whether the squad is following or waiting,
+    -- so the enemy cache is kept fresh regardless of idle state.
+    mercenaries:UpdateEnemyCache()
 
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
 end
 
 function mercenaries.LowPriorityMonitorLoop()
-    if not _G.MercIdle then
+    -- Pruning matters even while idle now that combat stances apply at rest.
+    mercenaries:PruneMercCache()
 
-        mercenaries:PruneMercCache()
+    if not _G.MercIdle then
         mercenaries:UpdateFormationSlots()
     end
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
@@ -358,6 +422,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
         _G.MercCurrentOutfit = 1
     end
 
+    -- Load combat stance
+    local savedStance = mercenaries:LoadString("MercStancePersistent")
+    _G.MercStance = (savedStance and self.StanceCode[savedStance]) and savedStance or "player_target"
+
     self:ReleaseSpeakingLock()
 
     _G.PlayerMounted = false
@@ -392,6 +460,10 @@ System.AddCCommand("merc_recount", "mercenaries:Recount()", "")
 System.AddCCommand("merc_dismiss", "mercenaries:SetState('dismiss')", "")
 System.AddCCommand("merc_wait", "mercenaries:SetState('wait')", "")
 System.AddCCommand("merc_follow", "mercenaries:SetState('follow')", "")
+System.AddCCommand("merc_stance_everyone", "mercenaries:SetStance('everyone')", "")
+System.AddCCommand("merc_stance_player_target", "mercenaries:SetStance('player_target')", "")
+System.AddCCommand("merc_stance_defend", "mercenaries:SetStance('defend')", "")
+System.AddCCommand("merc_stance_passive", "mercenaries:SetStance('passive')", "")
 
 System.AddCCommand("merc_hire_w1", "mercenaries:Hire(0, 1, 'weak')", "")
 System.AddCCommand("merc_hire_w2", "mercenaries:Hire(0, 2, 'weak')", "")

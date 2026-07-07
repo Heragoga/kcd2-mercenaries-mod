@@ -14,6 +14,11 @@
                 <Port Name="equip_kuttenberg" Direction="Out" Type="trigger" />
 
                 <Port Name="mercenary_open_heal_menu" Direction="Out" Type="trigger" />
+
+                <Port Name="mercenary_stance_everyone" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_stance_player_target" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_stance_defend" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_stance_passive" Direction="Out" Type="trigger" />
             </Ports>
             <Text StringName="ui_mercenary_dismissal_root" />
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
@@ -165,6 +170,87 @@
                                         <Elements>
                                             <Response Role="HENRY">
                                                 <Text StringName="merc_henry_equip_can" />
+                                            </Response>
+                                        </Elements>
+                                    </Sequence>
+
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <Sequence EndType="Decision" Name="seq_change_stance_hub">
+                            <UiPrompt StringName="ui_mercenary_change_stance" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_stance_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_stance_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+
+                            <Decision Name="dec_stance_choices">
+                                <Sequences>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_stance_everyone">
+                                        <UiPrompt StringName="ui_merc_stance_everyone" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_stance_everyone" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_stance_everyone" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_stance_everyone" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_stance_player_target">
+                                        <UiPrompt StringName="ui_merc_stance_player_target" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_stance_player_target" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_stance_player_target" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_stance_player_target" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_stance_defend">
+                                        <UiPrompt StringName="ui_merc_stance_defend" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_stance_defend" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_stance_defend" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_stance_defend" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_stance_passive">
+                                        <UiPrompt StringName="ui_merc_stance_passive" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_stance_passive" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_stance_passive" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_stance_passive" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_stance_cancel">
+                                        <UiPrompt StringName="ui_merc_stance_can" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_stance_can" />
                                             </Response>
                                         </Elements>
                                     </Sequence>
