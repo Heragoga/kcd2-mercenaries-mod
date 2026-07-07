@@ -1,4 +1,4 @@
-<Table>
+﻿<Table>
   <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Quiero contratar algunos mercenarios.</Cell></Row>
   
   <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>Puedo conseguirte algunos mercenarios comunes, o tengo algunos compañeros específicos disponibles. ¿Qué estás buscando?</Cell></Row>

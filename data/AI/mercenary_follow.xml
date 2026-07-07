@@ -73,21 +73,25 @@
                                                 y = pos.y + math.sin(angle) * offset,
                                                 z = pos.z
                                             }
-                                            local mercId = tostring(entity.this.id)
-                                            local hash = 5381
+                                            local mercId = tostring(entity:GetName())
+                                            local hash = 0
+
                                             for i = 1, #mercId do
-                                                hash = (hash * 33 + string.byte(mercId, i)) % 2147483647
+                                                hash = (hash * 31 + string.byte(mercId, i)) % 100003
                                             end
 
-                                            local horse = (hash % 7) + 1
+                                            local horseNumber = (hash % 7) + 1
+
+
+                                            System.LogAlways('[Merc horse assignment] ' .. tostring(mercId) .. '  ' .. tostring(horseNumber) .. '  ' .. tostring(hash))
+
                                             local horseSouls = {
                                                 '00af7178-368d-44f0-9368-a7b7750c098c', '45b7dbbf-d1f1-4bdd-abc0-ea86dc30ba47',
                                                 '55353ccc-b4bb-4d38-ba64-10d95607421c', '1834d21b-f362-4079-a847-97decfe438d7',
                                                 '2629b487-e123-4012-a9ab-dc53ea7a2ada', '2f91a84b-36ac-4980-8343-90f9634004e2',
                                                 '63415fa6-4b96-4a8a-a72c-f6d3081d6189'
                                             }
-                                            local soulId = horseSouls[horse]
-                                            soulId = '45b7dbbf-d1f1-4bdd-abc0-ea86dc30ba47'
+                                            local soulId = horseSouls[horseNumber]
                                             System.SpawnEntity({
                                                 class = 'Horse', name = horseName, position = horsePos,
                                                 orientation = {x = 0, y = 0, z = 0}, properties = {guidSharedSoulId = soulId}

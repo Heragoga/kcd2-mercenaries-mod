@@ -1,4 +1,4 @@
-<Table>
+﻿<Table>
   <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>용병을 좀 고용하고 싶소.</Cell></Row>
 
   <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>평범한 칼잡이를 구해줄 수도 있고, 특별한 동료들을 소개해줄 수도 있소. 뭘 찾고 계시오?</Cell></Row>
