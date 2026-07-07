@@ -1,0 +1,277 @@
+<Table>
+  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Я хочу найняти кількох найманців.</Cell></Row>
+  
+  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>Я можу підшукати тобі звичайних найманців, або в мене є кілька особливих товаришів. Що саме ти шукаєш?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>Звичайні найманці.</Cell></Row>
+  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>Просто стандартні найманці.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>Особливі товариші.</Cell></Row>
+  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>Я шукаю конкретних людей.</Cell></Row>
+  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>А, особливий список. Хто саме тебе цікавить?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>Найслабші (50 грошів).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>Кілька непоганих хлопців (100 грошів).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>Досвідчений солдат (300 грошів).</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>Лише один.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>Двоє.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>Троє.</Cell></Row>
+
+  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Я хочу найняти кількох найманців.</Cell></Row>
+  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>Є кілька хлопців, готових допомогти. Наскільки сильними вони мають бути?</Cell></Row>
+  
+  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>Найслабші підійдуть.</Cell></Row>
+  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>Гаразд, 50 грошів за голову. Скільки тобі потрібно?</Cell></Row>
+  
+  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>Кілька непоганих хлопців.</Cell></Row>
+  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>Гаразд, 100 грошів за голову. Скільки тобі потрібно?</Cell></Row>
+  
+  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>Досвідчений солдат.</Cell></Row>
+  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>Найвища якість. Це 300 грошів за голову. Скільки тобі потрібно?</Cell></Row>
+  
+  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>Лише один.</Cell></Row>
+  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>Я візьму двох.</Cell></Row>
+  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>Дай мені трьох.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Чекайте на мене тут.</Cell></Row>
+  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>За мною.</Cell></Row>
+  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>Я хотів би вас усіх звільнити.</Cell></Row>
+
+  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Чекайте на мене тут.</Cell></Row>
+  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>Як скажеш, босе.</Cell></Row>
+  
+  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>За мною.</Cell></Row>
+  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>Прямо за тобою.</Cell></Row>
+
+  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>Ви всі вільні.</Cell></Row>
+  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>Бувай.</Cell></Row>
+
+  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>Найманця найнято.</Cell></Row>
+  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>Найманців найнято.</Cell></Row>
+  <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Недостатньо грошів!</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>У тебе вже забагато людей! Максимум 5.</Cell></Row>
+  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Усіх найманців звільнено.</Cell></Row>
+  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Найманці чекають.</Cell></Row>
+  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Найманці йдуть слідом.</Cell></Row>
+  
+  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Особливого товариша найнято.</Cell></Row>
+  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Цей товариш уже у тебе на службі!</Cell></Row>
+
+  <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Найманець</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>Змінити спорядження...</Cell></Row>
+  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>Мені потрібно, щоб ви змінили своє спорядження.</Cell></Row>
+  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>Що нам одягнути?</Cell></Row>
+  
+  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>Звичайні найманці</Cell></Row>
+  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>Одягніть своє звичайне спорядження.</Cell></Row>
+  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>Ми зараз же перевдягнемося.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>Бандити</Cell></Row>
+  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>Одягніться як бандити.</Cell></Row>
+  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>Сподіваюся, через це ми не опинимося у в'язниці.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>Половці</Cell></Row>
+  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>Одягніть половецькі обладунки.</Cell></Row>
+  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>Хрмпф.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_lei</Cell><Cell>Leipa</Cell><Cell>Липа</Cell></Row>
+  <Row><Cell>merc_henry_equip_lei</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Одягніть кольори Скалиці та Липи.</Cell></Row>
+  <Row><Cell>merc_test_equip_lei</Cell><Cell>For Sir Radzig!</Cell><Cell>За пана Радцига!</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>Куттенберг</Cell></Row>
+  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>Одягніть куттенберзькі кольори.</Cell></Row>
+  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>Зараз же.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>Скалиця (потребує мод House of Kobyla Arms, Armour and Regalia)</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>Одягніть кольори Скалиці, заради старих часів.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>За Скалицю, і за тебе, Генрі.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Не зважай)</Cell></Row>
+  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Власне, не зважай.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_stance</Cell><Cell>Change combat stance...</Cell><Cell>Змінити бойову стійку...</Cell></Row>
+  <Row><Cell>merc_henry_stance_hub_prompt</Cell><Cell>I want to talk tactics.</Cell><Cell>Я хочу поговорити про тактику.</Cell></Row>
+  <Row><Cell>merc_test_stance_hub_prompt</Cell><Cell>How do you want us to fight?</Cell><Cell>Як ти хочеш, щоб ми билися?</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>Атакуйте будь-кого ворожого, не чекайте на мене.</Cell></Row>
+  <Row><Cell>merc_henry_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>Атакуйте будь-кого ворожого, не чекайте на мене.</Cell></Row>
+  <Row><Cell>merc_test_stance_everyone</Cell><Cell>Understood. We'll take the fight to them.</Cell><Cell>Зрозуміло. Ми підемо в наступ.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>Атакуйте лише тих, з ким б'юся я.</Cell></Row>
+  <Row><Cell>merc_henry_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>Атакуйте лише тих, з ким б'юся я.</Cell></Row>
+  <Row><Cell>merc_test_stance_player_target</Cell><Cell>Got it, we'll follow your lead.</Cell><Cell>Зрозумів, ми будемо слідувати за тобою.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>Захищайтеся лише тоді, коли на вас нападають.</Cell></Row>
+  <Row><Cell>merc_henry_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>Захищайтеся лише тоді, коли на вас нападають.</Cell></Row>
+  <Row><Cell>merc_test_stance_defend</Cell><Cell>Fair enough, we'll hold back.</Cell><Cell>Згода, ми будемо стримуватися.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>Взагалі не бийтеся, незважаючи ні на що.</Cell></Row>
+  <Row><Cell>merc_henry_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>Взагалі не бийтеся, незважаючи ні на що.</Cell></Row>
+  <Row><Cell>merc_test_stance_passive</Cell><Cell>If you say so... let's hope it doesn't come to that.</Cell><Cell>Як скажеш... сподіваємось, до цього не дійде.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_can</Cell><Cell>(Nevermind)</Cell><Cell>(Не зважай)</Cell></Row>
+  <Row><Cell>merc_henry_stance_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Власне, не зважай.</Cell></Row>
+
+  <Row><Cell>merc_info_stance_everyone</Cell><Cell>Mercenaries: attack everyone hostile.</Cell><Cell>Найманці: атакують усіх ворогів.</Cell></Row>
+  <Row><Cell>merc_info_stance_player_target</Cell><Cell>Mercenaries: attack whoever you attack.</Cell><Cell>Найманці: атакують твою ціль.</Cell></Row>
+  <Row><Cell>merc_info_stance_defend</Cell><Cell>Mercenaries: defend themselves only.</Cell><Cell>Найманці: лише захищаються.</Cell></Row>
+  <Row><Cell>merc_info_stance_passive</Cell><Cell>Mercenaries: passive, won't fight.</Cell><Cell>Найманці: пасивні, не будуть битися.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_weapon</Cell><Cell>Change weapon loadout...</Cell><Cell>Змінити озброєння...</Cell></Row>
+  <Row><Cell>merc_henry_weapon_hub_prompt</Cell><Cell>I want to talk about your weapons.</Cell><Cell>Я хочу поговорити про вашу зброю.</Cell></Row>
+  <Row><Cell>merc_test_weapon_hub_prompt</Cell><Cell>What should we carry?</Cell><Cell>Що нам слід носити?</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_random</Cell><Cell>Whatever's on hand.</Cell><Cell>Те, що є під рукою.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_random</Cell><Cell>Whatever's on hand.</Cell><Cell>Те, що є під рукою.</Cell></Row>
+  <Row><Cell>merc_test_weapon_random</Cell><Cell>Suits us fine.</Cell><Cell>Нам це підходить.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_swordshield</Cell><Cell>Sword and shield.</Cell><Cell>Меч і щит.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_swordshield</Cell><Cell>Arm yourselves with sword and shield.</Cell><Cell>Озбройтеся мечем і щитом.</Cell></Row>
+  <Row><Cell>merc_test_weapon_swordshield</Cell><Cell>A sound choice.</Cell><Cell>Розумний вибір.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_axeshield</Cell><Cell>Axe and shield.</Cell><Cell>Сокира і щит.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_axeshield</Cell><Cell>Take up axe and shield.</Cell><Cell>Беріть сокиру і щит.</Cell></Row>
+  <Row><Cell>merc_test_weapon_axeshield</Cell><Cell>Sturdy enough.</Cell><Cell>Досить надійно.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_longsword</Cell><Cell>Longsword.</Cell><Cell>Довгий меч.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_longsword</Cell><Cell>Wield longswords, both hands free of a shield.</Cell><Cell>Беріться за довгі мечі, обидві руки вільні від щита.</Cell></Row>
+  <Row><Cell>merc_test_weapon_longsword</Cell><Cell>Room to swing, good.</Cell><Cell>Є місце для розмаху, добре.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_maceshield</Cell><Cell>Mace and shield.</Cell><Cell>Булава і щит.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_maceshield</Cell><Cell>Carry mace and shield.</Cell><Cell>Беріть булаву і щит.</Cell></Row>
+  <Row><Cell>merc_test_weapon_maceshield</Cell><Cell>Bone-breaker's choice.</Cell><Cell>Вибір костолома.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_shortsword</Cell><Cell>Shortsword.</Cell><Cell>Короткий меч.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_shortsword</Cell><Cell>Keep it quick with a shortsword.</Cell><Cell>Будьте швидкими з коротким мечем.</Cell></Row>
+  <Row><Cell>merc_test_weapon_shortsword</Cell><Cell>Light and fast, understood.</Cell><Cell>Легко і швидко, зрозуміло.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_mace</Cell><Cell>Mace.</Cell><Cell>Булава.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_mace</Cell><Cell>Take up the mace.</Cell><Cell>Беріть булаву.</Cell></Row>
+  <Row><Cell>merc_test_weapon_mace</Cell><Cell>Nothing like a good bludgeoning.</Cell><Cell>Ніщо не зрівняється з доброю прочуханкою.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_axe</Cell><Cell>Axe.</Cell><Cell>Сокира.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_axe</Cell><Cell>Arm yourselves with axes.</Cell><Cell>Озбройтеся сокирами.</Cell></Row>
+  <Row><Cell>merc_test_weapon_axe</Cell><Cell>Sharp enough to split kindling, or skulls.</Cell><Cell>Досить гостра, щоб рубати дрова або розколювати черепи.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_polearm</Cell><Cell>Polearm.</Cell><Cell>Держакова зброя.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_polearm</Cell><Cell>Carry polearms.</Cell><Cell>Беріть держакову зброю.</Cell></Row>
+  <Row><Cell>merc_test_weapon_polearm</Cell><Cell>Keeps them at a distance, good.</Cell><Cell>Тримає їх на відстані, це добре.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_can</Cell><Cell>(Nevermind)</Cell><Cell>(Не зважай)</Cell></Row>
+  <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Власне, не зважай.</Cell></Row>
+
+
+  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(Не зважай)</Cell></Row>
+  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>Власне, не зважай.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>Кубенка (1500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>Я візьму Кубенку.</Cell></Row>
+  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>Подивлюся, чи він ще не напився до смерті.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_vasko</Cell><Cell>Vasko (1000 groschen).</Cell><Cell>Васько (1000 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>Пошліть за Васьком.</Cell></Row>
+  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>Він і справді шукає роботу.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jasak</Cell><Cell>Jasak (800 groschen).</Cell><Cell>Ясак (800 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>Я візьму Ясака.</Cell></Row>
+  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>Його лук стане в пригоді.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_bartosch</Cell><Cell>Black Bartosch (2000 groschen).</Cell><Cell>Чорний Бартош (2000 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_bartosch</Cell><Cell>I need Black Bartosch.</Cell><Cell>Мені потрібен Чорний Бартош.</Cell></Row>
+  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>Замок Троски все одно починає йому набридати.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_gnarly</Cell><Cell>Gnarly (2000 groschen).</Cell><Cell>Гнарлі (2000 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>Приведіть мені Гнарлі.</Cell></Row>
+  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>Він погодився вирушити на ще одну останню вилазку.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>Ян Позі (1500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>Я візьму Яна Позі.</Cell></Row>
+  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>З ним, гадаю, тобі більше ніхто не знадобиться.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>Мирослав Тагбоун (1500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>Пошліть за Мирославом.</Cell></Row>
+  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>Будемо сподіватися, що він ніде не застряг.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_menhard</Cell><Cell>Menhard (1000 groschen).</Cell><Cell>Менгард (1000 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>Я хочу Менгарда.</Cell></Row>
+  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>Найкращий майстер фехтування Франкфурта до твоїх послуг.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_arne</Cell><Cell>Arne (500 groschen).</Cell><Cell>Арне (500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>Я візьму Арне.</Cell></Row>
+  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>Добре, але я не думаю, що він хоч щось розуміє чеською...</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>Янек зі Скалиці (800 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>Знайдіть мені Янека.</Cell></Row>
+  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>Бачу, стара компанія збирається разом.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jaroslav</Cell><Cell>Jaroslav (800 groschen).</Cell><Cell>Ярослав (800 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_jaroslav</Cell><Cell>I need Jaroslav.</Cell><Cell>Мені потрібен Ярослав.</Cell></Row>
+  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>Здається, він виграє парі на те, хто відростить довшу бороду.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_adder</Cell><Cell>Adder (1500 groschen).</Cell><Cell>Гадюка (1500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>Я візьму Гадюку.</Cell></Row>
+  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>Я покличу місцевого різника.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janosh</Cell><Cell>Janosh (1500 groschen).</Cell><Cell>Янош (1500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>Пошліть за Яношем.</Cell></Row>
+  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>Бачу, ти справжній гурман.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>Матей Колекціонер (500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>Я хочу Матея Колекціонера.</Cell></Row>
+  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>Бачу, ти хочеш зібрати всю диявольську зграю.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_zizka</Cell><Cell>Jan Zizka (3000 groschen).</Cell><Cell>Ян Жижка (3000 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_zizka</Cell><Cell>I need Jan Zizka.</Cell><Cell>Мені потрібен Ян Жижка.</Cell></Row>
+  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>Він погодився тобі допомогти.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_devil</Cell><Cell>The Devil (3000 groschen).</Cell><Cell>Диявол (3000 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>Я хочу Диявола.</Cell></Row>
+  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>Він готовий вирушати.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_godwin</Cell><Cell>Father Godwin (2500 groschen).</Cell><Cell>Отець Годвін (2500 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>Отець Годвін. Приведіть його.</Cell></Row>
+  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>Від священика до найманця... що за людина.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_capon</Cell><Cell>Sir Hans Capon (3000 groschen).</Cell><Cell>Сер Ганс Капон (3000 грошів).</Cell></Row>
+  <Row><Cell>merc_henry_capon</Cell><Cell>Sir Hans Capon.</Cell><Cell>Сер Ганс Капон.</Cell></Row>
+  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>Його милість до твоїх послуг.</Cell></Row>
+
+
+  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>Твої найманці вже в дорозі.</Cell></Row>
+  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>Відкликати моїх людей.</Cell></Row>
+  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>Передайте моїм людям. Мені потрібно, щоб вони повернулися.</Cell></Row>
+  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>Вважай, що вже зроблено. Я негайно відправлю гінця.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>Підлатайте себе.</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>Візьміть ці припаси і підлатайте себе. Виглядаєте жахливо.</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>Ми зробимо все можливе, босе, але справжній цілитель нам би не завадив.</Cell></Row>
+  <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>Твоїх найманців зцілено.</Cell></Row>
+
+
+  <Row><Cell>merc_test_bark_string</Cell><Cell>This is a test. I like cheese.</Cell><Cell>Це тест. Я люблю сир.</Cell></Row>
+  
+  <Row><Cell>a614a_story1</Cell><Cell>I don't fear death, I fear soup made by someone confident.</Cell><Cell>Я не боюся смерті, я боюся супу, який приготувала занадто впевнена в собі людина.</Cell></Row>
+  <Row><Cell>a614a_story2</Cell><Cell>I once trusted a man who said shortcut, we arrived older.</Cell><Cell>Якось я довірився чоловікові, який сказав «короткий шлях», і ми прибули туди вже старими.</Cell></Row>
+  <Row><Cell>a614a_story3</Cell><Cell>A priest, a butcher and a taxman walk into a tavern - everyone hides their groschen.</Cell><Cell>Священик, м'ясник і збирач податків заходять до корчми — усі ховають свої гроші.</Cell></Row>
+  <Row><Cell>a614a_story4</Cell><Cell>He said he knew the road, the road is agreed.</Cell><Cell>Він сказав, що знає дорогу, але дорога була не згодна.</Cell></Row>
+  <Row><Cell>a614a_story5</Cell><Cell>My uncle survived three wars and died arguing with a goose.</Cell><Cell>Мій дядько пережив три війни і помер, сперечаючись із гусаком.</Cell></Row>
+  <Row><Cell>a614a_story6</Cell><Cell>A rich man calls it patience, a poor man calls it waiting.</Cell><Cell>Багатій називає це терпінням, а бідняк — очікуванням.</Cell></Row>
+  <Row><Cell>a614a_story7</Cell><Cell>Nothing humbles a man faster, than trying to look brave while slipping in mud.</Cell><Cell>Ніщо не принижує людину швидше, ніж спроба виглядати хоробрим, підсковзнувшись у багнюці.</Cell></Row>
+  <Row><Cell>a614a_story8</Cell><Cell>I don't drink to forget, I drink because the water ... looks ambitious.</Cell><Cell>Я п'ю не для того, щоб забути, я п'ю, тому що вода... виглядає надто амбітно.</Cell></Row>
+  <Row><Cell>a614a_story9</Cell><Cell>I prayed for guidance and got rain. Well, close enough.</Cell><Cell>Я молився про настанову, а отримав дощ. Ну, майже те саме.</Cell></Row>
+  <Row><Cell>a614a_story10</Cell><Cell>A man who says trust me, has already stolen something.</Cell><Cell>Той, хто каже «довірся мені», вже щось вкрав.</Cell></Row>
+  <Row><Cell>a614a_story11</Cell><Cell>The woods are peaceful, until you remember, everything in them eats without a spoon.</Cell><Cell>У лісі спокійно, поки не згадаєш, що все живе в ньому їсть без ложки.</Cell></Row>
+  <Row><Cell>a614a_story12</Cell><Cell>I would rather sleep in a ditch, than in a castle with politics.</Cell><Cell>Я краще спатиму в канаві, ніж у замку з політикою.</Cell></Row>
+  <Row><Cell>a614a_story13</Cell><Cell>Never insult a cook before breakfast, that's how legends become warnings.</Cell><Cell>Ніколи не ображайте кухаря перед сніданком — саме так легенди стають застереженнями.</Cell></Row>
+  <Row><Cell>a614a_story14</Cell><Cell>Henry went to deliver a message and invented six unrelated crimes on the way.</Cell><Cell>Генрі пішов доставити повідомлення і по дорозі вигадав шість непов'язаних злочинів.</Cell></Row>
+  <Row><Cell>a614a_story15</Cell><Cell>I saw a man walk into the Kuttenberg mines sober, that was his first mistake.</Cell><Cell>Я бачив, як чоловік зайшов у куттенберзькі шахти тверезим — це була його перша помилка.</Cell></Row>
+  <Row><Cell>a614a_story16</Cell><Cell>Kuttenberg has fine walls, shame about the people inside them.</Cell><Cell>Куттенберг має гарні мури, шкода тільки людей усередині.</Cell></Row>
+  <Row><Cell>a614a_story17</Cell><Cell>Henry of Skalitz, blacksmith, messenger, detective, idiot magnet.</Cell><Cell>Генрі зі Скалиці: коваль, посланець, детектив, магніт для ідіотів.</Cell></Row>
+  <Row><Cell>a614a_story18</Cell><Cell>I met a peaceful monk once, he was sharpening something.</Cell><Cell>Якось я зустрів мирного ченця, він саме щось гострив.</Cell></Row>
+  <Row><Cell>a614a_story19</Cell><Cell>A man with clean armor near Kuttenberg is either rich or recently replaced.</Cell><Cell>Людина в чистій броні біля Куттенберга або багата, або її нещодавно замінили.</Cell></Row>
+  <Row><Cell>a614a_story20</Cell><Cell>He said it was a simple job, was henry's speech for bring armor and a priest.</Cell><Cell>Він сказав, що це проста робота — мовою Генрі це означало «бери броню і священика».</Cell></Row>
+  <Row><Cell>a614a_story21</Cell><Cell>I have guarded caravans safer, than one of henry's polite conversations.</Cell><Cell>Я охороняв каравани, які були безпечнішими за одну з ввічливих розмов Генрі.</Cell></Row>
+  <Row><Cell>a614a_story22</Cell><Cell>Henry, you have the rare gift of making armed men look like paperwork.</Cell><Cell>Генрі, у тебе рідкісний дар робити так, щоб озброєні люди виглядали як паперова тяганина.</Cell></Row>
+</Table>

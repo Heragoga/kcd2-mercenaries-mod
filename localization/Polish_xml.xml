@@ -1,0 +1,274 @@
+<Table>
+  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Chcę wynająć kilku najemników.</Cell></Row>
+  
+  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>Mogę załatwić ci zwykłych najemników albo mam do dyspozycji konkretnych towarzyszy. Czego szukasz?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>Zwykli najemnicy.</Cell></Row>
+  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>Po prostu standardowi najemnicy.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>Specjalni towarzysze.</Cell></Row>
+  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>Szukam konkretnych ludzi.</Cell></Row>
+  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>Ach, lista specjalna. Kogo masz na myśli?</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>Najsłabsi (50 groszy).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>Porządne chłopaki (100 groszy).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>Doświadczony żołnierz (300 groszy).</Cell></Row>
+  
+  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>Tylko jeden.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>Dwóch.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>Trzech.</Cell></Row>
+
+  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>Chcę wynająć kilku najemników.</Cell></Row>
+  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>Jest kilku chłopaków chętnych do pomocy. Jak silni powinni być?</Cell></Row>
+  
+  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>Najsłabsi wystarczą.</Cell></Row>
+  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>W porządku, 50 groszy za łeb. Ilu potrzebujesz?</Cell></Row>
+  
+  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>Porządne chłopaki.</Cell></Row>
+  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>W porządku, 100 groszy za łeb. Ilu potrzebujesz?</Cell></Row>
+  
+  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>Doświadczony żołnierz.</Cell></Row>
+  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>Najwyższa jakość. To będzie 300 groszy za łeb. Ilu potrzebujesz?</Cell></Row>
+  
+  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>Tylko jeden.</Cell></Row>
+  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>Wezmę dwóch.</Cell></Row>
+  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>Daj mi trzech.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Czekajcie tu na mnie.</Cell></Row>
+  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>Za mną.</Cell></Row>
+  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>Chciałbym was wszystkich odprawić.</Cell></Row>
+
+  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Czekajcie tu na mnie.</Cell></Row>
+  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>Jak powiesz, szefie.</Cell></Row>
+  
+  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>Za mną.</Cell></Row>
+  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>Tuż za tobą.</Cell></Row>
+
+  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>Wszyscy jesteście odprawieni.</Cell></Row>
+  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>Bywajcie.</Cell></Row>
+
+  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>Najemnik wynajęty.</Cell></Row>
+  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>Najemnicy wynajęci.</Cell></Row>
+  <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Za mało groszy!</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Masz już zbyt wielu ludzi! Maksimum to 5.</Cell></Row>
+  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Wszyscy najemnicy odprawieni.</Cell></Row>
+  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Najemnicy czekają.</Cell></Row>
+  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Najemnicy podążają.</Cell></Row>
+  
+  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Specjalny towarzysz wynajęty.</Cell></Row>
+  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Ten towarzysz jest już na twoich usługach!</Cell></Row>
+
+  <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Najemnik</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>Zmień ekwipunek...</Cell></Row>
+  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>Musicie zmienić swój sprzęt.</Cell></Row>
+  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>W co mamy się ubrać?</Cell></Row>
+  
+  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>Zwykli najemnicy</Cell></Row>
+  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>Załóżcie swój zwykły sprzęt.</Cell></Row>
+  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>Zaraz się przebierzemy.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>Bandyci</Cell></Row>
+  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>Ubierzcie się jak bandyci.</Cell></Row>
+  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>Mam nadzieję, że przez to nie trafimy do lochu.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>Kumani</Cell></Row>
+  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>Załóżcie kumańskie pancerze.</Cell></Row>
+  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>Hrmpf.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_lei</Cell><Cell>Leipa</Cell><Cell>Lipa</Cell></Row>
+  <Row><Cell>merc_henry_equip_lei</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Noście barwy Skalicy i Lipy.</Cell></Row>
+  <Row><Cell>merc_test_equip_lei</Cell><Cell>For Sir Radzig!</Cell><Cell>Za pana Radzika!</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>Kuttenberg</Cell></Row>
+  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>Noście barwy Kuttenberga.</Cell></Row>
+  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>Od razu.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>Skalica (wymaga House of Kobyla Arms, Armour and Regalia)</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>Noście barwy Skalicy, przez wzgląd na dawne czasy.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>Dla Skalicy i dla ciebie, Henryku.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Nieważne)</Cell></Row>
+  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Właściwie to nieważne.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_stance</Cell><Cell>Change combat stance...</Cell><Cell>Zmień postawę bojową...</Cell></Row>
+  <Row><Cell>merc_henry_stance_hub_prompt</Cell><Cell>I want to talk tactics.</Cell><Cell>Chcę porozmawiać o taktyce.</Cell></Row>
+  <Row><Cell>merc_test_stance_hub_prompt</Cell><Cell>How do you want us to fight?</Cell><Cell>Jak mamy walczyć?</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>Atakujcie wszystkich wrogów, nie czekajcie na mnie.</Cell></Row>
+  <Row><Cell>merc_henry_stance_everyone</Cell><Cell>Attack anyone hostile, don't wait for me.</Cell><Cell>Atakujcie wszystkich wrogów, nie czekajcie na mnie.</Cell></Row>
+  <Row><Cell>merc_test_stance_everyone</Cell><Cell>Understood. We'll take the fight to them.</Cell><Cell>Zrozumiałem. Ruszamy do ataku.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>Atakujcie tylko tego, z kim ja walczę.</Cell></Row>
+  <Row><Cell>merc_henry_stance_player_target</Cell><Cell>Only attack whoever I'm fighting.</Cell><Cell>Atakujcie tylko tego, z kim ja walczę.</Cell></Row>
+  <Row><Cell>merc_test_stance_player_target</Cell><Cell>Got it, we'll follow your lead.</Cell><Cell>Jasne, będziemy podążać za twoim przykładem.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>Brońcie się tylko, gdy was zaatakują.</Cell></Row>
+  <Row><Cell>merc_henry_stance_defend</Cell><Cell>Only defend yourselves if attacked.</Cell><Cell>Brońcie się tylko, gdy was zaatakują.</Cell></Row>
+  <Row><Cell>merc_test_stance_defend</Cell><Cell>Fair enough, we'll hold back.</Cell><Cell>W porządku, powstrzymamy się.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>W ogóle nie walczcie, bez względu na wszystko.</Cell></Row>
+  <Row><Cell>merc_henry_stance_passive</Cell><Cell>Don't fight at all, no matter what.</Cell><Cell>W ogóle nie walczcie, bez względu na wszystko.</Cell></Row>
+  <Row><Cell>merc_test_stance_passive</Cell><Cell>If you say so... let's hope it doesn't come to that.</Cell><Cell>Skoro tak mówisz... miejmy nadzieję, że do tego nie dojdzie.</Cell></Row>
+
+  <Row><Cell>ui_merc_stance_can</Cell><Cell>(Nevermind)</Cell><Cell>(Nieważne)</Cell></Row>
+  <Row><Cell>merc_henry_stance_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Właściwie to nieważne.</Cell></Row>
+
+  <Row><Cell>merc_info_stance_everyone</Cell><Cell>Mercenaries: attack everyone hostile.</Cell><Cell>Najemnicy: atakują każdego wroga.</Cell></Row>
+  <Row><Cell>merc_info_stance_player_target</Cell><Cell>Mercenaries: attack whoever you attack.</Cell><Cell>Najemnicy: atakują twój cel.</Cell></Row>
+  <Row><Cell>merc_info_stance_defend</Cell><Cell>Mercenaries: defend themselves only.</Cell><Cell>Najemnicy: tylko się bronią.</Cell></Row>
+  <Row><Cell>merc_info_stance_passive</Cell><Cell>Mercenaries: passive, won't fight.</Cell><Cell>Najemnicy: pasywni, nie walczą.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_change_weapon</Cell><Cell>Change weapon loadout...</Cell><Cell>Zmień uzbrojenie...</Cell></Row>
+  <Row><Cell>merc_henry_weapon_hub_prompt</Cell><Cell>I want to talk about your weapons.</Cell><Cell>Chcę porozmawiać o waszej broni.</Cell></Row>
+  <Row><Cell>merc_test_weapon_hub_prompt</Cell><Cell>What should we carry?</Cell><Cell>Co mamy nosić?</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_random</Cell><Cell>Whatever's on hand.</Cell><Cell>Co tylko jest pod ręką.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_random</Cell><Cell>Whatever's on hand.</Cell><Cell>Co tylko jest pod ręką.</Cell></Row>
+  <Row><Cell>merc_test_weapon_random</Cell><Cell>Suits us fine.</Cell><Cell>Pasuje nam to.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_swordshield</Cell><Cell>Sword and shield.</Cell><Cell>Miecz i tarcza.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_swordshield</Cell><Cell>Arm yourselves with sword and shield.</Cell><Cell>Uzbrójcie się w miecz i tarczę.</Cell></Row>
+  <Row><Cell>merc_test_weapon_swordshield</Cell><Cell>A sound choice.</Cell><Cell>Rozsądny wybór.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_axeshield</Cell><Cell>Axe and shield.</Cell><Cell>Topór i tarcza.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_axeshield</Cell><Cell>Take up axe and shield.</Cell><Cell>Weźcie topór i tarczę.</Cell></Row>
+  <Row><Cell>merc_test_weapon_axeshield</Cell><Cell>Sturdy enough.</Cell><Cell>Wystarczająco solidne.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_longsword</Cell><Cell>Longsword.</Cell><Cell>Długi miecz.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_longsword</Cell><Cell>Wield longswords, both hands free of a shield.</Cell><Cell>Używajcie długich mieczy, obie ręce wolne od tarczy.</Cell></Row>
+  <Row><Cell>merc_test_weapon_longsword</Cell><Cell>Room to swing, good.</Cell><Cell>Miejsce na zamach, dobrze.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_maceshield</Cell><Cell>Mace and shield.</Cell><Cell>Buława i tarcza.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_maceshield</Cell><Cell>Carry mace and shield.</Cell><Cell>Noście buławę i tarczę.</Cell></Row>
+  <Row><Cell>merc_test_weapon_maceshield</Cell><Cell>Bone-breaker's choice.</Cell><Cell>Wybór łamacza kości.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_shortsword</Cell><Cell>Shortsword.</Cell><Cell>Krótki miecz.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_shortsword</Cell><Cell>Keep it quick with a shortsword.</Cell><Cell>Szybkie cięcia z krótkim mieczem.</Cell></Row>
+  <Row><Cell>merc_test_weapon_shortsword</Cell><Cell>Light and fast, understood.</Cell><Cell>Lekko i szybko, zrozumiano.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_mace</Cell><Cell>Mace.</Cell><Cell>Buława.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_mace</Cell><Cell>Take up the mace.</Cell><Cell>Chwyćcie za buławy.</Cell></Row>
+  <Row><Cell>merc_test_weapon_mace</Cell><Cell>Nothing like a good bludgeoning.</Cell><Cell>Nie ma to jak dobre pałowanie.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_axe</Cell><Cell>Axe.</Cell><Cell>Topór.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_axe</Cell><Cell>Arm yourselves with axes.</Cell><Cell>Uzbrójcie się w topory.</Cell></Row>
+  <Row><Cell>merc_test_weapon_axe</Cell><Cell>Sharp enough to split kindling, or skulls.</Cell><Cell>Wystarczająco ostre by rozłupać drewno lub czaszkę.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_polearm</Cell><Cell>Polearm.</Cell><Cell>Broń drzewcowa.</Cell></Row>
+  <Row><Cell>merc_henry_weapon_polearm</Cell><Cell>Carry polearms.</Cell><Cell>Noście broń drzewcową.</Cell></Row>
+  <Row><Cell>merc_test_weapon_polearm</Cell><Cell>Keeps them at a distance, good.</Cell><Cell>Trzyma ich na dystans, dobrze.</Cell></Row>
+
+  <Row><Cell>ui_merc_weapon_can</Cell><Cell>(Nevermind)</Cell><Cell>(Nieważne)</Cell></Row>
+  <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Właściwie to nieważne.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(Nieważne)</Cell></Row>
+  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>Właściwie to nieważne.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>Kubenka (1500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>Wezmę Kubenkę.</Cell></Row>
+  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>Zobaczę, czy jeszcze nie zapił się na śmierć.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_vasko</Cell><Cell>Vasko (1000 groschen).</Cell><Cell>Vasko (1000 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>Poślij po Vasko.</Cell></Row>
+  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>Faktycznie szuka pracy.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jasak</Cell><Cell>Jasak (800 groschen).</Cell><Cell>Jasak (800 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>Wezmę Jasaka.</Cell></Row>
+  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>Jego łuk się przyda.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_bartosch</Cell><Cell>Black Bartosch (2000 groschen).</Cell><Cell>Czarny Bartosz (2000 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_bartosch</Cell><Cell>I need Black Bartosch.</Cell><Cell>Potrzebuję Czarnego Bartosza.</Cell></Row>
+  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>Zamek Troski i tak zaczyna go nudzić.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_gnarly</Cell><Cell>Gnarly (2000 groschen).</Cell><Cell>Gnarly (2000 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>Przyprowadź mi Gnarly'ego.</Cell></Row>
+  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>Zgodził się wyruszyć na jeszcze jedną, ostatnią wyprawę.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>Jan Posy (1500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>Wezmę Jana Posy.</Cell></Row>
+  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>Myślę, że przy nim nie będziesz potrzebował nikogo innego.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>Mirosław Tugbone (1500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>Poślij po Mirosława.</Cell></Row>
+  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>Miejmy nadzieję, że jego kość nigdzie nie utknęła.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_menhard</Cell><Cell>Menhard (1000 groschen).</Cell><Cell>Menhard (1000 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>Chcę Menharda.</Cell></Row>
+  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>Najlepszy mistrz szermierki z Frankfurtu jest do twoich usług.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_arne</Cell><Cell>Arne (500 groschen).</Cell><Cell>Arne (500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>Wezmę Arne.</Cell></Row>
+  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>W porządku, ale nie sądzę, by mówił po czesku...</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>Janek ze Skalicy (800 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>Załatw mi Janka.</Cell></Row>
+  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>Widzę, że stara ekipa znowu się zbiera.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_jaroslav</Cell><Cell>Jaroslav (800 groschen).</Cell><Cell>Jarosław (800 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_jaroslav</Cell><Cell>I need Jaroslav.</Cell><Cell>Potrzebuję Jarosława.</Cell></Row>
+  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>Myślę, że wygrywa zakład o zapuszczanie brody.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_adder</Cell><Cell>Adder (1500 groschen).</Cell><Cell>Żmija (1500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>Wezmę Żmiję.</Cell></Row>
+  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>Wezwę miejscowego rzeźnika.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_janosh</Cell><Cell>Janosh (1500 groschen).</Cell><Cell>Janosz (1500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>Poślij po Janosza.</Cell></Row>
+  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>Widzę, że jesteś prawdziwym smakoszem.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>Maciej Kolekcjoner (500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>Chcę Macieja Kolekcjonera.</Cell></Row>
+  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>Widzę, że chcesz całą diabelską zgraję.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_zizka</Cell><Cell>Jan Zizka (3000 groschen).</Cell><Cell>Jan Žižka (3000 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_zizka</Cell><Cell>I need Jan Zizka.</Cell><Cell>Potrzebuję Jana Žižkę.</Cell></Row>
+  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>Zgodził się ci pomóc.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_devil</Cell><Cell>The Devil (3000 groschen).</Cell><Cell>Diabeł (3000 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>Chcę Diabła.</Cell></Row>
+  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>Jest gotowy do drogi.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_godwin</Cell><Cell>Father Godwin (2500 groschen).</Cell><Cell>Ojciec Boguta (2500 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>Ojciec Boguta. Przyprowadź go.</Cell></Row>
+  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>Od księdza do najemnika... co za człowiek.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_custom_capon</Cell><Cell>Sir Hans Capon (3000 groschen).</Cell><Cell>Pan Jan Ptaszek (3000 groszy).</Cell></Row>
+  <Row><Cell>merc_henry_capon</Cell><Cell>Sir Hans Capon.</Cell><Cell>Pan Jan Ptaszek.</Cell></Row>
+  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>Jego Miłość jest do twoich usług.</Cell></Row>
+
+  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>Twoi najemnicy są w drodze.</Cell></Row>
+  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>Przywołaj moich ludzi.</Cell></Row>
+  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>Wyślij wiadomość moim ludziom. Potrzebuję ich z powrotem.</Cell></Row>
+  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>Załatwione. Od razu wyślę gońca.</Cell></Row>
+
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>Opatrzcie się.</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>Weźcie te zapasy i się opatrzcie. Wyglądacie okropnie.</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>Zrobimy, co w naszej mocy, szefie, ale prawdziwy medyk by się przydał.</Cell></Row>
+  <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>Twoi najemnicy zostali uleczeni.</Cell></Row>
+
+  <Row><Cell>merc_test_bark_string</Cell><Cell>This is a test. I like cheese.</Cell><Cell>To jest test. Lubię ser.</Cell></Row>
+
+  <Row><Cell>a614a_story1</Cell><Cell>I don't fear death, I fear soup made by someone confident.</Cell><Cell>Nie boję się śmierci, boję się zupy zrobionej przez kogoś pewnego siebie.</Cell></Row>
+  <Row><Cell>a614a_story2</Cell><Cell>I once trusted a man who said shortcut, we arrived older.</Cell><Cell>Raz zaufałem komuś, kto powiedział "skrót" – dotarliśmy na miejsce starci.</Cell></Row>
+  <Row><Cell>a614a_story3</Cell><Cell>A priest, a butcher and a taxman walk into a tavern - everyone hides their groschen.</Cell><Cell>Ksiądz, rzeźnik i poborca podatkowy wchodzą do karczmy – wszyscy chowają swoje grosze.</Cell></Row>
+  <Row><Cell>a614a_story4</Cell><Cell>He said he knew the road, the road is agreed.</Cell><Cell>Mówił, że zna drogę, droga miała inne zdanie.</Cell></Row>
+  <Row><Cell>a614a_story5</Cell><Cell>My uncle survived three wars and died arguing with a goose.</Cell><Cell>Mój wuj przeżył trzy wojny, a zmarł kłócąc się z gęsią.</Cell></Row>
+  <Row><Cell>a614a_story6</Cell><Cell>A rich man calls it patience, a poor man calls it waiting.</Cell><Cell>Bogaty nazywa to cierpliwością, biedny nazywa to czekaniem.</Cell></Row>
+  <Row><Cell>a614a_story7</Cell><Cell>Nothing humbles a man faster, than trying to look brave while slipping in mud.</Cell><Cell>Nic nie upokarza człowieka szybciej, niż próba wyglądania odważnie podczas poślizgu w błocie.</Cell></Row>
+  <Row><Cell>a614a_story8</Cell><Cell>I don't drink to forget, I drink because the water ... looks ambitious.</Cell><Cell>Nie piję, żeby zapomnieć, piję, bo woda... wygląda ambitnie.</Cell></Row>
+  <Row><Cell>a614a_story9</Cell><Cell>I prayed for guidance and got rain. Well, close enough.</Cell><Cell>Modliłem się o wskazówki, a dostałem deszcz. Cóż, blisko.</Cell></Row>
+  <Row><Cell>a614a_story10</Cell><Cell>A man who says trust me, has already stolen something.</Cell><Cell>Człowiek, który mówi "zaufaj mi", już coś ukradł.</Cell></Row>
+  <Row><Cell>a614a_story11</Cell><Cell>The woods are peaceful, until you remember, everything in them eats without a spoon.</Cell><Cell>Lasy są spokojne, dopóki nie przypomnisz sobie, że wszystko w nich je bez łyżki.</Cell></Row>
+  <Row><Cell>a614a_story12</Cell><Cell>I would rather sleep in a ditch, than in a castle with politics.</Cell><Cell>Wolałbym spać w rowie, niż w zamku pełnym polityki.</Cell></Row>
+  <Row><Cell>a614a_story13</Cell><Cell>Never insult a cook before breakfast, that's how legends become warnings.</Cell><Cell>Nigdy nie obrażaj kucharza przed śniadaniem, w ten sposób legendy stają się ostrzeżeniami.</Cell></Row>
+  <Row><Cell>a614a_story14</Cell><Cell>Henry went to deliver a message and invented six unrelated crimes on the way.</Cell><Cell>Henryk poszedł doręczyć wiadomość i po drodze wymyślił sześć niezwiązanych z nią przestępstw.</Cell></Row>
+  <Row><Cell>a614a_story15</Cell><Cell>I saw a man walk into the Kuttenberg mines sober, that was his first mistake.</Cell><Cell>Widziałem człowieka wchodzącego do kopalni w Kuttenbergu na trzeźwo, to był jego pierwszy błąd.</Cell></Row>
+  <Row><Cell>a614a_story16</Cell><Cell>Kuttenberg has fine walls, shame about the people inside them.</Cell><Cell>Kuttenberg ma piękne mury, szkoda tylko ludzi w środku.</Cell></Row>
+  <Row><Cell>a614a_story17</Cell><Cell>Henry of Skalitz, blacksmith, messenger, detective, idiot magnet.</Cell><Cell>Henryk ze Skalicy: kowal, posłaniec, detektyw, magnes na idiotów.</Cell></Row>
+  <Row><Cell>a614a_story18</Cell><Cell>I met a peaceful monk once, he was sharpening something.</Cell><Cell>Spotkałem kiedyś spokojnego mnicha, akurat coś ostrzył.</Cell></Row>
+  <Row><Cell>a614a_story19</Cell><Cell>A man with clean armor near Kuttenberg is either rich or recently replaced.</Cell><Cell>Człowiek w czystej zbroi blisko Kuttenbergu jest albo bogaty, albo niedawno zastąpiony.</Cell></Row>
+  <Row><Cell>a614a_story20</Cell><Cell>He said it was a simple job, was henry's speech for bring armor and a priest.</Cell><Cell>Powiedział, że to prosta robota, co w języku Henryka oznacza: "przynieś zbroję i księdza".</Cell></Row>
+  <Row><Cell>a614a_story21</Cell><Cell>I have guarded caravans safer, than one of henry's polite conversations.</Cell><Cell>Strzegłem karawan, które były bezpieczniejsze, niż jedna z uprzejmych rozmów Henryka.</Cell></Row>
+  <Row><Cell>a614a_story22</Cell><Cell>Henry, you have the rare gift of making armed men look like paperwork.</Cell><Cell>Henryku, masz rzadki dar sprawiania, że uzbrojeni mężczyźni wyglądają jak papierkowa robota.</Cell></Row>
+</Table>
