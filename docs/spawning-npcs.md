@@ -114,8 +114,12 @@ function yourmodid:GetSafeSpawnPosition(pe, distance)
         if rotatedDir then
             local checkVec = VectorUtils.Scale(rotatedDir, rayDistance)
             -- ent_terrain + ent_static: ignore dynamic entities (NPCs, horses, etc.)
+            -- NOTE: parameter 5 must be the entity pointer (pe), not pe.id.
+            -- Passing pe.id causes a "Wrong parameter type: expected Pointer, got Number"
+            -- warning and silently disables the exclusion, meaning the raycast may
+            -- hit the player's own collision and return a bogus near distance.
             local hits = Physics.RayWorldIntersection(
-                eyePos, checkVec, 2, ent_terrain + ent_static, pe.id, nil, hitTable
+                eyePos, checkVec, 2, ent_terrain + ent_static, pe, nil, hitTable
             )
 
             local clearDist = rayDistance
@@ -200,4 +204,4 @@ local backDir = { x = playerDir.x, y = playerDir.y, z = playerDir.z }
 
 - **`guidSharedSoulId` vs `sharedSoulGuid`** — these look interchangeable but they are not. The property key inside `System.SpawnEntity` is `guidSharedSoulId`. Using the wrong one produces an NPC with no soul, no inventory, no brain, and no visible errors.
 - **Entity name collisions** — if an entity with the same name already exists in the scene, `System.SpawnEntity` will silently fail or overwrite it depending on engine version. Always generate a unique name, or check `System.GetEntityByName(name) == nil` before spawning.
-- **NPC vs NPC_Female** — the `class` field must match the `soul_archetype_id` in your soul definition (`0` = male = `"NPC"`, `1` = female = `"NPC_Female"`). Mismatching them produces a T-posed mess.
+- **NPC vs NPC_Female** — the `class` field must match the `soul_archetype_id` in your soul definition (`0` = male = `"NPC"`, `1` = female = `"NPC_Female"`). Mismatching them produces a T-posed mess. The `class` determines which base skeleton is committed at spawn time — the soul applies appearance on top but cannot change the skeleton after the fact. Even passing a known female soul GUID will not fix a male skeleton if the class is wrong.
