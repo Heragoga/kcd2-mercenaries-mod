@@ -34,15 +34,12 @@
 
             <Variable name="stanceMode"          type="_int"                 values="1"                                 isPersistent="0" form="single" />
             <Variable name="playerCombatTarget"  type="_wuid"                values=""                                  isPersistent="0" form="single" />
-            
+
             <Variable name="dialogRequest"       type="dialogModule:onDialogRequest" values=""                          isPersistent="0" form="single" />
 
             <Variable name="attackData"          type="switch:interruptData:attack" values=""                           isPersistent="0" form="single" />
             <Variable name="crimeInformation"    type="information"          values=""                                  isPersistent="0" form="single" />
             <Variable name="mrkev"               type="_wuid"                values=""                                  isPersistent="0" form="single" />
-
-            <Variable name="currentSpeed" type="_float" values="0" isPersistent="0" form="single" />
-            <Variable name="playerSpeed" type="_float" values="0" isPersistent="0" form="single" />
 
             <Variable name="isInjured" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="playerStinks" type="_bool" values="false" isPersistent="0" form="single" />
@@ -62,7 +59,7 @@
                         <Loop count="-1">
                             <Sequence>
 
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'150ms'" />
 
                                 <AtomicDecorator>
                                     <Sequence>
@@ -72,14 +69,6 @@
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
-
-                                        <!-- Skip enemy scanning entirely when already in combat, or when
-                                             the passive stance (3) is active. Combat stance also applies
-                                             while idle/waiting, so there is no isIdle check here.
-                                             Which branch runs depends on the stance:
-                                               0 everyone      - nearest valid hostile, no engine calls
-                                               1 player_target - one GetTarget on the player, not per-candidate
-                                               2 defend        - only stance that walks candidates (capped to 8) -->
                                         <SuppressFailure>
                                             <IfCondition failOnCondition="false" condition="~$inCombat &amp; $stanceMode ~= 3">
                                                 <Sequence>
@@ -149,7 +138,7 @@
                                                         <Function_switch_handleDialog dialogRequest="$dialogRequest" nodeLabel="68945293" />
                                                     </ProcessMessage>
                                                 </SuppressFailure>
-                                                <IfElseCondition failOnCondition="false" condition="$playerTarget ~= $__null &amp; ~$isFriendly &amp; $playerTarget ~= $this.id &amp; $playerTarget ~= $currentTarget" saveVersion="2">
+                                                <IfElseCondition failOnCondition="false" condition="$playerTarget ~= $__null &amp; ~$isFriendly &amp; $playerTarget ~= $this.id &amp; ($playerTarget ~= $currentTarget | ~$inCombat)" saveVersion="2">
                                                     <Then canSkip="1">
                                                         <Sequence>
                                                             <Expression expressions="$currentTarget = $playerTarget" />
@@ -200,60 +189,10 @@
                                 <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                             </Sequence>
                         </Loop>
+                        
                         <Loop count="-1">
                             <Sequence>
-                                <!-- PERFORMANCE: this is the most common state a merc is ever in
-                                     (actively following), so it's the highest-value place to stretch
-                                     the tick — 800ms instead of 500ms is still an imperceptible detection
-                                     delay for "did CrimeFollower get stuck". -->
-                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
-
-                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$goFlee &amp; ~$inCombat &amp; ~$isIdle">
-                                    <Sequence>
-                                        <MeasureDistance position1="$this.id" position2="$__player" mode="TwoDimensions" result="$distanceToPlayer" />
-                                        
-                                        <ExecuteLua code="
-                                            local vel = entity:GetVelocity()
-                                            data.currentSpeed = vel and math.sqrt(vel.x^2 + vel.y^2) or 0
-                                            
-                                            local pVel = player:GetVelocity()
-                                            data.playerSpeed = pVel and math.sqrt(pVel.x^2 + pVel.y^2) or 0
-                                        " />
-                                        
-                                        <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 5.0 &amp; $currentSpeed &lt; 0.2 &amp; $playerSpeed &gt; 0.5">
-                                            <Sequence>
-                                                <Wait duration="'100ms'" timeType="GameTime" doFail="false" variation="'30ms'" />
-                                                
-                                                <ExecuteLua code="
-                                                    local vel = entity:GetVelocity()
-                                                    data.currentSpeed = vel and math.sqrt(vel.x^2 + vel.y^2) or 0
-                                                    
-                                                    local pVel = player:GetVelocity()
-                                                    data.playerSpeed = pVel and math.sqrt(pVel.x^2 + pVel.y^2) or 0
-                                                " />
-                                                
-                                                <IfCondition failOnCondition="false" condition="$currentSpeed &lt; 0.2 &amp; $playerSpeed &gt; 0.5">
-                                                    <Sequence>
-                                                        <Expression expressions="$isFollowingActive = false" />
-                                                    </Sequence>
-                                                </IfCondition>
-                                                
-                                            </Sequence>
-                                        </IfCondition>
-                                    </Sequence>
-                                </IfCondition>
-                            </Sequence>
-                        </Loop>
-
-                        <Loop count="-1">
-                            <Sequence>
-                                <!-- PERFORMANCE: this loop used to also run a 10-ray physics sweep to
-                                     emergency-teleport mercs that fell too far behind — once per merc,
-                                     every tick, whether or not anyone actually needed it. That's now
-                                     mercenaries:MonitorDistanceAndTeleport(), called once per second for
-                                     the whole squad from mercenaries.lua's MonitorLoop instead of N times
-                                     from N separate behavior trees. All that's left here is keeping
-                                     distanceToPlayer fresh for the combat leash-break check above. -->
+                                
                                 <ExecuteLua code="
                                     pcall(function()
                                         local isDead = false
@@ -318,7 +257,6 @@
                                             <IfCondition failOnCondition="false" condition="~$isFollowingActive">
                                                 <Sequence>
 
-                                                    
                                                     <ExecuteLua code="System.LogAlways('[MERC JEFF] issuing follow order')"/>
                                                     <SuppressFailure>
                                                         <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
@@ -342,14 +280,12 @@
                             </ContinuousSwitch>
                         </Loop>
                         
-            
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'1200s'" timeType="GameTime" doFail="false" variation="'600s'" />
                                 <IfCondition failOnCondition="false" condition="~$inCombat &amp; ~$goFlee">
                                     <Sequence>
 
-                                        <!-- Death/despawn guard -->
                                         <ExecuteLua code="
                                             local isDead = false
                                             if not entity.actor then isDead = true end
@@ -580,7 +516,6 @@
                             </Sequence>
                         </Loop>
 
-                        <!-- Despawn dead merc after 1 minute -->
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'60s'" timeType="GameTime" doFail="false" variation="'10s'" />
@@ -610,7 +545,6 @@
                             </Sequence>
                         </Loop>
 
-                        
                     </Parallel>
                 </SuppressFailure>
             </Behavior>

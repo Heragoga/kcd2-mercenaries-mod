@@ -159,18 +159,6 @@
   <Row><Cell>merc_henry_weapon_polearm</Cell><Cell>Carry polearms.</Cell><Cell>带上长柄武器。</Cell></Row>
   <Row><Cell>merc_test_weapon_polearm</Cell><Cell>Keeps them at a distance, good.</Cell><Cell>能让他们保持距离，不错。</Cell></Row>
 
-  <Row><Cell>ui_merc_weapon_archer</Cell><Cell>Bow.</Cell><Cell>弓。</Cell></Row>
-  <Row><Cell>merc_henry_weapon_archer</Cell><Cell>Take up the bow.</Cell><Cell>拿上弓。</Cell></Row>
-  <Row><Cell>merc_test_weapon_archer</Cell><Cell>We'll rain it down on them.</Cell><Cell>我们让箭如雨下。</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_crossbow</Cell><Cell>Crossbow.</Cell><Cell>弩。</Cell></Row>
-  <Row><Cell>merc_henry_weapon_crossbow</Cell><Cell>Carry crossbows.</Cell><Cell>带上弩。</Cell></Row>
-  <Row><Cell>merc_test_weapon_crossbow</Cell><Cell>Slower to load, but it hits hard.</Cell><Cell>上弦慢，但打得狠。</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_handcannon</Cell><Cell>Hand cannon.</Cell><Cell>手炮。</Cell></Row>
-  <Row><Cell>merc_henry_weapon_handcannon</Cell><Cell>Arm yourselves with hand cannons.</Cell><Cell>带上手炮。</Cell></Row>
-  <Row><Cell>merc_test_weapon_handcannon</Cell><Cell>Loud. I like it.</Cell><Cell>够响。我喜欢。</Cell></Row>
-
   <Row><Cell>ui_merc_weapon_can</Cell><Cell>(Nevermind)</Cell><Cell>(算了)</Cell></Row>
   <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>其实，算了吧。</Cell></Row>
 

@@ -1,4 +1,4 @@
-<Table>
+﻿<Table>
   <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>I want to hire some mercenaries.</Cell></Row>
   
   <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell></Row>
@@ -158,18 +158,6 @@
   <Row><Cell>ui_merc_weapon_polearm</Cell><Cell>Polearm.</Cell><Cell>Polearm.</Cell></Row>
   <Row><Cell>merc_henry_weapon_polearm</Cell><Cell>Carry polearms.</Cell><Cell>Carry polearms.</Cell></Row>
   <Row><Cell>merc_test_weapon_polearm</Cell><Cell>Keeps them at a distance, good.</Cell><Cell>Keeps them at a distance, good.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_archer</Cell><Cell>Bow.</Cell><Cell>Bow.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_archer</Cell><Cell>Take up the bow.</Cell><Cell>Take up the bow.</Cell></Row>
-  <Row><Cell>merc_test_weapon_archer</Cell><Cell>We'll rain it down on them.</Cell><Cell>We'll rain it down on them.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_crossbow</Cell><Cell>Crossbow.</Cell><Cell>Crossbow.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_crossbow</Cell><Cell>Carry crossbows.</Cell><Cell>Carry crossbows.</Cell></Row>
-  <Row><Cell>merc_test_weapon_crossbow</Cell><Cell>Slower to load, but it hits hard.</Cell><Cell>Slower to load, but it hits hard.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_handcannon</Cell><Cell>Hand cannon.</Cell><Cell>Hand cannon.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_handcannon</Cell><Cell>Arm yourselves with hand cannons.</Cell><Cell>Arm yourselves with hand cannons.</Cell></Row>
-  <Row><Cell>merc_test_weapon_handcannon</Cell><Cell>Loud. I like it.</Cell><Cell>Loud. I like it.</Cell></Row>
 
   <Row><Cell>ui_merc_weapon_can</Cell><Cell>(Nevermind)</Cell><Cell>(Nevermind)</Cell></Row>
   <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Actually, nevermind.</Cell></Row>

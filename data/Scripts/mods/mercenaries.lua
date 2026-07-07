@@ -557,18 +557,6 @@ function mercenaries.MonitorLoop()
     end
     mercenaries:MonitorMainQuestLoop()
 
-    -- PERFORMANCE: centralize the "is the player mounted" check here, once
-    -- per second, instead of every merc's behavior tree independently
-    -- polling it via an engine StanceCheck node (mercenary_follow.xml used
-    -- to do this every ~5s per merc, mercenary_scheduler.xml every ~500ms
-    -- per merc — both redundant N-times-over checks of the same fact).
-    -- Same "GetHorse() returns an invalid WUID when not mounted" proxy check
-    -- already relied on in mercenaries_main_quest_handler.lua.
-    pcall(function()
-        local horseWuid = player and player.human and player.human:GetHorse()
-        _G.PlayerMounted = (horseWuid and tostring(horseWuid) ~= "" and tostring(horseWuid) ~= "0") or false
-    end)
-
     -- PERFORMANCE: skip the enemy sphere-query entirely when there's no
     -- squad to act on it — nothing reads CachedEnemies if ActiveMercs is empty.
     if next(mercenaries.ActiveMercs) then
@@ -692,9 +680,10 @@ System.AddCCommand("merc_weapon_shortsword", "mercenaries:ChangeMercWeapon(6)", 
 System.AddCCommand("merc_weapon_mace", "mercenaries:ChangeMercWeapon(7)", "")
 System.AddCCommand("merc_weapon_axe", "mercenaries:ChangeMercWeapon(8)", "")
 System.AddCCommand("merc_weapon_polearm", "mercenaries:ChangeMercWeapon(9)", "")
-System.AddCCommand("merc_weapon_archer", "mercenaries:ChangeMercWeapon(10)", "")
-System.AddCCommand("merc_weapon_crossbow", "mercenaries:ChangeMercWeapon(11)", "")
-System.AddCCommand("merc_weapon_handcannon", "mercenaries:ChangeMercWeapon(12)", "")
+-- Ranged loadouts (archer/crossbow/handcannon, indices 10-12) are disabled
+-- for now — dialogue/console access removed, but mercenaries.WeaponSets and
+-- weapon_preset__mercenaries.xml still define them so they're easy to
+-- bring back later.
 
 System.AddCCommand("merc_hire_w1", "mercenaries:Hire(0, 1, 'weak')", "")
 System.AddCCommand("merc_hire_w2", "mercenaries:Hire(0, 2, 'weak')", "")

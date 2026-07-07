@@ -100,8 +100,9 @@ function mercenaries:EquipMercenaryWeapon(ent, currentPreset)
     local preset = currentPreset or 1
     if preset == 1 then
         -- "Random": pick a fresh category each time this merc is equipped,
-        -- so the squad ends up with a varied mix of loadouts.
-        preset = math.random(2, 12)
+        -- so the squad ends up with a varied mix of loadouts. Capped at 9
+        -- (melee only) while ranged loadouts (10-12) are disabled.
+        preset = math.random(2, 9)
     end
 
     local styleData = self.WeaponSets[preset] or self.WeaponSets[2]

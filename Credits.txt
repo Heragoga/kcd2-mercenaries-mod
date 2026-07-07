@@ -2,4 +2,5 @@
 - takuspore0729 - Japanese translation
 - OzelHarekaTR - Turkish translation
 - 小邮票 - Chinese version
+- Walker aka Walker - Skalitz equipment presets
 - Heragoga - everything else

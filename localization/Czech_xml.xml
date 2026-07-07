@@ -159,18 +159,6 @@
   <Row><Cell>merc_henry_weapon_polearm</Cell><Cell>Carry polearms.</Cell><Cell>Noste násadové zbraně.</Cell></Row>
   <Row><Cell>merc_test_weapon_polearm</Cell><Cell>Keeps them at a distance, good.</Cell><Cell>Udrží je na dálku, dobrá.</Cell></Row>
 
-  <Row><Cell>ui_merc_weapon_archer</Cell><Cell>Bow.</Cell><Cell>Luk.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_archer</Cell><Cell>Take up the bow.</Cell><Cell>Vezměte si luk.</Cell></Row>
-  <Row><Cell>merc_test_weapon_archer</Cell><Cell>We'll rain it down on them.</Cell><Cell>Sneseme na ně déšť šípů.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_crossbow</Cell><Cell>Crossbow.</Cell><Cell>Kuše.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_crossbow</Cell><Cell>Carry crossbows.</Cell><Cell>Noste kuše.</Cell></Row>
-  <Row><Cell>merc_test_weapon_crossbow</Cell><Cell>Slower to load, but it hits hard.</Cell><Cell>Pomalejší nabíjení, ale silná rána.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_handcannon</Cell><Cell>Hand cannon.</Cell><Cell>Ruční dělo.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_handcannon</Cell><Cell>Arm yourselves with hand cannons.</Cell><Cell>Vyzbrojte se ručními děly.</Cell></Row>
-  <Row><Cell>merc_test_weapon_handcannon</Cell><Cell>Loud. I like it.</Cell><Cell>Hlučné. To se mi líbí.</Cell></Row>
-
   <Row><Cell>ui_merc_weapon_can</Cell><Cell>(Nevermind)</Cell><Cell>(Zapomeň na to)</Cell></Row>
   <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Vlastně, zapomeň na to.</Cell></Row>
 

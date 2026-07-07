@@ -77,8 +77,6 @@
                                             </MoveParamsDecorator>
                                         </Loop>
 
-                                        
-                                        
                                         <Loop count="-1">
                                             <Sequence>
                                                 <ExecuteLua code="
@@ -105,9 +103,6 @@
                                             </Sequence>
                                         </Loop>
 
-                                        <!-- PERFORMANCE: health-critical and passive-stance disengage checks
-                                             merged into one Loop (was two separate Loop nodes) — both are
-                                             cheap local reads, no reason to schedule them independently. -->
                                         <Loop count="-1">
                                             <Sequence>
                                                 <ExecuteLua code="

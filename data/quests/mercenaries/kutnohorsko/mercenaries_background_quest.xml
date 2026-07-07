@@ -198,24 +198,6 @@
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="dismissal_dialog.mercenary_weapon_polearm" To="Exec" />
                 </EventFunction>
-                <EventFunction Name="execute_weapon_archer" PositionY="900" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
-                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
-                    <Constant Name="Amount" Value="10" />
-                    <Constant Name="ShowUINotification" Value="false" />
-                    <Edge From="dismissal_dialog.mercenary_weapon_archer" To="Exec" />
-                </EventFunction>
-                <EventFunction Name="execute_weapon_crossbow" PositionY="950" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
-                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
-                    <Constant Name="Amount" Value="11" />
-                    <Constant Name="ShowUINotification" Value="false" />
-                    <Edge From="dismissal_dialog.mercenary_weapon_crossbow" To="Exec" />
-                </EventFunction>
-                <EventFunction Name="execute_weapon_handcannon" PositionY="1000" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
-                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
-                    <Constant Name="Amount" Value="12" />
-                    <Constant Name="ShowUINotification" Value="false" />
-                    <Edge From="dismissal_dialog.mercenary_weapon_handcannon" To="Exec" />
-                </EventFunction>
 
                 <EventFunction Name="execute_recruit_kubenka" PositionY="200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />

@@ -160,18 +160,6 @@
   <Row><Cell>merc_henry_weapon_polearm</Cell><Cell>Carry polearms.</Cell><Cell>Uzun saplı silahlar taşıyın.</Cell></Row>
   <Row><Cell>merc_test_weapon_polearm</Cell><Cell>Keeps them at a distance, good.</Cell><Cell>Onları uzak tutar, iyi.</Cell></Row>
 
-  <Row><Cell>ui_merc_weapon_archer</Cell><Cell>Bow.</Cell><Cell>Yay.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_archer</Cell><Cell>Take up the bow.</Cell><Cell>Yay alın.</Cell></Row>
-  <Row><Cell>merc_test_weapon_archer</Cell><Cell>We'll rain it down on them.</Cell><Cell>Üzerlerine ok yağdıracağız.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_crossbow</Cell><Cell>Crossbow.</Cell><Cell>Arbalet.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_crossbow</Cell><Cell>Carry crossbows.</Cell><Cell>Arbalet taşıyın.</Cell></Row>
-  <Row><Cell>merc_test_weapon_crossbow</Cell><Cell>Slower to load, but it hits hard.</Cell><Cell>Doldurması yavaş ama sert vuruyor.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_handcannon</Cell><Cell>Hand cannon.</Cell><Cell>El topu.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_handcannon</Cell><Cell>Arm yourselves with hand cannons.</Cell><Cell>El toplarıyla kuşanın.</Cell></Row>
-  <Row><Cell>merc_test_weapon_handcannon</Cell><Cell>Loud. I like it.</Cell><Cell>Gürültülü. Hoşuma gitti.</Cell></Row>
-
   <Row><Cell>ui_merc_weapon_can</Cell><Cell>(Nevermind)</Cell><Cell>(Asla)</Cell></Row>
   <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Aslında, boşver.</Cell></Row>
 

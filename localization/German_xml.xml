@@ -159,18 +159,6 @@
   <Row><Cell>merc_henry_weapon_polearm</Cell><Cell>Carry polearms.</Cell><Cell>Tragt Stangenwaffen.</Cell></Row>
   <Row><Cell>merc_test_weapon_polearm</Cell><Cell>Keeps them at a distance, good.</Cell><Cell>Hält sie auf Abstand, gut.</Cell></Row>
 
-  <Row><Cell>ui_merc_weapon_archer</Cell><Cell>Bow.</Cell><Cell>Bogen.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_archer</Cell><Cell>Take up the bow.</Cell><Cell>Nehmt den Bogen.</Cell></Row>
-  <Row><Cell>merc_test_weapon_archer</Cell><Cell>We'll rain it down on them.</Cell><Cell>Wir lassen es auf sie herabregnen.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_crossbow</Cell><Cell>Crossbow.</Cell><Cell>Armbrust.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_crossbow</Cell><Cell>Carry crossbows.</Cell><Cell>Tragt Armbrüste.</Cell></Row>
-  <Row><Cell>merc_test_weapon_crossbow</Cell><Cell>Slower to load, but it hits hard.</Cell><Cell>Langsamer zu laden, aber es trifft hart.</Cell></Row>
-
-  <Row><Cell>ui_merc_weapon_handcannon</Cell><Cell>Hand cannon.</Cell><Cell>Handkanone.</Cell></Row>
-  <Row><Cell>merc_henry_weapon_handcannon</Cell><Cell>Arm yourselves with hand cannons.</Cell><Cell>Bewaffnet euch mit Handkanonen.</Cell></Row>
-  <Row><Cell>merc_test_weapon_handcannon</Cell><Cell>Loud. I like it.</Cell><Cell>Laut. Gefällt mir.</Cell></Row>
-
   <Row><Cell>ui_merc_weapon_can</Cell><Cell>(Nevermind)</Cell><Cell>(Schon gut)</Cell></Row>
   <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Ach, schon gut.</Cell></Row>
 

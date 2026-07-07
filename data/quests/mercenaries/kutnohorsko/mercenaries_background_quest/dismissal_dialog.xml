@@ -30,9 +30,6 @@
                 <Port Name="mercenary_weapon_mace" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_weapon_axe" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_weapon_polearm" Direction="Out" Type="trigger" />
-                <Port Name="mercenary_weapon_archer" Direction="Out" Type="trigger" />
-                <Port Name="mercenary_weapon_crossbow" Direction="Out" Type="trigger" />
-                <Port Name="mercenary_weapon_handcannon" Direction="Out" Type="trigger" />
             </Ports>
             <Text StringName="ui_mercenary_dismissal_root" />
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
@@ -417,45 +414,6 @@
                                             </Response>
                                         </Elements>
                                         <Triggers><Port Name="mercenary_weapon_polearm" /></Triggers>
-                                    </Sequence>
-
-                                    <Sequence EndType="EndDialogue" Name="seq_weapon_archer">
-                                        <UiPrompt StringName="ui_merc_weapon_archer" />
-                                        <Elements>
-                                            <Response Role="HENRY">
-                                                <Text StringName="merc_henry_weapon_archer" />
-                                            </Response>
-                                            <Response Role="role_mercenary_test">
-                                                <Text StringName="merc_test_weapon_archer" />
-                                            </Response>
-                                        </Elements>
-                                        <Triggers><Port Name="mercenary_weapon_archer" /></Triggers>
-                                    </Sequence>
-
-                                    <Sequence EndType="EndDialogue" Name="seq_weapon_crossbow">
-                                        <UiPrompt StringName="ui_merc_weapon_crossbow" />
-                                        <Elements>
-                                            <Response Role="HENRY">
-                                                <Text StringName="merc_henry_weapon_crossbow" />
-                                            </Response>
-                                            <Response Role="role_mercenary_test">
-                                                <Text StringName="merc_test_weapon_crossbow" />
-                                            </Response>
-                                        </Elements>
-                                        <Triggers><Port Name="mercenary_weapon_crossbow" /></Triggers>
-                                    </Sequence>
-
-                                    <Sequence EndType="EndDialogue" Name="seq_weapon_handcannon">
-                                        <UiPrompt StringName="ui_merc_weapon_handcannon" />
-                                        <Elements>
-                                            <Response Role="HENRY">
-                                                <Text StringName="merc_henry_weapon_handcannon" />
-                                            </Response>
-                                            <Response Role="role_mercenary_test">
-                                                <Text StringName="merc_test_weapon_handcannon" />
-                                            </Response>
-                                        </Elements>
-                                        <Triggers><Port Name="mercenary_weapon_handcannon" /></Triggers>
                                     </Sequence>
 
                                     <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_weapon_cancel">
