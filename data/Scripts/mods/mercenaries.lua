@@ -18,6 +18,9 @@ mercenaries.TokenIDFollow = "679a655e-189d-4519-b437-ccc4b92be46d"
 -- Outfit Token
 mercenaries.TokenIDChangeOutfit = "679a655e-189d-4519-b437-ccc4b92be47d"
 
+-- Weapon loadout token (count = loadout index, see mercenaries.WeaponSets)
+mercenaries.TokenIDChangeWeapon = "679a655e-189d-4519-b437-ccc4b92be55d"
+
 --Custom Companion Token
 mercenaries.TokenIDCustomComp = "679a655e-189d-4519-b437-ccc4b92be48d"
 
@@ -192,6 +195,166 @@ mercenaries.Outfits = {
         }
     }
 }
+
+-- WEAPON LOADOUT DICTIONARY
+-- Index 1 ("Random") has no entry here — it's handled specially in
+-- EquipMercenaryWeapon by picking a random category from 2-12 each time.
+-- Values are weapon_preset_id GUIDs from weapon_preset__mercenaries.xml.
+mercenaries.WeaponSets = {
+    -- 2: Sword and shield
+    [2] = {
+        weak = {
+            "aef0bb38-59a8-46cb-99bd-f4447e849a04", "4c06c342-1f4e-4259-ae48-94c636ae3d3e"
+        },
+        medium = {
+            "e6b2dd31-5e6f-4ba9-a221-dfa8ec993d8e", "cb12a1ab-b658-45bc-abdd-7e7d9e632bd6"
+        },
+        strong = {
+            "85741a9f-1e35-45b8-879e-cfa17fc87dc0", "f21f88f7-d0d7-4b72-8c6d-abebe945f071"
+        }
+    },
+    -- 3: Axe and shield
+    [3] = {
+        weak = {
+            "1231bf2d-a4a2-4afe-bc46-e90a89aeb693", "3730631f-7bf6-42b0-9141-34a32ac3e0a0",
+            "04cdf545-216f-40a9-8bbe-e3df62c6c9c4", "8cadc064-2b10-4c83-b623-baa48ed00887"
+        },
+        medium = {
+            "75619084-5ad1-4b57-9367-3cf4b5564d4c", "841b2ea4-fc4a-4b9c-8bda-7e982f90945d",
+            "67b28c22-75ae-46c1-9fbb-74c4e5404bc8", "d5320f5a-4b3f-4b24-a396-642e82ede04e"
+        },
+        strong = {
+            "a1bdde2f-5c26-4cc8-8f97-97e7e5120832", "4f4e5cd2-fea7-486d-86c1-b0636631ff54",
+            "4da2558e-7c3b-4e71-9a0f-4e0fb96e31f7", "a03246b9-5795-4b88-8a09-2558cd3f2b21"
+        }
+    },
+    -- 4: Longsword
+    [4] = {
+        weak = {
+            "38118d03-1fed-4b1b-a8ba-7e195ea7ebc7", "fc3dd411-ca51-49cd-bc1b-480caf1f2f20",
+            "54e2ff1a-cd9c-4558-9533-ded96a3f0603", "e84ebb37-bf5c-45ea-abe9-a416a5ad38e2",
+            "b53518cb-e7d6-4eb6-9d6e-211a14adcaa1"
+        },
+        medium = {
+            "5539c7d7-15e5-49a0-8db7-aeff9f3ce550", "73fbc897-2756-4d34-9e7a-57959de342b2",
+            "b3072196-f572-401b-a213-5c023d8d1a92", "eb316792-4ebd-43c7-b554-d0cbdef360f8",
+            "c0638095-60c3-40d0-b93d-3f42f237a20e"
+        },
+        strong = {
+            "890cca0b-6489-47f0-9331-706a015ff21e", "d9c83f05-f0d7-4304-9dee-c3106d6ab3fe",
+            "94be3211-a101-4de7-b29d-a5dfde474f57", "31a30fb0-4d4e-4ed8-925d-fc481bd1063b"
+        }
+    },
+    -- 5: Mace and shield
+    [5] = {
+        weak = {
+            "e9304794-d205-41a9-bc2c-4b91ef966d81", "cb350569-6753-40c2-bca8-e9bd059dfe56",
+            "8cd52efe-5c75-4ca4-a73e-d742856de6ad", "05de7ab9-82dd-44db-8dcf-c065a3f88f4f"
+        },
+        medium = {
+            "65804416-c27f-4a7b-bae2-40cc77d3bbec", "946bd250-054d-49c7-a773-de35475c7f1a",
+            "e72434c6-0ce9-4a03-a9a1-a34586b5f141", "b5a967b8-4ed8-4814-b233-a7b4125375d2"
+        },
+        strong = {
+            "45ca9e2a-16a1-445c-8b25-040f60987283", "56035f56-6a73-4ed7-87bf-8896f24ec33f",
+            "232574b9-4aef-42f2-8b78-8218d8702ddb"
+        }
+    },
+    -- 6: Shortsword
+    [6] = {
+        weak = {
+            "2c28935e-103c-4f0a-b154-36890bac73f2", "11bd007a-0312-4e4d-968d-2c4cb9fe6286"
+        },
+        medium = {
+            "8c38d157-2403-41fb-a573-c2a396a29235", "e4266b99-79fb-40ef-84fa-0b721a6ba3c2"
+        },
+        strong = {
+            "0d4fc137-2b83-4d2d-970e-cf09871f29d6", "8d7d2c25-874e-41f8-a169-c3e731b23249"
+        }
+    },
+    -- 7: Mace
+    [7] = {
+        weak = {
+            "720fcde5-15b8-4f3b-b0c9-489a99e7043e", "533bd7b4-d70a-4af2-abaa-fe09b5c8fb28",
+            "122e7230-d72f-4d84-a1a0-59f9f0f7d235", "0d951547-9012-48cd-8e43-9d502e01e9a7"
+        },
+        medium = {
+            "c66f0c6e-c281-4024-a1c5-3ebb1fc69cc0", "10e96c57-99a6-43ee-9279-fd7bc7132972",
+            "439fe662-b7ec-4605-9729-e8f3e8df4bc7", "83142d88-9463-4930-9d6e-aa86dae6d35a"
+        },
+        strong = {
+            "2ae255da-ed23-46b6-aec7-0deeac7d5e2e", "97c91389-882c-4387-9cb4-9abfee9ded51",
+            "9367c4d6-2897-42dd-9697-8adfa4356ecb"
+        }
+    },
+    -- 8: Axe
+    [8] = {
+        weak = {
+            "1fd54037-8eb6-4ce4-9f02-63acce98183d", "67cb04b2-2a7c-40dc-9f93-4b1ef6fd58c4",
+            "5076de8f-f9f2-4c4b-a1bd-e23034219359", "6aba5df6-a2cf-4a2e-8ec4-e69de02dcab4"
+        },
+        medium = {
+            "986244d4-e276-40f4-a6b4-649a934cc450", "d5f3e8de-5abf-4bea-be19-9a9d3c756f00",
+            "81787f5f-80a0-42fc-a742-46f0f3a8015e", "7803affa-1a74-42c6-9fcf-ed6c1d3289b0"
+        },
+        strong = {
+            "9d139c04-b054-4e98-b4d3-8054a639f485", "d834a864-7b9a-4557-93ad-024555604735",
+            "59418607-6a33-45cc-9903-582a07f22a5c", "a1554b5a-a4b8-4541-8706-c97b8657672c"
+        }
+    },
+    -- 9: Polearm
+    [9] = {
+        weak = {
+            "5d4c7a48-c95c-4e59-96c4-54851e75160b", "ad5922d0-0614-4912-b98c-adb2241602b4",
+            "482d2d35-87d2-47e1-8edd-4ed85d28912e", "8baedacf-d744-451a-8acd-332c32165120"
+        },
+        medium = {
+            "d72d9727-43ab-4e85-a0fa-bd6664fff2e7", "1b086963-8c38-41c9-867e-b79174b6206d",
+            "3deb122d-a168-4bfb-9ae0-143d24ae029d"
+        },
+        strong = {
+            "9a8dccf1-9948-49d1-81f9-8b50d62cd373", "2cd35a00-09e3-4b76-b2c5-f13e2251cb65",
+            "b1b35d6f-3daa-46df-b3bf-96eda006833c"
+        }
+    },
+    -- 10: Archer (bow)
+    [10] = {
+        weak = {
+            "e3e35ccf-4eac-47d6-93ed-9dd343540998", "4a2525e0-0787-4eb9-a56a-9ac9c105a8f4"
+        },
+        medium = {
+            "104b4d63-519f-4d76-8826-e8ffdc3b520f", "4797ce5f-954d-4df4-ad4b-115b4004850c"
+        },
+        strong = {
+            "832e27a6-f6a9-4f86-aa99-bf42066cd7ad", "d582651e-129b-4230-b6c1-b1c783a0566d"
+        }
+    },
+    -- 11: Crossbow
+    [11] = {
+        weak = {
+            "8e256398-37a8-4c16-81eb-4535296a2c9c", "3b297403-b517-441e-b219-d58fa7e078fc"
+        },
+        medium = {
+            "6b0e8574-0486-4990-8dcc-8aef99aeee85", "947a178c-5a0b-4040-9d71-534544c0e3b3"
+        },
+        strong = {
+            "7b026220-fd56-48fa-9f9c-7b8e33294118", "9f8743e4-6a5a-4a86-a74c-6ee33b2d1f45"
+        }
+    },
+    -- 12: Handcannon
+    [12] = {
+        weak = {
+            "b785e210-1881-4c93-aa76-52d87dad0620", "4e80ca93-ebca-4397-9ed8-353c4fab2fec"
+        },
+        medium = {
+            "53c9970d-531a-4c72-af42-867f20549fd8"
+        },
+        strong = {
+            "01aaaac4-be90-45cf-9f66-9392783f2c84"
+        }
+    }
+}
+
 --easter egg equipment sets
 mercenaries.Clowns = {
     "21461dcf-a13e-4d0f-a273-655ad78d55b0",
@@ -281,6 +444,9 @@ function mercenaries:MonitorInventory()
     -- Grab the clothing token count
     local countChangeOutfit = p:GetCountOfClass(self.TokenIDChangeOutfit)
 
+    -- Grab the weapon loadout token count
+    local countChangeWeapon = p:GetCountOfClass(self.TokenIDChangeWeapon)
+
     local countCustomCompanion = p:GetCountOfClass(self.TokenIDCustomComp)
     local countRetrieve = p:GetCountOfClass(self.TokenIDReturn)
     local countHeal = p:GetCountOfClass(self.TokenIDHeal)
@@ -331,7 +497,14 @@ function mercenaries:MonitorInventory()
     if countChangeOutfit and countChangeOutfit > 0 then
         p:DeleteItemOfClass(self.TokenIDChangeOutfit, countChangeOutfit)
         -- Pass the count to the function (e.g. 2 tokens = Bandits)
-        self:ChangeMercOutfit(countChangeOutfit, false) 
+        self:ChangeMercOutfit(countChangeOutfit, false)
+    end
+
+    -- 3b. Process Weapon Loadout Tokens
+    if countChangeWeapon and countChangeWeapon > 0 then
+        p:DeleteItemOfClass(self.TokenIDChangeWeapon, countChangeWeapon)
+        -- Pass the count to the function (e.g. 4 tokens = Longsword)
+        self:ChangeMercWeapon(countChangeWeapon, false)
     end
 
     if countCustomCompanion and countCustomCompanion > 0 then
@@ -434,6 +607,15 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
         _G.MercCurrentOutfit = 1
     end
 
+    -- Load WEAPON LOADOUT State
+    local savedWeapon = mercenaries:LoadString("MercWeaponPersistent")
+    if savedWeapon and tonumber(savedWeapon) and tonumber(savedWeapon) > 0 then
+        _G.MercCurrentWeapon = tonumber(savedWeapon)
+        self:ChangeMercWeapon(_G.MercCurrentWeapon, true)
+    else
+        _G.MercCurrentWeapon = 1
+    end
+
     -- Load combat stance
     local savedStance = mercenaries:LoadString("MercStancePersistent")
     _G.MercStance = (savedStance and self.StanceCode[savedStance]) and savedStance or "player_target"
@@ -476,6 +658,19 @@ System.AddCCommand("merc_stance_everyone", "mercenaries:SetStance('everyone')", 
 System.AddCCommand("merc_stance_player_target", "mercenaries:SetStance('player_target')", "")
 System.AddCCommand("merc_stance_defend", "mercenaries:SetStance('defend')", "")
 System.AddCCommand("merc_stance_passive", "mercenaries:SetStance('passive')", "")
+
+System.AddCCommand("merc_weapon_random", "mercenaries:ChangeMercWeapon(1)", "")
+System.AddCCommand("merc_weapon_swordshield", "mercenaries:ChangeMercWeapon(2)", "")
+System.AddCCommand("merc_weapon_axeshield", "mercenaries:ChangeMercWeapon(3)", "")
+System.AddCCommand("merc_weapon_longsword", "mercenaries:ChangeMercWeapon(4)", "")
+System.AddCCommand("merc_weapon_maceshield", "mercenaries:ChangeMercWeapon(5)", "")
+System.AddCCommand("merc_weapon_shortsword", "mercenaries:ChangeMercWeapon(6)", "")
+System.AddCCommand("merc_weapon_mace", "mercenaries:ChangeMercWeapon(7)", "")
+System.AddCCommand("merc_weapon_axe", "mercenaries:ChangeMercWeapon(8)", "")
+System.AddCCommand("merc_weapon_polearm", "mercenaries:ChangeMercWeapon(9)", "")
+System.AddCCommand("merc_weapon_archer", "mercenaries:ChangeMercWeapon(10)", "")
+System.AddCCommand("merc_weapon_crossbow", "mercenaries:ChangeMercWeapon(11)", "")
+System.AddCCommand("merc_weapon_handcannon", "mercenaries:ChangeMercWeapon(12)", "")
 
 System.AddCCommand("merc_hire_w1", "mercenaries:Hire(0, 1, 'weak')", "")
 System.AddCCommand("merc_hire_w2", "mercenaries:Hire(0, 2, 'weak')", "")

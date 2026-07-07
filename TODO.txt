@@ -1,4 +1,5 @@
 GENERAL TODO:
+- When I hire mercenaries from different classes, all their names just appear as 'Mercenary,' which gets a bit confusing. I tried tweaking the data and localization files to fix this, but it didn't seem to work. Is there a way to change the mercenary titles by class? For example, something like 'Common Mercenary,' 'Skilled Mercenary,' or 'Veteran Mercenary'? 
 - tactical system, create multiple squads and give them different behaviours
 - wages
 - new encounters, ambushes at set locations on the map

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<skald_character2professions version="1">
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_clone" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_2" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_3" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_4" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_5" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_6" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_7" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_8" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_9" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_companion_10" />
+	</skald_character2professions>
+</database>

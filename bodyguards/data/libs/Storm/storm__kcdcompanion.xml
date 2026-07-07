@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<storm>
+	<tasks>
+		<task name="roles" class="roles">
+			<source path="roles\kcdcompanionroles.xml" />
+		</task>
+		<task name="equipment" class="equipment">
+			<source path="equipment\kcdcompanionequipment.xml" />
+		</task>
+		<task name="appearance" class="appearance">
+			<source path="appearance\kcdcompanionappearance.xml" />
+		</task>
+	</tasks>
+</storm>

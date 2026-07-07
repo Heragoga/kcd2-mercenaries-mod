@@ -144,6 +144,79 @@
                     <Edge From="dismissal_dialog.mercenary_stance_passive" To="Exec" />
                 </EventFunction>
 
+                <EventFunction Name="execute_weapon_random" PositionY="450" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_random" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_swordshield" PositionY="500" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_swordshield" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_axeshield" PositionY="550" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_axeshield" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_longsword" PositionY="600" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="4" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_longsword" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_maceshield" PositionY="650" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_maceshield" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_shortsword" PositionY="700" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="6" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_shortsword" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_mace" PositionY="750" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="7" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_mace" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_axe" PositionY="800" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="8" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_axe" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_polearm" PositionY="850" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="9" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_polearm" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_archer" PositionY="900" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_archer" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_crossbow" PositionY="950" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="11" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_crossbow" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_weapon_handcannon" PositionY="1000" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be55d" />
+                    <Constant Name="Amount" Value="12" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_weapon_handcannon" To="Exec" />
+                </EventFunction>
+
                 <EventFunction Name="execute_recruit_kubenka" PositionY="200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
                     <Constant Name="Amount" Value="1" />

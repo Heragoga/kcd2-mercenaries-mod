@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE storm SYSTEM "..\storm.dtd">
+<storm>
+    <rules>
+        <rule name="appearance_companion_1">
+            <selectors><hasName Name="soul_companion_1" /></selectors>
+            <operations>
+                <setBody name="m_body_tan_04" /><setHead name="m_head_081" /><setHair name="m_hair_014_dark_grey" /><setBeard name="m_beard_00" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_2">
+            <selectors><hasName Name="soul_companion_2" /></selectors>
+            <operations>
+                <setBody name="m_body_tan_06" /><setHead name="m_head_044" /><setHair name="m_hair_009_black" /><setBeard name="m_beard_09" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_3">
+            <selectors><hasName Name="soul_companion_3" /></selectors>
+            <operations>
+                <setBody name="m_body_tan_02" /><setHead name="m_head_016" /><setHair name="m_hair_008_dark_brown" /><setBeard name="m_beard_17" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_4">
+            <selectors><hasName Name="soul_companion_4" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_03" /><setHead name="m_head_042" /><setHair name="m_hair_020_dark_brown" /><setBeard name="m_beard_06" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_5">
+            <selectors><hasName Name="soul_companion_5" /></selectors>
+            <operations>
+                <setBody name="m_body_tan_01" /><setHead name="m_head_030" /><setHair name="m_hair_009_dark_brown" /><setBeard name="m_beard_00" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_6">
+            <selectors><hasName Name="soul_companion_6" /></selectors>
+            <operations>
+                <setBody name="m_body_tan_05" /><setHead name="m_head_050" /><setHair name="m_hair_014_dark_grey" /><setBeard name="m_beard_17" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_7">
+            <selectors><hasName Name="soul_companion_7" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_02" /><setHead name="m_head_020" /><setHair name="m_hair_008_dark_brown" /><setBeard name="m_beard_09" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_8">
+            <selectors><hasName Name="soul_companion_8" /></selectors>
+            <operations>
+                <setBody name="m_body_tan_03" /><setHead name="m_head_005" /><setHair name="m_hair_020_dark_brown" /><setBeard name="m_beard_06" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_9">
+            <selectors><hasName Name="soul_companion_9" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_01" /><setHead name="m_head_002" /><setHair name="m_hair_009_black" /><setBeard name="m_beard_17" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+        <rule name="appearance_companion_10">
+            <selectors><hasName Name="soul_companion_10" /></selectors>
+            <operations>
+                <setBody name="m_body_tan_06" /><setHead name="m_head_001" /><setHair name="m_hair_008_dark_brown" /><setBeard name="m_beard_00" /><setUnderwear name="m_underwear03_m05" />
+            </operations>
+        </rule>
+    </rules>
+</storm>

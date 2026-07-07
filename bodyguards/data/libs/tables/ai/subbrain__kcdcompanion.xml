@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<subbrains version="1">
+		<subbrain always_active="true" subbrain_id="c0a9a0b1-0002-4c0a-9a01-0000000c0002" subbrain_name="companion_scheduler" subbrain_type="6" timeout="0" />
+	</subbrains>
+</database>

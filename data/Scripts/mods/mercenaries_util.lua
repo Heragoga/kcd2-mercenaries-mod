@@ -32,6 +32,7 @@ function mercenaries:RebuildMercCache()
                     -- Without this, GetActions is never overridden after a save/load.
                     self:InjectInteraction(e)
                     self:EquipMercenary(e, _G.MercCurrentOutfit or 1)
+                    self:EquipMercenaryWeapon(e, _G.MercCurrentWeapon or 1)
                 end
             end
         end

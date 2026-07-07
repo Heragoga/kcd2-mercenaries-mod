@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE storm SYSTEM "..\storm.dtd">
+<storm>
+    <rules>
+        <rule name="equip_companion_1" Mode="and">
+            <selectors><hasName name="soul_companion_1" /></selectors>
+            <operations><setInventory preset="inventory_radzig_sergeant" /></operations>
+        </rule>
+        <rule name="equip_companion_2" Mode="and">
+            <selectors><hasName name="soul_companion_2" /></selectors>
+            <operations><setInventory preset="inventory_radzig_retainer" /></operations>
+        </rule>
+        <rule name="equip_companion_3" Mode="and">
+            <selectors><hasName name="soul_companion_3" /></selectors>
+            <operations><setInventory preset="inventory_radzig_knight" /></operations>
+        </rule>
+        <rule name="equip_companion_4" Mode="and">
+            <selectors><hasName name="soul_companion_4" /></selectors>
+            <operations><setInventory preset="inventory_radzig_sergeant" /></operations>
+        </rule>
+        <rule name="equip_companion_5" Mode="and">
+            <selectors><hasName name="soul_companion_5" /></selectors>
+            <operations><setInventory preset="inventory_radzig_retainer" /></operations>
+        </rule>
+        <rule name="equip_companion_6" Mode="and">
+            <selectors><hasName name="soul_companion_6" /></selectors>
+            <operations><setInventory preset="inventory_radzig_knight" /></operations>
+        </rule>
+        <rule name="equip_companion_7" Mode="and">
+            <selectors><hasName name="soul_companion_7" /></selectors>
+            <operations><setInventory preset="inventory_radzig_sergeant" /></operations>
+        </rule>
+        <rule name="equip_companion_8" Mode="and">
+            <selectors><hasName name="soul_companion_8" /></selectors>
+            <operations><setInventory preset="inventory_radzig_retainer" /></operations>
+        </rule>
+        <rule name="equip_companion_9" Mode="and">
+            <selectors><hasName name="soul_companion_9" /></selectors>
+            <operations><setInventory preset="inventory_radzig_sergeant" /></operations>
+        </rule>
+        <rule name="equip_companion_10" Mode="and">
+            <selectors><hasName name="soul_companion_10" /></selectors>
+            <operations><setInventory preset="inventory_radzig_knight" /></operations>
+        </rule>
+    </rules>
+</storm>

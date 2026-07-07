@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+    <souls version="2">
+        <soul brain_id="7f6a8b2d-9b2b-4500-9f7b-fc8f3a135029" soul_archetype_id="3" soul_class_id="7" social_class_id="117" factionName="animal_home" digestion_multiplier="0" initial_clothing_dirt="0" soul_id="c0a9a0b1-4405-4c0a-9a01-0000000ce001" soul_name="companion_horse_radzig" soul_vip_class_id="0" xp_multiplier="0" />
+    </souls>
+</database>

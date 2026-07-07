@@ -37,8 +37,9 @@ function mercenaries:Hire(cost, amount, tier)
         if not spawnPos then return end
 
         local soulList = self.Souls[tier] or self.Souls["weak"]
-        
+
         local currentPreset = _G.MercCurrentOutfit or 1
+        local currentWeaponPreset = _G.MercCurrentWeapon or 1
 
         for i=1, amount do
             local idx = self.SoulIndex[tier]
@@ -73,6 +74,7 @@ function mercenaries:Hire(cost, amount, tier)
                 mercenaries:EnsureMercIsAlwaysRendered(ent)
 
                 self:EquipMercenary(ent, currentPreset)
+                self:EquipMercenaryWeapon(ent, currentWeaponPreset)
                 -- PERFORMANCE: Register in cache immediately so the next
                 -- MonitorLoop tick doesn't need a full world scan to find them.
                 self.ActiveMercs[entityName] = ent

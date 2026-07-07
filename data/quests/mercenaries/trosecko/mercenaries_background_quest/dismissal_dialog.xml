@@ -20,6 +20,19 @@
                 <Port Name="mercenary_stance_player_target" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_stance_defend" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_stance_passive" Direction="Out" Type="trigger" />
+
+                <Port Name="mercenary_weapon_random" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_swordshield" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_axeshield" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_longsword" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_maceshield" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_shortsword" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_mace" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_axe" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_polearm" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_archer" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_crossbow" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_weapon_handcannon" Direction="Out" Type="trigger" />
             </Ports>
             <Text StringName="ui_mercenary_dismissal_root" />
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
@@ -265,6 +278,191 @@
                                         <Elements>
                                             <Response Role="HENRY">
                                                 <Text StringName="merc_henry_stance_can" />
+                                            </Response>
+                                        </Elements>
+                                    </Sequence>
+
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <Sequence EndType="Decision" Name="seq_change_weapon_hub">
+                            <UiPrompt StringName="ui_mercenary_change_weapon" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_weapon_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_weapon_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+
+                            <Decision Name="dec_weapon_choices">
+                                <Sequences>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_random">
+                                        <UiPrompt StringName="ui_merc_weapon_random" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_random" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_random" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_random" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_swordshield">
+                                        <UiPrompt StringName="ui_merc_weapon_swordshield" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_swordshield" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_swordshield" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_swordshield" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_axeshield">
+                                        <UiPrompt StringName="ui_merc_weapon_axeshield" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_axeshield" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_axeshield" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_axeshield" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_longsword">
+                                        <UiPrompt StringName="ui_merc_weapon_longsword" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_longsword" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_longsword" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_longsword" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_maceshield">
+                                        <UiPrompt StringName="ui_merc_weapon_maceshield" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_maceshield" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_maceshield" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_maceshield" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_shortsword">
+                                        <UiPrompt StringName="ui_merc_weapon_shortsword" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_shortsword" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_shortsword" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_shortsword" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_mace">
+                                        <UiPrompt StringName="ui_merc_weapon_mace" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_mace" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_mace" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_mace" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_axe">
+                                        <UiPrompt StringName="ui_merc_weapon_axe" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_axe" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_axe" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_axe" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_polearm">
+                                        <UiPrompt StringName="ui_merc_weapon_polearm" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_polearm" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_polearm" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_polearm" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_archer">
+                                        <UiPrompt StringName="ui_merc_weapon_archer" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_archer" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_archer" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_archer" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_crossbow">
+                                        <UiPrompt StringName="ui_merc_weapon_crossbow" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_crossbow" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_crossbow" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_crossbow" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_weapon_handcannon">
+                                        <UiPrompt StringName="ui_merc_weapon_handcannon" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_handcannon" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_weapon_handcannon" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_weapon_handcannon" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_weapon_cancel">
+                                        <UiPrompt StringName="ui_merc_weapon_can" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_weapon_can" />
                                             </Response>
                                         </Elements>
                                     </Sequence>
