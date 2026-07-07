@@ -76,13 +76,17 @@
   <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>穿上库曼盔甲。</Cell></Row>
   <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>哼。</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>斯卡里茨</Cell></Row>
-  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>穿上斯卡里茨和莱帕的颜色。</Cell></Row>
-  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>为了拉德季大人！</Cell></Row>
+  <Row><Cell>ui_merc_equip_lei</Cell><Cell>Leipa</Cell><Cell>莱帕</Cell></Row>
+  <Row><Cell>merc_henry_equip_lei</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>穿上斯卡里茨和莱帕的颜色。</Cell></Row>
+  <Row><Cell>merc_test_equip_lei</Cell><Cell>For Sir Radzig!</Cell><Cell>为了拉德季大人！</Cell></Row>
 
   <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>库滕堡</Cell></Row>
   <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>穿上库滕堡的颜色。</Cell></Row>
   <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>斯卡里茨（需要模组 House of Kobyla Arms, Armour and Regalia）</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>看在旧日情分上，穿上斯卡里茨的颜色。</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>为了斯卡里茨，也为了你，亨利。</Cell></Row>
 
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(算了)</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>其实，算了吧。</Cell></Row>

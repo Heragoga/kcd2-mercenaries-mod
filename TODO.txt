@@ -16,6 +16,7 @@ FOR NEXT UPDATE:
 - mercs now spread out across targets instead of dogpiling one enemy (anti-swarm cap tracked via O(1) lookup instead of O(mercs) position scan)
 - badly wounded mercs disengage instead of fighting to the death
 - perf: cut per-merc combat scan cost - "everyone"/"player_target" stances skip the expensive per-candidate engine GetTarget calls entirely, "defend" caps candidates checked to the nearest 8
+- added new "Skalitz" equipment preset (new item set); the old preset labeled "Skalitz" is now correctly labeled "Leipa"
 
 IN PROGRESS:
 

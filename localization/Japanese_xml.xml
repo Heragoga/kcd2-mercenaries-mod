@@ -76,13 +76,17 @@
   <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>クマンの鎧をつけろ。</Cell></Row>
   <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>ふん。</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>スカリッツ</Cell></Row>
-  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>スカリッツとライパの色をまとえ。</Cell></Row>
-  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>ラジグ卿のために！</Cell></Row>
+  <Row><Cell>ui_merc_equip_lei</Cell><Cell>Leipa</Cell><Cell>ライパ</Cell></Row>
+  <Row><Cell>merc_henry_equip_lei</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>スカリッツとライパの色をまとえ。</Cell></Row>
+  <Row><Cell>merc_test_equip_lei</Cell><Cell>For Sir Radzig!</Cell><Cell>ラジグ卿のために！</Cell></Row>
 
   <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>クッテンバーク</Cell></Row>
   <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>クッテンバークの色をまとえ。</Cell></Row>
   <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>すぐに。</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>スカリッツ（MOD「House of Kobyla Arms, Armour and Regalia」が必要）</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>昔のよしみで、スカリッツの色をまとえ。</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>スカリッツのために、そしてお前のために、ヘンリー。</Cell></Row>
 
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>（やっぱりいい）</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>やっぱりいい。</Cell></Row>

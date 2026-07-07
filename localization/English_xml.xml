@@ -76,13 +76,17 @@
   <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>Put on Cuman armor.</Cell></Row>
   <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>Hrmpf.</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>Skalitz</Cell></Row>
-  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell></Row>
-  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>For Sir Radzig!</Cell></Row>
+  <Row><Cell>ui_merc_equip_lei</Cell><Cell>Leipa</Cell><Cell>Leipa</Cell></Row>
+  <Row><Cell>merc_henry_equip_lei</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell></Row>
+  <Row><Cell>merc_test_equip_lei</Cell><Cell>For Sir Radzig!</Cell><Cell>For Sir Radzig!</Cell></Row>
 
   <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>Kuttenberg</Cell></Row>
   <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>Wear the Kuttenberg colors.</Cell></Row>
   <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>For Skalitz, and for you, Henry.</Cell></Row>
 
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Nevermind)</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Actually, nevermind.</Cell></Row>

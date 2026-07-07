@@ -10,8 +10,9 @@
                 <Port Name="equip_generic_mercenaries" Direction="Out" Type="trigger" />
                 <Port Name="equip_bandits" Direction="Out" Type="trigger" />
                 <Port Name="equip_cumans" Direction="Out" Type="trigger" />
-                <Port Name="equip_skalitz" Direction="Out" Type="trigger" />
+                <Port Name="equip_leipa" Direction="Out" Type="trigger" />
                 <Port Name="equip_kuttenberg" Direction="Out" Type="trigger" />
+                <Port Name="equip_skalitz" Direction="Out" Type="trigger" />
 
                 <Port Name="mercenary_open_heal_menu" Direction="Out" Type="trigger" />
 
@@ -139,17 +140,17 @@
                                         <Triggers><Port Name="equip_cumans" /></Triggers>
                                     </Sequence>
 
-                                    <Sequence EndType="EndDialogue" Name="seq_equip_skalitz">
-                                        <UiPrompt StringName="ui_merc_equip_ska" />
+                                    <Sequence EndType="EndDialogue" Name="seq_equip_leipa">
+                                        <UiPrompt StringName="ui_merc_equip_lei" />
                                         <Elements>
                                             <Response Role="HENRY">
-                                                <Text StringName="merc_henry_equip_ska" />
+                                                <Text StringName="merc_henry_equip_lei" />
                                             </Response>
                                             <Response Role="role_mercenary_test">
-                                                <Text StringName="merc_test_equip_ska" />
+                                                <Text StringName="merc_test_equip_lei" />
                                             </Response>
                                         </Elements>
-                                        <Triggers><Port Name="equip_skalitz" /></Triggers>
+                                        <Triggers><Port Name="equip_leipa" /></Triggers>
                                     </Sequence>
 
                                     <Sequence EndType="EndDialogue" Name="seq_equip_kuttenberg">
@@ -163,6 +164,19 @@
                                             </Response>
                                         </Elements>
                                         <Triggers><Port Name="equip_kuttenberg" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_equip_skalitz">
+                                        <UiPrompt StringName="ui_merc_equip_ska" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_equip_ska" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_equip_ska" />
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="equip_skalitz" /></Triggers>
                                     </Sequence>
 
                                     <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_equip_cancel">

@@ -76,13 +76,17 @@
   <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>Наденьте половецкие доспехи.</Cell></Row>
   <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>Хрмпф.</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>Скалица</Cell></Row>
-  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Наденьте цвета Скалицы и Липы.</Cell></Row>
-  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>За пана Рацига!</Cell></Row>
+  <Row><Cell>ui_merc_equip_lei</Cell><Cell>Leipa</Cell><Cell>Липа</Cell></Row>
+  <Row><Cell>merc_henry_equip_lei</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>Наденьте цвета Скалицы и Липы.</Cell></Row>
+  <Row><Cell>merc_test_equip_lei</Cell><Cell>For Sir Radzig!</Cell><Cell>За пана Рацига!</Cell></Row>
 
   <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>Кутна-Гора</Cell></Row>
   <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>Наденьте цвета Кутны-Горы.</Cell></Row>
   <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>Сию же минуту.</Cell></Row>
+
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>Скалица (требуется мод House of Kobyla Arms, Armour and Regalia)</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>Наденьте цвета Скалицы, ради старых времён.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>За Скалицу, и за тебя, Индржих.</Cell></Row>
 
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Неважно)</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Вообще-то, неважно.</Cell></Row>

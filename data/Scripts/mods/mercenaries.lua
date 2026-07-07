@@ -147,7 +147,7 @@ mercenaries.Outfits = {
             "978b6b0c-288b-4d0b-8cfa-f2fe1a801409", "efff8f2e-a199-4883-8bb8-3219c4103e22"
         }
     },
-    -- 4: Skalitz
+    -- 4: Leipa (formerly labeled "Skalitz")
     [4] = {
         weak = {
             "279bf58e-8394-4306-b80b-c99145b147aa", "65eae61d-b819-4104-9dd5-cb9fbf3215f8",
@@ -177,6 +177,18 @@ mercenaries.Outfits = {
         strong = {
             "17134a39-1eb5-41ba-a2bf-9325be31a274", "236098e4-0e5c-40f5-adb3-9a7bd1fafd3d",
             "3605e258-a641-4b99-9cca-edaa44cb0f29", "9082f7cc-b899-4161-b06c-573133d2d3e0"
+        }
+    },
+    -- 6: Skalitz
+    [6] = {
+        weak = {
+            "c2f6f619-3905-4188-91be-fa59aa25c219", "fbab5364-5cb5-4723-aecf-2ad16592f330"
+        },
+        medium = {
+            "54d71294-d3b8-4adf-acae-253cf81f5a92", "e76a4de0-120a-43f5-b217-7faeae96d6b9"
+        },
+        strong = {
+            "6583e2ea-f771-479b-b3d9-2b0bff23d3d6", "1487b173-f584-48b2-8dca-8f7ebcf56156"
         }
     }
 }
