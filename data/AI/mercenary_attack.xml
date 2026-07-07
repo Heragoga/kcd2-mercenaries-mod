@@ -105,6 +105,9 @@
                                             </Sequence>
                                         </Loop>
 
+                                        <!-- PERFORMANCE: health-critical and passive-stance disengage checks
+                                             merged into one Loop (was two separate Loop nodes) — both are
+                                             cheap local reads, no reason to schedule them independently. -->
                                         <Loop count="-1">
                                             <Sequence>
                                                 <ExecuteLua code="
@@ -112,23 +115,11 @@
                                                         local hp = entity.soul:GetState('health')
                                                         data.myHealthCritical = (hp ~= nil and hp &lt;= 15)
                                                     end)
+                                                    data.stanceIsPassive = (_G.MercStance == 'passive')
                                                 " />
-                                                <IfCondition failOnCondition="false" condition="$myHealthCritical">
+                                                <IfCondition failOnCondition="false" condition="$myHealthCritical | $stanceIsPassive">
                                                     <Sequence>
-                                                        <ExecuteLua code="System.LogAlways('[Mercenary Jeff] disengaging - health critical')" />
-                                                        <Fail />
-                                                    </Sequence>
-                                                </IfCondition>
-                                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
-                                            </Sequence>
-                                        </Loop>
-
-                                        <Loop count="-1">
-                                            <Sequence>
-                                                <ExecuteLua code="data.stanceIsPassive = (_G.MercStance == 'passive')" />
-                                                <IfCondition failOnCondition="false" condition="$stanceIsPassive">
-                                                    <Sequence>
-                                                        <ExecuteLua code="System.LogAlways('[Mercenary Jeff] disengaging - passive stance')" />
+                                                        <ExecuteLua code="System.LogAlways('[Mercenary Jeff] disengaging - ' .. (data.myHealthCritical and 'health critical' or 'passive stance'))" />
                                                         <Fail />
                                                     </Sequence>
                                                 </IfCondition>

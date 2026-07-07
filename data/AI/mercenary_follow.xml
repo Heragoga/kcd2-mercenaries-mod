@@ -33,29 +33,6 @@
                             </Sequence>
                         </Loop>
 
-                        <!-- StanceCheck: runs every 1s, writes to _G.PlayerMounted on transition -->
-                        <Loop count="-1">
-                            <Sequence>
-                                <Wait duration="'5s'" timeType="GameTime" doFail="false" variation="'3s'" />
-                                <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
-                                    <Then canSkip="1">
-                                        <ExecuteLua code="
-                                            if not _G.PlayerMounted then
-                                                _G.PlayerMounted = true
-                                            end
-                                        " />
-                                    </Then>
-                                    <Else canSkip="1">
-                                        <ExecuteLua code="
-                                            if _G.PlayerMounted then
-                                                _G.PlayerMounted = false
-                                            end
-                                        " />
-                                    </Else>
-                                </StanceCheck>
-                            </Sequence>
-                        </Loop>
-
                         <!-- Global sync + horse lifecycle -->
                         <Loop count="-1">
                             <Sequence>

@@ -51,7 +51,6 @@
             <Variable name="wasInCombat" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="canSpeak" type="_bool" values="false" isPersistent="0" form="single" />
 
-            <Variable name="playerIsMounted" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="mercIsDead" type="_bool" values="false" isPersistent="0" form="single" />
 
         </Variables>
@@ -203,8 +202,12 @@
                         </Loop>
                         <Loop count="-1">
                             <Sequence>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
-                                
+                                <!-- PERFORMANCE: this is the most common state a merc is ever in
+                                     (actively following), so it's the highest-value place to stretch
+                                     the tick — 800ms instead of 500ms is still an imperceptible detection
+                                     delay for "did CrimeFollower get stuck". -->
+                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+
                                 <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$goFlee &amp; ~$inCombat &amp; ~$isIdle">
                                     <Sequence>
                                         <MeasureDistance position1="$this.id" position2="$__player" mode="TwoDimensions" result="$distanceToPlayer" />
@@ -244,124 +247,35 @@
 
                         <Loop count="-1">
                             <Sequence>
-                                <AtomicDecorator>
-                                    <Sequence>
-                                        <ExecuteLua code="
-                                            local ok = pcall(function()
-                                                local isDead = false
-                                                if not entity.actor then isDead = true end
-                                                if entity.actor and entity.actor.IsDead and entity.actor:IsDead() then isDead = true end
-                                                local ok2, health = pcall(function() return entity.soul:GetState('health') end)
-                                                if not ok2 or health == nil or health &lt;= 0 or entity.actor:IsUnconscious() then isDead = true end
-                                                
-                                                if isDead then
-                                                    data.distanceToPlayer = 0.0
-                                                    return
-                                                end
+                                <!-- PERFORMANCE: this loop used to also run a 10-ray physics sweep to
+                                     emergency-teleport mercs that fell too far behind — once per merc,
+                                     every tick, whether or not anyone actually needed it. That's now
+                                     mercenaries:MonitorDistanceAndTeleport(), called once per second for
+                                     the whole squad from mercenaries.lua's MonitorLoop instead of N times
+                                     from N separate behavior trees. All that's left here is keeping
+                                     distanceToPlayer fresh for the combat leash-break check above. -->
+                                <ExecuteLua code="
+                                    pcall(function()
+                                        local isDead = false
+                                        if not entity.actor then isDead = true end
+                                        if entity.actor and entity.actor.IsDead and entity.actor:IsDead() then isDead = true end
+                                        local ok2, health = pcall(function() return entity.soul:GetState('health') end)
+                                        if not ok2 or health == nil or health &lt;= 0 or entity.actor:IsUnconscious() then isDead = true end
 
-                                                local pe = XGenAIModule.GetEntityByWUID(data.playerWUID)
-                                                if not pe then return end
-                                                local pp = pe:GetPos()
-                                                local mp = entity:GetPos()
-                                                if pp and mp then
-                                                    local dx,dy,dz = pp.x-mp.x, pp.y-mp.y, pp.z-mp.z
-                                                    data.distanceToPlayer = math.sqrt(dx*dx+dy*dy+dz*dz)
-                                                end
-                                            end)
-                                        " />
-                                        <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
-                                            <Then canSkip="1">
-                                                <Sequence>
-                                                    <Expression expressions="$playerIsMounted = true" />
-                                                </Sequence>
-                                            </Then>
-                                            <Else canSkip="1">
-                                                <Sequence>
-                                                    <Expression expressions="$playerIsMounted = false" />
-                                                </Sequence>
-                                            </Else>
-                                        </StanceCheck>
-                                        <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 50.0 &amp; ~$inCombat &amp; ~$playerIsMounted">
-                                            <ExecuteLua code="
-                                                local ok, err = pcall(function()
-                                                    if _G.MercIdle then return end
+                                        if isDead then
+                                            data.distanceToPlayer = 0.0
+                                            return
+                                        end
 
-                                                    local isDead = false
-                                                    if not entity.actor then isDead = true end
-                                                    if entity.actor and entity.actor.IsDead and entity.actor:IsDead() then isDead = true end
-                                                    if entity.actor:IsUnconscious() then isDead = true end
-                                                    local ok2, health = pcall(function() return entity.soul:GetState('health') end)
-
-                                                    if not ok2 or health == nil or health &lt;= 0 then isDead = true end
-                                                    
-                                                    if isDead then return end
-
-                                                    if data.goFlee then return end
-
-                                                    local pe = XGenAIModule.GetEntityByWUID(data.playerWUID)
-                                                    if not pe then return end
-
-                                                    local distance = 10
-                                                    local playerPos = pe:GetWorldPos()
-                                                    local playerDir = pe:GetDirectionVector()
-                                                    local eyePos = {x=playerPos.x, y=playerPos.y, z=playerPos.z + 1.6}
-                                                    local rayDistance = distance + 2
-                                                    local hitTable = {}
-                                                    local numRays = 10
-                                                    local arcAngle = 100
-                                                    local startAngle = -arcAngle / 2
-                                                    local angleStep = arcAngle / (numRays - 1)
-                                                    local bestDir = nil
-                                                    local bestDist = -1
-                                                    local backDir = {x = -playerDir.x, y = -playerDir.y, z = -playerDir.z}
-
-                                                    for i = 0, numRays - 1 do
-                                                        local angleOffset = startAngle + (i * angleStep)
-                                                        local rotatedDir = VectorUtils.Rotate2D(backDir, angleOffset)
-                                                        local checkVec = VectorUtils.Scale(rotatedDir, rayDistance)
-                                                        local hits = Physics.RayWorldIntersection(eyePos, checkVec, 2, ent_all, pe.id, nil, hitTable)
-                                                        local clearDist = rayDistance
-                                                        if hits &gt; 0 and hitTable[1] then
-                                                            clearDist = hitTable[1].dist
-                                                        end
-                                                        clearDist = clearDist - (math.abs(angleOffset)/180)
-                                                        if clearDist &gt; bestDist then
-                                                            bestDist = clearDist
-                                                            bestDir = rotatedDir
-                                                        end
-                                                    end
-
-                                                    local spawnPos = {}
-                                                    if bestDist &lt; rayDistance then
-                                                        local safeDistance = math.max(bestDist - 2.0, 3.0)
-                                                        spawnPos.x = playerPos.x + bestDir.x * safeDistance
-                                                        spawnPos.y = playerPos.y + bestDir.y * safeDistance
-                                                        spawnPos.z = playerPos.z
-                                                    else
-                                                        spawnPos.x = playerPos.x + bestDir.x * distance
-                                                        spawnPos.y = playerPos.y + bestDir.y * distance
-                                                        spawnPos.z = playerPos.z
-                                                    end
-
-                                                    local groundCheckStart = {x=spawnPos.x, y=spawnPos.y, z=spawnPos.z + 2.0}
-                                                    local groundCheckDir = {x=0, y=0, z=-100}
-                                                    local groundHits = Physics.RayWorldIntersection(groundCheckStart, groundCheckDir, 2, ent_terrain + ent_static, 0, nil, hitTable)
-                                                    if groundHits &gt; 0 and hitTable[1] then
-                                                        spawnPos.z = hitTable[1].pos.z
-                                                    else
-                                                        spawnPos.z = playerPos.z
-                                                    end
-
-                                                    entity:SetPos({x = spawnPos.x, y = spawnPos.y, z = spawnPos.z})
-                                                end)
-                                                if not ok then System.LogAlways('[Mercenary] Teleport Error: ' .. tostring(err)) end
-                                            " />
-                                            
-                                        </IfCondition>
-
-                                    </Sequence>
-                                </AtomicDecorator>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        local pp = player and player:GetPos()
+                                        local mp = entity:GetPos()
+                                        if pp and mp then
+                                            local dx,dy,dz = pp.x-mp.x, pp.y-mp.y, pp.z-mp.z
+                                            data.distanceToPlayer = math.sqrt(dx*dx+dy*dy+dz*dz)
+                                        end
+                                    end)
+                                " />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
                         <Loop count="-1">

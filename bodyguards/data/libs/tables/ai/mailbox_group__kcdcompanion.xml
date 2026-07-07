@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
-	<mailbox_groups version="1">
-		<mailbox_group mailbox_group_file_name="companion_scheduler.xml" mailbox_group_id="c0a9a0b1-0003-4c0a-9a01-0000000c0003" mailbox_group_tree_name="onUpdate" />
-	</mailbox_groups>
-</database>

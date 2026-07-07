@@ -18,6 +18,7 @@ FOR NEXT UPDATE:
 - badly wounded mercs disengage instead of fighting to the death
 - perf: cut per-merc combat scan cost - "everyone"/"player_target" stances skip the expensive per-candidate engine GetTarget calls entirely, "defend" caps candidates checked to the nearest 8
 - added new "Skalitz" equipment preset (new item set); the old preset labeled "Skalitz" is now correctly labeled "Leipa"
+- major perf pass: "is player mounted" and "merc fell too far behind" checks used to run per-merc, every ~0.5-5s each, via engine StanceCheck nodes and duplicated 10-ray physics sweeps; both are now single checks done once/sec for the whole squad. Also cut the emergency-teleport BT node entirely, skip the enemy scan and squad loops outright when you have no mercs, and stretched a few of the busiest per-merc ticks (follow-stuck detection, leash distance) to lower frequencies
 
 IN PROGRESS:
 

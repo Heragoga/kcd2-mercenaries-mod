@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
-	<brain2subbrains version="1">
-				<brain2subbrain brain_id="c0a9a0b1-0001-4c0a-9a01-0000000c0001" priority="0" subbrain_id="c0a9a0b1-0002-4c0a-9a01-0000000c0002" />
-				<brain2subbrain brain_id="c0a9a0b1-0001-4c0a-9a01-0000000c0001" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
-	</brain2subbrains>
-</database>

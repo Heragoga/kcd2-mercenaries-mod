@@ -557,19 +557,43 @@ function mercenaries.MonitorLoop()
     end
     mercenaries:MonitorMainQuestLoop()
 
-    -- Combat stance applies whether the squad is following or waiting,
-    -- so the enemy cache is kept fresh regardless of idle state.
-    mercenaries:UpdateEnemyCache()
+    -- PERFORMANCE: centralize the "is the player mounted" check here, once
+    -- per second, instead of every merc's behavior tree independently
+    -- polling it via an engine StanceCheck node (mercenary_follow.xml used
+    -- to do this every ~5s per merc, mercenary_scheduler.xml every ~500ms
+    -- per merc — both redundant N-times-over checks of the same fact).
+    -- Same "GetHorse() returns an invalid WUID when not mounted" proxy check
+    -- already relied on in mercenaries_main_quest_handler.lua.
+    pcall(function()
+        local horseWuid = player and player.human and player.human:GetHorse()
+        _G.PlayerMounted = (horseWuid and tostring(horseWuid) ~= "" and tostring(horseWuid) ~= "0") or false
+    end)
+
+    -- PERFORMANCE: skip the enemy sphere-query entirely when there's no
+    -- squad to act on it — nothing reads CachedEnemies if ActiveMercs is empty.
+    if next(mercenaries.ActiveMercs) then
+        -- Combat stance applies whether the squad is following or waiting,
+        -- so the enemy cache is kept fresh regardless of idle state.
+        mercenaries:UpdateEnemyCache()
+
+        -- One shared "fell too far behind" pass over the whole squad instead
+        -- of every merc's behavior tree running its own raycast sweep.
+        mercenaries:MonitorDistanceAndTeleport()
+    else
+        mercenaries.CachedEnemies = {}
+    end
 
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
 end
 
 function mercenaries.LowPriorityMonitorLoop()
-    -- Pruning matters even while idle now that combat stances apply at rest.
-    mercenaries:PruneMercCache()
+    if next(mercenaries.ActiveMercs) then
+        -- Pruning matters even while idle now that combat stances apply at rest.
+        mercenaries:PruneMercCache()
 
-    if not _G.MercIdle then
-        mercenaries:UpdateFormationSlots()
+        if not _G.MercIdle then
+            mercenaries:UpdateFormationSlots()
+        end
     end
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
