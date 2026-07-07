@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <BehaviorTree name="renegade_attack" is_function="0">
+        <Variables>
+            <Variable name="automation_defense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_guard" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_movement" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_offense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_weapon" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="weaponChange" type="enum:weaponChange" values="$enum:weaponChange.none" isPersistent="0" form="single" />
+            <Variable name="guardMode" type="enum:combatAutomationGuardMode" values="$enum:combatAutomationGuardMode.automate" isPersistent="0" form="single" />
+
+            <Variable name="isTargetAlive" type="_bool" values="true" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                    <EntityContextElement context="crime_interrupt" enabled="true">
+                        <EntityContext context="crime_interruptAttack" target="$this.id">
+                            <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                                <Child canSkip="1">
+                                    <Parallel successMode="Any" failureMode="Any">
+
+                                        <Loop count="-1">
+                                            <MoveParamsDecorator speed="Run" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <MeleeOffenseAutomationDecorator active="$automation_offense">
+                                                    <MeleeDefenseAutomationDecorator active="$automation_defense">
+                                                        <MeleeGuardAutomationDecorator GuardMode="$guardMode" active="$automation_guard">
+                                                            <WeaponAutomationDecorator WeaponChange="$weaponChange" active="$automation_weapon">
+                                                                <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="$automation_movement">
+                                                                    <Sequence>
+                                                                        <Expression expressions="$isTargetAlive = false" />
+
+                                                                        <ExecuteLua code="
+                                                                            pcall(function()
+                                                                                if data.attackData.target then
+                                                                                    local targetEnt = XGenAIModule.GetEntityByWUID(data.attackData.target)
+                                                                                    if targetEnt and mercenaries:IsAliveAndWell(targetEnt, true) then
+                                                                                        data.isTargetAlive = true
+                                                                                    end
+                                                                                end
+                                                                            end)
+                                                                        " />
+
+                                                                        <IfElseCondition failOnCondition="false" condition="$isTargetAlive" saveVersion="2">
+                                                                            <Then canSkip="1">
+                                                                                <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                            </Then>
+                                                                            <Else canSkip="1">
+                                                                                <Fail />
+                                                                            </Else>
+                                                                        </IfElseCondition>
+                                                                    </Sequence>
+                                                                </CombatFollowerDecorator>
+                                                            </WeaponAutomationDecorator>
+                                                        </MeleeGuardAutomationDecorator>
+                                                    </MeleeDefenseAutomationDecorator>
+                                                </MeleeOffenseAutomationDecorator>
+                                            </MoveParamsDecorator>
+                                        </Loop>
+
+                                    </Parallel>
+                                </Child>
+
+                                <OnFail canSkip="1">
+                                    <Sequence>
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end)" />
+                                        <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                    </Sequence>
+                                </OnFail>
+                            </FuseBox>
+                        </EntityContext>
+                    </EntityContextElement>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

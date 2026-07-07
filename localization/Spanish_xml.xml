@@ -59,6 +59,31 @@
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>¡Este compañero ya está a tu servicio!</Cell></Row>
 
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Mercenario</Cell></Row>
+  <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>Mercenario novato</Cell></Row>
+  <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>Mercenario veterano</Cell></Row>
+  <Row><Cell>char_renegade_uiName</Cell><Cell>Renegade</Cell><Cell>Renegado</Cell></Row>
+  <Row><Cell>ui_mercenary_spawn_renegades</Cell><Cell>Arrange a skirmish.</Cell><Cell>Organicemos una escaramuza.</Cell></Row>
+  <Row><Cell>merc_henry_spawn_renegades_prompt</Cell><Cell>I want to test you against some renegades.</Cell><Cell>Quiero poneros a prueba contra unos renegados.</Cell></Row>
+  <Row><Cell>merc_test_spawn_renegades_prompt</Cell><Cell>How many, and how tough?</Cell><Cell>¿Cuántos, y cuán duros?</Cell></Row>
+  <Row><Cell>ui_renegade_tier_weak</Cell><Cell>Rabble.</Cell><Cell>Solo chusma.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_weak</Cell><Cell>Just some rabble.</Cell><Cell>Solo chusma.</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_weak</Cell><Cell>Shouldn't take long.</Cell><Cell>No tardará mucho.</Cell></Row>
+  <Row><Cell>ui_renegade_tier_medium</Cell><Cell>Seasoned men.</Cell><Cell>Hombres experimentados.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_medium</Cell><Cell>Seasoned men.</Cell><Cell>Hombres experimentados.</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_medium</Cell><Cell>Now we're talking.</Cell><Cell>Ahora sí.</Cell></Row>
+  <Row><Cell>ui_renegade_tier_strong</Cell><Cell>Hardened veterans.</Cell><Cell>Veteranos curtidos.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_strong</Cell><Cell>Hardened veterans.</Cell><Cell>Veteranos curtidos.</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_strong</Cell><Cell>That'll be a proper fight.</Cell><Cell>Eso será una verdadera batalla.</Cell></Row>
+  <Row><Cell>ui_renegade_count_1</Cell><Cell>Just one.</Cell><Cell>Solo uno.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_1</Cell><Cell>Just one.</Cell><Cell>Solo uno.</Cell></Row>
+  <Row><Cell>ui_renegade_count_3</Cell><Cell>Three of them.</Cell><Cell>Tres de ellos.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_3</Cell><Cell>Three of them.</Cell><Cell>Tres de ellos.</Cell></Row>
+  <Row><Cell>ui_renegade_count_5</Cell><Cell>Five.</Cell><Cell>Cinco.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_5</Cell><Cell>Five.</Cell><Cell>Cinco.</Cell></Row>
+  <Row><Cell>ui_renegade_count_10</Cell><Cell>Ten.</Cell><Cell>Diez.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_10</Cell><Cell>Ten.</Cell><Cell>Diez.</Cell></Row>
+  <Row><Cell>ui_renegade_count_20</Cell><Cell>All twenty.</Cell><Cell>Los veinte.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_20</Cell><Cell>All twenty, if you have them.</Cell><Cell>Los veinte, si los tenéis.</Cell></Row>
 
   <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>Cambiar equipamiento...</Cell></Row>
   <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>Necesito que se cambien el equipo.</Cell></Row>

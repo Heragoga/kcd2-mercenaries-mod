@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<skald_character2professions version="1">
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_renegade1" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_renegade2" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_renegade3" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_renegade4" />
+		<skald_character2profession profession_name="pocestny" skald_character_name="char_renegade5" />
+	</skald_character2professions>
+</database>

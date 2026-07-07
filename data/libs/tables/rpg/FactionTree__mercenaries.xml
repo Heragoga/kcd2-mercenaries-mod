@@ -12,6 +12,7 @@
 				<Relation target="trosecko_enemies" reputation="-1" />
 				<Relation target="kutnohorsko_enemies" reputation="-1" />
 				<Relation target="kutnohorsko_enemies_oblehaniSuchdoleEnemyArmy" reputation="-1" />
+				<Relation target="renegadesFaction" reputation="-1" />
 			</Relations>
 		</Faction>
     </FactionTree>

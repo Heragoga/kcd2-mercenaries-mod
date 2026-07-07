@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <BehaviorTree name="onUpdate" is_function="0">
+        <Variables>
+            <Variable name="playerWUID" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="currentTarget" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="inCombat" type="_bool" values="false" isPersistent="0" form="single" />
+
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" />
+            <Variable name="crimeInformation" type="information" values="" isPersistent="0" form="single" />
+            <Variable name="mrkev" type="_wuid" values="" isPersistent="0" form="single" />
+        </Variables>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <SuppressFailure>
+                    <Parallel successMode="Any" failureMode="Any">
+
+                        <Loop count="-1">
+                            <Sequence>
+                                <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
+                                    <Then canSkip="1">
+                                        <Expression expressions="$inCombat = true" />
+                                    </Then>
+                                    <Else canSkip="1">
+                                        <Expression expressions="$inCombat = false" />
+                                    </Else>
+                                </EntityContextCheck>
+                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:FindRenegadeTarget(data, entity.this.id)" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <Loop count="-1">
+                            <Sequence>
+                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $currentTarget ~= $__null">
+                                    <Sequence>
+                                        <Expression expressions="$playerWUID = $__player" />
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
+                                            <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$currentTarget" Information="$crimeInformation" />
+                                            <LockDynamicInformationValues Information="$crimeInformation">
+                                                <SetDynamicInformationValue Information="$crimeInformation" Tag="'stimulusKind'" Variable="$enum:crime_stimulusKind.combat" Type="" Value="" />
+                                            </LockDynamicInformationValues>
+                                            <Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898990" />
+                                        </SuppressFailure>
+                                        <Expression expressions="$attackData.target = $currentTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
+                                        <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'renegade_attack'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+
+                    </Parallel>
+                </SuppressFailure>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

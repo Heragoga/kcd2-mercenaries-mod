@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<subbrains version="1">
+        <subbrain always_active="true" subbrain_id="1a9c3e7f-2b8d-4c60-9e5a-3f7b1d8c6a92" subbrain_name="renegade_scheduler" subbrain_type="6" timeout="0" />
+	</subbrains>
+</database>

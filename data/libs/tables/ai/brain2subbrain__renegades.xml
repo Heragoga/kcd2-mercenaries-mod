@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<brain2subbrains version="1">
+		<!-- Custom switch: scans for the nearest player/merc target and fires
+		     the renegade_attack interrupt on it. The vanilla switch alone did
+		     NOT work here - proactive "attack anything in sight" behaviour
+		     needs an active switch driving crime/interrupt reactions, not
+		     just negative FactionTree relations. -->
+		<brain2subbrain brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" priority="0" subbrain_id="1a9c3e7f-2b8d-4c60-9e5a-3f7b1d8c6a92" />
+
+		<!-- Vanilla basic npc scheduler -->
+		<brain2subbrain brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
+	</brain2subbrains>
+</database>

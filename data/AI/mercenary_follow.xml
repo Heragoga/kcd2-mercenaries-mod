@@ -11,6 +11,7 @@
             <Variable name="horse" type="_wuid" values="" isPersistent="0" form="single" />
             <Variable name="horseSpawned" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="mountAbandoned" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="despawnCountdown" type="_int" values="3" isPersistent="0" form="single" />
             <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms')" isPersistent="0" form="single" />
             <Variable name="mountedDistToTarget" type="_float" values="0" isPersistent="0" form="single" />
         </Variables>
@@ -109,12 +110,10 @@
                                                 data.despawnCountdown = (data.despawnCountdown or 3) - 1
                                                 if data.despawnCountdown &lt; 1 then
                                                     System.RemoveEntity(existingHorse.id)
-                                                    data.horse = nil
-                                                    data.despawnCountdown = nil
+                                                    data.despawnCountdown = 3
                                                 end
                                             else
-                                                data.horse = nil
-                                                data.despawnCountdown = nil
+                                                data.despawnCountdown = 3
                                             end
                                         end
                                     end)

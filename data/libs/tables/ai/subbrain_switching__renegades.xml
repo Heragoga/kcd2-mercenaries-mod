@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<subbrain_switchings version="1">
+        <subbrain_switching file_name="renegade_scheduler.xml" subbrain_id="1a9c3e7f-2b8d-4c60-9e5a-3f7b1d8c6a92" tree_name="onUpdate" />
+	</subbrain_switchings>
+</database>

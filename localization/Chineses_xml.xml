@@ -59,6 +59,31 @@
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>这个同伴已经在为你效劳了！</Cell></Row>
 
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>佣兵</Cell></Row>
+  <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>新手佣兵</Cell></Row>
+  <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>精锐佣兵</Cell></Row>
+  <Row><Cell>char_renegade_uiName</Cell><Cell>Renegade</Cell><Cell>叛徒</Cell></Row>
+  <Row><Cell>ui_mercenary_spawn_renegades</Cell><Cell>Arrange a skirmish.</Cell><Cell>安排一场小规模冲突。</Cell></Row>
+  <Row><Cell>merc_henry_spawn_renegades_prompt</Cell><Cell>I want to test you against some renegades.</Cell><Cell>我想让你们对付几个叛徒试试身手。</Cell></Row>
+  <Row><Cell>merc_test_spawn_renegades_prompt</Cell><Cell>How many, and how tough?</Cell><Cell>多少人,有多难对付?</Cell></Row>
+  <Row><Cell>ui_renegade_tier_weak</Cell><Cell>Rabble.</Cell><Cell>一群乌合之众。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_weak</Cell><Cell>Just some rabble.</Cell><Cell>只是乌合之众。</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_weak</Cell><Cell>Shouldn't take long.</Cell><Cell>用不了多久。</Cell></Row>
+  <Row><Cell>ui_renegade_tier_medium</Cell><Cell>Seasoned men.</Cell><Cell>经验丰富的人。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_medium</Cell><Cell>Seasoned men.</Cell><Cell>经验丰富的人。</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_medium</Cell><Cell>Now we're talking.</Cell><Cell>这才像话。</Cell></Row>
+  <Row><Cell>ui_renegade_tier_strong</Cell><Cell>Hardened veterans.</Cell><Cell>久经沙场的老兵。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_strong</Cell><Cell>Hardened veterans.</Cell><Cell>久经沙场的老兵。</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_strong</Cell><Cell>That'll be a proper fight.</Cell><Cell>那将是一场真正的恶战。</Cell></Row>
+  <Row><Cell>ui_renegade_count_1</Cell><Cell>Just one.</Cell><Cell>只要一个。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_1</Cell><Cell>Just one.</Cell><Cell>只要一个。</Cell></Row>
+  <Row><Cell>ui_renegade_count_3</Cell><Cell>Three of them.</Cell><Cell>三个。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_3</Cell><Cell>Three of them.</Cell><Cell>三个。</Cell></Row>
+  <Row><Cell>ui_renegade_count_5</Cell><Cell>Five.</Cell><Cell>五个。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_5</Cell><Cell>Five.</Cell><Cell>五个。</Cell></Row>
+  <Row><Cell>ui_renegade_count_10</Cell><Cell>Ten.</Cell><Cell>十个。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_10</Cell><Cell>Ten.</Cell><Cell>十个。</Cell></Row>
+  <Row><Cell>ui_renegade_count_20</Cell><Cell>All twenty.</Cell><Cell>全部二十个。</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_20</Cell><Cell>All twenty, if you have them.</Cell><Cell>如果你有的话,全部二十个。</Cell></Row>
 
   <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>更换装备...</Cell></Row>
   <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>我需要你们换一下装备。</Cell></Row>

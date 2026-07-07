@@ -26,7 +26,19 @@
 						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
 					</Inboxes>
 				</SmartBehaviorTemplate>
-				
+
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="renegade_attack" PreventsMonsterLod="true">
+					<TreeLocation FileName="renegade_attack.xml" TreeName="renegade_attack" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
 			</BehaviorTemplates>
 		</SmartEntityTemplate>
 	</SmartEntitys>

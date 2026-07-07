@@ -59,6 +59,31 @@
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>이 동료는 이미 당신을 섬기고 있습니다!</Cell></Row>
 
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>용병</Cell></Row>
+  <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>신참 용병</Cell></Row>
+  <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>베테랑 용병</Cell></Row>
+  <Row><Cell>char_renegade_uiName</Cell><Cell>Renegade</Cell><Cell>변절자</Cell></Row>
+  <Row><Cell>ui_mercenary_spawn_renegades</Cell><Cell>Arrange a skirmish.</Cell><Cell>소규모 접전을 마련해보지.</Cell></Row>
+  <Row><Cell>merc_henry_spawn_renegades_prompt</Cell><Cell>I want to test you against some renegades.</Cell><Cell>변절자들을 상대로 자네들을 시험해보고 싶소.</Cell></Row>
+  <Row><Cell>merc_test_spawn_renegades_prompt</Cell><Cell>How many, and how tough?</Cell><Cell>몇 명이고, 얼마나 강한가?</Cell></Row>
+  <Row><Cell>ui_renegade_tier_weak</Cell><Cell>Rabble.</Cell><Cell>그냥 오합지졸이오.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_weak</Cell><Cell>Just some rabble.</Cell><Cell>그냥 오합지졸이오.</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_weak</Cell><Cell>Shouldn't take long.</Cell><Cell>오래 걸리지 않을 거요.</Cell></Row>
+  <Row><Cell>ui_renegade_tier_medium</Cell><Cell>Seasoned men.</Cell><Cell>노련한 자들이오.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_medium</Cell><Cell>Seasoned men.</Cell><Cell>노련한 자들이오.</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_medium</Cell><Cell>Now we're talking.</Cell><Cell>이제야 말이 통하는군.</Cell></Row>
+  <Row><Cell>ui_renegade_tier_strong</Cell><Cell>Hardened veterans.</Cell><Cell>역전의 용사들이오.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_tier_strong</Cell><Cell>Hardened veterans.</Cell><Cell>역전의 용사들이오.</Cell></Row>
+  <Row><Cell>merc_test_renegade_tier_strong</Cell><Cell>That'll be a proper fight.</Cell><Cell>제대로 된 싸움이 되겠군.</Cell></Row>
+  <Row><Cell>ui_renegade_count_1</Cell><Cell>Just one.</Cell><Cell>딱 하나만.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_1</Cell><Cell>Just one.</Cell><Cell>딱 하나만.</Cell></Row>
+  <Row><Cell>ui_renegade_count_3</Cell><Cell>Three of them.</Cell><Cell>셋으로.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_3</Cell><Cell>Three of them.</Cell><Cell>셋으로.</Cell></Row>
+  <Row><Cell>ui_renegade_count_5</Cell><Cell>Five.</Cell><Cell>다섯으로.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_5</Cell><Cell>Five.</Cell><Cell>다섯으로.</Cell></Row>
+  <Row><Cell>ui_renegade_count_10</Cell><Cell>Ten.</Cell><Cell>열로.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_10</Cell><Cell>Ten.</Cell><Cell>열로.</Cell></Row>
+  <Row><Cell>ui_renegade_count_20</Cell><Cell>All twenty.</Cell><Cell>스무 명 전부.</Cell></Row>
+  <Row><Cell>merc_henry_renegade_count_20</Cell><Cell>All twenty, if you have them.</Cell><Cell>가지고 있다면 스무 명 전부.</Cell></Row>
 
   <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>장비 변경...</Cell></Row>
   <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>장비를 좀 바꿔야겠다.</Cell></Row>

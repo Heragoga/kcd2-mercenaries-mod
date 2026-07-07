@@ -21,6 +21,11 @@ mercenaries.TokenIDChangeOutfit = "679a655e-189d-4519-b437-ccc4b92be47d"
 -- Weapon loadout token (count = loadout index, see mercenaries.WeaponSets)
 mercenaries.TokenIDChangeWeapon = "679a655e-189d-4519-b437-ccc4b92be55d"
 
+-- Renegade spawn tokens (one per tier, count = how many to spawn)
+mercenaries.TokenIDSpawnRenegadeWeak = "679a655e-189d-4519-b437-ccc4b92be56d"
+mercenaries.TokenIDSpawnRenegadeMedium = "679a655e-189d-4519-b437-ccc4b92be57d"
+mercenaries.TokenIDSpawnRenegadeStrong = "679a655e-189d-4519-b437-ccc4b92be58d"
+
 --Custom Companion Token
 mercenaries.TokenIDCustomComp = "679a655e-189d-4519-b437-ccc4b92be48d"
 
@@ -185,13 +190,16 @@ mercenaries.Outfits = {
     -- 6: Skalitz
     [6] = {
         weak = {
-            "c2f6f619-3905-4188-91be-fa59aa25c219", "fbab5364-5cb5-4723-aecf-2ad16592f330"
+            "c2f6f619-3905-4188-91be-fa59aa25c219", "fbab5364-5cb5-4723-aecf-2ad16592f330",
+            "1a2b3c4d-5e6f-4789-a0b1-c2d3e4f5a6b7", "2b3c4d5e-6f7a-4890-b1c2-d3e4f5a6b7c8"
         },
         medium = {
-            "54d71294-d3b8-4adf-acae-253cf81f5a92", "e76a4de0-120a-43f5-b217-7faeae96d6b9"
+            "54d71294-d3b8-4adf-acae-253cf81f5a92", "e76a4de0-120a-43f5-b217-7faeae96d6b9",
+            "3c4d5e6f-7a8b-4901-8c2d-e4f5a6b7c8d9", "4d5e6f7a-8b9c-4a12-9d3e-f5a6b7c8d9e0"
         },
         strong = {
-            "6583e2ea-f771-479b-b3d9-2b0bff23d3d6", "1487b173-f584-48b2-8dca-8f7ebcf56156"
+            "6583e2ea-f771-479b-b3d9-2b0bff23d3d6", "1487b173-f584-48b2-8dca-8f7ebcf56156",
+            "5e6f7a8b-9c0d-4b23-8e4f-a6b7c8d9e0f1", "6f7a8b9c-0d1e-4c34-9f5a-b7c8d9e0f1a2"
         }
     }
 }
@@ -204,13 +212,16 @@ mercenaries.WeaponSets = {
     -- 2: Sword and shield
     [2] = {
         weak = {
-            "aef0bb38-59a8-46cb-99bd-f4447e849a04", "4c06c342-1f4e-4259-ae48-94c636ae3d3e"
+            "aef0bb38-59a8-46cb-99bd-f4447e849a04", "4c06c342-1f4e-4259-ae48-94c636ae3d3e",
+            "b6e1c2a4-3f8d-4c11-9a2e-7d5f8b3c1a90", "a17f9d2b-6c4e-4a83-8b1f-3e9c7d2a5b64"
         },
         medium = {
-            "e6b2dd31-5e6f-4ba9-a221-dfa8ec993d8e", "cb12a1ab-b658-45bc-abdd-7e7d9e632bd6"
+            "e6b2dd31-5e6f-4ba9-a221-dfa8ec993d8e", "cb12a1ab-b658-45bc-abdd-7e7d9e632bd6",
+            "c3d8a1f5-2b7e-4f96-8c3a-1d6e9b4f7c22", "d4e9b2a6-3c8f-4a09-9d4b-2e7f0a5c8d33"
         },
         strong = {
-            "85741a9f-1e35-45b8-879e-cfa17fc87dc0", "f21f88f7-d0d7-4b72-8c6d-abebe945f071"
+            "85741a9f-1e35-45b8-879e-cfa17fc87dc0", "f21f88f7-d0d7-4b72-8c6d-abebe945f071",
+            "e5fa3b7c-4d9a-4b12-8e5c-3f8a1b6d9e44", "f60b4c8d-5eab-4c23-9f6d-4a9b2c7e0f55"
         }
     },
     -- 3: Axe and shield
@@ -456,6 +467,10 @@ function mercenaries:MonitorInventory()
     local countStanceDefend = p:GetCountOfClass(self.TokenIDStanceDefend)
     local countStancePassive = p:GetCountOfClass(self.TokenIDStancePassive)
 
+    local countSpawnRenegadeWeak = p:GetCountOfClass(self.TokenIDSpawnRenegadeWeak)
+    local countSpawnRenegadeMedium = p:GetCountOfClass(self.TokenIDSpawnRenegadeMedium)
+    local countSpawnRenegadeStrong = p:GetCountOfClass(self.TokenIDSpawnRenegadeStrong)
+
 
     
     -- 1. Process State Commands
@@ -545,6 +560,24 @@ function mercenaries:MonitorInventory()
     if countStancePassive and countStancePassive > 0 then
         p:DeleteItemOfClass(self.TokenIDStancePassive, countStancePassive)
         self:SetStance("passive")
+    end
+
+    -- Renegade spawn requests chosen via dialogue. Count on the token is
+    -- how many to spawn; equipment is whatever the squad's current
+    -- outfit/weapon preset is (SpawnRenegade defaults to those when nil).
+    if countSpawnRenegadeWeak and countSpawnRenegadeWeak > 0 then
+        p:DeleteItemOfClass(self.TokenIDSpawnRenegadeWeak, countSpawnRenegadeWeak)
+        self:SpawnRenegade(countSpawnRenegadeWeak, nil, "weak", nil)
+    end
+
+    if countSpawnRenegadeMedium and countSpawnRenegadeMedium > 0 then
+        p:DeleteItemOfClass(self.TokenIDSpawnRenegadeMedium, countSpawnRenegadeMedium)
+        self:SpawnRenegade(countSpawnRenegadeMedium, nil, "medium", nil)
+    end
+
+    if countSpawnRenegadeStrong and countSpawnRenegadeStrong > 0 then
+        p:DeleteItemOfClass(self.TokenIDSpawnRenegadeStrong, countSpawnRenegadeStrong)
+        self:SpawnRenegade(countSpawnRenegadeStrong, nil, "strong", nil)
     end
 
 end
@@ -698,6 +731,23 @@ System.AddCCommand("merc_hire_p3", "mercenaries:Hire(0, 3, 'strong')", "")
 System.AddCCommand("merc_hire_strong_army", "mercenaries:Hire(0, 10, 'strong')", "")
 System.AddCCommand("merc", "mercenaries:Hire(0, 6, 'strong')", "")
 System.AddCCommand("merc_hire_weak_horde", "mercenaries:Hire(0, 10, 'weak')", "")
+
+-- Default: 20 mercs vs 20 renegades (7 weak/7 medium/6 strong per side), player centered in the merc line, strongest troops at the front of each line.
+-- For full control: merc_lua mercenaries:SpawnTestBattle({weak=N,medium=N,strong=N}, mercOutfit, mercWeapon, {weak=N,medium=N,strong=N}, enemyOutfit, enemyWeapon)
+System.AddCCommand("merc_spawn_battle", "mercenaries:SpawnTestBattle()", "Debug: spawns a merc battle line vs a renegade battle line, player centered in the merc line. merc_lua mercenaries:SpawnTestBattle(...) for full customization.")
+
+-- Plain console command version: merc_battle <mercOutfit> <mercWeapon> <enemyOutfit> <enemyWeapon> <countPerSide>
+-- Outfits: 1 Generic, 2 Bandits, 3 Cumans, 4 Leipa, 5 Kuttenberg, 6 Skalitz.
+-- Weapons: 2 Sword+shield, 3 Axe+shield, 4 Longsword, 5 Mace+shield, 6 Shortsword, 7 Mace, 8 Axe, 9 Polearm.
+-- Splits countPerSide evenly across weak/medium/strong (mixed tiers, strongest at the front).
+System.AddCCommand("merc_battle", "mercenaries:SpawnBattle(%1, %2, %3, %4, %5)", "Debug: merc_battle <mercOutfit> <mercWeapon> <enemyOutfit> <enemyWeapon> <countPerSide>. Spawns a mixed-tier merc battle line vs a renegade line.")
+
+-- Renegades: hostile to everyone (player and mercs alike), dressed as a mercenary of your choice.
+-- For full control (amount, tier, outfit preset, weapon preset) use: merc_lua mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
+System.AddCCommand("merc_spawn_renegade", "mercenaries:SpawnRenegade(1)", "Debug: spawns a renegade hostile to player and mercs, wearing an outfit different from your squad's current one.")
+System.AddCCommand("merc_spawn_renegade_weak", "mercenaries:SpawnRenegade(1, nil, 'weak')", "")
+System.AddCCommand("merc_spawn_renegade_medium", "mercenaries:SpawnRenegade(1, nil, 'medium')", "")
+System.AddCCommand("merc_spawn_renegade_strong", "mercenaries:SpawnRenegade(1, nil, 'strong')", "")
 
 -- Usage in console: merc_save_string global_idle 1|true|105.5
 System.AddCCommand("merc_save_string", "mercenaries:SaveString('%1', '%2')", "Saves a string to a persistent entity. Usage: merc_save_string <tag> <data>")

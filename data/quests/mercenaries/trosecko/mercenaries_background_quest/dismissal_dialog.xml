@@ -30,6 +30,22 @@
                 <Port Name="mercenary_weapon_mace" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_weapon_axe" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_weapon_polearm" Direction="Out" Type="trigger" />
+
+                <Port Name="mercenary_spawn_renegade_weak_1" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_weak_3" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_weak_5" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_weak_10" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_weak_20" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_medium_1" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_medium_3" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_medium_5" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_medium_10" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_medium_20" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_strong_1" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_strong_3" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_strong_5" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_strong_10" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_spawn_renegade_strong_20" Direction="Out" Type="trigger" />
             </Ports>
             <Text StringName="ui_mercenary_dismissal_root" />
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
@@ -421,6 +437,170 @@
                                         <Elements>
                                             <Response Role="HENRY">
                                                 <Text StringName="merc_henry_weapon_can" />
+                                            </Response>
+                                        </Elements>
+                                    </Sequence>
+
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <Sequence EndType="Decision" Name="seq_spawn_renegades_hub">
+                            <UiPrompt StringName="ui_mercenary_spawn_renegades" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_spawn_renegades_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_spawn_renegades_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+
+                            <Decision Name="dec_renegade_tier">
+                                <Sequences>
+
+                                    <Sequence EndType="Decision" Name="seq_renegade_tier_weak">
+                                        <UiPrompt StringName="ui_renegade_tier_weak" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_renegade_tier_weak" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_renegade_tier_weak" />
+                                            </Response>
+                                        </Elements>
+                                        <Decision Name="dec_renegade_count_weak">
+                                            <Sequences>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_weak_1">
+                                                    <UiPrompt StringName="ui_renegade_count_1" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_weak_1" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_1" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_weak_3">
+                                                    <UiPrompt StringName="ui_renegade_count_3" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_weak_3" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_weak_5">
+                                                    <UiPrompt StringName="ui_renegade_count_5" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_weak_5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_weak_10">
+                                                    <UiPrompt StringName="ui_renegade_count_10" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_weak_10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_10" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_weak_20">
+                                                    <UiPrompt StringName="ui_renegade_count_20" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_weak_20" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_20" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="GoTo" GoToDecision="dec_renegade_tier" Name="seq_renegade_count_weak_cancel">
+                                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                                </Sequence>
+                                            </Sequences>
+                                        </Decision>
+                                    </Sequence>
+
+                                    <Sequence EndType="Decision" Name="seq_renegade_tier_medium">
+                                        <UiPrompt StringName="ui_renegade_tier_medium" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_renegade_tier_medium" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_renegade_tier_medium" />
+                                            </Response>
+                                        </Elements>
+                                        <Decision Name="dec_renegade_count_medium">
+                                            <Sequences>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_medium_1">
+                                                    <UiPrompt StringName="ui_renegade_count_1" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_medium_1" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_1" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_medium_3">
+                                                    <UiPrompt StringName="ui_renegade_count_3" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_medium_3" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_medium_5">
+                                                    <UiPrompt StringName="ui_renegade_count_5" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_medium_5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_medium_10">
+                                                    <UiPrompt StringName="ui_renegade_count_10" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_medium_10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_10" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_medium_20">
+                                                    <UiPrompt StringName="ui_renegade_count_20" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_medium_20" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_20" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="GoTo" GoToDecision="dec_renegade_tier" Name="seq_renegade_count_medium_cancel">
+                                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                                </Sequence>
+                                            </Sequences>
+                                        </Decision>
+                                    </Sequence>
+
+                                    <Sequence EndType="Decision" Name="seq_renegade_tier_strong">
+                                        <UiPrompt StringName="ui_renegade_tier_strong" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_renegade_tier_strong" />
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_renegade_tier_strong" />
+                                            </Response>
+                                        </Elements>
+                                        <Decision Name="dec_renegade_count_strong">
+                                            <Sequences>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_strong_1">
+                                                    <UiPrompt StringName="ui_renegade_count_1" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_strong_1" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_1" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_strong_3">
+                                                    <UiPrompt StringName="ui_renegade_count_3" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_strong_3" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_strong_5">
+                                                    <UiPrompt StringName="ui_renegade_count_5" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_strong_5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_strong_10">
+                                                    <UiPrompt StringName="ui_renegade_count_10" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_strong_10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_10" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_renegade_strong_20">
+                                                    <UiPrompt StringName="ui_renegade_count_20" />
+                                                    <Triggers><Port Name="mercenary_spawn_renegade_strong_20" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_renegade_count_20" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="GoTo" GoToDecision="dec_renegade_tier" Name="seq_renegade_count_strong_cancel">
+                                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                                </Sequence>
+                                            </Sequences>
+                                        </Decision>
+                                    </Sequence>
+
+                                    <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_renegade_tier_cancel">
+                                        <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_custom_cancel" />
                                             </Response>
                                         </Elements>
                                     </Sequence>

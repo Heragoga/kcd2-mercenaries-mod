@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+       <souls version="2">
+       <!-- Renegades: hostile-to-everyone mob souls. No custom brain logic,
+            just the vanilla switch on a faction that hates everyone. Meant to
+            be spawned and dressed with an existing mercenary clothing/weapon
+            preset from Lua right after spawn. -->
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.6" digestion_multiplier="0" factionName="renegadesFaction" initial_clothing_dirt="0" skald_character_name="char_renegade1" social_class_id="3" soul_archetype_id="0" soul_id="c4b2d8e3-5f0a-4b69-9c7e-2d4f8a0b3c51" soul_name="soul_renegade_1" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.6" digestion_multiplier="0" factionName="renegadesFaction" initial_clothing_dirt="0" skald_character_name="char_renegade2" social_class_id="3" soul_archetype_id="0" soul_id="d5c3e9f4-601b-4c7a-ad8f-3e5a9b1c4d62" soul_name="soul_renegade_2" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.6" digestion_multiplier="0" factionName="renegadesFaction" initial_clothing_dirt="0" skald_character_name="char_renegade3" social_class_id="3" soul_archetype_id="0" soul_id="e6d4f0a5-712c-4d8b-be90-4f6b0c2d5e73" soul_name="soul_renegade_3" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.6" digestion_multiplier="0" factionName="renegadesFaction" initial_clothing_dirt="0" skald_character_name="char_renegade4" social_class_id="3" soul_archetype_id="0" soul_id="f7e5a1b6-823d-4e9c-cfa1-507c1d3e6f84" soul_name="soul_renegade_4" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.6" digestion_multiplier="0" factionName="renegadesFaction" initial_clothing_dirt="0" skald_character_name="char_renegade5" social_class_id="3" soul_archetype_id="0" soul_id="08f6b2c7-934e-4fad-d0b2-618d2e4f7095" soul_name="soul_renegade_5" soul_vip_class_id="0" xp_multiplier="1" />
+       </souls>
+</database>

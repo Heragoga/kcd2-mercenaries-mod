@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE storm SYSTEM "..\storm.dtd">
+<storm>
+    <rules>
+        <rule name="appearance_renegade_1">
+            <selectors>
+                <hasName Name="soul_renegade_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_renegade_2">
+            <selectors>
+                <hasName Name="soul_renegade_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_old_01" />
+                <setHead name="m_head_018_b00" />
+                <setHair name="m_hair_003_grey" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_renegade_3">
+            <selectors>
+                <hasName Name="soul_renegade_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_030" />
+                <setHair name="m_hair_014_dark_grey" />
+                <setBeard name="m_beard_12" />
+            </operations>
+        </rule>
+        <rule name="appearance_renegade_4">
+            <selectors>
+                <hasName Name="soul_renegade_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_006_b00" />
+                <setHair name="m_hair_014_black" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <rule name="appearance_renegade_5">
+            <selectors>
+                <hasName Name="soul_renegade_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_081" />
+                <setHair name="m_hair_005_dark_brown" />
+                <setBeard name="m_beard_05" />
+            </operations>
+        </rule>
+    </rules>
+</storm>

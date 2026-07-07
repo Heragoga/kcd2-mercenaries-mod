@@ -199,6 +199,99 @@
                     <Edge From="dismissal_dialog.mercenary_weapon_polearm" To="Exec" />
                 </EventFunction>
 
+                <EventFunction Name="execute_renegade_weak_1" PositionY="900" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be56d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_weak_1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_weak_3" PositionY="920" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be56d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_weak_3" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_weak_5" PositionY="940" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be56d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_weak_5" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_weak_10" PositionY="960" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be56d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_weak_10" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_weak_20" PositionY="980" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be56d" />
+                    <Constant Name="Amount" Value="20" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_weak_20" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_renegade_medium_1" PositionY="1000" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be57d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_medium_1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_medium_3" PositionY="1020" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be57d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_medium_3" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_medium_5" PositionY="1040" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be57d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_medium_5" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_medium_10" PositionY="1060" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be57d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_medium_10" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_medium_20" PositionY="1080" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be57d" />
+                    <Constant Name="Amount" Value="20" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_medium_20" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="execute_renegade_strong_1" PositionY="1100" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be58d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_strong_1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_strong_3" PositionY="1120" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be58d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_strong_3" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_strong_5" PositionY="1140" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be58d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_strong_5" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_strong_10" PositionY="1160" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be58d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_strong_10" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="execute_renegade_strong_20" PositionY="1180" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be58d" />
+                    <Constant Name="Amount" Value="20" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_spawn_renegade_strong_20" To="Exec" />
+                </EventFunction>
+
                 <EventFunction Name="execute_recruit_kubenka" PositionY="200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />
                     <Constant Name="Amount" Value="1" />
