@@ -16,6 +16,8 @@
 
                 <Port Name="mercenary_open_heal_menu" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_status_report" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_camp_make" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_camp_break" Direction="Out" Type="trigger" />
 
                 <Port Name="mercenary_stance_everyone" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_stance_player_target" Direction="Out" Type="trigger" />
@@ -23,7 +25,6 @@
                 <Port Name="mercenary_stance_passive" Direction="Out" Type="trigger" />
 
                 <Port Name="archer_stance_skirmish" Direction="Out" Type="trigger" />
-                <Port Name="archer_stance_guard" Direction="Out" Type="trigger" />
                 <Port Name="archer_stance_melee" Direction="Out" Type="trigger" />
                 <Port Name="archer_stance_hold" Direction="Out" Type="trigger" />
 
@@ -98,21 +99,6 @@
                             <Decision Name="dec_squad_orders_choices">
                                 <Sequences>
 
-                                    <Sequence EndType="EndDialogue" Name="seq_status_report">
-                                        <UiPrompt StringName="ui_mercenary_status_report" />
-                                        <Elements>
-                                            <Response Role="HENRY">
-                                                <Text StringName="merc_henry_status_report" />
-                                                <Commands><CameraCommand /></Commands>
-                                            </Response>
-                                            <Response Role="role_mercenary_test">
-                                                <Text StringName="merc_test_status_report" />
-                                                <Commands><CameraCommand /></Commands>
-                                            </Response>
-                                        </Elements>
-                                        <Triggers><Port Name="mercenary_status_report" /></Triggers>
-                                    </Sequence>
-
                                     <Sequence EndType="EndDialogue" Name="seq_wait_action">
                                         <UiPrompt StringName="ui_mercenary_wait_action" />
                                         <Elements>
@@ -159,6 +145,109 @@
                                     </Sequence>
 
                                     <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_squad_orders_cancel">
+                                        <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_custom_cancel" />
+                                            </Response>
+                                        </Elements>
+                                    </Sequence>
+
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <!-- Management/logistics: separate from the basic
+                             squad orders on purpose - status report and camp
+                             are "checking in on the company", not day-to-day
+                             orders. -->
+                        <Sequence EndType="Decision" Name="seq_management_hub">
+                            <UiPrompt StringName="ui_mercenary_management_hub" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_management_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_management_hub_prompt" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+
+                            <Decision Name="dec_management_choices">
+                                <Sequences>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_status_report">
+                                        <UiPrompt StringName="ui_mercenary_status_report" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_status_report" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_status_report" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_status_report" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="Decision" Name="seq_camp_hub">
+                                        <UiPrompt StringName="ui_mercenary_camp_hub" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_camp_hub_prompt" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_camp_hub_prompt" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                        </Elements>
+
+                                        <Decision Name="dec_camp_choices">
+                                            <Sequences>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_camp_make">
+                                                    <UiPrompt StringName="ui_mercenary_camp_make" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_camp_make" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_camp_make" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="mercenary_camp_make" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_camp_break">
+                                                    <UiPrompt StringName="ui_mercenary_camp_break" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_camp_break" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_camp_break" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="mercenary_camp_break" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="GoTo" GoToDecision="dec_management_choices" Name="seq_camp_hub_cancel">
+                                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_custom_cancel" />
+                                                        </Response>
+                                                    </Elements>
+                                                </Sequence>
+
+                                            </Sequences>
+                                        </Decision>
+                                    </Sequence>
+
+                                    <Sequence EndType="GoTo" GoToDecision="dec_dismiss_mercenary" Name="seq_management_hub_cancel">
                                         <UiPrompt StringName="ui_mercenary_custom_cancel" />
                                         <Elements>
                                             <Response Role="HENRY">
@@ -645,19 +734,6 @@
                                                         </Response>
                                                     </Elements>
                                                     <Triggers><Port Name="archer_stance_skirmish" /></Triggers>
-                                                </Sequence>
-
-                                                <Sequence EndType="EndDialogue" Name="seq_archer_stance_guard">
-                                                    <UiPrompt StringName="ui_archer_stance_guard" />
-                                                    <Elements>
-                                                        <Response Role="HENRY">
-                                                            <Text StringName="merc_henry_archer_guard" />
-                                                        </Response>
-                                                        <Response Role="role_mercenary_test">
-                                                            <Text StringName="merc_test_archer_guard" />
-                                                        </Response>
-                                                    </Elements>
-                                                    <Triggers><Port Name="archer_stance_guard" /></Triggers>
                                                 </Sequence>
 
                                                 <Sequence EndType="EndDialogue" Name="seq_archer_stance_melee">

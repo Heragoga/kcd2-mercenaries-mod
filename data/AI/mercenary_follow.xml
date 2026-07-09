@@ -14,6 +14,17 @@
             <Variable name="despawnCountdown" type="_int" values="3" isPersistent="0" form="single" />
             <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms')" isPersistent="0" form="single" />
             <Variable name="mountedDistToTarget" type="_float" values="0" isPersistent="0" form="single" />
+            <!-- Camp-guard patrol (see mercenaries_camp.lua). While the merc is
+                 an incamp guard, the ContinuousSwitch below routes them into a
+                 Move-to-waypoint patrol loop instead of following the player.
+                 patrolWaypoint is a vec3 POSITION (not an entity) - the same
+                 way references/AI/world/so_ladder.xml Moves to its vec3
+                 $t_entryPos. patrolHasWaypoint gates the Move (a vec3 can't be
+                 null-checked the way a wuid can). -->
+            <Variable name="isCampGuard" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="patrolWaypoint" type="vec3" values="" isPersistent="0" form="single" />
+            <Variable name="patrolHasWaypoint" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="patrolLongPause" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -29,6 +40,9 @@
                             <Sequence>
                                 <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                 <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
+                                <!-- Refresh guard status each cycle - the patrol case in the
+                                     ContinuousSwitch below only runs while this is true. -->
+                                <ExecuteLua code="data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)" />
                                 <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
@@ -47,7 +61,10 @@
                             <Sequence>
                                 <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
 
-                                <ExecuteLua code="data.playerIsMounted = _G.PlayerMounted or false" />
+                                <!-- Suppress horse spawning while in camp - a patrolling guard
+                                     should walk the perimeter on foot, not mount up if the
+                                     player happens to be mounted. -->
+                                <ExecuteLua code="data.playerIsMounted = (_G.PlayerMounted and not _G.MercInCamp) or false" />
 
                                 <ExecuteLua code="
                                     local ok, err = pcall(function()
@@ -131,6 +148,54 @@
 
                         <Loop count="-1">
                             <ContinuousSwitch>
+
+                                <!-- Camp-guard patrol. First case, so it preempts every follow
+                                     mode below while this merc is an incamp guard (ContinuousSwitch
+                                     runs the first matching case). Pull the current perimeter
+                                     waypoint POSITION from Lua into the vec3 $patrolWaypoint (set
+                                     component-wise, the way references/AI/quests/questbehaviors.xml
+                                     does), Walk to it (changeNPCState="true" - every base-game
+                                     move-to-a-point uses this; "false" is only for continuous
+                                     follow-an-actor moves and leaves a standing NPC frozen), then
+                                     advance to the next point and pause - a short pause most of the
+                                     time, an occasional longer one, for variety. The waypoint ring
+                                     and guard record come from SpawnMercCamp in mercenaries_camp.lua.
+                                     SuppressFailure so a blocked path just falls through to the next
+                                     cycle rather than failing the whole follow tree. -->
+                                <IfCondition failOnCondition="false" condition="$isCampGuard">
+                                    <SuppressFailure>
+                                        <Sequence>
+                                            <ExecuteLua code="
+                                                data.patrolHasWaypoint = false
+                                                pcall(function()
+                                                    local wp = mercenaries:GetPatrolWaypoint(entity.this.id)
+                                                    if wp then
+                                                        data.patrolWaypoint.x = wp.x
+                                                        data.patrolWaypoint.y = wp.y
+                                                        data.patrolWaypoint.z = wp.z
+                                                        data.patrolHasWaypoint = true
+                                                    end
+                                                end)
+                                            " />
+                                            <IfCondition failOnCondition="false" condition="$patrolHasWaypoint">
+                                                <Sequence>
+                                                    <Move stopWithinDistance="1.000000" stopDistanceVariation="0.500000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$patrolWaypoint" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                    <ExecuteLua code="pcall(function() mercenaries:AdvancePatrolWaypoint(entity.this.id) end)" />
+                                                    <ExecuteLua code="data.patrolLongPause = (math.random(1, 5) == 1)" />
+                                                    <IfElseCondition failOnCondition="false" condition="$patrolLongPause" saveVersion="2">
+                                                        <Then canSkip="1">
+                                                            <Wait duration="'20s'" timeType="GameTime" doFail="false" variation="'8s'" />
+                                                        </Then>
+                                                        <Else canSkip="1">
+                                                            <Wait duration="'6s'" timeType="GameTime" doFail="false" variation="'4s'" />
+                                                        </Else>
+                                                    </IfElseCondition>
+                                                </Sequence>
+                                            </IfCondition>
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        </Sequence>
+                                    </SuppressFailure>
+                                </IfCondition>
 
                                 <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
                                     <Sequence>

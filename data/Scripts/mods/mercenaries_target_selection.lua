@@ -1,7 +1,15 @@
 -- =======================================================================
 -- HELPER: Shared logic to validate if an entity is a valid enemy target
 -- =======================================================================
-function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid)
+-- skipRelationshipCheck: used for whoever the player is *already* fighting
+-- (bt_data.playerCombatTarget) - active aggression against the player is
+-- itself proof of hostility, so that candidate shouldn't be filtered out
+-- by a relationship reading that might be stale, quest-specific, or just
+-- not modeled as a faction-level -1 (e.g. crime-triggered aggression).
+-- Every other check (alive, weapon drawn, not one of ours, not fleeing/
+-- surrendering/immortal) still applies - only the relationship gate is
+-- bypassed.
+function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelationshipCheck)
     -- 1. Check if it's the player or the player's dog
     if ent.id == player.id then return false end
     if ent:GetName() == "companion_dog" then return false end
@@ -50,10 +58,19 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid)
 
 
     
-    -- 5. Failsafe: Ensure they aren't explicitly friendly to the player
-    local rel_curr = ent.soul:GetRelationship(playerWuid, "Current")
-    if rel_curr and rel_curr >= 1 then 
-        return false 
+    -- 5. Must be a genuine hostile: relationship to the player pinned at
+    -- exactly -1 (the faction-hostile floor - see FactionTree__renegades.xml,
+    -- every relation there is reputation="-1"). Anything above that (0,
+    -- 0.5, unresolved/nil) is NOT treated as fair game - a merely-neutral
+    -- or unresolved relationship is not hostility, and "not a confirmed
+    -- friend" was the old bug (mercs attacking armed-but-unrelated NPCs
+    -- like guards/hunters). skipRelationshipCheck bypasses this one gate
+    -- for whoever the player is already fighting (see function comment).
+    if not skipRelationshipCheck then
+        local rel_curr = ent.soul:GetRelationship(playerWuid, "Current")
+        if rel_curr == nil or rel_curr > -1.0 then
+            return false
+        end
     end
     --local isInArrangedFight = self.soul:HasScriptContext("combat_arrangedFight") and not self.soul:HasScriptContext("combat_suppressedDialogInArrangedFight")
     -- combat_flee
@@ -264,11 +281,28 @@ end
 -- =======================================================================
 -- STANCE "everyone": grab the nearest valid hostile, no engine calls
 -- needed beyond position reads already available on cached entities.
+-- Whoever the player is already fighting (bt_data.playerCombatTarget) is
+-- checked first and claimed regardless of relationship data (see
+-- IsValidEnemy's skipRelationshipCheck) - active aggression against the
+-- player overrides a relationship reading that isn't a clean -1. Falls
+-- back to the nearest strictly-hostile cached enemy otherwise.
 -- =======================================================================
 function mercenaries:PickNearestValidTarget(bt_data, myWuid)
     local ok, err = pcall(function()
         if bt_data.foundTarget then return end
         if myWuid and self:IsHealthCritical(myWuid, 25) then return end
+
+        if bt_data.playerCombatTarget then
+            local targetWuidStr = tostring(bt_data.playerCombatTarget)
+            if targetWuidStr ~= "" and targetWuidStr ~= tostring(bt_data.playerWUID) then
+                local targetEnt = XGenAIModule.GetEntityByWUID(bt_data.playerCombatTarget)
+                if targetEnt and targetEnt.soul and self:IsValidEnemy(targetEnt, player, bt_data.playerWUID, true) then
+                    if self:TryClaimTarget(bt_data, myWuid, bt_data.playerCombatTarget) then
+                        return
+                    end
+                end
+            end
+        end
 
         local me = XGenAIModule.GetEntityByWUID(myWuid)
         local myPos = me and me:GetPos()
@@ -310,7 +344,10 @@ function mercenaries:PickPlayersTarget(bt_data, myWuid)
 
         local targetEnt = XGenAIModule.GetEntityByWUID(bt_data.playerCombatTarget)
         if not targetEnt or not targetEnt.soul then return end
-        if not self:IsValidEnemy(targetEnt, player, bt_data.playerWUID) then return end
+        -- skipRelationshipCheck=true: whoever the player is fighting is by
+        -- definition a valid target for this stance, regardless of their
+        -- relationship reading (same reasoning as PickNearestValidTarget).
+        if not self:IsValidEnemy(targetEnt, player, bt_data.playerWUID, true) then return end
 
         self:TryClaimTarget(bt_data, myWuid, bt_data.playerCombatTarget)
     end)

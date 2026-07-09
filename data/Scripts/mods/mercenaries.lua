@@ -36,6 +36,10 @@ mercenaries.TokenIDHeal = "679a655e-189d-4519-b437-ccc4b92be50d"
 --squad status report token
 mercenaries.TokenIDStatus = "679a655e-189d-4519-b437-ccc4b92be64d"
 
+--camp tokens
+mercenaries.TokenIDCampMake = "679a655e-189d-4519-b437-ccc4b92be65d"
+mercenaries.TokenIDCampBreak = "679a655e-189d-4519-b437-ccc4b92be66d"
+
 -- Combat stance tokens (set via dialogue with a mercenary)
 mercenaries.TokenIDStanceEveryone = "679a655e-189d-4519-b437-ccc4b92be51d"
 mercenaries.TokenIDStancePlayerTarget = "679a655e-189d-4519-b437-ccc4b92be52d"
@@ -46,8 +50,11 @@ mercenaries.TokenIDStancePassive = "679a655e-189d-4519-b437-ccc4b92be54d"
 -- instead of string compare on every merc, every tick).
 mercenaries.StanceCode = { everyone = 0, player_target = 1, defend = 2, passive = 3 }
 
+-- Default is "everyone" (aggressive - attack any hostile nearby), not
+-- "player_target", so a freshly hired/loaded squad of infantry wades in
+-- on its own instead of waiting for the player to pick the fight first.
 function mercenaries:GetStanceCode()
-    return self.StanceCode[_G.MercStance or "player_target"] or 1
+    return self.StanceCode[_G.MercStance or "everyone"] or 0
 end
 
 mercenaries.MaxCompanions = 999
@@ -412,6 +419,13 @@ function mercenaries:ExecString(text)
 end
 
 function mercenaries:SetState(state)
+    -- An explicit dismiss/follow order breaks camp first (silently - the
+    -- order's own info text already tells the player what happened), since
+    -- otherwise the camp props would stand there empty/unused.
+    if (state == "dismiss" or state == "follow") and self.CampActive then
+        self:BreakMercCamp(true)
+    end
+
     if state == "dismiss" then
         _G.MercenariesDismissed = true
         self:SaveString("MercenariesDismissed", "1")
@@ -431,12 +445,13 @@ end
 
 -- Combat stance, set through dialogue with a mercenary. Applies whether the
 -- squad is following or waiting.
---   everyone      - attack any hostile, drawn-weapon NPC nearby
---   player_target - only join whatever fight the player is currently in (default)
+--   everyone      - attack any hostile, drawn-weapon NPC nearby (default,
+--                   aggressive - infantry wade into a fight on their own)
+--   player_target - only join whatever fight the player is currently in
 --   defend        - only fight back if personally attacked
 --   passive       - never engage, even if attacked
 function mercenaries:SetStance(stance)
-    if not self.StanceCode[stance] then stance = "player_target" end
+    if self.StanceCode[stance] == nil then stance = "everyone" end
     _G.MercStance = stance
     self:SaveString("MercStancePersistent", stance)
     Game.SendInfoText('merc_info_stance_' .. stance, false, 0, 3)
@@ -467,6 +482,8 @@ function mercenaries:MonitorInventory()
     local countRetrieve = p:GetCountOfClass(self.TokenIDReturn)
     local countHeal = p:GetCountOfClass(self.TokenIDHeal)
     local countStatus = p:GetCountOfClass(self.TokenIDStatus)
+    local countCampMake = p:GetCountOfClass(self.TokenIDCampMake)
+    local countCampBreak = p:GetCountOfClass(self.TokenIDCampBreak)
 
     local countStanceEveryone = p:GetCountOfClass(self.TokenIDStanceEveryone)
     local countStancePlayerTarget = p:GetCountOfClass(self.TokenIDStancePlayerTarget)
@@ -553,6 +570,17 @@ function mercenaries:MonitorInventory()
         self:ShowSquadStatus()
     end
 
+    -- camp make/break chosen via dialogue
+    if countCampMake and countCampMake > 0 then
+        p:DeleteItemOfClass(self.TokenIDCampMake, countCampMake)
+        self:SpawnMercCamp()
+    end
+
+    if countCampBreak and countCampBreak > 0 then
+        p:DeleteItemOfClass(self.TokenIDCampBreak, countCampBreak)
+        self:BreakMercCamp()
+    end
+
     -- Combat stance chosen via dialogue
     if countStanceEveryone and countStanceEveryone > 0 then
         p:DeleteItemOfClass(self.TokenIDStanceEveryone, countStanceEveryone)
@@ -634,6 +662,11 @@ function mercenaries.LowPriorityMonitorLoop()
         -- Archers that emptied their quiver in a fight refill once it's over.
         mercenaries:ResupplyArchersOutOfCombat()
     end
+
+    -- Camp patrol tick runs regardless of ActiveMercs being empty, since a
+    -- camp can (briefly) outlive its squad's cache entry.
+    mercenaries:MonitorCamp()
+
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
 end
@@ -679,12 +712,27 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
         _G.MercCurrentWeapon = 1
     end
 
-    -- Load combat stance
+    -- Load combat stance (default "everyone" - aggressive - not "player_target")
     local savedStance = mercenaries:LoadString("MercStancePersistent")
-    _G.MercStance = (savedStance and self.StanceCode[savedStance]) and savedStance or "player_target"
+    _G.MercStance = (savedStance and self.StanceCode[savedStance] ~= nil) and savedStance or "everyone"
 
     -- Load archer stance + skirmish AI variant
     self:LoadArcherState()
+
+    -- Camp is session-only - sweep away any leftover props from a camp
+    -- that was active when the game was saved (see mercenaries_camp.lua).
+    self:ClearAnyLeftoverCamp()
+
+    -- Recall hotkey - brings the whole squad to the player from anywhere
+    -- without touching a standing camp. Same "bind <key> <command>"
+    -- pattern the bodyguards reference mod uses for its own hotkeys
+    -- (references/bodyguards/data/Scripts/mods/kcdcompanion.lua). Rebound
+    -- every load; harmless if it was already bound. Rebind to a different
+    -- key via console any time with: bind <key> merc_camp_recall
+    local okBind = pcall(function()
+        System.ExecuteCommand("bind f4 merc_camp_recall")
+    end)
+    System.LogAlways("[Mercenaries] Recall keybind F4: " .. (okBind and "OK" or "FAILED - use merc_camp_recall console command"))
 
     self:ReleaseSpeakingLock()
 
@@ -712,6 +760,7 @@ Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
+Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
 
 
 -- Prints every merc console command with a one-line description.
@@ -721,11 +770,13 @@ function mercenaries:PrintHelp()
         "merc_status                          one-line squad report (count, health, orders, stances)",
         "merc_heal                            heal & wash the squad (flat " .. tostring(self.HealCost) .. " groschen)",
         "merc_wait / merc_follow / merc_dismiss   squad orders",
-        "merc_stance_everyone|player_target|defend|passive   squad targeting stance",
+        "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
+        "merc_camp_recall (F4)                bring the whole squad to you from anywhere (doesn't break camp)",
+        "merc_stance_everyone|player_target|defend|passive   squad targeting stance (default: everyone)",
         "merc_hire_w1/w2/w3, d1/d2/d3, p1/p2/p3   hire weak/medium/strong mercs (debug, free)",
         "merc_weapon_random|swordshield|axeshield|longsword|maceshield|shortsword|mace|axe|polearm   melee loadout",
         "archer_hire_w1/w3, d1/d3, p1/p3      hire archers (debug, free)",
-        "archer_stance_skirmish|guard|melee|hold   archer combat stance",
+        "archer_stance_skirmish|melee|hold   archer combat stance (default: skirmish)",
         "archer_weapon_bow|crossbow|handcannon    archer ranged weapon type",
         "merc_spawn_renegade[_weak|_medium|_strong]   spawn hostile renegades (debug)",
         "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",

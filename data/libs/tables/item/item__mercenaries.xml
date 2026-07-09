@@ -39,6 +39,9 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be63d" Name="loot_sackOfNails" />
         <!-- Squad status report token -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be64d" Name="loot_sackOfNails" />
+        <!-- Camp tokens: spawn a procedural camp / break it down -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be65d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be66d" Name="loot_sackOfNails" />
 
     </ItemClasses>
 </database>

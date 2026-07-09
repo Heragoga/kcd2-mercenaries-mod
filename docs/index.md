@@ -33,6 +33,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 
 ### Behavior Trees
 * [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)
+* [Mercenary camp](camp.md) (Procedural camp spawn/despawn, how props render without a custom entity class, and the smart-object sit/sleep integration)
 * [Basic structure](behaviour-trees/basic-structure.md) (Covers the basic structure of the Behaviour Tree and some basic logical components)
 * [Combat](behaviour-trees/combat.md) (How to make your NPC fight)
 * [Movement](behaviour-trees/movement.md) (How to make your NPC move)

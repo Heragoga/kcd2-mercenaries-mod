@@ -87,7 +87,7 @@ end
 -- Helper function to identify a mercenary's tier based on their GUID
 function mercenaries:GetMercTier(soulGuidStr)
     if not soulGuidStr then return "weak" end
-    
+
     for tierName, guidList in pairs(self.Souls) do
         for _, guid in ipairs(guidList) do
             if string.find(soulGuidStr, guid) then
@@ -96,6 +96,17 @@ function mercenaries:GetMercTier(soulGuidStr)
         end
     end
     return "weak" -- Failsafe default for confirmed mercs
+end
+
+-- Parses tier straight from an entity's spawn name (every merc/archer/
+-- renegade is spawned as "..._<tier>_..." - see Hire/HireArcher/
+-- SpawnRenegade), instead of matching against a soul GUID list. Shared by
+-- the archer equipment code and the camp housing-tier assignment.
+function mercenaries:GetTierFromName(name)
+    name = name or ''
+    if string.find(name, '_medium_') then return "medium" end
+    if string.find(name, '_strong_') then return "strong" end
+    return "weak"
 end
 
 -- Very important helper function, used in merc spawning and emergency teleport

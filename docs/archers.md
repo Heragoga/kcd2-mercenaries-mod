@@ -37,7 +37,7 @@ All `data/libs` tables are patches onto this mod's own vanilla-pattern files (`_
 | Skald characters (1 per tier) | appended to `data/libs/tables/skald/skald_character__mercenaries.xml` + 2role/2profession files |
 | Brain (`archer_brain`) | appended to `data/libs/tables/ai/*__mercenaries.xml` (renegade-brain pattern, own brain id) |
 | Combat behaviours registry | added to `SmartEntity__so_interrupt__mercenaries.xml` |
-| Behaviour trees | `data/AI/archer_scheduler.xml`, `archer_skirmish.xml`, `archer_guard.xml`, `archer_melee.xml` |
+| Behaviour trees | `data/AI/archer_scheduler.xml`, `archer_skirmish.xml`, `archer_melee.xml` |
 | Weapon sets (ranged weapon + ammo + shortsword sidearm, one set per weapon type) | `weapon_preset__mercenaries.xml` (`merc_weapon_archerset_bow_*` / `_crossbow_*` / `_handcannon_*`, historically `merc_weapon_archerset_*` for bow) |
 | Base inventory (light clothes + 40 arrows) | `InventoryPreset__mercenaries.xml` (`inventory_mercenary_archer_*`) |
 | Storm rules (appearance/equipment/roles) | appended to the three existing mercenaries storm files |
@@ -58,9 +58,10 @@ Set via any merc's dialog → "Change combat orders..." → "Orders for the arch
 | Stance | Console | Behaviour |
 |---|---|---|
 | **Skirmish** (default) | `archer_stance_skirmish` | Pure stand-and-fire (vanilla `standFire` pattern): plants feet wherever combat starts and shoots, no repositioning at all. The player leash + scheduler follow logic drags them along when the fight moves. Never melee unless an enemy is within ~5m (or the quiver is empty), and they disengage back to the bow once the threat is dead or 12m+ away. |
-| **Guard** | `archer_stance_guard` | Stay glued to the player in combat (within ~6m) and shoot from there. Same in-your-face melee fallback (~5m). |
 | **Melee** | `archer_stance_melee` | Sheathe the bow, draw the sidearm, fight like a regular merc (`WeaponChange="melee"`). |
 | **Hold** | `archer_stance_hold` | Don't engage at all; disengage if already fighting. |
+
+There used to be a fourth stance, **Guard** ("stay glued to the player and shoot from there") - it was removed; skirmish/melee/hold covers everything the squad needs, and one fewer stance is one fewer thing to get wrong.
 
 Stance changes apply **mid-fight**: every combat tree watches the stance each ~700ms and bails out when it no longer matches, at which point the scheduler fires the newly selected behaviour within half a second.
 
@@ -84,7 +85,7 @@ Set via any merc's dialog → "Change equipment..." → "Change the archers' wea
 
 Changing weapon type re-equips every active archer immediately via `mercenaries:SetArcherWeaponType()`, mirroring how `ChangeMercWeapon` re-equips the melee squad. It's a global setting shared by the whole archer squad (like the archer stance), persisted across saves (`ArcherWeaponTypePersistent`).
 
-Combat-wise nothing else changes: all three weapon types fire through the same `WeaponAutomationDecorator WeaponChange="missile"` automation used for bows (this is generic across ranged weapon classes), so `archer_skirmish.xml` / `archer_guard.xml` / `archer_melee.xml` needed no changes. Reload/cocking pacing for crossbows and hand cannons is handled by the engine's own combat automation, the same way vanilla mass-battle archers never need a scripted reload step inside `CombatAction`.
+Combat-wise nothing else changes: all three weapon types fire through the same `WeaponAutomationDecorator WeaponChange="missile"` automation used for bows (this is generic across ranged weapon classes), so `archer_skirmish.xml` / `archer_melee.xml` needed no changes. Reload/cocking pacing for crossbows and hand cannons is handled by the engine's own combat automation, the same way vanilla mass-battle archers never need a scripted reload step inside `CombatAction`.
 
 The weapon preset GUIDs and vanilla item classes (crossbow bodies, bolts, hand cannons) are documented in `mercenaries_archers.lua` (`ArcherWeaponSets`, `ArcherBoltClassByTier`/`ArcherBoltClasses`) and `weapon_preset__mercenaries.xml` (`merc_weapon_archerset_crossbow_*` / `_handcannon_*`).
 
@@ -109,7 +110,7 @@ The combat trees check total ammo count each tick; at zero they fight with the s
 archer_hire_w1 / w3      hire 1/3 weak archers (free, debug)
 archer_hire_d1 / d3      hire 1/3 medium archers
 archer_hire_p1 / p3      hire 1/3 strong archers
-archer_stance_skirmish / guard / melee / hold
+archer_stance_skirmish / melee / hold
 archer_weapon_bow / crossbow / handcannon
 merc_status              one-line squad report (also in dialog: "How is everyone holding up?")
 merc_heal                heal & wash the squad (flat fee)

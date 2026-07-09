@@ -542,21 +542,15 @@
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="dismissal_dialog.archer_stance_skirmish" To="Exec" />
                 </EventFunction>
-                <EventFunction Name="exec_archer_stance_guard" PositionY="2150" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
-                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be62d" />
-                    <Constant Name="Amount" Value="2" />
-                    <Constant Name="ShowUINotification" Value="false" />
-                    <Edge From="dismissal_dialog.archer_stance_guard" To="Exec" />
-                </EventFunction>
                 <EventFunction Name="exec_archer_stance_melee" PositionY="2200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be62d" />
-                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="Amount" Value="2" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="dismissal_dialog.archer_stance_melee" To="Exec" />
                 </EventFunction>
                 <EventFunction Name="exec_archer_stance_hold" PositionY="2250" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be62d" />
-                    <Constant Name="Amount" Value="4" />
+                    <Constant Name="Amount" Value="3" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="dismissal_dialog.archer_stance_hold" To="Exec" />
                 </EventFunction>
@@ -608,6 +602,20 @@
                     <Constant Name="Amount" Value="1" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="dismissal_dialog.mercenary_status_report" To="Exec" />
+                </EventFunction>
+
+                <!-- Camp make/break: Lua handles the actual spawn/despawn work -->
+                <EventFunction Name="exec_camp_make" PositionY="-500" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be65d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_camp_make" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_camp_break" PositionY="-450" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be66d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_camp_break" To="Exec" />
                 </EventFunction>
 
 

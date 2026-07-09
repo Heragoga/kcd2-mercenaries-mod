@@ -13,9 +13,12 @@
 --   skirmish - keep at shooting distance of the enemy and pelt them with
 --              arrows; never enter melee unless an enemy is in their face
 --              or the quiver runs dry (pure standFire, no repositioning).
---   guard    - stay glued to the player in combat and shoot from there.
+--              Default stance.
 --   melee    - close in and fight with the sidearm like a regular merc.
 --   hold     - do not engage at all.
+-- ("guard" - stick close to the player and shoot from there - existed
+-- previously and was removed; skirmish/melee/hold covers everything the
+-- squad actually uses.)
 --
 -- Who archers shoot at is governed by the SAME player-set stance
 -- (_G.MercStance / GetStanceCode) that regular mercenaries use - see
@@ -27,13 +30,13 @@
 mercenaries.TokenIDArcherWeak = "679a655e-189d-4519-b437-ccc4b92be59d"
 mercenaries.TokenIDArcherMedium = "679a655e-189d-4519-b437-ccc4b92be60d"
 mercenaries.TokenIDArcherStrong = "679a655e-189d-4519-b437-ccc4b92be61d"
--- Count = stance: 1 skirmish, 2 guard, 3 melee, 4 hold
+-- Count = stance: 1 skirmish, 2 melee, 3 hold
 mercenaries.TokenIDArcherStance = "679a655e-189d-4519-b437-ccc4b92be62d"
 -- Count = ranged weapon type: 1 bow, 2 crossbow, 3 handcannon
 mercenaries.TokenIDArcherWeaponType = "679a655e-189d-4519-b437-ccc4b92be63d"
 
-mercenaries.ArcherStanceCode = { skirmish = 0, guard = 1, melee = 2, hold = 3 }
-mercenaries.ArcherStanceByIndex = { [1] = "skirmish", [2] = "guard", [3] = "melee", [4] = "hold" }
+mercenaries.ArcherStanceCode = { skirmish = 0, melee = 1, hold = 2 }
+mercenaries.ArcherStanceByIndex = { [1] = "skirmish", [2] = "melee", [3] = "hold" }
 
 mercenaries.ArcherWeaponTypeByIndex = { [1] = "bow", [2] = "crossbow", [3] = "handcannon" }
 
@@ -147,10 +150,7 @@ function mercenaries:IsArcherName(name)
 end
 
 function mercenaries:GetArcherTierFromName(name)
-    name = name or ''
-    if string.find(name, '_medium_') then return "medium" end
-    if string.find(name, '_strong_') then return "strong" end
-    return "weak"
+    return self:GetTierFromName(name)
 end
 
 function mercenaries:GetArcherStanceCode()
@@ -478,7 +478,6 @@ System.AddCCommand("archer_hire_p1", "mercenaries:HireArcher(0, 1, 'strong')", "
 System.AddCCommand("archer_hire_p3", "mercenaries:HireArcher(0, 3, 'strong')", "")
 
 System.AddCCommand("archer_stance_skirmish", "mercenaries:SetArcherStance('skirmish')", "")
-System.AddCCommand("archer_stance_guard", "mercenaries:SetArcherStance('guard')", "")
 System.AddCCommand("archer_stance_melee", "mercenaries:SetArcherStance('melee')", "")
 System.AddCCommand("archer_stance_hold", "mercenaries:SetArcherStance('hold')", "")
 
