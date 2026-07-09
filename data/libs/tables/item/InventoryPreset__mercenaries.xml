@@ -137,6 +137,25 @@
 			<PresetItem Name="lorebook_onEvilMorals" Amount="1" />
 			<PresetItem Name="lorebook_meadBrewing" Amount="1" />
 		</InventoryPreset>
-                
+
+        <!-- Ranged mercenaries (archers). Light clothing plus a stack of
+             arrows in the base inventory - runtime EquipMercenaryWeapon then
+             applies the archer weapon preset (bow + arrows + sidearm) on top. -->
+        <InventoryPreset Name="inventory_mercenary_archer_weak">
+            <ClothingPresetRef Name="soldierLight_generic_1_01"/>
+            <WeaponPresetRef Name="huntingsword_1_01"/>
+            <PresetItem Name="arrow_normal" Amount="40"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_archer_medium">
+            <ClothingPresetRef Name="soldierLight_generic_2_03"/>
+            <WeaponPresetRef Name="huntingsword_2_01"/>
+            <PresetItem Name="arrow_hunting" Amount="40"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_archer_strong">
+            <ClothingPresetRef Name="soldier_generic_2_10"/>
+            <WeaponPresetRef Name="huntingsword_2_01"/>
+            <PresetItem Name="arrow_enh_hunting" Amount="40"/>
+        </InventoryPreset>
+
     </InventoryPresets>
 </database>

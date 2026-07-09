@@ -202,10 +202,13 @@ end
 function mercenaries:GetMercType(ent)
     if not ent then return nil end
     local name = ent:GetName() or ''
-    
+
     if string.find(name, 'MercenaryCustomCompanion') then return "hero" end
-    if string.find(name, 'SpawnedFriend') then return "regular" end
-    
+    if string.find(name, 'SpawnedFriend') then
+        if string.find(name, '_archer_') then return "archer" end
+        return "regular"
+    end
+
     return nil -- Not a mercenary
 end
 

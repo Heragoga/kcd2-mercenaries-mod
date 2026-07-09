@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- MELEE STANCE: ordered into the fray.
+         Same shape as mercenary_attack, but WeaponChange="melee" forces the
+         automation to sheathe the bow and pull the sidearm, and the
+         disengage checks read the archer stance instead of the melee
+         squad's stance. -->
+    <BehaviorTree name="archer_melee" is_function="0">
+        <Variables>
+            <Variable name="distanceToTarget"  type="_float" values="9999.0" isPersistent="0" form="single" />
+            <Variable name="distanceToPlayer"  type="_float" values="0.0"    isPersistent="0" form="single" />
+            <Variable name="isTargetAlive"     type="_bool"  values="true"   isPersistent="0" form="single" />
+            <Variable name="outOfAmmo"         type="_bool"  values="false"  isPersistent="0" form="single" />
+            <Variable name="stanceValid"       type="_bool"  values="true"   isPersistent="0" form="single" />
+            <Variable name="myHealthCritical"  type="_bool"  values="false"  isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                    <EntityContextElement context="crime_interrupt" enabled="true">
+                        <EntityContext context="crime_interruptAttack" target="$this.id">
+                            <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                                <Child canSkip="1">
+                                    <Parallel successMode="Any" failureMode="Any">
+
+                                        <!-- Main combat loop -->
+                                        <Loop count="-1">
+                                            <MoveParamsDecorator speed="Run" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <MeleeOffenseAutomationDecorator active="true">
+                                                    <MeleeDefenseAutomationDecorator active="true">
+                                                        <MeleeGuardAutomationDecorator GuardMode="automate" active="true">
+                                                            <WeaponAutomationDecorator WeaponChange="melee" active="true">
+                                                                <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="true">
+                                                                    <Sequence>
+                                                                        <ExecuteLua code="mercenaries:UpdateArcherCombatData(data, entity.this.id, 'melee')" />
+                                                                        <IfElseCondition failOnCondition="false" condition="$isTargetAlive &amp; $stanceValid" saveVersion="2">
+                                                                            <Then canSkip="1">
+                                                                                <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                            </Then>
+                                                                            <Else canSkip="1">
+                                                                                <Fail />
+                                                                            </Else>
+                                                                        </IfElseCondition>
+                                                                    </Sequence>
+                                                                </CombatFollowerDecorator>
+                                                            </WeaponAutomationDecorator>
+                                                        </MeleeGuardAutomationDecorator>
+                                                    </MeleeDefenseAutomationDecorator>
+                                                </MeleeOffenseAutomationDecorator>
+                                            </MoveParamsDecorator>
+                                        </Loop>
+
+                                        <!-- Leash + self-preservation watchdog -->
+                                        <Loop count="-1">
+                                            <Sequence>
+                                                <ExecuteLua code="
+                                                    pcall(function()
+                                                        if player then
+                                                            local pp = player:GetPos()
+                                                            local mp = entity:GetPos()
+                                                            if pp and mp then
+                                                                local dx = pp.x - mp.x
+                                                                local dy = pp.y - mp.y
+                                                                local dz = pp.z - mp.z
+                                                                data.distanceToPlayer = math.sqrt(dx*dx + dy*dy + dz*dz)
+                                                            end
+                                                        end
+                                                        local hp = entity.soul:GetState('health')
+                                                        data.myHealthCritical = (hp ~= nil and hp &lt;= 15)
+                                                    end)
+                                                " />
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 25.0 | $myHealthCritical">
+                                                    <Fail />
+                                                </IfCondition>
+                                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'500ms'" />
+                                            </Sequence>
+                                        </Loop>
+
+                                    </Parallel>
+                                </Child>
+
+                                <OnFail canSkip="1">
+                                    <Sequence>
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
+                                        <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                    </Sequence>
+                                </OnFail>
+                            </FuseBox>
+                        </EntityContext>
+                    </EntityContextElement>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

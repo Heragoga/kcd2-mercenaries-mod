@@ -320,5 +320,128 @@
                 <setInventory preset="inventory_mercenary_capon" />
             </operations>
         </rule>
-    </rules>
+    
+        <!-- Ranged mercenaries (archers) -->
+        <rule name="inventory_soul_merc_archer_weak_1" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_weak_1" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_weak" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_weak_2" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_weak_2" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_weak" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_weak_3" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_weak_3" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_weak" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_weak_4" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_weak_4" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_weak" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_weak_5" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_weak_5" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_weak" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_medium_1" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_medium_1" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_medium" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_medium_2" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_medium_2" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_medium" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_medium_3" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_medium_3" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_medium" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_medium_4" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_medium_4" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_medium" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_medium_5" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_medium_5" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_medium" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_strong_1" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_strong_1" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_strong" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_strong_2" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_strong_2" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_strong" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_strong_3" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_strong_3" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_strong" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_strong_4" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_strong_4" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_strong" />
+            </operations>
+        </rule>
+        <rule name="inventory_soul_merc_archer_strong_5" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_archer_strong_5" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_mercenary_archer_strong" />
+            </operations>
+        </rule>
+
+</rules>
 </storm>

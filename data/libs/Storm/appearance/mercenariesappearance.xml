@@ -427,5 +427,173 @@
             </operations>
         </rule>
 
-    </rules>
+    
+        <!-- Ranged mercenaries (archers) -->
+        <rule name="appearance_soul_merc_archer_weak_1">
+            <selectors>
+                <hasName Name="soul_merc_archer_weak_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_006" />
+                <setHair name="m_hair_005_dark_brown" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_weak_2">
+            <selectors>
+                <hasName Name="soul_merc_archer_weak_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_008_b00" />
+                <setHair name="m_hair_008_black" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_weak_3">
+            <selectors>
+                <hasName Name="soul_merc_archer_weak_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_025" />
+                <setHair name="m_hair_010_light_brown" />
+                <setBeard name="m_beard_05" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_weak_4">
+            <selectors>
+                <hasName Name="soul_merc_archer_weak_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_030" />
+                <setHair name="m_hair_014_dark_grey" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_weak_5">
+            <selectors>
+                <hasName Name="soul_merc_archer_weak_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_036_b00" />
+                <setHair name="m_hair_002_ginger" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_medium_1">
+            <selectors>
+                <hasName Name="soul_merc_archer_medium_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_044" />
+                <setHair name="m_hair_009_blonde" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_medium_2">
+            <selectors>
+                <hasName Name="soul_merc_archer_medium_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_045" />
+                <setHair name="m_hair_014_black" />
+                <setBeard name="m_beard_11" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_medium_3">
+            <selectors>
+                <hasName Name="soul_merc_archer_medium_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_060_b00" />
+                <setHair name="m_hair_006_dark_brown" />
+                <setBeard name="m_beard_12" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_medium_4">
+            <selectors>
+                <hasName Name="soul_merc_archer_medium_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_062" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_14" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_medium_5">
+            <selectors>
+                <hasName Name="soul_merc_archer_medium_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_063" />
+                <setHair name="m_hair_003_grey" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_strong_1">
+            <selectors>
+                <hasName Name="soul_merc_archer_strong_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_068" />
+                <setHair name="m_hair_005_blonde" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_strong_2">
+            <selectors>
+                <hasName Name="soul_merc_archer_strong_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_017_black" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_strong_3">
+            <selectors>
+                <hasName Name="soul_merc_archer_strong_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_081" />
+                <setHair name="m_hair_014_dark_brown" />
+                <setBeard name="m_beard_19" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_strong_4">
+            <selectors>
+                <hasName Name="soul_merc_archer_strong_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_018_b00" />
+                <setHair name="m_hair_009_black" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_merc_archer_strong_5">
+            <selectors>
+                <hasName Name="soul_merc_archer_strong_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_006_b00" />
+                <setHair name="m_hair_019_black" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+
+</rules>
 </storm>

@@ -31,6 +31,17 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid)
             end
         end
     end
+
+    -- Check if the candidate is one of our archers
+    if self.ArcherSouls then
+        for _, tierList in pairs(self.ArcherSouls) do
+            for _, guid in ipairs(tierList) do
+                if string.find(eid, guid) then
+                    return false
+                end
+            end
+        end
+    end
     
     -- Check if it's a custom hero companion
     if string.find(ent:GetName() or '', 'MercenaryCustomCompanion') then

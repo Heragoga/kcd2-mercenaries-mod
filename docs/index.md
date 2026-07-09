@@ -32,6 +32,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [How to add dialog](skald/add-dialog.md) (Creating dialog, both ingame chatter and player to NPC conversation)
 
 ### Behavior Trees
+* [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)
 * [Basic structure](behaviour-trees/basic-structure.md) (Covers the basic structure of the Behaviour Tree and some basic logical components)
 * [Combat](behaviour-trees/combat.md) (How to make your NPC fight)
 * [Movement](behaviour-trees/movement.md) (How to make your NPC move)

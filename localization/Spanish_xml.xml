@@ -34,6 +34,11 @@
   <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>Me llevaré dos.</Cell></Row>
   <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>Dame tres de ellos.</Cell></Row>
 
+  <Row><Cell>ui_mercenary_squad_orders_hub</Cell><Cell>Give the squad an order.</Cell><Cell>Give the squad an order.</Cell></Row>
+  <Row><Cell>merc_henry_squad_orders_hub_prompt</Cell><Cell>I have an order for the squad.</Cell><Cell>I have an order for the squad.</Cell></Row>
+  <Row><Cell>merc_test_squad_orders_hub_prompt</Cell><Cell>Listening, boss. Wait, follow, or dismiss us?</Cell><Cell>Listening, boss. Wait, follow, or dismiss us?</Cell></Row>
+
+
   <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Espérenme aquí.</Cell></Row>
   <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>Síganme.</Cell></Row>
   <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>Me gustaría despedirlos a todos.</Cell></Row>
@@ -85,6 +90,9 @@
   <Row><Cell>ui_renegade_count_20</Cell><Cell>All twenty.</Cell><Cell>Los veinte.</Cell></Row>
   <Row><Cell>merc_henry_renegade_count_20</Cell><Cell>All twenty, if you have them.</Cell><Cell>Los veinte, si los tenéis.</Cell></Row>
 
+  <Row><Cell>ui_mercenary_equipment_hub</Cell><Cell>Change equipment...</Cell><Cell>Change equipment...</Cell></Row>
+  <Row><Cell>merc_henry_equipment_hub_prompt</Cell><Cell>Let's talk about your equipment.</Cell><Cell>Let's talk about your equipment.</Cell></Row>
+  <Row><Cell>merc_test_equipment_hub_prompt</Cell><Cell>Outfits, weapons, or the archers' gear?</Cell><Cell>Outfits, weapons, or the archers' gear?</Cell></Row>
   <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>Cambiar equipamiento...</Cell></Row>
   <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>Necesito que se cambien el equipo.</Cell></Row>
   <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>¿Qué deberíamos ponernos?</Cell></Row>
@@ -116,6 +124,9 @@
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Olvídalo)</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>En realidad, olvídalo.</Cell></Row>
 
+  <Row><Cell>ui_mercenary_combat_hub</Cell><Cell>Change combat orders...</Cell><Cell>Change combat orders...</Cell></Row>
+  <Row><Cell>merc_henry_combat_hub_prompt</Cell><Cell>Let's talk about how you fight.</Cell><Cell>Let's talk about how you fight.</Cell></Row>
+  <Row><Cell>merc_test_combat_hub_prompt</Cell><Cell>The regulars or the archers?</Cell><Cell>The regulars or the archers?</Cell></Row>
   <Row><Cell>ui_mercenary_change_stance</Cell><Cell>Change combat stance...</Cell><Cell>Cambiar postura de combate...</Cell></Row>
   <Row><Cell>merc_henry_stance_hub_prompt</Cell><Cell>I want to talk tactics.</Cell><Cell>Quiero hablar de tácticas.</Cell></Row>
   <Row><Cell>merc_test_stance_hub_prompt</Cell><Cell>How do you want us to fight?</Cell><Cell>¿Cómo quieres que luchemos?</Cell></Row>
@@ -269,10 +280,11 @@
   <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>Envíen un mensaje a mis hombres. Los necesito de vuelta.</Cell></Row>
   <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>Dalo por hecho. Enviaré un mensajero de inmediato.</Cell></Row>
 
-  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>Cúrense.</Cell></Row>
-  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>Tomen estos suministros y cúrense. Se ven terribles.</Cell></Row>
-  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>Haremos lo que podamos, jefe, pero un buen sanador no vendría mal.</Cell></Row>
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up (20 groschen).</Cell><Cell>Cúrense.</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Here's 20 groschen, patch yourselves up. You look terrible.</Cell><Cell>Tomen estos suministros y cúrense. Se ven terribles.</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>That'll cover bandages and drink. We'll be right as rain.</Cell><Cell>Haremos lo que podamos, jefe, pero un buen sanador no vendría mal.</Cell></Row>
   <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>Tus mercenarios han sido curados.</Cell></Row>
+  <Row><Cell>merc_info_nobody_injured</Cell><Cell>Nobody needs healing right now.</Cell><Cell>Nobody needs healing right now.</Cell></Row>
 
 
   <Row><Cell>merc_test_bark_string</Cell><Cell>This is a test. I like cheese.</Cell><Cell>Esto es una prueba. Me gusta el queso.</Cell></Row>
@@ -299,4 +311,57 @@
   <Row><Cell>a614a_story20</Cell><Cell>He said it was a simple job, was henry's speech for bring armor and a priest.</Cell><Cell>Dijo que era un trabajo sencillo, lo que en el idioma de Henry significa trae armadura y un sacerdote.</Cell></Row>
   <Row><Cell>a614a_story21</Cell><Cell>I have guarded caravans safer, than one of henry's polite conversations.</Cell><Cell>He custodiado caravanas más seguras que una de las conversaciones educadas de Henry.</Cell></Row>
   <Row><Cell>a614a_story22</Cell><Cell>Henry, you have the rare gift of making armed men look like paperwork.</Cell><Cell>Henry, tienes el raro don de hacer que los hombres armados parezcan papeleo.</Cell></Row>
+
+  <!-- Ranged mercenaries (archers) -->
+  <Row><Cell>char_mercenary_archer_weak_uiName</Cell><Cell>Mercenary Archer</Cell><Cell>Mercenary Archer</Cell></Row>
+  <Row><Cell>char_mercenary_archer_medium_uiName</Cell><Cell>Mercenary Archer</Cell><Cell>Mercenary Archer</Cell></Row>
+  <Row><Cell>char_mercenary_archer_strong_uiName</Cell><Cell>Veteran Archer</Cell><Cell>Veteran Archer</Cell></Row>
+  <Row><Cell>ui_mercenary_type_archers</Cell><Cell>Ranged mercenaries.</Cell><Cell>Ranged mercenaries.</Cell></Row>
+  <Row><Cell>merc_henry_archers</Cell><Cell>I need men who can use a bow.</Cell><Cell>I need men who can use a bow.</Cell></Row>
+  <Row><Cell>merc_provider_archers</Cell><Cell>Archers, eh? I know a few lads with steady hands. How good should they be?</Cell><Cell>Archers, eh? I know a few lads with steady hands. How good should they be?</Cell></Row>
+  <Row><Cell>ui_archer_tier_weak</Cell><Cell>The cheapest (75 groschen).</Cell><Cell>The cheapest (75 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_archer_weak</Cell><Cell>Whatever's cheapest, as long as they can loose an arrow.</Cell><Cell>Whatever's cheapest, as long as they can loose an arrow.</Cell></Row>
+  <Row><Cell>merc_provider_archer_weak</Cell><Cell>Poachers, mostly. 75 groschen a head. How many?</Cell><Cell>Poachers, mostly. 75 groschen a head. How many?</Cell></Row>
+  <Row><Cell>ui_archer_tier_medium</Cell><Cell>Some decent shots (150 groschen).</Cell><Cell>Some decent shots (150 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_archer_medium</Cell><Cell>Someone who can actually hit what they aim at.</Cell><Cell>Someone who can actually hit what they aim at.</Cell></Row>
+  <Row><Cell>merc_provider_archer_medium</Cell><Cell>Proper hunters. 150 groschen a head. How many?</Cell><Cell>Proper hunters. 150 groschen a head. How many?</Cell></Row>
+  <Row><Cell>ui_archer_tier_good</Cell><Cell>A master archer (400 groschen).</Cell><Cell>A master archer (400 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_archer_good</Cell><Cell>The best bowman you can find.</Cell><Cell>The best bowman you can find.</Cell></Row>
+  <Row><Cell>merc_provider_archer_good</Cell><Cell>War archers, tournament winners. 400 groschen a head. How many?</Cell><Cell>War archers, tournament winners. 400 groschen a head. How many?</Cell></Row>
+  <Row><Cell>ui_archer_orders_hub</Cell><Cell>Orders for the archers.</Cell><Cell>Orders for the archers.</Cell></Row>
+  <Row><Cell>merc_henry_archer_hub_prompt</Cell><Cell>I have orders for the archers.</Cell><Cell>I have orders for the archers.</Cell></Row>
+  <Row><Cell>merc_test_archer_hub_prompt</Cell><Cell>The bowmen are listening. How should we fight?</Cell><Cell>The bowmen are listening. How should we fight?</Cell></Row>
+  <Row><Cell>ui_archer_stance_skirmish</Cell><Cell>Skirmish - keep your distance and shoot.</Cell><Cell>Skirmish - keep your distance and shoot.</Cell></Row>
+  <Row><Cell>merc_henry_archer_skirmish</Cell><Cell>Stay at range and keep the arrows coming. Don't let them get close.</Cell><Cell>Stay at range and keep the arrows coming. Don't let them get close.</Cell></Row>
+  <Row><Cell>merc_test_archer_skirmish</Cell><Cell>We'll keep them at arm's length and feather them. If one gets in our face, he'll taste steel.</Cell><Cell>We'll keep them at arm's length and feather them. If one gets in our face, he'll taste steel.</Cell></Row>
+  <Row><Cell>ui_archer_stance_guard</Cell><Cell>Stay behind me and shoot from there.</Cell><Cell>Stay behind me and shoot from there.</Cell></Row>
+  <Row><Cell>merc_henry_archer_guard</Cell><Cell>Stick close to me and shoot over my shoulder.</Cell><Cell>Stick close to me and shoot over my shoulder.</Cell></Row>
+  <Row><Cell>merc_test_archer_guard</Cell><Cell>We'll shadow you and shoot whatever comes at you.</Cell><Cell>We'll shadow you and shoot whatever comes at you.</Cell></Row>
+  <Row><Cell>ui_archer_stance_melee</Cell><Cell>Draw steel and get in there.</Cell><Cell>Draw steel and get in there.</Cell></Row>
+  <Row><Cell>merc_henry_archer_melee</Cell><Cell>Put the bows away. I want blades in the melee.</Cell><Cell>Put the bows away. I want blades in the melee.</Cell></Row>
+  <Row><Cell>merc_test_archer_melee</Cell><Cell>As you wish. Steel it is.</Cell><Cell>As you wish. Steel it is.</Cell></Row>
+  <Row><Cell>ui_archer_stance_hold</Cell><Cell>Hold your fire.</Cell><Cell>Hold your fire.</Cell></Row>
+  <Row><Cell>merc_henry_archer_hold</Cell><Cell>Hold your fire. Nobody shoots unless I say so.</Cell><Cell>Hold your fire. Nobody shoots unless I say so.</Cell></Row>
+  <Row><Cell>merc_test_archer_hold</Cell><Cell>Understood. Not an arrow until you give the word.</Cell><Cell>Understood. Not an arrow until you give the word.</Cell></Row>
+  <Row><Cell>ui_archer_weapon_hub</Cell><Cell>Change the archers' weapons.</Cell><Cell>Change the archers' weapons.</Cell></Row>
+  <Row><Cell>merc_henry_archer_weapon_hub_prompt</Cell><Cell>I want to change what the archers carry.</Cell><Cell>I want to change what the archers carry.</Cell></Row>
+  <Row><Cell>merc_test_archer_weapon_hub_prompt</Cell><Cell>Bow, crossbow, or hand cannon? Your call.</Cell><Cell>Bow, crossbow, or hand cannon? Your call.</Cell></Row>
+  <Row><Cell>ui_archer_weapon_bow</Cell><Cell>Bows.</Cell><Cell>Bows.</Cell></Row>
+  <Row><Cell>merc_henry_archer_weapon_bow</Cell><Cell>Arm them with bows.</Cell><Cell>Arm them with bows.</Cell></Row>
+  <Row><Cell>merc_test_archer_weapon_bow</Cell><Cell>Bows it is.</Cell><Cell>Bows it is.</Cell></Row>
+  <Row><Cell>ui_archer_weapon_crossbow</Cell><Cell>Crossbows.</Cell><Cell>Crossbows.</Cell></Row>
+  <Row><Cell>merc_henry_archer_weapon_crossbow</Cell><Cell>Arm them with crossbows.</Cell><Cell>Arm them with crossbows.</Cell></Row>
+  <Row><Cell>merc_test_archer_weapon_crossbow</Cell><Cell>Crossbows it is. Slower, but they hit harder.</Cell><Cell>Crossbows it is. Slower, but they hit harder.</Cell></Row>
+  <Row><Cell>ui_archer_weapon_handcannon</Cell><Cell>Hand cannons.</Cell><Cell>Hand cannons.</Cell></Row>
+  <Row><Cell>merc_henry_archer_weapon_handcannon</Cell><Cell>Arm them with hand cannons.</Cell><Cell>Arm them with hand cannons.</Cell></Row>
+  <Row><Cell>merc_test_archer_weapon_handcannon</Cell><Cell>Hand cannons? Bold choice. As you say.</Cell><Cell>Hand cannons? Bold choice. As you say.</Cell></Row>
+  <Row><Cell>merc_info_archer_hired_single</Cell><Cell>Archer hired.</Cell><Cell>Archer hired.</Cell></Row>
+  <Row><Cell>merc_info_archer_hired_multiple</Cell><Cell>Archers hired.</Cell><Cell>Archers hired.</Cell></Row>
+  <Row><Cell>merc_info_archer_stance_skirmish</Cell><Cell>Archers: skirmishing at range.</Cell><Cell>Archers: skirmishing at range.</Cell></Row>
+  <Row><Cell>merc_info_archer_stance_guard</Cell><Cell>Archers: guarding you.</Cell><Cell>Archers: guarding you.</Cell></Row>
+  <Row><Cell>merc_info_archer_stance_melee</Cell><Cell>Archers: engaging in melee.</Cell><Cell>Archers: engaging in melee.</Cell></Row>
+  <Row><Cell>merc_info_archer_stance_hold</Cell><Cell>Archers: holding fire.</Cell><Cell>Archers: holding fire.</Cell></Row>
+  <Row><Cell>merc_info_archer_weapon_bow</Cell><Cell>Archers: armed with bows.</Cell><Cell>Archers: armed with bows.</Cell></Row>
+  <Row><Cell>merc_info_archer_weapon_crossbow</Cell><Cell>Archers: armed with crossbows.</Cell><Cell>Archers: armed with crossbows.</Cell></Row>
+  <Row><Cell>merc_info_archer_weapon_handcannon</Cell><Cell>Archers: armed with hand cannons.</Cell><Cell>Archers: armed with hand cannons.</Cell></Row>
 </Table>

@@ -1,7 +1,5 @@
 -- Heals and washes all active mercenaries.
--- Note: count parameter is retained for API compatibility but currently heals all,
--- as the count variable is slightly broken in skald.
-function mercenaries:FullHealAndWashNumberOfMercs(count)
+function mercenaries:FullHealAndWashNumberOfMercs()
     -- PERFORMANCE: Iterate the cache instead of scanning all world NPCs.
     for name, e in pairs(self.ActiveMercs) do
         if e and e.soul then
@@ -13,12 +11,44 @@ function mercenaries:FullHealAndWashNumberOfMercs(count)
                 e.actor:CleanDirt(1)
 
                 for i = 1, 6 do
-                    pcall(function() 
-                        e.soul:HealBleeding(1.0, i) 
+                    pcall(function()
+                        e.soul:HealBleeding(1.0, i)
                     end)
                 end
             end
         end
     end
     Game.SendInfoText('merc_info_merc_healed', false, 0, 3)
+end
+
+-- Returns true if at least one active merc could use healing (matches the
+-- threshold FullHealAndWashNumberOfMercs itself uses).
+function mercenaries:AnyMercNeedsHealing()
+    for _, e in pairs(self.ActiveMercs) do
+        if e and e.soul and e.actor and not e.actor:IsUnconscious() then
+            local ok, hp = pcall(function() return e.soul:GetState('health') end)
+            if ok and hp and hp > 0 and hp < 80 then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- Called from the heal token handler in mercenaries.lua. Charges a flat fee
+-- for the whole squad regardless of how many mercs are hurt.
+function mercenaries:HealMercsForFlatFee()
+    if not self:AnyMercNeedsHealing() then
+        Game.SendInfoText('merc_info_nobody_injured', false, 0, 3)
+        return
+    end
+
+    local p = player.inventory
+    if p:GetMoney() < self.HealCost then
+        Game.SendInfoText('merc_info_not_enough_money', false, 0, 3)
+        return
+    end
+
+    p:RemoveMoney(self.HealCost)
+    self:FullHealAndWashNumberOfMercs()
 end

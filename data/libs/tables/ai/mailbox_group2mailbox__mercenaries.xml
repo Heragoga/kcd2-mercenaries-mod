@@ -5,5 +5,8 @@
 		<!-- this xml does support connecting multiple mailbox_group to one mailbox_id -->
 		<mailbox_group2mailbox mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66857" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
 
+		<!-- Ranged mercenaries (archers) -->
+		<mailbox_group2mailbox mailbox_group_id="ba89450b-07cd-4548-8599-79549cca1253" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+
 	</mailbox_group2mailboxs>
 </database>

@@ -88,6 +88,12 @@ function mercenaries:EquipMercenaryWeapon(ent, currentPreset)
     if string.find(name, 'MercenaryCustomCompanion') then
         return
     end
+    -- Archers keep their bow set no matter what melee loadout the squad
+    -- switches to - their combat trees depend on a missile weapon existing.
+    if self:IsArcherName(name) then
+        self:EquipArcherWeapon(ent)
+        return
+    end
     local tier = "weak"
 
     -- Parse tier directly from their entity name

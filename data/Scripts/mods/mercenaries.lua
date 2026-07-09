@@ -50,6 +50,9 @@ end
 
 mercenaries.MaxCompanions = 999
 
+-- Flat fee to heal & wash the whole squad in one go, regardless of size.
+mercenaries.HealCost = 20
+
 mercenaries.TargetDetectionRadius = 50
 
 -- Max number of mercs allowed to already be closer to a given enemy before
@@ -535,10 +538,10 @@ function mercenaries:MonitorInventory()
     end
 
 
-    --heal & wash x number of mercs
+    -- heal & wash the whole squad for a flat fee
     if countHeal and countHeal > 0 then
         p:DeleteItemOfClass(self.TokenIDHeal, countHeal)
-        self:FullHealAndWashNumberOfMercs(countHeal)
+        self:HealMercsForFlatFee()
     end
 
     -- Combat stance chosen via dialogue
@@ -579,6 +582,9 @@ function mercenaries:MonitorInventory()
         p:DeleteItemOfClass(self.TokenIDSpawnRenegadeStrong, countSpawnRenegadeStrong)
         self:SpawnRenegade(countSpawnRenegadeStrong, nil, "strong", nil)
     end
+
+    -- Archer (ranged merc) hire / stance / AI-variant tokens
+    self:MonitorArcherTokens(p)
 
 end
 
@@ -665,6 +671,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     local savedStance = mercenaries:LoadString("MercStancePersistent")
     _G.MercStance = (savedStance and self.StanceCode[savedStance]) and savedStance or "player_target"
 
+    -- Load archer stance + skirmish AI variant
+    self:LoadArcherState()
+
     self:ReleaseSpeakingLock()
 
     _G.PlayerMounted = false
@@ -690,6 +699,7 @@ Script.LoadScript("Scripts/mods/mercenaries_formation_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
+Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 
 
 -- Register commands

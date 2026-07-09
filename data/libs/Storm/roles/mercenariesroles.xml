@@ -561,5 +561,128 @@
 
     
 
-  </rules>
+  
+    <!-- Ranged mercenaries (archers) -->
+    <rule name="soul_merc_archer_weak_1">
+      <selectors>
+        <hasName name="soul_merc_archer_weak_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_weak_2">
+      <selectors>
+        <hasName name="soul_merc_archer_weak_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_weak_3">
+      <selectors>
+        <hasName name="soul_merc_archer_weak_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_weak_4">
+      <selectors>
+        <hasName name="soul_merc_archer_weak_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_weak_5">
+      <selectors>
+        <hasName name="soul_merc_archer_weak_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_medium_1">
+      <selectors>
+        <hasName name="soul_merc_archer_medium_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_medium_2">
+      <selectors>
+        <hasName name="soul_merc_archer_medium_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_medium_3">
+      <selectors>
+        <hasName name="soul_merc_archer_medium_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_medium_4">
+      <selectors>
+        <hasName name="soul_merc_archer_medium_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_medium_5">
+      <selectors>
+        <hasName name="soul_merc_archer_medium_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_strong_1">
+      <selectors>
+        <hasName name="soul_merc_archer_strong_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_strong_2">
+      <selectors>
+        <hasName name="soul_merc_archer_strong_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_strong_3">
+      <selectors>
+        <hasName name="soul_merc_archer_strong_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_strong_4">
+      <selectors>
+        <hasName name="soul_merc_archer_strong_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_strong_5">
+      <selectors>
+        <hasName name="soul_merc_archer_strong_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+      </operations>
+    </rule>
+
+</rules>
 </storm>

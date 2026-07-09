@@ -5,5 +5,8 @@
 		<!-- coulnd't associate mailbox_group_id with another path, it would overwrite animal_horseBrain-->
 
 		<mailbox_group mailbox_group_file_name="mercenary_scheduler.xml" mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66857" mailbox_group_tree_name="onUpdate" />
+
+		<!-- Ranged mercenaries (archers) -->
+		<mailbox_group mailbox_group_file_name="archer_scheduler.xml" mailbox_group_id="ba89450b-07cd-4548-8599-79549cca1253" mailbox_group_tree_name="onUpdate" />
 	</mailbox_groups>
 </database>

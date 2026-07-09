@@ -32,19 +32,26 @@ function mercenaries:UpdateFormationSlots()
             end
         end
 
-        -- Mounted mercs: heroes first by name, then regulars by name
+        -- Formation rank: heroes lead, melee regulars next, archers at the back
+        local function formationRank(mercType)
+            if mercType == "hero" then return 0 end
+            if mercType == "archer" then return 2 end
+            return 1
+        end
+
+        -- Mounted mercs: heroes first by name, then regulars, archers last
         table.sort(mounted, function(a, b)
-            local aHero = (a.mercType == "hero") and 0 or 1
-            local bHero = (b.mercType == "hero") and 0 or 1
-            if aHero ~= bHero then return aHero < bHero end
+            local aRank = formationRank(a.mercType)
+            local bRank = formationRank(b.mercType)
+            if aRank ~= bRank then return aRank < bRank end
             return a.name < b.name
         end)
 
-        -- Unmounted mercs: heroes first by name, then regulars by descending health
+        -- Unmounted mercs: heroes first by name, then regulars by descending health, archers last
         table.sort(unmounted, function(a, b)
-            local aHero = (a.mercType == "hero") and 0 or 1
-            local bHero = (b.mercType == "hero") and 0 or 1
-            if aHero ~= bHero then return aHero < bHero end
+            local aRank = formationRank(a.mercType)
+            local bRank = formationRank(b.mercType)
+            if aRank ~= bRank then return aRank < bRank end
             if a.mercType == "hero" then return a.name < b.name end
             if a.hp == b.hp then return a.name < b.name end
             return a.hp > b.hp

@@ -371,5 +371,100 @@
             <weapon_preset_item item_class_id="e4e1b22a-428a-4e20-aa92-ce216b324c0a" />
         </weapon_preset>
 
+        <!-- ==================== Archer sets (ranged mercs) ====================
+             Bow + arrows + a shortsword sidearm so the melee-fallback part of
+             the archer brain has something to swing when enemies close in.
+             Arrow item classes come from the vanilla item table (root item.xml):
+             arrow_normal / arrow_hunting / arrow_enh_hunting / arrow_enh_piercing.
+             Lua tops arrow count up on spawn (GiveArcherAmmo). -->
+        <weapon_preset weapon_preset_id="fca40a2e-4d33-4675-8dc2-a918c0998198" weapon_preset_name="merc_weapon_archerset_weak_1">
+            <weapon_preset_item item_class_id="0fffb172-2183-4545-bbdb-01e04a3ff32f" /> <!-- Village hazel bow -->
+            <weapon_preset_item item_class_id="ad6f0f01-aec4-44d1-982c-1210eb01b74a" /> <!-- arrow_normal -->
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4838fefa-bd2f-433f-861a-6599e2182f5b" weapon_preset_name="merc_weapon_archerset_weak_2">
+            <weapon_preset_item item_class_id="db354284-2cf9-40a4-bcfc-e78d020204af" /> <!-- Dogwood village bow -->
+            <weapon_preset_item item_class_id="ad6f0f01-aec4-44d1-982c-1210eb01b74a" /> <!-- arrow_normal -->
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d6d73839-0334-4e24-adfe-3fa4b6cbdd2c" weapon_preset_name="merc_weapon_archerset_medium_1">
+            <weapon_preset_item item_class_id="7b77a0e9-91cd-403f-be3e-6be6bac8e589" /> <!-- Worn Cuman bow -->
+            <weapon_preset_item item_class_id="710e3706-8974-404b-b23a-6f51670ef1ed" /> <!-- arrow_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="fe692cff-7236-4cfd-af19-bc44e3d20f19" weapon_preset_name="merc_weapon_archerset_medium_2">
+            <weapon_preset_item item_class_id="f54e6116-6c6c-4712-99a9-8a11e3416e2b" /> <!-- Ash hunting bow -->
+            <weapon_preset_item item_class_id="710e3706-8974-404b-b23a-6f51670ef1ed" /> <!-- arrow_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="561167b1-0775-4066-8110-8c390e21ff95" weapon_preset_name="merc_weapon_archerset_strong_1">
+            <weapon_preset_item item_class_id="b4a0b9c9-bf92-4cce-ad43-f20f57c892b9" /> <!-- Elm longbow -->
+            <weapon_preset_item item_class_id="802507e9-d620-47b5-ae66-08fcc314e26a" /> <!-- arrow_enh_hunting -->
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="94c8ab63-cf02-471d-a6eb-7807623c8265" weapon_preset_name="merc_weapon_archerset_strong_2">
+            <weapon_preset_item item_class_id="77262956-daee-4a0e-9035-517569f18ef4" /> <!-- Ash longbow -->
+            <weapon_preset_item item_class_id="a5b31bbc-1e11-4831-835b-c06d5b13a7da" /> <!-- arrow_enh_piercing -->
+            <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+
+        <!-- ==================== Archer sets: crossbow ====================
+             Crossbow + bolts + the same shortsword sidearm used by the bow
+             sets. Crossbow/bolt item classes come from the vanilla item
+             table (root item.xml). Lua tops bolt count up on spawn/re-equip
+             (GiveArcherAmmo). -->
+        <weapon_preset weapon_preset_id="1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d" weapon_preset_name="merc_weapon_archerset_crossbow_weak_1">
+            <weapon_preset_item item_class_id="7673efc2-0566-4dde-9e18-f96c7790ce2e" /> <!-- Old hunting crossbow -->
+            <weapon_preset_item item_class_id="8460003f-637f-4713-92c9-4954037c4b9c" /> <!-- bolt_normal -->
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e" weapon_preset_name="merc_weapon_archerset_crossbow_weak_2">
+            <weapon_preset_item item_class_id="cb6ee20b-6eee-434c-af4c-8031502e2bec" /> <!-- Hunting crossbow -->
+            <weapon_preset_item item_class_id="8460003f-637f-4713-92c9-4954037c4b9c" /> <!-- bolt_normal -->
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f" weapon_preset_name="merc_weapon_archerset_crossbow_medium_1">
+            <weapon_preset_item item_class_id="b77f912a-042b-47ca-8f42-5fddbcad3763" /> <!-- Old field crossbow -->
+            <weapon_preset_item item_class_id="40337bef-e965-4a60-abee-695e9a784fa4" /> <!-- bolt_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a" weapon_preset_name="merc_weapon_archerset_crossbow_medium_2">
+            <weapon_preset_item item_class_id="48f25a62-e787-490e-83e9-9335bf303ef9" /> <!-- Field crossbow -->
+            <weapon_preset_item item_class_id="40337bef-e965-4a60-abee-695e9a784fa4" /> <!-- bolt_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b" weapon_preset_name="merc_weapon_archerset_crossbow_strong_1">
+            <weapon_preset_item item_class_id="f0fb0494-6ebd-4c6a-bb9e-ef396db3c5d4" /> <!-- Reinforced heavy crossbow -->
+            <weapon_preset_item item_class_id="b738d184-4ae1-4d74-8fac-b8db1943b1d4" /> <!-- bolt_enh_hunting -->
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f8a9b0c" weapon_preset_name="merc_weapon_archerset_crossbow_strong_2">
+            <weapon_preset_item item_class_id="588c12c6-f0fb-4b3e-847d-ce1df2739e73" /> <!-- Heavy crossbow -->
+            <weapon_preset_item item_class_id="b738d184-4ae1-4d74-8fac-b8db1943b1d4" /> <!-- bolt_enh_hunting -->
+            <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+
+        <!-- ==================== Archer sets: handcannon ====================
+             Handcannon + the same shortsword sidearm. Hand cannons have no
+             separate ammo item class in the vanilla tables (no gunpowder/
+             shot item exists to track), so these sets carry no ammo item
+             and the archer brain never reports them as out of ammo. -->
+        <weapon_preset weapon_preset_id="7a8b9c0d-1e2f-4a3b-4c5d-6e7f8a9b0c1d" weapon_preset_name="merc_weapon_archerset_handcannon_weak_1">
+            <weapon_preset_item item_class_id="ea78735d-b371-46d4-a039-bef0ebbb088e" /> <!-- Pistole -->
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="8b9c0d1e-2f3a-4b4c-5d6e-7f8a9b0c1d2e" weapon_preset_name="merc_weapon_archerset_handcannon_weak_2">
+            <weapon_preset_item item_class_id="d9ccf323-7ca7-4d05-b8fb-213c748bb23e" /> <!-- Hand cannon -->
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="9c0d1e2f-3a4b-4c5d-6e7f-8a9b0c1d2e3f" weapon_preset_name="merc_weapon_archerset_handcannon_medium_1">
+            <weapon_preset_item item_class_id="2694bfef-be40-4fb2-901b-e010eaede3ec" /> <!-- Master's pistole -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="0d1e2f3a-4b5c-4d6e-7f8a-9b0c1d2e3f4a" weapon_preset_name="merc_weapon_archerset_handcannon_strong_1">
+            <weapon_preset_item item_class_id="842c178a-54b8-4c2b-8255-77d430165320" /> <!-- Fine hand cannon -->
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+
     </weapon_presets>
 </database>
