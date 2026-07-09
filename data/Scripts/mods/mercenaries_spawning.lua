@@ -318,7 +318,9 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
             if ent then
                 self:EquipMercenary(ent, enemyOutfit)
                 self:EquipMercenaryWeapon(ent, enemyWeapon)
-                pcall(function() ent.human:DrawWeapon() end)
+                -- No manual DrawWeapon() - see the matching comment in
+                -- SpawnRenegade; renegade_attack.xml's automation decorators
+                -- own weapon draw, and forcing it here races spawn init.
             end
         end
     end)
@@ -476,7 +478,13 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
             if ent then
                 self:EquipMercenary(ent, outfitPreset)
                 self:EquipMercenaryWeapon(ent, weaponPreset)
-                pcall(function() ent.human:DrawWeapon() end)
+                -- No manual DrawWeapon() here on purpose: renegade_attack.xml's
+                -- MeleeOffenseAutomationDecorator/WeaponAutomationDecorator own
+                -- weapon draw once combat starts, same as every other combat
+                -- tree in this mod. Forcing a draw here races the entity's
+                -- just-spawned init and can leave it stuck in a state the
+                -- automation doesn't expect - the likely cause of renegades
+                -- that spawn in and never react.
             end
         end
     end)

@@ -37,6 +37,9 @@
   <Row><Cell>ui_mercenary_squad_orders_hub</Cell><Cell>Give the squad an order.</Cell><Cell>Give the squad an order.</Cell></Row>
   <Row><Cell>merc_henry_squad_orders_hub_prompt</Cell><Cell>I have an order for the squad.</Cell><Cell>I have an order for the squad.</Cell></Row>
   <Row><Cell>merc_test_squad_orders_hub_prompt</Cell><Cell>Listening, boss. Wait, follow, or dismiss us?</Cell><Cell>Listening, boss. Wait, follow, or dismiss us?</Cell></Row>
+  <Row><Cell>ui_mercenary_status_report</Cell><Cell>How is everyone holding up?</Cell><Cell>How is everyone holding up?</Cell></Row>
+  <Row><Cell>merc_henry_status_report</Cell><Cell>Give me a report. How is everyone holding up?</Cell><Cell>Give me a report. How is everyone holding up?</Cell></Row>
+  <Row><Cell>merc_test_status_report</Cell><Cell>Here's where we stand, boss.</Cell><Cell>Here's where we stand, boss.</Cell></Row>
 
 
   <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>在这等我。</Cell></Row>
@@ -284,6 +287,7 @@
   <Row><Cell>merc_heal_merc</Cell><Cell>That'll cover bandages and drink. We'll be right as rain.</Cell><Cell>我们会尽力的，老大，不过要是能有个真正的医生就更好了。</Cell></Row>
   <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>你的佣兵已经痊愈了。</Cell></Row>
   <Row><Cell>merc_info_nobody_injured</Cell><Cell>Nobody needs healing right now.</Cell><Cell>Nobody needs healing right now.</Cell></Row>
+  <Row><Cell>merc_info_status_empty</Cell><Cell>You have no mercenaries in your company.</Cell><Cell>You have no mercenaries in your company.</Cell></Row>
 
 
 

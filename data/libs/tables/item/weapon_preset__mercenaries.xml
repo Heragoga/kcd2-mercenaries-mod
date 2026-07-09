@@ -445,24 +445,31 @@
         </weapon_preset>
 
         <!-- ==================== Archer sets: handcannon ====================
-             Handcannon + the same shortsword sidearm. Hand cannons have no
-             separate ammo item class in the vanilla tables (no gunpowder/
-             shot item exists to track), so these sets carry no ammo item
-             and the archer brain never reports them as out of ammo. -->
+             Handcannon + shot_ball ammo + the same shortsword sidearm.
+             Hand cannons DO have a trackable ammo item in the vanilla
+             tables (shot_ball, Type="3") - vanilla gunsmith stock always
+             pairs it with handgunFancy01/hookgunNormal01 (see
+             InventoryPreset__shops_components.xml, inventory_shop_pusko_special).
+             There's no tiered variant like arrows/bolts have, so every tier
+             uses the same shot_ball item. -->
         <weapon_preset weapon_preset_id="7a8b9c0d-1e2f-4a3b-4c5d-6e7f8a9b0c1d" weapon_preset_name="merc_weapon_archerset_handcannon_weak_1">
             <weapon_preset_item item_class_id="ea78735d-b371-46d4-a039-bef0ebbb088e" /> <!-- Pistole -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
             <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" /> <!-- shortsword sidearm -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="8b9c0d1e-2f3a-4b4c-5d6e-7f8a9b0c1d2e" weapon_preset_name="merc_weapon_archerset_handcannon_weak_2">
             <weapon_preset_item item_class_id="d9ccf323-7ca7-4d05-b8fb-213c748bb23e" /> <!-- Hand cannon -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
             <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" /> <!-- shortsword sidearm -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="9c0d1e2f-3a4b-4c5d-6e7f-8a9b0c1d2e3f" weapon_preset_name="merc_weapon_archerset_handcannon_medium_1">
             <weapon_preset_item item_class_id="2694bfef-be40-4fb2-901b-e010eaede3ec" /> <!-- Master's pistole -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
             <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="0d1e2f3a-4b5c-4d6e-7f8a-9b0c1d2e3f4a" weapon_preset_name="merc_weapon_archerset_handcannon_strong_1">
             <weapon_preset_item item_class_id="842c178a-54b8-4c2b-8255-77d430165320" /> <!-- Fine hand cannon -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
             <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
         </weapon_preset>
 

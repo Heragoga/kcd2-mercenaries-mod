@@ -35,6 +35,53 @@ function mercenaries:AnyMercNeedsHealing()
     return false
 end
 
+-- QoL: one-line squad overview shown as HUD info text. Reachable from the
+-- squad-orders dialog ("How is everyone holding up?") and the merc_status
+-- console command. The string is assembled dynamically, so it's shown raw
+-- rather than through the localization table.
+function mercenaries:ShowSquadStatus()
+    local ok, err = pcall(function()
+        local total, archers, heroes = 0, 0, 0
+        local hpSum, injured = 0, 0
+
+        for name, ent in pairs(self.ActiveMercs) do
+            if self:IsAliveAndWell(ent, true) then
+                total = total + 1
+                local mercType = self:GetMercType(ent)
+                if mercType == "archer" then archers = archers + 1
+                elseif mercType == "hero" then heroes = heroes + 1 end
+
+                local hp = 100
+                pcall(function() hp = tonumber(ent.soul:GetState('health')) or 100 end)
+                hpSum = hpSum + hp
+                if hp < 80 then injured = injured + 1 end
+            end
+        end
+
+        if total == 0 then
+            Game.SendInfoText('merc_info_status_empty', false, 0, 4)
+            return
+        end
+
+        local avg = math.floor(hpSum / total + 0.5)
+        local order = "following"
+        if _G.MercenariesDismissed then order = "dismissed"
+        elseif _G.MercIdle then order = "waiting" end
+
+        local msg = string.format(
+            "Squad: %d (%d melee / %d archers / %d heroes)  |  Health: %d%% avg, %d injured  |  Orders: %s  |  Targeting: %s  |  Archers: %s, %s",
+            total, total - archers - heroes, archers, heroes,
+            avg, injured, order,
+            tostring(_G.MercStance or "player_target"),
+            tostring(_G.ArcherStance or "skirmish"),
+            self:GetArcherWeaponType())
+
+        Game.SendInfoText(msg, false, 0, 8)
+        System.LogAlways('[Mercenary Jeff] ' .. msg)
+    end)
+    if not ok then System.LogAlways('[Mercenary Jeff] ShowSquadStatus error: ' .. tostring(err)) end
+end
+
 -- Called from the heal token handler in mercenaries.lua. Charges a flat fee
 -- for the whole squad regardless of how many mercs are hurt.
 function mercenaries:HealMercsForFlatFee()

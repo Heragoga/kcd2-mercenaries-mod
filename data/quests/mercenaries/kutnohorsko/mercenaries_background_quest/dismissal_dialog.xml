@@ -15,6 +15,7 @@
                 <Port Name="equip_skalitz" Direction="Out" Type="trigger" />
 
                 <Port Name="mercenary_open_heal_menu" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_status_report" Direction="Out" Type="trigger" />
 
                 <Port Name="mercenary_stance_everyone" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_stance_player_target" Direction="Out" Type="trigger" />
@@ -96,6 +97,21 @@
 
                             <Decision Name="dec_squad_orders_choices">
                                 <Sequences>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_status_report">
+                                        <UiPrompt StringName="ui_mercenary_status_report" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_status_report" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_test_status_report" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_status_report" /></Triggers>
+                                    </Sequence>
 
                                     <Sequence EndType="EndDialogue" Name="seq_wait_action">
                                         <UiPrompt StringName="ui_mercenary_wait_action" />

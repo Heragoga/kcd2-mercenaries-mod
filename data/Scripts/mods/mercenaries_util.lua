@@ -42,7 +42,6 @@ function mercenaries:RebuildMercCache()
     for _ in pairs(self.ActiveMercs) do c = c + 1 end
     _G.MercCount = c
     System.LogAlways('[Mercenary Jeff] Merc cache rebuilt. Active mercs: ' .. tostring(_G.MercCount))
-    System.LogAlways('[Mercenary Jeff] Merc cache rebuilt. Active mercs: ' .. tostring(self:_TableCount(self.ActiveMercs)))
 end
 function mercenaries.RebuildMercCacheDelayed()
     mercenaries:RebuildMercCache()
@@ -60,9 +59,13 @@ function mercenaries:PruneMercCache()
     end
 end
 
-function mercenaries:DespawnMerc(entID)
-    if entID then 
-      System.RemoveEntity(entID)  
+-- Dot syntax on purpose: invoked by name from Script.SetTimerForFunction,
+-- which passes the entity id as the FIRST argument. With colon syntax the
+-- id would land in `self` and entID would always be nil (corpses would
+-- never despawn).
+function mercenaries.DespawnMerc(entID)
+    if entID then
+        System.RemoveEntity(entID)
     end
 end
 

@@ -15,6 +15,13 @@ function mercenaries:MonitorDistanceAndTeleport()
         local playerPos = player:GetPos()
         if not playerPos then return end
 
+        -- PERFORMANCE: the safe-position raycast sweep (10 rays) is computed
+        -- at most once per pass and shared by every straggler, instead of
+        -- re-running it per merc. Jitter keeps them from stacking on the
+        -- exact same spot.
+        local sharedSafePos = nil
+        local sweepDone = false
+
         for name, ent in pairs(self.ActiveMercs) do
             -- IsAliveAndWell already checked by PruneMercCache, but double-check cheaply
             if ent and ent.actor then
@@ -31,9 +38,16 @@ function mercenaries:MonitorDistanceAndTeleport()
                         local distance = math.sqrt(dx*dx + dy*dy + dz*dz)
 
                         if distance > 50.0 then
-                            local safePos, _ = self:GetSafeSpawnPosition(player, 10)
-                            if safePos then
-                                ent:SetPos({x = safePos.x, y = safePos.y, z = safePos.z})
+                            if not sweepDone then
+                                sweepDone = true
+                                sharedSafePos = self:GetSafeSpawnPosition(player, 10)
+                            end
+                            if sharedSafePos then
+                                ent:SetPos({
+                                    x = sharedSafePos.x + (math.random() - 0.5) * 3.0,
+                                    y = sharedSafePos.y + (math.random() - 0.5) * 3.0,
+                                    z = sharedSafePos.z
+                                })
                             end
                         end
                     end

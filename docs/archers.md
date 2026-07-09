@@ -92,13 +92,14 @@ The weapon preset GUIDs and vanilla item classes (crossbow bodies, bolts, hand c
 
 ## Ammo
 
-Three layers, because it's unclear how strictly KCD2 enforces NPC ammo in `CombatAction`:
+Four layers, because it's unclear how strictly KCD2 enforces NPC ammo in `CombatAction`:
 
 1. The storm inventory preset ships every archer with 40 tier-appropriate arrows.
 2. The archer weapon preset includes an arrow item.
-3. `GiveArcherArrows` (Lua, on spawn and on every re-equip) tops the quiver back to 40 via `ItemManager.CreateItem` — pcall-guarded, logs `[Archer]` lines, harmless if the API differs.
+3. `GiveArcherAmmo` (Lua, on spawn and on every re-equip) tops the quiver back to 40 via `ItemManager.CreateItem` — pcall-guarded, logs `[Archer]` lines, harmless if the API differs.
+4. `ResupplyArchersOutOfCombat` (every 5s from `LowPriorityMonitorLoop`): any archer below 10 rounds who is not currently in combat gets topped back up to 40, so running dry mid-fight only lasts until the fight ends.
 
-The combat trees check total arrow count each tick; at zero they fight with the sidearm instead of dry-firing.
+The combat trees check total ammo count each tick; at zero they fight with the sidearm instead of dry-firing.
 
 ---
 
@@ -109,6 +110,10 @@ archer_hire_w1 / w3      hire 1/3 weak archers (free, debug)
 archer_hire_d1 / d3      hire 1/3 medium archers
 archer_hire_p1 / p3      hire 1/3 strong archers
 archer_stance_skirmish / guard / melee / hold
+archer_weapon_bow / crossbow / handcannon
+merc_status              one-line squad report (also in dialog: "How is everyone holding up?")
+merc_heal                heal & wash the squad (flat fee)
+merc_help                list every command
 ```
 
 Everything else (wait/follow/dismiss/heal/outfits/teleport) works on archers through the existing merc commands and dialogs, since they're `SpawnedFriend` entities. The one deliberate exception: the squad **weapon** loadout dialog never touches archers — they keep their bow sets no matter what the melee squad switches to.

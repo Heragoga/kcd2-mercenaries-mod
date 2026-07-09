@@ -33,6 +33,8 @@ mercenaries.TokenIDCustomComp = "679a655e-189d-4519-b437-ccc4b92be48d"
 mercenaries.TokenIDReturn = "679a655e-189d-4519-b437-ccc4b92be49d"
 --heal mercs token
 mercenaries.TokenIDHeal = "679a655e-189d-4519-b437-ccc4b92be50d"
+--squad status report token
+mercenaries.TokenIDStatus = "679a655e-189d-4519-b437-ccc4b92be64d"
 
 -- Combat stance tokens (set via dialogue with a mercenary)
 mercenaries.TokenIDStanceEveryone = "679a655e-189d-4519-b437-ccc4b92be51d"
@@ -464,6 +466,7 @@ function mercenaries:MonitorInventory()
     local countCustomCompanion = p:GetCountOfClass(self.TokenIDCustomComp)
     local countRetrieve = p:GetCountOfClass(self.TokenIDReturn)
     local countHeal = p:GetCountOfClass(self.TokenIDHeal)
+    local countStatus = p:GetCountOfClass(self.TokenIDStatus)
 
     local countStanceEveryone = p:GetCountOfClass(self.TokenIDStanceEveryone)
     local countStancePlayerTarget = p:GetCountOfClass(self.TokenIDStancePlayerTarget)
@@ -544,6 +547,12 @@ function mercenaries:MonitorInventory()
         self:HealMercsForFlatFee()
     end
 
+    -- squad status report chosen via dialogue
+    if countStatus and countStatus > 0 then
+        p:DeleteItemOfClass(self.TokenIDStatus, countStatus)
+        self:ShowSquadStatus()
+    end
+
     -- Combat stance chosen via dialogue
     if countStanceEveryone and countStanceEveryone > 0 then
         p:DeleteItemOfClass(self.TokenIDStanceEveryone, countStanceEveryone)
@@ -621,6 +630,9 @@ function mercenaries.LowPriorityMonitorLoop()
         if not _G.MercIdle then
             mercenaries:UpdateFormationSlots()
         end
+
+        -- Archers that emptied their quiver in a fight refill once it's over.
+        mercenaries:ResupplyArchersOutOfCombat()
     end
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
@@ -702,8 +714,35 @@ Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 
 
+-- Prints every merc console command with a one-line description.
+function mercenaries:PrintHelp()
+    local lines = {
+        "===== Mercenaries mod commands =====",
+        "merc_status                          one-line squad report (count, health, orders, stances)",
+        "merc_heal                            heal & wash the squad (flat " .. tostring(self.HealCost) .. " groschen)",
+        "merc_wait / merc_follow / merc_dismiss   squad orders",
+        "merc_stance_everyone|player_target|defend|passive   squad targeting stance",
+        "merc_hire_w1/w2/w3, d1/d2/d3, p1/p2/p3   hire weak/medium/strong mercs (debug, free)",
+        "merc_weapon_random|swordshield|axeshield|longsword|maceshield|shortsword|mace|axe|polearm   melee loadout",
+        "archer_hire_w1/w3, d1/d3, p1/p3      hire archers (debug, free)",
+        "archer_stance_skirmish|guard|melee|hold   archer combat stance",
+        "archer_weapon_bow|crossbow|handcannon    archer ranged weapon type",
+        "merc_spawn_renegade[_weak|_medium|_strong]   spawn hostile renegades (debug)",
+        "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",
+        "merc_recount                         re-sync the merc counter",
+        "merc_lua <code>                      run raw Lua (debug)",
+    }
+    for _, line in ipairs(lines) do
+        System.LogAlways(line)
+    end
+end
+
 -- Register commands
 System.AddCCommand("merc_lua", "mercenaries:ExecString(%line)", "")
+
+System.AddCCommand("merc_help", "mercenaries:PrintHelp()", "Lists all mercenaries mod console commands")
+System.AddCCommand("merc_status", "mercenaries:ShowSquadStatus()", "One-line squad report: count, health, orders, stances")
+System.AddCCommand("merc_heal", "mercenaries:HealMercsForFlatFee()", "Heal & wash the squad for a flat fee")
 
 System.AddCCommand("merc_recount", "mercenaries:Recount()", "")
 System.AddCCommand("merc_dismiss", "mercenaries:SetState('dismiss')", "")

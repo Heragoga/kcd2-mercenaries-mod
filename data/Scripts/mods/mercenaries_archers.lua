@@ -104,8 +104,6 @@ mercenaries.ArcherWeaponSets = {
 
 -- Vanilla ammo item classes (root item.xml), used to top ammo up on
 -- spawn/re-equip and to detect "out of ammo" in the combat trees.
--- Hand cannons have no separate ammo item class in the vanilla tables, so
--- they simply never run dry (no entry needed).
 mercenaries.ArcherArrowClassByTier = {
     weak = "ad6f0f01-aec4-44d1-982c-1210eb01b74a",   -- arrow_normal
     medium = "710e3706-8974-404b-b23a-6f51670ef1ed", -- arrow_hunting
@@ -132,9 +130,27 @@ mercenaries.ArcherBoltClasses = {
     "e6652736-4cb4-42e9-b012-050064405f37", -- bolt_enh_cutting
     "081fc4a1-25e9-4492-8dc8-2d9d6668c07a"  -- bolt_enh_precise
 }
+-- Hand cannons DO have a real vanilla ammo item (shot_ball) - there's no
+-- tiered variant like arrows/bolts have, so every tier shares it.
+mercenaries.ArcherShotClassByTier = {
+    weak = "f10ded12-a41c-40bf-a8ae-883d4e845059",   -- shot_ball
+    medium = "f10ded12-a41c-40bf-a8ae-883d4e845059", -- shot_ball
+    strong = "f10ded12-a41c-40bf-a8ae-883d4e845059"  -- shot_ball
+}
+mercenaries.ArcherShotClasses = {
+    "f10ded12-a41c-40bf-a8ae-883d4e845059", -- shot_ball
+    "fb30c64e-2360-4ed7-b805-531b3424fe4d"  -- battle_shot
+}
 
 function mercenaries:IsArcherName(name)
     return name ~= nil and string.find(name, '_archer_', 1, true) ~= nil
+end
+
+function mercenaries:GetArcherTierFromName(name)
+    name = name or ''
+    if string.find(name, '_medium_') then return "medium" end
+    if string.find(name, '_strong_') then return "strong" end
+    return "weak"
 end
 
 function mercenaries:GetArcherStanceCode()
@@ -260,12 +276,7 @@ function mercenaries:EquipArcherWeapon(ent)
     if not ent or not ent.actor then return end
 
     local name = ent:GetName() or ''
-    local tier = "weak"
-    if string.find(name, '_medium_') then
-        tier = "medium"
-    elseif string.find(name, '_strong_') then
-        tier = "strong"
-    end
+    local tier = self:GetArcherTierFromName(name)
 
     local weaponType = self:GetArcherWeaponType()
     local typeSets = self.ArcherWeaponSets[weaponType] or self.ArcherWeaponSets["bow"]
@@ -280,11 +291,10 @@ function mercenaries:EquipArcherWeapon(ent)
     self:GiveArcherAmmo(ent, tier, weaponType, 40)
 end
 
--- Best-effort ammo top-up (arrows for bow, bolts for crossbow; hand cannons
--- carry no ammo item so this is a no-op for them). The storm inventory
--- preset already ships 40 rounds for bow/crossbow archers; this covers
--- re-equips and long fights. Fails silently (logged) if the item API is not
--- available on this entity.
+-- Best-effort ammo top-up (arrows for bow, bolts for crossbow, shot_ball
+-- for hand cannon). The storm inventory preset already ships 40 rounds;
+-- this covers re-equips and long fights. Fails silently (logged) if the
+-- item API is not available on this entity.
 function mercenaries:GiveArcherAmmo(ent, tier, weaponType, amount)
     local ok, err = pcall(function()
         if not ent or not ent.inventory then return end
@@ -293,7 +303,7 @@ function mercenaries:GiveArcherAmmo(ent, tier, weaponType, amount)
         if weaponType == "crossbow" then
             ammoClass = self.ArcherBoltClassByTier[tier] or self.ArcherBoltClassByTier["weak"]
         elseif weaponType == "handcannon" then
-            return -- no trackable ammo item for hand cannons
+            ammoClass = self.ArcherShotClassByTier[tier] or self.ArcherShotClassByTier["weak"]
         else
             ammoClass = self.ArcherArrowClassByTier[tier] or self.ArcherArrowClassByTier["weak"]
         end
@@ -312,6 +322,38 @@ function mercenaries:GiveArcherAmmo(ent, tier, weaponType, amount)
         end
     end)
     if not ok then System.LogAlways('[Archer] GiveArcherAmmo error: ' .. tostring(err)) end
+end
+
+-- QoL: called from LowPriorityMonitorLoop (every 5s). Archers that ran dry
+-- during a fight refill their quiver once combat is over — same "top up to
+-- 40" rule that hire/re-equip already applies, so an out-of-ammo archer
+-- doesn't stay a swordsman for the rest of the session.
+function mercenaries:ResupplyArchersOutOfCombat()
+    local ok, err = pcall(function()
+        local weaponType = self:GetArcherWeaponType()
+
+        for name, ent in pairs(self.ActiveMercs) do
+            if self:IsArcherName(name) and ent and ent.inventory then
+                local inCombat = false
+                pcall(function() inCombat = ent.soul:HasScriptContext("crime_interruptAttack") end)
+
+                if not inCombat then
+                    local tier = self:GetArcherTierFromName(name)
+                    local classByTier = self.ArcherArrowClassByTier
+                    if weaponType == "crossbow" then classByTier = self.ArcherBoltClassByTier
+                    elseif weaponType == "handcannon" then classByTier = self.ArcherShotClassByTier end
+                    local ammoClass = classByTier[tier]
+
+                    local have = 0
+                    pcall(function() have = ent.inventory:GetCountOfClass(ammoClass) or 0 end)
+                    if have < 10 then
+                        self:GiveArcherAmmo(ent, tier, weaponType, 40)
+                    end
+                end
+            end
+        end
+    end)
+    if not ok then System.LogAlways('[Archer] ResupplyArchersOutOfCombat error: ' .. tostring(err)) end
 end
 
 function mercenaries:SetArcherWeaponType(weaponType)
@@ -373,8 +415,10 @@ function mercenaries:UpdateArcherCombatData(data, myWuid, expectedStance)
 
         data.outOfAmmo = false
         local weaponType = self:GetArcherWeaponType()
-        if weaponType ~= "handcannon" and me and me.inventory and me.inventory.GetCountOfClass then
-            local ammoClasses = (weaponType == "crossbow") and self.ArcherBoltClasses or self.ArcherArrowClasses
+        if me and me.inventory and me.inventory.GetCountOfClass then
+            local ammoClasses = self.ArcherArrowClasses
+            if weaponType == "crossbow" then ammoClasses = self.ArcherBoltClasses
+            elseif weaponType == "handcannon" then ammoClasses = self.ArcherShotClasses end
             local total = 0
             for _, ammoClass in ipairs(ammoClasses) do
                 local ok2, c = pcall(function() return me.inventory:GetCountOfClass(ammoClass) end)
