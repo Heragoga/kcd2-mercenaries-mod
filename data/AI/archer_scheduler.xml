@@ -20,14 +20,15 @@
             <Variable name="campFurniture"       type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="campStanceCode"      type="_int"                 values="0"                                 isPersistent="0" form="single" />
 
-            <!-- isCampGuard: true when this archer is an incamp guard (see
-                 mercenaries:IsCampGuard). Guards are carved out of the idle
-                 stand-still branch below and fall through to the follow
-                 branch, which runs the actual patrol (mercenary_follow.xml).
+            <!-- isCampActor: true when this archer has ANY camp role - guard,
+                 sitter, or sleeper (see mercenaries:IsCampActor). Camp actors
+                 are carved out of the idle stand-still branch below and fall
+                 through to the follow branch, which runs mercenary_follow.xml
+                 (patrol for guards, StanceElement sit/sleep for the rest).
                  patrolActive/patrolWaypoint/patrolLongPause are leftovers from
                  when patrol lived here in the idle branch - kept declared but
                  no longer used. -->
-            <Variable name="isCampGuard"         type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="isCampActor"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolActive"        type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolWaypoint"      type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="patrolLongPause"     type="_bool"                values="false"                             isPersistent="0" form="single" />
@@ -70,7 +71,7 @@
                                     <Sequence>
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                         <ExecuteLua code="data.isIdle = _G.MercIdle or false" />
-                                        <ExecuteLua code="data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)" />
+                                        <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
                                         <ExecuteLua code="data.stanceMode = mercenaries:GetArcherStanceCode()" />
                                         <ExecuteLua code="data.targetStanceMode = mercenaries:GetStanceCode()" />
 
@@ -254,12 +255,12 @@
                                     </Sequence>
                                 </IfCondition>
 
-                                <!-- Idle / stand-still branch. Camp guards ($isCampGuard) are
-                                     deliberately excluded here so they fall through to the follow
-                                     branch below, which runs their patrol (mercenary_follow.xml).
-                                     Everyone else who is idle (plain Wait order, or a non-guard in
-                                     camp) stands still here. -->
-                                <IfCondition failOnCondition="false" condition="$isIdle &amp; ~$isCampGuard">
+                                <!-- Idle / stand-still branch. Camp actors ($isCampActor -
+                                     guards, sitters, sleepers) are deliberately excluded here so
+                                     they fall through to the follow branch below, which runs
+                                     mercenary_follow.xml (patrol or StanceElement sit/sleep).
+                                     Everyone else who is idle (a plain Wait order) stands here. -->
+                                <IfCondition failOnCondition="false" condition="$isIdle &amp; ~$isCampActor">
                                     <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
                                         <Sequence>
                                             <IfCondition failOnCondition="false" condition="$isFollowingActive">

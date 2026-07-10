@@ -23,22 +23,45 @@ This was built as an experimental feature, not a fully-realized one — see [Kno
 - **No more personal chest.** Removed entirely per feedback — `CampModels.Chest` is still defined (in case it's wanted again) but `SpawnMercCamp` no longer spawns one.
 - **A separate, central player tent.** One `tent_big_round_a.cgf` (one of the "large white circular" tents, rejected for mercs since it faces the other way — see [Comparing tents](#comparing-tents)) spawns once per camp, at the grid's own origin, with its own bed (`bed_double_fancy_a.cgf`, the "wide/large" bed rejected for mercs) inside. Its facing is now tied to the same `forward` direction the whole grid is built around, so its entrance opens toward the one reserved empty tile rather than a fixed world angle. See [The player tent](#the-player-tent) below, the least-proven part of this whole feature.
 
-**Beds**: both tiers use the same model now, `bed_shabby_a.cgf` — confirmed in-game (`merc_camp_bed_row_test`) to be the only candidate that actually reads as a bed in tall grass rather than a rag, a pile of skins, or (for one candidate) an invisible/broken placeholder. See [Comparing beds](#comparing-beds) below for the full rejected list.
+**Beds**: both tiers use the same model now, `bed_shabby_a.cgf` — confirmed in-game to be the only candidate that actually reads as a bed in tall grass rather than a rag, a pile of skins, or (for one candidate) an invisible/broken placeholder. See [Comparing beds](#comparing-beds) below for the full rejected list.
 
 **Campfires switched to a whole different spawning technique.** Two earlier rounds fixed a particle-pairing bug and a missing-rotation bug, but the fundamental problem turned out to be the approach itself: manually assembling a wood-prop model + a `ParticleEffect` entity mostly produced **invisible** props in-game — `camp_cooking_a`/`_b` rendered (just too large), but every other hand-picked `.cgf` path (`fireplace_wood_a/b/c`, `grid_fireplace`/`_b`, even the original `camp_cooking_c_old`/`_d_old`) came back invisible despite using the exact same spawn mechanism that works fine for every other camp prop. Most likely explanation: those specific paths, hand-picked from a static reference dump, don't all resolve to assets that actually exist in the shipped game the same way — there's a real limit to guessing individual file paths blind.
 
-So campfires now spawn via `Game.SpawnPrefab` against an invisible anchor entity instead (`SpawnCampFirePrefab`, `mercenaries_camp.lua`) — the exact same technique `references/zdjbcamping_mod`'s own `DJB_Camping:SpawnCampfirePrefab` uses (confirmed by grepping every `Game.SpawnPrefab` call in that mod's Lua). A prefab GUID is a more load-bearing identifier than an internal file path, and the whole pre-authored prefab already has its wood/particle/light pieces correctly positioned relative to each other, sidestepping the per-model Z-offset/rotation guessing entirely. New default: `fireplace_on_camp.xml`'s own prefab (`CampFirePrefabId`) — the vanilla "reference lit campfire" identified two rounds ago (`fireplace_wood_c.cgf` + `fireplace_nosmoke_low` + a Light). The old manual-assembly function (`SpawnCampFire`) is kept for reference/tinkering but no longer called by the live camp. See [Comparing campfires](#comparing-campfires) below — still not re-checked in-game.
+So campfires now spawn via `Game.SpawnPrefab` against an invisible anchor entity instead (`SpawnCampFirePrefab`, `mercenaries_camp.lua`) — the exact same technique `references/zdjbcamping_mod`'s own `DJB_Camping:SpawnCampfirePrefab` uses (confirmed by grepping every `Game.SpawnPrefab` call in that mod's Lua). A prefab GUID is a more load-bearing identifier than an internal file path, and the whole pre-authored prefab already has its wood/particle/light pieces correctly positioned relative to each other, sidestepping the per-model Z-offset/rotation guessing entirely. New default: `fireplace_on_camp.xml`'s own prefab (`CampFirePrefabId`) — the vanilla "reference lit campfire" identified two rounds ago (`fireplace_wood_c.cgf` + `fireplace_nosmoke_low` + a Light). See [Comparing campfires](#comparing-campfires) below.
 
-**Sitting and sleeping is disabled.** Chairs and beds were wired up as real smart objects at one point (`guidSmartObjectType`/`soclass_SmartObjectHelpers`, mirroring `references/zdjbcamping_mod`'s `DJB_ChairEntity.ent`/`DJB_BedEntity.ent`) with the schedulers driving a `StanceElement` against each merc's assigned furniture WUID — the same trick `mercenary_follow.xml` uses to mount mercs on horses. In practice mercs weren't actually using the furniture, so this is commented out (not deleted) in `mercenaries_camp.lua` and both scheduler XMLs — see [Known limitations](#known-limitations). Chairs/beds still spawn, purely as decoration.
+**Non-guards sit or sleep (half/half).** Every non-patrolling merc in camp either sits on a stool or lies in a bed, split roughly evenly (assigned in the same random shuffle that picks guards — see below).
+
+**How the game actually does sit/sleep spots.** Two failed attempts got this wrong before the answer turned up in the level prefabs. Every vanilla sit/sleep spot is a *prefab containing two separate objects*: the visual brush (the bed/bench model) **and a dedicated `StanceSmartObject` entity** that holds the smart object. See `references/Prefabs/Bed/bed_low.xml` — which uses our exact `bed_shabby_a.cgf` model — and `references/Prefabs/Bench/bench_1place_low.xml`. In both, the `BedTrigger`/`ActionTrigger` (player interaction) and the `SchedulerHub` (NPC scheduling) merely *link* to the `StanceSmartObject`; they never carry the SO properties themselves. `StanceSmartObject` (`references/Scripts/Entities/WH/Bed/StanceSmartObject.lua`) is a **vanilla class** whose own doc comment reads *"Smart object representing a place where stance can be played. Intended for sitting and lying stance both for NPCs and player"* — and it's spawnable by name, exactly like the vanilla `BedTrigger` we already spawn.
+
+The earlier versions hung the SO properties (`guidSmartObjectType`, `soclass_SmartObjectHelpers`, …) directly on the bed/stool `BasicEntity` prop. That's enough for the *player's* `BedTrigger` to resolve a smart object, which is why the player bed works — but it never gave NPCs a usable stance spot, so the mercs just stood around.
+
+**What it does now.** `SpawnCampFurnitureSO` spawns **two** entities: the decorative prop (plain `BasicEntity` + model, no SO properties) and, co-located and identically rotated, a `StanceSmartObject` carrying the property set copied verbatim from those prefabs (`CampBedSO` / `CampChairSO`). It returns the `StanceSmartObject`'s AI WUID (`XGenAIModule.GetMyWUID` — a spawned entity's plain `.id` is not a valid smart-object handle) plus its position, both stored in `CampFurniture[mercWuid]`.
+
+`mercenary_follow.xml` then runs a **two-step** sit/sleep case: first `Move` the merc to the smart object's `vec3` position (`changeNPCState="true"` — the same proven move-to-a-point setup the guard patrol uses), then `StanceElement` against its WUID with `stance="lying"` / `"sitting"`. The `Move` is there because `StanceElement` does **not** navigate on its own: `references/AI/world/so_bed.xml`'s `use` tree is just a `StanceElement` on `$__object.id`, and vanilla relies on the scheduler having already walked the NPC to the spot.
+
+**`StanceElement` needs a `<WaitAction/>` inside it.** With the smart objects spawning correctly and the `Move` working, mercs would walk to their bed/stool and then simply *stand on it*. The reason: `StanceElement` only declares the stance requirement — **`WaitAction` is what actually executes and awaits the enter (sit/lie) animation.** A bare `<Wait>` timer as the child is not enough. Every vanilla example is the same shape:
+
+```xml
+<StanceElement smartObject="..." stance="sitting" allowAny="false">
+  <Sequence>
+    <WaitAction />                 <!-- plays/awaits the sit-down animation -->
+    <Wait duration="'5s'" ... />   <!-- how long to hold the pose -->
+  </Sequence>
+</StanceElement>
+```
+
+See the minimal `references/AI/test/SAL_showcase/test_sit.xml` and `test_sleep.xml`, and the `use` trees of `so_bed.xml` / `so_sitPlace.xml`. Our cases now match this exactly; the trailing `Wait` (40s ±20s) is just the hold time before they stand and re-enter.
+
+Run `merc_camp_furniture_debug` in console to dump the pipeline state (SOs spawned → per-merc assignments → guard count); the first line that reads `0` is where it broke.
 
 **Moving the squad in**: each merc is teleported directly (`ent:SetPos(...)`) to a slot near their housing, then the squad is put into the existing `_G.MercIdle` "wait" state — the same state the regular Wait order already uses. Mercs now stand a bit in front of their own bed (`CampMercStandOffset`, computed the same relative-offset way as `CampBedOffset`) instead of right on top of it — `forward = 1.8` (bumped by another 0.5m per feedback). This also had a bug: the stand-offset was silently computed relative to the *tent's* facing instead of the bed's (because the bed's own rotation was being discarded — see below), which is very likely the "wrong axis" — now fixed alongside the bed-rotation bug, so it's relative to the bed's actual facing as originally intended.
 
-**Half the squad patrol, as a distinct `incamp` state.** Making camp introduces a third merc state alongside idle and following: **`incamp`** (`_G.MercInCamp`). While in camp, every merc "asks if it's a guard" (`mercenaries:IsCampGuard`) — a guard being any merc that `SpawnMercCamp` gave a patrol-waypoint record. Half the squad (`math.floor(mercCount / 2 + 0.5)`, was a third) become guards; the rest just stand in camp. Guard selection is a Fisher-Yates shuffle of merc indices per feedback ("select patrollers randomly") — no longer tied to tier, so any mix of heroes/regulars/archers can end up on patrol. The shuffle only picks who guards; `mercList` itself keeps its original strong→medium→weak sort order for tent/bed assignment.
+**Camp roles: half patrol, the rest sit/sleep — a distinct `incamp` state.** Making camp introduces a third merc state alongside idle and following: **`incamp`** (`_G.MercInCamp`). Every merc gets a camp *role*, assigned up front in a single Fisher-Yates shuffle of merc indices (random, not tier-based): half the squad (`math.floor(mercCount / 2 + 0.5)`) become **guards** (patrol); the remaining non-guards are split evenly into **sitters** and **sleepers**. The shuffle only picks roles; `mercList` keeps its strong→medium→weak sort order for tent/bed layout. A merc's role is queried per-cycle via `mercenaries:IsCampGuard` (has a patrol-waypoint record) and `mercenaries:GetCampFurniture` (has an assigned sit/sleep smart object); `mercenaries:IsCampActor` is true if either — i.e. the merc has any camp activity.
 
 How the state routes through the behavior trees:
-- **Non-guards** stay in the schedulers' idle stand-still branch (now `$isIdle & ~$isCampGuard`), same as a plain Wait order.
-- **Guards** are deliberately *excluded* from that idle branch, so they fall through to the schedulers' normal follow branch — which fires the `mercenary_follow` behavior. That's the "the incamp state is so the follow script does the move nodes" part: rather than adding a second mover, guards reuse the proven follow-BT movement machinery.
-- Inside `mercenary_follow.xml`, a new first case in the main `ContinuousSwitch` (gated on `$isCampGuard`, refreshed each second from `IsCampGuard`) preempts all the player-follow/horse cases and runs the patrol: `Move` to the guard's current waypoint (`GetPatrolWaypoint`), advance to the next (`AdvancePatrolWaypoint`), then pause — a short pause most of the time, an occasional longer one, for variety. Horse-spawning is suppressed while `_G.MercInCamp` so a guard walks the perimeter on foot even if the player is mounted.
+- **Camp actors** (guards, sitters, sleepers — `$isCampActor`) are deliberately *excluded* from the schedulers' idle stand-still branch (`$isIdle & ~$isCampActor`), so they fall through to the normal follow branch, which fires the `mercenary_follow` behavior. That's the "the incamp state is so the follow script does the move nodes" part: rather than adding a second mover, every camp activity reuses the proven follow-BT machinery.
+- **Plain idle mercs** (a Wait order, not in camp) stay in the idle branch and stand.
+- Inside `mercenary_follow.xml`, the main `ContinuousSwitch` gets three new cases ahead of the player-follow/horse cases (first-match wins), each refreshed each second from Lua: **guard** → patrol (`Move` to the current waypoint via `GetPatrolWaypoint`, advance, pause); **sleeper** → `StanceElement stance="lying"` on the assigned bed WUID; **sitter** → `StanceElement stance="sitting"` on the assigned stool WUID. Horse-spawning is suppressed while `_G.MercInCamp` so nobody mounts up mid-camp.
 
 Each guard patrols an 8-point ring encircling the whole camp, staggered by a per-guard angular offset so they spread around the perimeter rather than clumping. The ring radius (`patrolRadius`) is sized to sit ~3m outside the outermost tent per feedback: `maxClusterOffset + CampTentRingRadius + CampPatrolTentClearance` (farthest cluster from centre + how far a tent sits from its fire + 3m clearance), so the route goes *around* the camp rather than cutting through the tents.
 
@@ -54,7 +77,7 @@ Each guard patrols an 8-point ring encircling the whole camp, staggered by a per
 
 ## Known limitations
 
-- **No smart-object sit/sleep, again.** It was implemented (real `guidSmartObjectType` registration, `StanceElement` driven against each merc's assigned furniture WUID, mirroring `mercenary_follow.xml`'s horse-mounting trick), but in practice mercs weren't actually using the chairs/beds. Rather than debug it blind with no game client to test against, it's commented out (not deleted) in `mercenaries_camp.lua` (`CampFurnitureSO`, the occupancy-assignment code) and both scheduler XMLs (the `StanceElement` block in the `$isIdle` branch), so it can be picked back up later without re-deriving it. Chairs/beds still spawn as decoration.
+- **Merc sit/sleep took three passes; the last fix isn't playtested yet.** History, since each failure looked identical (mercs standing around) but had a different cause: (1) SO properties hung on the prop `BasicEntity` — no real smart object existed; (2) real `StanceSmartObject` entities + `Move`, but the `StanceElement` child was a bare `<Wait>`, so the stance was *declared* but the sit/lie animation never executed — mercs walked to the furniture and stood on it; (3) added the required `<WaitAction/>`. Confirmed working up to stage (2) via `merc_camp_furniture_debug` (5 SOs spawned, 5 assignments with WUIDs, correct walk-to positions), so only the animation step is unverified. If they still don't pose, the remaining unknown is whether `StanceElement` needs the SO's `use` resource reserved — vanilla routes NPCs through a `SchedulerHub` link, which we bypass by calling `StanceElement` directly. Note the old disabled `StanceElement` comment blocks still sit in both scheduler XMLs' idle branches — inert, superseded by the follow-BT version.
 - **Campfires switched to `Game.SpawnPrefab`, not re-checked in-game yet.** Manual wood+particle assembly turned out to mostly spawn invisible props (see above and [Comparing campfires](#comparing-campfires)) - switched to spawning a whole pre-authored prefab by GUID instead, the same technique `references/zdjbcamping_mod` itself uses for its own campfires/beds/chairs. This is a different-enough mechanism (an anchor entity + `Game.SpawnPrefab`, vs. the plain `BasicEntity` spawns used everywhere else) that it needs its own in-game check, and there's an open question about teardown: the prefab's own spawned pieces keep whatever names were authored into them, so `ClearAnyLeftoverCamp`'s name-prefix sweep can't independently catch orphaned ones from a camp that was active during a save (only removing the tracked anchor entity, in the normal `Break camp` path, is relied on to take them with it).
 - **The player bed's "E — Sleep" interaction now uses a vanilla `BedTrigger`, matching the camping mod (unverified in-game, but built on the mechanism that mod actually uses).** The earlier attempt bolted an `OnUsed` handler onto the bed; that never fired (see [The player tent](#the-player-tent)). The bed is still a smart-object `BasicEntity`, but the interaction comes from a separate `BedTrigger` entity spawned next to it and linked by an empty-named link — exactly how `zdjbcamping_mod` does it. Trigger geometry (`CampPlayerBedTriggerOffset`/`Scale`) is a first guess and may need tuning if the prompt is awkward to catch.
 - **No leaning animation.** A vanilla leaning smart object does exist (`SO_LeaningRail`/`SO_CheeringSpot_Leaning` in `references/Scripts/Entities/WH/Special/`, registered under `references/Libs/Tables/ai/smartEntity/SmartEntity__so_leaningRail.xml`) — but unlike `so_sitPlace`/`so_bed`, both are derived from `SmartObjectHolder`, a proper custom entity class that needs real `.ent` registration, not the zero-`.ent` `BasicEntity` + `properties` trick every other camp prop (and this whole mod) relies on. There's also no fence/railing prop in the current camp layout that a "leaning" spot would make sense on. Investigated and deliberately left out rather than bolting on the mod's first custom `.ent` class for a cosmetic extra.
@@ -69,17 +92,17 @@ Each guard patrols an 8-point ring encircling the whole camp, staggered by a per
 
 ## Comparing tents
 
-**Resolved.** Ran `merc_camp_tent_test` and confirmed: the first five candidates (`tent_small_forest_a/_b/_d`, `tent_small_shabby_a`, `tent_small_rustic_a`) are all small, sized to fit a bed under them, and face the same way — used interchangeably at random now (`CampTentVariants`). The next two (`tent_big_round_a`/`_b`) are large white circular tents facing the *other* way — rejected. `gypsycamp_tent_b` is small but open on both ends — rejected. The old default (`tent_big_square_b_hungarien_green`) is gigantic — rejected, kept in `CampTentCandidates` only as a "don't do this again" reference.
+**Resolved.** Confirmed in-game: the first five candidates (`tent_small_forest_a/_b/_d`, `tent_small_shabby_a`, `tent_small_rustic_a`) are all small, sized to fit a bed under them, and face the same way — used interchangeably at random now (`CampTentVariants`). The next two (`tent_big_round_a`/`_b`) are large white circular tents facing the *other* way — rejected. `gypsycamp_tent_b` is small but open on both ends — rejected. The old default (`tent_big_square_b_hungarien_green`) is gigantic — rejected.
 
-Run `merc_camp_tent_test` again any time to re-check (spawns every candidate in `mercenaries.CampTentCandidates` in a row in front of you, and logs the name → model mapping to console); `merc_camp_tent_test_clear` removes the row (also swept automatically on next `OnGameplayStarted`, same as leftover camp props).
+*(The `merc_camp_tent_test` comparison-row command and its `CampTentCandidates` table were removed in the code cleanup once the choice was settled; the findings above are the record.)*
 
 ---
 
 ## Comparing beds
 
-**Resolved.** Ran `merc_camp_bed_row_test` and confirmed: `bed_shabby_a` is an actual straw bed with a log frame, and the only one of the seven that stays visible in tall grass — that's what `CampModels.Bed`/`BedStraw` both use now. Everything else was rejected: `bed_makeshift_a` is just a rag, `bed_makeshift_c` is a pile of skins, `bed_shabby_b` didn't stand out, `bed_fancy_a` and `bed_double_fancy_a` (the two "high"-tier vanilla home beds, the latter a wide two-person one) were both passed over, and `bed_cottage_01` (the generic vanilla `Bed` entity's own default model) rendered as a blank white shape — likely an invalid/wrong-cased path rather than an actual bed asset.
+**Resolved.** Confirmed in-game: `bed_shabby_a` is an actual straw bed with a log frame, and the only one of the seven that stays visible in tall grass — that's what `CampModels.Bed`/`BedStraw` both use now. Everything else was rejected: `bed_makeshift_a` is just a rag, `bed_makeshift_c` is a pile of skins, `bed_shabby_b` didn't stand out, `bed_fancy_a` and `bed_double_fancy_a` (the two "high"-tier vanilla home beds, the latter a wide two-person one) were both passed over, and `bed_cottage_01` (the generic vanilla `Bed` entity's own default model) rendered as a blank white shape — likely an invalid/wrong-cased path rather than an actual bed asset.
 
-Run `merc_camp_bed_row_test` again any time to re-check (spawns every candidate in `mercenaries.CampBedCandidates` in a row in front of you, and logs the name → model mapping to console); `merc_camp_bed_row_test_clear` removes the row.
+*(The `merc_camp_bed_row_test` comparison-row command and its `CampBedCandidates` table were removed in the code cleanup once the choice was settled.)*
 
 ---
 
@@ -89,38 +112,101 @@ Run `merc_camp_bed_row_test` again any time to re-check (spawns every candidate 
 
 **Round 2**: expanded to 9 candidates, each paired with the effect its *own* vanilla prefab actually uses (round 1 forced `fireplace_wood_c` through the wrong effect).
 
-**Round 3 result**: "all currently attempted prefabs are invisible except the first two, which are too large" — i.e. of the 9 manually-assembled candidates, only `camp_cooking_a`/`camp_cooking_b` render at all (and they're oversized), everything else is invisible. This means the manual wood+particle assembly approach itself is the problem, not any individual model/effect pairing — see [How it works](#how-it-works) above for why. `mercenaries.CampFireCandidates` (`mercenaries_camp.lua`) now has two kinds of entries:
+**Round 3 result**: "all currently attempted prefabs are invisible except the first two, which are too large" — i.e. of the 9 manually-assembled candidates, only `camp_cooking_a`/`camp_cooking_b` render at all (and they're oversized), everything else is invisible. This means the manual wood+particle assembly approach itself is the problem, not any individual model/effect pairing — see [How it works](#how-it-works) above for why.
 
-**Prefab candidates** (`Game.SpawnPrefab`, "try the ones from the camping mod"):
-- `fireplace_on_camp` prefab — **new default**, the vanilla self-contained lit campfire (`fireplace_wood_c` + `fireplace_nosmoke_low` + a Light, all pre-aligned)
-- 3 of `references/zdjbcamping_mod`'s own campfire prefab GUIDs (Refugee/Cuman/Basic tier — gneiss-rock cooking setups from that mod's own tier system; not confirmed to include an active flame, may be the "prepared but unlit" state)
+The winning approach spawns a whole pre-authored prefab by GUID instead:
+- `fireplace_on_camp` prefab — **default**, the vanilla self-contained lit campfire (`fireplace_wood_c` + `fireplace_nosmoke_low` + a Light, all pre-aligned)
 
-**Old manual assembly** (kept for the record, all confirmed broken per round 3):
-- `camp_cooking_a`/`camp_cooking_b` + `exterior_fireplace` — render, but too large
-- `fireplace_wood_a`/`_b`/`_c`, `grid_fireplace`/`_b`, `camp_cooking_c_old`/`_d_old` — all invisible in-game now, including `fireplace_wood_c` itself despite the *exact same model* working inside the `fireplace_on_camp` prefab above (confirming it's a spawning-technique problem, not the model)
+**Round 4 — confirmed working.** `fireplace_on_camp` renders in-game as a small heap of smouldering ash. Per feedback, `SpawnCampFirePrefab` now also layers `camp_cooking_c_old.cgf` (`CampFireOverlayModel`) as a plain static overlay on top of the ash heap, at the same position/facing, for a fuller wood-pile-over-embers look.
 
-Run `merc_camp_fire_test` to spawn all of them in a row in front of you (prefab candidates via an anchor + `Game.SpawnPrefab`, model candidates via the old assembly) — logs what was spawned and how to console; `merc_camp_fire_test_clear` removes the row (though see the teardown caveat in [Known limitations](#known-limitations) for the prefab ones).
+*(The `merc_camp_fire_test` comparison-row command and its `CampFireCandidates` table were removed in the code cleanup once the prefab approach was settled.)*
 
-**Round 4 — confirmed working.** `fireplace_on_camp` renders in-game as a small heap of smouldering ash. Per feedback, `SpawnCampFirePrefab` now also layers `camp_cooking_c_old.cgf` (`CampFireOverlayModel` — the very first campfire model this mod ever used) as a plain static overlay on top of the ash heap, at the same position/facing, for a fuller wood-pile-over-embers look.
+---
+
+## Camp activities (making the camp feel alive)
+
+**How NPC activity animations work.** The engine plays named NPC actions through the `UnstanceAction` behavior-tree node. Every playable name is catalogued in `references/Libs/Tables/ai/NPCStateUnstanceDatabase.xml` as an `<UnstanceData Name="...">` entry with `In` / `Loop` / `Out` animation fragments. The whole mechanism is visible in `references/AI/profession/camper/so_camperFemaleEating.xml`, whose entire `use` tree is:
+
+```xml
+<StanceElement smartObject="..." stance="sitting">
+  <Sequence>
+    <UnstanceAction unstance="eating" locationObject="..." />
+    <Wait duration="'15s'" />
+  </Sequence>
+</StanceElement>
+```
+
+Three facts make a generic system possible:
+
+1. **Standing actions need no `StanceElement` at all** — `references/AI/situation/dogbarkingpasserby/situation_dogbarking.xml` just calls `<UnstanceAction unstance="dogBarking" locationObject="" />` directly.
+2. **`unstance` accepts a variable** (vanilla uses `unstance="$unstance"` in the `smallTalkingWatchers` trees), so *one* BT node can play *any* action by name.
+3. Each `UnstanceData` declares `UseLocationObject` and `IsAligned`. Actions with `UseLocationObject="false"` need **no prop or anchor whatsoever**.
+
+**The modes.** `CampActivityCatalogue` in `mercenaries_camp.lua` tags each activity with what it needs, and `mercenary_follow.xml` has one `ContinuousSwitch` case per mode (placed first, so an activity preempts patrol/sit/sleep/follow):
+
+| Mode | Meaning | Examples |
+|---|---|---|
+| 1 | Sit on a seat smart object, then play the action | `camper_snooze`, `readingSittingNoTable` |
+| 2 | Stand, no anchor, no prop | `noob_sword_training`, `eating_standing`, `woman_cookingCampfire_loop` |
+| 3 | Stand, aligned to an anchor entity | `lumberjack_woodChopping`, `sawingWood` |
+| 4 | Duo animation pair — leader passes partner as `slaveObject` | *(confirmed broken, unused)* |
+| 5 / 6 | **Real conversation** — polylog initiator / receiver | *(see below)* |
+
+**The rule that decides whether an action works.** Two rounds of in-game testing produced a clean law:
+
+> An action plays iff its `UnstanceData` has **`UseLocationObject="false"`** *and* it needs **nothing in the merc's hands** — and, for **seated** actions, the seat smart object must be passed as the `UnstanceAction`'s **`locationObject`**.
+
+The `locationObject` clause was round 2's discovery (mode 1 was passing an empty one). But round 3 showed that fixing it *still* didn't make the `sit_*` actions play — so the real blocker is the same one the sword drill has: they need a **held item** the fragment doesn't bring (a book for `readingSittingNoTable`, dice for `diceSitting`, a flute for `flutist_sitting`, a spindle, a cup) or, for the `SittingTable*` ones, an actual **table** smart object rather than a stool. Giving a merc a specific item is real inventory/equip work, so all of these are now `x_`-prefixed and kept out of the schedule; only `camper_snooze` (which needs nothing) is used seated. The two item-less body-language poses (`sit_nervous`, `sit_sad`) are the best candidates if seated variety is wanted later.
+
+- ✅ Confirmed working: `noob_sword_training`, `eating_standing` (spawns its own bun!), `camper_snooze`, `PickingHerbsNPC` ("works very well"), `Loot`, `woman_cookingCampfire_loop` (now spawns fire **+ kettle** so there's a pot to stir), plus the plain standing emotes.
+- ❌ Everything defaulting to `UseLocationObject="true"` — chopping, sawing, `camper_cooking`, wagon pushing, and round-2 additions `sweeping`/`butcherSmokeHouse*`. The merc stands at the anchor. These want the full authored rig (align points + a tool item) that `so_choppingWood.xml` builds via `GraphSearch`. Not worth rebuilding — `PickingHerbsNPC`/`Loot` are the working labour loops instead.
+- ❌ `DrawAction` before an unstance is **useless**: the unstance's `In` fragment re-sheathes the weapon first (round 2: "pull out their sword, sheathe it, then start"). The `drawWeapon` flag is gone; the sword drill mimes bare-handed, which reads fine at a straw dummy.
+- Round-2 rejects (`x_` prefixed so they don't get retried): `sweeping`, `butcherSmokeHouseStoke/Fill`, `ratbor2_SoldierBored`, `halberdierGuard_atAttention`, `mildCheering`, `sermiri_showOff`, `Pointing_withoutScope` (memorably: just points at the player), `alchemy` (mimes at an invisible bench).
+
+**Conversation — the bodyguards-mod technique, done properly.** The earlier one-shot attempt (assign one merc "speaker", the other "listener") never worked because the two were never in their respective polylog branches *at the same time*. The bodyguards mod's actual trick is a **shared global**: `kcdcompanion.ChatTick` publishes a pair in `_G.CompanionChat = {a, b}`, and every companion's follow BT reads its `chatRole` (1 = initiator, 2 = receiver) off that global *each cycle* — so both drop into `Function_speech_schedulerPolylog_initiator`/`_receiver` on the same tick, and the engine syncs them into real ambient voice lines. Replicated: `mercenaries:CampChatTick` (driven by `MonitorCamp`) picks two mercs within `CampChatRadius` and sets `_G.MercCampChat`; the follow BT's `chatRole` sensing + two polylog cases (placed **first** in the `ContinuousSwitch`, so a chatting merc turns to talk regardless of what they were doing) mirror `companion_follow.xml`.
+
+**One conversation, structured exactly like vanilla gossip.** Each talk is a greeting (`SITUACE_POZDRAVY`) → a **single** gossip topic → farewell (`SITUACE_ROZLOUCENI`), mirroring `references/AI/situation/gossip/situation_gossipinitiator.xml` node-for-node. The gossip step is a `Selector`, **not** a chain: the initiator tries `GOSSIP` and only falls back to `FALLBACK_GOSSIP` if that soul has no plain gossip line — it's never both. The participant metarole is updated to match each exchange, as vanilla does. (An earlier version chained several `GOSSIP` rounds — greeting → gossip → fallback → gossip → farewell — which played as *two conversations back to back*; that's fixed.) The receiver mirrors `situation_gossipreceiver.xml`: greeting → one `GOSSIP` response (always `GOSSIP`, even when the initiator fell back) → farewell.
+
+The termination follows the vanilla default exactly: vanilla wraps the whole exchange in a `Timeout duration="'30m'"` — a **safety net, not a length limit** — and lets each polylog call block and run to completion. We mirror that: the dialogue sequence sits inside a 30 m safety `Timeout` and each line plays in full. Normal termination is **dialogue-driven** — the initiator calls `mercenaries:EndCampChat` the moment its sequence actually finishes, which clears `_G.MercCampChat`, drops both mercs' `chatRole` to 0, and applies the cooldowns below. The only timed cutoffs anywhere (`CampChatHoldTicks`, ~30 min; the BT's 30 m `Timeout`) exist purely so a hung line or a despawned participant can't trap a merc forever; they never fire during a real conversation.
+
+**How often conversations happen (per feedback, kept fairly rare).** Two mercs are only paired when they're within **`CampChatRadius` (4 m)** of each other. When a conversation ends, two cooldowns are applied (both counted at the 5 s `MonitorCamp` tick):
+- a **global** gap (`CampChatCooldownTicks`, 30 s) so at most one conversation starts every 30 s anywhere in camp;
+- a **per-merc** gap (`CampChatMercCooldownTicks`, 3 min, tracked in `CampChatMercCooldown[wuid]`) so neither of the two who just talked is eligible to be picked again for 3 minutes.
+
+`CampChatTick` ticks the per-merc cooldowns down each cycle and skips any merc still cooling down (as well as fighters and mercs mid-drill) when it builds the candidate list.
+
+**The daily schedule.** Guards take half the squad, permanently ("a good portion should always patrol"). The rest are split into **trainers** (`numDummies` of them — `ceil(mercCount / 5)`, cap 5, per "about 1 per five mercs practising") and everyone else. Trainers run a training-heavy cycle (`CampTrainerCycle`); the rest never practise and run `CampRoleCycle` (`sleep → sit → eat → herbs → snooze`). Each merc rotates on its **own** per-role timer (`CampRoleSeconds`): sleeps and sits run **2–5 minutes** (per feedback), eat/forage/train are shorter so the camp keeps shuffling. `MonitorCamp` checks the timers each 5s tick and, when one elapses, advances that merc and it **walks** to the next spot.
+
+**Seating is one ring of log stumps around the campfire** (per feedback — the earlier design had *two* rings, per-merc stools plus decorative chairs). The seat is the small vertical trunk stump (`chair_trunk_c`, the one the sit activities used in testing), and each is a real sit smart object turned to face the fire, and they're a **shared pool** (`CampSeats`): when a merc rotates to `sit`/`snooze` it claims a **free log a bit further from where it is** (`ClaimSpot` picks among the farther half of free seats), so the merc walks across camp to sit — same for **beds** (`CampBeds`, one per non-guard tent). eat/forage happen at the merc's own spot just outside the tent circle. Standing activities `Turn` to face the campfire (or, for trainers, the dummies) after arriving, since `Move` otherwise leaves them facing whichever way they walked in.
+
+**The training yard** is placed **directly in front of the player tent** (`CampTrainingYardDistance` m along the same "forward" axis the reserved-empty tile uses, so there's a gap between tent and yard), not a grid cell. It gets **up to five straw dummies** (`ceil(mercCount / 5)`, cap 5 — `target_straw.cgf` / `target_stand.cgf`) in a row; trainers line up on the camp side facing the dummies. Trainers are excluded from conversation pairing (`CampChatTick` skips any merc whose live activity is the drill), and the drill's per-loop hold was shortened so it can't run on past a break-camp.
+
+**Testing more.** The catalogue is still a test surface for everything not yet promoted:
+
+- `merc_camp_activity_list` — print the catalogue with indices and modes
+- `merc_camp_activity_test <index|name>` — spawn whatever the activity needs (seat smart object, anchor, decorative prop) and hand it to a live merc (two for conversation)
+- `merc_camp_activity_test_clear` — stop it and remove the props
+
+Assignment is deliberately *not* gated on `_G.MercInCamp`, so this works without making camp. Note the merc holds each pose for ~15 s, so `_clear` can take that long to visibly stop the animation (the props vanish immediately).
 
 ---
 
 ## Comparing clutter
 
-`mercenaries.CampClutterCandidates` (`mercenaries_camp.lua`) has 13 entries, numbered #1–#13 to match the `merc_camp_clutter_test` row left-to-right:
+The clutter candidates were compared in-game as a numbered row (#1–#13):
 
 - **Sacks**: #1 `sack_b`, #2 `sack_empty_a`, #3 `sack_pig_feed`, #4 `sack_charcoal` (the dedicated "charcoal sack" model, from the charcoal-wagon/furnace prefabs)
 - **Crates**: #5 `crate_low_b`, #6 `crate_small`, #7 `crate_short_for_silver`, #8 `crate_fabric`, #9 `crate_box_c` (the last two pulled straight out of `references/Prefabs/interiorDecoration/weaponGroups/swords_in_crate.xml`, a vanilla decorative scene)
-- **Weapons**: #10 `polearm_pile_a`, a standalone "stack of weapons" model pulled out of `references/Prefabs/interiorDecoration/weaponGroups/polearms_in_barrel.xml`; #11 is that same prefab's *whole* authored scene (barrel + weapon pile + hay) via `Game.SpawnPrefab` instead of the standalone model
+- **Weapons**: #10 `polearm_pile_a`, a standalone "stack of weapons" model pulled out of `references/Prefabs/interiorDecoration/weaponGroups/polearms_in_barrel.xml`; #11 that same prefab's *whole* authored scene (barrel + weapon pile + hay)
 - **Charcoal (loose)**: #12 `charcoal_piece_b`, #13 `charcoal_piece_d`, loose chunk-pile models from the blacksmith/collier kiln prefabs
 
-**Feedback, first round**: #1/#3/#4 (the three sacks) are good; #5/#6 (two of the crates) are usable "open containers"; #9 (`crate_box_c`) is a very large container — rejected; #10 (`polearm_pile_a`) reads as an actual stack of weapons — confirmed good. #2/#7/#8/#11/#12/#13 weren't called out either way.
+**Feedback**: #1/#3/#4 (the three sacks) are good; #5/#6 (two of the crates) are usable "open containers"; #9 (`crate_box_c`) is a very large container — rejected; #10 (`polearm_pile_a`) reads as an actual stack of weapons — confirmed good. #2/#7/#8/#11/#12/#13 weren't called out either way.
 
 This is now wired into the live camp, not just a comparison row:
 - **Beside every merc tent** (`CampTentClutterVariants`): a random pick from the five confirmed-good props (#1, #3, #4, #5, #6) spawns at `CampTentClutterOffset` relative to the tent (to its side, clear of the bed and the merc's own standing spot). First moved further out (`right`/`forward` from 1.4/-0.6 to 2.1/-0.9), then flipping `forward` between +0.9/-0.9 per feedback ("clutter should be on the inside of a tent circle") didn't move it toward/away from the fire at all — the wrong axis. The tent's own local frame has `CampTentFacingFix`'s extra 90° rotation baked in (see `SpawnMercCamp`'s `angle = tentFaceAngle + math.pi + CampTentFacingFix`), so `right`, not `forward`, is actually aligned with the tent↔fire axis (negative `right` = toward the fire/inside the ring). Swapped per follow-up feedback ("try the other axis") to `right = -0.9` (toward the fire), `forward = 2.1` (the side offset), then scaled both down to a small `right = -0.2`/`forward = 0.2` nudge (~0.2m) per further feedback — just enough to keep it off the tent/bed centerline. Still not checked in-game.
 - **One per fire cell** (`CampModels.WeaponStack` = #10, `polearm_pile_a`): swapped in for the first chair in each cell's seat ring, instead of a stool, per feedback.
 
-Run `merc_camp_clutter_test` any time to re-check the full candidate row (prefab candidate via an anchor + `Game.SpawnPrefab`, model candidates via plain `BasicEntity` spawns) — logs what was spawned and how to console; `merc_camp_clutter_test_clear` removes the row (also swept automatically on next `OnGameplayStarted`, same as leftover camp props).
+*(The `merc_camp_clutter_test` comparison-row command and its `CampClutterCandidates` table were removed in the code cleanup once the picks were settled.)*
 
 ---
 
@@ -128,9 +214,9 @@ Run `merc_camp_clutter_test` any time to re-check the full candidate row (prefab
 
 `CampBedOffset` is currently `{ right = 0, forward = 0, z = 0, rotationDeg = 180 }`, against `tent_small_forest_a.cgf` (and by extension its four same-footprint siblings, `CampTentVariants`).
 
-**A real bug was found here and just got fixed**: `rotationDeg` was validated at 90 via `merc_camp_bed_test` last round and looked right *in that isolated test* — but the real camp spawn code (`SpawnMercCamp`) was discarding the rotated angle `CampRelativeOffset` returns and spawning the bed at the tent's raw, un-rotated facing regardless of `rotationDeg`'s value. So every camp so far has shown the bed at an *effective* `rotationDeg` of 0, not 90 — meaning "still not oriented correctly, rotate another 90" was reacting to that 0-rotation bug, not to 90 being insufficient. Both are addressed now: the bug's fixed (the bed actually rotates), and the value's bumped to 180 per the explicit ask. Since the bug means 90 was never really seen live, there's a real chance 180 overshoots what would otherwise have looked right — check in-game and say so if it needs to come back down.
+**A real bug was found here and got fixed**: `rotationDeg` was validated at 90 in isolation and looked right *there* — but the real camp spawn code (`SpawnMercCamp`) was discarding the rotated angle `CampRelativeOffset` returns and spawning the bed at the tent's raw, un-rotated facing regardless of `rotationDeg`'s value. So every camp so far had shown the bed at an *effective* `rotationDeg` of 0, not 90 — meaning "still not oriented correctly, rotate another 90" was reacting to that 0-rotation bug, not to 90 being insufficient. Both are addressed now: the bug's fixed (the bed actually rotates), and the value's bumped to 180 per the explicit ask. Since the bug means 90 was never really seen live, there's a real chance 180 overshoots what would otherwise have looked right — check in-game and say so if it needs to come back down.
 
-To re-tune: run `merc_camp_bed_test <right> <forward> <z> <rotationDeg>` in console — it spawns one `TentLarge` tent facing your own direction, plus a bed offset from it by `right`/`forward` (in the *tent's own local space*, not world axes — "forward" is the direction the tent faces) and `z` (world-space vertical offset), then rotated by `rotationDeg` relative to the tent's own facing. Re-run with different numbers to iterate (it clears the previous attempt each time); `merc_camp_bed_test_clear` removes it. The command only affects its own live test props, not `CampBedOffset` itself — tell me new values and they get hardcoded.
+`right`/`forward` are in the *tent's own local space* (not world axes — "forward" is the direction the tent faces), `z` is a world-space vertical offset, and `rotationDeg` is relative to the tent's own facing. Tell me new values and they get hardcoded into `CampBedOffset`.
 
 ---
 
@@ -156,9 +242,10 @@ So `SpawnPlayerCampTent` (in `mercenaries_camp.lua`) now spawns two things, exac
 
 | Piece | File |
 |---|---|
-| Camp spawn/despawn/recall logic, fire-cell grid layout, `incamp` state (`_G.MercInCamp`) + guard assignment (`IsCampGuard`/`GetPatrolWaypoint`/`AdvancePatrolWaypoint`), tent/bed/campfire comparison + bed placement test commands | `data/Scripts/mods/mercenaries_camp.lua` |
-| Guard-patrol `Move` loop (new `$isCampGuard` case in the main `ContinuousSwitch`); horse-suppression while `_G.MercInCamp` | `data/AI/mercenary_follow.xml` |
-| Route incamp guards into the follow branch (`$isIdle & ~$isCampGuard` idle condition; `data.isCampGuard` sensing); commented-out sit/sleep `StanceElement` logic | `data/AI/mercenary_scheduler.xml`, `data/AI/archer_scheduler.xml` |
+| Camp spawn/despawn/recall logic, fire-cell grid layout, `incamp` state (`_G.MercInCamp`), camp-role assignment (guard/sit/sleep) + `IsCampGuard`/`GetCampFurniture`/`IsCampActor`, smart-object furniture (`SpawnCampFurnitureSO`, `CampBedSO`/`CampChairSO`), daily schedule + conversation pairing (`MonitorCamp`/`CampChatTick`/`EndCampChat`) | `data/Scripts/mods/mercenaries_camp.lua` |
+| Console-only debug helpers: activity catalogue test (`merc_camp_activity_*`) and sit/sleep pipeline dump (`merc_camp_furniture_debug`) — split out of the main file in the cleanup | `data/Scripts/mods/mercenaries_camp_debug.lua` |
+| Camp activity cases in the main `ContinuousSwitch`: guard-patrol `Move` loop, sleeper/sitter `StanceElement`; role sensing; horse-suppression while `_G.MercInCamp` | `data/AI/mercenary_follow.xml` |
+| Route incamp actors into the follow branch (`$isIdle & ~$isCampActor` idle condition; `data.isCampActor` sensing); inert old sit/sleep `StanceElement` comment blocks | `data/AI/mercenary_scheduler.xml`, `data/AI/archer_scheduler.xml` |
 | Shared tier-from-name helper (`GetTierFromName`) | `data/Scripts/mods/mercenaries_util.lua` |
 | Script registration, tokens, `SetState` hook, recall keybind, `LowPriorityMonitorLoop`/`OnGameplayStarted` hooks | `data/Scripts/mods/mercenaries.lua` |
 | Camp tokens | `data/libs/tables/item/item__mercenaries.xml`, ids `...be65d` (make) / `...be66d` (break) |

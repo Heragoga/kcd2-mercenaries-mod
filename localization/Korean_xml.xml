@@ -1,38 +1,38 @@
 ﻿<Table>
-  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>용병을 좀 고용하고 싶소.</Cell></Row>
+  <Row><Cell>ui_mercenary_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>용병을 고용하고 싶습니다.</Cell></Row>
 
-  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>평범한 칼잡이를 구해줄 수도 있고, 특별한 동료들을 소개해줄 수도 있소. 뭘 찾고 계시오?</Cell></Row>
+  <Row><Cell>merc_provider_hire_type</Cell><Cell>I can get you some regular sellswords, or I have some specific companions available. What are you looking for?</Cell><Cell>평범한 용병들을 구해드릴 수도 있고, 특별한 동료들도 대기하고 있습니다. 어떤 사람을 찾으십니까?</Cell></Row>
 
-  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>평범한 용병들.</Cell></Row>
-  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>그냥 평범한 용병이면 되오.</Cell></Row>
+  <Row><Cell>ui_mercenary_type_normal</Cell><Cell>Normal mercenaries.</Cell><Cell>일반 용병.</Cell></Row>
+  <Row><Cell>merc_henry_type_normal</Cell><Cell>Just standard mercenaries.</Cell><Cell>그냥 평범한 용병들이면 됩니다.</Cell></Row>
 
-  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>특별한 동료들.</Cell></Row>
-  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>특정한 사람들을 찾고 있소.</Cell></Row>
-  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>아, 특별 명단 말이군. 누굴 염두에 두고 있소?</Cell></Row>
+  <Row><Cell>ui_mercenary_type_custom</Cell><Cell>Custom companions.</Cell><Cell>특별한 동료.</Cell></Row>
+  <Row><Cell>merc_henry_type_custom</Cell><Cell>I'm looking for some specific people.</Cell><Cell>특정 인물들을 찾고 있습니다.</Cell></Row>
+  <Row><Cell>merc_provider_custom</Cell><Cell>Ah, the special roster. Who do you have in mind?</Cell><Cell>아, 특별 명부 말이군요. 누구를 염두에 두고 계십니까?</Cell></Row>
 
-  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>가장 약한 자들 (50 그로셴).</Cell></Row>
-  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>제법 쓸만한 사내들 (100 그로셴).</Cell></Row>
-  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>노련한 병사 (300 그로셴).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_weak</Cell><Cell>The weakest (50 groschen).</Cell><Cell>가장 약한 용병 (50 그로셴).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_medium</Cell><Cell>Some decent lads (100 groschen).</Cell><Cell>꽤 쓸만한 녀석들 (100 그로셴).</Cell></Row>
+  <Row><Cell>ui_mercenary_tier_good</Cell><Cell>An experienced Soldier (300 groschen).</Cell><Cell>숙련된 병사 (300 그로셴).</Cell></Row>
 
-  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>하나만.</Cell></Row>
-  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>둘.</Cell></Row>
-  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>셋.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>딱 한 명.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>두 명.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>세 명.</Cell></Row>
 
-  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>용병을 좀 고용하고 싶소.</Cell></Row>
-  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>기꺼이 도와줄 만한 사내들이 있소. 얼마나 강한 자들이 필요하시오?</Cell></Row>
+  <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>용병을 좀 고용하고 싶습니다.</Cell></Row>
+  <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>일거리를 찾는 녀석들이 좀 있습니다. 얼마나 강한 녀석을 원하십니까?</Cell></Row>
 
-  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>가장 약한 자들이면 충분하오.</Cell></Row>
-  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>좋소, 한 명당 50 그로셴이오. 몇 명이나 필요하시오?</Cell></Row>
+  <Row><Cell>merc_henry_weak</Cell><Cell>The weakest will do.</Cell><Cell>가장 약한 녀석들이면 충분합니다.</Cell></Row>
+  <Row><Cell>merc_provider_weak</Cell><Cell>Alright, 50 groschen a head. How many do you need?</Cell><Cell>알겠습니다, 머리당 50 그로셴입니다. 몇 명이나 필요하십니까?</Cell></Row>
 
-  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>제법 쓸만한 사내들로.</Cell></Row>
-  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>좋소, 한 명당 100 그로셴이오. 몇 명이나 필요하시오?</Cell></Row>
+  <Row><Cell>merc_henry_medium</Cell><Cell>Some decent lads.</Cell><Cell>꽤 쓸만한 녀석들로 부탁합니다.</Cell></Row>
+  <Row><Cell>merc_provider_medium</Cell><Cell>Alright, 100 groschen a head. How many do you need?</Cell><Cell>알겠습니다, 머리당 100 그로셴입니다. 몇 명이나 필요하십니까?</Cell></Row>
 
-  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>노련한 병사로.</Cell></Row>
-  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>최상급이오. 한 명당 300 그로셴이오. 몇 명이나 필요하시오?</Cell></Row>
+  <Row><Cell>merc_henry_good</Cell><Cell>An experienced Soldier.</Cell><Cell>숙련된 병사를 원합니다.</Cell></Row>
+  <Row><Cell>merc_provider_good</Cell><Cell>Top quality. That's 300 groschen a head. How many do you need?</Cell><Cell>최고급 인력이지요. 머리당 300 그로셴입니다. 몇 명이나 필요하십니까?</Cell></Row>
 
-  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>하나만.</Cell></Row>
-  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>둘로 하겠소.</Cell></Row>
-  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>셋을 주시오.</Cell></Row>
+  <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>한 명이면 됩니다.</Cell></Row>
+  <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>두 명 고용하겠습니다.</Cell></Row>
+  <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>세 명 내어주십시오.</Cell></Row>
 
   <Row><Cell>ui_mercenary_management_hub</Cell><Cell>Company management.</Cell><Cell>Company management.</Cell></Row>
   <Row><Cell>merc_henry_management_hub_prompt</Cell><Cell>I want to check in on the company.</Cell><Cell>I want to check in on the company.</Cell></Row>
@@ -48,18 +48,18 @@
   <Row><Cell>merc_test_status_report</Cell><Cell>Here's where we stand, boss.</Cell><Cell>Here's where we stand, boss.</Cell></Row>
 
 
-  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>여기서 기다려라.</Cell></Row>
-  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>나를 따라와라.</Cell></Row>
-  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>모두 해산하겠다.</Cell></Row>
+  <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>여기서 기다려.</Cell></Row>
+  <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>나를 따라와.</Cell></Row>
+  <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>너희 모두 해고다.</Cell></Row>
 
-  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>여기서 기다려라.</Cell></Row>
-  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>말씀대로 하겠습니다, 두목.</Cell></Row>
+  <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>여기서 대기해.</Cell></Row>
+  <Row><Cell>merc_test_wait_action</Cell><Cell>As you say, boss.</Cell><Cell>분부대로 합죠, 대장.</Cell></Row>
 
-  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>나를 따라와라.</Cell></Row>
-  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>바로 뒤에 있겠습니다.</Cell></Row>
+  <Row><Cell>merc_henry_follow_action</Cell><Cell>Follow me.</Cell><Cell>날 따라와.</Cell></Row>
+  <Row><Cell>merc_test_follow_action</Cell><Cell>Right behind you.</Cell><Cell>바로 뒤따라 가겠습니다.</Cell></Row>
 
-  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>모두 해산이다.</Cell></Row>
-  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>안녕히 계십시오.</Cell></Row>
+  <Row><Cell>merc_henry_dismiss_action</Cell><Cell>You're all dismissed.</Cell><Cell>너희 모두 해고다.</Cell></Row>
+  <Row><Cell>merc_test_dismiss_action</Cell><Cell>Bye bye.</Cell><Cell>안녕히 계쇼.</Cell></Row>
   <Row><Cell>ui_mercenary_camp_make</Cell><Cell>Make camp here.</Cell><Cell>Make camp here.</Cell></Row>
   <Row><Cell>merc_henry_camp_make</Cell><Cell>Make camp here. Set up the tents and get a fire going.</Cell><Cell>Make camp here. Set up the tents and get a fire going.</Cell></Row>
   <Row><Cell>merc_test_camp_make</Cell><Cell>Aye, we could all use a rest. Setting up now.</Cell><Cell>Aye, we could all use a rest. Setting up now.</Cell></Row>
@@ -67,16 +67,16 @@
   <Row><Cell>merc_henry_camp_break</Cell><Cell>Break camp, we're moving out.</Cell><Cell>Break camp, we're moving out.</Cell></Row>
   <Row><Cell>merc_test_camp_break</Cell><Cell>Packing it up, boss.</Cell><Cell>Packing it up, boss.</Cell></Row>
 
-  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>용병을 고용했습니다.</Cell></Row>
-  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>용병들을 고용했습니다.</Cell></Row>
+  <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>용병이 고용되었습니다.</Cell></Row>
+  <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>용병들이 고용되었습니다.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>그로셴이 부족합니다!</Cell></Row>
-  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>이미 너무 많은 인원을 거느리고 있습니다! 최대 5명까지 가능합니다.</Cell></Row>
-  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>모든 용병이 해산되었습니다.</Cell></Row>
-  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>용병들이 대기 중입니다.</Cell></Row>
-  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>용병들이 뒤따르고 있습니다.</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>이미 인원이 너무 많습니다! (최대 5명)</Cell></Row>
+  <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>모든 용병이 해고되었습니다.</Cell></Row>
+  <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>용병 대기 중.</Cell></Row>
+  <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>용병 동행 중.</Cell></Row>
 
-  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>특별한 동료를 고용했습니다.</Cell></Row>
-  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>이 동료는 이미 당신을 섬기고 있습니다!</Cell></Row>
+  <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>특별한 동료가 고용되었습니다.</Cell></Row>
+  <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>이 동료는 이미 고용된 상태입니다!</Cell></Row>
 
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>용병</Cell></Row>
   <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>신참 용병</Cell></Row>
@@ -109,35 +109,35 @@
   <Row><Cell>merc_henry_equipment_hub_prompt</Cell><Cell>Let's talk about your equipment.</Cell><Cell>Let's talk about your equipment.</Cell></Row>
   <Row><Cell>merc_test_equipment_hub_prompt</Cell><Cell>Outfits, weapons, or the archers' gear?</Cell><Cell>Outfits, weapons, or the archers' gear?</Cell></Row>
   <Row><Cell>ui_mercenary_change_equipment</Cell><Cell>Change Equipment...</Cell><Cell>장비 변경...</Cell></Row>
-  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>장비를 좀 바꿔야겠다.</Cell></Row>
-  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>뭘 입어야 합니까?</Cell></Row>
+  <Row><Cell>merc_henry_equip_hub_prompt</Cell><Cell>I need you to change your gear.</Cell><Cell>장비를 좀 갈아입어야겠다.</Cell></Row>
+  <Row><Cell>merc_test_equip_hub_prompt</Cell><Cell>What should we wear?</Cell><Cell>뭘 입으면 될까요?</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>일반 용병</Cell></Row>
-  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>평소 입던 장비를 입어라.</Cell></Row>
-  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>바로 갈아입겠습니다.</Cell></Row>
+  <Row><Cell>ui_merc_equip_gen</Cell><Cell>Generic Mercenaries</Cell><Cell>일반 용병 장비</Cell></Row>
+  <Row><Cell>merc_henry_equip_gen</Cell><Cell>Put on your usual gear.</Cell><Cell>평소 입던 장비로 입어.</Cell></Row>
+  <Row><Cell>merc_test_equip_gen</Cell><Cell>We'll change right away.</Cell><Cell>당장 갈아입죠.</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>산적</Cell></Row>
-  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>산적처럼 차려입어라.</Cell></Row>
-  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>이러다 감옥 신세가 되지 않길 바랍니다.</Cell></Row>
+  <Row><Cell>ui_merc_equip_ban</Cell><Cell>Bandits</Cell><Cell>도적 장비</Cell></Row>
+  <Row><Cell>merc_henry_equip_ban</Cell><Cell>Dress like bandits.</Cell><Cell>도적처럼 입어.</Cell></Row>
+  <Row><Cell>merc_test_equip_ban</Cell><Cell>I hope this doesn't land us in prison.</Cell><Cell>감옥에 끌려가지만 않았으면 좋겠군요.</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>쿠만족</Cell></Row>
-  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>쿠만족 갑옷을 입어라.</Cell></Row>
-  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>흐음.</Cell></Row>
+  <Row><Cell>ui_merc_equip_cum</Cell><Cell>Cumans</Cell><Cell>쿠만인 장비</Cell></Row>
+  <Row><Cell>merc_henry_equip_cum</Cell><Cell>Put on Cuman armor.</Cell><Cell>쿠만인 갑옷을 입어.</Cell></Row>
+  <Row><Cell>merc_test_equip_cum</Cell><Cell>Hrmpf.</Cell><Cell>흥.</Cell></Row>
 
   <Row><Cell>ui_merc_equip_lei</Cell><Cell>Leipa</Cell><Cell>레이파</Cell></Row>
   <Row><Cell>merc_henry_equip_lei</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>스칼리츠와 레이파의 문장을 걸쳐라.</Cell></Row>
   <Row><Cell>merc_test_equip_lei</Cell><Cell>For Sir Radzig!</Cell><Cell>라지그 경을 위하여!</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>쿠텐베르크</Cell></Row>
-  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>쿠텐베르크의 문장을 걸쳐라.</Cell></Row>
-  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>바로 그리하겠습니다.</Cell></Row>
+  <Row><Cell>ui_merc_equip_kut</Cell><Cell>Kuttenberg</Cell><Cell>쿠텐베르크 상징색</Cell></Row>
+  <Row><Cell>merc_henry_equip_kut</Cell><Cell>Wear the Kuttenberg colors.</Cell><Cell>쿠텐베르크의 상징색을 입어.</Cell></Row>
+  <Row><Cell>merc_test_equip_kut</Cell><Cell>Right away.</Cell><Cell>분부대로.</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>스칼리츠 (코비야 가문의 무기, 갑옷과 문장 필요)</Cell></Row>
-  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>옛정을 생각해서 스칼리츠의 문장을 걸쳐라.</Cell></Row>
-  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>스칼리츠를 위해, 그리고 당신을 위해, 헨리.</Cell></Row>
+  <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz</Cell><Cell>스칼리츠 상징색</Cell></Row>
+  <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the colors of Skalitz and Leipa.</Cell><Cell>스칼리츠와 라이파의 상징색을 입어.</Cell></Row>
+  <Row><Cell>merc_test_equip_ska</Cell><Cell>For Sir Radzig!</Cell><Cell>라드직 경을 위하여!</Cell></Row>
 
-  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(신경 쓰지 마시오)</Cell></Row>
-  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>아니, 됐다.</Cell></Row>
+  <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(관두자)</Cell></Row>
+  <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>실은, 방금 한 말은 잊어버려.</Cell></Row>
 
   <Row><Cell>ui_mercenary_combat_hub</Cell><Cell>Change combat orders...</Cell><Cell>Change combat orders...</Cell></Row>
   <Row><Cell>merc_henry_combat_hub_prompt</Cell><Cell>Let's talk about how you fight.</Cell><Cell>Let's talk about how you fight.</Cell></Row>
@@ -214,90 +214,90 @@
   <Row><Cell>merc_henry_weapon_can</Cell><Cell>Actually, nevermind.</Cell><Cell>아니, 됐다.</Cell></Row>
 
 
-  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(신경 쓰지 마시오)</Cell></Row>
-  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>아니, 됐다.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_cancel</Cell><Cell>(Nevermind)</Cell><Cell>(관두자)</Cell></Row>
+  <Row><Cell>merc_henry_custom_cancel</Cell><Cell>Actually, nevermind.</Cell><Cell>실은, 없던 일로 해 주시오.</Cell></Row>
 
-  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>쿠비옌카 (1500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>쿠비옌카로 하겠소.</Cell></Row>
-  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>아직 술로 죽지 않았는지 알아보리다.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_kubenka</Cell><Cell>Kubyenka (1500 groschen).</Cell><Cell>쿠벤카 (1500 그로셴).</Cell></Row>
+  <Row><Cell>merc_henry_kubenka</Cell><Cell>I'll take Kubyenka.</Cell><Cell>쿠벤카를 데려가겠소.</Cell></Row>
+  <Row><Cell>merc_provider_kubenka</Cell><Cell>I'll see if he hasn't drunk himself to death yet.</Cell><Cell>그놈이 술 퍼마시다 아직 안 뒈졌는지 확인해 보죠.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_vasko</Cell><Cell>Vasko (1000 groschen).</Cell><Cell>바스코 (1000 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>바스코를 불러다 주시오.</Cell></Row>
-  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>마침 일거리를 찾고 있소.</Cell></Row>
+  <Row><Cell>merc_henry_vasko</Cell><Cell>Send for Vasko.</Cell><Cell>바스코를 불러주시오.</Cell></Row>
+  <Row><Cell>merc_provider_vasko</Cell><Cell>He is indeed looking for work.</Cell><Cell>그 친구도 마침 일거리를 찾고 있었습니다.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_jasak</Cell><Cell>Jasak (800 groschen).</Cell><Cell>야사크 (800 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>야사크로 하겠소.</Cell></Row>
-  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>그의 활이 요긴하게 쓰일 것이오.</Cell></Row>
+  <Row><Cell>merc_henry_jasak</Cell><Cell>I'll take Jasak.</Cell><Cell>야사크를 데려가겠소.</Cell></Row>
+  <Row><Cell>merc_provider_jasak</Cell><Cell>His bow will come in handy.</Cell><Cell>놈의 활 솜씨가 꽤 쓸만할 겁니다.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_bartosch</Cell><Cell>Black Bartosch (2000 groschen).</Cell><Cell>검은 바르토슈 (2000 그로셴).</Cell></Row>
   <Row><Cell>merc_henry_bartosch</Cell><Cell>I need Black Bartosch.</Cell><Cell>검은 바르토슈가 필요하오.</Cell></Row>
-  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>어차피 트로스키 성도 슬슬 지겨워하던 참이오.</Cell></Row>
+  <Row><Cell>merc_provider_bartosch</Cell><Cell>Trosky Castle is starting to bore him anyway.</Cell><Cell>안 그래도 그 친구, 트로스키 성에 처박혀 있는 걸 지루해하던 참이었습니다.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_gnarly</Cell><Cell>Gnarly (2000 groschen).</Cell><Cell>날리 (2000 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>날리를 데려와 주시오.</Cell></Row>
-  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>마지막으로 한 번 더 출정하기로 했소.</Cell></Row>
+  <Row><Cell>merc_henry_gnarly</Cell><Cell>Get me Gnarly.</Cell><Cell>날리를 불러주시오.</Cell></Row>
+  <Row><Cell>merc_provider_gnarly</Cell><Cell>He agreed to ride out on one last sortie.</Cell><Cell>마지막으로 한 번 더 전장에 나가기로 동의했습니다.</Cell></Row>
 
-  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>얀 포시 (1500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>얀 포시로 하겠소.</Cell></Row>
-  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>그가 있으면 다른 이는 필요 없을 것이오.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_jan_posy</Cell><Cell>Jan Posy (1500 groschen).</Cell><Cell>얀 포지 (1500 그로셴).</Cell></Row>
+  <Row><Cell>merc_henry_jan_posy</Cell><Cell>I'll take Jan Posy.</Cell><Cell>얀 포지를 데려가겠소.</Cell></Row>
+  <Row><Cell>merc_provider_jan_posy</Cell><Cell>With him, I don't think you'll need anyone else.</Cell><Cell>그놈과 함께라면 다른 녀석은 필요 없을 겝니다.</Cell></Row>
 
-  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>미로슬라프 투그본 (1500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>미로슬라프를 불러다 주시오.</Cell></Row>
-  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>그의 뼈다귀가 어딘가에 걸려 있지 않길 바라오.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_miroslav</Cell><Cell>Miroslav Tugbone (1500 groschen).</Cell><Cell>터그본 미로슬라프 (1500 그로셴).</Cell></Row>
+  <Row><Cell>merc_henry_miroslav</Cell><Cell>Send for Miroslav.</Cell><Cell>미로슬라프를 불러주시오.</Cell></Row>
+  <Row><Cell>merc_provider_miroslav</Cell><Cell>Let's hope his bone isn't stuck somewhere.</Cell><Cell>그놈 뼈다귀가 어디 부러져있지만 않길 바라야죠.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_menhard</Cell><Cell>Menhard (1000 groschen).</Cell><Cell>멘하르트 (1000 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>멘하르트가 필요하오.</Cell></Row>
-  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>프랑크푸르트 최고의 검술 사범이 당신을 섬기게 될 것이오.</Cell></Row>
+  <Row><Cell>merc_henry_menhard</Cell><Cell>I want Menhard.</Cell><Cell>멘하르트를 고용하고 싶소.</Cell></Row>
+  <Row><Cell>merc_provider_menhard</Cell><Cell>Frankfurt's finest fencing master is at your service.</Cell><Cell>프랑크푸르트 최고의 검술 달인이 당신을 모실 겁니다.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_arne</Cell><Cell>Arne (500 groschen).</Cell><Cell>아르네 (500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>아르네로 하겠소.</Cell></Row>
-  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>좋소만, 체코어는 한마디도 못 할 것 같소만...</Cell></Row>
+  <Row><Cell>merc_henry_arne</Cell><Cell>I'll take Arne.</Cell><Cell>아르네를 데려가겠소.</Cell></Row>
+  <Row><Cell>merc_provider_arne</Cell><Cell>Alright, but I don't think he speaks any Czech...</Cell><Cell>알겠습니다. 하지만 그 녀석 체코어는 한마디도 못 할 텐데요...</Cell></Row>
 
-  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>스칼리츠의 야네크 (800 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>야네크를 데려와 주시오.</Cell></Row>
-  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>옛 동료들이 다시 모이는군.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_janek</Cell><Cell>Janek of Skalitz (800 groschen).</Cell><Cell>스칼리츠의 야넥 (800 그로셴).</Cell></Row>
+  <Row><Cell>merc_henry_janek</Cell><Cell>Get me Janek.</Cell><Cell>야넥을 불러주시오.</Cell></Row>
+  <Row><Cell>merc_provider_janek</Cell><Cell>I see the old crowd is getting together.</Cell><Cell>옛 친구들이 다시 뭉치는 모양이군요.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_jaroslav</Cell><Cell>Jaroslav (800 groschen).</Cell><Cell>야로슬라프 (800 그로셴).</Cell></Row>
   <Row><Cell>merc_henry_jaroslav</Cell><Cell>I need Jaroslav.</Cell><Cell>야로슬라프가 필요하오.</Cell></Row>
-  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>수염 기르기 내기에서 이기고 있는 것 같소.</Cell></Row>
+  <Row><Cell>merc_provider_jaroslav</Cell><Cell>I think he's winning the beard-growing bet.</Cell><Cell>수염 기르기 내기에서 그놈이 이기고 있는 것 같더군요.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_adder</Cell><Cell>Adder (1500 groschen).</Cell><Cell>애더 (1500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>애더로 하겠소.</Cell></Row>
-  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>동네 푸줏간 주인을 불러 보리다.</Cell></Row>
+  <Row><Cell>merc_henry_adder</Cell><Cell>I'll take Adder.</Cell><Cell>애더를 데려가겠소.</Cell></Row>
+  <Row><Cell>merc_provider_adder</Cell><Cell>I'll call on the local butcher.</Cell><Cell>동네 백정 놈을 불러오죠.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_janosh</Cell><Cell>Janosh (1500 groschen).</Cell><Cell>야노시 (1500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>야노시를 불러다 주시오.</Cell></Row>
-  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>진정한 미식가시구려.</Cell></Row>
+  <Row><Cell>merc_henry_janosh</Cell><Cell>Send for Janosh.</Cell><Cell>야노시를 불러주시오.</Cell></Row>
+  <Row><Cell>merc_provider_janosh</Cell><Cell>I see you are a true gourmand.</Cell><Cell>미식가다운 선택이시군요.</Cell></Row>
 
-  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>수금꾼 마테우스 (500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>수금꾼 마테우스가 필요하오.</Cell></Row>
-  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>악마의 무리를 통째로 원하시는군.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_mathew</Cell><Cell>Mathew the Collector (500 groschen).</Cell><Cell>수집가 매튜 (500 그로셴).</Cell></Row>
+  <Row><Cell>merc_henry_mathew</Cell><Cell>I want Mathew the Collector.</Cell><Cell>수집가 매튜를 고용하고 싶소.</Cell></Row>
+  <Row><Cell>merc_provider_mathew</Cell><Cell>I see you want the entire Devil's pack.</Cell><Cell>악마 무리를 통째로 끌어들일 작정이시군요.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_zizka</Cell><Cell>Jan Zizka (3000 groschen).</Cell><Cell>얀 지슈카 (3000 그로셴).</Cell></Row>
   <Row><Cell>merc_henry_zizka</Cell><Cell>I need Jan Zizka.</Cell><Cell>얀 지슈카가 필요하오.</Cell></Row>
-  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>그가 당신을 돕기로 했소.</Cell></Row>
+  <Row><Cell>merc_provider_zizka</Cell><Cell>He's agreed to help you.</Cell><Cell>그가 당신을 돕기로 동의했습니다.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_devil</Cell><Cell>The Devil (3000 groschen).</Cell><Cell>악마 (3000 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>악마가 필요하오.</Cell></Row>
-  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>그는 준비되어 있소.</Cell></Row>
+  <Row><Cell>merc_henry_devil</Cell><Cell>I want The Devil.</Cell><Cell>악마를 원하오.</Cell></Row>
+  <Row><Cell>merc_provider_devil</Cell><Cell>He's ready to go.</Cell><Cell>놈은 언제든 출발할 준비가 되었습니다.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_godwin</Cell><Cell>Father Godwin (2500 groschen).</Cell><Cell>고드윈 신부 (2500 그로셴).</Cell></Row>
-  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>고드윈 신부를 데려와 주시오.</Cell></Row>
-  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>사제에서 용병이라... 참으로 대단한 사내지.</Cell></Row>
+  <Row><Cell>merc_henry_godwin</Cell><Cell>Father Godwin. Get him.</Cell><Cell>고드윈 신부. 그를 불러주시오.</Cell></Row>
+  <Row><Cell>merc_provider_godwin</Cell><Cell>From priest to mercenary... what a man.</Cell><Cell>신부에서 용병이라니... 참 대단한 양반입니다.</Cell></Row>
 
   <Row><Cell>ui_mercenary_custom_capon</Cell><Cell>Sir Hans Capon (3000 groschen).</Cell><Cell>한스 카폰 경 (3000 그로셴).</Cell></Row>
   <Row><Cell>merc_henry_capon</Cell><Cell>Sir Hans Capon.</Cell><Cell>한스 카폰 경.</Cell></Row>
-  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>영주님께서 당신을 섬기실 것이오.</Cell></Row>
+  <Row><Cell>merc_provider_capon</Cell><Cell>His Lordship is at your service.</Cell><Cell>영주님께서 당신을 따르실 겁니다.</Cell></Row>
 
 
-  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>당신의 용병들이 오는 중입니다.</Cell></Row>
-  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>내 부하들을 불러들여라.</Cell></Row>
-  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>내 부하들에게 전갈을 보내시오. 다시 돌아와야 하오.</Cell></Row>
-  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>맡겨 두시오. 바로 전령을 보내겠소.</Cell></Row>
+  <Row><Cell>merc_info_returning</Cell><Cell>Your mercenaries are on their way.</Cell><Cell>용병들이 오는 중입니다.</Cell></Row>
+  <Row><Cell>ui_mercenary_type_return</Cell><Cell>Recall my men.</Cell><Cell>부하들 소집.</Cell></Row>
+  <Row><Cell>merc_henry_type_return</Cell><Cell>Send word to my men. I need them back.</Cell><Cell>내 부하들에게 전갈을 보내주시오. 모두 복귀하라고.</Cell></Row>
+  <Row><Cell>merc_provider_type_return</Cell><Cell>Consider it done. I'll send a runner right away.</Cell><Cell>맡겨만 두십쇼. 당장 전령을 보내겠습니다.</Cell></Row>
 
-  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up (20 groschen).</Cell><Cell>상처를 좀 돌봐라.</Cell></Row>
-  <Row><Cell>merc_heal_henry_1</Cell><Cell>Here's 20 groschen, patch yourselves up. You look terrible.</Cell><Cell>이 물품들을 가지고 상처를 돌봐라. 꼴이 말이 아니구나.</Cell></Row>
-  <Row><Cell>merc_heal_merc</Cell><Cell>That'll cover bandages and drink. We'll be right as rain.</Cell><Cell>할 수 있는 만큼 해보겠습니다, 두목. 하지만 제대로 된 치료사가 있으면 나쁠 것 없겠지요.</Cell></Row>
+  <Row><Cell>ui_mercenary_heal_yourselves</Cell><Cell>Patch yourselves up.</Cell><Cell>스스로 치료해.</Cell></Row>
+  <Row><Cell>merc_heal_henry_1</Cell><Cell>Take these supplies and patch yourselves up. You look terrible.</Cell><Cell>이 물품들로 상처 좀 치료해. 꼴이 말이 아니군.</Cell></Row>
+  <Row><Cell>merc_heal_merc</Cell><Cell>We'll do what we can, boss, but a proper healer wouldn't go amiss.</Cell><Cell>어떻게든 해보겠습니다, 대장. 하지만 제대로 된 의사가 있으면 더 좋겠는데요.</Cell></Row>
   <Row><Cell>merc_info_merc_healed</Cell><Cell>Your mercenaries have been healed.</Cell><Cell>용병들이 치료되었습니다.</Cell></Row>
   <Row><Cell>merc_info_nobody_injured</Cell><Cell>Nobody needs healing right now.</Cell><Cell>Nobody needs healing right now.</Cell></Row>
   <Row><Cell>merc_info_status_empty</Cell><Cell>You have no mercenaries in your company.</Cell><Cell>You have no mercenaries in your company.</Cell></Row>
@@ -314,30 +314,30 @@
   <Row><Cell>merc_info_recalled</Cell><Cell>Squad recalled.</Cell><Cell>Squad recalled.</Cell></Row>
 
 
-  <Row><Cell>merc_test_bark_string</Cell><Cell>This is a test. I like cheese.</Cell><Cell>이것은 테스트입니다. 저는 치즈를 좋아합니다.</Cell></Row>
+  <Row><Cell>merc_test_bark_string</Cell><Cell>This is a test. I like cheese.</Cell><Cell>이건 테스트입니다. 난 치즈가 좋아.</Cell></Row>
 
-  <Row><Cell>a614a_story1</Cell><Cell>I don't fear death, I fear soup made by someone confident.</Cell><Cell>난 죽음이 두렵지 않아, 자신만만한 놈이 끓인 수프가 두렵지.</Cell></Row>
-  <Row><Cell>a614a_story2</Cell><Cell>I once trusted a man who said shortcut, we arrived older.</Cell><Cell>한번은 지름길이라던 놈을 믿었지, 도착했을 땐 우리 다 늙어 있더군.</Cell></Row>
-  <Row><Cell>a614a_story3</Cell><Cell>A priest, a butcher and a taxman walk into a tavern - everyone hides their groschen.</Cell><Cell>신부와 푸줏간 주인과 세리가 술집에 들어서면 - 다들 그로셴부터 숨기지.</Cell></Row>
-  <Row><Cell>a614a_story4</Cell><Cell>He said he knew the road, the road is agreed.</Cell><Cell>그놈은 길을 안다고 했지, 길도 그 말엔 동의하더군.</Cell></Row>
-  <Row><Cell>a614a_story5</Cell><Cell>My uncle survived three wars and died arguing with a goose.</Cell><Cell>내 삼촌은 전쟁을 세 번이나 넘겼는데 거위와 말다툼하다 죽었소.</Cell></Row>
-  <Row><Cell>a614a_story6</Cell><Cell>A rich man calls it patience, a poor man calls it waiting.</Cell><Cell>부자는 그걸 인내라 부르고, 가난한 자는 그걸 기다림이라 부르지.</Cell></Row>
-  <Row><Cell>a614a_story7</Cell><Cell>Nothing humbles a man faster, than trying to look brave while slipping in mud.</Cell><Cell>진흙탕에서 미끄러지면서 용감한 척하는 것만큼 사람을 겸손하게 만드는 것도 없지.</Cell></Row>
-  <Row><Cell>a614a_story8</Cell><Cell>I don't drink to forget, I drink because the water ... looks ambitious.</Cell><Cell>난 잊으려고 마시는 게 아니야, 물이... 너무 야심 차 보여서 마시는 거지.</Cell></Row>
-  <Row><Cell>a614a_story9</Cell><Cell>I prayed for guidance and got rain. Well, close enough.</Cell><Cell>인도해 달라고 기도했더니 비가 오더군. 뭐, 비슷한 거겠지.</Cell></Row>
-  <Row><Cell>a614a_story10</Cell><Cell>A man who says trust me, has already stolen something.</Cell><Cell>날 믿으라고 말하는 자는, 이미 뭔가 훔친 뒤지.</Cell></Row>
-  <Row><Cell>a614a_story11</Cell><Cell>The woods are peaceful, until you remember, everything in them eats without a spoon.</Cell><Cell>숲은 평화롭지, 그 안의 모든 것이 숟가락 없이 먹는다는 걸 떠올리기 전까지는.</Cell></Row>
-  <Row><Cell>a614a_story12</Cell><Cell>I would rather sleep in a ditch, than in a castle with politics.</Cell><Cell>정치판 성에서 자느니 차라리 도랑에서 자겠소.</Cell></Row>
-  <Row><Cell>a614a_story13</Cell><Cell>Never insult a cook before breakfast, that's how legends become warnings.</Cell><Cell>아침 먹기 전엔 절대 요리사를 모욕하지 마시오, 전설이 경고문이 되는 건 그렇게 시작되지.</Cell></Row>
-  <Row><Cell>a614a_story14</Cell><Cell>Henry went to deliver a message and invented six unrelated crimes on the way.</Cell><Cell>헨리는 전갈 하나 전하러 갔다가 오는 길에 상관도 없는 범죄를 여섯 개나 만들어냈지.</Cell></Row>
-  <Row><Cell>a614a_story15</Cell><Cell>I saw a man walk into the Kuttenberg mines sober, that was his first mistake.</Cell><Cell>맨정신으로 쿠텐베르크 광산에 들어가는 놈을 봤소, 그게 첫 번째 실수였지.</Cell></Row>
-  <Row><Cell>a614a_story16</Cell><Cell>Kuttenberg has fine walls, shame about the people inside them.</Cell><Cell>쿠텐베르크는 성벽이야 훌륭하지, 그 안의 사람들이 문제일 뿐.</Cell></Row>
-  <Row><Cell>a614a_story17</Cell><Cell>Henry of Skalitz, blacksmith, messenger, detective, idiot magnet.</Cell><Cell>스칼리츠의 헨리, 대장장이에 전령에 탐정에, 바보를 끌어모으는 자석이지.</Cell></Row>
-  <Row><Cell>a614a_story18</Cell><Cell>I met a peaceful monk once, he was sharpening something.</Cell><Cell>평화로운 수도사를 한 번 만난 적 있는데, 뭔가를 갈고 있더군.</Cell></Row>
-  <Row><Cell>a614a_story19</Cell><Cell>A man with clean armor near Kuttenberg is either rich or recently replaced.</Cell><Cell>쿠텐베르크 근방에서 깨끗한 갑옷을 입은 자는 부자거나, 최근에 갑옷 주인이 바뀌었거나 둘 중 하나지.</Cell></Row>
-  <Row><Cell>a614a_story20</Cell><Cell>He said it was a simple job, was henry's speech for bring armor and a priest.</Cell><Cell>간단한 일이라고 했지, 헨리 말로는 그게 곧 갑옷과 신부를 데려오라는 뜻이더군.</Cell></Row>
-  <Row><Cell>a614a_story21</Cell><Cell>I have guarded caravans safer, than one of henry's polite conversations.</Cell><Cell>헨리의 정중한 대화 한 번보다는 상단 호위가 더 안전했소.</Cell></Row>
-  <Row><Cell>a614a_story22</Cell><Cell>Henry, you have the rare gift of making armed men look like paperwork.</Cell><Cell>헨리, 당신은 무장한 사내들을 서류 작업처럼 보이게 만드는 희귀한 재주가 있구려.</Cell></Row>
+  <Row><Cell>a614a_story1</Cell><Cell>I don't fear death, I fear soup made by someone confident.</Cell><Cell>난 죽음은 안 두려워. 자신만만한 놈이 끓인 수프가 두렵지.</Cell></Row>
+  <Row><Cell>a614a_story2</Cell><Cell>I once trusted a man who said shortcut, we arrived older.</Cell><Cell>지름길을 안다는 놈을 믿었다가 확 늙어서 도착한 적이 있지.</Cell></Row>
+  <Row><Cell>a614a_story3</Cell><Cell>A priest, a butcher and a taxman walk into a tavern - everyone hides their groschen.</Cell><Cell>신부, 백정, 세금 징수원이 여관에 들어오면 - 모두가 자기 그로셴을 숨기기 바쁘다네.</Cell></Row>
+  <Row><Cell>a614a_story4</Cell><Cell>He said he knew the road, the road is agreed.</Cell><Cell>놈은 자기가 길을 안다고 했지만, 길의 생각은 달랐지.</Cell></Row>
+  <Row><Cell>a614a_story5</Cell><Cell>My uncle survived three wars and died arguing with a goose.</Cell><Cell>우리 삼촌은 전쟁을 세 번이나 겪고 살아남았는데, 거위랑 말싸움하다 돌아가셨어.</Cell></Row>
+  <Row><Cell>a614a_story6</Cell><Cell>A rich man calls it patience, a poor man calls it waiting.</Cell><Cell>부자는 그걸 인내심이라 부르고, 가난한 자는 그걸 기다림이라 부르지.</Cell></Row>
+  <Row><Cell>a614a_story7</Cell><Cell>Nothing humbles a man faster, than trying to look brave while slipping in mud.</Cell><Cell>진흙탕에 미끄러지면서 용감해 보이려고 애쓰는 것만큼 사람을 빨리 겸손하게 만드는 건 없어.</Cell></Row>
+  <Row><Cell>a614a_story8</Cell><Cell>I don't drink to forget, I drink because the water ... looks ambitious.</Cell><Cell>난 잊으려고 마시는 게 아냐. 물 녀석이... 너무 야심 차 보여서 술을 마시는 거지.</Cell></Row>
+  <Row><Cell>a614a_story9</Cell><Cell>I prayed for guidance and got rain. Well, close enough.</Cell><Cell>신께 인도를 기도했더니 비가 내리더군. 뭐, 그럭저럭 비슷하네.</Cell></Row>
+  <Row><Cell>a614a_story10</Cell><Cell>A man who says trust me, has already stolen something.</Cell><Cell>'날 믿어'라고 말하는 놈은 이미 뭔가를 훔친 거나 다름없어.</Cell></Row>
+  <Row><Cell>a614a_story11</Cell><Cell>The woods are peaceful, until you remember, everything in them eats without a spoon.</Cell><Cell>숲은 평화롭지. 그 안에 있는 모든 것들이 숟가락 없이 밥을 먹는다는 걸 깨닫기 전까진 말이야.</Cell></Row>
+  <Row><Cell>a614a_story12</Cell><Cell>I would rather sleep in a ditch, than in a castle with politics.</Cell><Cell>정치질로 가득한 성에 사느니 차라리 시궁창에서 자겠어.</Cell></Row>
+  <Row><Cell>a614a_story13</Cell><Cell>Never insult a cook before breakfast, that's how legends become warnings.</Cell><Cell>아침 먹기 전엔 절대 요리사를 모욕하지 마. 그게 바로 전설이 경고로 바뀌는 방식이거든.</Cell></Row>
+  <Row><Cell>a614a_story14</Cell><Cell>Henry went to deliver a message and invented six unrelated crimes on the way.</Cell><Cell>헨리는 편지를 전하러 갔다가 오는 길에 전혀 상관없는 범죄를 여섯 개나 저질렀지.</Cell></Row>
+  <Row><Cell>a614a_story15</Cell><Cell>I saw a man walk into the Kuttenberg mines sober, that was his first mistake.</Cell><Cell>맨정신으로 쿠텐베르크 광산에 들어가는 놈을 봤어. 그게 그놈의 첫 번째 실수였지.</Cell></Row>
+  <Row><Cell>a614a_story16</Cell><Cell>Kuttenberg has fine walls, shame about the people inside them.</Cell><Cell>쿠텐베르크의 성벽은 참 훌륭해. 그 안의 사람들이 엉망이라 유감이지만.</Cell></Row>
+  <Row><Cell>a614a_story17</Cell><Cell>Henry of Skalitz, blacksmith, messenger, detective, idiot magnet.</Cell><Cell>스칼리츠의 헨리. 대장장이, 전령, 탐정... 그리고 머저리 자석이지.</Cell></Row>
+  <Row><Cell>a614a_story18</Cell><Cell>I met a peaceful monk once, he was sharpening something.</Cell><Cell>언젠가 평화로운 수도승을 만났는데, 뭔가를 날카롭게 갈고 있더군.</Cell></Row>
+  <Row><Cell>a614a_story19</Cell><Cell>A man with clean armor near Kuttenberg is either rich or recently replaced.</Cell><Cell>쿠텐베르크 근처에서 깨끗한 갑옷을 입은 놈은 부자거나, 아니면 최근에 보충된 신병 둘 중 하나야.</Cell></Row>
+  <Row><Cell>a614a_story20</Cell><Cell>He said it was a simple job, was henry's speech for bring armor and a priest.</Cell><Cell>헨리의 사전에서 '간단한 일'이란, '갑옷 입고 신부님이나 불러와'라는 뜻이지.</Cell></Row>
+  <Row><Cell>a614a_story21</Cell><Cell>I have guarded caravans safer, than one of henry's polite conversations.</Cell><Cell>헨리의 정중한 대화에 끼어드는 것보다 캐러밴 호위가 훨씬 안전했지.</Cell></Row>
+  <Row><Cell>a614a_story22</Cell><Cell>Henry, you have the rare gift of making armed men look like paperwork.</Cell><Cell>헨리, 넌 무장한 병사들을 잡무 서류 다루듯 해치워버리는 희귀한 재능이 있군.</Cell></Row>
 
 
 
@@ -391,4 +391,74 @@
   <Row><Cell>merc_info_archer_weapon_bow</Cell><Cell>Archers: armed with bows.</Cell><Cell>Archers: armed with bows.</Cell></Row>
   <Row><Cell>merc_info_archer_weapon_crossbow</Cell><Cell>Archers: armed with crossbows.</Cell><Cell>Archers: armed with crossbows.</Cell></Row>
   <Row><Cell>merc_info_archer_weapon_handcannon</Cell><Cell>Archers: armed with hand cannons.</Cell><Cell>Archers: armed with hand cannons.</Cell></Row>
+
+  <!-- Additional strings supplied with the Korean translation; not referenced by the mod (no English counterpart). Kept so they are ready if these barks are ever wired up. -->
+  <Row><Cell>merc_dream_farm_1_1</Cell><Cell>Soon as I scrape together enough Groschen...</Cell><Cell>그로셴을 충분히 긁어모으기만 하면...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_2</Cell><Cell>I’m buying a little freehold.</Cell><Cell>작은 자유 농지를 하나 살 거야.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_3</Cell><Cell>Sit on my arse all day...</Cell><Cell>하루 종일 엉덩이 붙이고 앉아서...</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_4</Cell><Cell>Watch the serfs do the heavy lifting.</Cell><Cell>농노 놈들이 뼈 빠지게 일하는 거나 구경해야지.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_5</Cell><Cell>Just me, the sheep, and a full belly.</Cell><Cell>나랑 양 떼들, 그리고 부른 배만 있으면 돼.</Cell></Row>
+  <Row><Cell>merc_dream_farm_1_6</Cell><Cell>Christ, that'll be the life.</Cell><Cell>맙소사, 그게 진짜 사는 거지.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_1</Cell><Cell>Just one more year in this bloody trade.</Cell><Cell>이 빌어먹을 바닥에서 딱 1년만 더 구르고...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_2</Cell><Cell>Then I’m buying that empty plot down in Horschan...</Cell><Cell>그 다음엔 호르샨 밑에 있는 저 빈 땅을 살 거다...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_3</Cell><Cell>Finally get some peace and quiet.</Cell><Cell>드디어 평화롭고 조용한 삶을 살 수 있겠지.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_4</Cell><Cell>I'll hang my sword in the rafters...</Cell><Cell>칼은 서까래에나 매달아 두고...</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_5</Cell><Cell>Let the damn thing rust to dust.</Cell><Cell>먼지가 되어 녹슬게 내버려 둘 거다.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_6</Cell><Cell>Maybe brew my own ale.</Cell><Cell>내 입맛에 맞는 에일이나 빚어야지.</Cell></Row>
+  <Row><Cell>merc_dream_farm_2_7</Cell><Cell>Drink myself to sleep every night... heheh.</Cell><Cell>매일 밤 술에 취해 잠들 테다... 헤헤.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_1</Cell><Cell>I still remember it... before I was a man grown.</Cell><Cell>아직도 기억나... 내가 어른이 되기도 전의 일이었지.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_2</Cell><Cell>My father's farm.</Cell><Cell>아버지의 농장.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_3</Cell><Cell>A sturdy house. Had a red door.</Cell><Cell>빨간 문이 달린 튼튼한 집이었어.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_4</Cell><Cell>Then those Cuman bastards came.</Cell><Cell>그러다 그 쿠만인 개자식들이 들이닥쳤지.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_5</Cell><Cell>Slaughtered them like pigs... only I got away into the woods.</Cell><Cell>돼지 멱따듯 다 죽여버렸어... 나 혼자 숲으로 도망쳤을 뿐이지.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_6</Cell><Cell>Been living by the sword ever since.</Cell><Cell>그 후론 줄곧 칼에 의지해 살고 있다.</Cell></Row>
+  <Row><Cell>merc_dream_farm_3_7</Cell><Cell>Maybe one day... I’ll go back and rebuild it.</Cell><Cell>언젠가는... 돌아가서 다시 지을 거야.</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_1</Cell><Cell>Lord, what a night that was...</Cell><Cell>주여, 정말 엄청난 밤이었지...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_2</Cell><Cell>Zdena, her name was...</Cell><Cell>즈데나였어, 그녀 이름은...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_3</Cell><Cell>Hair like spun gold...</Cell><Cell>물레로 잣아낸 금실 같은 머릿결에...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_4</Cell><Cell>Breasts as soft as rising dough...</Cell><Cell>부풀어 오르는 반죽처럼 부드러운 가슴...</Cell></Row>
+  <Row><Cell>merc_dream_woman_1_5</Cell><Cell>I'd fight the Devil himself for another night with her.</Cell><Cell>그녀와 하룻밤만 더 보낼 수 있다면 악마와도 싸울 수 있어.</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_1</Cell><Cell>It’s been too long...</Cell><Cell>너무 오래됐어...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_2</Cell><Cell>Since I felt the warmth of a woman’s skin...</Cell><Cell>여자의 따뜻한 살결을 느껴본 지가...</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_3</Cell><Cell>Every tavern we hit, it’s nothing but toothless old hags.</Cell><Cell>들르는 여관마다 이 빠진 늙은 마녀들뿐이잖아.</Cell></Row>
+  <Row><Cell>merc_dream_woman_2_4</Cell><Cell>A man has needs, damn it.</Cell><Cell>사내라면 풀고 살아야 할 것 아니야, 빌어먹을.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_1</Cell><Cell>Every time I think of Betti, my heart skips a beat...</Cell><Cell>베티를 생각할 때면 심장이 멎는 것 같아...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_2</Cell><Cell>I like to think she’s still waiting by the hearth.</Cell><Cell>여전히 화롯가에서 나를 기다리고 있을 거라 믿고 싶군.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_3</Cell><Cell>Mending my tunic...</Cell><Cell>내 튜닉을 기우면서...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_4</Cell><Cell>Watching the villagers go about their day...</Cell><Cell>마을 사람들이 하루를 보내는 걸 지켜보면서 말이야...</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_5</Cell><Cell>But then I remember... it was my knife that ended up in her chest.</Cell><Cell>하지만 이내 기억나지... 그녀 가슴에 칼을 꽂은 게 바로 나였다는 걸.</Cell></Row>
+  <Row><Cell>merc_dream_woman_3_6</Cell><Cell>*sighs heavily*</Cell><Cell>*깊은 한숨*</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_1</Cell><Cell>Barely a fortnight since I left my Danka...</Cell><Cell>내 단카를 떠나온 지 고작 2주일밖에 안 됐는데...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_2</Cell><Cell>Wept her eyes dry when I rode off.</Cell><Cell>내가 말에 올랐을 때 눈물이 마르도록 울어댔지.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_3</Cell><Cell>That bastard Sigismund... tearing families apart.</Cell><Cell>그 지그스문트 개자식... 남의 가족을 생이별시키다니.</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_4</Cell><Cell>Now I’m stuck in this godforsaken mud-hole!</Cell><Cell>이젠 이 신에게 버림받은 진흙 구덩이에 처박혀 있다니!</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_5</Cell><Cell>Just trying to earn enough coin to go back to her...</Cell><Cell>그저 그녀에게 돌아갈 돈을 벌려던 것뿐인데...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_6</Cell><Cell>But every time we pass an alehouse...</Cell><Cell>술집 앞을 지나갈 때마다...</Cell></Row>
+  <Row><Cell>merc_dream_woman_4_7</Cell><Cell>My purse ends up lighter than before.</Cell><Cell>내 지갑은 전보다 얇아져 버린단 말이야.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_1</Cell><Cell>My sweet Matilda...</Cell><Cell>내 사랑 마틸다...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_2</Cell><Cell>Hope she sleeps soundly under that old oak tree.</Cell><Cell>그 늙은 참나무 아래에서 편안하게 잠들었기를.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_3</Cell><Cell>God's wounds, what a hellish night that was...</Cell><Cell>신의 상처시여, 정말 지옥 같은 밤이었어...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_4</Cell><Cell>Screamed until her voice gave out.</Cell><Cell>목이 쉴 때까지 비명을 질러댔지.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_5</Cell><Cell>The whole village heard her.</Cell><Cell>온 마을 사람들이 그 소리를 들었어.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_6</Cell><Cell>Had to bury poor little Jan right there beside her.</Cell><Cell>불쌍한 어린 얀도 그녀 곁에 묻어줘야 했어.</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_7</Cell><Cell>Just an infant...</Cell><Cell>갓난아기에 불과했는데...</Cell></Row>
+  <Row><Cell>merc_dream_woman_5_8</Cell><Cell>Couldn't bear to look at the house after that.</Cell><Cell>그 후로는 도저히 그 집을 쳐다볼 수가 없었어.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_1</Cell><Cell>Ah, the vineyards of Mělník...</Cell><Cell>아, 멜니크의 포도밭이여...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_2</Cell><Cell>Such wine they press!</Cell><Cell>거기서 빚어내는 와인은 정말!</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_3</Cell><Cell>Red as a ruby.</Cell><Cell>루비처럼 붉고.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_4</Cell><Cell>Sweet as sin.</Cell><Cell>죄악처럼 달콤하지.</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_5</Cell><Cell>Every Groschen I bleed for...</Cell><Cell>피땀 흘려 번 모든 그로셴은...</Cell></Row>
+  <Row><Cell>merc_dream_drink_1_6</Cell><Cell>Is for just one more drop of that nectar on my tongue.</Cell><Cell>혀끝에 그 넥타르 한 방울을 더 적시기 위함일 뿐.</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_1</Cell><Cell>I can't stomach this!</Cell><Cell>더는 못 견디겠어!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_2</Cell><Cell>Four days without a drop!</Cell><Cell>4일 동안 술 한 모금 못 마시다니!</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_3</Cell><Cell>The whole world makes more sense after a pint.</Cell><Cell>한 잔 들어가야 세상 돌아가는 이치가 짐작이 간단 말이야.</Cell></Row>
+  <Row><Cell>merc_dream_drink_2_4</Cell><Cell>Pray to God the next tavern isn't far.</Cell><Cell>다음 여관이 멀지 않기를 신께 기도해야겠군.</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_1</Cell><Cell>Where’s the spirits?</Cell><Cell>독주는 어딨어?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_2</Cell><Cell>Who hid the damn schnapps?!</Cell><Cell>대체 누가 슈납스를 숨긴 거야?!</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_3</Cell><Cell>Henry! Did you drink the last flask?</Cell><Cell>헨리! 마지막 남은 술병 네가 다 마셨어?</Cell></Row>
+  <Row><Cell>merc_dream_drink_3_4</Cell><Cell>This is absolute torture!</Cell><Cell>완전 고문이 따로 없군!</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_1</Cell><Cell>Beer... I only have to think about it and my knees get weak.</Cell><Cell>맥주... 생각만 해도 무릎이 풀려.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_2</Cell><Cell>If wine is Christ’s blood, and bread is His body...</Cell><Cell>와인이 그리스도의 피고, 빵이 그의 몸이라면...</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_3</Cell><Cell>Then beer must be His very soul.</Cell><Cell>맥주는 틀림없이 그의 영혼일 거야.</Cell></Row>
+  <Row><Cell>merc_dream_drink_4_4</Cell><Cell>Amen to that.</Cell><Cell>참으로 아멘이지.</Cell></Row>
 </Table>

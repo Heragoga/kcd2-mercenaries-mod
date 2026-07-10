@@ -761,6 +761,7 @@ Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
+Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 
 
 -- Prints every merc console command with a one-line description.

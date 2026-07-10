@@ -25,6 +25,47 @@
             <Variable name="patrolWaypoint" type="vec3" values="" isPersistent="0" form="single" />
             <Variable name="patrolHasWaypoint" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="patrolLongPause" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- Camp sit/sleep (see mercenaries_camp.lua). Non-guard camp mercs
+                 sit on a stool or lie in a bed. campFurniture is the assigned
+                 StanceSmartObject's WUID (that entity IS the smart object - the
+                 props themselves are plain decoration), and campFurniturePos is
+                 its vec3 position: the merc Moves there first (StanceElement
+                 does not navigate - vanilla walks the NPC to the spot before
+                 running the smart object's `use` behaviour), then a
+                 StanceElement against the WUID plays the sit/lie animation. -->
+            <Variable name="isCampSitter" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="isCampSleeper" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="campFurniture" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="campFurniturePos" type="vec3" values="" isPersistent="0" form="single" />
+            <!-- Camp activities (see CampActivityCatalogue in mercenaries_camp.lua).
+                 campActUnstance is an NPCStateUnstanceDatabase action name, passed
+                 straight to UnstanceAction - that node accepts a _string variable
+                 (vanilla does unstance="$unstance" in the smallTalkingWatchers
+                 trees). campActMode picks how it's played:
+                   1 = sit on campActLoc, then play the action
+                   2 = stand, no anchor
+                   3 = stand, aligned to the campActLoc anchor
+                   4 = stand, duo leader - campActSlave is the partner merc -->
+            <Variable name="campActMode" type="_int" values="0" isPersistent="0" form="single" />
+            <Variable name="campActUnstance" type="_string" values="" isPersistent="0" form="single" />
+            <Variable name="campActPos" type="vec3" values="" isPersistent="0" form="single" />
+            <Variable name="campActLoc" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="campActSlave" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="campActDrawWeapon" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- campActFace: a vec3 the merc turns to face once at the spot (the
+                 nearest campfire for standing activities), per feedback that
+                 they otherwise faced a weird way. campActHasFace gates the Turn
+                 (a zero vec3 would aim them at the world origin). -->
+            <Variable name="campActFace" type="vec3" values="" isPersistent="0" form="single" />
+            <Variable name="campActHasFace" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- Camp conversations (bodyguards-mod technique). CampChatTick in
+                 mercenaries_camp.lua publishes a pair in _G.MercCampChat; each
+                 merc senses its chatRole from it (1 = initiator, 2 = receiver,
+                 0 = not chatting) and both run the GOSSIP polylog together. -->
+            <Variable name="chatRole" type="_float" values="0" isPersistent="0" form="single" />
+            <Variable name="chatPartner" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="polylog_participants" type="_wuid" values="" isPersistent="0" form="array" />
+            <Variable name="polylog_participantsMetaroles" type="soulToMetaroles" values="" isPersistent="0" form="array" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -40,9 +81,58 @@
                             <Sequence>
                                 <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                 <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
-                                <!-- Refresh guard status each cycle - the patrol case in the
-                                     ContinuousSwitch below only runs while this is true. -->
+                                <!-- Refresh camp role each cycle - the guard/sit/sleep cases in
+                                     the ContinuousSwitch below run off these. Only one is ever
+                                     true at a time (a merc is a guard, a sitter, or a sleeper). -->
                                 <ExecuteLua code="data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)" />
+                                <ExecuteLua code="
+                                    data.isCampSitter = false
+                                    data.isCampSleeper = false
+                                    local f = mercenaries:GetCampFurniture(entity.this.id)
+                                    if f and f.wuid and f.pos then
+                                        data.campFurniture = f.wuid
+                                        data.campFurniturePos.x = f.pos.x
+                                        data.campFurniturePos.y = f.pos.y
+                                        data.campFurniturePos.z = f.pos.z
+                                        if f.kind == 'bed' then data.isCampSleeper = true else data.isCampSitter = true end
+                                    end
+                                " />
+                                <!-- Camp conversation pairing (bodyguards-style): read this merc's
+                                     role out of the shared _G.MercCampChat, comparing wuids as
+                                     strings exactly as kcdcompanion does. -->
+                                <ExecuteLua code="
+                                    data.chatRole = 0
+                                    local c = _G.MercCampChat
+                                    if c then
+                                        local myW = tostring(entity.this.id)
+                                        if tostring(c.a) == myW then data.chatRole = 1; data.chatPartner = c.b
+                                        elseif tostring(c.b) == myW then data.chatRole = 2; data.chatPartner = c.a end
+                                    end
+                                " />
+                                <!-- Camp activity (merc_camp_activity_test / future camp wiring).
+                                     campActMode 0 means no activity assigned. -->
+                                <ExecuteLua code="
+                                    data.campActMode = 0
+                                    data.campActDrawWeapon = false
+                                    data.campActHasFace = false
+                                    local a = mercenaries:GetCampActivity(entity.this.id)
+                                    if a and a.pos then
+                                        if a.unstance then data.campActUnstance = a.unstance end
+                                        data.campActPos.x = a.pos.x
+                                        data.campActPos.y = a.pos.y
+                                        data.campActPos.z = a.pos.z
+                                        if a.locWuid then data.campActLoc = a.locWuid end
+                                        if a.slaveWuid then data.campActSlave = a.slaveWuid end
+                                        if a.facePos then
+                                            data.campActFace.x = a.facePos.x
+                                            data.campActFace.y = a.facePos.y
+                                            data.campActFace.z = a.facePos.z
+                                            data.campActHasFace = true
+                                        end
+                                        data.campActDrawWeapon = (a.drawWeapon == true)
+                                        data.campActMode = a.mode or 2
+                                    end
+                                " />
                                 <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
@@ -149,6 +239,208 @@
                         <Loop count="-1">
                             <ContinuousSwitch>
 
+                                <!-- Camp CONVERSATIONS (bodyguards technique). First cases, so a
+                                     paired merc turns and talks whatever it was doing; when the pair
+                                     clears (chatRole back to 0) it resumes. Both mercs read their role
+                                     off the shared _G.MercCampChat on the same tick, which syncs the
+                                     initiator/receiver into the polylog. A conversation is a SEQUENCE
+                                     of exchanges - greeting, two gossips, farewell - the way the
+                                     vanilla gossip situation (references/AI/situation/gossip) chains
+                                     them, so it has real length and material instead of one short
+                                     GOSSIP. Each exchange is SuppressFailure'd so a metarole with no
+                                     content for our souls just skips. The initiator ends the pair
+                                     itself when the sequence finishes (EndCampChat), so it's never
+                                     cut off mid-line; CampChatTick only has a long fallback timeout. -->
+                                <IfCondition failOnCondition="false" condition="$chatRole == 1.0 &amp; (~$horseSpawned | $mountAbandoned)">
+                                    <Sequence>
+                                        <Turn target="$chatPartner" align="false" />
+                                        <Expression expressions="$polylog_participants[0] = $chatPartner &#10;$polylog_participantsMetaroles[0].soul = $chatPartner &#10;$polylog_participantsMetaroles[0].metaroles = 'GOSSIP'" />
+                                        <!-- ONE conversation, structured exactly like vanilla gossip
+                                             (references/AI/situation/gossip/situation_gossipinitiator.xml):
+                                             greeting -> a SINGLE gossip topic -> farewell. The gossip step is a
+                                             Selector, not a chain: try GOSSIP, and only fall back to
+                                             FALLBACK_GOSSIP if this soul has no plain gossip line - it is never
+                                             both. Chaining several GOSSIP rounds (as before) played as two
+                                             conversations back to back. The participant metarole is updated to
+                                             match each exchange, as vanilla does. The 30m Timeout is only a
+                                             safety net; the lines block and play in full, and the initiator
+                                             releases the pair (EndCampChat) once the sequence has finished. -->
+                                        <SuppressFailure>
+                                            <Timeout duration="'30m'" timeType="GameTime" doFail="false" variation="">
+                                                <Sequence>
+                                                    <SuppressFailure>
+                                                        <Sequence>
+                                                            <Expression expressions="$polylog_participantsMetaroles[0].metaroles = 'SITUACE_POZDRAVY'" />
+                                                            <Function_speech_schedulerPolylog_initiator alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" areaForPlayer="" context="" customParameters="" metarole="'SITUACE_POZDRAVY'" participants="$polylog_participants" participantsMetaroles="$polylog_participantsMetaroles" preset="$enum:dialogPreset.ingame" nodeLabel="73132072" />
+                                                        </Sequence>
+                                                    </SuppressFailure>
+                                                    <SuppressFailure>
+                                                        <Selector>
+                                                            <Sequence>
+                                                                <Expression expressions="$polylog_participantsMetaroles[0].metaroles = 'GOSSIP'" />
+                                                                <Function_speech_schedulerPolylog_initiator alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" areaForPlayer="" context="" customParameters="" metarole="'GOSSIP'" participants="$polylog_participants" participantsMetaroles="$polylog_participantsMetaroles" preset="$enum:dialogPreset.ingame" nodeLabel="73132072" />
+                                                            </Sequence>
+                                                            <Sequence>
+                                                                <Expression expressions="$polylog_participantsMetaroles[0].metaroles = 'FALLBACK_GOSSIP'" />
+                                                                <Function_speech_schedulerPolylog_initiator alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" areaForPlayer="" context="" customParameters="" metarole="'FALLBACK_GOSSIP'" participants="$polylog_participants" participantsMetaroles="$polylog_participantsMetaroles" preset="$enum:dialogPreset.ingame" nodeLabel="73132072" />
+                                                            </Sequence>
+                                                        </Selector>
+                                                    </SuppressFailure>
+                                                    <SuppressFailure>
+                                                        <Sequence>
+                                                            <Expression expressions="$polylog_participantsMetaroles[0].metaroles = 'SITUACE_ROZLOUCENI'" />
+                                                            <Function_speech_schedulerPolylog_initiator alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" areaForPlayer="" context="" customParameters="" metarole="'SITUACE_ROZLOUCENI'" participants="$polylog_participants" participantsMetaroles="$polylog_participantsMetaroles" preset="$enum:dialogPreset.ingame" nodeLabel="73132072" />
+                                                        </Sequence>
+                                                    </SuppressFailure>
+                                                </Sequence>
+                                            </Timeout>
+                                        </SuppressFailure>
+                                        <ExecuteLua code="pcall(function() mercenaries:EndCampChat(entity.this.id) end)" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <IfCondition failOnCondition="false" condition="$chatRole == 2.0 &amp; (~$horseSpawned | $mountAbandoned)">
+                                    <Sequence>
+                                        <Turn target="$chatPartner" align="false" />
+                                        <!-- Receiver mirrors vanilla situation_gossipreceiver.xml exactly:
+                                             greeting -> a SINGLE GOSSIP response -> farewell. The receiver always
+                                             uses the 'GOSSIP' metarole even when the initiator fell back to
+                                             FALLBACK_GOSSIP (vanilla does the same). Each call blocks until the
+                                             initiator drives that line, so the exchange plays out fully. The pair
+                                             is cleared by the initiator's EndCampChat when it finishes, which
+                                             drops chatRole back to 0 and lets this case exit. -->
+                                        <SuppressFailure>
+                                            <Timeout duration="'30m'" timeType="GameTime" doFail="false" variation="">
+                                                <Sequence>
+                                                    <SuppressFailure><Function_speech_schedulerPolylog_receiver aliasOrMetarole="'SITUACE_POZDRAVY'" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" /></SuppressFailure>
+                                                    <SuppressFailure><Function_speech_schedulerPolylog_receiver aliasOrMetarole="'GOSSIP'" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" /></SuppressFailure>
+                                                    <SuppressFailure><Function_speech_schedulerPolylog_receiver aliasOrMetarole="'SITUACE_ROZLOUCENI'" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" /></SuppressFailure>
+                                                </Sequence>
+                                            </Timeout>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- =========================================================
+                                     Camp ACTIVITIES. First cases, so an assigned activity
+                                     preempts patrol / sit / sleep / follow. The animation is
+                                     played by UnstanceAction, whose `unstance` is a named entry
+                                     in references/Libs/Tables/ai/NPCStateUnstanceDatabase.xml -
+                                     that attribute takes a _string variable, so one node covers
+                                     every activity in CampActivityCatalogue. UnstanceAction
+                                     enters the action (its In + Loop fragments) and returns; the
+                                     following Wait is how long the loop is held before the Out
+                                     fragment plays on leaving. Same shape as
+                                     references/AI/profession/camper/so_camperFemaleEating.xml.
+                                     ========================================================= -->
+
+                                <!-- Mode 1: sit on the anchor seat, then play the action while
+                                     seated (eating, sharpening, snoozing...). The <WaitAction/>
+                                     is what actually performs the sit-down, exactly as in the
+                                     sleeper/sitter cases below. -->
+                                <IfCondition failOnCondition="false" condition="$campActMode == 1">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Sequence>
+                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <StanceElement smartObject="$campActLoc" stance="sitting" allowAny="false" enabled="true">
+                                                    <Sequence>
+                                                        <WaitAction />
+                                                        <!-- locationObject MUST be the seat smart object. Vanilla
+                                                             always passes it for seated unstances (so_camperFemaleEating
+                                                             passes $__resource.id for "eating", so_sitPlace passes
+                                                             $__object.id for camper_snooze). With it empty, every
+                                                             seated action except camper_snooze (which vanilla also
+                                                             calls with an empty locationObject in one spot, so it
+                                                             tolerates both) failed in-game: the merc walked over
+                                                             and just stood on the stool. -->
+                                                        <UnstanceAction unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" />
+                                                        <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                                    </Sequence>
+                                                </StanceElement>
+                                            </Sequence>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- Mode 2: standing, no anchor at all. These are the entries whose
+                                     UnstanceData has UseLocationObject="false" (sword training,
+                                     eating on foot, stretching...). Played standalone, the way
+                                     references/AI/situation/dogbarkingpasserby does it. -->
+                                <IfCondition failOnCondition="false" condition="$campActMode == 2">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Sequence>
+                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <!-- Face the fire (or training dummies) - Move leaves the merc
+                                                     facing the way they arrived, which looked wrong. Turn takes a
+                                                     vec3 target directly (like references .../*_lyingharmed.xml's
+                                                     $checkItemPos). -->
+                                                <IfCondition failOnCondition="false" condition="$campActHasFace">
+                                                    <SuppressFailure>
+                                                        <Turn target="$campActFace" align="false" />
+                                                    </SuppressFailure>
+                                                </IfCondition>
+                                                <!-- (DrawAction removed: the unstance's own In fragment re-sheathes
+                                                     the weapon first, so drawing beforehand just made the merc pull
+                                                     it out and put it straight back. Kept the gate as a no-op.) -->
+                                                <IfCondition failOnCondition="false" condition="$campActDrawWeapon">
+                                                    <SuppressFailure>
+                                                        <DrawAction WeaponSet="Primary" fullBody="false" tags="" />
+                                                    </SuppressFailure>
+                                                </IfCondition>
+                                                <UnstanceAction unstance="$campActUnstance" locationObject="" slaveObject="" />
+                                                <!-- Short hold so the loop re-checks often: the ContinuousSwitch
+                                                     can only drop this activity (e.g. on break-camp, when the
+                                                     assignment clears) between iterations, so a long wait here is
+                                                     what made the sword drill run on after camp broke. -->
+                                                <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'3s'" />
+                                            </Sequence>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- Mode 3: standing, aligned to an anchor entity (wood chopping,
+                                     sawing, cart pushing). The merc is snapped to the anchor's
+                                     transform, so the anchor's facing decides which way they work. -->
+                                <IfCondition failOnCondition="false" condition="$campActMode == 3">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Sequence>
+                                                <Move stopWithinDistance="0.800000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <UnstanceAction unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" />
+                                                <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                            </Sequence>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- Mode 4: duo animation leader (party_duo_* / smallTalkingWatchers_*).
+                                     Confirmed NOT to work in-game - the paired fragments never played -
+                                     so nothing in the catalogue uses this any more. Kept because the
+                                     node itself is harmless and mode 4 may suit a future synced pair. -->
+                                <IfCondition failOnCondition="false" condition="$campActMode == 4">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Sequence>
+                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <UnstanceAction unstance="$campActUnstance" locationObject="" slaveObject="$campActSlave" />
+                                                <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                            </Sequence>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- (The conversation cases live at the TOP of this switch, above
+                                     the activity cases, so a chatting merc turns to talk regardless
+                                     of what they were doing - see $chatRole above.) -->
+
                                 <!-- Camp-guard patrol. First case, so it preempts every follow
                                      mode below while this merc is an incamp guard (ContinuousSwitch
                                      runs the first matching case). Pull the current perimeter
@@ -195,6 +487,64 @@
                                             <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                         </Sequence>
                                     </SuppressFailure>
+                                </IfCondition>
+
+                                <!-- Camp sleeper: walk to the assigned bed's StanceSmartObject and
+                                     lie in it. Two steps, because StanceElement does NOT navigate on
+                                     its own - in vanilla the scheduler walks the NPC to the spot and
+                                     only then runs the smart object's `use` behaviour (see
+                                     references/AI/world/so_bed.xml). So: Move to the smart object's
+                                     vec3 position (changeNPCState="true", the same proven
+                                     move-to-a-point setup the guard patrol uses), then StanceElement
+                                     against its WUID.
+
+                                     The <WaitAction/> inside StanceElement is REQUIRED and is what
+                                     was missing when mercs walked to the furniture and then just
+                                     stood on it: StanceElement only declares the stance requirement,
+                                     WaitAction is what actually executes/awaits the enter (sit/lie)
+                                     animation. Every vanilla example does exactly
+                                     StanceElement > Sequence > [WaitAction, Wait] - see the minimal
+                                     references/AI/test/SAL_showcase/test_sleep.xml + test_sit.xml,
+                                     and so_bed.xml / so_sitPlace.xml's own `use` trees. The trailing
+                                     Wait is just how long they hold the pose before standing and
+                                     re-entering. SuppressFailure so a blocked path or a refused
+                                     entry just retries next cycle. -->
+                                <IfCondition failOnCondition="false" condition="$isCampSleeper">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Sequence>
+                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campFurniturePos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <StanceElement smartObject="$campFurniture" stance="lying" allowAny="false" enabled="true">
+                                                    <Sequence>
+                                                        <WaitAction />
+                                                        <Wait duration="'40s'" timeType="GameTime" doFail="false" variation="'20s'" />
+                                                    </Sequence>
+                                                </StanceElement>
+                                            </Sequence>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- Camp sitter: walk to the assigned stool's StanceSmartObject and
+                                     sit on it. Same two-step Move-then-StanceElement as above, and
+                                     the same required <WaitAction/> to actually play the sit-down
+                                     animation rather than just standing on the stool. -->
+                                <IfCondition failOnCondition="false" condition="$isCampSitter">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Sequence>
+                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campFurniturePos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <StanceElement smartObject="$campFurniture" stance="sitting" allowAny="false" enabled="true">
+                                                    <Sequence>
+                                                        <WaitAction />
+                                                        <Wait duration="'40s'" timeType="GameTime" doFail="false" variation="'20s'" />
+                                                    </Sequence>
+                                                </StanceElement>
+                                            </Sequence>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
                                 </IfCondition>
 
                                 <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
