@@ -487,27 +487,40 @@ mercenaries.CampTrainingDummySpacing = 1.6   -- between dummies, along the row
 mercenaries.CampTrainingTraineeSetback = 2.2 -- how far in front of the dummies trainees stand
 mercenaries.CampTrainingTraineeSpacing = 1.5 -- between trainees, along the row
 
--- Camp conversations (bodyguards technique). CampChatTick picks two nearby
--- mercs and publishes them in _G.MercCampChat = { a=wuid, b=wuid }; each merc's
--- follow BT reads its chatRole off that global and the pair run a
--- greeting/gossip/farewell polylog. The conversation is let to play out fully:
--- the initiator ends the pair itself the moment its sequence finishes
--- (EndCampChat), so normal termination is dialogue-driven, not timed. The hold
--- below is only a stuck-pair safety net (e.g. a participant despawned before
--- EndCampChat ran) - kept very long, matching the BT's own 30m safety Timeout,
--- so it never cuts a real conversation short.
+-- Camp conversations (bodyguards technique). CONCURRENT: CampChatTick pairs up
+-- ALL eligible nearby mercs each tick, not just one pair, and publishes them in
+-- _G.MercCampChats[wuidStr] = { partner=wuid, role=1|2, alias=..., age=ticks }.
+-- Each merc's follow BT reads its own entry and the pair runs the aliased gossip
+-- polylog (no greeting). The initiator ends its pair the moment its sequence
+-- finishes (EndCampChat); the per-pair `age` below is only a stuck-pair safety
+-- net (e.g. a participant despawned before EndCampChat ran), kept just above the
+-- BT's own 5m safety Timeout so it never cuts a real conversation short.
 --
--- Rarity is governed by two cooldowns (all times at the 5s MonitorCamp tick):
---   * a GLOBAL 30s gap so only one conversation starts every 30s camp-wide;
---   * a PER-MERC 3-minute gap so the same merc doesn't chat again right away.
--- Both are applied to the two participants when a conversation ends.
-mercenaries.CampChatHoldTicks = 360  -- 5s ticks: stuck-pair safety only (~30 min)
-mercenaries.CampChatCooldownTicks = 6    -- global: 30s between any two camp conversations
-mercenaries.CampChatMercCooldownTicks = 36  -- per-merc: 3 min before that merc chats again
+-- Cadence: NO global gap (conversations overlap freely). Instead every merc has
+-- a PER-MERC cooldown so it chats roughly once every CampChatMercCooldownTicks
+-- (5 min). The cooldowns are staggered on camp start (each merc seeded with a
+-- random 0..max) so conversations spread out over the window rather than all
+-- firing at once, then re-applied when each conversation ends.
+mercenaries.CampChatHoldTicks = 72   -- 5s ticks: stuck-pair safety only (~6 min)
+mercenaries.CampChatMercCooldownTicks = 60  -- per-merc: ~5 min between a merc's conversations
 mercenaries.CampChatRadius = 4.0     -- max metres between two mercs to pair them
-mercenaries.CampChatTicks = 0
-mercenaries.CampChatCooldown = 0
 mercenaries.CampChatMercCooldown = {}    -- wuidStr -> remaining ticks of per-merc cooldown
+mercenaries.CampChatStaggered = false    -- one-time per-camp cooldown seeding done?
+
+-- Our own two-NPC camp gossips (Decision Alias of each gossip_merc_*.xml, played
+-- by the follow BT's polylog step exactly like the mod's monolog stories are
+-- played by their alias). CampChatTick tags each new pair with a random one; the
+-- BT tries it first and falls back to the vanilla GOSSIP pool if it can't play.
+mercenaries.CampGossipAliases = {
+    "merc_gossip_2", "merc_gossip_3", "merc_gossip_4", "merc_gossip_5",
+    "merc_gossip_6", "merc_gossip_7", "merc_gossip_8", "merc_gossip_9", "merc_gossip_10",
+    "merc_gossip_11", "merc_gossip_12", "merc_gossip_13", "merc_gossip_14", "merc_gossip_15",
+    "merc_gossip_16", "merc_gossip_17", "merc_gossip_18", "merc_gossip_19", "merc_gossip_20",
+    "merc_gossip_21", "merc_gossip_22", "merc_gossip_23", "merc_gossip_24", "merc_gossip_25",
+    "merc_gossip_26", "merc_gossip_27", "merc_gossip_28", "merc_gossip_29", "merc_gossip_30",
+    "merc_gossip_31", "merc_gossip_32", "merc_gossip_33", "merc_gossip_34", "merc_gossip_35",
+    "merc_gossip_36", "merc_gossip_37", "merc_gossip_38", "merc_gossip_39", "merc_gossip_40",
+}
 
 -- Caps keep large squads from spawning an absurd number of props (and keep
 -- the layout from ballooning past a sane footprint).
@@ -891,66 +904,76 @@ function mercenaries:RotateCampRoles()
     end
 end
 
--- Clears the active conversation pair and applies the cooldowns: the global
--- 30s gap before any new camp conversation, plus the 3-minute per-merc gap for
--- both participants so the same mercs don't chat again immediately.
-function mercenaries:ClearCampChatPair()
-    local c = _G.MercCampChat
-    _G.MercCampChat = nil
-    self.CampChatTicks = 0
-    self.CampChatCooldown = self.CampChatCooldownTicks
-    if c then
-        if c.a then self.CampChatMercCooldown[tostring(c.a)] = self.CampChatMercCooldownTicks end
-        if c.b then self.CampChatMercCooldown[tostring(c.b)] = self.CampChatMercCooldownTicks end
-    end
-end
-
--- Ends the active conversation if `mercWuid` is in it (called by the initiator
--- BT when its polylog sequence finishes).
-function mercenaries:EndCampChat(mercWuid)
-    local c = _G.MercCampChat
-    if not c then return end
+-- Ends a conversation and applies the per-merc cooldown to both participants.
+-- Given any merc in a pair, clears both its and its partner's entry from
+-- _G.MercCampChats. Called by EndCampChat (initiator BT) and the stuck-pair
+-- safety in CampChatTick.
+function mercenaries:ClearCampChatPair(mercWuid)
+    local chats = _G.MercCampChats
+    if not chats then return end
     local w = tostring(mercWuid)
-    if tostring(c.a) == w or tostring(c.b) == w then
-        self:ClearCampChatPair()
+    local c = chats[w]
+    if not c then return end
+    chats[w] = nil
+    self.CampChatMercCooldown[w] = self.CampChatMercCooldownTicks
+    if c.partner then
+        local pw = tostring(c.partner)
+        chats[pw] = nil
+        self.CampChatMercCooldown[pw] = self.CampChatMercCooldownTicks
     end
 end
 
--- Picks a fresh conversation pair among the camp mercs (bodyguards-style) each
--- 5s tick; a live pair is left alone until the initiator ends it or the
--- fallback timeout elapses.
+-- Ends the conversation `mercWuid` is in (called by the initiator BT when its
+-- polylog sequence finishes).
+function mercenaries:EndCampChat(mercWuid)
+    self:ClearCampChatPair(mercWuid)
+end
+
+-- Pairs up ALL eligible nearby mercs each 5s tick (concurrent conversations),
+-- seeds staggered per-merc cooldowns once per camp, and ages out stuck pairs.
 function mercenaries:CampChatTick()
-    if not self.CampActive then _G.MercCampChat = nil return end
+    if not self.CampActive then _G.MercCampChats = {} return end
+    _G.MercCampChats = _G.MercCampChats or {}
+    local chats = _G.MercCampChats
     local ok, err = pcall(function()
-        -- Tick down the per-merc 3-minute cooldowns every cycle.
+        -- Tick down per-merc cooldowns.
         for w, t in pairs(self.CampChatMercCooldown) do
             if t <= 1 then self.CampChatMercCooldown[w] = nil
             else self.CampChatMercCooldown[w] = t - 1 end
         end
 
-        if _G.MercCampChat then
-            self.CampChatTicks = self.CampChatTicks + 1
-            if self.CampChatTicks >= self.CampChatHoldTicks then
-                self:ClearCampChatPair()
+        -- One-time stagger: seed every current merc with a random slice of the
+        -- per-merc cooldown so their first conversations spread over the window
+        -- rather than all firing on the same tick.
+        if not self.CampChatStaggered then
+            for _, ent in pairs(self.ActiveMercs) do
+                if ent and self:IsAliveAndWell(ent, false) then
+                    local w = tostring(ent.this and ent.this.id or ent.id)
+                    self.CampChatMercCooldown[w] = math.random(0, self.CampChatMercCooldownTicks)
+                end
             end
-            return
-        end
-        if self.CampChatCooldown > 0 then
-            self.CampChatCooldown = self.CampChatCooldown - 1
-            return
+            self.CampChatStaggered = true
         end
 
-        -- Collect living mercs with positions. Skip: fighters (never chat
-        -- mid-combat), mercs currently practising (per feedback, trainers
-        -- shouldn't break off their drill to gossip - detected by their live
-        -- role being the training activity), and mercs still on their per-merc
-        -- 3-minute conversation cooldown.
+        -- Age active pairs; force-clear any that overran the stuck-pair safety.
+        -- Only role-1 entries carry the age, so each pair is counted once.
+        local expired = {}
+        for w, c in pairs(chats) do
+            if c.role == 1 then
+                c.age = (c.age or 0) + 1
+                if c.age >= self.CampChatHoldTicks then table.insert(expired, w) end
+            end
+        end
+        for _, w in ipairs(expired) do self:ClearCampChatPair(w) end
+
+        -- Collect eligible mercs: alive, not already chatting, not on cooldown,
+        -- not fighting, not mid-drill, with a position.
         local list = {}
         for _, ent in pairs(self.ActiveMercs) do
             if ent and self:IsAliveAndWell(ent, false) then
                 local wuid = ent.this and ent.this.id or ent.id
                 local wuidStr = tostring(wuid)
-                if not self.CampChatMercCooldown[wuidStr] then
+                if not chats[wuidStr] and not self.CampChatMercCooldown[wuidStr] then
                     local p = nil
                     pcall(function() p = ent:GetWorldPos() end)
                     local hasTarget = false
@@ -964,21 +987,30 @@ function mercenaries:CampChatTick()
             end
         end
 
-        -- Gather all pairs within CampChatRadius, pick one at random.
+        -- Shuffle so pairings aren't biased by iteration order, then greedily
+        -- pair eligible mercs within radius - as many concurrent pairs as fit.
+        for i = #list, 2, -1 do
+            local j = math.random(i)
+            list[i], list[j] = list[j], list[i]
+        end
         local r2 = self.CampChatRadius * self.CampChatRadius
-        local candidates = {}
+        local used = {}
         for i = 1, #list do
-            for j = i + 1, #list do
-                local dx, dy = list[i].p.x - list[j].p.x, list[i].p.y - list[j].p.y
-                if (dx * dx + dy * dy) <= r2 then
-                    table.insert(candidates, { list[i].wuid, list[j].wuid })
+            if not used[i] then
+                for j = i + 1, #list do
+                    if not used[j] then
+                        local dx, dy = list[i].p.x - list[j].p.x, list[i].p.y - list[j].p.y
+                        if (dx * dx + dy * dy) <= r2 then
+                            local a, b = list[i].wuid, list[j].wuid
+                            local alias = self.CampGossipAliases[math.random(#self.CampGossipAliases)]
+                            chats[tostring(a)] = { partner = b, role = 1, alias = alias, age = 0 }
+                            chats[tostring(b)] = { partner = a, role = 2, alias = alias }
+                            used[i] = true; used[j] = true
+                            break
+                        end
+                    end
                 end
             end
-        end
-        if #candidates > 0 then
-            local pick = candidates[math.random(#candidates)]
-            _G.MercCampChat = { a = pick[1], b = pick[2] }
-            self.CampChatTicks = 0
         end
     end)
     if not ok then
@@ -1554,7 +1586,9 @@ function mercenaries:BreakMercCamp(silent)
     self.CampActive = false
     _G.MercCampMode = false
     _G.MercInCamp = false
-    _G.MercCampChat = nil
+    _G.MercCampChats = {}
+    self.CampChatMercCooldown = {}
+    self.CampChatStaggered = false
 
     if not silent then
         Game.SendInfoText('merc_info_camp_broken', false, 0, 3)
@@ -1623,7 +1657,9 @@ function mercenaries:RecallMercs()
     self.CampSeats = {}
     self.CampBeds = {}
     _G.MercInCamp = false
-    _G.MercCampChat = nil
+    _G.MercCampChats = {}
+    self.CampChatMercCooldown = {}
+    self.CampChatStaggered = false
     _G.MercIdle = false
     _G.MercPersistentIdleFlag = false
     self:SaveString("MercIdlePersistent", "0")
@@ -1696,12 +1732,11 @@ function mercenaries:ClearAnyLeftoverCamp()
     self.CampCommunalChairs = {}
     self.CampCenter = nil
     self.ActivityTestEntities = {}
-    self.CampChatTicks = 0
-    self.CampChatCooldown = 0
     self.CampChatMercCooldown = {}
+    self.CampChatStaggered = false
     _G.MercCampMode = false
     _G.MercInCamp = false
-    _G.MercCampChat = nil
+    _G.MercCampChats = {}
 end
 
 System.AddCCommand("merc_camp_make", "mercenaries:SpawnMercCamp()", "Spawn a procedural camp and idle the squad in it")

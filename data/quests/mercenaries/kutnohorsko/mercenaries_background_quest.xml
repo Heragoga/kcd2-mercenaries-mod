@@ -30,6 +30,45 @@
                 <Definition File="mercenaries_background_quest/carbongo/story20_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story21_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story22_monolog.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_2.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_3.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_4.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_5.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_6.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_7.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_8.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_9.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_10.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_11.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_12.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_13.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_14.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_15.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_16.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_17.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_18.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_19.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_20.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_21.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_22.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_23.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_24.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_25.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_26.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_27.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_28.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_29.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_30.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_31.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_32.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_33.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_34.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_35.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_36.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_37.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_38.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_39.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/gossip_merc_40.xml" />
             </Definitions>
             <Nodes>
                 <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
@@ -56,6 +95,46 @@
                 <story_20_monolog Name="story_20_monolog" PositionY="150" PositionX="500" />
                 <story_21_monolog Name="story_21_monolog" PositionY="150" PositionX="500" />
                 <story_22_monolog Name="story_22_monolog" PositionY="150" PositionX="500" />
+
+                <gossip_merc_2 Name="gossip_merc_2" PositionY="150" PositionX="700" />
+                <gossip_merc_3 Name="gossip_merc_3" PositionY="150" PositionX="700" />
+                <gossip_merc_4 Name="gossip_merc_4" PositionY="150" PositionX="700" />
+                <gossip_merc_5 Name="gossip_merc_5" PositionY="150" PositionX="700" />
+                <gossip_merc_6 Name="gossip_merc_6" PositionY="150" PositionX="700" />
+                <gossip_merc_7 Name="gossip_merc_7" PositionY="150" PositionX="700" />
+                <gossip_merc_8 Name="gossip_merc_8" PositionY="150" PositionX="700" />
+                <gossip_merc_9 Name="gossip_merc_9" PositionY="150" PositionX="700" />
+                <gossip_merc_10 Name="gossip_merc_10" PositionY="150" PositionX="700" />
+                <gossip_merc_11 Name="gossip_merc_11" PositionY="150" PositionX="700" />
+                <gossip_merc_12 Name="gossip_merc_12" PositionY="150" PositionX="700" />
+                <gossip_merc_13 Name="gossip_merc_13" PositionY="150" PositionX="700" />
+                <gossip_merc_14 Name="gossip_merc_14" PositionY="150" PositionX="700" />
+                <gossip_merc_15 Name="gossip_merc_15" PositionY="150" PositionX="700" />
+                <gossip_merc_16 Name="gossip_merc_16" PositionY="150" PositionX="700" />
+                <gossip_merc_17 Name="gossip_merc_17" PositionY="150" PositionX="700" />
+                <gossip_merc_18 Name="gossip_merc_18" PositionY="150" PositionX="700" />
+                <gossip_merc_19 Name="gossip_merc_19" PositionY="150" PositionX="700" />
+                <gossip_merc_20 Name="gossip_merc_20" PositionY="150" PositionX="700" />
+                <gossip_merc_21 Name="gossip_merc_21" PositionY="150" PositionX="700" />
+                <gossip_merc_22 Name="gossip_merc_22" PositionY="150" PositionX="700" />
+                <gossip_merc_23 Name="gossip_merc_23" PositionY="150" PositionX="700" />
+                <gossip_merc_24 Name="gossip_merc_24" PositionY="150" PositionX="700" />
+                <gossip_merc_25 Name="gossip_merc_25" PositionY="150" PositionX="700" />
+                <gossip_merc_26 Name="gossip_merc_26" PositionY="150" PositionX="700" />
+                <gossip_merc_27 Name="gossip_merc_27" PositionY="150" PositionX="700" />
+                <gossip_merc_28 Name="gossip_merc_28" PositionY="150" PositionX="700" />
+                <gossip_merc_29 Name="gossip_merc_29" PositionY="150" PositionX="700" />
+                <gossip_merc_30 Name="gossip_merc_30" PositionY="150" PositionX="700" />
+                <gossip_merc_31 Name="gossip_merc_31" PositionY="150" PositionX="700" />
+                <gossip_merc_32 Name="gossip_merc_32" PositionY="150" PositionX="700" />
+                <gossip_merc_33 Name="gossip_merc_33" PositionY="150" PositionX="700" />
+                <gossip_merc_34 Name="gossip_merc_34" PositionY="150" PositionX="700" />
+                <gossip_merc_35 Name="gossip_merc_35" PositionY="150" PositionX="700" />
+                <gossip_merc_36 Name="gossip_merc_36" PositionY="150" PositionX="700" />
+                <gossip_merc_37 Name="gossip_merc_37" PositionY="150" PositionX="700" />
+                <gossip_merc_38 Name="gossip_merc_38" PositionY="150" PositionX="700" />
+                <gossip_merc_39 Name="gossip_merc_39" PositionY="150" PositionX="700" />
+                <gossip_merc_40 Name="gossip_merc_40" PositionY="150" PositionX="700" />
 
 
                 <EventFunction Name="exec_clothes_1" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_8">
+            <Text StringName="gossip_merc_8_name" Text="Mercenary Gossip 8 - Duel With a Noble" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_8" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_8">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_8">
+                            <DesignName StringName="gossip_merc_8_name" Text="Duel With a Noble" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_sp_ja_nichts__v5Za" Text="Me? I was at the tavern with some friends, and this Hochnaesig was causing a scene." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_sp_coze_krist_Gv2G" Text="What?! This is going to be trouble!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_sp_johan_za_n_QYA9" Text="Johan went to him and asked him to calm down. And the Hochnaesig started yelling, saying how dare he speaks to a noble like that." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_sp_mokrovousy_nKVr" Text="Pff, von Nassenbart? More like von Nackterarsch!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_sp_no_jo_aber_qrpu" Text="Natuerlich, but he said I offended him, and that he wants a duel." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_sp_jo_ja_jsem_yWBC" Text="Aye, I took care of it." /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

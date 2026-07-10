@@ -59,11 +59,17 @@
             <Variable name="campActFace" type="vec3" values="" isPersistent="0" form="single" />
             <Variable name="campActHasFace" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Camp conversations (bodyguards-mod technique). CampChatTick in
-                 mercenaries_camp.lua publishes a pair in _G.MercCampChat; each
-                 merc senses its chatRole from it (1 = initiator, 2 = receiver,
-                 0 = not chatting) and both run the GOSSIP polylog together. -->
+                 mercenaries_camp.lua pairs up eligible mercs (concurrently) and
+                 publishes each in _G.MercCampChats[wuid]; each merc senses its
+                 chatRole from its own entry (1 = initiator, 2 = receiver, 0 = not
+                 chatting) and both run the gossip polylog together. -->
             <Variable name="chatRole" type="_float" values="0" isPersistent="0" form="single" />
             <Variable name="chatPartner" type="_wuid" values="" isPersistent="0" form="single" />
+            <!-- Alias of the specific mercenary gossip (gossip_merc_*.xml) this pair
+                 should tell, from _G.MercCampChats[wuid].alias; empty = fall back
+                 to the vanilla GOSSIP pool. -->
+            <Variable name="chatAlias" type="_string" values="" isPersistent="0" form="single" />
+            <Variable name="hasChatAlias" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="polylog_participants" type="_wuid" values="" isPersistent="0" form="array" />
             <Variable name="polylog_participantsMetaroles" type="soulToMetaroles" values="" isPersistent="0" form="array" />
         </Variables>
@@ -97,16 +103,22 @@
                                         if f.kind == 'bed' then data.isCampSleeper = true else data.isCampSitter = true end
                                     end
                                 " />
-                                <!-- Camp conversation pairing (bodyguards-style): read this merc's
-                                     role out of the shared _G.MercCampChat, comparing wuids as
-                                     strings exactly as kcdcompanion does. -->
+                                <!-- Camp conversation pairing (bodyguards-style). Concurrent: this
+                                     merc's own entry in the shared _G.MercCampChats map holds its
+                                     role (1=initiator, 2=receiver), partner and gossip alias. -->
                                 <ExecuteLua code="
                                     data.chatRole = 0
-                                    local c = _G.MercCampChat
+                                    data.chatAlias = ''
+                                    data.hasChatAlias = false
+                                    local chats = _G.MercCampChats
+                                    local c = chats and chats[tostring(entity.this.id)]
                                     if c then
-                                        local myW = tostring(entity.this.id)
-                                        if tostring(c.a) == myW then data.chatRole = 1; data.chatPartner = c.b
-                                        elseif tostring(c.b) == myW then data.chatRole = 2; data.chatPartner = c.a end
+                                        data.chatRole = c.role
+                                        data.chatPartner = c.partner
+                                        if c.alias and c.alias ~= '' then
+                                            data.chatAlias = c.alias
+                                            data.hasChatAlias = true
+                                        end
                                     end
                                 " />
                                 <!-- Camp activity (merc_camp_activity_test / future camp wiring).
@@ -242,7 +254,7 @@
                                 <!-- Camp CONVERSATIONS (bodyguards technique). First cases, so a
                                      paired merc turns and talks whatever it was doing; when the pair
                                      clears (chatRole back to 0) it resumes. Both mercs read their role
-                                     off the shared _G.MercCampChat on the same tick, which syncs the
+                                     off _G.MercCampChats[wuid] on the same tick, which syncs the
                                      initiator/receiver into the polylog. A conversation is a SEQUENCE
                                      of exchanges - greeting, two gossips, farewell - the way the
                                      vanilla gossip situation (references/AI/situation/gossip) chains
@@ -266,16 +278,34 @@
                                              safety net; the lines block and play in full, and the initiator
                                              releases the pair (EndCampChat) once the sequence has finished. -->
                                         <SuppressFailure>
-                                            <Timeout duration="'30m'" timeType="GameTime" doFail="false" variation="">
+                                            <Timeout duration="'5m'" timeType="GameTime" doFail="false" variation="">
                                                 <Sequence>
-                                                    <SuppressFailure>
-                                                        <Sequence>
-                                                            <Expression expressions="$polylog_participantsMetaroles[0].metaroles = 'SITUACE_POZDRAVY'" />
-                                                            <Function_speech_schedulerPolylog_initiator alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" areaForPlayer="" context="" customParameters="" metarole="'SITUACE_POZDRAVY'" participants="$polylog_participants" participantsMetaroles="$polylog_participantsMetaroles" preset="$enum:dialogPreset.ingame" nodeLabel="73132072" />
-                                                        </Sequence>
-                                                    </SuppressFailure>
+                                                    <!-- No greeting exchange (per feedback) - the mercs go straight
+                                                         into the gossip topic. -->
+                                                    <!-- The gossip topic. First choice is one of our own two-NPC
+                                                         mercenary gossips (gossip_merc_*.xml), played by its Decision
+                                                         Alias the same way the mod's monolog stories are (alias set,
+                                                         metarole empty). CampChatTick picks the alias for the pair and
+                                                         publishes it in _G.MercCampChats[wuid].alias -> $chatAlias. If no alias
+                                                         was assigned, or the aliased dialog can't play, the Selector
+                                                         falls back to the generic vanilla GOSSIP / FALLBACK_GOSSIP pool
+                                                         so a conversation still happens. -->
                                                     <SuppressFailure>
                                                         <Selector>
+                                                            <IfCondition failOnCondition="false" condition="$hasChatAlias">
+                                                                <Sequence>
+                                                                    <!-- IDENTICAL to the generic GOSSIP call below except `alias` is
+                                                                         set. SoulsToMetaroles carries METAROLES, and per the vanilla
+                                                                         role table (references/Libs/Tables/rpg/role.xml) the dialog
+                                                                         roles GOSSIP_OBECNY_MUZ_1/2 both map to metarole GOSSIP - so
+                                                                         both souls request 'GOSSIP' (exactly like the generic pool call
+                                                                         that is confirmed to play in-game) and the alias alone pins the
+                                                                         selection to our gossip_merc_* Decision. Passing a role name as
+                                                                         the metarole matches nothing and fails the whole request. -->
+                                                                    <Expression expressions="$polylog_participantsMetaroles[0].soul = $chatPartner &#10;$polylog_participantsMetaroles[0].metaroles = 'GOSSIP'" />
+                                                                    <Function_speech_schedulerPolylog_initiator alias="$chatAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" areaForPlayer="" context="" customParameters="" metarole="'GOSSIP'" participants="$polylog_participants" participantsMetaroles="$polylog_participantsMetaroles" preset="$enum:dialogPreset.ingame" nodeLabel="73132072" />
+                                                                </Sequence>
+                                                            </IfCondition>
                                                             <Sequence>
                                                                 <Expression expressions="$polylog_participantsMetaroles[0].metaroles = 'GOSSIP'" />
                                                                 <Function_speech_schedulerPolylog_initiator alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" areaForPlayer="" context="" customParameters="" metarole="'GOSSIP'" participants="$polylog_participants" participantsMetaroles="$polylog_participantsMetaroles" preset="$enum:dialogPreset.ingame" nodeLabel="73132072" />
@@ -303,18 +333,23 @@
                                 <IfCondition failOnCondition="false" condition="$chatRole == 2.0 &amp; (~$horseSpawned | $mountAbandoned)">
                                     <Sequence>
                                         <Turn target="$chatPartner" align="false" />
-                                        <!-- Receiver mirrors vanilla situation_gossipreceiver.xml exactly:
-                                             greeting -> a SINGLE GOSSIP response -> farewell. The receiver always
-                                             uses the 'GOSSIP' metarole even when the initiator fell back to
-                                             FALLBACK_GOSSIP (vanilla does the same). Each call blocks until the
-                                             initiator drives that line, so the exchange plays out fully. The pair
-                                             is cleared by the initiator's EndCampChat when it finishes, which
-                                             drops chatRole back to 0 and lets this case exit. -->
+                                        <!-- Receiver: no greeting (per feedback) - straight into the gossip
+                                             response, then farewell. Each call blocks until the initiator drives
+                                             that line. The pair is cleared by the initiator's EndCampChat when it
+                                             finishes, dropping chatRole back to 0 and letting this case exit. -->
                                         <SuppressFailure>
-                                            <Timeout duration="'30m'" timeType="GameTime" doFail="false" variation="">
+                                            <Timeout duration="'5m'" timeType="GameTime" doFail="false" variation="">
                                                 <Sequence>
-                                                    <SuppressFailure><Function_speech_schedulerPolylog_receiver aliasOrMetarole="'SITUACE_POZDRAVY'" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" /></SuppressFailure>
-                                                    <SuppressFailure><Function_speech_schedulerPolylog_receiver aliasOrMetarole="'GOSSIP'" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" /></SuppressFailure>
+                                                    <!-- Gossip topic: receive our own aliased merc gossip if one was
+                                                         assigned to the pair, else the generic vanilla GOSSIP. -->
+                                                    <SuppressFailure>
+                                                        <Selector>
+                                                            <IfCondition failOnCondition="false" condition="$hasChatAlias">
+                                                                <Function_speech_schedulerPolylog_receiver aliasOrMetarole="$chatAlias" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" />
+                                                            </IfCondition>
+                                                            <Function_speech_schedulerPolylog_receiver aliasOrMetarole="'GOSSIP'" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" />
+                                                        </Selector>
+                                                    </SuppressFailure>
                                                     <SuppressFailure><Function_speech_schedulerPolylog_receiver aliasOrMetarole="'SITUACE_ROZLOUCENI'" initiator="$chatPartner" numberOfParticipants="2" useIngameDialogPoseAndAnimations="false" nodeLabel="71778248" /></SuppressFailure>
                                                 </Sequence>
                                             </Timeout>

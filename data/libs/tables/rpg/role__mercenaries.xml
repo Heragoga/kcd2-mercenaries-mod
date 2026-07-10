@@ -3,6 +3,10 @@
 	<roles>
 		<role role_id="f54b3bd1-b5d6-4444-8426-20b4d9b6f8a1" metarole_name="NPC" role_name="role_mercenary_test" />
 
+		<!-- Second casting role for two-NPC camp gossips (gossip_merc_*), so a
+		     conversation can cast a distinct speaker A / speaker B. -->
+		<role role_id="c9630a8c-0825-4bd8-9e31-829083a11e98" metarole_name="NPC" role_name="role_mercenary_test2" />
+
 
 		<role role_id="053aebb6-b614-4471-b6b2-d5bfef77ff14" metarole_name="NPC" role_name="role_mercenary_provider" />
 	</roles>
