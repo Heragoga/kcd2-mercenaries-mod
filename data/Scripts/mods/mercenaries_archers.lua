@@ -228,11 +228,11 @@ function mercenaries:HireArcher(cost, amount, tier)
                 self.ArcherSoulIndex[tier] = 1
             end
 
-            local offsetPos = {
+            local offsetPos = self:FindValidGround({
                 x = spawnPos.x + (math.random() - 0.5) * 1.5,
                 y = spawnPos.y + (math.random() - 0.5) * 1.5,
                 z = spawnPos.z
-            }
+            }, spawnPos.z)
 
             local safeRot = {x = 0, y = 0, z = playerRot.z}
             -- 'SpawnedFriend' keeps them inside every existing squad system,

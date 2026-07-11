@@ -50,11 +50,11 @@ function mercenaries:Hire(cost, amount, tier)
                 self.SoulIndex[tier] = 1 
             end
             
-            local offsetPos = {
+            local offsetPos = self:FindValidGround({
                 x = spawnPos.x + (math.random() - 0.5) * 1.5,
                 y = spawnPos.y + (math.random() - 0.5) * 1.5,
                 z = spawnPos.z
-            }
+            }, spawnPos.z)
 
             local safeRot = {x = 0, y = 0, z = playerRot.z}
             local entityName = "SpawnedFriend_" .. tier .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
@@ -153,11 +153,11 @@ function mercenaries:HireCustomCompanion(ccID)
         local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
         if not spawnPos then return end
         
-        local offsetPos = {
+        local offsetPos = self:FindValidGround({
             x = spawnPos.x + (math.random() - 0.5) * 1.5,
             y = spawnPos.y + (math.random() - 0.5) * 1.5,
             z = spawnPos.z
-        }
+        }, spawnPos.z)
 
         local safeRot = {x = 0, y = 0, z = playerRot.z}
         local entityName = "MercenaryCustomCompanion_" .. soulGuid .. "_" .. tostring(math.random(10000, 99999))
@@ -454,6 +454,7 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
 
             local px = spawnPos.x + rightX * colOffset + awayX * rowOffset
             local py = spawnPos.y + rightY * colOffset + awayY * rowOffset
+            local unitPos = self:FindValidGround({ x = px, y = py, z = spawnPos.z }, spawnPos.z)
 
             local soulGuid = self.RenegadeSouls[self.RenegadeSoulIndex]
             self.RenegadeSoulIndex = self.RenegadeSoulIndex + 1
@@ -469,7 +470,7 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
             System.SpawnEntity({
                 class = "NPC",
                 name = entityName,
-                position = { x = px, y = py, z = spawnPos.z },
+                position = unitPos,
                 orientation = { x = 0, y = 0, z = playerRot.z },
                 properties = { guidSharedSoulId = soulGuid }
             })

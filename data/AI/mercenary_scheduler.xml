@@ -64,6 +64,9 @@
             <Variable name="isInjured" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="playerStinks" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="barkRandom" type="_int" values="1" isPersistent="0" form="single" />
+            <!-- Alias of the context self-talk bark dialog (merc_camp_barks /
+                 merc_travel_barks / merc_both_barks) chosen for barkRandom 29+. -->
+            <Variable name="barkAlias" type="_string" values="" isPersistent="0" form="single" />
 
             <Variable name="wasInCombat" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="canSpeak" type="_bool" values="false" isPersistent="0" form="single" />
@@ -444,8 +447,24 @@
                                             </Then>
                                             <Else canSkip="1">
                                                 <Sequence>
-                                                    <ExecuteLua code="data.barkRandom = math.random(1, 28)" />
-                                                    <ExecuteLua code="System.LogAlways('[Mercenary] Going to play random line ' .. tostring(data.barkRandom))" />
+                                                    <ExecuteLua code="data.barkRandom = math.random(1, 56)" />
+                                                    <!-- barkRandom 1-28 keep the original grumble/story pool; 29-56
+                                                         play a context-aware self-talk bark: camp barks when the merc
+                                                         is in camp, travel barks otherwise, with a share of the
+                                                         'both' pool either way. One schedulerMonolog call picks a
+                                                         random line from the chosen multi-sequence dialog. -->
+                                                    <ExecuteLua code="
+                                                        data.barkAlias = ''
+                                                        if data.barkRandom &gt;= 29 then
+                                                            local r = math.random(1, 100)
+                                                            if _G.MercInCamp == true then
+                                                                data.barkAlias = (r &lt;= 60) and 'merc_camp_barks' or 'merc_both_barks'
+                                                            else
+                                                                data.barkAlias = (r &lt;= 60) and 'merc_travel_barks' or 'merc_both_barks'
+                                                            end
+                                                        end
+                                                    " />
+                                                    <ExecuteLua code="System.LogAlways('[Mercenary] Going to play random line ' .. tostring(data.barkRandom) .. ' alias=' .. tostring(data.barkAlias))" />
                                                     <IfCondition failOnCondition="false" condition="~$isInjured">
                                                         <SuppressFailure>
                                                             <Sequence>
@@ -600,6 +619,13 @@
                                                                         <SuppressFailure>
                                                                             <IfCondition failOnCondition="false" condition="$barkRandom == 28">
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story22'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                                                            </IfCondition>
+                                                                        </SuppressFailure>
+                                                                        <!-- Context self-talk bark (camp / travel / both) - one call
+                                                                             plays a random line from the chosen multi-sequence dialog. -->
+                                                                        <SuppressFailure>
+                                                                            <IfCondition failOnCondition="false" condition="$barkRandom &gt;= 29">
+                                                                                <Function_speech_schedulerMonolog alias="$barkAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
                                                                         <ExecuteLua code="

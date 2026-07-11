@@ -773,6 +773,7 @@ function mercenaries:PrintHelp()
         "merc_wait / merc_follow / merc_dismiss   squad orders",
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
         "merc_camp_recall (F4)                bring the whole squad to you from anywhere (doesn't break camp)",
+        "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
         "merc_stance_everyone|player_target|defend|passive   squad targeting stance (default: everyone)",
         "merc_hire_w1/w2/w3, d1/d2/d3, p1/p2/p3   hire weak/medium/strong mercs (debug, free)",
         "merc_weapon_random|swordshield|axeshield|longsword|maceshield|shortsword|mace|axe|polearm   melee loadout",

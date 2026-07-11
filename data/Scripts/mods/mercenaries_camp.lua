@@ -445,6 +445,10 @@ mercenaries.CampActivities = {}
 -- merc's own outer spot.
 mercenaries.CampRoleCycle = { "sleep", "sit", "eat", "herbs", "snooze" }
 mercenaries.CampTrainerCycle = { "train", "sit", "train", "eat", "train", "sleep" }
+-- At night (CampIsNight, 9pm-6am) each role rotation has this chance to be
+-- overridden to "sleep" instead of the cycle step, so most of the camp beds
+-- down after dark (per feedback that too few slept at night).
+mercenaries.CampNightSleepChance = 0.75
 -- How long a merc holds each role, in SECONDS (a random span). Sleeps and sits
 -- run long (2-5 min per feedback); the rest are shorter so the camp keeps
 -- shuffling. Training is deliberately short - the drill animation is long, so a
@@ -474,10 +478,11 @@ mercenaries.CampActivityOutsideGap = 1.6
 
 -- TRAINING YARD (per feedback: right in front of the player tent, a little
 -- space in between; up to five straw dummies, one per five mercs). Placed
--- CampTrainingYardDistance metres in front of the player tent (along the same
--- "forward" the empty grid tile uses), NOT a grid cell. Dummies are laid out
--- in a row across the yard (target_straw/target_stand from the vanilla combat
--- prop set); trainees stand on the camp side facing them.
+-- CampTrainingYardDistance metres BEHIND the player tent (along -forward), in
+-- the (0, -1) tile CampGridOffsets reserves for it (the empty tile is (0, 1),
+-- in front). Dummies are laid out in a row across the yard
+-- (target_straw/target_stand from the vanilla combat prop set); trainees stand
+-- on the camp side facing them.
 mercenaries.CampTrainingYardDistance = 8.0
 mercenaries.CampTrainingDummyModels = {
     "objects/manmade/task_specific_props/combat/archery/target_straw.cgf",
@@ -504,6 +509,7 @@ mercenaries.CampTrainingTraineeSpacing = 1.5 -- between trainees, along the row
 mercenaries.CampChatHoldTicks = 72   -- 5s ticks: stuck-pair safety only (~6 min)
 mercenaries.CampChatMercCooldownTicks = 60  -- per-merc: ~5 min between a merc's conversations
 mercenaries.CampChatRadius = 4.0     -- max metres between two mercs to pair them
+mercenaries.CampMaxConcurrentChats = 2   -- most conversations running at once, camp-wide
 mercenaries.CampChatMercCooldown = {}    -- wuidStr -> remaining ticks of per-merc cooldown
 mercenaries.CampChatStaggered = false    -- one-time per-camp cooldown seeding done?
 
@@ -525,6 +531,10 @@ mercenaries.CampGossipAliases = {
 -- Caps keep large squads from spawning an absurd number of props (and keep
 -- the layout from ballooning past a sane footprint).
 mercenaries.CampMaxTents      = 100
+-- Hard cap on camping tiles (6 tents each), per spec ("at most ten camping
+-- tiles"). A squad whose non-guards need more than this many tiles spills the
+-- excess onto the straw-bed outer ring rather than tiling endlessly.
+mercenaries.CampMaxCampingTiles = 10
 -- Camp is built from repeating "cells": one campfire, up to CampClusterSize
 -- seats around it, and up to CampClusterSize tents (each with a bed) around
 -- that ("6 tents around a camp fire" per feedback). Squads bigger than one
@@ -549,6 +559,11 @@ mercenaries.CampTentRingRadius = 3.9
 -- + this clearance, so the ring encircles the whole camp ~3m outside the
 -- tents rather than cutting through them.
 mercenaries.CampPatrolTentClearance = 3.0
+-- Guard density cap: at most one patroller per this many metres of patrol-ring
+-- route length (see the guard-count route cap in SpawnMercCamp). Parties up to
+-- ~15 keep the half-the-squad split; bigger ones get thinned so the perimeter
+-- isn't crowded. 12 = midpoint of the "1 per 10-15 m" spec.
+mercenaries.CampPatrolSpacing = 12.0
 -- Was 18.0, then a third of that (6.0) per earlier feedback, then +1m
 -- (7.0), then +50% on top of that (10.5) per follow-up feedback - grid
 -- tiles (player tent / fire clusters) kept growing further apart each
@@ -560,6 +575,126 @@ mercenaries.CampClusterSpacing = 10.5
 -- computed directly in SpawnMercCamp. Kept defined so anything external
 -- still referencing it doesn't break.
 mercenaries.CampMaxPatrollers = 3
+
+-- =======================================================================
+-- Ground-validation tuning (see CampValidateSpot / SpawnMercCamp).
+-- These decide whether a candidate cluster cell is buildable ground rather
+-- than a roof, a hillside, a tree, or a step. A cell is probed with a small
+-- cluster of downward rays over a CampClusterFootprint-radius square; the
+-- thresholds below are what each ray is judged against.
+-- =======================================================================
+-- Half-width (m) of the square of probe rays fired around a cluster cell.
+-- Sized to roughly a tent-cluster's footprint so the probes actually cover
+-- where props will land. Bigger = stricter (catches more obstacles) but also
+-- rejects tighter-but-usable clearings.
+mercenaries.CampClusterFootprint = 3.0
+-- Probe rays start this far ABOVE the reference (player) level and reach
+-- CampProbeDepth below it. Start high (like the zdjb camping mod's +50) so a
+-- ray is above any tree/roof top and hits its upper surface on the way down -
+-- that high hit is exactly how a tree TRUNK or a building ROOF gets detected
+-- (see CampValidateSpot). A harmless leaf canopy has no collision, so the ray
+-- passes through it and hits the ground normally.
+mercenaries.CampProbeStartHeight = 50.0
+mercenaries.CampProbeDepth       = 30.0
+-- Reject ground whose surface normal tilts more than this from vertical - a
+-- hillside no camp should sit on. cos(28 deg) ~ 0.883; a probe normal.z below
+-- this fails.
+mercenaries.CampMaxSlopeCos = math.cos(math.rad(28))
+-- Max height spread (m) tolerated across a cell's footprint. A bigger spread
+-- means a step, kerb, cliff edge, rock, or tree trunk cuts through where the
+-- tent would sit. Also the per-probe spike threshold (a single probe this far
+-- above the centre = a tall obstacle in the column).
+mercenaries.CampMaxStep = 1.2
+-- Ground more than CampMaxRise above the player's level is a roof/ledge/tree
+-- top the player isn't standing on; more than CampMaxDrop below is a pit or
+-- the terrain floor under a building. Either way the cell isn't "the same
+-- ground the player is on", so it's rejected.
+mercenaries.CampMaxRise = 2.0
+mercenaries.CampMaxDrop = 4.0
+-- Exploration cap: the most grid cells SpawnMercCamp will probe outward
+-- before giving up and letting an imperfect/overpopulated camp form on raw
+-- cells (per "up to a set number of chunks, after which it gives up"). This
+-- also bounds the one-time raycast cost of making camp.
+mercenaries.CampMaxProbeCells = 60
+
+-- =======================================================================
+-- Fine heightmap classifier (see CampSampleHeightmap / CampClassifyHeightmap).
+-- This is the PHASE-1 detector: a dense 0.5m sample grid whose cells are sorted
+-- into valid ground / small obstacle (tree, rock) / building / void by
+-- CONNECTIVITY rather than absolute height, so gradual slopes stay valid and
+-- only sharp steps cut a surface off. Used by merc_camp_scan to visualise what
+-- the ground reads as; the real camp spawn will be moved onto it in phase 2.
+-- =======================================================================
+-- Sample resolution (m). 0.5 is fine enough to size prop footprints in cells
+-- (a merc tent reads as ~4x9 valid cells at this spacing).
+mercenaries.CampSampleStep = 0.5
+-- Two adjacent samples whose heights differ by <= this are the SAME walkable
+-- surface (a gentle slope has a tiny per-step delta and stays connected); a
+-- bigger jump is an edge - the start of a tree trunk, a kerb, or a building
+-- wall. This is the "sudden increase in height by ~1m" rule, set tighter (0.5)
+-- so even low steps register.
+mercenaries.CampConnectStep = 0.5
+-- An obstacle clump (cells cut off from the walkable surface) this size or
+-- smaller reads as a tree / bush / rock - tolerable, props just avoid it. A
+-- bigger clump reads as a building - a hard barrier. ~5 cells at 0.5m is about
+-- a tree trunk's footprint; tens of cells is a wall, per the spec.
+mercenaries.CampSmallClumpMax = 5
+
+-- =======================================================================
+-- Phase-2 tile layout tuning (see CampBuildMap / the tile loop in
+-- SpawnMercCamp). The camp is chosen on a coarse grid of square TILES (one
+-- functional unit each) whose ground is judged from the fine 0.5m
+-- classification above.
+-- =======================================================================
+-- Half-size (m) of one layout tile - the footprint (+ half margins) of a
+-- campfire unit. Tiles are CampClusterSpacing apart, so half that is the tile
+-- half-extent used when scoring how much of a tile is valid ground.
+mercenaries.CampTileHalf = 5.25
+-- A camping tile is accepted if no more than this fraction of its cells are
+-- invalid (spec: "at most 50% of the tile may be invalid").
+mercenaries.CampTileMaxInvalidFrac = 0.5
+-- The player-tent and training tiles must be this fraction VALID or better
+-- (spec: "mostly empty", chosen as >=80% valid) AND carry no building-class
+-- clump (a tree is fine, a wall isn't).
+mercenaries.CampTileClearFrac = 0.8
+-- Prop footprints (metres, half-width x half-depth), from the spec's cell
+-- counts at 0.5m: tent 4x9 -> 2.0x4.5m, campfire 5x5 -> 2.5m, player tent
+-- 9x9 -> 4.5m. A footprint passes if at most CampFootprintSlack of its cells
+-- are invalid ("one or two invalid ones are fine").
+mercenaries.CampTentFootHalf   = { w = 1.0, h = 2.25 }
+mercenaries.CampFireFootHalf    = { w = 1.25, h = 1.25 }
+mercenaries.CampPlayerTentFootHalf = { w = 2.25, h = 2.25 }
+mercenaries.CampFootprintSlack  = 2   -- invalid cells tolerated inside a prop footprint
+-- Half-extent (m) of the small footprint FindValidGround (mercenaries_util.lua)
+-- checks when validating a single teleport/spawn position - "one valid tile per
+-- merc". Just big enough that a merc isn't dropped onto a thin tree trunk.
+mercenaries.CampMercFootprint   = 0.6
+-- How far (m) and in how many steps a prop may be nudged to dodge an obstacle
+-- clump before it's placed at the least-bad spot anyway (tents/beds are never
+-- skipped outright, to keep the furniture pools intact - see SpawnMercCamp).
+mercenaries.CampNudgeStep = 0.5
+mercenaries.CampNudgeMax  = 3
+-- Camp map radius is sized to cover the tiles plus a margin, but capped here
+-- so a giant squad can't trigger a huge one-time raycast burst. Tiles beyond
+-- the map fall back to the cheap per-cluster CampValidateSpot probe.
+mercenaries.CampMapMaxRadius = 22.0
+-- Player-tent placement search: the player tent is nudged over a
+-- +/-CampCenterSearch metre grid (CampCenterSearchStep spacing) and the spot
+-- whose 9x9 footprint has the MOST valid ground wins - "find a position with
+-- the most valid tiles around it". Kept small so the camp still lands roughly
+-- where the player asked.
+mercenaries.CampCenterSearch     = 2.0
+mercenaries.CampCenterSearchStep = 1.0
+-- Under-roof handling: a column whose downward (high) ray hits this far or
+-- more above the player's feet is judged to be under a roof. Because the
+-- engine snaps a spawned prop onto that roof regardless of the z we ask for,
+-- such columns are marked UNBUILDABLE (invalid) rather than built on - the camp
+-- forms on the open ground past the walls instead. The player's own column
+-- (used by CampDetectRoof to decide whether to run the per-cell test at all)
+-- and every map column are tested against this. (The user suggested ~5m; 3m
+-- also catches lower single-storey interiors while staying well clear of the
+-- ~0 that open sky or a pass-through tree canopy returns.)
+mercenaries.CampRoofDetectHeight = 3.0
 
 -- Bed placement relative to its own tent: right/forward are in the tent's
 -- local space (relative to the tent's own facing angle), z is a world-space
@@ -604,6 +739,397 @@ function mercenaries:CampSnapToGround(pos)
     end)
     if ok and result then return result end
     return pos
+end
+
+-- =======================================================================
+-- Validate whether a tent/cluster can sit on the ground at `pos`.
+--
+-- The "spawns on rooftops" problem is that CampSnapToGround happily snaps to
+-- whatever ent_static geometry is under a point - including a building roof.
+-- Dropping ent_static doesn't help (it snaps THROUGH the roof to the terrain
+-- floor inside the house), and buildings are brushes/render-nodes, not
+-- entities, so hitTable.entity can't flag them. The only robust signal is
+-- geometry, which is what this checks with a small cluster of downward probe
+-- rays over a CampClusterFootprint-radius square around `pos`:
+--
+--   * the CENTRE probe gives the ground height + surface normal - a normal
+--     tilted past CampMaxSlopeCos is a hillside (rejected);
+--   * ground sitting more than CampMaxRise above / CampMaxDrop below the
+--     reference level `refZ` (the player's own feet) is a roof / ledge / pit
+--     the player isn't standing on - i.e. NOT contiguous with the player's
+--     ground - and is rejected. This is what keeps the camp on the player's
+--     level rather than a roof at a different height;
+--   * eight EDGE/CORNER probes catch a step, kerb, cliff edge, rock, or tree
+--     trunk cutting through the footprint: any single probe spiking more than
+--     CampMaxStep above the centre, or a total height spread over the square
+--     bigger than CampMaxStep, fails.
+--
+-- TREES ("very high, thin objects"), handled deliberately: a leaf canopy has
+-- no collision, so a downward probe passes straight through it and hits the
+-- ground - camping under a canopy is fine and stays allowed. A tree TRUNK
+-- does have a physics proxy, so any probe column that intersects it hits the
+-- trunk's top surface at a Z far above refZ, which trips either the "too_high"
+-- centre test or the per-probe spike test. The one blind spot is a pencil-thin
+-- trunk that threads between all nine probes; tightening CampClusterFootprint
+-- or adding probes narrows that gap at a small extra raycast cost.
+--
+-- Returns: valid (bool), groundZ (centre hit, usable as the snapped height),
+-- reason (string, for the debug scan / logging).
+-- =======================================================================
+function mercenaries:CampValidateSpot(pos, refZ, footprint)
+    footprint = footprint or self.CampClusterFootprint
+    refZ = refZ or pos.z
+
+    local function probe(px, py)
+        local hitTable = {}
+        local start = { x = px, y = py, z = refZ + self.CampProbeStartHeight }
+        local dir   = { x = 0, y = 0, z = -(self.CampProbeStartHeight + self.CampProbeDepth) }
+        local ok, hz, hn = pcall(function()
+            local hits = Physics.RayWorldIntersection(start, dir, 2, ent_terrain + ent_static, 0, nil, hitTable)
+            if hits > 0 and hitTable[1] and hitTable[1].pos then
+                return hitTable[1].pos.z, hitTable[1].normal
+            end
+            return nil, nil
+        end)
+        if ok then return hz, hn end
+        return nil, nil
+    end
+
+    local cz, cnormal = probe(pos.x, pos.y)
+    if not cz then return false, pos.z, "no_ground" end          -- over a hole/void
+
+    if cnormal and cnormal.z and cnormal.z < self.CampMaxSlopeCos then
+        return false, cz, "too_steep"                            -- hillside
+    end
+    if cz - refZ > self.CampMaxRise then return false, cz, "too_high" end  -- roof/tree/ledge
+    if refZ - cz > self.CampMaxDrop then return false, cz, "too_low" end   -- pit/cliff
+
+    local offs = {
+        { footprint, 0 }, { -footprint, 0 }, { 0, footprint }, { 0, -footprint },
+        { footprint, footprint }, { footprint, -footprint }, { -footprint, footprint }, { -footprint, -footprint },
+    }
+    local minZ, maxZ = cz, cz
+    for _, o in ipairs(offs) do
+        local hz = probe(pos.x + o[1], pos.y + o[2])
+        if hz then
+            if hz - cz > self.CampMaxStep then return false, cz, "obstacle" end  -- trunk/rock/wall in footprint
+            if hz < minZ then minZ = hz end
+            if hz > maxZ then maxZ = hz end
+        end
+    end
+    if (maxZ - minZ) > self.CampMaxStep then return false, cz, "uneven" end       -- step/cliff edge
+
+    return true, cz, "ok"
+end
+
+-- =======================================================================
+-- HEIGHTMAP SAMPLER - one downward ray per cell of a (2*radius+1)^2 grid at
+-- `spacing` metres, centred on `origin`. Returns { r, spacing, origin, refZ,
+-- z } where z[i][j] (i,j in 0..2r) is the ground height at that column, or nil
+-- for a void (nothing under it). Rays start CampProbeStartHeight (50m) up so a
+-- leaf canopy is passed through and a tree TRUNK / building ROOF top is the
+-- hit - the same trick CampValidateSpot uses. This is the raw input to
+-- CampClassifyHeightmap.
+-- =======================================================================
+function mercenaries:CampSampleHeightmap(origin, radius, spacing, underRoof)
+    spacing = spacing or self.CampSampleStep
+    local refZ = origin.z
+    local highStart = refZ + self.CampProbeStartHeight
+    local bottomZ = refZ - self.CampProbeDepth
+    local roofThresh = self.CampRoofDetectHeight
+
+    -- One downward ray from absolute height `fromZ`; returns hit z or nil.
+    local function probe(wx, wy, fromZ)
+        local hitTable = {}
+        local ok, hz = pcall(function()
+            local hits = Physics.RayWorldIntersection({ x = wx, y = wy, z = fromZ },
+                { x = 0, y = 0, z = -(fromZ - bottomZ) }, 2, ent_terrain + ent_static, 0, nil, hitTable)
+            if hits > 0 and hitTable[1] and hitTable[1].pos then return hitTable[1].pos.z end
+            return nil
+        end)
+        return ok and hz or nil
+    end
+
+    local z = {}
+    local roof = {}
+    for i = 0, 2 * radius do
+        z[i] = {}
+        roof[i] = {}
+        for j = 0, 2 * radius do
+            local wx = origin.x + (i - radius) * spacing
+            local wy = origin.y + (j - radius) * spacing
+            local hi = probe(wx, wy, highStart)
+            z[i][j] = hi
+            -- Per-cell roof test: in under-roof mode, a column whose high ray
+            -- hits well ABOVE the player is under a roof. The engine snaps a
+            -- spawned prop onto that roof regardless of the z we ask for, so
+            -- such a column is UNBUILDABLE - flag it invalid. A column whose
+            -- high ray reaches ~ground level has stepped OUT from under the
+            -- roof (outside the walls) and stays normal ground. So an indoor
+            -- camp marks the whole building footprint invalid and everything
+            -- past the walls valid - "once it reaches out-of-building tiles
+            -- those are good to go".
+            if underRoof and hi and (hi - refZ) >= roofThresh then
+                roof[i][j] = true
+            end
+        end
+    end
+    return { r = radius, spacing = spacing, origin = origin, refZ = refZ, z = z, roof = roof }
+end
+
+-- =======================================================================
+-- HEIGHTMAP CLASSIFIER - turns a CampSampleHeightmap into a per-cell class
+-- grid using connectivity from a seed cell (default: the centre = the player's
+-- own feet). This is the breadth-first "no sharp edge from where I stand" test
+-- the spec describes:
+--
+--   * flood the WALKABLE SURFACE out from the seed: step to an 8-neighbour
+--     only when |dz| <= CampConnectStep. A gentle slope has a tiny per-step
+--     delta so the whole hillside stays one connected surface ("slopes are
+--     fine"); a trunk/kerb/wall is a sharp step that the flood won't cross.
+--   * every cell the flood reaches is "valid".
+--   * cells it can't reach are grouped into obstacle CLUMPS (again joined by
+--     small internal steps, so a flat roof is one clump and a separate ledge
+--     is another). A clump of <= CampSmallClumpMax cells is "small" (tree /
+--     rock - tolerable); a bigger one is "building" (hard barrier).
+--   * a column with no ground at all is "void".
+--
+-- Returns cls[i][j] (one of "valid"/"small"/"building"/"void") and a counts
+-- table { valid, small, building, void }.
+-- =======================================================================
+function mercenaries:CampClassifyHeightmap(hm, seedI, seedJ)
+    local r, z, roofg = hm.r, hm.z, hm.roof
+    local step = self.CampConnectStep
+    local cls = {}
+    for i = 0, 2 * r do cls[i] = {} end
+
+    local function inb(i, j) return i >= 0 and i <= 2 * r and j >= 0 and j <= 2 * r end
+    local function isRoof(i, j) return roofg and roofg[i] and roofg[i][j] end
+    -- A cell is buildable ground only if it has a hit AND isn't a roof column
+    -- (under a roof = the engine would spawn the prop on the roof, so it's a
+    -- hard no-build).
+    local function hasZ(i, j) return z[i] and z[i][j] ~= nil and not isRoof(i, j) end
+    local NB = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } }
+
+    -- Seed defaults to the centre; if that column is a void OR a roof (the
+    -- player is standing inside a building), spiral out to the nearest buildable
+    -- cell so the flood starts on real open ground - the camp then forms outside
+    -- the walls rather than on the roof.
+    seedI = seedI or r
+    seedJ = seedJ or r
+    if not hasZ(seedI, seedJ) then
+        local found = false
+        for rad = 1, r do
+            for di = -rad, rad do
+                for dj = -rad, rad do
+                    local i, j = seedI + di, seedJ + dj
+                    if not found and inb(i, j) and hasZ(i, j) then
+                        seedI, seedJ, found = i, j, true
+                    end
+                end
+            end
+            if found then break end
+        end
+    end
+
+    -- 1. Flood the walkable surface from the seed.
+    local ground = {}
+    if hasZ(seedI, seedJ) then
+        local stack = { { seedI, seedJ } }
+        ground[seedI .. "," .. seedJ] = true
+        while #stack > 0 do
+            local c = table.remove(stack)
+            local cz = z[c[1]][c[2]]
+            for _, d in ipairs(NB) do
+                local ni, nj = c[1] + d[1], c[2] + d[2]
+                local nk = ni .. "," .. nj
+                if inb(ni, nj) and not ground[nk] and hasZ(ni, nj) and math.abs(z[ni][nj] - cz) <= step then
+                    ground[nk] = true
+                    table.insert(stack, { ni, nj })
+                end
+            end
+        end
+    end
+
+    -- 2. Label every cell; size the leftover obstacle clumps.
+    local seen = {}
+    local counts = { valid = 0, small = 0, building = 0, void = 0 }
+    for i = 0, 2 * r do
+        for j = 0, 2 * r do
+            local key = i .. "," .. j
+            if isRoof(i, j) then
+                -- under a roof: unbuildable (a prop would land on the roof)
+                cls[i][j] = "building"; counts.building = counts.building + 1
+            elseif not hasZ(i, j) then
+                cls[i][j] = "void"; counts.void = counts.void + 1
+            elseif ground[key] then
+                cls[i][j] = "valid"; counts.valid = counts.valid + 1
+            elseif not seen[key] then
+                -- Flood this obstacle clump (joined by small internal steps).
+                local comp = {}
+                local stack = { { i, j } }
+                seen[key] = true
+                while #stack > 0 do
+                    local c = table.remove(stack)
+                    table.insert(comp, c)
+                    local cz = z[c[1]][c[2]]
+                    for _, d in ipairs(NB) do
+                        local ni, nj = c[1] + d[1], c[2] + d[2]
+                        local nk = ni .. "," .. nj
+                        if inb(ni, nj) and not seen[nk] and not ground[nk] and hasZ(ni, nj)
+                            and math.abs(z[ni][nj] - cz) <= step then
+                            seen[nk] = true
+                            table.insert(stack, { ni, nj })
+                        end
+                    end
+                end
+                local kind = (#comp <= self.CampSmallClumpMax) and "small" or "building"
+                for _, c in ipairs(comp) do
+                    cls[c[1]][c[2]] = kind
+                    counts[kind] = counts[kind] + 1
+                end
+            end
+        end
+    end
+
+    return cls, counts
+end
+
+-- =======================================================================
+-- UNDER-ROOF DETECTION - is the player standing under a roof? Samples the
+-- player's OWN column from high up: if that hit comes back CampRoofDetectHeight+
+-- above the player's feet, there's a roof overhead. A pass-through tree canopy
+-- has no collision and returns ~the ground (no false positive). This only
+-- decides WHETHER to run the per-cell dual-ray sampling in CampSampleHeightmap
+-- (which then decides, cell by cell, whether each column is actually indoors).
+-- Returns underRoof(bool), ceilingZ(or nil).
+-- =======================================================================
+function mercenaries:CampDetectRoof(playerPos)
+    local refZ = playerPos.z
+    local hitTable = {}
+    local ok, roofZ = pcall(function()
+        local hits = Physics.RayWorldIntersection(
+            { x = playerPos.x, y = playerPos.y, z = refZ + self.CampProbeStartHeight },
+            { x = 0, y = 0, z = -(self.CampProbeStartHeight + self.CampProbeDepth) },
+            2, ent_terrain + ent_static, 0, nil, hitTable)
+        if hits > 0 and hitTable[1] and hitTable[1].pos then return hitTable[1].pos.z end
+        return nil
+    end)
+    if ok and roofZ and (roofZ - refZ) >= self.CampRoofDetectHeight then
+        return true, roofZ
+    end
+    return false, nil
+end
+
+-- =======================================================================
+-- CAMP MAP - a fine classified heightmap the tile/prop placement queries by
+-- world position. Built once per camp (see SpawnMercCamp). Wraps
+-- CampSampleHeightmap + CampClassifyHeightmap and remembers the geometry so a
+-- world (x,y) can be turned back into a cell class. `underRoof` enables the
+-- per-cell dual-ray (floor-under-roof) sampling.
+-- =======================================================================
+function mercenaries:CampBuildMap(center, radius, underRoof)
+    local hm = self:CampSampleHeightmap(center, radius, self.CampSampleStep, underRoof)
+    local cls = self:CampClassifyHeightmap(hm, radius, radius)
+    return { hm = hm, cls = cls, center = center, r = radius, spacing = self.CampSampleStep }
+end
+
+-- Class ("valid"/"small"/"building"/"void") at a world (x,y), or nil if the
+-- point falls outside the sampled map.
+function mercenaries:CampMapClassAt(map, wx, wy)
+    if not map then return nil end
+    local i = math.floor((wx - map.center.x) / map.spacing + 0.5) + map.r
+    local j = math.floor((wy - map.center.y) / map.spacing + 0.5) + map.r
+    if i < 0 or i > 2 * map.r or j < 0 or j > 2 * map.r then return nil end
+    return map.cls[i] and map.cls[i][j]
+end
+
+-- World {x, y} of the nearest "valid" cell to (wx, wy) in the map, searched in
+-- growing rings, or nil if the map has no valid ground. Used to move the whole
+-- camp out of a building: if the player's own spot is under a roof (invalid),
+-- the camp origin jumps to the closest open ground - the doorway / nearest
+-- exterior tile.
+function mercenaries:CampNearestValidCell(map, wx, wy)
+    if not map then return nil end
+    local ci = math.max(0, math.min(2 * map.r, math.floor((wx - map.center.x) / map.spacing + 0.5) + map.r))
+    local cj = math.max(0, math.min(2 * map.r, math.floor((wy - map.center.y) / map.spacing + 0.5) + map.r))
+    for rad = 0, 2 * map.r do
+        for di = -rad, rad do
+            for dj = -rad, rad do
+                if math.max(math.abs(di), math.abs(dj)) == rad then
+                    local i, j = ci + di, cj + dj
+                    if i >= 0 and i <= 2 * map.r and j >= 0 and j <= 2 * map.r
+                        and map.cls[i] and map.cls[i][j] == "valid" then
+                        return { x = map.center.x + (i - map.r) * map.spacing,
+                                 y = map.center.y + (j - map.r) * map.spacing }
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+-- Counts cells inside a rectangular footprint centred at `wpos`, oriented by
+-- `angle` (its local +forward), half-width `halfW` (right axis) x half-depth
+-- `halfH` (forward axis), stepping at the map resolution. Returns
+-- valid, total, hasBuilding. Cells outside the map count as invalid (not
+-- valid) but don't set hasBuilding.
+function mercenaries:CampFootprintStats(map, wpos, angle, halfW, halfH)
+    local fwd = { x = math.cos(angle), y = math.sin(angle) }
+    local rgt = { x = -fwd.y, y = fwd.x }
+    local step = map.spacing
+    local valid, total, hasBuilding = 0, 0, false
+    local a = -halfW
+    while a <= halfW + 1e-6 do
+        local b = -halfH
+        while b <= halfH + 1e-6 do
+            local wx = wpos.x + rgt.x * a + fwd.x * b
+            local wy = wpos.y + rgt.y * a + fwd.y * b
+            local c = self:CampMapClassAt(map, wx, wy)
+            total = total + 1
+            if c == "valid" then
+                valid = valid + 1
+            elseif c == "building" then
+                hasBuilding = true
+            end
+            b = b + step
+        end
+        a = a + step
+    end
+    return valid, total, hasBuilding
+end
+
+-- True if a prop footprint at (wpos, angle) sits on mostly-valid ground -
+-- at most CampFootprintSlack invalid cells. Used to accept, or to score
+-- nudges for, tents/fires/the player tent.
+function mercenaries:CampFootprintOk(map, wpos, angle, half)
+    if not map then return true end   -- no map (fallback) -> don't block placement
+    local valid, total = self:CampFootprintStats(map, wpos, angle, half.w, half.h)
+    return (total - valid) <= self.CampFootprintSlack, valid, total
+end
+
+-- Nudges `basePos` (in its local right/forward frame) over a small search to
+-- find the spot whose footprint has the fewest invalid cells; returns the best
+-- position found. Tents/beds are never skipped - the least-bad spot is used -
+-- so every non-guard keeps a tent and the furniture pools stay intact.
+function mercenaries:CampNudgeToValid(map, basePos, angle, half)
+    if not map then return basePos end
+    local ok, bestValid = self:CampFootprintOk(map, basePos, angle, half)
+    if ok then return basePos end
+    local best = basePos   -- bestValid = valid-cell count of basePos, from CampFootprintOk above
+    for ring = 1, self.CampNudgeMax do
+        local d = ring * self.CampNudgeStep
+        for _, off in ipairs({ { d, 0 }, { -d, 0 }, { 0, d }, { 0, -d }, { d, d }, { -d, d }, { d, -d }, { -d, -d } }) do
+            local cand = self:CampRelativeOffset(basePos, angle, { right = off[1], forward = off[2] })
+            local v, t = self:CampFootprintStats(map, cand, angle, half.w, half.h)
+            if (t - v) <= self.CampFootprintSlack then
+                return cand    -- first clean spot wins
+            end
+            if v > bestValid then best, bestValid = cand, v end
+        end
+    end
+    return best
 end
 
 -- Spawns one decorative camp prop given a raw model path. Tracked in
@@ -878,6 +1404,23 @@ function mercenaries:CampCycleFor(wuidStr)
     return self.CampRoleCycle
 end
 
+-- Camp night window (9pm-6am): most mercs should be asleep then.
+function mercenaries:CampIsNight()
+    local ok, h = pcall(function() return Calendar.GetWorldHourOfDay() end)
+    if not ok or type(h) ~= "number" then return false end
+    return h >= 21 or h < 6
+end
+
+-- The role a merc should take this rotation: its normal cycle step, except at
+-- night most mercs bed down (overrides even trainers, so nobody drills in the
+-- dark). Returns the possibly-overridden role.
+function mercenaries:CampRoleWithNightBias(role)
+    if role ~= "sleep" and self:CampIsNight() and math.random() < self.CampNightSleepChance then
+        return "sleep"
+    end
+    return role
+end
+
 -- Advances any camp merc whose per-role timer has elapsed to the next step of
 -- their cycle, and schedules their next rotation from CampRoleSeconds. Called
 -- from MonitorCamp each 5s tick. Per-merc timing (not a global rotation) is
@@ -890,7 +1433,7 @@ function mercenaries:RotateCampRoles()
                 local cycle = self:CampCycleFor(wuidStr)
                 local idx = ((self.CampRoleIdx[wuidStr] or 0) % #cycle) + 1
                 self.CampRoleIdx[wuidStr] = idx
-                local role = cycle[idx]
+                local role = self:CampRoleWithNightBias(cycle[idx])
                 self:ApplyCampRole(wuidStr, role)
                 local span = self.CampRoleSeconds[role] or { 60, 90 }
                 local secs = math.random(span[1], span[2])
@@ -987,8 +1530,13 @@ function mercenaries:CampChatTick()
             end
         end
 
+        -- Count conversations already running (one role-1 entry per pair) so we
+        -- never exceed CampMaxConcurrentChats camp-wide.
+        local activePairs = 0
+        for _, c in pairs(chats) do if c.role == 1 then activePairs = activePairs + 1 end end
+
         -- Shuffle so pairings aren't biased by iteration order, then greedily
-        -- pair eligible mercs within radius - as many concurrent pairs as fit.
+        -- pair eligible mercs within radius - up to the concurrent-conversation cap.
         for i = #list, 2, -1 do
             local j = math.random(i)
             list[i], list[j] = list[j], list[i]
@@ -996,6 +1544,7 @@ function mercenaries:CampChatTick()
         local r2 = self.CampChatRadius * self.CampChatRadius
         local used = {}
         for i = 1, #list do
+            if activePairs >= self.CampMaxConcurrentChats then break end
             if not used[i] then
                 for j = i + 1, #list do
                     if not used[j] then
@@ -1006,6 +1555,7 @@ function mercenaries:CampChatTick()
                             chats[tostring(a)] = { partner = b, role = 1, alias = alias, age = 0 }
                             chats[tostring(b)] = { partner = a, role = 2, alias = alias }
                             used[i] = true; used[j] = true
+                            activePairs = activePairs + 1
                             break
                         end
                     end
@@ -1096,7 +1646,10 @@ function mercenaries:CampGridOffsets(count)
             for x = r - 1, 1, -1 do table.insert(ringCells, { x, -r }) end
         end
         for _, cell in ipairs(ringCells) do
-            if not (cell[1] == 0 and cell[2] == 1) then
+            -- (0, 1) directly in front of the player tent is the reserved EMPTY
+            -- tile (open ground to walk out through); (0, -1) directly behind is
+            -- the TRAINING tile - neither is ever a camping cluster.
+            if not ((cell[1] == 0 and cell[2] == 1) or (cell[1] == 0 and cell[2] == -1)) then
                 table.insert(offsets, cell)
             end
         end
@@ -1173,30 +1726,65 @@ function mercenaries:SpawnMercCamp()
         -- below reads it to spawn the right smart-object furniture and record
         -- CampFurniture, and the guard-waypoint loop further down reads it to
         -- pick patrollers.
+        -- Guards are picked at random (Fisher-Yates over indices, so tier isn't
+        -- favoured). Per the tile spec - "one camping tile = 6 tents for 12
+        -- mercs, as half the mercs patrol either way" - only the NON-guards get
+        -- tents. So mercList is re-sorted NON-GUARDS FIRST (each group keeps its
+        -- strong->weak tier order), tentRecipients is the non-guard count, and
+        -- the tent/cluster loop below (which keys tents off the low indices)
+        -- hands tents only to non-guards; guards fall past tentRecipients and
+        -- get no tent, just a patrol ring (see the guard branch further down).
         local guardCount = math.max(1, math.floor(mercCount / 2 + 0.5))
         guardCount = math.min(guardCount, mercCount)
-        local shuffledIdx = {}
-        for i = 1, mercCount do table.insert(shuffledIdx, i) end
-        for i = mercCount, 2, -1 do
-            local j = math.random(i)
-            shuffledIdx[i], shuffledIdx[j] = shuffledIdx[j], shuffledIdx[i]
+        -- Patrol-density cap: half the squad is fine for small parties, but a big
+        -- one crowds the perimeter. The guards patrol a ring; estimate its length
+        -- (2*pi*radius, radius grown from how many camping tiles the non-guards
+        -- need) and allow only ~1 guard per CampPatrolSpacing metres of route.
+        -- So parties up to ~15 keep the half split; larger ones are thinned out.
+        do
+            local estNonGuard = mercCount - guardCount
+            local estClusters = math.max(1, math.min(self.CampMaxCampingTiles,
+                math.ceil(estNonGuard / self.CampClusterSize)))
+            local maxTile = 0
+            for _, off in ipairs(self:CampGridOffsets(estClusters)) do
+                maxTile = math.max(maxTile, math.sqrt(off[1] * off[1] + off[2] * off[2]))
+            end
+            local estRadius = maxTile * self.CampClusterSpacing
+                + self.CampTentRingRadius + self.CampPatrolTentClearance
+            local routeCap = math.max(1, math.floor((2 * math.pi * estRadius) / self.CampPatrolSpacing))
+            guardCount = math.max(1, math.min(guardCount, routeCap))
         end
-        -- Guards are fixed for the camp's lifetime ("a good portion should
-        -- always patrol"); everyone else enters the rotating daily schedule
-        -- (CampRoleCycle) with a staggered starting index, so the camp shows
-        -- a mix of occupations at any moment. The stagger is what the
-        -- per-merc loop below records into CampRoleIdx; RotateCampRoles then
-        -- advances everyone every few minutes.
+        local isGuard = {}
+        do
+            local idxs = {}
+            for i = 1, mercCount do idxs[i] = i end
+            for i = mercCount, 2, -1 do
+                local j = math.random(i)
+                idxs[i], idxs[j] = idxs[j], idxs[i]
+            end
+            for p = 1, guardCount do isGuard[idxs[p]] = true end
+        end
+        do
+            local reordered = {}
+            for i, m in ipairs(mercList) do if not isGuard[i] then table.insert(reordered, m) end end
+            for i, m in ipairs(mercList) do if isGuard[i] then table.insert(reordered, m) end end
+            mercList = reordered
+        end
+        local nonGuardCount = mercCount - guardCount
+
+        -- campRole / campSeed key off the re-sorted mercList: 1..nonGuardCount
+        -- are the tented, scheduled mercs (each on the rotating CampRoleCycle
+        -- with a staggered starting seed, so the camp shows a mix of
+        -- occupations); the rest are guards, fixed for the camp's lifetime.
         local campRole = {}
         local campSeed = {}
-        for p = 1, guardCount do campRole[shuffledIdx[p]] = "guard" end
-        local nonGuardRank = 0
-        for p = guardCount + 1, mercCount do
-            nonGuardRank = nonGuardRank + 1
-            local seed = ((nonGuardRank - 1) % #self.CampRoleCycle) + 1
-            campRole[shuffledIdx[p]] = self.CampRoleCycle[seed]
-            campSeed[shuffledIdx[p]] = seed
+        for i = 1, nonGuardCount do
+            local seed = ((i - 1) % #self.CampRoleCycle) + 1
+            campRole[i] = self.CampRoleCycle[seed]
+            campSeed[i] = seed
         end
+        for i = nonGuardCount + 1, mercCount do campRole[i] = "guard" end
+
         self.CampFurniture = {}
         self.CampActivities = {}
         self.CampMercSpots = {}
@@ -1206,11 +1794,16 @@ function mercenaries:SpawnMercCamp()
         self.CampBeds = {}
         self.CampTicks = 0
 
-        -- Everyone gets a tent, up to the cap - excess mercs beyond that
-        -- fall back to a plain straw bed (see the "else" branch below).
-        local tentRecipients = math.min(self.CampMaxTents, mercCount)
+        -- Only non-guards get tents; guards patrol and get none. Tents are
+        -- grouped CampClusterSize (6) per camping tile, so one tile covers ~12
+        -- mercs once its ~6 guards are counted. Camping tiles are capped at
+        -- CampMaxCampingTiles (10, per spec), so a giant squad's excess
+        -- non-guards spill onto the straw-bed outer ring instead of tiling
+        -- endlessly ("lets an overpopulated camp exist").
         local ClusterSize = self.CampClusterSize
-        local numClusters = math.max(1, math.ceil(tentRecipients / ClusterSize))
+        local numClusters = math.max(1, math.min(self.CampMaxCampingTiles,
+            math.ceil(math.max(nonGuardCount, 1) / ClusterSize)))
+        local tentRecipients = math.min(self.CampMaxTents, nonGuardCount, numClusters * ClusterSize)
 
         -- Grid axes: "forward" is the direction the player was facing when
         -- camp was made - the whole grid (and the player tent's own facing)
@@ -1222,6 +1815,76 @@ function mercenaries:SpawnMercCamp()
         local right = { x = -forward.y, y = forward.x }
         local spacing = self.CampClusterSpacing
 
+        local worldForwardAngle = math.atan2(forward.y, forward.x)
+
+        -- === GROUND MAP (phase 2) ===
+        -- Detect whether the player is under a roof (so rays are restarted
+        -- under the ceiling and map the FLOOR, not the roof), then sample +
+        -- classify ONE fine heightmap covering the whole camp footprint
+        -- (CampBuildMap). Tile selection and every prop placement below query
+        -- this map by world position instead of re-raycasting. If the map can't
+        -- be built for any reason, campMap stays nil and the code falls back to
+        -- the older per-cluster CampValidateSpot probe, so camp creation never
+        -- fails. Map radius is sized to the rings the clusters span, capped at
+        -- CampMapMaxRadius so a huge squad can't trigger a giant raycast burst.
+        local underRoof = self:CampDetectRoof(center)
+        -- Size the map to the farthest tile the clusters actually reach (plus a
+        -- tile half-extent, the centre search, and a margin), capped so a giant
+        -- squad can't trigger a huge raycast burst.
+        local maxCellDist = 1
+        for _, off in ipairs(self:CampGridOffsets(numClusters)) do
+            local e = math.sqrt(off[1] * off[1] + off[2] * off[2])
+            if e > maxCellDist then maxCellDist = e end
+        end
+        local mapRadiusM = math.min(self.CampMapMaxRadius,
+            maxCellDist * spacing + self.CampTileHalf + self.CampCenterSearch + 1.0)
+        local mapCells = math.max(8, math.floor(mapRadiusM / self.CampSampleStep + 0.5))
+        local campMap = nil
+        pcall(function() campMap = self:CampBuildMap(center, mapCells, underRoof) end)
+
+        -- If the player's own spot is unbuildable (inside a building - under a
+        -- roof - or otherwise invalid), jump the whole camp origin to the
+        -- nearest open ground so nothing spawns on a roof. When that jump is
+        -- more than the fine search can cover, rebuild the map around the new
+        -- origin so the tiles are still on sampled ground.
+        if campMap and self:CampMapClassAt(campMap, center.x, center.y) ~= "valid" then
+            local nv = self:CampNearestValidCell(campMap, center.x, center.y)
+            if nv then
+                local moved = math.abs(nv.x - center.x) + math.abs(nv.y - center.y)
+                center = self:CampSnapToGround({ x = nv.x, y = nv.y, z = center.z })
+                if moved > self.CampCenterSearch then
+                    pcall(function() campMap = self:CampBuildMap(center, mapCells, underRoof) end)
+                end
+            end
+        end
+
+        -- Player-tent placement: nudge the whole camp origin over a small grid
+        -- of candidate spots and keep the one whose 9x9 footprint sits on the
+        -- most valid ground ("find a position with the most valid tiles around
+        -- it"). A small clump in/near the tent is tolerated, just avoided.
+        if campMap then
+            local bestC, bestScore = center, -1
+            local s, st = self.CampCenterSearch, self.CampCenterSearchStep
+            local a = -s
+            while a <= s + 1e-6 do
+                local b = -s
+                while b <= s + 1e-6 do
+                    local cand = {
+                        x = center.x + right.x * a + forward.x * b,
+                        y = center.y + right.y * a + forward.y * b,
+                        z = center.z,
+                    }
+                    local v = select(1, self:CampFootprintStats(campMap, cand, worldForwardAngle,
+                        self.CampPlayerTentFootHalf.w, self.CampPlayerTentFootHalf.h))
+                    local score = v - 0.001 * (math.abs(a) + math.abs(b))  -- tie-break toward the asked spot
+                    if score > bestScore then bestScore, bestC = score, cand end
+                    b = b + st
+                end
+                a = a + st
+            end
+            center = self:CampSnapToGround(bestC)
+        end
+
         -- Cell (0, 0) is the player tent itself; (dx, dy) offsets are in
         -- grid tiles, dx = right/left, dy = forward(+)/behind(-).
         local function gridCellPos(dx, dy)
@@ -1232,38 +1895,79 @@ function mercenaries:SpawnMercCamp()
             })
         end
 
-        local worldForwardAngle = math.atan2(forward.y, forward.x)
         self:SpawnPlayerCampTent(center, worldForwardAngle)
 
-        -- Fire clusters fill grid cells in the order CampGridOffsets lays
-        -- out - behind the player tent first, then left/right, then the
-        -- corners, then further rings for bigger squads - always skipping
-        -- (0, 0) (the player tent) and (0, 1) (the reserved empty tile
-        -- directly in front of it).
-        local clusterOffsets = self:CampGridOffsets(numClusters)
+        -- Fire clusters fill grid cells in the order CampGridOffsets lays out -
+        -- behind the player tent first, then left/right, then the corners, then
+        -- further rings for bigger squads - always skipping (0, 0) (the player
+        -- tent) and (0, 1) (the reserved empty tile in front of it).
+        --
+        -- TILE VALIDATION: each candidate cell is a camping tile, accepted only
+        -- if at most CampTileMaxInvalidFrac (50%) of its ground reads invalid in
+        -- the map; the fire itself is then nudged onto valid ground inside the
+        -- tile. We walk outward until we have numClusters good tiles or run out,
+        -- then fill any shortfall with the closest raw cells so the camp still
+        -- fully forms (an imperfect/overpopulated camp beats no camp). Without a
+        -- map, this falls back to the per-cluster CampValidateSpot probe.
+        local candidateOffsets = self:CampGridOffsets(math.max(self.CampMaxProbeCells, numClusters))
         local clusterCenters = {}
-        for c = 1, numClusters do
-            local off = clusterOffsets[c]
-            local cPos = gridCellPos(off[1], off[2])
-            table.insert(clusterCenters, cPos)
+        local usedCell = {}
+        for _, off in ipairs(candidateOffsets) do
+            if #clusterCenters >= numClusters then break end
+            local raw = gridCellPos(off[1], off[2])
+            local accept = false
+            if campMap then
+                local v, t = self:CampFootprintStats(campMap, raw, worldForwardAngle, self.CampTileHalf, self.CampTileHalf)
+                accept = t > 0 and ((t - v) / t) <= self.CampTileMaxInvalidFrac
+                if accept then
+                    raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf))
+                end
+            else
+                local valid, gz = self:CampValidateSpot(raw, center.z, self.CampClusterFootprint)
+                accept = valid
+                if accept then raw = { x = raw.x, y = raw.y, z = gz } end
+            end
+            if accept then
+                usedCell[off[1] .. "," .. off[2]] = true
+                table.insert(clusterCenters, { x = raw.x, y = raw.y, z = raw.z or center.z })
+            end
+        end
+        -- Shortfall fallback: fill remaining clusters with the closest cells we
+        -- haven't already used, validated or not.
+        if #clusterCenters < numClusters then
+            for _, off in ipairs(candidateOffsets) do
+                if #clusterCenters >= numClusters then break end
+                local key = off[1] .. "," .. off[2]
+                if not usedCell[key] then
+                    usedCell[key] = true
+                    table.insert(clusterCenters, gridCellPos(off[1], off[2]))
+                end
+            end
+        end
+        for _, cPos in ipairs(clusterCenters) do
             self:SpawnCampFirePrefab(cPos, 0)
         end
 
-        -- TRAINING YARD (per feedback: right in front of the player tent, a
-        -- little space in between). Placed CampTrainingYardDistance metres
-        -- along "forward" (the same axis the reserved-empty grid tile uses),
-        -- so it sits just past the open tile directly ahead of the tent.
-        -- Straw dummies (up to five, one per five mercs) are laid out in a row
-        -- across the yard; trainees stand on the camp side facing them.
+        -- TRAINING YARD - the reserved tile BEHIND the player tent (per spec:
+        -- "training area is behind the player tent, one tile in front is
+        -- empty"). Placed CampTrainingYardDistance metres along -forward, in the
+        -- (0, -1) tile CampGridOffsets reserves. Straw dummies (up to five, one
+        -- per five mercs) are laid out in a row across the yard; trainees stand
+        -- on the camp side facing them. Nudged onto valid ground if the map
+        -- found a clump behind the tent.
         local trainCenter = self:CampSnapToGround({
-            x = center.x + forward.x * self.CampTrainingYardDistance,
-            y = center.y + forward.y * self.CampTrainingYardDistance,
+            x = center.x - forward.x * self.CampTrainingYardDistance,
+            y = center.y - forward.y * self.CampTrainingYardDistance,
             z = center.z,
         })
-        -- Dummies face back toward camp; trainees face away from camp (toward
-        -- the dummies), i.e. worldForwardAngle.
-        local dummyFacing = worldForwardAngle + math.pi
-        local traineeFacing = worldForwardAngle
+        if campMap then
+            trainCenter = self:CampSnapToGround(self:CampNudgeToValid(campMap, trainCenter, worldForwardAngle, self.CampFireFootHalf))
+        end
+        -- Yard is behind camp, so "toward camp" is +forward and "away" is
+        -- -forward: dummies face the camp (+forward), trainees face away toward
+        -- the dummies (-forward). (Flipped from the old in-front yard.)
+        local dummyFacing = worldForwardAngle
+        local traineeFacing = worldForwardAngle + math.pi
         local numDummies = math.max(1, math.min(5, math.ceil(mercCount / 5)))
         for d = 1, numDummies do
             local off = (d - (numDummies + 1) / 2) * self.CampTrainingDummySpacing
@@ -1356,6 +2060,14 @@ function mercenaries:SpawnMercCamp()
                 local tentPos, tentFaceAngle = self:CampRingPos(cPos, self.CampTentRingRadius, memberIndex, self.CampClusterTentRingSlots, 0)
                 tentPos = self:CampSnapToGround(tentPos)
                 angle = tentFaceAngle + math.pi + self.CampTentFacingFix
+                -- Nudge the whole tent unit onto valid ground if its footprint
+                -- caught an obstacle clump - the bed and clutter are placed
+                -- relative to tentPos, so they move with it. Never skipped (the
+                -- least-bad spot is used) so every non-guard keeps a bed and the
+                -- shared CampBeds pool stays intact.
+                if campMap then
+                    tentPos = self:CampSnapToGround(self:CampNudgeToValid(campMap, tentPos, angle, self.CampTentFootHalf))
+                end
                 -- Random tent variant per merc, for visual variety - every
                 -- CampTentVariants entry shares the same footprint/facing.
                 local tentModel = self.CampTentVariants[math.random(#self.CampTentVariants)]
@@ -1401,11 +2113,16 @@ function mercenaries:SpawnMercCamp()
                 local clutterPos = self:CampRelativeOffset(tentPos, tentFacing, self.CampTentClutterOffset)
                 self:SpawnCampPropModel(clutterModel, clutterPos, tentFacing, "MercCampProp_TentClutter")
             else
-                local strawIndex = i - tentRecipients
-                local radius = math.max(3.2, outerRadius - 3.0) + (strawIndex % 3) * 0.5
-                pos, angle = self:CampRingPos(center, radius, strawIndex, math.max(strawCount, 1), 0)
+                -- Guards get no tent/bed (they patrol) - just a spot on the
+                -- outer ring to start from. Non-guard overflow (squads past the
+                -- tent cap) still get a plain straw bed there.
+                local ringIndex = i - tentRecipients
+                local radius = math.max(3.2, outerRadius - 3.0) + (ringIndex % 3) * 0.5
+                pos, angle = self:CampRingPos(center, radius, ringIndex, math.max(strawCount, 1), 0)
                 pos = self:CampSnapToGround(pos)
-                self:SpawnCampProp("BedStraw", pos, angle)
+                if campRole[i] ~= "guard" then
+                    self:SpawnCampProp("BedStraw", pos, angle)
+                end
             end
 
             -- Stand a bit in front of the bed (CampMercStandOffset) rather
@@ -1441,7 +2158,9 @@ function mercenaries:SpawnMercCamp()
 
                 spots.actPos = actPos
                 spots.firePos = { x = clusterFirePos.x, y = clusterFirePos.y, z = clusterFirePos.z }
-                spots.trainPos = self:CampSnapToGround(self:CampRelativeOffset(trainCenter, worldForwardAngle, { right = rowOff, forward = -self.CampTrainingTraineeSetback }))
+                -- Yard is behind camp: trainees stand on the camp side of the
+                -- dummies, i.e. +setback along forward (toward the tent).
+                spots.trainPos = self:CampSnapToGround(self:CampRelativeOffset(trainCenter, worldForwardAngle, { right = rowOff, forward = self.CampTrainingTraineeSetback }))
                 spots.trainFacePos = { x = trainCenter.x, y = trainCenter.y, z = trainCenter.z }
                 spots.isTrainer = isTrainer
                 spots.lastPos = actPos
@@ -1451,16 +2170,23 @@ function mercenaries:SpawnMercCamp()
                 local cycle = self:CampCycleFor(tostring(mercWuid))
                 local idx = ((campSeed[i] or 1) - 1) % #cycle + 1
                 self.CampRoleIdx[tostring(mercWuid)] = idx
-                self:ApplyCampRole(tostring(mercWuid), cycle[idx])
-                local span = self.CampRoleSeconds[cycle[idx]] or { 60, 90 }
+                local role0 = self:CampRoleWithNightBias(cycle[idx])
+                self:ApplyCampRole(tostring(mercWuid), role0)
+                local span = self.CampRoleSeconds[role0] or { 60, 90 }
                 self.CampNextRotate[tostring(mercWuid)] = self.CampTicks + math.max(1, math.floor(math.random(span[1], span[2]) / 5))
             end
 
             -- Start each merc at wherever their first occupation happens -
-            -- they walk between spots themselves from now on.
+            -- they walk between spots themselves from now on. If that spot
+            -- landed on an obstacle (map says not valid), jump it to the nearest
+            -- valid cell so nobody is teleported onto a tree/roof.
             local act = self.CampActivities[tostring(mercWuid)]
             local fur = self.CampFurniture[tostring(mercWuid)]
             local startPos = (act and act.pos) or (fur and fur.pos) or slotPos
+            if campMap and self:CampMapClassAt(campMap, startPos.x, startPos.y) ~= "valid" then
+                local nv = self:CampNearestValidCell(campMap, startPos.x, startPos.y)
+                if nv then startPos = self:CampSnapToGround({ x = nv.x, y = nv.y, z = startPos.z }) end
+            end
             pcall(function() m.ent:SetPos(startPos) end)
         end
 
@@ -1634,7 +2360,7 @@ function mercenaries:RecallMercs()
             if ent and self:IsAliveAndWell(ent, false) then
                 i = i + 1
                 local pos = self:CampRingPos(center, 2.0 + (i % 4), i, 12, 0)
-                pos = self:CampSnapToGround(pos)
+                pos = self:FindValidGround(pos, center.z)
                 pcall(function() ent:SetPos(pos) end)
             end
         end

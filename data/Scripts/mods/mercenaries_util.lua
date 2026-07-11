@@ -194,6 +194,58 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
 end
 
 -- =======================================================================
+-- HELPER: snap a single position onto valid, obstacle-free ground.
+--
+-- A plain downward ground-snap takes the first thing under a point - which can
+-- be the top of a TREE, a rock, or a roof, so a merc teleported/spawned there
+-- ends up standing on it. This validates the spot with CampValidateSpot (slope
+-- + local-spike test against reference level `refZ`) and, if it's blocked,
+-- spirals outward in `step` (0.5m) rings up to `maxRadius` for the first clear
+-- spot, snapped to the ground. Only ONE clear tile per merc is needed, so the
+-- footprint checked is small. Falls back to a plain ground-snap if nothing
+-- clear is found nearby (better a snapped spot than none).
+--
+-- Pass the player's z (or a shared spawn z) as `refZ` so "valid" means near the
+-- squad's level, not on a ledge/canopy above it.
+-- =======================================================================
+function mercenaries:FindValidGround(pos, refZ, maxRadius, step)
+    if not pos then return pos end
+    refZ = refZ or pos.z
+    maxRadius = maxRadius or 3.0
+    step = step or 0.5
+    local foot = self.CampMercFootprint or 0.6
+
+    local function try(x, y)
+        local okv, v, gz = pcall(function()
+            local valid, groundZ = self:CampValidateSpot({ x = x, y = y, z = refZ }, refZ, foot)
+            return valid, groundZ
+        end)
+        if okv and v then return { x = x, y = y, z = gz } end
+        return nil
+    end
+
+    local hit = try(pos.x, pos.y)
+    if hit then return hit end
+
+    local r = step
+    while r <= maxRadius + 1e-6 do
+        local n = math.max(8, math.floor((2 * math.pi * r) / step))
+        for k = 0, n - 1 do
+            local a = (k / n) * 2 * math.pi
+            hit = try(pos.x + math.cos(a) * r, pos.y + math.sin(a) * r)
+            if hit then return hit end
+        end
+        r = r + step
+    end
+
+    -- Nothing clear nearby: best-effort plain snap so the merc still lands on
+    -- some ground rather than at the raw (possibly mid-air) input z.
+    local ok, snapped = pcall(function() return self:CampSnapToGround({ x = pos.x, y = pos.y, z = refZ }) end)
+    if ok and snapped then return snapped end
+    return pos
+end
+
+-- =======================================================================
 -- HELPER: Bulletproof check to see if an entity is alive and well
 -- =======================================================================
 function mercenaries:IsAliveAndWell(ent, allowUnconscious)

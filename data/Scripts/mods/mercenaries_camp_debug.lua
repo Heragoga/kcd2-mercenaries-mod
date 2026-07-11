@@ -8,8 +8,24 @@
 --   merc_camp_activity_test <n|name>   - spawn + play one activity on a merc
 --   merc_camp_activity_test_clear      - stop it and remove the props
 --   merc_camp_furniture_debug          - dump sit/sleep smart-object state
+--   merc_camp_scan [radius] [spacing]  - classify ground: flag=valid,
+--                                        barrel=tree/rock, crate=building
+--   merc_camp_scan_clear               - remove the scan markers
 -- =======================================================================
 mercenaries.ActivityTestEntities = {}
+mercenaries.ScanTestEntities = {}
+
+-- Ground-scan debug markers (see CampScan below), one per class the
+-- heightmap classifier (CampClassifyHeightmap) produces:
+mercenaries.ScanFlagModel     = "objects/manmade/common_decorations/flags/flag_temporary.cgf"  -- valid ground
+mercenaries.ScanBarrelModel   = "objects/manmade/common_furniture/barrels/barrel_a.cgf"        -- small obstacle clump (tree/rock)
+mercenaries.ScanBuildingModel = "objects/manmade/common_furniture/crates/crate_box_c.cgf"      -- building-sized clump (the big crate)
+-- Default scan grid: (2*radius+1) squared cells, `spacing` metres apart,
+-- centred on the player. 12 * 0.5m -> a 25x25 grid spanning ~12m. Both are
+-- overridable per-call (merc_camp_scan <radius> <spacing>); the spec was
+-- worked out at "merc_camp_scan 21 0.5" (a ~21m field).
+mercenaries.ScanGridRadius  = 12
+mercenaries.ScanGridSpacing = 0.5
 
 function mercenaries:ListCampActivities()
     System.LogAlways('[Mercenaries] === camp activity catalogue ===')
@@ -212,6 +228,103 @@ function mercenaries:DebugCampFurniture()
     end
 end
 
+-- =======================================================================
+-- GROUND SCAN - visualise the phase-1 heightmap classifier.
+--
+-- Samples a dense 0.5m heightmap centred on the player (CampSampleHeightmap),
+-- runs the connectivity classifier from the player's own cell
+-- (CampClassifyHeightmap), and drops a colour-coded marker per cell:
+--   FLAG   -> valid ground (walkable surface connected to where you stand;
+--             gentle slopes included)
+--   BARREL -> small obstacle clump (<= CampSmallClumpMax cells): tree, rock
+--   CRATE  -> building-sized clump (> CampSmallClumpMax): wall / building
+--   (void) -> no ground under the column: no marker, counted only
+--
+-- Valid flags sit at their sampled ground height so you can read the slope;
+-- obstacle markers sit at the player's level so a wall/tree reads as a line at
+-- eye height regardless of how tall it is. merc_camp_scan_clear removes them.
+--
+-- NOTE: this is the phase-1 DETECTOR. The real camp spawn still uses the
+-- simpler per-cluster CampValidateSpot for now; wiring tile selection onto this
+-- classifier is phase 2. So the scan can legitimately show more nuance (trees
+-- vs buildings) than the current live camp acts on.
+--
+-- Usage: merc_camp_scan [radius] [spacing]   (spec was worked out at "21 0.5")
+-- =======================================================================
+function mercenaries:CampScan(radius, spacing)
+    if not player then return end
+    radius  = tonumber(radius)  or self.ScanGridRadius
+    spacing = tonumber(spacing) or self.ScanGridSpacing
+    radius  = math.max(1, math.min(radius, 25))   -- (2*25+1)^2 = 2601 markers - keep it bounded
+
+    local ok, err = pcall(function()
+        self:ClearCampScan()
+
+        local origin = player:GetWorldPos()
+        local refZ = origin.z
+
+        -- Detect under-roof: if so, the sampler flags every column that hits a
+        -- roof (the building footprint) as invalid, while columns outside the
+        -- walls stay valid ground - same as the real camp spawn, which then
+        -- forms the camp on that open ground.
+        local underRoof, ceilingZ = self:CampDetectRoof(origin)
+
+        -- Sample + classify (seed = centre cell = the player's own feet).
+        local hm = self:CampSampleHeightmap(origin, radius, spacing, underRoof)
+        local cls, counts = self:CampClassifyHeightmap(hm, radius, radius)
+
+        -- Direct BasicEntity spawn (no re-snapping) so we control each marker's
+        -- exact height: valid on the ground, obstacles at player level.
+        local function mark(model, wx, wy, wz, prefix)
+            local ent = System.SpawnEntity({
+                class = "BasicEntity",
+                name = prefix .. "_" .. tostring(math.random(100000, 999999)),
+                position = { x = wx, y = wy, z = wz },
+                properties = { object_Model = model, bMissionCritical = false },
+            })
+            if ent then table.insert(self.ScanTestEntities, ent.id) end
+        end
+
+        for i = 0, 2 * radius do
+            for j = 0, 2 * radius do
+                local wx = origin.x + (i - radius) * spacing
+                local wy = origin.y + (j - radius) * spacing
+                local c = cls[i][j]
+                if c == "valid" then
+                    mark(self.ScanFlagModel, wx, wy, hm.z[i][j], "MercCampScan_Flag")
+                elseif c == "small" then
+                    mark(self.ScanBarrelModel, wx, wy, refZ, "MercCampScan_Barrel")
+                elseif c == "building" then
+                    mark(self.ScanBuildingModel, wx, wy, refZ, "MercCampScan_Crate")
+                end
+                -- "void": no marker.
+            end
+        end
+
+        local total = (2 * radius + 1) * (2 * radius + 1)
+        local roofNote = underRoof and string.format(" [UNDER-ROOF: ceiling +%.1fm, building columns marked invalid (crate)]", (ceilingZ or refZ) - refZ) or ""
+        System.LogAlways(string.format(
+            "[Mercenaries] camp scan: %dx%d @ %.2fm (%d cells / rays) -> valid %d (flag), small-clump %d (barrel), building %d (crate), void %d%s",
+            radius * 2 + 1, radius * 2 + 1, spacing, total,
+            counts.valid, counts.small, counts.building, counts.void, roofNote))
+        Game.SendInfoText(string.format(
+            "Camp scan%s: %d valid / %d tree / %d building / %d void",
+            underRoof and " (indoors)" or "", counts.valid, counts.small, counts.building, counts.void), false, nil, 5)
+    end)
+    if not ok then
+        System.LogAlways("[Mercenaries] CampScan error: " .. tostring(err))
+    end
+end
+
+function mercenaries:ClearCampScan()
+    for _, id in ipairs(self.ScanTestEntities or {}) do
+        pcall(function() System.RemoveEntity(id) end)
+    end
+    self.ScanTestEntities = {}
+end
+
+System.AddCCommand("merc_camp_scan", "mercenaries:CampScan(%1, %2)", "Probe a grid around you with the camp ground validator: flag = valid spot, barrel = rejected. Usage: merc_camp_scan [radius] [spacing]")
+System.AddCCommand("merc_camp_scan_clear", "mercenaries:ClearCampScan()", "Remove the merc_camp_scan markers")
 System.AddCCommand("merc_camp_activity_list", "mercenaries:ListCampActivities()", "List the camp activity catalogue (index, name, mode) for merc_camp_activity_test")
 System.AddCCommand("merc_camp_activity_test", "mercenaries:SpawnCampActivityTest(%1)", "Spawn what an activity needs and make a merc play it. Usage: merc_camp_activity_test <index or name>")
 System.AddCCommand("merc_camp_activity_test_clear", "mercenaries:ClearCampActivityTest()", "Stop the activity test and remove its props")

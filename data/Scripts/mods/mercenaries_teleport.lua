@@ -43,11 +43,15 @@ function mercenaries:MonitorDistanceAndTeleport()
                                 sharedSafePos = self:GetSafeSpawnPosition(player, 10)
                             end
                             if sharedSafePos then
-                                ent:SetPos({
+                                -- Validate the jittered spot so a straggler
+                                -- isn't teleported onto a tree/rock (the jitter
+                                -- and flat z alone could land on one).
+                                local tp = self:FindValidGround({
                                     x = sharedSafePos.x + (math.random() - 0.5) * 3.0,
                                     y = sharedSafePos.y + (math.random() - 0.5) * 3.0,
                                     z = sharedSafePos.z
-                                })
+                                }, sharedSafePos.z)
+                                ent:SetPos(tp)
                             end
                         end
                     end

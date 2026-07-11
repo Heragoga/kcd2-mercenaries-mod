@@ -69,6 +69,9 @@
                 <Definition File="mercenaries_background_quest/carbongo/gossip_merc_38.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/gossip_merc_39.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/gossip_merc_40.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_camp_barks.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_travel_barks.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_both_barks.xml" />
             </Definitions>
             <Nodes>
                 <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
@@ -135,6 +138,9 @@
                 <gossip_merc_38 Name="gossip_merc_38" PositionY="150" PositionX="700" />
                 <gossip_merc_39 Name="gossip_merc_39" PositionY="150" PositionX="700" />
                 <gossip_merc_40 Name="gossip_merc_40" PositionY="150" PositionX="700" />
+                <merc_camp_barks Name="merc_camp_barks" PositionY="150" PositionX="900" />
+                <merc_travel_barks Name="merc_travel_barks" PositionY="150" PositionX="900" />
+                <merc_both_barks Name="merc_both_barks" PositionY="150" PositionX="900" />
 
 
                 <EventFunction Name="exec_clothes_1" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
