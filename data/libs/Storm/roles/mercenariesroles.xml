@@ -177,6 +177,17 @@
       </operations>
     </rule>
 
+    <!-- Camp quartermaster: his own dialog role only (not role_mercenary_test),
+         so his interface is separate from the squad-orders dialog. -->
+    <rule name="soul_quartermaster">
+      <selectors>
+        <hasName name="soul_quartermaster" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_quartermaster" />
+      </operations>
+    </rule>
+
     <rule name="mercenary_provider_kcer_innkeeper">
       <selectors>
         <hasName name="kcer_innkeeper" />

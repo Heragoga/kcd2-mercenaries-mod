@@ -74,7 +74,7 @@ function mercenaries:Hire(cost, amount, tier)
                 mercenaries:EnsureMercIsAlwaysRendered(ent)
 
                 self:EquipMercenary(ent, currentPreset)
-                self:EquipMercenaryWeapon(ent, currentWeaponPreset)
+                self:EquipMercenaryWeapon(ent, currentWeaponPreset, currentPreset)
                 -- PERFORMANCE: Register in cache immediately so the next
                 -- MonitorLoop tick doesn't need a full world scan to find them.
                 self.ActiveMercs[entityName] = ent
@@ -268,7 +268,7 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
             if ent then
                 mercenaries:EnsureMercIsAlwaysRendered(ent)
                 self:EquipMercenary(ent, mercOutfit)
-                self:EquipMercenaryWeapon(ent, mercWeapon)
+                self:EquipMercenaryWeapon(ent, mercWeapon, mercOutfit)
                 self.ActiveMercs[entityName] = ent
                 self:InjectInteraction(ent)
             end
@@ -317,7 +317,7 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
             local ent = System.GetEntityByName(entityName)
             if ent then
                 self:EquipMercenary(ent, enemyOutfit)
-                self:EquipMercenaryWeapon(ent, enemyWeapon)
+                self:EquipMercenaryWeapon(ent, enemyWeapon, enemyOutfit)
                 -- No manual DrawWeapon() - see the matching comment in
                 -- SpawnRenegade; renegade_attack.xml's automation decorators
                 -- own weapon draw, and forcing it here races spawn init.
@@ -478,7 +478,7 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
             local ent = System.GetEntityByName(entityName)
             if ent then
                 self:EquipMercenary(ent, outfitPreset)
-                self:EquipMercenaryWeapon(ent, weaponPreset)
+                self:EquipMercenaryWeapon(ent, weaponPreset, outfitPreset)
                 -- No manual DrawWeapon() here on purpose: renegade_attack.xml's
                 -- MeleeOffenseAutomationDecorator/WeaponAutomationDecorator own
                 -- weapon draw once combat starts, same as every other combat

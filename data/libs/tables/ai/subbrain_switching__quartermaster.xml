@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<subbrain_switchings version="1">
+		<subbrain_switching file_name="quartermaster_scheduler.xml" subbrain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a22" tree_name="onUpdate" />
+	</subbrain_switchings>
+</database>

@@ -2,6 +2,21 @@
 <!DOCTYPE storm SYSTEM "..\storm.dtd">
 <storm>
     <rules>
+        <!-- The camp quartermaster: an older, grey-haired look to read as a
+             seasoned supply man. Clothing/weapons are applied from Lua on
+             spawn (see mercenaries_quartermaster.lua), like the renegades. -->
+        <rule name="appearance_quartermaster">
+            <selectors>
+                <hasName Name="soul_quartermaster" />
+            </selectors>
+            <operations>
+                <setBody  name="m_body_tan_04" />
+                <setHead  name="m_head_081" />
+                <setHair  name="m_hair_003_grey" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+
         <rule name="appearance_mercenary_test">
             <selectors>
                 <hasName Name="soul_mercenary_test" />

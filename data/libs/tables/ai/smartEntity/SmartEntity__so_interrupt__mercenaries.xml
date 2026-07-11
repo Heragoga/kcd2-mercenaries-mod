@@ -39,6 +39,21 @@
 					</Inboxes>
 				</SmartBehaviorTemplate>
 
+				<!-- The quartermaster's stand-and-eat default behaviour. Combat
+				     reuses mercenary_attack above; this is only the idle loop
+				     (see quartermaster_idle.xml / quartermaster_scheduler.xml). -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="quartermaster_idle" PreventsMonsterLod="true">
+					<TreeLocation FileName="quartermaster_idle.xml" TreeName="quartermaster_idle" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
 				<!-- Archer (ranged merc) combat behaviours: skirmish (manual
 				     kiting, keep at range), guard (stick to the player and
 				     shoot), and melee (close in like a regular merc). The

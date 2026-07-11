@@ -18,6 +18,10 @@
             <Variable name="goFlee"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isIdle"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isFollowingActive"   type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <!-- Mirror of _G.PlayerMounted (published by mercenary_follow), used to
+                 stop the stuck-follower self-heal from restarting a mounted merc's
+                 follow tree while it's catching up on horseback. -->
+            <Variable name="playerMounted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
 
             <!-- campActive/campFurniture/campStanceCode: only used by the
                  commented-out camp sit/sleep block further down. Left
@@ -381,7 +385,14 @@
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />
-                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
+                                <!-- Never force a follow-retry while the player is mounted. A mounted
+                                     merc catching up on horseback is legitimately >15m behind, and
+                                     re-firing the follow interrupt RESTARTS mercenary_follow, which
+                                     tears down the ride stance and throws the merc off the horse -
+                                     this was the "random dismount while riding". The follow tree's own
+                                     ride loop handles catch-up, so leave mounted mercs alone. -->
+                                <ExecuteLua code="data.playerMounted = _G.PlayerMounted or false" />
+                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
                                     <Expression expressions="$isFollowingActive = false" />
                                 </IfCondition>
                             </Sequence>

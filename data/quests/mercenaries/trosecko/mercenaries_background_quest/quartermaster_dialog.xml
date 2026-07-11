@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <!-- The camp quartermaster's talk interface. Placeholder for now (a
+             test line + a farewell); this will grow into the camp-management
+             interface. Bound to role_mercenary_quartermaster, which only the
+             quartermaster soul has, so it never collides with the squad
+             dialog (role_mercenary_test). -->
+        <FaderDialog Name="quartermaster_dialog">
+            <Ports>
+                <Port Name="quartermaster_test" Direction="Out" Type="trigger" />
+            </Ports>
+            <Text StringName="ui_quartermaster_root" />
+            <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
+                <Decision Name="dec_quartermaster" Priority="General">
+                    <Sequences>
+
+                        <Sequence EndType="EndDialogue" Name="seq_quartermaster_test">
+                            <UiPrompt StringName="ui_quartermaster_test" />
+                            <Triggers><Port Name="quartermaster_test" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_quartermaster_test" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_quartermaster">
+                                    <Text StringName="merc_quartermaster_test_response" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                        </Sequence>
+
+                        <Sequence EndType="EndDialogue" Name="seq_quartermaster_leave">
+                            <UiPrompt StringName="ui_quartermaster_leave" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_quartermaster_leave" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_quartermaster">
+                                    <Text StringName="merc_quartermaster_leave_response" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                        </Sequence>
+
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </FaderDialog>
+    </Skald>
+</Database>

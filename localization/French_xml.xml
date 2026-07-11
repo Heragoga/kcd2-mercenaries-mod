@@ -396,4 +396,16 @@
   <Row><Cell>merc_info_archer_weapon_bow</Cell><Cell>Archers: armed with bows.</Cell><Cell>Archers: armed with bows.</Cell></Row>
   <Row><Cell>merc_info_archer_weapon_crossbow</Cell><Cell>Archers: armed with crossbows.</Cell><Cell>Archers: armed with crossbows.</Cell></Row>
   <Row><Cell>merc_info_archer_weapon_handcannon</Cell><Cell>Archers: armed with hand cannons.</Cell><Cell>Archers: armed with hand cannons.</Cell></Row>
+  <!-- Quartermaster -->
+  <Row><Cell>char_mercenary_quartermaster_uiName</Cell><Cell>Quartermaster</Cell><Cell>Quartermaster</Cell></Row>
+  <Row><Cell>char_mercenary_quartermaster_fullName</Cell><Cell>Quartermaster</Cell><Cell>Quartermaster</Cell></Row>
+  <Row><Cell>char_mercenary_quartermaster_description</Cell><Cell>The company quartermaster.</Cell><Cell>The company quartermaster.</Cell></Row>
+  <Row><Cell>ui_quartermaster_root</Cell><Cell>Quartermaster</Cell><Cell>Quartermaster</Cell></Row>
+  <Row><Cell>ui_quartermaster_test</Cell><Cell>How goes it, quartermaster?</Cell><Cell>How goes it, quartermaster?</Cell></Row>
+  <Row><Cell>merc_henry_quartermaster_test</Cell><Cell>How goes it, quartermaster?</Cell><Cell>How goes it, quartermaster?</Cell></Row>
+  <Row><Cell>merc_quartermaster_test_response</Cell><Cell>Camp's in order, sir. Everything's where it should be.</Cell><Cell>Camp's in order, sir. Everything's where it should be.</Cell></Row>
+  <Row><Cell>ui_quartermaster_leave</Cell><Cell>Never mind. Carry on.</Cell><Cell>Never mind. Carry on.</Cell></Row>
+  <Row><Cell>merc_henry_quartermaster_leave</Cell><Cell>Never mind. Carry on.</Cell><Cell>Never mind. Carry on.</Cell></Row>
+  <Row><Cell>merc_quartermaster_leave_response</Cell><Cell>As you say, sir.</Cell><Cell>As you say, sir.</Cell></Row>
+  <Row><Cell>merc_info_quartermaster_test</Cell><Cell>The quartermaster nods.</Cell><Cell>The quartermaster nods.</Cell></Row>
 </Table>

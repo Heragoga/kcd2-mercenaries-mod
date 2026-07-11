@@ -9,5 +9,10 @@
 
 
 		<role role_id="053aebb6-b614-4471-b6b2-d5bfef77ff14" metarole_name="NPC" role_name="role_mercenary_provider" />
+
+		<!-- The camp quartermaster's own dialog role. Kept distinct from the
+		     regular merc role (role_mercenary_test) so talking to him opens
+		     his own management interface, not the squad-orders dialog. -->
+		<role role_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a55" metarole_name="NPC" role_name="role_mercenary_quartermaster" />
 	</roles>
 </database>

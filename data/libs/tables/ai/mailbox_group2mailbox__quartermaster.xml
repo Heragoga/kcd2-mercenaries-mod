@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<mailbox_group2mailboxs version="1">
+		<mailbox_group2mailbox mailbox_group_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a33" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+	</mailbox_group2mailboxs>
+</database>

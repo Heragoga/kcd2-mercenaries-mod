@@ -1897,6 +1897,10 @@ function mercenaries:SpawnMercCamp()
 
         self:SpawnPlayerCampTent(center, worldForwardAngle)
 
+        -- The quartermaster: an immortal talking-interface NPC that stands by
+        -- the player tent for the camp's lifetime (see mercenaries_quartermaster.lua).
+        self:SpawnQuartermaster(center, worldForwardAngle)
+
         -- Fire clusters fill grid cells in the order CampGridOffsets lays out -
         -- behind the player tent first, then left/right, then the corners, then
         -- further rings for bigger squads - always skipping (0, 0) (the player
@@ -2296,6 +2300,10 @@ function mercenaries:BreakMercCamp(silent)
         System.LogAlways('[Mercenaries] BreakMercCamp error: ' .. tostring(err))
     end
 
+    -- The quartermaster is an NPC, not a tracked BasicEntity prop, so he's
+    -- torn down separately.
+    self:DespawnQuartermaster()
+
     self.CampEntities = {}
     self.CampSlots = {}
     self.CampPatrollers = {}
@@ -2442,6 +2450,9 @@ function mercenaries:ClearAnyLeftoverCamp()
     if not ok then
         System.LogAlways('[Mercenaries] ClearAnyLeftoverCamp error: ' .. tostring(err))
     end
+
+    -- Sweep away a leftover quartermaster (an NPC, swept by name prefix).
+    self:DespawnQuartermaster()
 
     self.CampActive = false
     self.CampEntities = {}

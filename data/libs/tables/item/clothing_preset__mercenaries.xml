@@ -440,7 +440,7 @@
             </Items>
         </clothing_preset>
 
-        <clothing_preset clothing_preset_id="1a2b3c4d-5e6f-4789-a0b1-c2d3e4f5a6b7" clothing_preset_name="merc_skalitz_weak_3" gender="Male" prefers_hood_on="true" social_class_id="3">
+        <clothing_preset clothing_preset_id="1a2b3c4d-5e6f-4789-a0b1-c2d3e4f5a6b7" clothing_preset_name="merc_skalitz_weak_3" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
@@ -452,10 +452,11 @@
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
                 <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
+                <Guid>921a52ca-5fbe-4013-aa3b-745fa11077b8</Guid> <!-- Helmet: KettleHat04_m05_B4 -->
             </Items>
         </clothing_preset>
 
-        <clothing_preset clothing_preset_id="2b3c4d5e-6f7a-4890-b1c2-d3e4f5a6b7c8" clothing_preset_name="merc_skalitz_weak_4" gender="Male" prefers_hood_on="true" social_class_id="3">
+        <clothing_preset clothing_preset_id="2b3c4d5e-6f7a-4890-b1c2-d3e4f5a6b7c8" clothing_preset_name="merc_skalitz_weak_4" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
@@ -467,6 +468,7 @@
                 <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
                 <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
+                <Guid>868581d6-f9ab-4ae2-b074-9200e7d054bd</Guid> <!-- Helmet: KettleHat01_m01_E1 (alt) -->
             </Items>
         </clothing_preset>
 
@@ -507,7 +509,7 @@
             </Items>
         </clothing_preset>
 
-        <clothing_preset clothing_preset_id="3c4d5e6f-7a8b-4901-8c2d-e4f5a6b7c8d9" clothing_preset_name="merc_skalitz_medium_3" gender="Male" prefers_hood_on="true" social_class_id="3">
+        <clothing_preset clothing_preset_id="3c4d5e6f-7a8b-4901-8c2d-e4f5a6b7c8d9" clothing_preset_name="merc_skalitz_medium_3" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
@@ -520,10 +522,11 @@
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
                 <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
+                <Guid>8b2cb8f5-31e8-4ee3-b4bc-b50c06f7ff4c</Guid> <!-- Helmet: BascinetOpen08_m01_B3 -->
             </Items>
         </clothing_preset>
 
-        <clothing_preset clothing_preset_id="4d5e6f7a-8b9c-4a12-9d3e-f5a6b7c8d9e0" clothing_preset_name="merc_skalitz_medium_4" gender="Male" prefers_hood_on="true" social_class_id="3">
+        <clothing_preset clothing_preset_id="4d5e6f7a-8b9c-4a12-9d3e-f5a6b7c8d9e0" clothing_preset_name="merc_skalitz_medium_4" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
@@ -536,6 +539,7 @@
                 <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
                 <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
+                <Guid>25bd008c-f308-4521-8a4f-a1feeb76ea3c</Guid> <!-- Helmet: KettleHat03_m01_B3 (alt) -->
             </Items>
         </clothing_preset>
 
@@ -549,6 +553,7 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
+                <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
                 <Guid>16798160-94ae-4cd3-8f7c-f06c96f9f44b</Guid> <!-- Waffenrock -->
@@ -565,6 +570,7 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
+                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
                 <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
                 <Guid>5b3d2485-1c83-48f4-afc7-ae62f97b99a7</Guid> <!-- Waffenrock (alt) -->
@@ -572,7 +578,7 @@
             </Items>
         </clothing_preset>
 
-        <clothing_preset clothing_preset_id="5e6f7a8b-9c0d-4b23-8e4f-a6b7c8d9e0f1" clothing_preset_name="merc_skalitz_strong_3" gender="Male" prefers_hood_on="true" social_class_id="3">
+        <clothing_preset clothing_preset_id="5e6f7a8b-9c0d-4b23-8e4f-a6b7c8d9e0f1" clothing_preset_name="merc_skalitz_strong_3" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
@@ -581,13 +587,15 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
+                <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
                 <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
+                <Guid>d8c9ae5a-ac99-479b-9529-277814dd629f</Guid> <!-- Helmet: BascinetVisor02_m03_D3 -->
             </Items>
         </clothing_preset>
 
-        <clothing_preset clothing_preset_id="6f7a8b9c-0d1e-4c34-9f5a-b7c8d9e0f1a2" clothing_preset_name="merc_skalitz_strong_4" gender="Male" prefers_hood_on="true" social_class_id="3">
+        <clothing_preset clothing_preset_id="6f7a8b9c-0d1e-4c34-9f5a-b7c8d9e0f1a2" clothing_preset_name="merc_skalitz_strong_4" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
@@ -596,9 +604,11 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
+                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
                 <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
                 <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
+                <Guid>fb95090e-ab36-4e5e-9447-99653eaa4873</Guid> <!-- Helmet: BascinetVisor01_m05_C3 (alt) -->
             </Items>
         </clothing_preset>
 

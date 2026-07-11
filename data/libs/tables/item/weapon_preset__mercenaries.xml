@@ -286,11 +286,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="04cdf545-216f-40a9-8bbe-e3df62c6c9c4" weapon_preset_name="merc_weapon_axeshield_weak_3">
             <weapon_preset_item item_class_id="81494400-b654-4aa7-8f31-c95c689db5f6" />
-            <weapon_preset_item item_class_id="292ea6c3-92b9-40a1-890c-d558ab00a8f2" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="8cadc064-2b10-4c83-b623-baa48ed00887" weapon_preset_name="merc_weapon_axeshield_weak_4">
             <weapon_preset_item item_class_id="53612e76-76fd-4dca-84b6-7905b986dc3b" />
-            <weapon_preset_item item_class_id="66760529-5a60-4bc3-861b-6694d571f5a1" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="75619084-5ad1-4b57-9367-3cf4b5564d4c" weapon_preset_name="merc_weapon_axeshield_medium_1">
             <weapon_preset_item item_class_id="c25fc705-c957-4c9a-a831-0f112e3b148d" />
@@ -302,11 +302,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="67b28c22-75ae-46c1-9fbb-74c4e5404bc8" weapon_preset_name="merc_weapon_axeshield_medium_3">
             <weapon_preset_item item_class_id="eeeb5a48-9a97-41a6-aee0-3e1b64fc2405" />
-            <weapon_preset_item item_class_id="8baa70c0-222a-42dc-a289-035c83a33d5e" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="d5320f5a-4b3f-4b24-a396-642e82ede04e" weapon_preset_name="merc_weapon_axeshield_medium_4">
             <weapon_preset_item item_class_id="bd74ce18-2623-48ba-a1a1-c9b09bbb2827" />
-            <weapon_preset_item item_class_id="4bfa707e-2a7b-4091-8230-0b7d83da716a" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="a1bdde2f-5c26-4cc8-8f97-97e7e5120832" weapon_preset_name="merc_weapon_axeshield_strong_1">
             <weapon_preset_item item_class_id="0802c111-75aa-4b9c-9a3f-f30bac55fbc7" />
@@ -318,11 +318,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="4da2558e-7c3b-4e71-9a0f-4e0fb96e31f7" weapon_preset_name="merc_weapon_axeshield_strong_3">
             <weapon_preset_item item_class_id="214ffcdd-a7a7-4b7a-b484-f60c8d00b39b" />
-            <weapon_preset_item item_class_id="e4e1b22a-428a-4e20-aa92-ce216b324c0a" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="a03246b9-5795-4b88-8a09-2558cd3f2b21" weapon_preset_name="merc_weapon_axeshield_strong_4">
             <weapon_preset_item item_class_id="0f0164d5-3746-4d07-a1ed-0f138225a6d9" />
-            <weapon_preset_item item_class_id="2fd517a8-e990-45a1-8fbc-e4b3636cf30a" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
         </weapon_preset>
 
         <!-- ==================== Mace and shield ==================== -->
@@ -336,11 +336,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="8cd52efe-5c75-4ca4-a73e-d742856de6ad" weapon_preset_name="merc_weapon_maceshield_weak_3">
             <weapon_preset_item item_class_id="9cc07405-4195-46ab-bf17-fd0fd99721bd" />
-            <weapon_preset_item item_class_id="292ea6c3-92b9-40a1-890c-d558ab00a8f2" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="05de7ab9-82dd-44db-8dcf-c065a3f88f4f" weapon_preset_name="merc_weapon_maceshield_weak_4">
             <weapon_preset_item item_class_id="8a9e3a36-213e-4b90-a4ec-518fdec1d980" />
-            <weapon_preset_item item_class_id="66760529-5a60-4bc3-861b-6694d571f5a1" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="65804416-c27f-4a7b-bae2-40cc77d3bbec" weapon_preset_name="merc_weapon_maceshield_medium_1">
             <weapon_preset_item item_class_id="00b0039b-daa4-4f32-ac7f-69a6a2e0add8" />
@@ -352,11 +352,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="e72434c6-0ce9-4a03-a9a1-a34586b5f141" weapon_preset_name="merc_weapon_maceshield_medium_3">
             <weapon_preset_item item_class_id="af6a6142-c6f7-4ae7-94a9-bb5be41ebecc" />
-            <weapon_preset_item item_class_id="8baa70c0-222a-42dc-a289-035c83a33d5e" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="b5a967b8-4ed8-4814-b233-a7b4125375d2" weapon_preset_name="merc_weapon_maceshield_medium_4">
             <weapon_preset_item item_class_id="c67de991-e22a-4a19-8b68-9369919c41dd" />
-            <weapon_preset_item item_class_id="4bfa707e-2a7b-4091-8230-0b7d83da716a" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="45ca9e2a-16a1-445c-8b25-040f60987283" weapon_preset_name="merc_weapon_maceshield_strong_1">
             <weapon_preset_item item_class_id="839992c8-657b-4d5e-97c9-96ff94430d72" />
@@ -368,7 +368,7 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="232574b9-4aef-42f2-8b78-8218d8702ddb" weapon_preset_name="merc_weapon_maceshield_strong_3">
             <weapon_preset_item item_class_id="65a211bd-2c7e-40a8-984f-66c8730444e4" />
-            <weapon_preset_item item_class_id="e4e1b22a-428a-4e20-aa92-ce216b324c0a" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
         </weapon_preset>
 
         <!-- ==================== Archer sets (ranged mercs) ====================

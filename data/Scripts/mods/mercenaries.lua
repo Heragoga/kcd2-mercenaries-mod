@@ -40,6 +40,9 @@ mercenaries.TokenIDStatus = "679a655e-189d-4519-b437-ccc4b92be64d"
 mercenaries.TokenIDCampMake = "679a655e-189d-4519-b437-ccc4b92be65d"
 mercenaries.TokenIDCampBreak = "679a655e-189d-4519-b437-ccc4b92be66d"
 
+--quartermaster placeholder test dialog token
+mercenaries.TokenIDQuartermasterTest = "679a655e-189d-4519-b437-ccc4b92be67d"
+
 -- Combat stance tokens (set via dialogue with a mercenary)
 mercenaries.TokenIDStanceEveryone = "679a655e-189d-4519-b437-ccc4b92be51d"
 mercenaries.TokenIDStancePlayerTarget = "679a655e-189d-4519-b437-ccc4b92be52d"
@@ -484,6 +487,7 @@ function mercenaries:MonitorInventory()
     local countStatus = p:GetCountOfClass(self.TokenIDStatus)
     local countCampMake = p:GetCountOfClass(self.TokenIDCampMake)
     local countCampBreak = p:GetCountOfClass(self.TokenIDCampBreak)
+    local countQuartermasterTest = p:GetCountOfClass(self.TokenIDQuartermasterTest)
 
     local countStanceEveryone = p:GetCountOfClass(self.TokenIDStanceEveryone)
     local countStancePlayerTarget = p:GetCountOfClass(self.TokenIDStancePlayerTarget)
@@ -579,6 +583,12 @@ function mercenaries:MonitorInventory()
     if countCampBreak and countCampBreak > 0 then
         p:DeleteItemOfClass(self.TokenIDCampBreak, countCampBreak)
         self:BreakMercCamp()
+    end
+
+    -- quartermaster placeholder test dialog
+    if countQuartermasterTest and countQuartermasterTest > 0 then
+        p:DeleteItemOfClass(self.TokenIDQuartermasterTest, countQuartermasterTest)
+        self:QuartermasterTest()
     end
 
     -- Combat stance chosen via dialogue
@@ -762,6 +772,7 @@ Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
+Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
 
 
 -- Prints every merc console command with a one-line description.

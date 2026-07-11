@@ -12,6 +12,9 @@
             <Variable name="goFlee"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isIdle"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isFollowingActive"   type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <!-- Mirror of _G.PlayerMounted; keeps the self-heal from restarting a
+                 mounted archer's follow tree (same fix as mercenary_scheduler.xml). -->
+            <Variable name="playerMounted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
 
             <!-- campActive/campFurniture/campStanceCode: only used by the
                  commented-out camp sit/sleep block further down. Left
@@ -377,7 +380,10 @@
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />
-                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
+                                <!-- Skip the retry while mounted - restarting the follow tree throws
+                                     the archer off the horse mid-ride (see mercenary_scheduler.xml). -->
+                                <ExecuteLua code="data.playerMounted = _G.PlayerMounted or false" />
+                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
                                     <Expression expressions="$isFollowingActive = false" />
                                 </IfCondition>
                             </Sequence>

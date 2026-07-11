@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- The quartermaster's switch (type 6). He is a "lobotomized merc":
+         he stands in place and occasionally eats (the quartermaster_idle
+         behaviour, fired as the default), and when the camp is raided he
+         defends himself with the shared melee combat tree (mercenary_attack).
+         No follow, no schedule, no squad logic. Structure mirrors
+         renegade_scheduler.xml (combat detection + a target loop + a firing
+         switch), plus a persistent idle behaviour like the merc scheduler's
+         follow. Target selection is defensive: FindQuartermasterTarget only
+         picks genuinely hostile, weapon-drawn NPCs near him. -->
+    <BehaviorTree name="onUpdate" is_function="0">
+        <Variables>
+            <Variable name="playerWUID" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="currentTarget" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="inCombat" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="isIdleActive" type="_bool" values="false" isPersistent="0" form="single" />
+
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" />
+            <Variable name="crimeInformation" type="information" values="" isPersistent="0" form="single" />
+            <Variable name="mrkev" type="_wuid" values="" isPersistent="0" form="single" />
+        </Variables>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <SuppressFailure>
+                    <Parallel successMode="Any" failureMode="Any">
+
+                        <!-- Combat detection: are we currently under attack? -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
+                                    <Then canSkip="1">
+                                        <Expression expressions="$inCombat = true" />
+                                    </Then>
+                                    <Else canSkip="1">
+                                        <Expression expressions="$inCombat = false" />
+                                    </Else>
+                                </EntityContextCheck>
+                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Defensive target pick: nearest genuinely-hostile,
+                             weapon-drawn NPC near him (a raider). -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:FindQuartermasterTarget(data, entity.this.id)" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <Loop count="-1">
+                            <ContinuousSwitch>
+
+                                <!-- A raider showed up and we're not yet fighting: fire the
+                                     shared melee combat interrupt on it. Dropping isIdleActive
+                                     means the idle behaviour re-fires once the fight is over. -->
+                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $currentTarget ~= $__null">
+                                    <Sequence>
+                                        <Expression expressions="$playerWUID = $__player" />
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
+                                            <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$currentTarget" Information="$crimeInformation" />
+                                            <LockDynamicInformationValues Information="$crimeInformation">
+                                                <SetDynamicInformationValue Information="$crimeInformation" Tag="'stimulusKind'" Variable="$enum:crime_stimulusKind.combat" Type="" Value="" />
+                                            </LockDynamicInformationValues>
+                                            <Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898990" />
+                                        </SuppressFailure>
+                                        <Expression expressions="$attackData.target = $currentTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
+                                        <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'mercenary_attack'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                        <Expression expressions="$isIdleActive = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- Fight ongoing (or a target still pending): let the combat
+                                     tree run, don't touch the idle behaviour. -->
+                                <IfCondition failOnCondition="false" condition="$inCombat | $currentTarget ~= $__null">
+                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                </IfCondition>
+
+                                <!-- Default: stand and occasionally eat. Fired once (guarded by
+                                     isIdleActive) and re-fired after any fight. -->
+                                <IfCondition failOnCondition="false" condition="true">
+                                    <Sequence>
+                                        <IfCondition failOnCondition="false" condition="~$isIdleActive">
+                                            <Sequence>
+                                                <Expression expressions="$playerWUID = $__player" />
+                                                <SuppressFailure>
+                                                    <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
+                                                    <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$this.id" Information="$crimeInformation" />
+                                                    <LockDynamicInformationValues Information="$crimeInformation">
+                                                        <SetDynamicInformationValue Information="$crimeInformation" Tag="'stimulusKind'" Variable="$enum:crime_stimulusKind.combat" Type="" Value="" />
+                                                    </LockDynamicInformationValues>
+                                                    <Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898990" />
+                                                </SuppressFailure>
+                                                <Expression expressions="$attackData.target = $this.id &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
+                                                <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'quartermaster_idle'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                <Expression expressions="$isIdleActive = true" />
+                                            </Sequence>
+                                        </IfCondition>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                            </ContinuousSwitch>
+                        </Loop>
+
+                    </Parallel>
+                </SuppressFailure>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+       <souls version="2">
+       <!-- The quartermaster: a single, immortal camp NPC. Shares
+            mercenariesFaction so renegades already treat him as an enemy and
+            attack him when the camp is raided (he fights back but can't die -
+            soul_vip_class_id 12 = immortality + unconsciousness protection).
+            Custom brain (quartermaster_brain) stands him in place, plays the
+            odd eating animation, and defends when attacked. Dressed as a
+            bailiff and given a weapon from Lua on spawn (see
+            mercenaries_quartermaster.lua), the same way renegades are. -->
+       <soul brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_mercenary_quartermaster" social_class_id="3" soul_archetype_id="0" soul_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" soul_name="soul_quartermaster" soul_vip_class_id="12" xp_multiplier="0" />
+       </souls>
+</database>

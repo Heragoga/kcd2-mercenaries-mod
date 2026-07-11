@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<brains version="1">
+		<!-- Quartermaster: a "lobotomized merc". His custom switch
+		     (data/AI/quartermaster_scheduler.xml) just stands him in place,
+		     occasionally plays an eating animation (quartermaster_idle.xml),
+		     and fires a stripped attack interrupt (mercenary_attack, reused)
+		     when the camp is raided. No follow, no schedule, no barks. -->
+		<brain brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" brain_name="quartermaster_brain" />
+	</brains>
+</database>
