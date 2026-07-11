@@ -2,19 +2,19 @@
 <Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
     <Skald>
         <Dialog Name="story_9_monolog">
-            <Text StringName="614a_story9" Text="Mercenary Story Bark 9" />
+            <Text StringName="a614a_story9" Text="Mercenary Story Bark 9" />
             <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
                 <SelectedSouls>
                     <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
                     <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
                     <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
                 </SelectedSouls>
-                <Decision Name="dec_story_9" Priority="General" Alias="614a_story9">
+                <Decision Name="dec_story_9" Priority="General" Alias="a614a_story9">
                     <Sequences>
                         <Sequence EndType="EndDialogue" Name="seq_story_9">
-                            <DesignName StringName="614a_story9" Text="I prayed for guidance and got rain. Well, close enough." />
+                            <DesignName StringName="a614a_story9" Text="I prayed for guidance and got rain. Well, close enough." />
                             <Elements>
-                                <Response Role="role_mercenary_test"><Text StringName="614a_story9"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="a614a_story9"/></Response>
                             </Elements>
                         </Sequence>
                     </Sequences>

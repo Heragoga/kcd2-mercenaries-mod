@@ -12,7 +12,17 @@
                 <Port Name="hire_p1" Direction="Out" Type="trigger" />
                 <Port Name="hire_p2" Direction="Out" Type="trigger" />
                 <Port Name="hire_p3" Direction="Out" Type="trigger" />
-                
+
+                <Port Name="hire_aw1" Direction="Out" Type="trigger" />
+                <Port Name="hire_aw2" Direction="Out" Type="trigger" />
+                <Port Name="hire_aw3" Direction="Out" Type="trigger" />
+                <Port Name="hire_ad1" Direction="Out" Type="trigger" />
+                <Port Name="hire_ad2" Direction="Out" Type="trigger" />
+                <Port Name="hire_ad3" Direction="Out" Type="trigger" />
+                <Port Name="hire_ap1" Direction="Out" Type="trigger" />
+                <Port Name="hire_ap2" Direction="Out" Type="trigger" />
+                <Port Name="hire_ap3" Direction="Out" Type="trigger" />
+
                 <Port Name="hire_return" Direction="Out" Type="trigger" />
                 
                 <Port Name="hire_c1" Direction="Out" Type="trigger" />
@@ -167,6 +177,141 @@
                                                         <Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response>
                                                     </Elements>
                                                 </Sequence>
+                                            </Sequences>
+                                        </Decision>
+                                    </Sequence>
+
+                                    <Sequence EndType="Decision" Name="seq_archers">
+                                        <UiPrompt StringName="ui_mercenary_type_archers" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_archers" />
+                                            </Response>
+                                            <Response Role="role_mercenary_provider">
+                                                <Text StringName="merc_provider_archers" />
+                                            </Response>
+                                        </Elements>
+                                        <Decision Name="dec_archer_tier">
+                                            <Sequences>
+
+                                                <Sequence EndType="Decision" Name="seq_archer_weak">
+                                                    <UiPrompt StringName="ui_archer_tier_weak" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_archer_weak" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_provider">
+                                                            <Text StringName="merc_provider_archer_weak" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Decision Name="dec_aw">
+                                                        <Sequences>
+                                                            <Sequence EndType="EndDialogue" Name="aw1">
+                                                                <UiPrompt StringName="ui_mercenary_count_1" />
+                                                                <Triggers><Port Name="hire_aw1" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="EndDialogue" Name="aw2">
+                                                                <UiPrompt StringName="ui_mercenary_count_2" />
+                                                                <Triggers><Port Name="hire_aw2" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_2" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="EndDialogue" Name="aw3">
+                                                                <UiPrompt StringName="ui_mercenary_count_3" />
+                                                                <Triggers><Port Name="hire_aw3" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="GoTo" GoToDecision="dec_archer_tier" Name="seq_aw_cancel">
+                                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                                <Elements>
+                                                                    <Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response>
+                                                                </Elements>
+                                                            </Sequence>
+                                                        </Sequences>
+                                                    </Decision>
+                                                </Sequence>
+
+                                                <Sequence EndType="Decision" Name="seq_archer_medium">
+                                                    <UiPrompt StringName="ui_archer_tier_medium" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_archer_medium" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_provider">
+                                                            <Text StringName="merc_provider_archer_medium" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Decision Name="dec_ad">
+                                                        <Sequences>
+                                                            <Sequence EndType="EndDialogue" Name="ad1">
+                                                                <UiPrompt StringName="ui_mercenary_count_1" />
+                                                                <Triggers><Port Name="hire_ad1" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="EndDialogue" Name="ad2">
+                                                                <UiPrompt StringName="ui_mercenary_count_2" />
+                                                                <Triggers><Port Name="hire_ad2" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_2" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="EndDialogue" Name="ad3">
+                                                                <UiPrompt StringName="ui_mercenary_count_3" />
+                                                                <Triggers><Port Name="hire_ad3" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="GoTo" GoToDecision="dec_archer_tier" Name="seq_ad_cancel">
+                                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                                <Elements>
+                                                                    <Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response>
+                                                                </Elements>
+                                                            </Sequence>
+                                                        </Sequences>
+                                                    </Decision>
+                                                </Sequence>
+
+                                                <Sequence EndType="Decision" Name="seq_archer_strong">
+                                                    <UiPrompt StringName="ui_archer_tier_good" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_archer_good" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_provider">
+                                                            <Text StringName="merc_provider_archer_good" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Decision Name="dec_ap">
+                                                        <Sequences>
+                                                            <Sequence EndType="EndDialogue" Name="ap1">
+                                                                <UiPrompt StringName="ui_mercenary_count_1" />
+                                                                <Triggers><Port Name="hire_ap1" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="EndDialogue" Name="ap2">
+                                                                <UiPrompt StringName="ui_mercenary_count_2" />
+                                                                <Triggers><Port Name="hire_ap2" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_2" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="EndDialogue" Name="ap3">
+                                                                <UiPrompt StringName="ui_mercenary_count_3" />
+                                                                <Triggers><Port Name="hire_ap3" /></Triggers>
+                                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                            </Sequence>
+                                                            <Sequence EndType="GoTo" GoToDecision="dec_archer_tier" Name="seq_ap_cancel">
+                                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                                <Elements>
+                                                                    <Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response>
+                                                                </Elements>
+                                                            </Sequence>
+                                                        </Sequences>
+                                                    </Decision>
+                                                </Sequence>
+
+                                                <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_archer_cancel">
+                                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                    <Elements>
+                                                        <Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response>
+                                                    </Elements>
+                                                </Sequence>
+
                                             </Sequences>
                                         </Decision>
                                     </Sequence>
