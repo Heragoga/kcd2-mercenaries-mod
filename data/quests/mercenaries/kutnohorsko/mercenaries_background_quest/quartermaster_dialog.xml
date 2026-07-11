@@ -1,46 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
     <Skald>
-        <!-- The camp quartermaster's talk interface. Placeholder for now (a
-             test line + a farewell); this will grow into the camp-management
-             interface. Bound to role_mercenary_quartermaster, which only the
-             quartermaster soul has, so it never collides with the squad
-             dialog (role_mercenary_test). -->
+        <!-- The camp quartermaster's management interface. Each leaf fires an Out
+             port -> the quest turns it into an inventory token -> mercenaries.lua
+             routes it to mercenaries_logistics.lua. Bound to
+             role_mercenary_quartermaster. -->
         <FaderDialog Name="quartermaster_dialog">
             <Ports>
                 <Port Name="quartermaster_test" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_deliver_food"  Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_deliver_drink" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_buy_food"      Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_ask_food"      Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_ask_drink"     Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_ask_stats"     Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_withhold_wages" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_deposit"       Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_withdraw"      Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_cart"     Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_inn"      Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_hunter"   Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_smithy"   Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_alchemy"  Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_practice" Direction="Out" Type="trigger" />
             </Ports>
             <Text StringName="ui_quartermaster_root" />
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
                 <Decision Name="dec_quartermaster" Priority="General">
                     <Sequences>
 
-                        <Sequence EndType="EndDialogue" Name="seq_quartermaster_test">
-                            <UiPrompt StringName="ui_quartermaster_test" />
-                            <Triggers><Port Name="quartermaster_test" /></Triggers>
+                        <!-- ===== Supplies ===== -->
+                        <Sequence EndType="Decision" Name="seq_qm_supplies">
+                            <UiPrompt StringName="ui_qm_supplies" />
                             <Elements>
-                                <Response Role="HENRY">
-                                    <Text StringName="merc_henry_quartermaster_test" />
-                                    <Commands><CameraCommand /></Commands>
-                                </Response>
-                                <Response Role="role_mercenary_quartermaster">
-                                    <Text StringName="merc_quartermaster_test_response" />
-                                    <Commands><CameraCommand /></Commands>
-                                </Response>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_supplies" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_supplies" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                            <Decision Name="dec_qm_supplies">
+                                <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_deliver_food">
+                                        <UiPrompt StringName="ui_qm_deliver_food" />
+                                        <Triggers><Port Name="quartermaster_deliver_food" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_deliver_food" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_deliver_food" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_deliver_drink">
+                                        <UiPrompt StringName="ui_qm_deliver_drink" />
+                                        <Triggers><Port Name="quartermaster_deliver_drink" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_deliver_drink" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_deliver_drink" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_buy_food">
+                                        <UiPrompt StringName="ui_qm_buy_food" />
+                                        <Triggers><Port Name="quartermaster_buy_food" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_buy_food" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_buy_food" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_ask_food">
+                                        <UiPrompt StringName="ui_qm_ask_food" />
+                                        <Triggers><Port Name="quartermaster_ask_food" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_ask_food" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_ask_food" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_ask_drink">
+                                        <UiPrompt StringName="ui_qm_ask_drink" />
+                                        <Triggers><Port Name="quartermaster_ask_drink" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_ask_drink" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_ask_drink" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_supplies_back">
+                                        <UiPrompt StringName="ui_qm_back" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
+                                    </Sequence>
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <!-- ===== Wages & war chest ===== -->
+                        <Sequence EndType="Decision" Name="seq_qm_wages">
+                            <UiPrompt StringName="ui_qm_wages" />
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_wages" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_wages" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                            <Decision Name="dec_qm_wages">
+                                <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_deposit">
+                                        <UiPrompt StringName="ui_qm_deposit" />
+                                        <Triggers><Port Name="quartermaster_deposit" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_deposit" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_deposit" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_withdraw">
+                                        <UiPrompt StringName="ui_qm_withdraw" />
+                                        <Triggers><Port Name="quartermaster_withdraw" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_withdraw" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_withdraw" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_withhold">
+                                        <UiPrompt StringName="ui_qm_withhold" />
+                                        <Triggers><Port Name="quartermaster_withhold_wages" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_withhold" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_withhold" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_wages_back">
+                                        <UiPrompt StringName="ui_qm_back" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
+                                    </Sequence>
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <!-- ===== Camp upgrades ===== -->
+                        <Sequence EndType="Decision" Name="seq_qm_upgrades">
+                            <UiPrompt StringName="ui_qm_upgrades" />
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_upgrades" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_upgrades" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                            <Decision Name="dec_qm_upgrades">
+                                <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_cart">
+                                        <UiPrompt StringName="ui_qm_cart" />
+                                        <Triggers><Port Name="quartermaster_cart" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_cart" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_cart" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_inn">
+                                        <UiPrompt StringName="ui_qm_inn" />
+                                        <Triggers><Port Name="quartermaster_inn" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_inn" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_inn" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_hunter">
+                                        <UiPrompt StringName="ui_qm_hunter" />
+                                        <Triggers><Port Name="quartermaster_hunter" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_hunter" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_hunter" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_smithy">
+                                        <UiPrompt StringName="ui_qm_smithy" />
+                                        <Triggers><Port Name="quartermaster_smithy" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_smithy" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_smithy" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_alchemy">
+                                        <UiPrompt StringName="ui_qm_alchemy" />
+                                        <Triggers><Port Name="quartermaster_alchemy" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_alchemy" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_alchemy" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_practice">
+                                        <UiPrompt StringName="ui_qm_practice" />
+                                        <Triggers><Port Name="quartermaster_practice" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_practice" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_practice" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_upg_back">
+                                        <UiPrompt StringName="ui_qm_back" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
+                                    </Sequence>
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <!-- ===== Status ===== -->
+                        <Sequence EndType="EndDialogue" Name="seq_qm_ask_stats">
+                            <UiPrompt StringName="ui_qm_ask_stats" />
+                            <Triggers><Port Name="quartermaster_ask_stats" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_ask_stats" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_ask_stats" /><Commands><CameraCommand /></Commands></Response>
                             </Elements>
                         </Sequence>
 
+                        <!-- ===== Tutorial (spoken dialog, returns to the menu) ===== -->
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_tutorial">
+                            <UiPrompt StringName="ui_qm_tutorial" />
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_tutorial" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_1" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_morale" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_tired" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_food" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_drink" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_wages" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_upg" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_end" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+                        <!-- ===== Leave ===== -->
                         <Sequence EndType="EndDialogue" Name="seq_quartermaster_leave">
                             <UiPrompt StringName="ui_quartermaster_leave" />
                             <Elements>
-                                <Response Role="HENRY">
-                                    <Text StringName="merc_henry_quartermaster_leave" />
-                                    <Commands><CameraCommand /></Commands>
-                                </Response>
-                                <Response Role="role_mercenary_quartermaster">
-                                    <Text StringName="merc_quartermaster_leave_response" />
-                                    <Commands><CameraCommand /></Commands>
-                                </Response>
+                                <Response Role="HENRY"><Text StringName="merc_henry_quartermaster_leave" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_quartermaster_leave_response" /><Commands><CameraCommand /></Commands></Response>
                             </Elements>
                         </Sequence>
 

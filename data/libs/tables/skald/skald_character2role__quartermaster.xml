@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<skald_character2roles version="1">
+		<!-- Ties the quartermaster's Skald character to his dialog role. Without
+		     this link the "Talk" prompt appears but pressing E does nothing -
+		     Skald can't cast him into quartermaster_dialog's role. Mirrors the
+		     mercs' skald_character2role__mercenaries.xml. -->
+		<skald_character2role role_id="role_mercenary_quartermaster" skald_character_id="char_mercenary_quartermaster" />
+	</skald_character2roles>
+</database>

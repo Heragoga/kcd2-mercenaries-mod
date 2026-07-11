@@ -91,6 +91,7 @@ function mercenaries:SpawnQuartermaster(centerPos, facingAngle)
         local ent = System.GetEntityByName(entityName)
         if ent then
             self.QuartermasterId = ent.id
+            self.QuartermasterName = entityName   -- so logistics can find him (health regen, food inventory)
             pcall(function() self:EnsureMercIsAlwaysRendered(ent) end)
             -- Dress + arm him from the base game presets (renegade pattern).
             if ent.actor then
@@ -115,6 +116,7 @@ end
 -- =======================================================================
 function mercenaries:DespawnQuartermaster()
     self.QuartermasterPost = nil
+    self.QuartermasterName = nil
     if self.QuartermasterId then
         pcall(function() System.RemoveEntity(self.QuartermasterId) end)
         self.QuartermasterId = nil

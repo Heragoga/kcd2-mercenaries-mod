@@ -35,6 +35,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)
 * [Mercenary camp](camp.md) (Procedural camp spawn/despawn, how props render without a custom entity class, and the smart-object sit/sleep integration)
 * [The quartermaster](quartermaster.md) (An immortal camp NPC with a lobotomized-merc brain: stands, eats, defends when raided, and serves as a talking interface)
+* [Quartermaster logistics](quartermaster-logistics.md) (The camp-management systems he fronts: tiredness, food, drink and wages, with combat buffs and save-persistent state)
 * [Basic structure](behaviour-trees/basic-structure.md) (Covers the basic structure of the Behaviour Tree and some basic logical components)
 * [Combat](behaviour-trees/combat.md) (How to make your NPC fight)
 * [Movement](behaviour-trees/movement.md) (How to make your NPC move)

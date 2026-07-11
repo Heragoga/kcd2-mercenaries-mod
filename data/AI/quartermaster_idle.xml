@@ -68,16 +68,19 @@
                             <ExecuteLua code="pcall(function() if entity.human and entity.human:IsWeaponDrawn() then entity.human:DrawWeapon(false) end end)" />
                         </SuppressFailure>
 
-                        <!-- Face the tent again (Move leaves him facing the way he arrived). -->
-                        <IfCondition failOnCondition="false" condition="$hasFace">
-                            <SuppressFailure>
-                                <Turn target="$facePos" align="false" />
-                            </SuppressFailure>
-                        </IfCondition>
-
-                        <!-- Stand idle for a while (the engine's own idle animation
-                             set takes over when no node is driving movement). -->
-                        <Wait duration="'45s'" timeType="GameTime" doFail="false" variation="'25s'" />
+                        <!-- Stand at the post and WATCH THE PLAYER without following:
+                             CrimeFollower's NoMoveOnlyTurn mode turns him to face the
+                             player but never steps toward them (the base-game "look but
+                             don't move" follower - see references, e.g. Mode/attribute
+                             NoMoveOnlyTurn). It runs in parallel with a timer, so after a
+                             while the Wait ends the parallel and he breaks off to eat,
+                             then the loop resumes watching. -->
+                        <SuppressFailure>
+                            <Parallel successMode="Any" failureMode="Any">
+                                <CrimeFollower Target="$__player" Mode="NoMoveOnlyTurn" Role="Observer" RelativeSpeedLimit="Walk" DisableGhosting="false" BlockWay="false" NoMoveOnlyTurn="true" />
+                                <Wait duration="'45s'" timeType="GameTime" doFail="false" variation="'25s'" />
+                            </Parallel>
+                        </SuppressFailure>
 
                         <!-- Then have a bite to eat. SuppressFailure so a missing
                              fragment just skips rather than failing the whole tree. -->

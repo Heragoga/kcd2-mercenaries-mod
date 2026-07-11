@@ -10,6 +10,49 @@
         duration="-1"
         implementation="Cpp:Constant"
         is_persistent="false" />
+
+        <!-- Quartermaster logistics: applied/removed at runtime (soul:AddBuff /
+             RemoveAllBuffsByGuid) by mercenaries_logistics.lua. Rough combat
+             modifiers - tune the magnitudes in play. -->
+        <!-- Hungry: ~50% effectiveness (out of food). -->
+        <buff buff_class_id="15" buff_exclusivity_id="2"
+              buff_id="c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"
+              buff_lifetime_id="1" buff_name="merc_hungry_debuff"
+              buff_params="strength-8,agility-8,vitality-8,fencing-8,defense-8,weapon_sword-8,weapon_unarmed-8,weapon_large-8,heavy_weapons-8,marksmanship-8,mor-1.0,rms*0.9"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Well-watered: ~150% effectiveness (drink in stock). -->
+        <buff buff_class_id="15" buff_exclusivity_id="3"
+              buff_id="d2e3f4a5-b6c7-48d9-8e0f-2a3b4c5d6e7f"
+              buff_lifetime_id="1" buff_name="merc_drink_buff"
+              buff_params="strength+8,agility+8,vitality+8,fencing+8,defense+8,weapon_sword+8,weapon_unarmed+8,weapon_large+8,heavy_weapons+8,marksmanship+8,mor+1.0,rms*1.1"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+
+        <!-- Morale-based combat effectiveness (the logistics rewrite). The Lua
+             computes a single net combat % per squad (morale boost + smithy +
+             training - starving) and applies the closest of these tiers to each
+             merc. Magnitudes are first-pass; tune in play. -->
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10001-2c4b-4e6a-9f01-000000000001" buff_lifetime_id="1" buff_name="merc_cbt_dn2"
+              buff_params="strength-16,agility-16,vitality-16,fencing-16,defense-16,weapon_sword-16,weapon_unarmed-16,weapon_large-16,heavy_weapons-16,marksmanship-16,mor-2.0,rms*0.85"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10002-2c4b-4e6a-9f01-000000000002" buff_lifetime_id="1" buff_name="merc_cbt_dn1"
+              buff_params="strength-8,agility-8,vitality-8,fencing-8,defense-8,weapon_sword-8,weapon_unarmed-8,weapon_large-8,heavy_weapons-8,marksmanship-8,mor-1.0,rms*0.92"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10003-2c4b-4e6a-9f01-000000000003" buff_lifetime_id="1" buff_name="merc_cbt_up1"
+              buff_params="strength+5,agility+5,vitality+5,fencing+5,defense+5,weapon_sword+5,weapon_unarmed+5,weapon_large+5,heavy_weapons+5,marksmanship+5,mor+0.5"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10004-2c4b-4e6a-9f01-000000000004" buff_lifetime_id="1" buff_name="merc_cbt_up2"
+              buff_params="strength+10,agility+10,vitality+10,fencing+10,defense+10,weapon_sword+10,weapon_unarmed+10,weapon_large+10,heavy_weapons+10,marksmanship+10,mor+1.0"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10005-2c4b-4e6a-9f01-000000000005" buff_lifetime_id="1" buff_name="merc_cbt_up3"
+              buff_params="strength+16,agility+16,vitality+16,fencing+16,defense+16,weapon_sword+16,weapon_unarmed+16,weapon_large+16,heavy_weapons+16,marksmanship+16,mor+1.5,rms*1.1"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10006-2c4b-4e6a-9f01-000000000006" buff_lifetime_id="1" buff_name="merc_cbt_up4"
+              buff_params="strength+24,agility+24,vitality+24,fencing+24,defense+24,weapon_sword+24,weapon_unarmed+24,weapon_large+24,heavy_weapons+24,marksmanship+24,mor+2.0,rms*1.15"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Alchemy bench: a bit more survivable (stacks with the combat tier). -->
+        <buff buff_class_id="15" buff_exclusivity_id="5" buff_id="e5a10007-2c4b-4e6a-9f01-000000000007" buff_lifetime_id="1" buff_name="merc_alchemy_buff"
+              buff_params="vitality+20,strength+5,hlh*0.8,slh*0.8"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
 	</buffs>
 
         <buff buff_class_id="15" buff_exclusivity_id="1" buff_id="f123ee45-aade-4a13-a776-597c97d34bab" buff_lifetime_id="0" buff_name="merc_decreaseddamageintake" buff_params="hlh*0.7,slh*0.7" duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />

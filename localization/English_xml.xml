@@ -404,4 +404,121 @@
   <Row><Cell>merc_henry_quartermaster_leave</Cell><Cell>Never mind. Carry on.</Cell><Cell>Never mind. Carry on.</Cell></Row>
   <Row><Cell>merc_quartermaster_leave_response</Cell><Cell>As you say, sir.</Cell><Cell>As you say, sir.</Cell></Row>
   <Row><Cell>merc_info_quartermaster_test</Cell><Cell>The quartermaster nods.</Cell><Cell>The quartermaster nods.</Cell></Row>
+
+  <!-- Quartermaster logistics -->
+  <Row><Cell>ui_qm_supplies</Cell><Cell>Supplies.</Cell><Cell>Supplies.</Cell></Row>
+  <Row><Cell>merc_henry_qm_supplies</Cell><Cell>Let's talk supplies.</Cell><Cell>Let's talk supplies.</Cell></Row>
+  <Row><Cell>merc_qm_supplies</Cell><Cell>Aye. What do you need?</Cell><Cell>Aye. What do you need?</Cell></Row>
+  <Row><Cell>ui_qm_deliver_food</Cell><Cell>Here, take this food for the men.</Cell><Cell>Here, take this food for the men.</Cell></Row>
+  <Row><Cell>merc_henry_qm_deliver_food</Cell><Cell>Here, take this food for the men.</Cell><Cell>Here, take this food for the men.</Cell></Row>
+  <Row><Cell>merc_qm_deliver_food</Cell><Cell>Much obliged. Into the stores it goes.</Cell><Cell>Much obliged. Into the stores it goes.</Cell></Row>
+  <Row><Cell>ui_qm_deliver_drink</Cell><Cell>Take this drink for the men.</Cell><Cell>Take this drink for the men.</Cell></Row>
+  <Row><Cell>merc_henry_qm_deliver_drink</Cell><Cell>Take this drink for the men.</Cell><Cell>Take this drink for the men.</Cell></Row>
+  <Row><Cell>merc_qm_deliver_drink</Cell><Cell>The lads'll be glad of it.</Cell><Cell>The lads'll be glad of it.</Cell></Row>
+  <Row><Cell>ui_qm_buy_food</Cell><Cell>Buy food (100 groschen for 5).</Cell><Cell>Buy food (100 groschen for 5).</Cell></Row>
+  <Row><Cell>merc_henry_qm_buy_food</Cell><Cell>Buy some food from your contacts.</Cell><Cell>Buy some food from your contacts.</Cell></Row>
+  <Row><Cell>merc_qm_buy_food</Cell><Cell>I'll send word. Five rations, hundred groschen.</Cell><Cell>I'll send word. Five rations, hundred groschen.</Cell></Row>
+  <Row><Cell>ui_qm_ask_food</Cell><Cell>How are we for food?</Cell><Cell>How are we for food?</Cell></Row>
+  <Row><Cell>merc_henry_qm_ask_food</Cell><Cell>How are we for food?</Cell><Cell>How are we for food?</Cell></Row>
+  <Row><Cell>merc_qm_ask_food</Cell><Cell>Let me check the stores...</Cell><Cell>Let me check the stores...</Cell></Row>
+  <Row><Cell>ui_qm_ask_drink</Cell><Cell>How are we for drink?</Cell><Cell>How are we for drink?</Cell></Row>
+  <Row><Cell>merc_henry_qm_ask_drink</Cell><Cell>How are we for drink?</Cell><Cell>How are we for drink?</Cell></Row>
+  <Row><Cell>merc_qm_ask_drink</Cell><Cell>Let me see what's left in the barrels...</Cell><Cell>Let me see what's left in the barrels...</Cell></Row>
+  <Row><Cell>ui_qm_back</Cell><Cell>Never mind that.</Cell><Cell>Never mind that.</Cell></Row>
+  <Row><Cell>merc_henry_qm_back</Cell><Cell>Never mind that.</Cell><Cell>Never mind that.</Cell></Row>
+  <Row><Cell>ui_qm_wages</Cell><Cell>Wages.</Cell><Cell>Wages.</Cell></Row>
+  <Row><Cell>merc_henry_qm_wages</Cell><Cell>Let's talk about the men's pay.</Cell><Cell>Let's talk about the men's pay.</Cell></Row>
+  <Row><Cell>merc_qm_wages</Cell><Cell>A touchy subject. Go on.</Cell><Cell>A touchy subject. Go on.</Cell></Row>
+  <Row><Cell>ui_qm_withhold</Cell><Cell>Withhold the men's wages (toggle).</Cell><Cell>Withhold the men's wages (toggle).</Cell></Row>
+  <Row><Cell>merc_henry_qm_withhold</Cell><Cell>Hold back the men's wages for now.</Cell><Cell>Hold back the men's wages for now.</Cell></Row>
+  <Row><Cell>merc_qm_withhold</Cell><Cell>As you say - but they won't like it.</Cell><Cell>As you say - but they won't like it.</Cell></Row>
+  <Row><Cell>ui_qm_pay_forever</Cell><Cell>Pay their wages in full, once and for all (1000 groschen).</Cell><Cell>Pay their wages in full, once and for all (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_pay_forever</Cell><Cell>Here's a thousand groschen - see the men are paid, always.</Cell><Cell>Here's a thousand groschen - see the men are paid, always.</Cell></Row>
+  <Row><Cell>merc_qm_pay_forever</Cell><Cell>Generous. They'll never want for pay again.</Cell><Cell>Generous. They'll never want for pay again.</Cell></Row>
+  <Row><Cell>ui_qm_tutorial</Cell><Cell>Explain how you keep the company.</Cell><Cell>Explain how you keep the company.</Cell></Row>
+  <Row><Cell>merc_henry_qm_tutorial</Cell><Cell>Remind me how you keep this company running.</Cell><Cell>Remind me how you keep this company running.</Cell></Row>
+  <Row><Cell>merc_qm_tutorial</Cell><Cell>Gladly. Listen close...</Cell><Cell>Gladly. Listen close...</Cell></Row>
+  <Row><Cell>merc_logi_tired</Cell><Cell>The mercenaries are tired. Make camp soon so they can rest.</Cell><Cell>The mercenaries are tired. Make camp soon so they can rest.</Cell></Row>
+  <Row><Cell>merc_logi_really_tired</Cell><Cell>The mercenaries are exhausted. Make camp or they'll start to desert.</Cell><Cell>The mercenaries are exhausted. Make camp or they'll start to desert.</Cell></Row>
+  <Row><Cell>merc_logi_tired_desert</Cell><Cell>The mercenaries were run into the ground and have deserted.</Cell><Cell>The mercenaries were run into the ground and have deserted.</Cell></Row>
+  <Row><Cell>merc_logi_hungry</Cell><Cell>The mercenaries are hungry. Make camp and give the quartermaster some food.</Cell><Cell>The mercenaries are hungry. Make camp and give the quartermaster some food.</Cell></Row>
+  <Row><Cell>merc_logi_food_delivered</Cell><Cell>The quartermaster stows the food away.</Cell><Cell>The quartermaster stows the food away.</Cell></Row>
+  <Row><Cell>merc_logi_drink_delivered</Cell><Cell>The quartermaster stows the drink away.</Cell><Cell>The quartermaster stows the drink away.</Cell></Row>
+  <Row><Cell>merc_logi_nothing_to_deliver</Cell><Cell>You have nothing of the sort to hand over.</Cell><Cell>You have nothing of the sort to hand over.</Cell></Row>
+  <Row><Cell>merc_logi_food_bought</Cell><Cell>The quartermaster procures more food for the company.</Cell><Cell>The quartermaster procures more food for the company.</Cell></Row>
+  <Row><Cell>merc_logi_foodlvl_none</Cell><Cell>Quartermaster: We're clean out of food.</Cell><Cell>Quartermaster: We're clean out of food.</Cell></Row>
+  <Row><Cell>merc_logi_foodlvl_critical</Cell><Cell>Quartermaster: Barely a scrap of food left.</Cell><Cell>Quartermaster: Barely a scrap of food left.</Cell></Row>
+  <Row><Cell>merc_logi_foodlvl_low</Cell><Cell>Quartermaster: Food's running low.</Cell><Cell>Quartermaster: Food's running low.</Cell></Row>
+  <Row><Cell>merc_logi_foodlvl_ok</Cell><Cell>Quartermaster: We've food enough for now.</Cell><Cell>Quartermaster: We've food enough for now.</Cell></Row>
+  <Row><Cell>merc_logi_foodlvl_full</Cell><Cell>Quartermaster: The stores are full.</Cell><Cell>Quartermaster: The stores are full.</Cell></Row>
+  <Row><Cell>merc_logi_drinklvl_none</Cell><Cell>Quartermaster: Not a drop to drink.</Cell><Cell>Quartermaster: Not a drop to drink.</Cell></Row>
+  <Row><Cell>merc_logi_drinklvl_critical</Cell><Cell>Quartermaster: Barely any drink left.</Cell><Cell>Quartermaster: Barely any drink left.</Cell></Row>
+  <Row><Cell>merc_logi_drinklvl_low</Cell><Cell>Quartermaster: Drink's running low.</Cell><Cell>Quartermaster: Drink's running low.</Cell></Row>
+  <Row><Cell>merc_logi_drinklvl_ok</Cell><Cell>Quartermaster: We've drink enough for now.</Cell><Cell>Quartermaster: We've drink enough for now.</Cell></Row>
+  <Row><Cell>merc_logi_drinklvl_full</Cell><Cell>Quartermaster: The barrels are full.</Cell><Cell>Quartermaster: The barrels are full.</Cell></Row>
+  <Row><Cell>merc_logi_wages_paid</Cell><Cell>The men's wages have been paid. Talk to the quartermaster to withhold them.</Cell><Cell>The men's wages have been paid. Talk to the quartermaster to withhold them.</Cell></Row>
+  <Row><Cell>merc_logi_wages_unpaid_warn</Cell><Cell>The men haven't been paid. Pay up soon or they'll start to desert.</Cell><Cell>The men haven't been paid. Pay up soon or they'll start to desert.</Cell></Row>
+  <Row><Cell>merc_logi_wages_desert</Cell><Cell>Unpaid and disgruntled, one of the mercenaries has deserted.</Cell><Cell>Unpaid and disgruntled, one of the mercenaries has deserted.</Cell></Row>
+  <Row><Cell>merc_logi_wages_withhold_on</Cell><Cell>Wages will be withheld from now on.</Cell><Cell>Wages will be withheld from now on.</Cell></Row>
+  <Row><Cell>merc_logi_wages_withhold_off</Cell><Cell>The men will be paid their wages again.</Cell><Cell>The men will be paid their wages again.</Cell></Row>
+  <Row><Cell>merc_logi_wages_forever_done</Cell><Cell>The company's wages are settled for good. No more will be deducted.</Cell><Cell>The company's wages are settled for good. No more will be deducted.</Cell></Row>
+  <Row><Cell>merc_logi_wages_forever_already</Cell><Cell>The men's pay is already settled for good.</Cell><Cell>The men's pay is already settled for good.</Cell></Row>
+  <Row><Cell>merc_logi_tut_1</Cell><Cell>Quartermaster: I keep this company fed, watered, rested and paid. Here's how.</Cell><Cell>Quartermaster: I keep this company fed, watered, rested and paid. Here's how.</Cell></Row>
+  <Row><Cell>merc_logi_tut_tired</Cell><Cell>Tiredness: away from camp the men tire. After a day they grumble, after two they'll desert, after three they're gone. Make camp to rest them.</Cell><Cell>Tiredness: away from camp the men tire. After a day they grumble, after two they'll desert, after three they're gone. Make camp to rest them.</Cell></Row>
+  <Row><Cell>merc_logi_tut_food</Cell><Cell>Food: one ration feeds five men a day, eaten each evening. Run out and they fight hungry - half as well. Bring me food or buy some.</Cell><Cell>Food: one ration feeds five men a day, eaten each evening. Run out and they fight hungry - half as well. Bring me food or buy some.</Cell></Row>
+  <Row><Cell>merc_logi_tut_drink</Cell><Cell>Drink: same as food, but a luxury. Keep them in drink and they fight the harder for it.</Cell><Cell>Drink: same as food, but a luxury. Keep them in drink and they fight the harder for it.</Cell></Row>
+  <Row><Cell>merc_logi_tut_wages</Cell><Cell>Wages: I take their pay each evening - more for the seasoned men. Withhold it and they'll desert. Or settle it once and for all.</Cell><Cell>Wages: I take their pay each evening - more for the seasoned men. Withhold it and they'll desert. Or settle it once and for all.</Cell></Row>
+  <Row><Cell>merc_logi_tut_end</Cell><Cell>Quartermaster: Keep them fed, rested and paid, and they'll follow you to hell and back.</Cell><Cell>Quartermaster: Keep them fed, rested and paid, and they'll follow you to hell and back.</Cell></Row>
+
+  <!-- Quartermaster morale/upgrades -->
+  <Row><Cell>ui_qm_ask_stats</Cell><Cell>How are we doing?</Cell><Cell>How are we doing?</Cell></Row>
+  <Row><Cell>merc_henry_qm_ask_stats</Cell><Cell>How's the company faring?</Cell><Cell>How's the company faring?</Cell></Row>
+  <Row><Cell>merc_qm_ask_stats</Cell><Cell>Let me tally it up for you.</Cell><Cell>Let me tally it up for you.</Cell></Row>
+  <Row><Cell>ui_qm_upgrades</Cell><Cell>What can we build here?</Cell><Cell>What can we build here?</Cell></Row>
+  <Row><Cell>merc_henry_qm_upgrades</Cell><Cell>What could we build to make the camp better?</Cell><Cell>What could we build to make the camp better?</Cell></Row>
+  <Row><Cell>merc_qm_upgrades</Cell><Cell>Plenty, coin permitting. Have a look.</Cell><Cell>Plenty, coin permitting. Have a look.</Cell></Row>
+  <Row><Cell>ui_qm_deposit</Cell><Cell>Put 500 groschen toward the men's wages.</Cell><Cell>Put 500 groschen toward the men's wages.</Cell></Row>
+  <Row><Cell>merc_henry_qm_deposit</Cell><Cell>Here's 500 for the war chest.</Cell><Cell>Here's 500 for the war chest.</Cell></Row>
+  <Row><Cell>merc_qm_deposit</Cell><Cell>Into the strongbox. It'll cover their pay.</Cell><Cell>Into the strongbox. It'll cover their pay.</Cell></Row>
+  <Row><Cell>ui_qm_withdraw</Cell><Cell>Take the war chest for myself.</Cell><Cell>Take the war chest for myself.</Cell></Row>
+  <Row><Cell>merc_henry_qm_withdraw</Cell><Cell>I'll take back what's in the war chest.</Cell><Cell>I'll take back what's in the war chest.</Cell></Row>
+  <Row><Cell>merc_qm_withdraw</Cell><Cell>As you wish. Here's the lot.</Cell><Cell>As you wish. Here's the lot.</Cell></Row>
+  <Row><Cell>ui_qm_cart</Cell><Cell>Food cart (500 groschen).</Cell><Cell>Food cart (500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_cart</Cell><Cell>Set up a food cart.</Cell><Cell>Set up a food cart.</Cell></Row>
+  <Row><Cell>merc_qm_cart</Cell><Cell>Grain for ten men, ten days. Done.</Cell><Cell>Grain for ten men, ten days. Done.</Cell></Row>
+  <Row><Cell>ui_qm_inn</Cell><Cell>Makeshift inn (1000 groschen).</Cell><Cell>Makeshift inn (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_inn</Cell><Cell>Put up a makeshift inn.</Cell><Cell>Put up a makeshift inn.</Cell></Row>
+  <Row><Cell>merc_qm_inn</Cell><Cell>Barrels and benches. The lads'll cheer up.</Cell><Cell>Barrels and benches. The lads'll cheer up.</Cell></Row>
+  <Row><Cell>ui_qm_hunter</Cell><Cell>Hunter's spot (2000 groschen).</Cell><Cell>Hunter's spot (2000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_hunter</Cell><Cell>Set up a hunter's spot.</Cell><Cell>Set up a hunter's spot.</Cell></Row>
+  <Row><Cell>merc_qm_hunter</Cell><Cell>Bows and a smokehouse. It'll feed five, long as two stay to work it.</Cell><Cell>Bows and a smokehouse. It'll feed five, long as two stay to work it.</Cell></Row>
+  <Row><Cell>ui_qm_smithy</Cell><Cell>Portable smithy (3000 groschen).</Cell><Cell>Portable smithy (3000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_smithy</Cell><Cell>Build a portable smithy.</Cell><Cell>Build a portable smithy.</Cell></Row>
+  <Row><Cell>merc_qm_smithy</Cell><Cell>Good steel makes good soldiers. And you can work it yourself.</Cell><Cell>Good steel makes good soldiers. And you can work it yourself.</Cell></Row>
+  <Row><Cell>ui_qm_alchemy</Cell><Cell>Alchemy bench (3000 groschen).</Cell><Cell>Alchemy bench (3000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_alchemy</Cell><Cell>Set up an alchemy bench.</Cell><Cell>Set up an alchemy bench.</Cell></Row>
+  <Row><Cell>merc_qm_alchemy</Cell><Cell>Potions keep the men on their feet. Yours to use, too.</Cell><Cell>Potions keep the men on their feet. Yours to use, too.</Cell></Row>
+  <Row><Cell>ui_qm_practice</Cell><Cell>Practice yard (1000 groschen).</Cell><Cell>Practice yard (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_practice</Cell><Cell>Lay out a practice yard.</Cell><Cell>Lay out a practice yard.</Cell></Row>
+  <Row><Cell>merc_qm_practice</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell></Row>
+  <Row><Cell>merc_logi_morale_low</Cell><Cell>The men's morale is low. If it sinks much lower they'll start to desert.</Cell><Cell>The men's morale is low. If it sinks much lower they'll start to desert.</Cell></Row>
+  <Row><Cell>merc_logi_morale_mutiny</Cell><Cell>The men are on the verge of mutiny!</Cell><Cell>The men are on the verge of mutiny!</Cell></Row>
+  <Row><Cell>merc_logi_desert_event</Cell><Cell>A mercenary has deserted the company.</Cell><Cell>A mercenary has deserted the company.</Cell></Row>
+  <Row><Cell>merc_logi_mutiny_event</Cell><Cell>A mercenary has turned on you!</Cell><Cell>A mercenary has turned on you!</Cell></Row>
+  <Row><Cell>merc_logi_wagerun_none</Cell><Cell>Quartermaster: The war chest is dry - I can't pay the men.</Cell><Cell>Quartermaster: The war chest is dry - I can't pay the men.</Cell></Row>
+  <Row><Cell>merc_logi_wagerun_low</Cell><Cell>Quartermaster: We can barely make payroll.</Cell><Cell>Quartermaster: We can barely make payroll.</Cell></Row>
+  <Row><Cell>merc_logi_wagerun_ok</Cell><Cell>Quartermaster: We can cover wages for a while yet.</Cell><Cell>Quartermaster: We can cover wages for a while yet.</Cell></Row>
+  <Row><Cell>merc_logi_wagerun_full</Cell><Cell>Quartermaster: Wages are well covered.</Cell><Cell>Quartermaster: Wages are well covered.</Cell></Row>
+  <Row><Cell>merc_logi_morale_mut</Cell><Cell>Quartermaster: The men are near open mutiny.</Cell><Cell>Quartermaster: The men are near open mutiny.</Cell></Row>
+  <Row><Cell>merc_logi_morale_neg</Cell><Cell>Quartermaster: Spirits are poor - some are drifting off.</Cell><Cell>Quartermaster: Spirits are poor - some are drifting off.</Cell></Row>
+  <Row><Cell>merc_logi_morale_mid</Cell><Cell>Quartermaster: The men are content enough.</Cell><Cell>Quartermaster: The men are content enough.</Cell></Row>
+  <Row><Cell>merc_logi_morale_good</Cell><Cell>Quartermaster: The men are in good spirits.</Cell><Cell>Quartermaster: The men are in good spirits.</Cell></Row>
+  <Row><Cell>merc_logi_morale_high</Cell><Cell>Quartermaster: The men are in high spirits - they'll fight like lions.</Cell><Cell>Quartermaster: The men are in high spirits - they'll fight like lions.</Cell></Row>
+  <Row><Cell>merc_logi_coffer_deposited</Cell><Cell>The quartermaster locks the coin in the war chest.</Cell><Cell>The quartermaster locks the coin in the war chest.</Cell></Row>
+  <Row><Cell>merc_logi_coffer_withdrawn</Cell><Cell>The quartermaster hands you the war chest.</Cell><Cell>The quartermaster hands you the war chest.</Cell></Row>
+  <Row><Cell>merc_logi_coffer_empty</Cell><Cell>The war chest is empty.</Cell><Cell>The war chest is empty.</Cell></Row>
+  <Row><Cell>merc_logi_upg_bought</Cell><Cell>The quartermaster sets to work on the improvement.</Cell><Cell>The quartermaster sets to work on the improvement.</Cell></Row>
+  <Row><Cell>merc_logi_upg_have</Cell><Cell>You've already built that.</Cell><Cell>You've already built that.</Cell></Row>
+  <Row><Cell>merc_logi_tut_morale</Cell><Cell>Morale is everything: -100 to 100. Winning fights lifts it, losing men and neglect drops it. High morale fights harder; low morale means desertions, and below -80 they mutiny. Camp restores it.</Cell><Cell>Morale is everything: -100 to 100. Winning fights lifts it, losing men and neglect drops it. High morale fights harder; low morale means desertions, and below -80 they mutiny. Camp restores it.</Cell></Row>
+  <Row><Cell>merc_logi_tut_upg</Cell><Cell>And for coin I can build improvements: a food cart, an inn, a hunter's spot for endless food, a smithy, an alchemy bench, or a practice yard to train the men up.</Cell><Cell>And for coin I can build improvements: a food cart, an inn, a hunter's spot for endless food, a smithy, an alchemy bench, or a practice yard to train the men up.</Cell></Row>
 </Table>

@@ -43,6 +43,25 @@ mercenaries.TokenIDCampBreak = "679a655e-189d-4519-b437-ccc4b92be66d"
 --quartermaster placeholder test dialog token
 mercenaries.TokenIDQuartermasterTest = "679a655e-189d-4519-b437-ccc4b92be67d"
 
+--quartermaster logistics dialog tokens
+mercenaries.TokenIDQMDeliverFood     = "679a655e-189d-4519-b437-ccc4b92be68d"
+mercenaries.TokenIDQMDeliverDrink    = "679a655e-189d-4519-b437-ccc4b92be69d"
+mercenaries.TokenIDQMBuyFood         = "679a655e-189d-4519-b437-ccc4b92be6ad"
+mercenaries.TokenIDQMAskStats        = "679a655e-189d-4519-b437-ccc4b92be6bd"
+mercenaries.TokenIDQMDeposit         = "679a655e-189d-4519-b437-ccc4b92be6cd"
+mercenaries.TokenIDQMWithholdWages   = "679a655e-189d-4519-b437-ccc4b92be6dd"
+mercenaries.TokenIDQMWithdraw        = "679a655e-189d-4519-b437-ccc4b92be6ed"
+mercenaries.TokenIDQMAskFood         = "679a655e-189d-4519-b437-ccc4b92be6fd"
+mercenaries.TokenIDQMAskDrink        = "679a655e-189d-4519-b437-ccc4b92be76d"
+mercenaries.TokenIDQMFoodPanel       = "679a655e-189d-4519-b437-ccc4b92be77d"
+mercenaries.TokenIDQMDrinkPanel      = "679a655e-189d-4519-b437-ccc4b92be78d"
+mercenaries.TokenIDQMCart            = "679a655e-189d-4519-b437-ccc4b92be70d"
+mercenaries.TokenIDQMInn             = "679a655e-189d-4519-b437-ccc4b92be71d"
+mercenaries.TokenIDQMHunter          = "679a655e-189d-4519-b437-ccc4b92be72d"
+mercenaries.TokenIDQMSmithy          = "679a655e-189d-4519-b437-ccc4b92be73d"
+mercenaries.TokenIDQMAlchemy         = "679a655e-189d-4519-b437-ccc4b92be74d"
+mercenaries.TokenIDQMPractice        = "679a655e-189d-4519-b437-ccc4b92be75d"
+
 -- Combat stance tokens (set via dialogue with a mercenary)
 mercenaries.TokenIDStanceEveryone = "679a655e-189d-4519-b437-ccc4b92be51d"
 mercenaries.TokenIDStancePlayerTarget = "679a655e-189d-4519-b437-ccc4b92be52d"
@@ -591,6 +610,45 @@ function mercenaries:MonitorInventory()
         self:QuartermasterTest()
     end
 
+    -- quartermaster logistics actions
+    local function tok(id, fn)
+        local c = p:GetCountOfClass(id)
+        if c and c > 0 then
+            p:DeleteItemOfClass(id, c)
+            fn()
+        end
+    end
+    tok(self.TokenIDQMDeliverFood,   function() self:LogiDeliverFood() end)
+    tok(self.TokenIDQMDeliverDrink,  function() self:LogiDeliverDrink() end)
+    tok(self.TokenIDQMBuyFood,       function() self:LogiBuyFood() end)
+    tok(self.TokenIDQMAskStats,      function() self:LogiAskStats() end)
+    tok(self.TokenIDQMAskFood,       function() self:LogiAskFood() end)
+    tok(self.TokenIDQMAskDrink,      function() self:LogiAskDrink() end)
+    tok(self.TokenIDQMDeposit,       function() self:LogiDepositCoffer() end)
+    tok(self.TokenIDQMWithholdWages, function() self:LogiToggleWithholdWages() end)
+    tok(self.TokenIDQMWithdraw,      function() self:LogiWithdrawCoffer() end)
+    tok(self.TokenIDQMCart,          function() self:LogiBuyFoodCart() end)
+    tok(self.TokenIDQMInn,           function() self:LogiBuyInn() end)
+    tok(self.TokenIDQMHunter,        function() self:LogiBuyHunter() end)
+    tok(self.TokenIDQMSmithy,        function() self:LogiBuySmithy() end)
+    tok(self.TokenIDQMAlchemy,       function() self:LogiBuyAlchemy() end)
+    tok(self.TokenIDQMPractice,      function() self:LogiBuyPractice() end)
+
+    -- Food-delivery panel result: the token COUNT is the delivered food amount,
+    -- so this one is handled specially (passes the count through).
+    local cFoodPanel = p:GetCountOfClass(self.TokenIDQMFoodPanel)
+    if cFoodPanel and cFoodPanel > 0 then
+        p:DeleteItemOfClass(self.TokenIDQMFoodPanel, cFoodPanel)
+        self:LogiPanelFood(cFoodPanel)
+    end
+
+    -- Drink-delivery panel result: same deal, the token COUNT is the amount.
+    local cDrinkPanel = p:GetCountOfClass(self.TokenIDQMDrinkPanel)
+    if cDrinkPanel and cDrinkPanel > 0 then
+        p:DeleteItemOfClass(self.TokenIDQMDrinkPanel, cDrinkPanel)
+        self:LogiPanelDrink(cDrinkPanel)
+    end
+
     -- Combat stance chosen via dialogue
     if countStanceEveryone and countStanceEveryone > 0 then
         p:DeleteItemOfClass(self.TokenIDStanceEveryone, countStanceEveryone)
@@ -677,6 +735,9 @@ function mercenaries.LowPriorityMonitorLoop()
     -- camp can (briefly) outlive its squad's cache entry.
     mercenaries:MonitorCamp()
 
+    -- Quartermaster logistics: tiredness / food / drink / wages upkeep.
+    mercenaries:LogiTick()
+
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
 end
@@ -733,6 +794,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- that was active when the game was saved (see mercenaries_camp.lua).
     self:ClearAnyLeftoverCamp()
 
+    -- Load the quartermaster logistics state (tiredness / food / drink / wages).
+    self:LogiLoad()
+
     -- Recall hotkey - brings the whole squad to the player from anywhere
     -- without touching a standing camp. Same "bind <key> <command>"
     -- pattern the bodyguards reference mod uses for its own hotkeys
@@ -773,6 +837,7 @@ Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
+Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
 
 
 -- Prints every merc console command with a one-line description.
