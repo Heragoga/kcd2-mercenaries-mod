@@ -1,24 +1,9 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <BehaviorTrees>
-    <!-- The quartermaster's default behaviour: return to his post, sheathe,
-         then stand there and occasionally play a standing eating animation.
-         Fired as an interrupt by quartermaster_scheduler.xml (like
-         mercenary_follow is fired by the merc scheduler), so it declares the
-         same attackData In-parameter even though it never uses it.
-
-         The "return to post + sheathe" step is what brings him home after a
-         raid: the shared combat tree (mercenary_attack) drags him toward the
-         enemy, so once the fight ends and this behaviour re-fires he walks
-         back to his post (the vec3 the scheduler reads from
-         mercenaries:GetQuartermasterPost), puts his weapon away, and turns to
-         face the tent again. When he's already home the Move returns
-         immediately, so in peacetime this is just stand + eat.
-
-         eating_standing is a mode-2 standing activity (UseLocationObject=false,
-         needs nothing in hand - it even spawns its own bun) and is confirmed
-         working in-game; see docs/camp.md "Camp activities". The Move to a
-         vec3 destination with changeNPCState="true" is the same proven
-         move-to-a-point setup the camp guard patrol uses in mercenary_follow.xml. -->
+    <!-- The quartermaster's default behaviour: walk back to his post (after a raid
+         the shared combat tree drags him toward the enemy), sheathe, face the tent,
+         and stand there occasionally eating (eating_standing, a mode-2 activity).
+         Fired as an interrupt by quartermaster_scheduler.xml. See docs/quartermaster.md. -->
     <BehaviorTree name="quartermaster_idle" is_function="0">
         <Variables>
             <Variable name="postPos" type="vec3" values="" isPersistent="0" form="single" />
@@ -33,9 +18,7 @@
             <Behavior canSkip="1">
                 <Loop count="-1">
                     <Sequence>
-                        <!-- Pull his post (stand spot + tent-centre face point) from Lua
-                             into the vec3s, set component-wise the way
-                             references/AI/quests/questbehaviors.xml does. -->
+                        <!-- Pull his post (stand spot + tent-centre face point) from Lua into the vec3s. -->
                         <ExecuteLua code="
                             data.hasPost = false
                             data.hasFace = false
@@ -68,13 +51,8 @@
                             <ExecuteLua code="pcall(function() if entity.human and entity.human:IsWeaponDrawn() then entity.human:DrawWeapon(false) end end)" />
                         </SuppressFailure>
 
-                        <!-- Stand at the post and WATCH THE PLAYER without following:
-                             CrimeFollower's NoMoveOnlyTurn mode turns him to face the
-                             player but never steps toward them (the base-game "look but
-                             don't move" follower - see references, e.g. Mode/attribute
-                             NoMoveOnlyTurn). It runs in parallel with a timer, so after a
-                             while the Wait ends the parallel and he breaks off to eat,
-                             then the loop resumes watching. -->
+                        <!-- Watch the player without following (CrimeFollower NoMoveOnlyTurn: face,
+                             don't step). Runs against a timer so he periodically breaks off to eat. -->
                         <SuppressFailure>
                             <Parallel successMode="Any" failureMode="Any">
                                 <CrimeFollower Target="$__player" Mode="NoMoveOnlyTurn" Role="Observer" RelativeSpeedLimit="Walk" DisableGhosting="false" BlockWay="false" NoMoveOnlyTurn="true" />
@@ -82,8 +60,7 @@
                             </Parallel>
                         </SuppressFailure>
 
-                        <!-- Then have a bite to eat. SuppressFailure so a missing
-                             fragment just skips rather than failing the whole tree. -->
+                        <!-- Then have a bite to eat (SuppressFailure so a missing fragment just skips). -->
                         <SuppressFailure>
                             <Sequence>
                                 <UnstanceAction unstance="eating_standing" locationObject="" slaveObject="" />

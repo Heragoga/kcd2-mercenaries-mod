@@ -1,17 +1,9 @@
--- =======================================================================
--- PERFORMANCE: Cache management
--- RebuildMercCache: called once on game load (the only full NPC scan).
--- PruneMercCache:   called once per second in MonitorLoop to remove dead refs.
--- All hot-path functions iterate ActiveMercs instead of GetEntitiesByClass.
--- =======================================================================
+-- Merc cache: RebuildMercCache does the only full NPC scan (on load);
+-- PruneMercCache drops dead refs each second. Hot paths iterate ActiveMercs.
 
 function mercenaries:EnsureMercIsAlwaysRendered(ent)
-    if ent then
-        --[[ ent:RenderAlways(1)
-        ent:SetViewDistRatio(254)
-        ent:SetViewDistRatio(0) ]]
-
-    end
+    -- No-op: forcing RenderAlways/view-dist on mercs caused more trouble than
+    -- it solved. Kept as a hook in case always-render is needed later.
 end
 function mercenaries:RebuildMercCache()
     self.ActiveMercs = {}
@@ -193,21 +185,10 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
     return spawnPos, playerRot
 end
 
--- =======================================================================
--- HELPER: snap a single position onto valid, obstacle-free ground.
---
--- A plain downward ground-snap takes the first thing under a point - which can
--- be the top of a TREE, a rock, or a roof, so a merc teleported/spawned there
--- ends up standing on it. This validates the spot with CampValidateSpot (slope
--- + local-spike test against reference level `refZ`) and, if it's blocked,
--- spirals outward in `step` (0.5m) rings up to `maxRadius` for the first clear
--- spot, snapped to the ground. Only ONE clear tile per merc is needed, so the
--- footprint checked is small. Falls back to a plain ground-snap if nothing
--- clear is found nearby (better a snapped spot than none).
---
--- Pass the player's z (or a shared spawn z) as `refZ` so "valid" means near the
--- squad's level, not on a ledge/canopy above it.
--- =======================================================================
+-- Snap a position onto valid, obstacle-free ground: CampValidateSpot rejects
+-- tree/rock/roof tops, and if blocked we spiral out in `step` rings up to
+-- `maxRadius` for a clear tile. Pass the squad's z as `refZ` so "valid" means
+-- near their level, not a ledge above. Falls back to a plain snap.
 function mercenaries:FindValidGround(pos, refZ, maxRadius, step)
     if not pos then return pos end
     refZ = refZ or pos.z
@@ -238,33 +219,26 @@ function mercenaries:FindValidGround(pos, refZ, maxRadius, step)
         r = r + step
     end
 
-    -- Nothing clear nearby: best-effort plain snap so the merc still lands on
-    -- some ground rather than at the raw (possibly mid-air) input z.
+    -- Nothing clear nearby: best-effort plain snap.
     local ok, snapped = pcall(function() return self:CampSnapToGround({ x = pos.x, y = pos.y, z = refZ }) end)
     if ok and snapped then return snapped end
     return pos
 end
 
--- =======================================================================
--- HELPER: Bulletproof check to see if an entity is alive and well
--- =======================================================================
+-- Check that an entity is alive and well (engine death/unconscious + health).
 function mercenaries:IsAliveAndWell(ent, allowUnconscious)
     if not ent or not ent.actor or not ent.soul then return false end
-    
-    -- Engine level death checks
+
     if ent.actor.IsDead and ent.actor:IsDead() then return false end
     if not allowUnconscious and ent.actor:IsUnconscious() then return false end
-    
-    -- Skald level health check
+
     local ok, hp = pcall(function() return ent.soul:GetState('health') end)
     if not ok or hp == nil or hp <= 0 then return false end
     
     return true
 end
 
--- =======================================================================
--- HELPER: Identifies if an entity is a mercenary, and returns their type
--- =======================================================================
+-- Identify whether an entity is a mercenary, returning its type or nil.
 function mercenaries:GetMercType(ent)
     if not ent then return nil end
     local name = ent:GetName() or ''

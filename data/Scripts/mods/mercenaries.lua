@@ -1,7 +1,7 @@
--- This is the main mod file, it handles two things: 
--- 1. Communication to skald via token items, if id detects one in the players inventory it calls the appropriate funcitons (i.e. spawn merc, heal merc etc)
--- 2. The mods main loop, that performc a few different scans
--- 3. Adding cheats, other scripts and loading configuration
+-- Main mod file. Handles: (1) communication with Skald via token items (a token
+-- appearing in the player's inventory triggers the matching action - spawn, heal,
+-- etc.); (2) the main loop and its scans; (3) console cheats, loading the other
+-- scripts, and configuration.
 
 mercenaries = {}
 
@@ -98,10 +98,8 @@ mercenaries.SwarmCap = 2
 mercenaries.IsHiddenForCutscene = false
 
 
--- =======================================================================
--- PERFORMANCE: Centralized caches — rebuilt/pruned once per second
--- instead of scanning all world entities on every hot-path call.
--- =======================================================================
+-- Centralized caches, rebuilt/pruned once per second instead of scanning all
+-- world entities on every hot-path call.
 mercenaries.ActiveMercs   = {}  -- [entityName] = entity ref; pruned each tick
 mercenaries.CachedEnemies = {}  -- [{entity, wuid}] valid hostile enemies near player
 mercenaries.FormationSlots = {} -- [tostring(wuid)] = {slot, followTarget, totalMercs}
@@ -439,7 +437,7 @@ mercenaries.CustomCompanionsData = {
 -- Persistent counters to guarantee we never spawn duplicate faces in a batch
 mercenaries.SoulIndex = { weak = 1, medium = 1, strong = 1 }
 
--- Safely execute strings without equals/semicolon bugs through the console, for testing purposes
+-- Run an arbitrary Lua string from the console (avoids equals/semicolon quirks).
 function mercenaries:ExecString(text)
     local func, err = loadstring(text)
     if func then pcall(func) end
@@ -470,15 +468,49 @@ function mercenaries:SetState(state)
     end
 end
 
--- Queue an order-acknowledgment bark on a specific merc. The follow BT's bark
--- loop (mercenary_follow.xml) reads _G.MercBarkReq[wuid] on its next tick, plays
--- that monolog alias once, and clears the entry. alias is one of merc_bark_ack /
--- merc_bark_wait / merc_bark_follow / merc_bark_moveout.
+-- Each order category maps to a pool of single-line monolog dialogs (one Dialog =
+-- one Decision = one Sequence); RequestBark picks one at random for variety.
+mercenaries.BarkPools = {
+    merc_bark_ack     = { "merc_bark_ack_1", "merc_bark_ack_2", "merc_bark_ack_3" },
+    merc_bark_wait    = { "merc_bark_wait_1", "merc_bark_wait_2" },
+    merc_bark_follow  = { "merc_bark_follow_1", "merc_bark_follow_2" },
+    merc_bark_moveout = { "merc_bark_moveout_1" },
+}
+
+-- Queue an order bark on a merc; the follow BT reads _G.MercBarkReq[wuid] next
+-- tick, plays it once, and clears it. wuid MUST be the entity id (entity.this.id,
+-- the key the BT looks up), NOT the AI WUID from GetMyWUID - a different id space.
 function mercenaries:RequestBark(wuid, alias)
     if not wuid or not alias then return end
+    local pool = self.BarkPools[alias]
+    if pool and #pool > 0 then alias = pool[math.random(#pool)] end
     _G.MercBarkReq = _G.MercBarkReq or {}
     _G.MercBarkReq[tostring(wuid)] = alias
 end
+
+-- Debug: fire an order bark on the nearest living merc, forcing the speaking lock
+-- to it first so the test plays even if another merc holds the lock.
+function mercenaries:BarkTest(alias)
+    if not alias or alias == "" or alias == "%1" then alias = "merc_bark_ack" end
+    if not player then return end
+    local o = player:GetWorldPos()
+    local best, bestD
+    for _, ent in pairs(self.ActiveMercs) do
+        if ent and self:IsAliveAndWell(ent, false) then
+            local p = ent.GetWorldPos and ent:GetWorldPos()
+            if p then
+                local dd = (p.x - o.x) ^ 2 + (p.y - o.y) ^ 2 + (p.z - o.z) ^ 2
+                if not bestD or dd < bestD then best, bestD = ent, dd end
+            end
+        end
+    end
+    if not best then System.LogAlways("[BarkTest] no merc found"); return end
+    _G.MercSpeakingLock = false; _G.MercSpeakingOwner = nil   -- clear so the test always gets the lock
+    local wuid = best.this and best.this.id or best.id   -- entity id, matches the BT lookup
+    self:RequestBark(wuid, alias)
+    System.LogAlways("[BarkTest] requested '" .. tostring(alias) .. "' on nearest merc (wuid " .. tostring(wuid) .. ")")
+end
+System.AddCCommand("merc_bark_test", "mercenaries:BarkTest('%1')", "Manually fire an order bark on the nearest merc (arg=alias, default merc_bark_ack)")
 
 -- The player's "wait here" / "follow me" toggle for the SORTIE (the mercs out of
 -- camp, or the whole squad when there's no camp). Sets the global idle order but,
@@ -837,12 +869,8 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Load the quartermaster logistics state (tiredness / food / drink / wages).
     self:LogiLoad()
 
-    -- Recall hotkey - brings the whole squad to the player from anywhere
-    -- without touching a standing camp. Same "bind <key> <command>"
-    -- pattern the bodyguards reference mod uses for its own hotkeys
-    -- (references/bodyguards/data/Scripts/mods/kcdcompanion.lua). Rebound
-    -- every load; harmless if it was already bound. Rebind to a different
-    -- key via console any time with: bind <key> merc_camp_recall
+    -- Recall hotkey, rebound every load (harmless if already bound). See
+    -- docs/camp.md; rebind via console with: bind <key> merc_camp_recall
     local okBind = pcall(function()
         System.ExecuteCommand("bind f4 merc_camp_recall")
     end)
@@ -852,9 +880,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 
     _G.PlayerMounted = false
 
-    -- PERFORMANCE: Rebuild the merc entity cache after each load.
-    -- This is the ONE permitted full-world NPC scan — done once on load,
-    -- not every second in the monitor loop.
+    -- Rebuild the merc cache: the one permitted full-world NPC scan, on load only.
     Script.SetTimerForFunction(2000, "mercenaries.RebuildMercCacheDelayed")
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
@@ -862,7 +888,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 
 end
 
---register other scripts, most scripts are referenced from the ai behaviour trees
+-- Register the other scripts (most are also referenced from the AI behaviour trees).
 Script.LoadScript("Scripts/mods/mercenaries_spawning.lua")
 Script.LoadScript("Scripts/mods/mercenaries_equipment.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
@@ -877,6 +903,7 @@ Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
 Script.LoadScript("Scripts/mods/mercenaries_forge.lua")
 Script.LoadScript("Scripts/mods/mercenaries_alchemy.lua")
+Script.LoadScript("Scripts/mods/mercenaries_hunting.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
@@ -934,10 +961,8 @@ System.AddCCommand("merc_weapon_shortsword", "mercenaries:ChangeMercWeapon(6)", 
 System.AddCCommand("merc_weapon_mace", "mercenaries:ChangeMercWeapon(7)", "")
 System.AddCCommand("merc_weapon_axe", "mercenaries:ChangeMercWeapon(8)", "")
 System.AddCCommand("merc_weapon_polearm", "mercenaries:ChangeMercWeapon(9)", "")
--- Ranged loadouts (archer/crossbow/handcannon, indices 10-12) are disabled
--- for now — dialogue/console access removed, but mercenaries.WeaponSets and
--- weapon_preset__mercenaries.xml still define them so they're easy to
--- bring back later.
+-- Ranged loadouts (indices 10-12) are disabled: access removed, but WeaponSets
+-- and weapon_preset__mercenaries.xml still define them for easy revival.
 
 System.AddCCommand("merc_hire_w1", "mercenaries:Hire(0, 1, 'weak')", "")
 System.AddCCommand("merc_hire_w2", "mercenaries:Hire(0, 2, 'weak')", "")
@@ -953,18 +978,9 @@ System.AddCCommand("merc_hire_strong_army", "mercenaries:Hire(0, 10, 'strong')",
 System.AddCCommand("merc", "mercenaries:Hire(0, 6, 'strong')", "")
 System.AddCCommand("merc_hire_weak_horde", "mercenaries:Hire(0, 10, 'weak')", "")
 
--- Default: 20 mercs vs 20 renegades (7 weak/7 medium/6 strong per side), player centered in the merc line, strongest troops at the front of each line.
--- For full control: merc_lua mercenaries:SpawnTestBattle({weak=N,medium=N,strong=N}, mercOutfit, mercWeapon, {weak=N,medium=N,strong=N}, enemyOutfit, enemyWeapon)
+-- merc_lua mercenaries:SpawnTestBattle(...) for full control (see the function).
 System.AddCCommand("merc_spawn_battle", "mercenaries:SpawnTestBattle()", "Debug: spawns a merc battle line vs a renegade battle line, player centered in the merc line. merc_lua mercenaries:SpawnTestBattle(...) for full customization.")
-
--- Plain console command version: merc_battle <mercOutfit> <mercWeapon> <enemyOutfit> <enemyWeapon> <countPerSide>
--- Outfits: 1 Generic, 2 Bandits, 3 Cumans, 4 Leipa, 5 Kuttenberg, 6 Skalitz.
--- Weapons: 2 Sword+shield, 3 Axe+shield, 4 Longsword, 5 Mace+shield, 6 Shortsword, 7 Mace, 8 Axe, 9 Polearm.
--- Splits countPerSide evenly across weak/medium/strong (mixed tiers, strongest at the front).
 System.AddCCommand("merc_battle", "mercenaries:SpawnBattle(%1, %2, %3, %4, %5)", "Debug: merc_battle <mercOutfit> <mercWeapon> <enemyOutfit> <enemyWeapon> <countPerSide>. Spawns a mixed-tier merc battle line vs a renegade line.")
-
--- Renegades: hostile to everyone (player and mercs alike), dressed as a mercenary of your choice.
--- For full control (amount, tier, outfit preset, weapon preset) use: merc_lua mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
 System.AddCCommand("merc_spawn_renegade", "mercenaries:SpawnRenegade(1)", "Debug: spawns a renegade hostile to player and mercs, wearing an outfit different from your squad's current one.")
 System.AddCCommand("merc_spawn_renegade_weak", "mercenaries:SpawnRenegade(1, nil, 'weak')", "")
 System.AddCCommand("merc_spawn_renegade_medium", "mercenaries:SpawnRenegade(1, nil, 'medium')", "")

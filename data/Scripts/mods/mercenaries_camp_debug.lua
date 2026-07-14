@@ -1,29 +1,13 @@
--- =======================================================================
--- MERCENARY CAMP - debug / diagnostic helpers
---
--- Loaded after mercenaries_camp.lua. Everything here is console-only tooling
--- for inspecting the camp activity system; none of it runs during normal play.
---
---   merc_camp_activity_list            - print the activity catalogue
---   merc_camp_activity_test <n|name>   - spawn + play one activity on a merc
---   merc_camp_activity_test_clear      - stop it and remove the props
---   merc_camp_furniture_debug          - dump sit/sleep smart-object state
---   merc_camp_scan [radius] [spacing]  - classify ground: flag=valid,
---                                        barrel=tree/rock, crate=building
---   merc_camp_scan_clear               - remove the scan markers
--- =======================================================================
+-- Console-only debug tooling for the camp activity/ground systems; none of it
+-- runs during normal play. Command descriptions are on the AddCCommands below.
 mercenaries.ActivityTestEntities = {}
 mercenaries.ScanTestEntities = {}
 
--- Ground-scan debug markers (see CampScan below), one per class the
--- heightmap classifier (CampClassifyHeightmap) produces:
+-- Ground-scan markers, one per class CampClassifyHeightmap produces.
 mercenaries.ScanFlagModel     = "objects/manmade/common_decorations/flags/flag_temporary.cgf"  -- valid ground
 mercenaries.ScanBarrelModel   = "objects/manmade/common_furniture/barrels/barrel_a.cgf"        -- small obstacle clump (tree/rock)
-mercenaries.ScanBuildingModel = "objects/manmade/common_furniture/crates/crate_box_c.cgf"      -- building-sized clump (the big crate)
--- Default scan grid: (2*radius+1) squared cells, `spacing` metres apart,
--- centred on the player. 12 * 0.5m -> a 25x25 grid spanning ~12m. Both are
--- overridable per-call (merc_camp_scan <radius> <spacing>); the spec was
--- worked out at "merc_camp_scan 21 0.5" (a ~21m field).
+mercenaries.ScanBuildingModel = "objects/manmade/common_furniture/crates/crate_box_c.cgf"      -- building-sized clump
+-- Default scan grid, overridable per-call; spec was worked out at "21 0.5".
 mercenaries.ScanGridRadius  = 12
 mercenaries.ScanGridSpacing = 0.5
 
@@ -36,10 +20,8 @@ function mercenaries:ListCampActivities()
     System.LogAlways('[Mercenaries] usage: merc_camp_activity_test <index or name>')
 end
 
--- Spawns a bare transform anchor for `UnstanceAction locationObject=...`
--- (mode 3). SmartObjectHolder is the vanilla "dummy for a smart object which
--- cannot be attached to real geometry" class; StanceSmartObject derives from
--- it and is the one we already know spawns, so it's the fallback.
+-- Spawn a bare transform anchor for mode-3 `UnstanceAction locationObject=...`,
+-- preferring SmartObjectHolder with StanceSmartObject as the proven fallback.
 function mercenaries:SpawnCampAnchorSO(pos, angleZ, namePrefix)
     local groundPos = self:CampSnapToGround(pos)
     local wuid, ent = nil, nil
@@ -114,10 +96,8 @@ function mercenaries:SpawnCampActivityTest(which)
         self.CampActivities = {}
 
         if isChat then
-            -- Conversation: place two mercs facing spot and publish them as a
-            -- chat pair - the follow BT's chatRole cases (fed by _G.MercCampChat)
-            -- do the GOSSIP polylog, the same path the automatic CampChatTick
-            -- pairing uses. No activity records needed.
+            -- Conversation: publish the pair as _G.MercCampChat; the follow BT's
+            -- chatRole cases run the GOSSIP polylog (same path as CampChatTick).
             local right = { x = -dir.y, y = dir.x }
             local aPos = self:CampSnapToGround({ x = spot.x + right.x * 0.8, y = spot.y + right.y * 0.8, z = spot.z })
             local bPos = self:CampSnapToGround({ x = spot.x - right.x * 0.8, y = spot.y - right.y * 0.8, z = spot.z })
@@ -228,29 +208,11 @@ function mercenaries:DebugCampFurniture()
     end
 end
 
--- =======================================================================
--- GROUND SCAN - visualise the phase-1 heightmap classifier.
---
--- Samples a dense 0.5m heightmap centred on the player (CampSampleHeightmap),
--- runs the connectivity classifier from the player's own cell
--- (CampClassifyHeightmap), and drops a colour-coded marker per cell:
---   FLAG   -> valid ground (walkable surface connected to where you stand;
---             gentle slopes included)
---   BARREL -> small obstacle clump (<= CampSmallClumpMax cells): tree, rock
---   CRATE  -> building-sized clump (> CampSmallClumpMax): wall / building
---   (void) -> no ground under the column: no marker, counted only
---
--- Valid flags sit at their sampled ground height so you can read the slope;
--- obstacle markers sit at the player's level so a wall/tree reads as a line at
--- eye height regardless of how tall it is. merc_camp_scan_clear removes them.
---
--- NOTE: this is the phase-1 DETECTOR. The real camp spawn still uses the
--- simpler per-cluster CampValidateSpot for now; wiring tile selection onto this
--- classifier is phase 2. So the scan can legitimately show more nuance (trees
--- vs buildings) than the current live camp acts on.
---
--- Usage: merc_camp_scan [radius] [spacing]   (spec was worked out at "21 0.5")
--- =======================================================================
+-- Visualise the heightmap classifier (see docs/camp.md "Ground validation"):
+-- drops a marker per cell - flag = valid ground (at its real height, so slope
+-- reads), barrel = small clump (tree/rock), crate = building; void = no marker.
+-- This is only the detector; the live camp spawn still uses per-cluster
+-- CampValidateSpot, so the scan can show more nuance than the camp acts on.
 function mercenaries:CampScan(radius, spacing)
     if not player then return end
     radius  = tonumber(radius)  or self.ScanGridRadius
@@ -263,18 +225,14 @@ function mercenaries:CampScan(radius, spacing)
         local origin = player:GetWorldPos()
         local refZ = origin.z
 
-        -- Detect under-roof: if so, the sampler flags every column that hits a
-        -- roof (the building footprint) as invalid, while columns outside the
-        -- walls stay valid ground - same as the real camp spawn, which then
-        -- forms the camp on that open ground.
+        -- Under a roof, the sampler marks columns that hit it (the footprint)
+        -- invalid while open ground outside the walls stays valid.
         local underRoof, ceilingZ = self:CampDetectRoof(origin)
 
-        -- Sample + classify (seed = centre cell = the player's own feet).
         local hm = self:CampSampleHeightmap(origin, radius, spacing, underRoof)
         local cls, counts = self:CampClassifyHeightmap(hm, radius, radius)
 
-        -- Direct BasicEntity spawn (no re-snapping) so we control each marker's
-        -- exact height: valid on the ground, obstacles at player level.
+        -- Direct spawn (no re-snap) so we set each marker's height exactly.
         local function mark(model, wx, wy, wz, prefix)
             local ent = System.SpawnEntity({
                 class = "BasicEntity",

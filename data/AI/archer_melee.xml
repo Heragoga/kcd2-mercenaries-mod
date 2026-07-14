@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <BehaviorTrees>
-    <!-- MELEE STANCE: ordered into the fray.
-         Same shape as mercenary_attack, but WeaponChange="melee" forces the
-         automation to sheathe the bow and pull the sidearm, and the
-         disengage checks read the archer stance instead of the melee
-         squad's stance. -->
+    <!-- Melee stance: like mercenary_attack, but WeaponChange="melee" sheathes the
+         bow for the sidearm, and disengage reads the archer stance. See docs/archers.md. -->
     <BehaviorTree name="archer_melee" is_function="0">
         <Variables>
             <Variable name="distanceToTarget"  type="_float" values="9999.0" isPersistent="0" form="single" />

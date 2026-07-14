@@ -1,30 +1,21 @@
--- Monitors all active mercs and teleports any that have fallen too far behind.
--- PERFORMANCE: Uses ActiveMercs cache instead of GetEntitiesByClass. This
--- replaces what used to be a per-merc behavior-tree loop doing its own
--- 10-ray physics sweep every tick, whether or not anyone actually needed
--- it — one shared pass over the roster instead of N independent ones.
--- Called from MonitorLoop once per second.
+-- Teleport any active merc that has fallen too far behind. One shared pass over
+-- the roster (from MonitorLoop, once/sec), replacing a per-merc BT raycast loop.
 function mercenaries:MonitorDistanceAndTeleport()
     local ok, err = pcall(function()
-        -- Early exit: Don't teleport if they are explicitly told to wait/idle, or are fleeing/dismissed
         if _G.MercIdle or _G.MercenariesDismissed then return end
-        -- (Sortie mercs teleport to keep up even while the player is mounted -
-        -- that's how a deployed party stays with a horseman. In-camp mercs are
-        -- skipped per-merc below so they're never yanked out of the camp.)
+        -- Sortie mercs teleport to keep up even while the player is mounted;
+        -- in-camp mercs are skipped per-merc below so they're never yanked out.
         if not player then return end
 
         local playerPos = player:GetPos()
         if not playerPos then return end
 
-        -- PERFORMANCE: the safe-position raycast sweep (10 rays) is computed
-        -- at most once per pass and shared by every straggler, instead of
-        -- re-running it per merc. Jitter keeps them from stacking on the
-        -- exact same spot.
+        -- The safe-position sweep (10 rays) runs at most once per pass and is
+        -- shared by every straggler; jitter stops them stacking on one spot.
         local sharedSafePos = nil
         local sweepDone = false
 
         for name, ent in pairs(self.ActiveMercs) do
-            -- IsAliveAndWell already checked by PruneMercCache, but double-check cheaply
             -- A merc who stayed in camp must never be teleported to the player.
             local inCampProper = false
             pcall(function() inCampProper = self:IsMercInCampProper(ent.this and ent.this.id or ent.id) end)

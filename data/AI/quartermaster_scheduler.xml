@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <BehaviorTrees>
-    <!-- The quartermaster's switch (type 6). He is a "lobotomized merc":
-         he stands in place and occasionally eats (the quartermaster_idle
-         behaviour, fired as the default), and when the camp is raided he
-         defends himself with the shared melee combat tree (mercenary_attack).
-         No follow, no schedule, no squad logic. Structure mirrors
-         renegade_scheduler.xml (combat detection + a target loop + a firing
-         switch), plus a persistent idle behaviour like the merc scheduler's
-         follow. Target selection is defensive: FindQuartermasterTarget only
-         picks genuinely hostile, weapon-drawn NPCs near him. -->
+    <!-- The quartermaster's switch (type 6): a "lobotomized merc" who stands and
+         eats (quartermaster_idle, the default) and defends himself with the shared
+         melee tree when raided. No follow/schedule/squad logic. Defensive target
+         pick only (FindQuartermasterTarget). See docs/quartermaster.md. -->
     <BehaviorTree name="onUpdate" is_function="0">
         <Variables>
             <Variable name="playerWUID" type="_wuid" values="" isPersistent="0" form="single" />
@@ -19,9 +14,8 @@
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" />
             <Variable name="crimeInformation" type="information" values="" isPersistent="0" form="single" />
             <Variable name="mrkev" type="_wuid" values="" isPersistent="0" form="single" />
-            <!-- Required for the NPC to actually answer when the player talks to
-                 him: the switch has to pull dialog requests off the dialogMailbox
-                 and hand them to Function_switch_handleDialog. Without this the
+            <!-- Required so he answers when talked to: the switch pulls dialog requests
+                 off the mailbox for Function_switch_handleDialog. Without it the
                  "Talk" prompt shows but pressing E does nothing (the request is
                  never processed). Copied from mercenary_scheduler.xml. -->
             <Variable name="dialogRequest" type="dialogModule:onDialogRequest" values="" isPersistent="0" form="single" />
@@ -31,9 +25,7 @@
                 <SuppressFailure>
                     <Parallel successMode="Any" failureMode="Any">
 
-                        <!-- Talk handling: pull dialog requests off the mailbox and run
-                             them, so the player can actually converse with him. This is
-                             what makes "Talk" work; the same node the merc switch uses. -->
+                        <!-- Talk handling: pull dialog requests off the mailbox and run them (makes "Talk" work). -->
                         <Loop count="-1">
                             <Sequence>
                                 <SuppressFailure>

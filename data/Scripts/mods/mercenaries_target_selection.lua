@@ -1,23 +1,12 @@
--- =======================================================================
--- HELPER: Shared logic to validate if an entity is a valid enemy target
--- =======================================================================
--- skipRelationshipCheck: used for whoever the player is *already* fighting
--- (bt_data.playerCombatTarget) - active aggression against the player is
--- itself proof of hostility, so that candidate shouldn't be filtered out
--- by a relationship reading that might be stale, quest-specific, or just
--- not modeled as a faction-level -1 (e.g. crime-triggered aggression).
--- Every other check (alive, weapon drawn, not one of ours, not fleeing/
--- surrendering/immortal) still applies - only the relationship gate is
--- bypassed.
+-- Validate whether an entity is a valid enemy target. skipRelationshipCheck
+-- bypasses only the relationship gate, for whoever the player is already
+-- fighting. See docs/combat-target-selection.md for the full ruleset.
 function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelationshipCheck)
-    -- 1. Check if it's the player or the player's dog
     if ent.id == player.id then return false end
     if ent:GetName() == "companion_dog" then return false end
-    
-    -- 2. Validate using the shared helper (false = do NOT allow unconscious targets)
+
     if not self:IsAliveAndWell(ent, true) then return false end
     if ent.human and not ent.human:IsWeaponDrawn() then return false end
-    -- 3. Distance Check (Relative to whichever entity is passed as distanceRefEnt)
     if distanceRefEnt then
         local tp = ent:GetPos()
         local refPos = distanceRefEnt:GetPos()
@@ -28,8 +17,8 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     end
     
     local eid = tostring(ent.soul:GetId())
-    
-    -- 4. Check if the candidate is a regular mercenary
+
+    -- Skip our own: regular mercs, archers, and the custom hero companion.
     if self.Souls then
         for _, tierList in pairs(self.Souls) do
             for _, guid in ipairs(tierList) do
@@ -40,7 +29,6 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
         end
     end
 
-    -- Check if the candidate is one of our archers
     if self.ArcherSouls then
         for _, tierList in pairs(self.ArcherSouls) do
             for _, guid in ipairs(tierList) do
@@ -50,63 +38,39 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
             end
         end
     end
-    
-    -- Check if it's a custom hero companion
     if string.find(ent:GetName() or '', 'MercenaryCustomCompanion') then
         return false
     end
 
-
-    
-    -- 5. Must be a genuine hostile: relationship to the player pinned at
-    -- exactly -1 (the faction-hostile floor - see FactionTree__renegades.xml,
-    -- every relation there is reputation="-1"). Anything above that (0,
-    -- 0.5, unresolved/nil) is NOT treated as fair game - a merely-neutral
-    -- or unresolved relationship is not hostility, and "not a confirmed
-    -- friend" was the old bug (mercs attacking armed-but-unrelated NPCs
-    -- like guards/hunters). skipRelationshipCheck bypasses this one gate
-    -- for whoever the player is already fighting (see function comment).
+    -- Must be genuinely hostile: relationship to the player pinned at exactly -1
+    -- (the faction-hostile floor). Neutral/unresolved (0, 0.5, nil) is not fair
+    -- game. skipRelationshipCheck bypasses only this gate. See the doc.
     if not skipRelationshipCheck then
         local rel_curr = ent.soul:GetRelationship(playerWuid, "Current")
         if rel_curr == nil or rel_curr > -1.0 then
             return false
         end
     end
-    --local isInArrangedFight = self.soul:HasScriptContext("combat_arrangedFight") and not self.soul:HasScriptContext("combat_suppressedDialogInArrangedFight")
-    -- combat_flee
-    -- combat_neverSurrenderOrFlee
-    --combat_immortalityProtection
-    --combat_fightInQuestSkirmish
-    --crime_interruptFlee
-    --combat_surrender
-    -- avoid targeting fleeing or surrendering enemies, enemies that are in tournaments or scripted duels, enemies that are immortal
+    -- Skip fleeing/surrendering/immortal candidates.
     if ent.soul:HasScriptContext("combat_flee")
     or ent.soul:HasScriptContext("combat_surrender")
     or ent.soul:HasScriptContext("crime_interruptFlee")
     or ent.soul:HasScriptContext("crime_fleeAfterSurrender")
---[[     or ent.soul:HasScriptContext("combat_arrangedFight") ]]
-    
-    or ent.soul:HasScriptContext("combat_immortalityProtection")then 
+    or ent.soul:HasScriptContext("combat_immortalityProtection")then
         return false
     end
-    
-    -- All checks passed!
+
     return true
 end
 
--- =======================================================================
--- CORE: Called ONCE per second from MonitorLoop.
--- Does the sphere query and all soul API validation exactly once,
--- regardless of how many mercs are active. Result stored in
--- mercenaries.CachedEnemies for all mercs to read from.
--- =======================================================================
+-- Called once/sec from MonitorLoop: one sphere query + all soul-API validation
+-- for the whole squad, cached in mercenaries.CachedEnemies. See the doc.
 function mercenaries:UpdateEnemyCache()
     local ok, err = pcall(function()
         self.CachedEnemies = {}
 
-        -- Anti-swarm load: rebuilt from MercTargetOf once per second.
-        -- O(mercs), so every merc's per-tick swarm check is a plain lookup
-        -- instead of an O(mercs) position scan.
+        -- Anti-swarm load, rebuilt from MercTargetOf so each merc's swarm check
+        -- is an O(1) lookup instead of a position scan.
         local load = {}
         for _, targetWuidStr in pairs(self.MercTargetOf) do
             load[targetWuidStr] = (load[targetWuidStr] or 0) + 1
@@ -119,7 +83,6 @@ function mercenaries:UpdateEnemyCache()
 
         local playerWuid = player.this and player.this.id or player.id
 
-        -- NPC query runs every tick (once/sec)
         local ents = System.GetPhysicalEntitiesInBoxByClass(playerPos, 15.0, "NPC")
         if ents then
             for _, ent in pairs(ents) do
@@ -132,12 +95,11 @@ function mercenaries:UpdateEnemyCache()
             end
         end
 
-        -- Animal queries run every 3 seconds — animals don't need per-second precision
+        -- Animals and horse cleanup run every 3rd tick (no per-second precision needed).
         self._animalQueryTick = (self._animalQueryTick or 0) + 1
         if self._animalQueryTick >= 3 then
             self._animalQueryTick = 0
 
-            -- Wolf/Dog enemy detection
             for _, className in ipairs({ "Wolf", "Dog" }) do
                 local aEnts = System.GetPhysicalEntitiesInBoxByClass(playerPos, 15.0, className)
                 if aEnts then
@@ -152,9 +114,7 @@ function mercenaries:UpdateEnemyCache()
                 end
             end
 
-            -- Orphan horse cleanup
-            -- Scans for Horse entities near the player following the MercenaryHorse_ convention.
-            -- Despawns if: owning merc is dead/missing, or owning merc is not mounted.
+            -- Orphan horse cleanup: despawn MercenaryHorse_* whose owner is dead/missing.
             local horses = System.GetPhysicalEntitiesInBoxByClass(playerPos, 100.0, "Horse")
             if horses then
                 for _, horseEnt in pairs(horses) do
@@ -168,15 +128,11 @@ function mercenaries:UpdateEnemyCache()
                             local mercEnt = self.ActiveMercs[mercName]
 
                             if not mercEnt then
-                                -- Merc not in cache — dead or already cleaned up
                                 shouldDespawn = true
                                 reason = "merc not in ActiveMercs"
-                            else
-                                -- Check if merc is alive
-                                if not self:IsAliveAndWell(mercEnt, true) then
-                                    shouldDespawn = true
-                                    reason = "merc dead or unconscious"
-                                end
+                            elseif not self:IsAliveAndWell(mercEnt, true) then
+                                shouldDespawn = true
+                                reason = "merc dead or unconscious"
                             end
 
                             if shouldDespawn then
@@ -196,11 +152,8 @@ function mercenaries:UpdateEnemyCache()
     end
 end
 
--- =======================================================================
--- CORE: Called per-merc from the behavior tree each second.
--- Reads from the pre-validated CachedEnemies list and re-sorts by
--- distance from THIS specific merc (cheap math only, no soul API calls).
--- =======================================================================
+-- Per-merc, each second from the BT: re-sort the pre-validated CachedEnemies by
+-- distance from this merc (cheap math, no soul API) and keep the 8 nearest.
 function mercenaries:ScanForEnemies(bt_data, myWuid)
     local ok, err = pcall(function()
         bt_data.enemiesArray = {}
@@ -227,15 +180,11 @@ function mercenaries:ScanForEnemies(bt_data, myWuid)
             end
         end
 
-        -- Sort by distance from this specific merc (closest first)
         table.sort(potentialTargets, function(a, b)
             return a.distance < b.distance
         end)
 
-        -- Cap how many candidates get checked (each costs one engine
-        -- GetTarget call in the behavior tree) — the nearest few are what
-        -- matter, and this bounds the per-merc cost regardless of how many
-        -- enemies are on the field.
+        -- Cap candidates: each one the BT checks costs an engine GetTarget call.
         local maxCandidates = 8
         for i, v in ipairs(potentialTargets) do
             if i > maxCandidates then break end
@@ -248,10 +197,7 @@ function mercenaries:ScanForEnemies(bt_data, myWuid)
     end
 end
 
--- =======================================================================
--- HELPER: True if the entity behind wuid is hurting badly enough that it
--- should look after itself instead of picking a fresh fight.
--- =======================================================================
+-- True if the entity is hurt badly enough to look after itself, not fight.
 function mercenaries:IsHealthCritical(wuid, threshold)
     local ok, result = pcall(function()
         local ent = wuid and XGenAIModule.GetEntityByWUID(wuid)
@@ -262,11 +208,7 @@ function mercenaries:IsHealthCritical(wuid, threshold)
     return ok and result or false
 end
 
--- =======================================================================
--- HELPER: Claims a target for a merc, respecting the anti-swarm cap.
--- Returns true if the claim succeeded (and records it in MercTargetOf so
--- next second's TargetLoad rebuild sees it).
--- =======================================================================
+-- Claim a target for a merc if it's below SwarmCap; records it in MercTargetOf.
 function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid)
     local targetWuidStr = tostring(targetWuid)
     if (self.TargetLoad[targetWuidStr] or 0) >= self.SwarmCap then return false end
@@ -278,15 +220,8 @@ function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid)
     return true
 end
 
--- =======================================================================
--- STANCE "everyone": grab the nearest valid hostile, no engine calls
--- needed beyond position reads already available on cached entities.
--- Whoever the player is already fighting (bt_data.playerCombatTarget) is
--- checked first and claimed regardless of relationship data (see
--- IsValidEnemy's skipRelationshipCheck) - active aggression against the
--- player overrides a relationship reading that isn't a clean -1. Falls
--- back to the nearest strictly-hostile cached enemy otherwise.
--- =======================================================================
+-- Stance "everyone": the player's combat target first (claimed regardless of
+-- relationship), else the nearest strictly-hostile cached enemy.
 function mercenaries:PickNearestValidTarget(bt_data, myWuid)
     local ok, err = pcall(function()
         if bt_data.foundTarget then return end
@@ -328,11 +263,7 @@ function mercenaries:PickNearestValidTarget(bt_data, myWuid)
     end
 end
 
--- =======================================================================
--- STANCE "player_target": only join whatever the player is currently
--- fighting. bt_data.playerCombatTarget is filled by a single GetTarget
--- node on the player (once per merc, not once per candidate).
--- =======================================================================
+-- Stance "player_target": only join whatever the player is currently fighting.
 function mercenaries:PickPlayersTarget(bt_data, myWuid)
     local ok, err = pcall(function()
         if bt_data.foundTarget then return end
@@ -344,9 +275,6 @@ function mercenaries:PickPlayersTarget(bt_data, myWuid)
 
         local targetEnt = XGenAIModule.GetEntityByWUID(bt_data.playerCombatTarget)
         if not targetEnt or not targetEnt.soul then return end
-        -- skipRelationshipCheck=true: whoever the player is fighting is by
-        -- definition a valid target for this stance, regardless of their
-        -- relationship reading (same reasoning as PickNearestValidTarget).
         if not self:IsValidEnemy(targetEnt, player, bt_data.playerWUID, true) then return end
 
         self:TryClaimTarget(bt_data, myWuid, bt_data.playerCombatTarget)
@@ -357,11 +285,7 @@ function mercenaries:PickPlayersTarget(bt_data, myWuid)
     end
 end
 
--- =======================================================================
--- STANCE "defend": only fight back if a candidate is personally targeting
--- ME. This is the only stance that needs to walk enemiesArray and ask the
--- engine who each candidate is targeting (capped to 8 nearest already).
--- =======================================================================
+-- Stance "defend": only fight back at a candidate personally targeting this merc.
 function mercenaries:EvaluateCombatTarget(bt_data, myWuid)
     local ok, err = pcall(function()
         if bt_data.foundTarget then return end

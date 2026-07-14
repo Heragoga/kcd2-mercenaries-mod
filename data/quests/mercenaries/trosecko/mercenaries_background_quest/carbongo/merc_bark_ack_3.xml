@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="merc_bark_ack_3">
+            <Text StringName="merc_bark_ack_3_name" Text="Mercenary Order Bark" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_ack_3" Priority="General" Alias="merc_bark_ack_3">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_ack_3">
+                            <DesignName StringName="prat_pratelsky_no_dobre_j_StV8" Text="Well, alright then." />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="prat_pratelsky_no_dobre_j_StV8"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

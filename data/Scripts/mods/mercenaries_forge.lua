@@ -1,24 +1,9 @@
--- =======================================================================
--- CAMP FORGE  (Portable Smithy upgrade made real)
---
--- When the camp is pitched and the smithy upgrade is owned, we build a usable
--- blacksmith's forge on the FLATTEST patch we can find near the camp (the
--- smithing minigame needs level ground). It reuses the "Forge Anywhere" trick:
--- borrow the nearest loaded village Smithery's logic (its hidden tool slots
--- feed the minigame), retarget its alignment to a holder we place, dress the
--- scene with our own props, and borrow a real Grindstone too. Broken down when
--- camp is broken; also auto-restores the borrowed forge if the player wanders
--- back to the village it came from.
---
--- A merc "smith" sits at a spawned bench by the anvil and sharpens a sword
--- (camper_knifeSharpening with a conjured sword in hand, driven as camp
--- activity mode 10 in mercenary_follow.xml). Real smith animations proved
--- impossible for NPCs at a moved forge - see docs/camp-forge.md for the full
--- postmortem of what was tried and why only this works.
--- =======================================================================
+-- Camp forge: borrows a village Smithery's minigame logic onto the flattest
+-- patch near camp, dresses it with props, and seats a merc smith. See
+-- docs/camp-forge.md for the full design and the NPC-smith postmortem.
 
 -- Henry-relative prop layout (fwd = toward interaction anvil, lat = +left,
--- up = height, yaw = deg CCW). Same tuned values as the Forge Anywhere mod.
+-- up = height, yaw = deg CCW).
 mercenaries.CampForgeLayout = {
     { name = "anvil_interact", model = "objects/manmade/task_specific_props/metal_industry/smithing/armourer_anvil.cgf", fwd =  2.74, lat =  0.00, up = -0.11, yaw =   0 },
     { name = "anvil_forge",    model = "objects/manmade/task_specific_props/metal_industry/smithing/anvil.cgf",           fwd = -0.23, lat = -2.56, up = -0.11, yaw =   0 },
@@ -29,19 +14,11 @@ mercenaries.CampForgeLayout = {
     { name = "grindstone",     borrow = "Grindstone",                                                                     fwd =  0.90, lat =  2.30, up =  0.00, yaw =   0 },
 }
 
-mercenaries.CampForge = nil               -- borrow record while a camp forge is up
-mercenaries.CampForgeAutoPackDist = 30.0  -- restore borrowed forge if player nears its village
+mercenaries.CampForge = nil
+mercenaries.CampForgeAutoPackDist = 30.0
 
--- The sword conjured into the smith's hand comes from this item class (a real
--- sword the base game itself CreateItems in nebakovObrana) - see mode 10 in
--- mercenary_follow.xml, which does the CreateItem+EquipItem.
--- (Kept here as documentation; the guid lives in the BT.)
-
--- =======================================================================
--- Flatness scan: rate a candidate patch by the height spread of the ground
--- across a small grid (smaller = flatter). Reuses CampSampleHeightmap. Returns
--- the spread in metres, or nil if the patch has too many holes / no ground.
--- =======================================================================
+-- Rate a candidate patch by the ground's height spread over a small grid
+-- (smaller = flatter). Returns the spread in metres, or nil if too holey.
 function mercenaries:ForgeFlatness(pos)
     local spread
     pcall(function()
@@ -65,23 +42,26 @@ function mercenaries:ForgeFlatness(pos)
 end
 
 -- Try a ring of candidate spots around the camp and return the flattest one
--- (plus a facing that points the forge AWAY from the camp centre). An optional
--- `avoid` position (e.g. an already-placed forge) makes nearby candidates be
--- skipped, so two camp structures don't land on the same patch.
+-- (plus a facing that points the forge AWAY from the camp centre). Optional
+-- `avoid` is a single position OR a list of them (e.g. already-placed stations);
+-- nearby candidates are skipped so camp structures don't land on the same patch.
 function mercenaries:ForgeFindFlattest(center, avoid)
+    -- Normalize to a list: a single {x,y,z} has no [1]; a list of positions does.
+    local avoids = avoid and (avoid[1] and avoid or { avoid }) or nil
     local best, bestSpread, bestAng
-    -- Rings pushed out (was 6.5/8.5/10.5) so the forge/alchemy props - which
-    -- reach ~3.7m back toward camp - clear the tent ring (3.9m) with >=2m to
-    -- spare instead of overlapping it.
-    for _, R in ipairs({ 9.0, 11.0, 13.0 }) do
+    -- Rings pulled in close to camp (halved from the original 9/11/13).
+    for _, R in ipairs({ 4.5, 5.5, 6.5 }) do
         for a = 0, 7 do
             local ang = a * (math.pi / 4)
             local cand = self:CampSnapToGround({ x = center.x + math.cos(ang) * R, y = center.y + math.sin(ang) * R, z = center.z })
             local skip = false
-            if avoid then
-                local ad = math.sqrt((cand.x - avoid.x) ^ 2 + (cand.y - avoid.y) ^ 2 + (cand.z - avoid.z) ^ 2)
-                -- 7m spot-to-spot keeps the two benches' own props >=2m apart.
-                if ad < 7.0 then skip = true end
+            if avoids then
+                for _, av in ipairs(avoids) do
+                    if av and av.x then
+                        local ad = math.sqrt((cand.x - av.x) ^ 2 + (cand.y - av.y) ^ 2 + (cand.z - av.z) ^ 2)
+                        if ad < 7.0 then skip = true; break end   -- keep stations' props apart
+                    end
+                end
             end
             local spread = (not skip) and self:ForgeFlatness(cand) or nil
             if spread and (not bestSpread or spread < bestSpread) then
@@ -95,9 +75,6 @@ function mercenaries:ForgeFindFlattest(center, avoid)
     return best, bestAng, bestSpread
 end
 
--- =======================================================================
--- Build / tear down
--- =======================================================================
 function mercenaries:ForgeFindNearest(cls)
     if not player then return nil end
     local o = player:GetWorldPos()
@@ -118,9 +95,8 @@ end
 function mercenaries:ForgeSpawnEnt(cls, name, pos, props, yaw, track)
     local e
     pcall(function()
-        -- orientation at spawn time so a StanceSmartObject seat caches its sit
-        -- helper facing correctly (SetAngles-after-spawn doesn't move that cached
-        -- transform - see SpawnCampFurnitureSO).
+        -- Set orientation at spawn time: a StanceSmartObject seat caches its sit
+        -- helper facing here, and SetAngles afterwards won't move it.
         e = System.SpawnEntity({ class = cls, name = name .. "_" .. tostring(math.random(100000, 999999)),
                                  position = pos, orientation = { x = 0, y = 0, z = yaw or 0 }, properties = props })
     end)
@@ -185,10 +161,8 @@ function mercenaries:SpawnCampForge(center)
         end
     end
 
-    -- Alignment anchor for the PLAYER minigame: the Smithery's "alignment" link
-    -- normally points at a level-baked TagPoint that stays in the village (which
-    -- used to teleport Henry there mid-minigame) - retarget it to a holder we
-    -- place at the working spot.
+    -- Retarget the Smithery's "alignment" link to a holder at the working spot;
+    -- left pointing at its village TagPoint, pressing E teleports Henry there.
     local holder
     pcall(function()
         holder = System.SpawnEntity({ class = "SmartObjectHolder",
@@ -237,21 +211,11 @@ function mercenaries:DespawnCampForge()
     System.LogAlways("[CampForge] torn down, village Smithery restored")
 end
 
--- =======================================================================
--- CAMP SMITH  (a merc works at the forge bench)
---
--- The smith sits on a spawned seat by the anvil and sharpens a sword:
--- camp activity mode 10 (mercenary_follow.xml) sits him on the seat
--- (StanceElement, the proven runtime-seat mechanism), conjures a sword into
--- his hand (CreateItem+EquipItem) and plays camper_knifeSharpening - a camper
--- unstance built for HELD items. Real smith unstances are engine-locked to
--- level-baked ItemSlots and cannot work at a moved/spawned forge
--- (docs/camp-forge.md has the full story).
--- =======================================================================
+-- Camp smith: a merc seated by the anvil sharpening a conjured sword, driven as
+-- camp activity mode 10 in mercenary_follow.xml. See docs/camp-forge.md.
 
--- Spawn the smith's bench: a stool prop + a sitting StanceSmartObject
--- (CampChairSO properties - runtime-spawned seats provably work), placed by the
--- anvil facing it. Entities tracked in rec.smithSeatIds for teardown.
+-- Spawn the smith's bench: a stool prop + a sitting StanceSmartObject (CampChairSO
+-- properties), by the anvil facing it. Entities tracked in rec.smithSeatIds.
 function mercenaries:ForgeSpawnSmithSeat(rec)
     if rec.smithSeat then return true end
     rec.smithSeatIds = rec.smithSeatIds or {}
@@ -276,11 +240,9 @@ function mercenaries:ForgeSpawnSmithSeat(rec)
     return rec.smithSeat ~= nil
 end
 
--- Choose one living camped merc and pin them as the smith. PREFER a patrolling
--- guard: sit/train/eat mercs are mid a long in-place activity animation that
--- lingers over the new one. NOTE: an NPC action already in flight (e.g. a walk
--- started by an unstance) cannot be cancelled from Lua - a freshly-picked merc
--- has an idle action executor, which is why the pick matters.
+-- Pin one living camped merc as the smith, preferring a patrolling guard: an
+-- NPC already mid in-place animation (or a walk) can't be redirected from Lua,
+-- so a guard (idle executor) takes over cleanly.
 function mercenaries:ForgeAssignSmith(rec)
     if not rec or not rec.stand then return end
     if not self:ForgeSpawnSmithSeat(rec) then
@@ -314,8 +276,8 @@ function mercenaries:ForgeAssignSmith(rec)
     self.CampActivities = self.CampActivities or {}
     self.CampActivities[pickWs] = nil
     if self.CampPatrollers then self.CampPatrollers[pickWs] = nil end
-    -- Teleport him onto the bench (the forge patch may be off-navmesh, so a BT
-    -- Move could never reach it; Lua SetPos works) and assign the activity.
+    -- Teleport onto the bench (the forge patch may be off-navmesh; a BT Move
+    -- could never reach it, but Lua SetPos works).
     pcall(function() pick:SetPos(rec.smithSeatPos) end)
     self.CampActivities[pickWs] = { unstance = "camper_knifeSharpening", mode = 10, pos = rec.smithSeatPos, locWuid = rec.smithSeat }
     pcall(function() System.LogAlways("[CampForge] " .. tostring(pick:GetName()) .. " set to work at the forge bench") end)
@@ -329,9 +291,7 @@ function mercenaries:ForgeClearSmith(rec)
     if rec then rec.smithWuid = nil; rec.smithEnt = nil end
 end
 
--- If the player travels back toward the village the forge was borrowed from,
--- restore it so that smithy isn't left broken. (The camp forge stays down until
--- the next camp is made - a simple, safe rule.)
+-- Restore the borrowed forge if the player travels back near its home village.
 function mercenaries.CampForgeMonitor()
     local self = mercenaries
     local rec = self.CampForge

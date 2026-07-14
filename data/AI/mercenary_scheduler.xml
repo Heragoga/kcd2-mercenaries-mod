@@ -18,26 +18,17 @@
             <Variable name="goFlee"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isIdle"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isFollowingActive"   type="_bool"                values="false"                             isPersistent="0" form="single" />
-            <!-- Mirror of _G.PlayerMounted (published by mercenary_follow), used to
-                 stop the stuck-follower self-heal from restarting a mounted merc's
-                 follow tree while it's catching up on horseback. -->
+            <!-- Mirror of _G.PlayerMounted; stops the stuck-follower self-heal from restarting a mounted merc's follow tree. -->
             <Variable name="playerMounted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
 
-            <!-- campActive/campFurniture/campStanceCode: only used by the
-                 commented-out camp sit/sleep block further down. Left
-                 declared (harmless) in case that gets revisited. -->
+            <!-- campActive/campFurniture/campStanceCode: only used by the disabled camp sit/sleep block below. -->
             <Variable name="campActive"          type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="campFurniture"       type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="campStanceCode"      type="_int"                 values="0"                                 isPersistent="0" form="single" />
 
-            <!-- isCampActor: true when this merc has ANY camp role - guard,
-                 sitter, or sleeper (see mercenaries:IsCampActor). Camp actors
-                 are carved out of the idle stand-still branch below and fall
-                 through to the follow branch, which runs mercenary_follow.xml
-                 (patrol for guards, StanceElement sit/sleep for the rest).
-                 patrolActive/patrolWaypoint/patrolLongPause are leftovers from
-                 when patrol lived here in the idle branch - kept declared but
-                 no longer used. -->
+            <!-- isCampActor: this merc has any camp role (guard/sitter/sleeper). Camp
+                 actors are excluded from the idle branch and fall through to follow,
+                 which runs mercenary_follow.xml. patrol* here are unused leftovers. -->
             <Variable name="isCampActor"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolActive"        type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolWaypoint"      type="_wuid"                values=""                                  isPersistent="0" form="single" />
@@ -68,9 +59,11 @@
             <Variable name="isInjured" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="playerStinks" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="barkRandom" type="_int" values="1" isPersistent="0" form="single" />
-            <!-- Alias of the context self-talk bark dialog (merc_camp_barks /
-                 merc_travel_barks / merc_both_barks) chosen for barkRandom 29+. -->
+            <!-- barkAlias: context self-talk dialog (camp/travel/both) chosen for barkRandom 29+. -->
             <Variable name="barkAlias" type="_string" values="" isPersistent="0" form="single" />
+            <!-- barkReqAlias: order bark consumed from _G.MercBarkReq. -->
+            <Variable name="barkReqAlias" type="_string" values="" isPersistent="0" form="single" />
+            <Variable name="hasBarkReq" type="_bool" values="false" isPersistent="0" form="single" />
 
             <Variable name="wasInCombat" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="canSpeak" type="_bool" values="false" isPersistent="0" form="single" />
@@ -82,6 +75,8 @@
             <Behavior canSkip="1">
                 <SuppressFailure>
                     <Parallel successMode="Any" failureMode="Any">
+
+                        <!-- Order barks are consumed in mercenary_follow.xml (keyed by entity.this.id); a mirror for idle mercs is below. -->
 
                         <Loop count="-1">
                             <Sequence>
@@ -100,11 +95,7 @@
                                         <SuppressFailure>
                                             <IfCondition failOnCondition="false" condition="~$inCombat &amp; $stanceMode ~= 3">
                                                 <Sequence>
-                                                    <!-- Fetched unconditionally (not just for stance 1) - PickNearestValidTarget
-                                                         ("everyone" stance) also uses this: whoever the player is already
-                                                         fighting is a valid target regardless of relationship data,
-                                                         since active aggression against the player is itself proof of
-                                                         hostility, and reputation values can be stale/quest-specific. -->
+                                                    <!-- Fetched unconditionally: both the "everyone" and "player_target" pickers use it. See docs/combat-target-selection.md. -->
                                                     <Expression expressions="$playerCombatTarget = $__null" />
                                                     <SuppressFailure>
                                                         <GetTarget ReferenceNPC="$playerWUID" TargetVarOut="$playerCombatTarget" />
@@ -260,11 +251,8 @@
                                     </Sequence>
                                 </IfCondition>
 
-                                <!-- Idle / stand-still branch. Camp actors ($isCampActor -
-                                     guards, sitters, sleepers) are deliberately excluded here so
-                                     they fall through to the follow branch below, which runs
-                                     mercenary_follow.xml (patrol or StanceElement sit/sleep).
-                                     Everyone else who is idle (a plain Wait order) stands here. -->
+                                <!-- Idle / stand-still branch. Camp actors are excluded (they fall through
+                                     to follow, which runs their camp role); plain idle mercs stand here. -->
                                 <IfCondition failOnCondition="false" condition="$isIdle &amp; ~$isCampActor">
                                     <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
                                         <Sequence>
@@ -275,58 +263,8 @@
                                                 </Sequence>
                                             </IfCondition>
 
-                                            <!--
-                                            Camp sit/sleep - DISABLED (2026-07-09): mercs weren't actually
-                                            using the chairs/beds in practice, so this is commented out
-                                            rather than removed in case it's revisited later. It drove a
-                                            StanceElement against a merc's assigned camp furniture WUID
-                                            (mercenaries.CampFurniture, set by SpawnMercCamp in
-                                            mercenaries_camp.lua) - the same "StanceElement against a known
-                                            WUID, wrapped in SuppressFailure" trick mercenary_follow.xml
-                                            uses to mount mercs on horses. Kept verbatim below as inert text:
-
-                                            <ExecuteLua code="
-                                                pcall(function()
-                                                    data.campActive = false
-                                                    if _G.MercCampMode == true and _G.MercIdle == true and not _G.MercenariesDismissed then
-                                                        local rec = mercenaries.CampFurniture and mercenaries.CampFurniture[tostring(entity.this.id)]
-                                                        if rec and rec.wuid then
-                                                            data.campFurniture = rec.wuid
-                                                            data.campStanceCode = (rec.kind == 'bed') and 1 or 0
-                                                            data.campActive = true
-                                                        end
-                                                    end
-                                                end)
-                                            " />
-                                            <IfElseCondition failOnCondition="false" condition="$campActive &amp; $mercTarget == $__null" saveVersion="2">
-                                                <Then canSkip="1">
-                                                    <SuppressFailure>
-                                                        <Sequence>
-                                                            <Move stopWithinDistance="1.500000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="true" destinationSpecification="$campFurniture" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
-                                                            <IfElseCondition failOnCondition="false" condition="$campStanceCode == 1" saveVersion="2">
-                                                                <Then canSkip="1">
-                                                                    <StanceElement smartObject="$campFurniture" stance="lying" allowAny="false" enabled="true">
-                                                                        <Wait duration="'3s'" timeType="GameTime" doFail="false" variation="'500ms'" />
-                                                                    </StanceElement>
-                                                                </Then>
-                                                                <Else canSkip="1">
-                                                                    <StanceElement smartObject="$campFurniture" stance="sitting" allowAny="false" enabled="true">
-                                                                        <Wait duration="'3s'" timeType="GameTime" doFail="false" variation="'500ms'" />
-                                                                    </StanceElement>
-                                                                </Else>
-                                                            </IfElseCondition>
-                                                        </Sequence>
-                                                    </SuppressFailure>
-                                                </Then>
-                                                <Else canSkip="1">
-                                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
-                                                </Else>
-                                            </IfElseCondition>
-                                            -->
-
-                                            <!-- Just stand. Patrol used to live here (Move between
-                                                 waypoints) but now runs in mercenary_follow.xml for
-                                                 guards, who never reach this branch (excluded above). -->
+                                            <!-- Just stand. Camp sit/sleep and guard patrol both live in
+                                                 mercenary_follow.xml now (this branch only plain-idles). -->
                                             <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                         </Sequence>
                                     </EntityContext>
@@ -370,31 +308,46 @@
                             </ContinuousSwitch>
                         </Loop>
 
-                        <!-- Self-heal for a rare stuck-follower bug: the follow branch above
-                             sets $isFollowingActive = true right after firing AddInterrupt_attack,
-                             without checking whether Function_crime_getMrkev /
-                             Function_crime_limits_reserveReactionLink (both under SuppressFailure)
-                             or the interrupt itself actually succeeded. Under contention (e.g. a
-                             whole squad transitioning from idle/dismissed to follow at once), one
-                             of those can silently fail, leaving a merc marked "already following"
-                             with no working interrupt and nothing left to retry it - since the
-                             ContinuousSwitch above only re-attempts when $isFollowingActive is
-                             false. This periodically checks for that specific symptom (marked as
-                             following, not idle/fleeing/fighting, but suspiciously far from the
-                             player) and forces a retry by clearing the flag. -->
+                        <!-- Self-heal for a rare stuck-follower bug: if a merc is marked following
+                             but is idle/not-fighting and far (>15m) from the player, its follow
+                             interrupt silently failed - clear $isFollowingActive to force a retry
+                             (the switch above only re-attempts when it's false). -->
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />
-                                <!-- Never force a follow-retry while the player is mounted. A mounted
-                                     merc catching up on horseback is legitimately >15m behind, and
-                                     re-firing the follow interrupt RESTARTS mercenary_follow, which
-                                     tears down the ride stance and throws the merc off the horse -
-                                     this was the "random dismount while riding". The follow tree's own
-                                     ride loop handles catch-up, so leave mounted mercs alone. -->
+                                <!-- Never force a follow-retry while mounted: re-firing the interrupt restarts
+                                     mercenary_follow and throws the merc off the horse (the "random dismount"). -->
                                 <ExecuteLua code="data.playerMounted = _G.PlayerMounted or false" />
                                 <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
                                     <Expression expressions="$isFollowingActive = false" />
                                 </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Order-bark consumer, mirror of the follow-tree one: a waiting/idle merc runs
+                             this scheduler, not the follow tree. The one-shot entry is cleared on read
+                             so only one tree plays it. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="
+                                    data.hasBarkReq = false
+                                    data.barkReqAlias = ''
+                                    local br = _G.MercBarkReq
+                                    if br then
+                                        local a = br[tostring(entity.this.id)]
+                                        if a and a ~= '' then
+                                            data.barkReqAlias = a
+                                            data.hasBarkReq = true
+                                            br[tostring(entity.this.id)] = nil
+                                        end
+                                    end
+                                " />
+                                <IfCondition failOnCondition="false" condition="$hasBarkReq">
+                                    <SuppressFailure>
+                                        <Function_speech_schedulerMonolog alias="$barkReqAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
+                                    </SuppressFailure>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
 
@@ -459,11 +412,8 @@
                                             <Else canSkip="1">
                                                 <Sequence>
                                                     <ExecuteLua code="data.barkRandom = math.random(1, 56)" />
-                                                    <!-- barkRandom 1-28 keep the original grumble/story pool; 29-56
-                                                         play a context-aware self-talk bark: camp barks when the merc
-                                                         is in camp, travel barks otherwise, with a share of the
-                                                         'both' pool either way. One schedulerMonolog call picks a
-                                                         random line from the chosen multi-sequence dialog. -->
+                                                    <!-- barkRandom 1-28 = original grumble/story pool; 29-56 = context
+                                                         self-talk (camp vs travel barks, plus a share of 'both'). -->
                                                     <ExecuteLua code="
                                                         data.barkAlias = ''
                                                         if data.barkRandom &gt;= 29 then
@@ -632,8 +582,7 @@
                                                                                 <Function_speech_schedulerMonolog alias="'a614a_story22'" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                                                             </IfCondition>
                                                                         </SuppressFailure>
-                                                                        <!-- Context self-talk bark (camp / travel / both) - one call
-                                                                             plays a random line from the chosen multi-sequence dialog. -->
+                                                                        <!-- Context self-talk bark ($barkAlias): a random line from the chosen dialog. -->
                                                                         <SuppressFailure>
                                                                             <IfCondition failOnCondition="false" condition="$barkRandom &gt;= 29">
                                                                                 <Function_speech_schedulerMonolog alias="$barkAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="" skipInLod="false" subtitlesDown="false" />

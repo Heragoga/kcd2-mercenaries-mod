@@ -1,28 +1,8 @@
--- =======================================================================
--- QUARTERMASTER LOGISTICS (morale-centric) - the camp management the
--- quartermaster fronts. One central stat, MORALE, that every other system
--- feeds; combat effectiveness, desertion and mutiny all read off it.
---
---   Morale (-100..100, default 0)
---     + kills (up to +20 per fight)      - deaths (-10 each)
---     - tiredness (>2 days out: -20/day) - starving (-10/day)
---     + drink available (+10/day)        + inn social (+10/day)
---     - wages unpaid (-20/day)           passive decay 5/day toward 0
---     (negative morale in camp climbs back to 0)
---     positive morale -> combat boost (100 = +50% effectiveness / "150%")
---     negative morale -> desertions; <= -80 -> mutiny (mercs turn renegade)
---
---   Food   - 1 unit / 5 mercs / day, eaten each evening; starving = -50%
---            combat and a morale drain. Deliver any food, or buy.
---   Drink  - like food but optional; having it feeds morale, not combat.
---   Wages  - deducted each evening by tier; paid from the war-chest coffer
---            first, then your purse; withhold via the quartermaster.
---   Upgrades (stat-only for now, no visuals): food cart, makeshift inn,
---            hunter's spot, portable smithy, alchemy bench, practice yard.
---
--- Everything is save-persistent and persists across breaking camp. All the
--- numbers here are first-pass tunables.
--- =======================================================================
+-- Quartermaster logistics: the camp-management systems the quartermaster fronts,
+-- all feeding one central MORALE stat (combat effectiveness, desertion and mutiny
+-- read off it) plus food, drink, wages and upgrades. Save-persistent across camp
+-- breaks. The numbers below are first-pass tunables. See
+-- docs/quartermaster-logistics.md for the full model.
 
 -- ==== Tunables ====
 mercenaries.SecondsPerDay        = 86400
@@ -216,10 +196,8 @@ function mercenaries:LogiAddMorale(delta, reason)
     local L = self:LogiState()
     local before = L.morale
     L.morale = math.max(self.MoraleMin, math.min(self.MoraleMax, before + delta))
-    -- Log only when the whole-number morale actually moves. Continuous per-tick
-    -- drift is ~0.1/tick, which would otherwise flood the log with lines that
-    -- don't even change the displayed value; discrete events (kills, deaths,
-    -- upkeep) always cross an integer, so they still show up.
+    -- Log only when whole-number morale moves, so ~0.1/tick drift doesn't flood
+    -- the log; discrete events (kills, deaths, upkeep) still cross an integer.
     local bi, ai = math.floor(before + 0.5), math.floor(L.morale + 0.5)
     if bi ~= ai then
         System.LogAlways(string.format("[Logistics] Morale %d -> %d (%s)",
@@ -550,11 +528,8 @@ function mercenaries:LogiReconcile()
 end
 
 -- ==== Wages (coffer first, then the player's purse) ====
--- Number lines are shown by calling Game.SendInfoText DIRECTLY with a string of
--- the form "@labelKey <number> @labelKey <number> ...". Every visible word MUST
--- be an @-localization-key; only bare numbers may sit between them. (If you put
--- plain words in the string the engine prefixes each one with a stray '@'.) So
--- each label is its own key and is always immediately followed by its number.
+-- Number lines use the "@labelKey <number>" pattern: every visible word must be
+-- an @-key, only bare numbers between them, or the engine adds a stray '@'.
 function mercenaries:LogiInfo(s)
     pcall(function() Game.SendInfoText(s, false, 0, 5) end)
 end
@@ -585,9 +560,8 @@ function mercenaries:LogiProcessWages()
 end
 
 -- ==== In-camp health regen ====
--- While camped, the men recover fully over a day and the quartermaster over an
--- hour (driven off game time, so sleeping/waiting counts). Continuous per-tick
--- healing is deliberately NOT logged - it would bury the stat log in noise.
+-- While camped the men recover fully over a day, the quartermaster over an hour
+-- (driven off game time, so sleeping/waiting counts). Not logged (per-tick noise).
 function mercenaries:LogiCampRegen(dt)
     if not self.CampActive or dt <= 0 then return end
     local mercHeal = 100 * dt / self.SecondsPerDay   -- full over a day
@@ -646,9 +620,7 @@ function mercenaries:LogiTick()
     if not ok then System.LogAlways('[Logistics] LogiTick error: ' .. tostring(err)) end
 end
 
--- =======================================================================
--- Quartermaster dialog actions
--- =======================================================================
+-- ==== Quartermaster dialog actions ====
 function mercenaries:LogiDeliverFood()
     local delivered = 0
     pcall(function()
@@ -807,6 +779,13 @@ function mercenaries:LogiBuyHunter()
     if not self:LogiSpend(self.UpgHunterCost) then return end
     local L = self:LogiState(); L.hunterSpots = (L.hunterSpots or 0) + 1
     self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    -- First hunter raises the camp hunting station right now if we're in camp
+    -- (mirrors smithy/alchemy/practice); otherwise it comes up on the next camp make.
+    pcall(function()
+        if self.CampActive and self.CampCenter and not self.CampHunt then
+            self:SpawnCampHunt(self.CampCenter)
+        end
+    end)
 end
 function mercenaries:LogiBuySmithy()
     local L = self:LogiState()

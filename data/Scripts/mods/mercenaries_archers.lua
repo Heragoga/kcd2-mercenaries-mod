@@ -1,39 +1,14 @@
--- =======================================================================
--- RANGED MERCENARIES (ARCHERS)
--- A separate combat group from the melee mercs: own souls (soul__archers.xml),
--- own brain (archer_brain -> data/AI/archer_scheduler.xml), own stance set.
---
--- Archers are spawned with entity names "SpawnedFriend_archer_<tier>_..."
--- ON PURPOSE: every existing squad system (ActiveMercs cache, pruning,
--- formation slots, distance teleport, healing, wait/follow/dismiss) matches
--- on 'SpawnedFriend', so archers ride along for free. Anything
--- archer-specific branches on the '_archer_' marker inside the name.
---
--- Archer stances (separate from the melee squad's stance):
---   skirmish - keep at shooting distance of the enemy and pelt them with
---              arrows; never enter melee unless an enemy is in their face
---              or the quiver runs dry (pure standFire, no repositioning).
---              Default stance.
---   melee    - close in and fight with the sidearm like a regular merc.
---   hold     - do not engage at all.
--- ("guard" - stick close to the player and shoot from there - existed
--- previously and was removed; skirmish/melee/hold covers everything the
--- squad actually uses.)
---
--- Who archers shoot at is governed by the SAME player-set stance
--- (_G.MercStance / GetStanceCode) that regular mercenaries use - see
--- archer_scheduler.xml, which calls PickNearestValidTarget/PickPlayersTarget/
--- EvaluateCombatTarget exactly like mercenary_scheduler.xml.
--- =======================================================================
+-- Ranged mercenaries (archers): a separate combat group with own souls, brain
+-- (archer_scheduler.xml) and stances (skirmish/melee/hold). Named
+-- "SpawnedFriend_archer_..." so they ride every squad system for free, with
+-- '_archer_' branching the archer-specific bits. See docs/archers.md.
 
 -- Tokens (skald dialog -> lua). Count on the hire tokens = how many to hire.
 mercenaries.TokenIDArcherWeak = "679a655e-189d-4519-b437-ccc4b92be59d"
 mercenaries.TokenIDArcherMedium = "679a655e-189d-4519-b437-ccc4b92be60d"
 mercenaries.TokenIDArcherStrong = "679a655e-189d-4519-b437-ccc4b92be61d"
--- Count = stance: 1 skirmish, 2 melee, 3 hold
-mercenaries.TokenIDArcherStance = "679a655e-189d-4519-b437-ccc4b92be62d"
--- Count = ranged weapon type: 1 bow, 2 crossbow, 3 handcannon
-mercenaries.TokenIDArcherWeaponType = "679a655e-189d-4519-b437-ccc4b92be63d"
+mercenaries.TokenIDArcherStance = "679a655e-189d-4519-b437-ccc4b92be62d"      -- count = stance: 1 skirmish, 2 melee, 3 hold
+mercenaries.TokenIDArcherWeaponType = "679a655e-189d-4519-b437-ccc4b92be63d" -- count = weapon: 1 bow, 2 crossbow, 3 handcannon
 
 mercenaries.ArcherStanceCode = { skirmish = 0, melee = 1, hold = 2 }
 mercenaries.ArcherStanceByIndex = { [1] = "skirmish", [2] = "melee", [3] = "hold" }
@@ -105,8 +80,7 @@ mercenaries.ArcherWeaponSets = {
     }
 }
 
--- Vanilla ammo item classes (root item.xml), used to top ammo up on
--- spawn/re-equip and to detect "out of ammo" in the combat trees.
+-- Vanilla ammo item classes, used to top ammo up and detect "out of ammo".
 mercenaries.ArcherArrowClassByTier = {
     weak = "ad6f0f01-aec4-44d1-982c-1210eb01b74a",   -- arrow_normal
     medium = "710e3706-8974-404b-b23a-6f51670ef1ed", -- arrow_hunting
@@ -179,9 +153,6 @@ function mercenaries:LoadArcherState()
     _G.ArcherWeaponType = (savedWeaponType and self.ArcherWeaponSets[savedWeaponType]) and savedWeaponType or "bow"
 end
 
--- =======================================================================
--- HIRE
--- =======================================================================
 function mercenaries:HireArcher(cost, amount, tier)
     local p = player.inventory
 
@@ -235,8 +206,6 @@ function mercenaries:HireArcher(cost, amount, tier)
             }, spawnPos.z)
 
             local safeRot = {x = 0, y = 0, z = playerRot.z}
-            -- 'SpawnedFriend' keeps them inside every existing squad system,
-            -- '_archer_' marks them for archer-specific handling.
             local entityName = "SpawnedFriend_archer_" .. tier .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
 
             System.SpawnEntity({
@@ -269,9 +238,6 @@ function mercenaries:HireArcher(cost, amount, tier)
     end
 end
 
--- =======================================================================
--- EQUIPMENT
--- =======================================================================
 function mercenaries:EquipArcherWeapon(ent)
     if not ent or not ent.actor then return end
 
@@ -291,10 +257,8 @@ function mercenaries:EquipArcherWeapon(ent)
     self:GiveArcherAmmo(ent, tier, weaponType, 40)
 end
 
--- Best-effort ammo top-up (arrows for bow, bolts for crossbow, shot_ball
--- for hand cannon). The storm inventory preset already ships 40 rounds;
--- this covers re-equips and long fights. Fails silently (logged) if the
--- item API is not available on this entity.
+-- Best-effort ammo top-up (arrows/bolts/shot by weapon type), covering re-equips
+-- and long fights on top of the 40 rounds the storm preset ships.
 function mercenaries:GiveArcherAmmo(ent, tier, weaponType, amount)
     local ok, err = pcall(function()
         if not ent or not ent.inventory then return end
@@ -324,10 +288,8 @@ function mercenaries:GiveArcherAmmo(ent, tier, weaponType, amount)
     if not ok then System.LogAlways('[Archer] GiveArcherAmmo error: ' .. tostring(err)) end
 end
 
--- QoL: called from LowPriorityMonitorLoop (every 5s). Archers that ran dry
--- during a fight refill their quiver once combat is over — same "top up to
--- 40" rule that hire/re-equip already applies, so an out-of-ammo archer
--- doesn't stay a swordsman for the rest of the session.
+-- Refill quivers once combat is over (LowPriorityMonitorLoop, every 5s), so an
+-- archer that ran dry doesn't stay a swordsman for the rest of the session.
 function mercenaries:ResupplyArchersOutOfCombat()
     local ok, err = pcall(function()
         local weaponType = self:GetArcherWeaponType()
@@ -370,15 +332,9 @@ function mercenaries:SetArcherWeaponType(weaponType)
     end
 end
 
--- =======================================================================
--- COMBAT TICK DATA - called from the archer attack trees. Fills:
---   data.distanceToTarget / data.distanceToPlayer
---   data.isTargetAlive
---   data.outOfAmmo
---   data.stanceValid (false as soon as the player switches archer combat
---                     stance, which makes the running tree bail out so the
---                     scheduler can fire the newly selected behaviour)
--- =======================================================================
+-- Combat tick data for the archer attack trees: distances, isTargetAlive,
+-- outOfAmmo, and stanceValid (goes false when the player switches archer stance,
+-- so the running tree bails and the scheduler fires the new behaviour).
 function mercenaries:UpdateArcherCombatData(data, myWuid, expectedStance)
     local ok, err = pcall(function()
         data.isTargetAlive = false
@@ -433,9 +389,7 @@ function mercenaries:UpdateArcherCombatData(data, myWuid, expectedStance)
     end
 end
 
--- =======================================================================
--- TOKEN HANDLING - called from MonitorInventory in mercenaries.lua
--- =======================================================================
+-- Token handling, called from MonitorInventory in mercenaries.lua.
 function mercenaries:MonitorArcherTokens(p)
     local countArcherWeak = p:GetCountOfClass(self.TokenIDArcherWeak)
     local countArcherMedium = p:GetCountOfClass(self.TokenIDArcherMedium)

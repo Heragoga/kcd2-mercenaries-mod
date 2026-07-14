@@ -75,6 +75,24 @@ Each guard patrols an 8-point ring encircling the whole camp, staggered by a per
 
 ---
 
+## Look-at prompts on a merc
+
+Looking at a merc shows up to two mod prompts alongside the vanilla ones (`InjectInteraction`, [mercenaries_lookatinteraction.lua](../data/Scripts/mods/mercenaries_lookatinteraction.lua)). The standard vanilla actions (Talk, Pickpocket, …) are preserved by calling through to `BasicAIActions.GetActions`; prompts only draw when the merc is conscious and alive. The looked-at merc barks an acknowledgment on each action.
+
+**1. Camp option** (always shown) — decided live at press time from `CampActive` and whether *this* merc is currently deployed out of camp (`IsCampOut`):
+
+| State | Prompt | Action |
+|---|---|---|
+| No camp | Make camp | `SpawnMercCamp` |
+| Camp up, merc in camp | Break camp | `BreakMercCamp` |
+| Camp up, merc deployed | Back to camp | `CampReturnAll` (returns the whole sortie) |
+
+**2. Wait / Follow toggle** — only for a merc "in a sortie" (deployed out of camp, or the whole squad when there's no camp; `IsMercInSortie`). It flips the global sortie wait order (`SetSortieWait` / `_G.MercPersistentIdleFlag`); mercs left in camp ignore it. Hidden for a camped merc. It uses the `use_other` hold action (the way `references/CompanionMerchant` drives its second prompt — `alch_use` rendered a blank entry).
+
+Bark requests key off the entity id (`self.this.id`), which is what the follow-BT bark lookup expects — not the AI WUID.
+
+---
+
 ## Known limitations
 
 - **Merc sit/sleep took three passes; the last fix isn't playtested yet.** History, since each failure looked identical (mercs standing around) but had a different cause: (1) SO properties hung on the prop `BasicEntity` — no real smart object existed; (2) real `StanceSmartObject` entities + `Move`, but the `StanceElement` child was a bare `<Wait>`, so the stance was *declared* but the sit/lie animation never executed — mercs walked to the furniture and stood on it; (3) added the required `<WaitAction/>`. Confirmed working up to stage (2) via `merc_camp_furniture_debug` (5 SOs spawned, 5 assignments with WUIDs, correct walk-to positions), so only the animation step is unverified. If they still don't pose, the remaining unknown is whether `StanceElement` needs the SO's `use` resource reserved — vanilla routes NPCs through a `SchedulerHub` link, which we bypass by calling `StanceElement` directly. Note the old disabled `StanceElement` comment blocks still sit in both scheduler XMLs' idle branches — inert, superseded by the follow-BT version.

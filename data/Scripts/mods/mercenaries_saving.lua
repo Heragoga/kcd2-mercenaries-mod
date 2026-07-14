@@ -1,23 +1,19 @@
---[[ Type: merc_save_string test_tag 12345
-
-Type: merc_load_string test_tag ]]
--------------------------------------------------------------------------------
--- 1. SAVE METHOD: Despawns the old saver entity, spawns a new one with the data
--------------------------------------------------------------------------------
+-- Persistence trick: state is stored as the NAME of a hidden BasicEntity (saved
+-- with the game), keyed "mercenary_mod_state_data_<tag>__<value>". Saving
+-- replaces the tag's entity; loading reads the value back off the name.
 function mercenaries:SaveString(tag, dataString)
     if not tag or tag == "" then
         System.LogAlways("[Mercenaries] Error: Cannot save without a tag.")
         return
     end
-    if not dataString or dataString == "" then 
+    if not dataString or dataString == "" then
         System.LogAlways("[Mercenaries] Error: Cannot save an empty string.")
-        return 
+        return
     end
 
-    -- Construct the unique prefix for this specific tag
     local searchPrefix = "mercenary_mod_state_data_" .. tostring(tag) .. "__"
 
-    -- Step 1: Find and destroy the existing saver entity FOR THIS TAG
+    -- Destroy this tag's existing saver entity, then spawn a fresh one.
     local allTags = System.GetEntitiesByClass("BasicEntity")
     if allTags then
         for i, ent in ipairs(allTags) do
@@ -28,9 +24,8 @@ function mercenaries:SaveString(tag, dataString)
         end
     end
 
-    -- Step 2: Spawn a new entity with the updated data string attached to the prefix
     local newEntityName = searchPrefix .. tostring(dataString)
-    
+
     System.LogAlways("[Mercenaries] Successfully saved state [" .. tostring(tag) .. "]: " .. tostring(dataString))
 
     System.SpawnEntity({
@@ -40,36 +35,27 @@ function mercenaries:SaveString(tag, dataString)
     })
 end
 
--------------------------------------------------------------------------------
--- 2. LOAD METHOD: Retrieves the string attached to the saver entity
--------------------------------------------------------------------------------
+-- Read back the value stored for a tag, or nil if never saved.
 function mercenaries:LoadString(tag)
     if not tag or tag == "" then
         System.LogAlways("[Mercenaries] Error: Cannot load without a tag.")
         return nil
     end
 
-    -- Construct the unique prefix we are looking for
     local searchPrefix = "mercenary_mod_state_data_" .. tostring(tag) .. "__"
-
-    -- Step 1: Get all BasicEntity entities
     local allTags = System.GetEntitiesByClass("BasicEntity")
-    
+
     if allTags then
         for i, ent in ipairs(allTags) do
             local name = ent:GetName()
-            
-            -- Step 2: If we find our prefix, slice off the prefix and return the data
             if name and string.sub(name, 1, string.len(searchPrefix)) == searchPrefix then
-                -- Extract everything after the prefix length
                 local extractedData = string.sub(name, string.len(searchPrefix) + 1)
                 System.LogAlways("[Mercenaries] Loaded state [" .. tostring(tag) .. "]: " .. tostring(extractedData))
                 return extractedData
             end
         end
     end
-    
-    -- Return nil if the entity doesn't exist (e.g., first time running the mod)
+
     System.LogAlways("[Mercenaries] No saved string found for tag: " .. tostring(tag))
-    return nil 
+    return nil
 end

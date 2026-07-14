@@ -16,21 +16,14 @@
                  mounted archer's follow tree (same fix as mercenary_scheduler.xml). -->
             <Variable name="playerMounted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
 
-            <!-- campActive/campFurniture/campStanceCode: only used by the
-                 commented-out camp sit/sleep block further down. Left
-                 declared (harmless) in case that gets revisited. -->
+            <!-- campActive/campFurniture/campStanceCode: only used by the disabled camp sit/sleep block below. -->
             <Variable name="campActive"          type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="campFurniture"       type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="campStanceCode"      type="_int"                 values="0"                                 isPersistent="0" form="single" />
 
-            <!-- isCampActor: true when this archer has ANY camp role - guard,
-                 sitter, or sleeper (see mercenaries:IsCampActor). Camp actors
-                 are carved out of the idle stand-still branch below and fall
-                 through to the follow branch, which runs mercenary_follow.xml
-                 (patrol for guards, StanceElement sit/sleep for the rest).
-                 patrolActive/patrolWaypoint/patrolLongPause are leftovers from
-                 when patrol lived here in the idle branch - kept declared but
-                 no longer used. -->
+            <!-- isCampActor: this archer has any camp role (guard/sitter/sleeper). Camp
+                 actors are excluded from the idle branch and fall through to follow,
+                 which runs mercenary_follow.xml. patrol* here are unused leftovers. -->
             <Variable name="isCampActor"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolActive"        type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolWaypoint"      type="_wuid"                values=""                                  isPersistent="0" form="single" />
@@ -80,17 +73,11 @@
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
-                                        <!-- Target acquisition follows the same player-set stance (everyone /
-                                             player_target / defend / passive) as regular mercenaries, so archers
-                                             don't auto-aggro anything that walks by. -->
+                                        <!-- Target acquisition follows the same player-set stance as regular mercs (no auto-aggro). -->
                                         <SuppressFailure>
                                             <IfCondition failOnCondition="false" condition="~$inCombat &amp; $targetStanceMode ~= 3">
                                                 <Sequence>
-                                                    <!-- Fetched unconditionally (not just for stance 1) - PickNearestValidTarget
-                                                         ("everyone" stance) also uses this: whoever the player is already
-                                                         fighting is a valid target regardless of relationship data,
-                                                         since active aggression against the player is itself proof of
-                                                         hostility, and reputation values can be stale/quest-specific. -->
+                                                    <!-- Fetched unconditionally: both the "everyone" and "player_target" pickers use it. See docs/combat-target-selection.md. -->
                                                     <Expression expressions="$playerCombatTarget = $__null" />
                                                     <SuppressFailure>
                                                         <GetTarget ReferenceNPC="$playerWUID" TargetVarOut="$playerCombatTarget" />
@@ -168,9 +155,7 @@
                                                             <SuppressFailure><Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898991" /></SuppressFailure>
                                                             <Expression expressions="$attackData.target = $playerTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
 
-                                                            <!-- Stance decides which combat behaviour gets fired.
-                                                                 0 skirmish, 1 melee, 2 hold (hold never reaches
-                                                                 here - it disengages above, stanceMode == 2). -->
+                                                            <!-- Stance picks the combat behaviour: 0 skirmish, 1 melee (2 hold disengages above). -->
                                                             <IfCondition failOnCondition="false" condition="$stanceMode == 1">
                                                                 <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'archer_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                                             </IfCondition>
@@ -258,11 +243,8 @@
                                     </Sequence>
                                 </IfCondition>
 
-                                <!-- Idle / stand-still branch. Camp actors ($isCampActor -
-                                     guards, sitters, sleepers) are deliberately excluded here so
-                                     they fall through to the follow branch below, which runs
-                                     mercenary_follow.xml (patrol or StanceElement sit/sleep).
-                                     Everyone else who is idle (a plain Wait order) stands here. -->
+                                <!-- Idle / stand-still branch. Camp actors are excluded (they fall through
+                                     to follow, which runs their camp role); plain idle archers stand here. -->
                                 <IfCondition failOnCondition="false" condition="$isIdle &amp; ~$isCampActor">
                                     <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
                                         <Sequence>
@@ -273,56 +255,8 @@
                                                 </Sequence>
                                             </IfCondition>
 
-                                            <!--
-                                            Camp sit/sleep - DISABLED (2026-07-09): mercs weren't actually
-                                            using the chairs/beds in practice, so this is commented out
-                                            rather than removed in case it's revisited later. Same
-                                            "StanceElement against a known WUID, wrapped in SuppressFailure"
-                                            trick mercenary_follow.xml uses to mount mercs on horses. Kept
-                                            verbatim below as inert text:
-
-                                            <ExecuteLua code="
-                                                pcall(function()
-                                                    data.campActive = false
-                                                    if _G.MercCampMode == true and _G.MercIdle == true and not _G.MercenariesDismissed then
-                                                        local rec = mercenaries.CampFurniture and mercenaries.CampFurniture[tostring(entity.this.id)]
-                                                        if rec and rec.wuid then
-                                                            data.campFurniture = rec.wuid
-                                                            data.campStanceCode = (rec.kind == 'bed') and 1 or 0
-                                                            data.campActive = true
-                                                        end
-                                                    end
-                                                end)
-                                            " />
-                                            <IfElseCondition failOnCondition="false" condition="$campActive &amp; $mercTarget == $__null" saveVersion="2">
-                                                <Then canSkip="1">
-                                                    <SuppressFailure>
-                                                        <Sequence>
-                                                            <Move stopWithinDistance="1.500000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="true" destinationSpecification="$campFurniture" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
-                                                            <IfElseCondition failOnCondition="false" condition="$campStanceCode == 1" saveVersion="2">
-                                                                <Then canSkip="1">
-                                                                    <StanceElement smartObject="$campFurniture" stance="lying" allowAny="false" enabled="true">
-                                                                        <Wait duration="'3s'" timeType="GameTime" doFail="false" variation="'500ms'" />
-                                                                    </StanceElement>
-                                                                </Then>
-                                                                <Else canSkip="1">
-                                                                    <StanceElement smartObject="$campFurniture" stance="sitting" allowAny="false" enabled="true">
-                                                                        <Wait duration="'3s'" timeType="GameTime" doFail="false" variation="'500ms'" />
-                                                                    </StanceElement>
-                                                                </Else>
-                                                            </IfElseCondition>
-                                                        </Sequence>
-                                                    </SuppressFailure>
-                                                </Then>
-                                                <Else canSkip="1">
-                                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
-                                                </Else>
-                                            </IfElseCondition>
-                                            -->
-
-                                            <!-- Just stand. Patrol used to live here (Move between
-                                                 waypoints) but now runs in mercenary_follow.xml for
-                                                 guards, who never reach this branch (excluded above). -->
+                                            <!-- Just stand. Camp sit/sleep and guard patrol both live in
+                                                 mercenary_follow.xml now (this branch only plain-idles). -->
                                             <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                         </Sequence>
                                     </EntityContext>
@@ -364,19 +298,9 @@
                             </ContinuousSwitch>
                         </Loop>
 
-                        <!-- Self-heal for a rare stuck-follower bug: the follow branch above
-                             sets $isFollowingActive = true right after firing AddInterrupt_attack,
-                             without checking whether Function_crime_getMrkev /
-                             Function_crime_limits_reserveReactionLink (both under SuppressFailure)
-                             or the interrupt itself actually succeeded. Under contention (e.g. a
-                             whole squad transitioning from idle/dismissed to follow at once), one
-                             of those can silently fail, leaving an archer marked "already
-                             following" with no working interrupt and nothing left to retry it -
-                             since the ContinuousSwitch above only re-attempts when
-                             $isFollowingActive is false. This periodically checks for that
-                             specific symptom (marked as following, not idle/fleeing/fighting, but
-                             suspiciously far from the player) and forces a retry by clearing the
-                             flag. Same fix as mercenary_scheduler.xml. -->
+                        <!-- Self-heal for a rare stuck-follower bug (same as mercenary_scheduler.xml):
+                             a follower marked following but idle and far (>15m) forces a retry by
+                             clearing $isFollowingActive. -->
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />

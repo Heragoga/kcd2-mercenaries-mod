@@ -1,73 +1,9 @@
--- =======================================================================
--- CAMP ALCHEMY BENCH  (Alchemy Bench upgrade made real)
---
--- Mirrors the camp forge (see mercenaries_forge.lua and docs/camp-forge.md).
--- Unlike the Smithery, the AlchemyTable entity renders its OWN table model AND
--- drives the brewing minigame / E prompt, so we just borrow the nearest loaded
--- village AlchemyTable and move it to the flattest patch near camp - dragging
--- its dressing entities (AlchemyItems: retort / mortar / bellows / pot / flasks;
--- boiling & fire particles; fireplace lights) along by the same offset so the
--- whole bench keeps its shape and the minigame's use helper (which is baked into
--- the entity) travels with it. Restored on camp break; auto-restored if the
--- player wanders back near the village it came from.
---
--- Reuses the forge's ForgeFindNearest / ForgeFindFlattest / ForgeFlatness.
--- =======================================================================
+-- Camp alchemy bench: borrows a village AlchemyTable, moves it near camp, and
+-- drags its dressing props along. See docs/camp-alchemy.md.
 
-mercenaries.CampAlchemy = nil               -- borrow record while a camp bench is up
-mercenaries.CampAlchemyAutoPackDist = 30.0  -- restore the borrowed table if player nears its village
-
--- The visible bench mesh spawned under the borrowed props (see SpawnCampAlchemy).
+mercenaries.CampAlchemy = nil
+mercenaries.CampAlchemyAutoPackDist = 30.0
 mercenaries.CampAlchemyTableModel = "objects/manmade/task_specific_props/alchemy/alchemy_table_a/alchemy_table_a.cgf"
-
--- The known alchemy-table meshes, for the merc_alchemy_variants test command.
-mercenaries.CampAlchemyVariants = {
-    "objects/manmade/task_specific_props/alchemy/alchemy_table_a/alchemy_table_a.cgf",
-    "objects/manmade/task_specific_props/alchemy/alchemy_table_b/alchemy_table_b.cgf",
-    "objects/manmade/task_specific_props/alchemy/alchemy_table_master/alchemy_table_master.cgf",
-}
-mercenaries.CampAlchemyVariantEnts = {}
-
--- Spawn every known alchemy-table model in a row to the player's right (labelled
--- in the log, left -> right = the list order above) so the good one can be
--- picked by eye. Re-running clears the previous row; merc_alchemy_variants_clear
--- removes them.
-function mercenaries:AlchemyVariantTest()
-    for _, id in ipairs(self.CampAlchemyVariantEnts) do pcall(function() System.RemoveEntity(id) end) end
-    self.CampAlchemyVariantEnts = {}
-    if not player then return end
-    local o = player:GetWorldPos()
-    local ang; pcall(function() ang = player:GetWorldAngles() end)
-    local yaw = (ang and ang.z) or 0
-    local fx, fy = math.cos(yaw), math.sin(yaw)    -- forward
-    local rx, ry = -fy, fx                          -- player's left->right axis
-    local n = #self.CampAlchemyVariants
-    for i, model in ipairs(self.CampAlchemyVariants) do
-        local off = (i - (n + 1) / 2) * 3.0
-        local pos = { x = o.x + fx * 5.0 + rx * off, y = o.y + fy * 5.0 + ry * off, z = o.z }
-        local e
-        pcall(function()
-            e = System.SpawnEntity({ class = "BasicEntity",
-                name = "MercAlchemyVariant_" .. i .. "_" .. tostring(math.random(100000, 999999)),
-                position = pos, orientation = { x = 0, y = 0, z = yaw + math.pi },
-                properties = { object_Model = model, bMissionCritical = false } })
-        end)
-        if e then table.insert(self.CampAlchemyVariantEnts, e.id) end
-        System.LogAlways(string.format("[AlchemyVariant] slot %d (from your left) = %s  [%s]",
-            i, model:match("alchemy_table_[a-z]+") or model, e and "spawned" or "FAILED"))
-    end
-end
-
-function mercenaries:AlchemyVariantClear()
-    for _, id in ipairs(self.CampAlchemyVariantEnts) do pcall(function() System.RemoveEntity(id) end) end
-    self.CampAlchemyVariantEnts = {}
-end
-
-System.AddCCommand("merc_alchemy_variants",       "mercenaries:AlchemyVariantTest()",  "Spawn all alchemy-table meshes in a row (left->right: a, b, master) to compare")
-System.AddCCommand("merc_alchemy_variants_clear", "mercenaries:AlchemyVariantClear()", "Remove the alchemy-table test row")
-
--- The bench's dressing entities to drag along with the table, and how far from
--- the table they sit (the prefab keeps everything within ~2m).
 mercenaries.CampAlchemyPropClasses = { "AlchemyItem", "ParticleEffect", "Light", "GeomEntity" }
 mercenaries.CampAlchemyPropRadius = 3.5
 
@@ -81,8 +17,7 @@ function mercenaries:SpawnCampAlchemy(center)
         return false
     end
 
-    -- Flattest patch, avoiding the camp forge's spot if one is up (so the two
-    -- upgrades don't land on top of each other).
+    -- Avoid the camp forge's spot if one is up, so the two upgrades don't overlap.
     local avoid = self.CampForge and self.CampForge.anvilPos or nil
     local spot = self:ForgeFindFlattest(center, avoid)
     if not spot then
@@ -92,13 +27,11 @@ function mercenaries:SpawnCampAlchemy(center)
     local origPos = at:GetWorldPos()
     local origAng
     pcall(function() origAng = at:GetWorldAngles() end)
-    local rec = { at = at, atPos = origPos, moved = {}, spawned = {} }
+    local rec = { at = at, atPos = origPos, moved = {}, spawned = {}, spot = spot }
     local dx, dy, dz = spot.x - origPos.x, spot.y - origPos.y, spot.z - origPos.z
 
-    -- Drag the dressing entities: record each (for restore), then translate it by
-    -- the same delta as the table so the layout is preserved. (Static Brush
-    -- decorations aren't entities and can't be moved, so a few flasks/tripod stay
-    -- behind - the table + AlchemyItems carry the bulk of the look.)
+    -- Drag the dressing props: record each (for restore), then translate by the
+    -- same delta as the table so the layout is preserved.
     local nprops = 0
     for _, cls in ipairs(self.CampAlchemyPropClasses) do
         local ok, list = pcall(function() return System.GetEntitiesByClass(cls) end)
@@ -117,17 +50,11 @@ function mercenaries:SpawnCampAlchemy(center)
         end
     end
 
-    -- Move the table itself last (the proximity search above used its real pos).
+    -- Move the table last (the proximity search above needed its real pos).
     pcall(function() at:SetWorldPos(spot) end)
 
-    -- The AlchemyTable's E-prompt/minigame logic and the AlchemyItem props follow
-    -- SetWorldPos, but its own table MESH is brush-rendered and stays behind (so
-    -- the props end up floating). Spawn our own copy of the table model at the new
-    -- spot, matched to the table's rotation, so there's a solid bench underneath.
-    -- Table mesh model. alchemy_table_b is see-through from the back and
-    -- alchemy_table_master rendered invisible when spawned as a BasicEntity, so we
-    -- default to alchemy_table_a. Use the merc_alchemy_variants console command to
-    -- compare all three in-game and change this if a different one looks better.
+    -- The table's mesh is brush-rendered and stays behind, so spawn our own copy
+    -- of the model at the destination as a solid bench under the props.
     local mesh
     pcall(function()
         mesh = System.SpawnEntity({ class = "BasicEntity",

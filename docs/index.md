@@ -31,12 +31,18 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [How to add a top level quest](skald/add-top-level-quest.md) (Basic management quest, adds dialog and may create new quests)
 * [How to add dialog](skald/add-dialog.md) (Creating dialog, both ingame chatter and player to NPC conversation)
 
-### Behavior Trees
+### Combat & AI
 * [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)
-* [Mercenary camp](camp.md) (Procedural camp spawn/despawn, how props render without a custom entity class, and the smart-object sit/sleep integration)
+* [Combat target selection](combat-target-selection.md) (How mercs, archers and renegades pick who to fight: the one-scan-per-second cache, anti-swarm cap, the -1 relationship rule, and the stance pickers)
+
+### Camp
+* [Mercenary camp](camp.md) (Procedural camp spawn/despawn, how props render without a custom entity class, the smart-object sit/sleep integration, and deploying from camp)
 * [The quartermaster](quartermaster.md) (An immortal camp NPC with a lobotomized-merc brain: stands, eats, defends when raided, and serves as a talking interface)
 * [Quartermaster logistics](quartermaster-logistics.md) (The camp-management systems he fronts: tiredness, food, drink and wages, with combat buffs and save-persistent state)
 * [The camp forge and its smith](camp-forge.md) (The borrowed-Smithery forge, and the full postmortem of ~10 failed NPC-smith approaches plus the one that works - read before making any NPC "work" at a built structure)
+* [The camp alchemy bench](camp-alchemy.md) (The Alchemy Bench upgrade: borrowing and relocating a village AlchemyTable, and why it needs its own spawned mesh)
+
+### Behaviour Trees
 * [Basic structure](behaviour-trees/basic-structure.md) (Covers the basic structure of the Behaviour Tree and some basic logical components)
 * [Combat](behaviour-trees/combat.md) (How to make your NPC fight)
 * [Movement](behaviour-trees/movement.md) (How to make your NPC move)
@@ -44,8 +50,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 
 ---
 
----
-##Random pieces of adivse
+## Random pieces of advice
 
 * Do not prefix string ids with a number or special character, they always have to begin with a letter
 * Lua comments should not be put into behaviour trees

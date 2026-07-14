@@ -1,12 +1,11 @@
+-- Detect wait/sleep/fast-travel/teleport interruptions and temp-idle the mercs
+-- so they don't scramble to catch up mid-transition; clears when it's over.
 function mercenaries:MonitorMainQuestLoop()
-    -- 1. Check intended persistent state FIRST
     if _G.MercPersistentIdleFlag then
         return
     end
 
-    -- 2. Track Real Time & Calculate Delta
-    -- PERFORMANCE: System.GetCurrTime() is already cached by the engine each frame,
-    -- avoiding the overhead of os.clock() going through the Lua/C bridge.
+    -- System.GetCurrTime() is engine-cached per frame (cheaper than os.clock()).
     local currentRealTime = System.GetCurrTime()
     local realTimeDelta = 1.0 
     
@@ -15,7 +14,7 @@ function mercenaries:MonitorMainQuestLoop()
     end
     self.LastRealTime = currentRealTime
 
-    -- 3. Calculate Physical Distance Moved (For Teleport/Fast Travel)
+    -- Physical distance moved, for teleport/fast-travel detection.
     local currentPos = nil
     local distanceMoved = 0
     pcall(function() currentPos = player:GetWorldPos() end)
@@ -30,16 +29,12 @@ function mercenaries:MonitorMainQuestLoop()
         self.LastPlayerPos = {x = currentPos.x, y = currentPos.y, z = currentPos.z}
     end
     
-    -- 4. Get the engine's official speed for Henry
--- 4. Get the engine's official speed for Henry
     local playerSpeed = 10.0
-    pcall(function() 
-        playerSpeed = player:GetSpeed() 
+    pcall(function()
+        playerSpeed = player:GetSpeed()
     end)
 
-    -- 4b. Check if player is mounted on a horse.
-    -- GetHorse() returns an invalid WUID when not mounted, so we check if
-    -- the result is non-nil and non-empty as a proxy for "is on horse".
+    -- GetHorse() returns an invalid (empty/"0") WUID when not mounted.
     local isOnHorse = false
     pcall(function()
         local horseWuid = player.human:GetHorse()
@@ -48,56 +43,44 @@ function mercenaries:MonitorMainQuestLoop()
         end
     end)
 
-    -- ========================================================================
-    -- CHECK A: GHOST MOVEMENT & TELEPORT DETECTION (SMART GRACE PERIOD)
-    -- ========================================================================
-
-    -- Skip ghost movement detection entirely while mounted. Horse riding causes
-    -- large position deltas with near-zero Henry speed, which is a false positive.
-    -- Instant teleport threshold (>25m) is still checked since fast travel can
-    -- occur from horseback too.
+    -- Check A: ghost movement (a transition sliding Henry with ~zero speed) with a
+    -- grace period. Skipped while mounted, where riding is a false positive; the
+    -- >25m instant-teleport check below still applies since fast travel can too.
     local isGhostMovement = (not isOnHorse) and (distanceMoved > 0.5 and playerSpeed < 0.1 and realTimeDelta < 0.4)
     local isInstantTeleport = (distanceMoved > 25.0)
 
     if isGhostMovement then
         self.LastGhostTickTime = currentRealTime
-        
-        -- Start the grace period timer if it isn't already running
         if not self.GhostMovementStartTime then
             self.GhostMovementStartTime = currentRealTime
         end
-        
-        -- GRACE PERIOD: Has it been 0.75 real-world seconds since the weirdness started?
+        -- Only treat it as fast travel after 0.75s of sustained ghost movement.
         if (currentRealTime - self.GhostMovementStartTime) > 0.75 then
             self.FastTravelLastDetected = currentRealTime
         end
     else
-        -- SMART CANCEL: Only reset the grace period if Henry is actually walking/running normally,
-        -- OR if the engine hasn't seen any ghost movement in the last 1.5 seconds.
+        -- Reset the grace period only when Henry is really walking, or no ghost
+        -- movement has been seen for 1.5s (rides out brief gaps between ticks).
         local timeSinceLastGhostTick = 0
         if self.LastGhostTickTime then
             timeSinceLastGhostTick = currentRealTime - self.LastGhostTickTime
         end
-        
         if playerSpeed > 0.1 or timeSinceLastGhostTick > 1.5 then
             self.GhostMovementStartTime = nil
         end
     end
 
-    -- Instant teleports (>25m in one tick) bypass the grace period entirely
     if isInstantTeleport then
         self.FastTravelLastDetected = currentRealTime
     end
 
-    -- Apply the 3-second Debounce Cooldown shield to protect against loading screens
+    -- 3s debounce so loading screens don't drop the idle before the move settles.
     local inFastTravelCooldown = false
     if self.FastTravelLastDetected and (currentRealTime - self.FastTravelLastDetected < 3.0) then
         inFastTravelCooldown = true
     end
 
-    -- ========================================================================
-    -- CHECK B: TIME RATIO (Catches Waiting, Sleeping, and Jail)
-    -- ========================================================================
+    -- Check B: a high world-time ratio catches waiting, sleeping, and jail.
     local inWaitSleep = false
     pcall(function()
         local timeRatio = Calendar.GetWorldTimeRatio()
@@ -106,17 +89,13 @@ function mercenaries:MonitorMainQuestLoop()
         end
     end)
 
-    -- Initialize other states
     local inDialog = false
     local inCutscene = false
 
-    -- Combine ALL checks into the Master Idle Switch. The player's own persistent
-    -- "wait here" order (MercPersistentIdleFlag, set from the look-at toggle) is
-    -- OR'd in so it survives once any cutscene/fast-travel interruption ends -
-    -- otherwise the falling edge below would clear the player's wait order.
+    -- The player's own persistent wait order is OR'd in so it survives an
+    -- interruption ending - otherwise the falling edge below would clear it.
     local shouldBeIdle = inDialog or inCutscene or inFastTravelCooldown or inWaitSleep or _G.MercPersistentIdleFlag
 
-    -- 8. Handle State Transitions
     if not _G.MercIdle and shouldBeIdle then
         _G.MercIdle = true
         

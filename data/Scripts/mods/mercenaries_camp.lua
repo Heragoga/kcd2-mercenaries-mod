@@ -1,39 +1,8 @@
--- =======================================================================
--- MERCENARY CAMP
--- Spawns a procedural camp (tents, campfire, chairs, bedrolls) near the
--- player, moves the squad into it, and idles them there. The camp stays up
--- until explicitly broken via dialog/console - it does NOT auto-despawn
--- just because the player wanders off. Press the recall key (F4 by
--- default, see OnGameplayStarted) to bring the whole squad to you from
--- anywhere without touching the camp itself.
---
--- Camp props are plain "BasicEntity" spawns with an object_Model property -
--- confirmed against the vanilla BasicEntity.lua (references/Scripts/Entities/
--- Physics/BasicEntity.lua): OnSpawn -> SetFromProperties -> SetupModel ->
--- LoadObject(0, object_Model) + PhysicalizeThis, no custom entity class or
--- .ent registration needed. Model paths and terrain-alignment technique are
--- taken from references/zdjbcamping_mod (a working reference camping mod).
---
--- Camp is a SESSION-ONLY feature: it is never restored across a save/load.
--- ClearAnyLeftoverCamp (called from OnGameplayStarted) sweeps for and
--- deletes any leftover camp props by name prefix, since our Lua-side
--- bookkeeping (CampEntities/CampActive/CampSlots) doesn't survive a reload
--- even if the physical entities do.
---
--- Smart-object sit/sleep integration (so_sitPlace/so_bed) is DISABLED for
--- now - mercs weren't actually using the chairs/beds in practice. The SO
--- property registration (CampFurnitureSO) and the occupancy-assignment code
--- in SpawnMercCamp are commented out rather than removed, in case this gets
--- revisited later. Chairs/beds still spawn as plain decoration (chests
--- don't - removed per feedback, see SpawnMercCamp).
---
--- Half the squad, picked at random, become "guards" and patrol instead: they
--- get a ring of {x,y,z} perimeter positions (the incamp state, _G.MercInCamp,
--- plus a per-merc IsCampGuard check), and mercenary_follow.xml walks each
--- guard point-to-point (Move to a vec3 destination) with periodic pauses. See
--- IsCampGuard / GetPatrolWaypoint / AdvancePatrolWaypoint below, and the
--- incamp-guard routing in mercenary_scheduler.xml / archer_scheduler.xml.
--- =======================================================================
+-- Procedural mercenary camp: spawns tents/fire/chairs/beds near the player,
+-- moves the squad in, and idles them (guards patrol, the rest sit/sleep). Camp
+-- props are plain BasicEntity + object_Model spawns; the whole feature is
+-- session-only (never restored across save/load - ClearAnyLeftoverCamp sweeps
+-- leftovers by name). See docs/camp.md for the full design and postmortems.
 
 mercenaries.CampModels = {
     -- Small/standard tent, kept for potential reuse.
@@ -117,30 +86,11 @@ mercenaries.CampTentClutterOffset = { right = 0.8, forward = -1, z = 0 }
 -- forward = 1.3 (bed) + 0.5 (further from the tent, per feedback) = 1.8.
 mercenaries.CampMercStandOffset = { right = 0.8, forward = -1.3, z = 0 }
 
--- =======================================================================
--- PLAYER TENT - one central tent + a real, player-usable bed, spawned once
--- per camp (not assigned to any merc). Round white tent (tent_big_round_a,
--- which has a vanilla single-sleeper precedent in tent_knights.xml) and the
--- same low straw bed the mercs use (CampModels.Bed); the low bed's height
--- matches its Bed_1Place_Low / GroundBed smart-object helper, so the player
--- lies and wakes at ground level.
---
--- Making the bed interactable ("E - Sleep") follows the mechanism
--- references/zdjbcamping_mod uses: NOT an OnUsed handler on the bed (MakeUsable
--- overwrites OnUsed with a generic broadcast handler, so the bed's own OnUsed
--- never fires), but a SEPARATE vanilla `BedTrigger` entity spawned next to the
--- bed and linked to it. The trigger (an ActionTrigger subclass) provides the
--- "@ui_hud_sleep" prompt and drives the lying stance against the bed's smart
--- object on use.
---
--- So SpawnPlayerCampTent spawns TWO things:
---   1. the bed - a plain BasicEntity carrying the vanilla bed smart-object
---      properties (guidSmartObjectType/soclass_SmartObjectHelpers/Bed/
---      Script.esBedTypes). The SO registration is property-driven, so no
---      custom .ent class is needed.
---   2. a vanilla `BedTrigger` next to it (esActionType="Stance",
---      sAction="lying", UseMessage="@ui_hud_sleep"), linked to the bed via an
---      EMPTY-NAMED link - what ActionTrigger:GetLinkedSmartObject looks for.
+-- Player tent: one central tent + a real, player-usable bed, spawned once per
+-- camp. SpawnPlayerCampTent spawns the bed (a BasicEntity carrying the vanilla
+-- bed smart-object properties) plus a separate vanilla BedTrigger next to it,
+-- empty-name-linked to the bed - that trigger, not an OnUsed handler, drives the
+-- "E - Sleep" prompt and lying stance. See docs/camp.md "The player tent".
 mercenaries.CampPlayerTentModel = "objects/manmade/structures/living/tents/tent_big_round_a.cgf"
 mercenaries.CampPlayerBedModel = mercenaries.CampModels.Bed
 -- White/round tents face opposite the small ones - CampTentFacingFix plus
@@ -307,69 +257,21 @@ mercenaries.CampChairSO = {
 -- in the seat's own local frame to re-centre the pose; CampSitFacingFixDeg
 -- is added to the "face the campfire" angle if the pose comes out rotated.
 mercenaries.CampSitSOOffset = { right = 0.2, forward = 0, z = 0 }
--- The seated pose faces OPPOSITE the seat smart object's forward, so to make a
--- merc face the fire the seat has to point AWAY from it - hence 180 (see the seat
--- spawn: faceFire + this). Only mattered once the seat orientation was actually
--- applied (orientation-at-spawn fix in SpawnCampFurnitureSO); before that every
--- seat used the world default and they all faced one way.
-mercenaries.CampSitFacingFixDeg = 180
+-- Degrees added to the seat's "face the fire" angle. Left at 0: reliably turning
+-- a seated merc to the fire turned out not to be controllable from the seat's
+-- rotation (the sit pose ignores it), so this is a no-op knob for now - the seat
+-- orients toward the fire but the merc's own facing is left to the engine.
+mercenaries.CampSitFacingFixDeg = 0
 
 -- (The per-merc activity spot radius moved outside the tent circle - see
 -- CampActivityOutsideGap in the schedule section below.)
 
--- =======================================================================
--- CAMP ACTIVITIES - "make the camp feel alive"
---
--- The engine plays named NPC activity animations through the `UnstanceAction`
--- behaviour-tree node. Every playable name is catalogued in
--- references/Libs/Tables/ai/NPCStateUnstanceDatabase.xml as an <UnstanceData>
--- entry (In / Loop / Out animation fragments). The simplest real example is
--- references/AI/profession/camper/so_camperFemaleEating.xml, whose whole `use`
--- tree is a sitting StanceElement wrapping
---   <UnstanceAction unstance="eating" locationObject="..." />
--- followed by a Wait. Standing actions don't even need the StanceElement -
--- references/AI/situation/dogbarkingpasserby/situation_dogbarking.xml just
--- calls <UnstanceAction unstance="dogBarking" locationObject="" /> directly.
--- And `unstance` accepts a variable (e.g. unstance="$unstance" in
--- references/AI/special/smallTalkingWatchers/...), so ONE behaviour-tree case
--- can play any activity in this table by name.
---
--- Each UnstanceData carries two attributes that decide what a merc needs:
---   UseLocationObject="false" -> no prop/anchor required, plays anywhere
---   IsAligned="false"         -> the merc isn't snapped to an anchor's transform
--- Entries below record which mode each activity needs:
---   mode 1 = sit on a seat smart object, then play the action
---   mode 2 = stand, no anchor at all
---   mode 3 = stand, aligned to an anchor entity (needs `prop`/anchor)
---   mode 4 = stand, duo leader - plays `unstance`, partner plays `partner`
--- `prop` is an optional decorative model spawned at the spot.
---
--- Names verified to exist in NPCStateUnstanceDatabase.xml. Which ones actually
--- look right in-game is exactly what merc_camp_activity_test is for.
--- IN-GAME TEST RESULTS (rounds 1 + 2). Round 1's rule held with one refinement
--- from round 2:
---   * an action works if its UnstanceData has UseLocationObject="false" AND it
---     needs nothing in the merc's hands...
---   * ...but SEATED actions additionally need the seat passed as the
---     UnstanceAction's locationObject. Round 2's "all sit don't work - they
---     just stand on the log" was exactly that: mode 1 passed an empty
---     locationObject. Vanilla always passes the seat (so_camperFemaleEating:
---     $__resource.id for `eating`; so_sitPlace: $__object.id for
---     camper_snooze) - camper_snooze is ALSO called with an empty one in one
---     vanilla spot, which is why snooze alone tolerated our old call. Fixed in
---     mercenary_follow.xml's mode-1 case; the sit_* entries are worth a retest.
---   * everything defaulting to UseLocationObject="true" (wood chopping, sawing,
---     camper_cooking, wagon pushing, and round 2 additions sweep/stoke/
---     smokehouse) plays nothing - the merc stands at the anchor. Those want
---     the full authored rig (align points + a tool item) that
---     so_choppingWood.xml builds via GraphSearch. Not worth rebuilding.
---   * DrawAction before an unstance is USELESS: the unstance's In fragment
---     re-sheathes the weapon first (round 2, sword_training/show_off: "pull
---     out their sword, sheathe it, then start"). drawWeapon removed.
---   * round 2 confirmations: pick_herbs and loot work very well (the "good
---     labour animation"); cook_fire's stirring works and now gets a kettle;
---     eating_standing/camper_snooze still the staples.
--- `prop`/`prop2` = decorative models spawned at the spot (looks only).
+-- Camp activities: named NPC animations played via the UnstanceAction BT node.
+-- Modes recorded per entry: 1 = sit on a seat smart object then play; 2 = stand,
+-- no anchor; 3 = stand aligned to an anchor entity (needs `prop`); 4 = stand duo
+-- leader (partner plays `partner`). `prop`/`prop2` = decorative models at the
+-- spot. Which names actually look right was found with merc_camp_activity_test;
+-- the per-name verdicts and the underlying rules are in docs/camp.md.
 mercenaries.CampActivityCatalogue = {
     -- ---- CONFIRMED WORKING ----
     { name = "sword_training", unstance = "noob_sword_training",        mode = 2, note = "WORKS - sparring drill, mimes without a weapon; needs open space" },
@@ -432,22 +334,12 @@ mercenaries.CampActivityHoldSeconds = 25
 -- [mercWuidStr] = { unstance=, mode=, locWuid=, pos={x,y,z}, slaveWuid= }
 mercenaries.CampActivities = {}
 
--- =======================================================================
--- CAMP DAILY SCHEDULE - the "make it feel alive" layer. Guards (half the
--- squad) patrol permanently; every other tent merc owns a full set of spots
--- (their bed's smart object, their fire-facing stool's smart object, a
--- standing spot, and a slot at the training ground) recorded in
--- CampMercSpots at camp build. Their current occupation comes from
--- CampRoleCycle, staggered per merc so the camp shows a mix at any moment,
--- and RotateCampRoles (driven by MonitorCamp's 5s tick) advances everyone
--- one step every CampRotateTicks ticks - mercs then WALK to their next
--- occupation on their own (the follow BT Moves them), which itself reads as
--- camp life. Only activities CONFIRMED working in-game are in the cycle.
--- Non-trainer mercs cycle through these; trainers (see below) cycle through
--- CampTrainerCycle instead. sit/snooze/sleep pull from SHARED pools (logs
--- around the fire, beds in tents) and pick a spot a bit FURTHER from where the
--- merc currently is, to create walking (per feedback). eat/herbs happen at the
--- merc's own outer spot.
+-- Camp daily schedule: each non-guard tent merc owns a set of spots (bed, stool,
+-- stand, training slot) and cycles through CampRoleCycle (trainers use
+-- CampTrainerCycle), staggered per merc. RotateCampRoles (MonitorCamp's 5s tick)
+-- advances everyone a step; mercs then walk to the next spot themselves, which
+-- reads as camp life. sit/snooze/sleep pull from shared pools and pick a spot
+-- further from the merc to create movement. See docs/camp.md.
 mercenaries.CampRoleCycle = { "sleep", "sit", "eat", "herbs", "snooze" }
 mercenaries.CampTrainerCycle = { "train", "sit", "train", "eat", "train", "sleep" }
 -- At night (CampIsNight, 9pm-6am) each role rotation has this chance to be
@@ -581,135 +473,48 @@ mercenaries.CampClusterSpacing = 10.5
 -- still referencing it doesn't break.
 mercenaries.CampMaxPatrollers = 3
 
--- =======================================================================
--- Ground-validation tuning (see CampValidateSpot / SpawnMercCamp).
--- These decide whether a candidate cluster cell is buildable ground rather
--- than a roof, a hillside, a tree, or a step. A cell is probed with a small
--- cluster of downward rays over a CampClusterFootprint-radius square; the
--- thresholds below are what each ray is judged against.
--- =======================================================================
--- Half-width (m) of the square of probe rays fired around a cluster cell.
--- Sized to roughly a tent-cluster's footprint so the probes actually cover
--- where props will land. Bigger = stricter (catches more obstacles) but also
--- rejects tighter-but-usable clearings.
-mercenaries.CampClusterFootprint = 3.0
--- Probe rays start this far ABOVE the reference (player) level and reach
--- CampProbeDepth below it. Start high (like the zdjb camping mod's +50) so a
--- ray is above any tree/roof top and hits its upper surface on the way down -
--- that high hit is exactly how a tree TRUNK or a building ROOF gets detected
--- (see CampValidateSpot). A harmless leaf canopy has no collision, so the ray
--- passes through it and hits the ground normally.
-mercenaries.CampProbeStartHeight = 50.0
+-- Ground-validation tuning (CampValidateSpot / SpawnMercCamp): decides whether a
+-- cluster cell is buildable ground vs a roof/hillside/tree/step. See docs/camp.md
+-- "Ground validation" for the reasoning behind these thresholds.
+mercenaries.CampClusterFootprint = 3.0                 -- half-width (m) of the probe-ray square around a cell
+mercenaries.CampProbeStartHeight = 50.0                -- rays start this high so a tree/roof top registers on the way down
 mercenaries.CampProbeDepth       = 30.0
--- Reject ground whose surface normal tilts more than this from vertical - a
--- hillside no camp should sit on. cos(28 deg) ~ 0.883; a probe normal.z below
--- this fails.
-mercenaries.CampMaxSlopeCos = math.cos(math.rad(28))
--- Max height spread (m) tolerated across a cell's footprint. A bigger spread
--- means a step, kerb, cliff edge, rock, or tree trunk cuts through where the
--- tent would sit. Also the per-probe spike threshold (a single probe this far
--- above the centre = a tall obstacle in the column).
-mercenaries.CampMaxStep = 1.2
--- Ground more than CampMaxRise above the player's level is a roof/ledge/tree
--- top the player isn't standing on; more than CampMaxDrop below is a pit or
--- the terrain floor under a building. Either way the cell isn't "the same
--- ground the player is on", so it's rejected.
-mercenaries.CampMaxRise = 2.0
-mercenaries.CampMaxDrop = 4.0
--- Exploration cap: the most grid cells SpawnMercCamp will probe outward
--- before giving up and letting an imperfect/overpopulated camp form on raw
--- cells (per "up to a set number of chunks, after which it gives up"). This
--- also bounds the one-time raycast cost of making camp.
-mercenaries.CampMaxProbeCells = 60
+mercenaries.CampMaxSlopeCos = math.cos(math.rad(28))   -- reject ground steeper than ~28deg
+mercenaries.CampMaxStep = 1.2                          -- max height spread (m) across a cell, and per-probe spike threshold
+mercenaries.CampMaxRise = 2.0                          -- higher than this above player level = roof/ledge/tree top
+mercenaries.CampMaxDrop = 4.0                          -- lower than this below = pit / floor under a building
+mercenaries.CampMaxProbeCells = 60                     -- cells SpawnMercCamp probes before giving up (bounds raycast cost)
 
--- =======================================================================
--- Fine heightmap classifier (see CampSampleHeightmap / CampClassifyHeightmap).
--- This is the PHASE-1 detector: a dense 0.5m sample grid whose cells are sorted
--- into valid ground / small obstacle (tree, rock) / building / void by
--- CONNECTIVITY rather than absolute height, so gradual slopes stay valid and
--- only sharp steps cut a surface off. Used by merc_camp_scan to visualise what
--- the ground reads as; the real camp spawn will be moved onto it in phase 2.
--- =======================================================================
--- Sample resolution (m). 0.5 is fine enough to size prop footprints in cells
--- (a merc tent reads as ~4x9 valid cells at this spacing).
-mercenaries.CampSampleStep = 0.5
--- Two adjacent samples whose heights differ by <= this are the SAME walkable
--- surface (a gentle slope has a tiny per-step delta and stays connected); a
--- bigger jump is an edge - the start of a tree trunk, a kerb, or a building
--- wall. This is the "sudden increase in height by ~1m" rule, set tighter (0.5)
--- so even low steps register.
-mercenaries.CampConnectStep = 0.5
--- An obstacle clump (cells cut off from the walkable surface) this size or
--- smaller reads as a tree / bush / rock - tolerable, props just avoid it. A
--- bigger clump reads as a building - a hard barrier. ~5 cells at 0.5m is about
--- a tree trunk's footprint; tens of cells is a wall, per the spec.
-mercenaries.CampSmallClumpMax = 5
+-- Fine heightmap classifier (CampSampleHeightmap / CampClassifyHeightmap): a dense
+-- 0.5m grid sorted into valid/obstacle/building/void by connectivity, so slopes
+-- stay valid and only sharp steps cut off. See docs/camp.md.
+mercenaries.CampSampleStep = 0.5      -- sample resolution (m)
+mercenaries.CampConnectStep = 0.5     -- height delta between adjacent samples that counts as an edge, not the same surface
+mercenaries.CampSmallClumpMax = 5     -- obstacle clumps this size or smaller = tree/rock (tolerable); bigger = building
 
--- =======================================================================
--- Phase-2 tile layout tuning (see CampBuildMap / the tile loop in
--- SpawnMercCamp). The camp is chosen on a coarse grid of square TILES (one
--- functional unit each) whose ground is judged from the fine 0.5m
--- classification above.
--- =======================================================================
--- Half-size (m) of one layout tile - the footprint (+ half margins) of a
--- campfire unit. Tiles are CampClusterSpacing apart, so half that is the tile
--- half-extent used when scoring how much of a tile is valid ground.
-mercenaries.CampTileHalf = 5.25
--- A camping tile is accepted if no more than this fraction of its cells are
--- invalid (spec: "at most 50% of the tile may be invalid").
-mercenaries.CampTileMaxInvalidFrac = 0.5
--- The player-tent and training tiles must be this fraction VALID or better
--- (spec: "mostly empty", chosen as >=80% valid) AND carry no building-class
--- clump (a tree is fine, a wall isn't).
-mercenaries.CampTileClearFrac = 0.8
--- Prop footprints (metres, half-width x half-depth), from the spec's cell
--- counts at 0.5m: tent 4x9 -> 2.0x4.5m, campfire 5x5 -> 2.5m, player tent
--- 9x9 -> 4.5m. A footprint passes if at most CampFootprintSlack of its cells
--- are invalid ("one or two invalid ones are fine").
+-- Tile layout tuning (CampBuildMap / the tile loop in SpawnMercCamp): the camp is
+-- chosen on a coarse grid of square tiles judged from the fine classification
+-- above. See docs/camp.md for the full scheme.
+mercenaries.CampTileHalf = 5.25                        -- half-size (m) of one layout tile (a campfire unit's footprint)
+mercenaries.CampTileMaxInvalidFrac = 0.5               -- a camping tile may be at most this fraction invalid
+mercenaries.CampTileClearFrac = 0.8                    -- player-tent/training tiles need this fraction valid and no building clump
+-- Prop footprints (half-width x half-depth, m); a footprint passes if <= CampFootprintSlack cells are invalid.
 mercenaries.CampTentFootHalf   = { w = 1.0, h = 2.25 }
 mercenaries.CampFireFootHalf    = { w = 1.25, h = 1.25 }
 mercenaries.CampPlayerTentFootHalf = { w = 2.25, h = 2.25 }
-mercenaries.CampFootprintSlack  = 2   -- invalid cells tolerated inside a prop footprint
--- Half-extent (m) of the small footprint FindValidGround (mercenaries_util.lua)
--- checks when validating a single teleport/spawn position - "one valid tile per
--- merc". Just big enough that a merc isn't dropped onto a thin tree trunk.
-mercenaries.CampMercFootprint   = 0.6
--- How far (m) and in how many steps a prop may be nudged to dodge an obstacle
--- clump before it's placed at the least-bad spot anyway (tents/beds are never
--- skipped outright, to keep the furniture pools intact - see SpawnMercCamp).
-mercenaries.CampNudgeStep = 0.5
+mercenaries.CampFootprintSlack  = 2
+mercenaries.CampMercFootprint   = 0.6                  -- footprint FindValidGround checks per single spawn/teleport spot
+mercenaries.CampNudgeStep = 0.5                        -- prop nudge step/limit to dodge an obstacle before placing least-bad
 mercenaries.CampNudgeMax  = 3
--- Camp map radius is sized to cover the tiles plus a margin, but capped here
--- so a giant squad can't trigger a huge one-time raycast burst. Tiles beyond
--- the map fall back to the cheap per-cluster CampValidateSpot probe.
-mercenaries.CampMapMaxRadius = 22.0
--- Player-tent placement search: the player tent is nudged over a
--- +/-CampCenterSearch metre grid (CampCenterSearchStep spacing) and the spot
--- whose 9x9 footprint has the MOST valid ground wins - "find a position with
--- the most valid tiles around it". Kept small so the camp still lands roughly
--- where the player asked.
-mercenaries.CampCenterSearch     = 2.0
+mercenaries.CampMapMaxRadius = 22.0                    -- caps the one-time raycast burst; tiles beyond fall back to CampValidateSpot
+mercenaries.CampCenterSearch     = 2.0                 -- player-tent placement search grid (most-valid-ground wins), kept small
 mercenaries.CampCenterSearchStep = 1.0
--- Under-roof handling: a column whose downward (high) ray hits this far or
--- more above the player's feet is judged to be under a roof. Because the
--- engine snaps a spawned prop onto that roof regardless of the z we ask for,
--- such columns are marked UNBUILDABLE (invalid) rather than built on - the camp
--- forms on the open ground past the walls instead. The player's own column
--- (used by CampDetectRoof to decide whether to run the per-cell test at all)
--- and every map column are tested against this. (The user suggested ~5m; 3m
--- also catches lower single-storey interiors while staying well clear of the
--- ~0 that open sky or a pass-through tree canopy returns.)
+-- A column whose high ray hits this far above the player's feet counts as under a
+-- roof; such columns are marked unbuildable so the camp forms on open ground.
 mercenaries.CampRoofDetectHeight = 3.0
 
--- Bed placement relative to its own tent: right/forward are in the tent's
--- local space (relative to the tent's own facing angle), z is a world-space
--- vertical offset, rotationDeg is relative to the tent's facing.
--- rotationDeg was stuck at 90 and never actually reaching the real camp (see
--- the bug note in SpawnMercCamp - CampRelativeOffset's rotated angle was
--- being discarded, so the live camp always showed rotationDeg=0 regardless
--- of this value, even though merc_camp_bed_test correctly showed 90 looking
--- right in isolation). Now that the bug's fixed, bumped by another 90 per
--- feedback - re-check in-game and adjust again if this overshoots.
+-- Bed placement relative to its own tent: right/forward in tent-local space, z a
+-- world vertical offset, rotationDeg relative to the tent's facing.
 mercenaries.CampBedOffset = { right = 0, forward = 0, z = 0, rotationDeg = 90 }
 
 -- Tents were coming out of SpawnCampProp facing 90 degrees off from where
@@ -727,10 +532,7 @@ mercenaries.CampPatrollers = {}  -- [mercWuidStr] = { waypoints={ {x,y,z}, ... }
 mercenaries.CampFurniture  = {}  -- [mercWuidStr] = { wuid=furnitureSOWuid, kind="bed"/"chair" } - a non-guard merc's assigned sit/sleep smart object, see SpawnMercCamp + GetCampFurniture
 mercenaries.CampCommunalChairs = {} -- unused - kept declared for back-compat
 
--- =======================================================================
--- Ground-snap a position via the same terrain raycast technique
--- GetSafeSpawnPosition already uses (mercenaries_util.lua).
--- =======================================================================
+-- Ground-snap a position via the same terrain raycast GetSafeSpawnPosition uses.
 function mercenaries:CampSnapToGround(pos)
     local ok, result = pcall(function()
         local hitTable = {}
@@ -746,41 +548,12 @@ function mercenaries:CampSnapToGround(pos)
     return pos
 end
 
--- =======================================================================
--- Validate whether a tent/cluster can sit on the ground at `pos`.
---
--- The "spawns on rooftops" problem is that CampSnapToGround happily snaps to
--- whatever ent_static geometry is under a point - including a building roof.
--- Dropping ent_static doesn't help (it snaps THROUGH the roof to the terrain
--- floor inside the house), and buildings are brushes/render-nodes, not
--- entities, so hitTable.entity can't flag them. The only robust signal is
--- geometry, which is what this checks with a small cluster of downward probe
--- rays over a CampClusterFootprint-radius square around `pos`:
---
---   * the CENTRE probe gives the ground height + surface normal - a normal
---     tilted past CampMaxSlopeCos is a hillside (rejected);
---   * ground sitting more than CampMaxRise above / CampMaxDrop below the
---     reference level `refZ` (the player's own feet) is a roof / ledge / pit
---     the player isn't standing on - i.e. NOT contiguous with the player's
---     ground - and is rejected. This is what keeps the camp on the player's
---     level rather than a roof at a different height;
---   * eight EDGE/CORNER probes catch a step, kerb, cliff edge, rock, or tree
---     trunk cutting through the footprint: any single probe spiking more than
---     CampMaxStep above the centre, or a total height spread over the square
---     bigger than CampMaxStep, fails.
---
--- TREES ("very high, thin objects"), handled deliberately: a leaf canopy has
--- no collision, so a downward probe passes straight through it and hits the
--- ground - camping under a canopy is fine and stays allowed. A tree TRUNK
--- does have a physics proxy, so any probe column that intersects it hits the
--- trunk's top surface at a Z far above refZ, which trips either the "too_high"
--- centre test or the per-probe spike test. The one blind spot is a pencil-thin
--- trunk that threads between all nine probes; tightening CampClusterFootprint
--- or adding probes narrows that gap at a small extra raycast cost.
---
--- Returns: valid (bool), groundZ (centre hit, usable as the snapped height),
--- reason (string, for the debug scan / logging).
--- =======================================================================
+-- Validate whether a tent/cluster can sit on the ground at `pos`, by firing a
+-- cluster of downward probe rays over a CampClusterFootprint square: the centre
+-- probe rejects steep normals and ground that sits too far above/below the
+-- player's level (a roof/ledge/pit), and eight edge probes reject steps and tree
+-- trunks. Leaf canopies pass through (camping under one is fine). Returns valid,
+-- groundZ, reason. See docs/camp.md "Ground validation" for the full rationale.
 function mercenaries:CampValidateSpot(pos, refZ, footprint)
     footprint = footprint or self.CampClusterFootprint
     refZ = refZ or pos.z
@@ -827,15 +600,9 @@ function mercenaries:CampValidateSpot(pos, refZ, footprint)
     return true, cz, "ok"
 end
 
--- =======================================================================
--- HEIGHTMAP SAMPLER - one downward ray per cell of a (2*radius+1)^2 grid at
--- `spacing` metres, centred on `origin`. Returns { r, spacing, origin, refZ,
--- z } where z[i][j] (i,j in 0..2r) is the ground height at that column, or nil
--- for a void (nothing under it). Rays start CampProbeStartHeight (50m) up so a
--- leaf canopy is passed through and a tree TRUNK / building ROOF top is the
--- hit - the same trick CampValidateSpot uses. This is the raw input to
--- CampClassifyHeightmap.
--- =======================================================================
+-- Heightmap sampler: one downward ray per cell of a (2*radius+1)^2 grid at
+-- `spacing` m around `origin`, returning z[i][j] ground heights (nil = void).
+-- Raw input to CampClassifyHeightmap. See docs/camp.md.
 function mercenaries:CampSampleHeightmap(origin, radius, spacing, underRoof)
     spacing = spacing or self.CampSampleStep
     local refZ = origin.z
@@ -882,26 +649,11 @@ function mercenaries:CampSampleHeightmap(origin, radius, spacing, underRoof)
     return { r = radius, spacing = spacing, origin = origin, refZ = refZ, z = z, roof = roof }
 end
 
--- =======================================================================
--- HEIGHTMAP CLASSIFIER - turns a CampSampleHeightmap into a per-cell class
--- grid using connectivity from a seed cell (default: the centre = the player's
--- own feet). This is the breadth-first "no sharp edge from where I stand" test
--- the spec describes:
---
---   * flood the WALKABLE SURFACE out from the seed: step to an 8-neighbour
---     only when |dz| <= CampConnectStep. A gentle slope has a tiny per-step
---     delta so the whole hillside stays one connected surface ("slopes are
---     fine"); a trunk/kerb/wall is a sharp step that the flood won't cross.
---   * every cell the flood reaches is "valid".
---   * cells it can't reach are grouped into obstacle CLUMPS (again joined by
---     small internal steps, so a flat roof is one clump and a separate ledge
---     is another). A clump of <= CampSmallClumpMax cells is "small" (tree /
---     rock - tolerable); a bigger one is "building" (hard barrier).
---   * a column with no ground at all is "void".
---
--- Returns cls[i][j] (one of "valid"/"small"/"building"/"void") and a counts
--- table { valid, small, building, void }.
--- =======================================================================
+-- Heightmap classifier: flood the walkable surface out from a seed cell (the
+-- player's feet), stepping to a neighbour only when |dz| <= CampConnectStep, so
+-- slopes stay connected but steps don't. Reached cells are "valid"; unreached
+-- clumps are "small" (tree/rock) or "building" by size; no-ground is "void".
+-- Returns cls[i][j] and a counts table. See docs/camp.md.
 function mercenaries:CampClassifyHeightmap(hm, seedI, seedJ)
     local r, z, roofg = hm.r, hm.z, hm.roof
     local step = self.CampConnectStep
@@ -1000,15 +752,10 @@ function mercenaries:CampClassifyHeightmap(hm, seedI, seedJ)
     return cls, counts
 end
 
--- =======================================================================
--- UNDER-ROOF DETECTION - is the player standing under a roof? Samples the
--- player's OWN column from high up: if that hit comes back CampRoofDetectHeight+
--- above the player's feet, there's a roof overhead. A pass-through tree canopy
--- has no collision and returns ~the ground (no false positive). This only
--- decides WHETHER to run the per-cell dual-ray sampling in CampSampleHeightmap
--- (which then decides, cell by cell, whether each column is actually indoors).
+-- Under-roof detection: sample the player's own column from high up; a hit
+-- CampRoofDetectHeight+ above their feet means a roof overhead (a tree canopy
+-- passes through, no false positive). Gates the per-cell roof sampling.
 -- Returns underRoof(bool), ceilingZ(or nil).
--- =======================================================================
 function mercenaries:CampDetectRoof(playerPos)
     local refZ = playerPos.z
     local hitTable = {}
@@ -1026,13 +773,8 @@ function mercenaries:CampDetectRoof(playerPos)
     return false, nil
 end
 
--- =======================================================================
--- CAMP MAP - a fine classified heightmap the tile/prop placement queries by
--- world position. Built once per camp (see SpawnMercCamp). Wraps
--- CampSampleHeightmap + CampClassifyHeightmap and remembers the geometry so a
--- world (x,y) can be turned back into a cell class. `underRoof` enables the
--- per-cell dual-ray (floor-under-roof) sampling.
--- =======================================================================
+-- Camp map: a classified heightmap (sampler + classifier) built once per camp,
+-- remembering its geometry so a world (x,y) maps back to a cell class.
 function mercenaries:CampBuildMap(center, radius, underRoof)
     local hm = self:CampSampleHeightmap(center, radius, self.CampSampleStep, underRoof)
     local cls = self:CampClassifyHeightmap(hm, radius, radius)
@@ -1297,36 +1039,22 @@ end
 -- mercenary_scheduler.xml / archer_scheduler.xml (routes guards into the
 -- follow BT instead of the stand-still idle branch) and mercenary_follow.xml
 -- (the actual patrol Move loop).
--- =======================================================================
--- CAMP DEPLOYMENT - take some mercs OUT of camp to follow you
---
--- While a camp is pitched the whole squad normally stays in it. The
--- quartermaster can instead DEPLOY a fraction of the squad (best-equipped
--- first) to follow the player while the rest keep camping. A deployed merc is
--- tracked in CampOutParty by the same AI-WUID string the camp keys everything
--- by. The camp accessors below all return nothing for a deployed merc, so the
--- follow BT falls through to normal follow-the-player behaviour; IsCampActor
--- still returns true for them, so the scheduler routes them to the follow
--- branch (not the idle stand-still branch) even though camp keeps _G.MercIdle
--- set for the mercs who stayed behind.
--- =======================================================================
+-- Camp deployment: the quartermaster can send a fraction of the squad (best-
+-- equipped first) out of camp to follow the player while the rest keep camping.
+-- Deployed mercs are tracked in CampOutParty; the camp accessors return nothing
+-- for them (so the follow BT follows the player), but IsCampActor stays true so
+-- the scheduler routes them to the follow branch, not idle-stand.
 mercenaries.CampOutParty = {}   -- [wuidStr] = true : mercs deployed out of camp
 
 function mercenaries:IsCampOut(mercWuid)
     return self.CampOutParty[tostring(mercWuid)] == true
 end
 
--- The squad's per-merc relationship to the camp:
---   * "in a sortie" = out following the player. True when there is NO camp at
---     all (the whole squad is on the move) OR a camp is up but this merc was
---     deployed out of it. Sortie mercs RESPECT global idle (the wait order),
---     mount horses and teleport to keep up.
---   * "in camp"     = a camp is up and this merc was not deployed. In-camp mercs
---     IGNORE global idle and are driven by their camp role.
--- These key off _G.MercInCamp (the "mercs are actually camping" flag the camp
--- accessors gate on), not self.CampActive (the "camp structure exists" flag) -
--- RecallMercs clears the former while leaving the tents standing, and in that
--- state everyone should count as a sortie so they form up / teleport / follow.
+-- "In a sortie" = out following the player (no camp at all, or a camp is up but
+-- this merc was deployed); sortie mercs respect the wait order and teleport to
+-- keep up, while in-camp mercs ignore it and follow their role. Keys off
+-- _G.MercInCamp (mercs actually camping), not CampActive (structure exists), so
+-- after RecallMercs (tents still standing) everyone counts as a sortie.
 function mercenaries:IsMercInSortie(mercWuid)
     if not _G.MercInCamp then return true end
     return self:IsCampOut(mercWuid)
@@ -1611,16 +1339,10 @@ function mercenaries:ProcessReturnPending()
     end
 end
 
--- =======================================================================
--- CAMP PRACTICE YARD (the Practice Yard upgrade made real) - now its own
--- structure like the forge / alchemy bench, so it can be raised on camp make
--- AND the instant it's bought mid-camp. Spawns the straw dummies + a weapon pile
--- on the reserved training tile; the drilling mercs come from the trainer role
--- (CampTrainerCycle), assigned in the camp build loop or by AssignCampTrainers.
--- CampForwardAngle / CampTrainCenter are remembered at camp build so this can run
--- again later. The dummy props track in CampEntities, so BreakMercCamp tears them
--- down with everything else.
--- =======================================================================
+-- Camp practice yard (Practice Yard upgrade): its own structure (like the forge)
+-- so it can be raised on camp make or the moment it's bought mid-camp. Spawns
+-- straw dummies + a weapon pile on the reserved training tile; drilling mercs
+-- come from the trainer role (CampTrainerCycle). Props track in CampEntities.
 mercenaries.CampPracticeYard = nil   -- { numDummies=, trainCenter= } while up
 
 function mercenaries:SpawnCampPracticeYard(center)
@@ -1907,13 +1629,10 @@ function mercenaries:CampGridOffsets(count)
     return offsets
 end
 
--- =======================================================================
--- SPAWN CAMP - builds the physical layout and teleports the squad into it.
--- Tent recipients (everyone, up to CampMaxTents) are grouped into "cells" of
--- CampClusterSize mercs, each cell getting its own campfire + seats + tents,
--- tiled in a grid for larger squads. Mercs beyond the cap get a plain straw
--- bed on an outer ring instead.
--- =======================================================================
+-- Build the physical camp layout and teleport the squad in. Tent recipients (up
+-- to CampMaxTents) are grouped into cells of CampClusterSize, each with its own
+-- fire/seats/tents, tiled in a grid; mercs beyond the cap get an outer-ring bed.
+-- See docs/camp.md for the full layout scheme.
 function mercenaries:SpawnMercCamp()
     if self.CampActive then
         Game.SendInfoText('merc_info_camp_already_active', false, 0, 3)
@@ -2525,6 +2244,10 @@ function mercenaries:SpawnMercCamp()
         pcall(function()
             if self.LogiState and self:LogiState().hasAlchemy then self:SpawnCampAlchemy(center) end
         end)
+        -- Hunting station: dressed camp props (no borrow) once a Hunter is hired.
+        pcall(function()
+            if self.LogiState and (self:LogiState().hunterSpots or 0) > 0 then self:SpawnCampHunt(center) end
+        end)
 
         Game.SendInfoText('merc_info_camp_made', false, 0, 4)
     end)
@@ -2534,11 +2257,8 @@ function mercenaries:SpawnMercCamp()
     end
 end
 
--- =======================================================================
--- BREAK CAMP - despawns every tracked prop and resumes normal squad state.
--- silent = true skips the "camp broken" info text (used when an explicit
--- follow/dismiss order tears the camp down as a side effect).
--- =======================================================================
+-- Despawn every tracked camp prop and resume normal squad state. silent = true
+-- skips the info text (when a follow/dismiss order breaks camp as a side effect).
 function mercenaries:BreakMercCamp(silent)
     if not self.CampActive then
         if not silent then
@@ -2563,6 +2283,7 @@ function mercenaries:BreakMercCamp(silent)
     -- Tear down the camp forge (restores the borrowed village Smithery).
     pcall(function() self:DespawnCampForge() end)
     pcall(function() self:DespawnCampAlchemy() end)
+    pcall(function() self:DespawnCampHunt() end)
 
     self.CampEntities = {}
     self.CampSlots = {}
@@ -2616,14 +2337,9 @@ function mercenaries:MonitorCamp()
     self:CampChatTick()
 end
 
--- =======================================================================
--- RECALL - brings the whole squad to the player's current position
--- immediately, from anywhere, and resumes following. Does NOT touch the
--- camp structure (tents etc. stay standing until explicitly broken) - only
--- the mercs' positions/state change. Bound to a key in OnGameplayStarted
--- (see mercenaries.lua), same "bind <key> <command>" pattern the bodyguards
--- reference mod uses for its own hotkeys.
--- =======================================================================
+-- Bring the whole squad to the player and resume following, from anywhere,
+-- without touching the camp structure (tents stay until explicitly broken).
+-- Bound to a key in OnGameplayStarted. See docs/camp.md.
 function mercenaries:RecallMercs()
     if _G.MercenariesDismissed then
         Game.SendInfoText('merc_info_camp_no_squad', false, 0, 3)
@@ -2729,6 +2445,7 @@ function mercenaries:ClearAnyLeftoverCamp()
     -- Tear down the camp forge (restores the borrowed village Smithery).
     pcall(function() self:DespawnCampForge() end)
     pcall(function() self:DespawnCampAlchemy() end)
+    pcall(function() self:DespawnCampHunt() end)
 
     self.CampActive = false
     self.CampEntities = {}

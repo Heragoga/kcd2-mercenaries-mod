@@ -1,11 +1,10 @@
---Hire regular mercs
+-- Hire regular mercs.
 function mercenaries:Hire(cost, amount, tier)
     local p = player.inventory
 
     self:Recount()
     if not _G.MercCount then _G.MercCount = 0 end
 
-    -- Check limits and cost first (Early Exit)
     if _G.MercCount + amount > self.MaxCompanions then
         Game.SendInfoText('merc_info_too_many', false, 0, 3)
         return
@@ -16,10 +15,9 @@ function mercenaries:Hire(cost, amount, tier)
         return
     end
 
-    -- Apply costs and update variables
     p:RemoveMoney(cost)
 
-    -- Gate SaveString: only write if state actually needs to change
+    -- Gate SaveString: only write when state actually changes.
     if _G.MercenariesDismissed ~= false then
         _G.MercenariesDismissed = false
         self:SaveString("MercenariesDismissed", "0")
@@ -75,8 +73,7 @@ function mercenaries:Hire(cost, amount, tier)
 
                 self:EquipMercenary(ent, currentPreset)
                 self:EquipMercenaryWeapon(ent, currentWeaponPreset, currentPreset)
-                -- PERFORMANCE: Register in cache immediately so the next
-                -- MonitorLoop tick doesn't need a full world scan to find them.
+                -- Register in cache immediately so MonitorLoop needn't world-scan.
                 self.ActiveMercs[entityName] = ent
                 self:InjectInteraction(ent)
 
@@ -109,7 +106,7 @@ function mercenaries:HireCustomCompanion(ccID)
     local cost = heroData.cost
     local soulGuid = heroData.guid
 
-    -- Check if this hero is already alive in the world using the cache first
+    -- A hero can only be hired once - bail if this one is already alive.
     for name, ent in pairs(self.ActiveMercs) do
         if string.find(name, soulGuid, 1, true) then
             local ok, hp = pcall(function() return ent.soul:GetState('health') end)
@@ -123,7 +120,6 @@ function mercenaries:HireCustomCompanion(ccID)
     self:Recount()
     if not _G.MercCount then _G.MercCount = 0 end
 
-    -- Check limits and cost first (Early Exit)
     if _G.MercCount + amount > self.MaxCompanions then
         Game.SendInfoText('merc_info_too_many', false, 0, 3)
         return
@@ -134,10 +130,9 @@ function mercenaries:HireCustomCompanion(ccID)
         return
     end
 
-    -- Apply costs and update variables
     p:RemoveMoney(cost)
 
-    -- Gate SaveString: only write if state actually needs to change
+    -- Gate SaveString: only write when state actually changes.
     if _G.MercenariesDismissed ~= false then
         _G.MercenariesDismissed = false
         self:SaveString("MercenariesDismissed", "0")
@@ -152,7 +147,7 @@ function mercenaries:HireCustomCompanion(ccID)
     local ok, err = pcall(function()
         local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
         if not spawnPos then return end
-        
+
         local offsetPos = self:FindValidGround({
             x = spawnPos.x + (math.random() - 0.5) * 1.5,
             y = spawnPos.y + (math.random() - 0.5) * 1.5,
@@ -170,14 +165,11 @@ function mercenaries:HireCustomCompanion(ccID)
             properties = {guidSharedSoulId = soulGuid}
         })
 
-        -- PERFORMANCE: Register in cache immediately
         local ent = System.GetEntityByName(entityName)
         if ent then
             mercenaries:EnsureMercIsAlwaysRendered(ent)
-
             self.ActiveMercs[entityName] = ent
             self:InjectInteraction(ent)
-
         end
     end)
     
@@ -186,25 +178,11 @@ function mercenaries:HireCustomCompanion(ccID)
     Game.SendInfoText('merc_info_hired_special', false, 0, 3)
 end
 
--- Debug: spawns a battle line of mercs facing a line of renegades, for
--- combat testing. Player ends up centered in the merc line. The enemy
--- side is spawned as renegades (see below) rather than raw bandit souls,
--- so they get the same "attack everyone, don't gang up" AI already built
--- for renegades instead of needing their own separate combat wiring.
---
--- mercCounts / enemyCounts: { weak = N, medium = N, strong = N } - how
---   many of each tier on each side. Defaults to 7/7/6 per side (20 total),
---   matching the old fixed 20v20.
--- mercOutfit / mercWeapon: preset indexes (mercenaries.Outfits /
---   mercenaries.WeaponSets) for the merc side. Default to whatever the
---   squad is currently wearing.
--- enemyOutfit / enemyWeapon: same, for the renegade side. Default to
---   GetRenegadeOutfitFor(mercOutfit) / mercWeapon, so the two sides are
---   visually distinct even if you don't specify anything.
---
--- Within each side, tiers are laid out strongest-first, so the front
--- row(s) - closest to the other side - always get the better troops
--- instead of a random weak/medium/strong mix along the whole line.
+-- Debug: spawn a line of mercs (player centred) facing a line of renegades for
+-- combat testing. counts are { weak, medium, strong } per side (default 7/7/6);
+-- outfit/weapon args default to the squad's current gear (enemy side to a
+-- distinct set). Each side is laid out strongest-first so the front rows get
+-- the better troops.
 function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCounts, enemyOutfit, enemyWeapon)
     local pos = player:GetWorldPos()
     local dir = player:GetDirectionVector()
@@ -212,7 +190,7 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
 
     local playerAngleZ = player:GetAngles().z
 
-    -- Perpendicular to facing direction, used to lay out a row across the player's front.
+    -- Perpendicular to facing, to lay out a row across the player's front.
     local rightX, rightY = dir.y, -dir.x
 
     mercCounts = mercCounts or { weak = 7, medium = 7, strong = 6 }
@@ -228,8 +206,7 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
     local rowSize = 10
     local enemyDistance = 18.0
 
-    -- Strongest first, so filling row-by-row (front row = lowest index)
-    -- naturally puts the better troops at the front of the line.
+    -- Strongest first, so filling row-by-row puts better troops at the front.
     local function buildTierOrder(counts)
         local order = {}
         for _ = 1, (counts.strong or 0) do table.insert(order, "strong") end
@@ -318,9 +295,7 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
             if ent then
                 self:EquipMercenary(ent, enemyOutfit)
                 self:EquipMercenaryWeapon(ent, enemyWeapon, enemyOutfit)
-                -- No manual DrawWeapon() - see the matching comment in
-                -- SpawnRenegade; renegade_attack.xml's automation decorators
-                -- own weapon draw, and forcing it here races spawn init.
+                -- No manual DrawWeapon() - see SpawnRenegade / the target-selection doc.
             end
         end
     end)
@@ -330,10 +305,8 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
     System.LogAlways('[Mercenary Jeff] Spawned test battle: ' .. #mercTierOrder .. ' mercs vs ' .. #enemyTierOrder .. ' renegades.')
 end
 
--- Console-friendly wrapper around SpawnTestBattle: plain numeric args
--- instead of Lua tables, so it works as a normal AddCCommand (%1..%5)
--- rather than needing merc_lua. Splits countPerSide evenly across the
--- three tiers (any remainder goes to the strong tier).
+-- Console-friendly wrapper around SpawnTestBattle (numeric args for AddCCommand),
+-- splitting countPerSide evenly across tiers (remainder to strong).
 -- Outfits: 1 Generic, 2 Bandits, 3 Cumans, 4 Leipa, 5 Kuttenberg, 6 Skalitz.
 -- Weapons: 2 Sword+shield, 3 Axe+shield, 4 Longsword, 5 Mace+shield,
 --          6 Shortsword, 7 Mace, 8 Axe, 9 Polearm.
@@ -351,23 +324,8 @@ function mercenaries:SpawnBattle(mercOutfit, mercWeapon, enemyOutfit, enemyWeapo
     self:SpawnTestBattle(counts, mercOutfit, mercWeapon, counts, enemyOutfit, enemyWeapon)
 end
 
--- =======================================================================
--- Renegades: a separate, hostile-to-everyone NPC type (own brain, own
--- souls, own faction). See docs/xml/add-new-npc.md and
--- docs/xml/make-npc-brain.md for how they're wired up. Their brain is a
--- custom switch (data/AI/renegade_scheduler.xml) that fires a stripped
--- attack interrupt (data/AI/renegade_attack.xml) - no follow, no stance,
--- no schedule. Target selection (FindRenegadeTarget, below) is
--- indiscriminate: any living NPC or the player within 50m, no faction
--- filtering, only avoiding piling more than RenegadeSwarmCap of them onto
--- the same target while another target is available.
---
--- They borrow their look and loadout from the normal mercenary preset
--- tables (mercenaries.Outfits / mercenaries.WeaponSets), same as
--- EquipMercenary/EquipMercenaryWeapon use for real mercs, so spawning one
--- lets you hand it any existing mercenary outfit/weapon preset.
--- =======================================================================
-
+-- Renegades: a separate hostile-to-everyone NPC type used for combat testing.
+-- See docs/combat-target-selection.md "Renegades" for the design.
 mercenaries.RenegadeSouls = {
     "c4b2d8e3-5f0a-4b69-9c7e-2d4f8a0b3c51",
     "d5c3e9f4-601b-4c7a-ad8f-3e5a9b1c4d62",
@@ -377,11 +335,8 @@ mercenaries.RenegadeSouls = {
 }
 mercenaries.RenegadeSoulIndex = 1
 
--- Keeps renegades looking distinct from whatever the mercs are currently
--- wearing: given a mercenaries.Outfits index, look up the outfit
--- renegades should wear instead. 1 Generic, 2 Bandits, 3 Cumans, 4 Leipa,
--- 5 Kuttenberg, 6 Skalitz. There's no "Prague" preset - any reference to
--- one in design notes means Kuttenberg.
+-- Given the mercs' outfit index, the outfit renegades wear instead (to stay
+-- visually distinct). Outfits: 1 Generic 2 Bandits 3 Cumans 4 Leipa 5 Kuttenberg 6 Skalitz.
 mercenaries.RenegadeOutfitOverride = {
     [1] = 5, -- Generic -> Kuttenberg
     [2] = 5, -- Bandits -> Kuttenberg
@@ -391,9 +346,8 @@ mercenaries.RenegadeOutfitOverride = {
     [6] = 2  -- Skalitz -> Bandits
 }
 
--- Returns the outfit index renegades should wear given what the mercs
--- are wearing. Falls back to "next preset over" for anything not covered
--- above, so it's always guaranteed to differ from mercOutfit.
+-- Outfit index renegades should wear given the mercs', falling back to the next
+-- preset over so it always differs from mercOutfit.
 function mercenaries:GetRenegadeOutfitFor(mercOutfit)
     local override = self.RenegadeOutfitOverride[mercOutfit]
     if override then return override end
@@ -405,17 +359,13 @@ function mercenaries:GetRenegadeOutfitFor(mercOutfit)
     return ((mercOutfit % outfitCount) + 1)
 end
 
--- Anti-swarm bookkeeping for renegades, same shape as the mercs' own
--- MercTargetOf/TargetLoad (see mercenaries_target_selection.lua) but kept
--- separate since renegades and mercs claim against two different pools.
+-- Anti-swarm bookkeeping for renegades, kept separate from the mercs' pool.
 mercenaries.RenegadeSwarmCap = 2
 mercenaries.RenegadeTargetOf = {}   -- [renegadeWuidStr] = targetWuidStr
-mercenaries.RenegadeTargetLoad = {} -- [targetWuidStr] = number of renegades currently on it
+mercenaries.RenegadeTargetLoad = {} -- [targetWuidStr] = renegades currently on it
 
--- amount: how many to spawn (default 1)
--- outfitPreset: index into mercenaries.Outfits (default: whatever GetRenegadeOutfitFor picks for the squad's current outfit, so renegades never default to looking like the mercs)
--- tier: "weak" / "medium" / "strong" - which preset variant array to pull gear from (default "strong")
--- weaponPreset: index into mercenaries.WeaponSets, same numbering as the weapon dialogue (default: squad's current weapon)
+-- amount default 1; outfitPreset/weaponPreset default to the distinct renegade
+-- look and squad weapon; tier ("weak"/"medium"/"strong") default "strong".
 function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
     amount = amount or 1
     tier = tier or "strong"
@@ -423,10 +373,8 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
     weaponPreset = weaponPreset or _G.MercCurrentWeapon or 1
 
     local ok, err = pcall(function()
-        -- Find ONE safe spot behind the player, then fan the whole group out
-        -- from there. Calling GetSafeSpawnPosition per-unit instead would
-        -- return nearly the same point every time (player hasn't moved
-        -- between iterations), stacking everyone on top of each other.
+        -- One safe spot behind the player, then fan the group out from it;
+        -- calling GetSafeSpawnPosition per-unit would stack everyone on one point.
         local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 8)
         if not spawnPos then return end
 
@@ -462,9 +410,7 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
                 self.RenegadeSoulIndex = 1
             end
 
-            -- The tier has to live in the entity name: EquipMercenary/
-            -- EquipMercenaryWeapon parse it back out of the name string
-            -- (same convention real mercs are spawned with).
+            -- Tier lives in the name; EquipMercenary* parse it back out.
             local entityName = "SpawnedRenegade_" .. tier .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
 
             System.SpawnEntity({
@@ -479,13 +425,8 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
             if ent then
                 self:EquipMercenary(ent, outfitPreset)
                 self:EquipMercenaryWeapon(ent, weaponPreset, outfitPreset)
-                -- No manual DrawWeapon() here on purpose: renegade_attack.xml's
-                -- MeleeOffenseAutomationDecorator/WeaponAutomationDecorator own
-                -- weapon draw once combat starts, same as every other combat
-                -- tree in this mod. Forcing a draw here races the entity's
-                -- just-spawned init and can leave it stuck in a state the
-                -- automation doesn't expect - the likely cause of renegades
-                -- that spawn in and never react.
+                -- No manual DrawWeapon(): the attack tree's automation owns weapon
+                -- draw; forcing it races spawn init. See the target-selection doc.
             end
         end
     end)
@@ -495,17 +436,8 @@ function mercenaries:SpawnRenegade(amount, outfitPreset, tier, weaponPreset)
     System.LogAlways('[Mercenary Jeff] Spawned ' .. amount .. ' renegade(s), tier ' .. tostring(tier) .. ', outfit preset ' .. tostring(outfitPreset) .. '.')
 end
 
--- Called every ~1s from renegade_scheduler.xml (data.currentTarget).
--- Renegades attack indiscriminately - anything alive within 50m, player
--- included, no faction/hostility filtering. The only restraint is the
--- swarm cap: prefer a target fewer than RenegadeSwarmCap renegades are
--- already on. If everything in range is already at cap, gang up anyway
--- rather than a renegade just standing there with nothing to do.
---
--- Sticks with the current target as long as it's alive and still close
--- (within RenegadeTargetStickRange) instead of re-rolling every tick -
--- only actually rescans once the target dies, despawns, or gets far
--- enough away that it's worth reconsidering.
+-- Called ~1s from renegade_scheduler.xml. Indiscriminate 50m target pick with a
+-- swarm cap; sticks with a live, close target. See the target-selection doc.
 mercenaries.RenegadeTargetStickRange = 5.0
 
 function mercenaries:FindRenegadeTarget(data, myWuid)

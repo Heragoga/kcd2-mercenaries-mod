@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <BehaviorTrees>
-    <!-- SKIRMISH: pure standFire.
-         Straight copy of the vanilla battle archer pattern (standFire in
-         AI/battles/battlegroupcontroller.xml): offense automation +
-         WeaponChange missile, no movement of any kind. The archer plants
-         their feet wherever combat starts and looses arrows from there.
-         They never chase a fleeing target - the leash to the player and the
-         scheduler's follow logic bring them along when the fight moves.
-         Sidearm fallback only when an enemy is within 5m or out of
-         arrows. Weapon drawing is left entirely to the automation
-         decorators (WeaponChange="missile"/"melee") - no manual DrawWeapon
-         call, since that fights the automation and leaves them holding the
-         sidearm instead of the bow. -->
+    <!-- Skirmish: pure standFire (vanilla battle-archer pattern) - offense
+         automation + WeaponChange missile, no movement; the archer fires from
+         where combat starts. Sidearm fallback only within 5m or out of arrows.
+         Weapon draw is left to the automation decorators (no manual DrawWeapon).
+         See docs/archers.md. -->
     <BehaviorTree name="archer_skirmish" is_function="0">
         <Variables>
             <Variable name="distanceToTarget"  type="_float" values="9999.0" isPersistent="0" form="single" />

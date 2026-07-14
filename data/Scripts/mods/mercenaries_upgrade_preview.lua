@@ -1,26 +1,11 @@
--- =======================================================================
--- CAMP-UPGRADE ASSET PREVIEW - console-only tooling
---
--- Spawns one candidate prop per camp upgrade in a straight row in front of
--- the player, each on its own flag-marked spot. Walk down the row to judge
--- the models; the flag marks every spot so a prop that fails to load (blank
--- gap) is still obvious. The kcd.log prints the row order (spot N -> label ->
--- model path) so you can map what you're looking at back to the asset.
---
---   merc_upgrade_preview        - one candidate prop per upgrade (single .cgf models)
---   merc_forge_preview          - forge/smithy prop candidates
---   merc_prefab_preview         - COMPLETE prefab compositions (smithy workshop,
---                                 cooking station, alchemy table, camp fireplace,
---                                 gate tower) via the vanilla RuntimePrefab entity
---   merc_upgrade_preview_clear  - remove whatever the last command spawned
---
--- Single models are sourced from references/Prefabs; the prefab compositions are
--- spawned by GUID through Game.SpawnPrefab. Swap entries in the tables below.
--- =======================================================================
+-- Console-only tooling: spawns candidate camp-upgrade props/prefabs in a row in
+-- front of the player (each on a flag-marked spot) so the models can be judged,
+-- and hosts the forge R&D experiments below (all superseded by the shipped camp
+-- forge in mercenaries_forge.lua; the full postmortem is in docs/camp-forge.md).
+-- Commands: merc_upgrade_preview / merc_forge_preview / merc_prefab_preview /
+-- merc_upgrade_preview_clear. None of this runs during normal play.
 mercenaries.UpgradePreviewEntities = {}
--- Host-entity ids that had a prefab instantiated onto them (need Game.DeletePrefab
--- on cleanup, keyed by id).
-mercenaries.UpgradePreviewPrefabHosts = {}
+mercenaries.UpgradePreviewPrefabHosts = {}   -- host ids needing Game.DeletePrefab on cleanup
 
 -- Reuse the ground-scan flag as the per-spot marker.
 mercenaries.UpgradePreviewFlag = "objects/manmade/common_decorations/flags/flag_temporary.cgf"
@@ -295,16 +280,8 @@ function mercenaries:ForgeBuildFunctional2(yaw)
         .. " links now=" .. (sm.CountLinks and tostring(sm:CountLinks()) or "?") .. ". Press E at the anvil.")
 end
 
--- =======================================================================
--- Strategy C (merc_forge_func3): the COMPLETE smithery rig. The C++ minigame
--- scans the Smithery's entity links by name (tongs/hammer/alignment/forgeBag/
--- forgeCoal/particles/light); the earlier run proved CreateLink is exposed, so
--- we spawn every linked entity the vanilla prefab has - definitions lifted
--- 1:1 from smithy_workshop_base/small (positions converted into the small-
--- prefab frame our composition uses; ItemSlot tool GUIDs are the vanilla
--- blacksmith hammer & tongs) - and wire the links for real. This is what
--- crashed the hammer hit (no hammer item) and spun the view (no alignment).
--- =======================================================================
+-- Strategy C (merc_forge_func3): spawn the complete smithery rig and wire its
+-- links (hammer/tongs/alignment/etc.) by hand. Dead end - see docs/camp-forge.md.
 mercenaries.ForgeRigLinks = {
     { link = "",                     class = "SmartObjectHolder", dx =  0.25, dy = 1.86,  dz = 0.00,  yaw = 0,
       props = { guidSmartObjectType = "a7daaa9f-8424-430d-80a6-e7996aed85a3", soclass_SmartObjectHelpers = "Blacksmith" } },
@@ -348,18 +325,11 @@ mercenaries.ForgeRigBrushes = {
     { model = "objects/manmade/task_specific_props/metal_industry/smithing/barrel_forging.cgf",  dx =  2.51, dy =  0.52, dz =  0.00 },
 }
 
--- =======================================================================
--- Strategy D (merc_forge_func4): spawn the NESTED base prefab directly.
---
--- Why: Game.SpawnPrefab instantiates a prefab's ENTITY objects (with their
--- internal links intact!) but skips static brushes AND nested prefabs. Our
--- earlier attempt spawned smithy_workshop_small - whose Smithery/ItemSlots/
--- TagPoint all live in the NESTED smithy_workshop_base, so none of them came.
--- Spawning smithy_workshop_base itself gets the complete, pre-linked
--- interactive rig (Smithery + hammer/tongs ItemSlots + alignment TagPoint +
--- blacksmith SmartObjectHolder + particles + forge light) in one call; we
--- supply the missing brush visuals ourselves.
--- =======================================================================
+-- Strategy D (merc_forge_func4): spawn the nested base prefab directly.
+-- Game.SpawnPrefab brings a prefab's entities (links intact) but skips brushes
+-- and nested prefabs, so smithy_workshop_base (not _small) is what carries the
+-- Smithery + tool ItemSlots + alignment TagPoint; we supply the brush visuals.
+-- Dead end - see docs/camp-forge.md.
 mercenaries.SmithyBasePrefabGuid = "bad22e6e-32ed-4c2a-9597-668243bb0724" -- smithy_workshop_base
 
 function mercenaries:ForgeBuildFunctional4(yaw)
@@ -398,14 +368,8 @@ function mercenaries:ForgeBuildFunctional4(yaw)
         .. tostring(ok) .. (err and (" err=" .. tostring(err)) or "") .. ". Press E at the anvil.")
 end
 
--- =======================================================================
--- ItemSlot hijack recon (merc_itemslot_scan): can we borrow already-loaded
--- ItemSlots instead of spawning them? Enumerate every loaded ItemSlot, read
--- what item it holds (EntityModule.GetSlotItemClassId, falling back to the
--- Properties table), and report distances - especially any blacksmith
--- hammer/tongs slots. If none are loaded near a wilderness camp, the hijack is
--- a non-starter; if a village smithy is streamed in, we can move+link them.
--- =======================================================================
+-- ItemSlot hijack recon (merc_itemslot_scan): enumerate loaded ItemSlots and what
+-- they hold, to see if a streamed-in village smithy's slots can be borrowed. See docs/camp-forge.md.
 mercenaries.HammerItemGuid = "0502824d-a654-4471-9978-c1624860dde1"
 mercenaries.TongsItemGuid  = "f22b7bb9-fa73-4aa1-92e6-3943e2be7e69"
 
@@ -457,23 +421,16 @@ function mercenaries:ItemSlotScan()
     System.LogAlways(string.format("[SlotScan] loaded Smithery entities: %d (nearest %s m)", smc, smNear and string.format("%.1f", smNear) or "-"))
 end
 
--- =======================================================================
--- merc_anvil_grab / _use / _restore: TELEPORT a real loaded Smithery to Henry.
--- CanUse is a proximity check (1 within ~1.3m, 0 beyond), and the alignment
--- that positions Henry is the "" SmartObjectHolder link, which IS Lua-visible
--- and movable. So: move the Smithery + its holder (+ visible coal/bag/light) to
--- the camp; the invisible hammer/tongs tool slots stay linked at the village and
--- still supply the tools. Then Henry smiths at camp. Restore puts it all back.
--- =======================================================================
+-- merc_anvil_grab / _use / _restore: teleport a real loaded Smithery (+ its
+-- alignment holder and visible props) to camp while its invisible tool slots stay
+-- linked at the village and still supply the tools. This is the approach that
+-- shipped (see mercenaries_forge.lua and docs/camp-forge.md).
 mercenaries.AnvilBorrow = nil
 
--- Our own forge visuals, laid out exactly like the base-game smithy relative to
--- Henry's standing point (which faces the anvil). fwd = toward the anvil,
--- lat = +left / -right, up = height. Offsets derived from smithy_workshop_small
--- (+ nested base): the alignment sits ~2.74m behind the anvil, the forge & coal
--- are behind-left, the water & barrel to the front-right.
--- yaw = per-piece rotation offset (degrees, +=counterclockwise) on top of the
--- rig's facing. Positions are Henry-relative: fwd=toward the anvil, lat=+left.
+-- Henry-relative forge visuals: fwd = toward the anvil, lat = +left/-right,
+-- up = height, yaw = per-piece rotation offset (deg, +=CCW). Derived from
+-- smithy_workshop_small: alignment ~2.74m behind the anvil, forge & coal
+-- behind-left, water & barrel front-right.
 mercenaries.ForgeVisualLayout = {
     -- interaction anvil: at the Smithery (E fires here), ~2.74m ahead. Distinct
     -- model (armourer's anvil) from the forging one.
@@ -617,14 +574,8 @@ function mercenaries:AnvilRestore()
     System.LogAlways("[Anvil] restored: Smithery back, camp visuals removed, alignment holder parked at the village.")
 end
 
--- =======================================================================
--- merc_forge_real: the ultimate "use an already-spawned thing" - don't build a
--- forge, just fire the vanilla Blacksmithing.StartMinigame on the nearest REAL
--- loaded Smithery (which already owns its hidden hammer/tongs/alignment slots).
--- If this launches a full, non-crashing minigame, a camp forge near a
--- settlement can trigger it; if it crashes/refuses, blacksmithing truly can't
--- be driven from Lua at all.
--- =======================================================================
+-- merc_forge_real: fire vanilla Blacksmithing.StartMinigame on the nearest real
+-- loaded Smithery, to test whether blacksmithing can be driven from Lua at all.
 function mercenaries:ForgeReal()
     local sm, dist = self:FindNearestSmithery()
     if not sm then System.LogAlways("[ForgeReal] no loaded Smithery found"); return end
@@ -637,12 +588,8 @@ function mercenaries:ForgeReal()
     System.LogAlways("[ForgeReal] Blacksmithing.StartMinigame ok=" .. tostring(ok) .. (err and (" err=" .. tostring(err)) or ""))
 end
 
--- =======================================================================
--- merc_smithery_dump: the ItemSlots aren't enumerable by class, but a loaded
--- real Smithery reaches them through its links. Find the nearest loaded
--- Smithery and dump every link (name -> linked entity class/name/pos/itemclass),
--- so we can see whether we can grab its hammer/tongs/alignment slots to borrow.
--- =======================================================================
+-- merc_smithery_dump: find the nearest loaded Smithery and dump every link
+-- (name -> linked entity), to see whether its tool/alignment slots can be borrowed.
 function mercenaries:FindNearestSmithery()
     if not player then return nil end
     local o = player:GetWorldPos()
@@ -685,14 +632,9 @@ function mercenaries:SmitheryDump()
     System.LogAlways("[SmithDump] done. Note whether 'hammer'/'tongs'/'alignment' links resolve to real entities with item guids.")
 end
 
--- =======================================================================
--- Strategy E (merc_forge_func5): prefab + census + auto-wire hybrid.
--- Spawns the base prefab, then 0.6s later ENUMERATES what actually spawned
--- (by class, within 12m) and logs every piece. If the prefab's own Smithery
--- is missing, spawns OUR Smithery (known to give the E) and CreateLinks it to
--- whatever prefab pieces DID arrive: ItemSlots (hammer/tongs by item guid),
--- TagPoint (alignment), SmartObjectHolder (empty-name resource link).
--- =======================================================================
+-- Strategy E (merc_forge_func5): spawn the base prefab, census what actually
+-- arrived, then spawn our own Smithery and CreateLink it to the arrived pieces.
+-- Dead end - see docs/camp-forge.md.
 function mercenaries:ForgeBuildFunctional5(yaw)
     self:ForgeBuildFunctional4(yaw)   -- visuals + base prefab (also sets _fD below)
     self._forgeD = { yaw = tonumber(yaw) or 0 }
@@ -967,21 +909,12 @@ function mercenaries:ClearUpgradePreview()
     self.UpgradePreviewPrefabHosts = {}
 end
 
--- =======================================================================
--- INTERACTIVE PART TUNER
---
--- Place one part at a time and nudge its position / rotation / scale until the
--- arrangement looks right, then merc_part_dump prints the values to paste back.
--- Parts are picked by INDEX (the console reliably substitutes numbers, not bare
--- strings): 1=forge 2=coals 3=anvil 4=water 5=barrel.
--- Offsets are WORLD-axis metres from the anchor set by merc_part_reset (4m in
--- front of where you stood); rotations are world degrees about X / Y / Z. Re-run
--- the same index to re-place that part in situ.
---
---   merc_part_reset                      - clear parts, set anchor at feet+front
---   merc_part <idx> dx dy dz rx ry rz s  - spawn/replace part <idx> (all 8 args)
---   merc_part_dump                       - print all current parts' values
--- =======================================================================
+-- Interactive part tuner: place one part at a time and nudge its position /
+-- rotation / scale until it looks right, then merc_part_dump prints the values.
+-- Parts are picked by index (1=forge 2=coals 3=anvil 4=water 5=barrel); offsets
+-- are world-axis metres from the merc_part_reset anchor (4m ahead of you). Re-run
+-- the same index to re-place that part in situ. Commands: merc_part_reset /
+-- merc_part <idx> dx dy dz rx ry rz s / merc_part_dump.
 mercenaries.PartList = {
     { name = "forge",  model = "objects/manmade/task_specific_props/metal_industry/smithing/forge_small_a.cgf" },
     { name = "coals",  model = "objects/manmade/structures/industrial/smitheries/coal_forge_small_a.cgf" },

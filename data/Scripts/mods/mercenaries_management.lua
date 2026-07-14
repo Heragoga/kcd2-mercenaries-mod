@@ -1,6 +1,5 @@
 -- Heals and washes all active mercenaries.
 function mercenaries:FullHealAndWashNumberOfMercs()
-    -- PERFORMANCE: Iterate the cache instead of scanning all world NPCs.
     for name, e in pairs(self.ActiveMercs) do
         if e and e.soul then
             local ok, hp = pcall(function() return e.soul:GetState('health') end)
@@ -35,11 +34,8 @@ function mercenaries:AnyMercNeedsHealing()
     return false
 end
 
--- QoL: squad overview reachable from the management dialog ("How is everyone
--- holding up?") and the merc_status console command. The HUD line shows the
--- numbers via the "@labelKey <number>" pattern (every visible word must be an
--- @-localization-key or the engine prefixes it with a stray '@'); the full wordy
--- detail (orders/stance/weapon) goes to the log.
+-- Squad overview, from the management dialog and the merc_status console command:
+-- a HUD summary line plus full detail to the log.
 function mercenaries:ShowSquadStatus()
     local ok, err = pcall(function()
         local total, archers, heroes = 0, 0, 0
@@ -66,8 +62,8 @@ function mercenaries:ShowSquadStatus()
 
         local avg = hpSum / total
 
-        -- HUD line: numbers only, via the "@labelKey <number>" pattern (every
-        -- visible word must be an @-key, or the engine prefixes it with a stray @).
+        -- HUD line via the "@labelKey <number>" pattern: every visible word must
+        -- be an @-key, or the engine prefixes it with a stray @.
         pcall(function()
             Game.SendInfoText(
                 "@merc_n_squad " .. total

@@ -1,4 +1,4 @@
---Equips an individual merc with a certain style
+-- Equips an individual merc with a clothing preset for their tier and style.
 function mercenaries:EquipMercenary(ent, currentPreset)
     if not ent or not ent.actor then return end
     
@@ -48,7 +48,6 @@ function mercenaries:ChangeMercOutfit(presetNumber, skipSave)
         mercenaries:SaveString("MercOutfitPersistent", tostring(currentPreset))
     end
 
-    -- PERFORMANCE: Iterate the cache instead of scanning all world NPCs.
     for name, ent in pairs(self.ActiveMercs) do
         if ent and ent.soul and ent.actor then
             -- Custom companions keep their own outfit, only re-equip regular mercs
@@ -74,24 +73,10 @@ function mercenaries.ReapplySavedOutfit()
     mercenaries:ChangeMercOutfit(savedOutfit, true)
 end
 
--- =======================================================================
--- WEAPON LOADOUT — same structure as the clothing preset system above,
--- selected via dialogue instead of GetActions, EquipWeaponPreset instead
--- of EquipClothingPreset.
--- =======================================================================
-
--- The shield is bundled into the weapon preset alongside the weapon (the
--- engine equips a preset's items as a set - there's no separate shield
--- slot to fill), so to keep shields tied to the outfit we pick a preset
--- whose bundled shield matches the merc's clothing set. The shield-bearing
--- weapon types (2 sword+shield, 3 axe+shield, 5 mace+shield) each have their
--- variants split into a "generic" group and a "Skalitz" group (kite / Skalitz
--- wave shields); Skalitz-clad mercs draw from the Skalitz group, everyone
--- else from the generic group, so a non-Skalitz merc never rolls a Skalitz
--- shield and vice versa.
--- NOTE: only Skalitz has a dedicated shield in the current asset set, so the
--- generic group is shared by all non-Skalitz outfits (their shields still
--- vary by tier - pavese/heater/knight - just not by faction).
+-- Weapon loadouts: same preset structure as clothing, but the shield is bundled
+-- into the weapon preset (no separate shield slot). Shield-bearing types (2/3/5)
+-- split into a "generic" and a "Skalitz" group; Skalitz-clad mercs roll from the
+-- Skalitz group and everyone else from generic, so shields match the outfit.
 mercenaries.SkalitzOutfitIndex = 6
 mercenaries.ShieldWeaponTypes = { [2] = true, [3] = true, [5] = true }
 mercenaries.SkalitzShieldPresets = {
@@ -192,7 +177,6 @@ function mercenaries:ChangeMercWeapon(presetNumber, skipSave)
         mercenaries:SaveString("MercWeaponPersistent", tostring(currentPreset))
     end
 
-    -- PERFORMANCE: Iterate the cache instead of scanning all world NPCs.
     for name, ent in pairs(self.ActiveMercs) do
         if ent and ent.soul and ent.actor then
             -- Custom companions keep their own weapon, only re-equip regular mercs

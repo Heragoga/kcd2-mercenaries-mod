@@ -73,10 +73,14 @@
                 <Definition File="mercenaries_background_quest/carbongo/merc_camp_barks.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/merc_travel_barks.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/merc_both_barks.xml" />
-                <Definition File="mercenaries_background_quest/carbongo/merc_bark_ack.xml" />
-                <Definition File="mercenaries_background_quest/carbongo/merc_bark_wait.xml" />
-                <Definition File="mercenaries_background_quest/carbongo/merc_bark_follow.xml" />
-                <Definition File="mercenaries_background_quest/carbongo/merc_bark_moveout.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_ack_1.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_ack_2.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_ack_3.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_wait_1.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_wait_2.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_follow_1.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_follow_2.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_moveout_1.xml" />
             </Definitions>
             <Nodes>
                 <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
@@ -147,6 +151,14 @@
                 <merc_camp_barks Name="merc_camp_barks" PositionY="150" PositionX="900" />
                 <merc_travel_barks Name="merc_travel_barks" PositionY="150" PositionX="900" />
                 <merc_both_barks Name="merc_both_barks" PositionY="150" PositionX="900" />
+                <merc_bark_ack_1 Name="merc_bark_ack_1" PositionY="150" PositionX="1100" />
+                <merc_bark_ack_2 Name="merc_bark_ack_2" PositionY="150" PositionX="1100" />
+                <merc_bark_ack_3 Name="merc_bark_ack_3" PositionY="150" PositionX="1100" />
+                <merc_bark_wait_1 Name="merc_bark_wait_1" PositionY="150" PositionX="1100" />
+                <merc_bark_wait_2 Name="merc_bark_wait_2" PositionY="150" PositionX="1100" />
+                <merc_bark_follow_1 Name="merc_bark_follow_1" PositionY="150" PositionX="1100" />
+                <merc_bark_follow_2 Name="merc_bark_follow_2" PositionY="150" PositionX="1100" />
+                <merc_bark_moveout_1 Name="merc_bark_moveout_1" PositionY="150" PositionX="1100" />
 
 
                 <EventFunction Name="exec_clothes_1" PositionY="1500" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
