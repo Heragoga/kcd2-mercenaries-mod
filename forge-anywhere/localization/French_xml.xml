@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Forge prête. Approche-toi de l'enclume et appuie sur E pour forger.</Cell><Cell>Forge prête. Approche-toi de l'enclume et appuie sur E pour forger.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Forge remballée.</Cell><Cell>Forge remballée.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>Aucune forge n'est chargée à proximité pour emprunter des outils.</Cell><Cell>Aucune forge n'est chargée à proximité pour emprunter des outils.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Tu as déjà une forge installée.</Cell><Cell>Tu as déjà une forge installée.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Tu n'as aucune forge installée.</Cell><Cell>Tu n'as aucune forge installée.</Cell></Row>
+</Table>

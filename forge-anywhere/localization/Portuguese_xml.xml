@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Forja pronta. Aproxima-te da bigorna e pressiona E para forjar.</Cell><Cell>Forja pronta. Aproxima-te da bigorna e pressiona E para forjar.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Forja desmontada.</Cell><Cell>Forja desmontada.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>Não há nenhuma forja carregada por perto para pegar ferramentas emprestadas.</Cell><Cell>Não há nenhuma forja carregada por perto para pegar ferramentas emprestadas.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Já tens uma forja montada.</Cell><Cell>Já tens uma forja montada.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Não tens nenhuma forja montada.</Cell><Cell>Não tens nenhuma forja montada.</Cell></Row>
+</Table>

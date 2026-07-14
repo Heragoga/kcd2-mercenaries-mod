@@ -216,9 +216,14 @@ function mercenaries:LogiAddMorale(delta, reason)
     local L = self:LogiState()
     local before = L.morale
     L.morale = math.max(self.MoraleMin, math.min(self.MoraleMax, before + delta))
-    if math.abs(L.morale - before) >= 0.1 then
-        System.LogAlways(string.format("[Logistics] Morale %+.1f (%s): %.0f -> %.0f",
-            L.morale - before, tostring(reason or "?"), before, L.morale))
+    -- Log only when the whole-number morale actually moves. Continuous per-tick
+    -- drift is ~0.1/tick, which would otherwise flood the log with lines that
+    -- don't even change the displayed value; discrete events (kills, deaths,
+    -- upkeep) always cross an integer, so they still show up.
+    local bi, ai = math.floor(before + 0.5), math.floor(L.morale + 0.5)
+    if bi ~= ai then
+        System.LogAlways(string.format("[Logistics] Morale %d -> %d (%s)",
+            bi, ai, tostring(reason or "?")))
     end
 end
 
@@ -545,13 +550,13 @@ function mercenaries:LogiReconcile()
 end
 
 -- ==== Wages (coffer first, then the player's purse) ====
--- Freeform HUD line WITH numbers. Game.SendInfoText shows the text verbatim when
--- the 3rd arg is nil (this is exactly what merc_camp_scan / mercenaries_camp_debug
--- does); passing a real value there makes it try to resolve the whole sentence as
--- a localization key instead. English-only, like those debug lines.
-function mercenaries:LogiInfoNum(fmt, ...)
-    local ok, s = pcall(string.format, fmt, ...)
-    if ok and s then pcall(function() Game.SendInfoText(s, false, nil, 6) end) end
+-- Number lines are shown by calling Game.SendInfoText DIRECTLY with a string of
+-- the form "@labelKey <number> @labelKey <number> ...". Every visible word MUST
+-- be an @-localization-key; only bare numbers may sit between them. (If you put
+-- plain words in the string the engine prefixes each one with a stray '@'.) So
+-- each label is its own key and is always immediately followed by its number.
+function mercenaries:LogiInfo(s)
+    pcall(function() Game.SendInfoText(s, false, 0, 5) end)
 end
 
 function mercenaries:LogiProcessWages()
@@ -575,7 +580,7 @@ function mercenaries:LogiProcessWages()
     else
         L.unpaid = true
         L.lastWageTotal = total
-        self:LogiInfoNum("Couldn't pay wages (%d groschen short) - the men are unpaid and morale will suffer.", total - (coffer + money))
+        self:LogiInfo("@merc_n_wshort " .. (total - (coffer + money)))
     end
 end
 
@@ -656,7 +661,7 @@ function mercenaries:LogiDeliverFood()
     if delivered > 0 then
         self:LogiAdjust("food", delivered, "delivered by player")
         self:LogiReconcile(); self:LogiSave()
-        self:LogiInfoNum("Delivered %d food (now %d units, ~%d day(s)).", delivered, self:LogiState().food, self:LogiSupplyDays(self:LogiState().food))
+        self:LogiInfo("@merc_n_fdeliv " .. delivered .. " @merc_n_stock " .. self:LogiState().food .. " @merc_n_days " .. self:LogiSupplyDays(self:LogiState().food))
     else
         Game.SendInfoText('merc_logi_nothing_to_deliver', false, 0, 3)
     end
@@ -686,8 +691,7 @@ function mercenaries:LogiPanelFood(_signal)
     if delivered <= 0 then return end
     self:LogiAdjust("food", delivered, "delivered via panel")
     self:LogiReconcile(); self:LogiSave()
-    self:LogiInfoNum("Quartermaster took %d food (now %d units, ~%d day(s)).",
-        delivered, self:LogiState().food, self:LogiSupplyDays(self:LogiState().food))
+    self:LogiInfo("@merc_n_ftook " .. delivered .. " @merc_n_stock " .. self:LogiState().food .. " @merc_n_days " .. self:LogiSupplyDays(self:LogiState().food))
 end
 
 function mercenaries:LogiDeliverDrink()
@@ -702,7 +706,7 @@ function mercenaries:LogiDeliverDrink()
     if delivered > 0 then
         self:LogiAdjust("drink", delivered, "delivered by player")
         self:LogiReconcile(); self:LogiSave()
-        self:LogiInfoNum("Delivered %d drink (now %d units, ~%d day(s)).", delivered, self:LogiState().drink, self:LogiSupplyDays(self:LogiState().drink))
+        self:LogiInfo("@merc_n_ddeliv " .. delivered .. " @merc_n_stock " .. self:LogiState().drink .. " @merc_n_days " .. self:LogiSupplyDays(self:LogiState().drink))
     else
         Game.SendInfoText('merc_logi_nothing_to_deliver', false, 0, 3)
     end
@@ -729,15 +733,14 @@ function mercenaries:LogiPanelDrink(_signal)
     if delivered <= 0 then return end
     self:LogiAdjust("drink", delivered, "delivered via panel")
     self:LogiReconcile(); self:LogiSave()
-    self:LogiInfoNum("Quartermaster took %d drink (now %d units, ~%d day(s)).",
-        delivered, self:LogiState().drink, self:LogiSupplyDays(self:LogiState().drink))
+    self:LogiInfo("@merc_n_dtook " .. delivered .. " @merc_n_stock " .. self:LogiState().drink .. " @merc_n_days " .. self:LogiSupplyDays(self:LogiState().drink))
 end
 
 function mercenaries:LogiBuyFood()
     if not self:LogiSpend(self.FoodBuyCost) then return end
     self:LogiAdjust("food", self.FoodBuyAmount, "bought for " .. self.FoodBuyCost .. " groschen")
     self:LogiReconcile(); self:LogiSave()
-    self:LogiInfoNum("Bought %d food for %d groschen (now %d units).", self.FoodBuyAmount, self.FoodBuyCost, self:LogiState().food)
+    self:LogiInfo("@merc_n_fbought " .. self.FoodBuyAmount .. " @merc_n_cost " .. self.FoodBuyCost .. " @merc_n_stock " .. self:LogiState().food)
 end
 
 -- Shared "can we afford X, and take it" helper.
@@ -767,7 +770,7 @@ function mercenaries:LogiDepositCoffer()
     local L = self:LogiState()
     self:LogiAdjust("coffer", self.CofferDepositStep, "player deposit")
     self:LogiSave()
-    self:LogiInfoNum("Put %d groschen in the war chest (now %d gr).", self.CofferDepositStep, L.coffer)
+    self:LogiInfo("@merc_n_cadd " .. self.CofferDepositStep .. " @merc_n_cnow " .. L.coffer)
 end
 function mercenaries:LogiWithdrawCoffer()
     local L = self:LogiState()
@@ -782,7 +785,7 @@ function mercenaries:LogiWithdrawCoffer()
     if ok then
         self:LogiAdjust("coffer", -taken, "withdrawn by player")
         self:LogiSave()
-        self:LogiInfoNum("Took %d groschen from the war chest.", taken)
+        self:LogiInfo("@merc_n_ctake " .. taken)
     else
         System.LogAlways('[Logistics] AddMoney failed; coffer kept at ' .. tostring(L.coffer))
         Game.SendInfoText('merc_logi_coffer_empty', false, 0, 3)
@@ -810,6 +813,14 @@ function mercenaries:LogiBuySmithy()
     if L.hasSmithy then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
     if not self:LogiSpend(self.UpgSmithyCost) then return end
     L.hasSmithy = true; self:LogiApplyBuffs(); self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    -- If we're already in camp, build the forge right now instead of waiting for
+    -- the next camp make. SpawnCampForge runs its own flat-patch scan, so no full
+    -- rebuild is needed; it silently no-ops if a forge is already up.
+    pcall(function()
+        if self.CampActive and self.CampCenter and not self.CampForge then
+            self:SpawnCampForge(self.CampCenter)
+        end
+    end)
 end
 function mercenaries:LogiBuyAlchemy()
     local L = self:LogiState()
@@ -833,11 +844,11 @@ end
 
 function mercenaries:LogiAskFood()
     local L = self:LogiState()
-    self:LogiInfoNum("Food: %d units - roughly %d day(s) for the men.", L.food, self:LogiSupplyDays(L.food))
+    self:LogiInfo("@merc_n_food " .. L.food .. " @merc_n_days " .. self:LogiSupplyDays(L.food))
 end
 function mercenaries:LogiAskDrink()
     local L = self:LogiState()
-    self:LogiInfoNum("Drink: %d units - roughly %d day(s) for the men.", L.drink, self:LogiSupplyDays(L.drink))
+    self:LogiInfo("@merc_n_drink " .. L.drink .. " @merc_n_days " .. self:LogiSupplyDays(L.drink))
 end
 
 -- Overall report (numbers, camp-debug style).
@@ -846,9 +857,9 @@ function mercenaries:LogiAskStats()
     local total = self:LogiWageTotal()
     local money = 0; pcall(function() money = player.inventory:GetMoney() end)
     local runway = (total > 0) and math.floor(((L.coffer or 0) + money) / total) or 999
-    self:LogiInfoNum("Morale %d | Food %d (%dd) | Drink %d (%dd) | War chest %d gr | Wages %d/day, ~%d day(s) covered.",
-        math.floor(L.morale), L.food, self:LogiSupplyDays(L.food), L.drink, self:LogiSupplyDays(L.drink),
-        L.coffer or 0, total, runway)
+    self:LogiInfo("@merc_n_morale " .. math.floor(L.morale) .. " @merc_n_food " .. L.food .. " @merc_n_days " .. self:LogiSupplyDays(L.food)
+        .. " @merc_n_drink " .. L.drink .. " @merc_n_days " .. self:LogiSupplyDays(L.drink)
+        .. " @merc_n_cnow " .. (L.coffer or 0) .. " @merc_n_wpd " .. total .. " @merc_n_wdays " .. runway)
 end
 
 -- The nightly tally the player asked for: food/drink left, what wages cost and
@@ -857,18 +868,17 @@ function mercenaries:LogiEveningSummary()
     local L = self:LogiState()
     if (L.lastWageTotal or 0) > 0 and not L.unpaid then
         if (L.lastWagePurse or 0) > 0 and (L.lastWageCoffer or 0) > 0 then
-            self:LogiInfoNum("Evening: wages %d gr (%d from the war chest, %d from your purse). Food %d, Drink %d, Morale %d.",
-                L.lastWageTotal, L.lastWageCoffer, L.lastWagePurse, L.food, L.drink, math.floor(L.morale))
+            self:LogiInfo("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_fromchest " .. L.lastWageCoffer .. " @merc_n_frompurse " .. L.lastWagePurse
+                .. " @merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_morale " .. math.floor(L.morale))
         elseif (L.lastWagePurse or 0) > 0 then
-            self:LogiInfoNum("Evening: wages %d gr taken straight from your purse (war chest empty). Food %d, Drink %d, Morale %d.",
-                L.lastWageTotal, L.food, L.drink, math.floor(L.morale))
+            self:LogiInfo("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_frompurse " .. L.lastWageTotal
+                .. " @merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_morale " .. math.floor(L.morale))
         else
-            self:LogiInfoNum("Evening: wages %d gr from the war chest. Food %d, Drink %d, Morale %d.",
-                L.lastWageTotal, L.food, L.drink, math.floor(L.morale))
+            self:LogiInfo("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_fromchest " .. L.lastWageTotal
+                .. " @merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_morale " .. math.floor(L.morale))
         end
     else
-        self:LogiInfoNum("Evening: Food %d, Drink %d, War chest %d gr, Morale %d.",
-            L.food, L.drink, L.coffer or 0, math.floor(L.morale))
+        self:LogiInfo("@merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_cnow " .. (L.coffer or 0) .. " @merc_n_morale " .. math.floor(L.morale))
     end
 end
 

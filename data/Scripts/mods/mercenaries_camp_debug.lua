@@ -308,8 +308,8 @@ function mercenaries:CampScan(radius, spacing)
             radius * 2 + 1, radius * 2 + 1, spacing, total,
             counts.valid, counts.small, counts.building, counts.void, roofNote))
         Game.SendInfoText(string.format(
-            "Camp scan%s: %d valid / %d tree / %d building / %d void",
-            underRoof and " (indoors)" or "", counts.valid, counts.small, counts.building, counts.void), false, nil, 5)
+            "@merc_logi_msg Camp scan%s: %d valid / %d tree / %d building / %d void",
+            underRoof and " (indoors)" or "", counts.valid, counts.small, counts.building, counts.void), false, 0, 5)
     end)
     if not ok then
         System.LogAlways("[Mercenaries] CampScan error: " .. tostring(err))

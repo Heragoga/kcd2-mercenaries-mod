@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Кузница готова. Подойдите к наковальне и нажмите E, чтобы ковать.</Cell><Cell>Кузница готова. Подойдите к наковальне и нажмите E, чтобы ковать.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Кузница свёрнута.</Cell><Cell>Кузница свёрнута.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>Поблизости нет загруженной кузницы, чтобы позаимствовать инструменты.</Cell><Cell>Поблизости нет загруженной кузницы, чтобы позаимствовать инструменты.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>У вас уже устроена кузница.</Cell><Cell>У вас уже устроена кузница.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>У вас нет устроенной кузницы.</Cell><Cell>У вас нет устроенной кузницы.</Cell></Row>
+</Table>

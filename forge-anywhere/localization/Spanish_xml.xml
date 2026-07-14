@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Fragua lista. Acércate al yunque y pulsa E para forjar.</Cell><Cell>Fragua lista. Acércate al yunque y pulsa E para forjar.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Fragua recogida.</Cell><Cell>Fragua recogida.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>No hay ninguna herrería cargada cerca de la que tomar prestadas herramientas.</Cell><Cell>No hay ninguna herrería cargada cerca de la que tomar prestadas herramientas.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Ya tienes una fragua montada.</Cell><Cell>Ya tienes una fragua montada.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>No tienes ninguna fragua montada.</Cell><Cell>No tienes ninguna fragua montada.</Cell></Row>
+</Table>

@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Kovárna je připravena. Přistup k nákovadlu a stiskni E pro kování.</Cell><Cell>Kovárna je připravena. Přistup k nákovadlu a stiskni E pro kování.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Kovárna sbalena.</Cell><Cell>Kovárna sbalena.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>V okolí není načtená žádná kovárna, ze které by šlo půjčit nářadí.</Cell><Cell>V okolí není načtená žádná kovárna, ze které by šlo půjčit nářadí.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Kovárnu už máš postavenou.</Cell><Cell>Kovárnu už máš postavenou.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Nemáš postavenou žádnou kovárnu.</Cell><Cell>Nemáš postavenou žádnou kovárnu.</Cell></Row>
+</Table>

@@ -1429,7 +1429,9 @@ function mercenaries:RotateCampRoles()
     if not self.CampActive then return end
     local ok, err = pcall(function()
         for wuidStr in pairs(self.CampMercSpots or {}) do
-            if self.CampTicks >= (self.CampNextRotate[wuidStr] or 0) then
+            -- The camp blacksmith is pinned to the forge and opts out of the
+            -- normal role rotation (see mercenaries_forge.lua).
+            if wuidStr ~= self.CampForgeSmithWuid and self.CampTicks >= (self.CampNextRotate[wuidStr] or 0) then
                 local cycle = self:CampCycleFor(wuidStr)
                 local idx = ((self.CampRoleIdx[wuidStr] or 0) % #cycle) + 1
                 self.CampRoleIdx[wuidStr] = idx
@@ -2270,6 +2272,13 @@ function mercenaries:SpawnMercCamp()
         _G.MercPersistentIdleFlag = true
         self:SaveString("MercIdlePersistent", "1")
 
+        -- Camp forge: with the Portable Smithy upgrade, build a usable forge on
+        -- the flattest patch near camp (needs a village Smithery loaded nearby
+        -- to borrow; silently skips if there's none).
+        pcall(function()
+            if self.LogiState and self:LogiState().hasSmithy then self:SpawnCampForge(center) end
+        end)
+
         Game.SendInfoText('merc_info_camp_made', false, 0, 4)
     end)
 
@@ -2303,6 +2312,9 @@ function mercenaries:BreakMercCamp(silent)
     -- The quartermaster is an NPC, not a tracked BasicEntity prop, so he's
     -- torn down separately.
     self:DespawnQuartermaster()
+
+    -- Tear down the camp forge (restores the borrowed village Smithery).
+    pcall(function() self:DespawnCampForge() end)
 
     self.CampEntities = {}
     self.CampSlots = {}
@@ -2453,6 +2465,9 @@ function mercenaries:ClearAnyLeftoverCamp()
 
     -- Sweep away a leftover quartermaster (an NPC, swept by name prefix).
     self:DespawnQuartermaster()
+
+    -- Tear down the camp forge (restores the borrowed village Smithery).
+    pcall(function() self:DespawnCampForge() end)
 
     self.CampActive = false
     self.CampEntities = {}

@@ -512,6 +512,7 @@
   <Row><Cell>ui_qm_practice</Cell><Cell>Practice yard (1000 groschen).</Cell><Cell>Practice yard (1000 groschen).</Cell></Row>
   <Row><Cell>merc_henry_qm_practice</Cell><Cell>Lay out a practice yard.</Cell><Cell>Lay out a practice yard.</Cell></Row>
   <Row><Cell>merc_qm_practice</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell></Row>
+  <Row><Cell>merc_logi_msg</Cell><Cell>-</Cell><Cell>-</Cell></Row>
   <Row><Cell>merc_logi_morale_low</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell></Row>
   <Row><Cell>merc_logi_morale_mutiny</Cell><Cell>The men are on the verge of mutiny!</Cell><Cell>The men are on the verge of mutiny!</Cell></Row>
   <Row><Cell>merc_logi_desert_event</Cell><Cell>A mercenary has deserted the company.</Cell><Cell>A mercenary has deserted the company.</Cell></Row>
@@ -532,4 +533,30 @@
   <Row><Cell>merc_logi_upg_have</Cell><Cell>You've already built that.</Cell><Cell>You've already built that.</Cell></Row>
   <Row><Cell>merc_logi_tut_morale</Cell><Cell>Morale is everything: -100 to 100. Winning fights lifts it, losing men and neglect drops it. High morale fights harder; low morale means desertions, and below -80 they mutiny. Camp restores it.</Cell><Cell>Morale is everything: -100 to 100. Winning fights lifts it, losing men and neglect drops it. High morale fights harder; low morale means desertions, and below -80 they mutiny. Camp restores it.</Cell></Row>
   <Row><Cell>merc_logi_tut_upg</Cell><Cell>And for coin I can build improvements: a food cart, an inn, a hunter's spot for endless food, a smithy, an alchemy bench, or a practice yard to train the men up.</Cell><Cell>And for coin I can build improvements: a food cart, an inn, a hunter's spot for endless food, a smithy, an alchemy bench, or a practice yard to train the men up.</Cell></Row>
+  <Row><Cell>merc_n_wshort</Cell><Cell>Wages short (gr), men unpaid:</Cell><Cell>Wages short (gr), men unpaid:</Cell></Row>
+  <Row><Cell>merc_n_fdeliv</Cell><Cell>Food delivered:</Cell><Cell>Food delivered:</Cell></Row>
+  <Row><Cell>merc_n_stock</Cell><Cell>| in stock:</Cell><Cell>| in stock:</Cell></Row>
+  <Row><Cell>merc_n_days</Cell><Cell>| days left:</Cell><Cell>| days left:</Cell></Row>
+  <Row><Cell>merc_n_ftook</Cell><Cell>Quartermaster took food:</Cell><Cell>Quartermaster took food:</Cell></Row>
+  <Row><Cell>merc_n_ddeliv</Cell><Cell>Drink delivered:</Cell><Cell>Drink delivered:</Cell></Row>
+  <Row><Cell>merc_n_dtook</Cell><Cell>Quartermaster took drink:</Cell><Cell>Quartermaster took drink:</Cell></Row>
+  <Row><Cell>merc_n_fbought</Cell><Cell>Bought food:</Cell><Cell>Bought food:</Cell></Row>
+  <Row><Cell>merc_n_cost</Cell><Cell>| cost (gr):</Cell><Cell>| cost (gr):</Cell></Row>
+  <Row><Cell>merc_n_cadd</Cell><Cell>War chest, added (gr):</Cell><Cell>War chest, added (gr):</Cell></Row>
+  <Row><Cell>merc_n_cnow</Cell><Cell>| chest now (gr):</Cell><Cell>| chest now (gr):</Cell></Row>
+  <Row><Cell>merc_n_ctake</Cell><Cell>War chest, withdrew (gr):</Cell><Cell>War chest, withdrew (gr):</Cell></Row>
+  <Row><Cell>merc_n_food</Cell><Cell>Food (units):</Cell><Cell>Food (units):</Cell></Row>
+  <Row><Cell>merc_n_drink</Cell><Cell>Drink (units):</Cell><Cell>Drink (units):</Cell></Row>
+  <Row><Cell>merc_n_morale</Cell><Cell>Morale:</Cell><Cell>Morale:</Cell></Row>
+  <Row><Cell>merc_n_wpd</Cell><Cell>| wages/day (gr):</Cell><Cell>| wages/day (gr):</Cell></Row>
+  <Row><Cell>merc_n_wdays</Cell><Cell>| days covered:</Cell><Cell>| days covered:</Cell></Row>
+  <Row><Cell>merc_n_ewages</Cell><Cell>Evening wages (gr):</Cell><Cell>Evening wages (gr):</Cell></Row>
+  <Row><Cell>merc_n_fromchest</Cell><Cell>| from chest:</Cell><Cell>| from chest:</Cell></Row>
+  <Row><Cell>merc_n_frompurse</Cell><Cell>| from purse:</Cell><Cell>| from purse:</Cell></Row>
+  <Row><Cell>merc_n_squad</Cell><Cell>Squad:</Cell><Cell>Squad:</Cell></Row>
+  <Row><Cell>merc_n_melee</Cell><Cell>| melee:</Cell><Cell>| melee:</Cell></Row>
+  <Row><Cell>merc_n_archers</Cell><Cell>| archers:</Cell><Cell>| archers:</Cell></Row>
+  <Row><Cell>merc_n_heroes</Cell><Cell>| heroes:</Cell><Cell>| heroes:</Cell></Row>
+  <Row><Cell>merc_n_health</Cell><Cell>| avg health:</Cell><Cell>| avg health:</Cell></Row>
+  <Row><Cell>merc_n_injured</Cell><Cell>| injured:</Cell><Cell>| injured:</Cell></Row>
 </Table>

@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>锻炉就绪。走到铁砧旁按 E 开始锻造。</Cell><Cell>锻炉就绪。走到铁砧旁按 E 开始锻造。</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>锻炉已收起。</Cell><Cell>锻炉已收起。</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>附近没有已加载的铁匠铺可借用工具。</Cell><Cell>附近没有已加载的铁匠铺可借用工具。</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>你已经搭建了一座锻炉。</Cell><Cell>你已经搭建了一座锻炉。</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>你没有搭建锻炉。</Cell><Cell>你没有搭建锻炉。</Cell></Row>
+</Table>

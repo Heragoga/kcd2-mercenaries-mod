@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Demirhane hazır. Örse yaklaş ve dövmek için E'ye bas.</Cell><Cell>Demirhane hazır. Örse yaklaş ve dövmek için E'ye bas.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Demirhane toplandı.</Cell><Cell>Demirhane toplandı.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>Yakında alet ödünç alınabilecek yüklü bir demirhane yok.</Cell><Cell>Yakında alet ödünç alınabilecek yüklü bir demirhane yok.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Zaten kurulu bir demirhanen var.</Cell><Cell>Zaten kurulu bir demirhanen var.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Kurulu bir demirhanen yok.</Cell><Cell>Kurulu bir demirhanen yok.</Cell></Row>
+</Table>

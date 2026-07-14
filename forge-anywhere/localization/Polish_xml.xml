@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Kuźnia gotowa. Podejdź do kowadła i naciśnij E, aby kuć.</Cell><Cell>Kuźnia gotowa. Podejdź do kowadła i naciśnij E, aby kuć.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Kuźnia zwinięta.</Cell><Cell>Kuźnia zwinięta.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>W pobliżu nie ma załadowanej kuźni, z której można pożyczyć narzędzia.</Cell><Cell>W pobliżu nie ma załadowanej kuźni, z której można pożyczyć narzędzia.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Masz już rozstawioną kuźnię.</Cell><Cell>Masz już rozstawioną kuźnię.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Nie masz rozstawionej kuźni.</Cell><Cell>Nie masz rozstawionej kuźni.</Cell></Row>
+</Table>

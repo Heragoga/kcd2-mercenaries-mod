@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Forge ready. Step up to the anvil and press E to smith.</Cell><Cell>Forge ready. Step up to the anvil and press E to smith.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Forge packed up.</Cell><Cell>Forge packed up.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>No blacksmith's forge is loaded nearby to borrow tools from.</Cell><Cell>No blacksmith's forge is loaded nearby to borrow tools from.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>You already have a forge set up.</Cell><Cell>You already have a forge set up.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>You have no forge set up.</Cell><Cell>You have no forge set up.</Cell></Row>
+</Table>

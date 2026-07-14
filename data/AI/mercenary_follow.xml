@@ -72,6 +72,10 @@
             <Variable name="hasChatAlias" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="polylog_participants" type="_wuid" values="" isPersistent="0" form="array" />
             <Variable name="polylog_participantsMetaroles" type="soulToMetaroles" values="" isPersistent="0" form="array" />
+            <!-- Camp smith (mode 10 below): the work item conjured into his hand
+                 once per assignment, and the flag that guards the one-time equip. -->
+            <Variable name="forgeHammerItem" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="m10Equipped" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -434,6 +438,42 @@
                                                      what made the sword drill run on after camp broke. -->
                                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'3s'" />
                                             </Sequence>
+                                        </SuppressFailure>
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+                                <!-- Mode 10: the CAMP SMITH (see mercenaries_forge.lua). Sit on the
+                                     spawned bench ($campActLoc, a runtime StanceSmartObject seat -
+                                     those provably work), with a sword conjured into his hand ONCE
+                                     (CreateItem+EquipItem; guid = a real sword class the base game
+                                     itself CreateItems in nebakovObrana), then play the unstance from
+                                     the activity record (camper_knifeSharpening - a camper anim built
+                                     for HELD items). Real smith unstances can NOT be used here: they
+                                     demand hand content GENERATED from level-baked ItemSlots
+                                     (docs/camp-forge.md). No Move - the forge patch may be
+                                     off-navmesh; Lua teleports the smith onto the bench. -->
+                                <IfCondition failOnCondition="false" condition="$campActMode == 10">
+                                    <Sequence>
+                                        <IfCondition failOnCondition="false" condition="~$m10Equipped">
+                                            <Sequence>
+                                                <SuppressFailure>
+                                                    <CreateItem ItemGUID="'8c6b9277-e7ad-4246-974a-65b7000fbc5a'" Amount="1" CreatedItem="$forgeHammerItem" Target="$this.id" NotifyUI="false" />
+                                                </SuppressFailure>
+                                                <SuppressFailure>
+                                                    <EquipItem item="$forgeHammerItem" Target="$this.id" />
+                                                </SuppressFailure>
+                                                <Expression expressions="$m10Equipped = true" />
+                                            </Sequence>
+                                        </IfCondition>
+                                        <SuppressFailure>
+                                            <StanceElement smartObject="$campActLoc" stance="sitting" allowAny="false" enabled="true">
+                                                <Sequence>
+                                                    <WaitAction />
+                                                    <UnstanceAction unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" />
+                                                    <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                                </Sequence>
+                                            </StanceElement>
                                         </SuppressFailure>
                                         <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                     </Sequence>

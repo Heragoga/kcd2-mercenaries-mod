@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>鍛冶場の準備ができた。金床に近づいてEキーで鍛冶を始めよう。</Cell><Cell>鍛冶場の準備ができた。金床に近づいてEキーで鍛冶を始めよう。</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>鍛冶場を撤収した。</Cell><Cell>鍛冶場を撤収した。</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>近くに道具を借りられる鍛冶場が読み込まれていない。</Cell><Cell>近くに道具を借りられる鍛冶場が読み込まれていない。</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>すでに鍛冶場を設置している。</Cell><Cell>すでに鍛冶場を設置している。</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>設置した鍛冶場がない。</Cell><Cell>設置した鍛冶場がない。</Cell></Row>
+</Table>

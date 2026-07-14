@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Fucina pronta. Avvicinati all'incudine e premi E per forgiare.</Cell><Cell>Fucina pronta. Avvicinati all'incudine e premi E per forgiare.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Fucina smontata.</Cell><Cell>Fucina smontata.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>Nessuna fucina è caricata nelle vicinanze da cui prendere in prestito gli attrezzi.</Cell><Cell>Nessuna fucina è caricata nelle vicinanze da cui prendere in prestito gli attrezzi.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Hai già allestito una fucina.</Cell><Cell>Hai già allestito una fucina.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Non hai allestito alcuna fucina.</Cell><Cell>Non hai allestito alcuna fucina.</Cell></Row>
+</Table>

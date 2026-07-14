@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>대장간 준비 완료. 모루에 다가가 E를 눌러 대장일을 하세요.</Cell><Cell>대장간 준비 완료. 모루에 다가가 E를 눌러 대장일을 하세요.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>대장간을 철수했습니다.</Cell><Cell>대장간을 철수했습니다.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>근처에 도구를 빌릴 대장간이 로드되어 있지 않습니다.</Cell><Cell>근처에 도구를 빌릴 대장간이 로드되어 있지 않습니다.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>이미 대장간이 설치되어 있습니다.</Cell><Cell>이미 대장간이 설치되어 있습니다.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>설치된 대장간이 없습니다.</Cell><Cell>설치된 대장간이 없습니다.</Cell></Row>
+</Table>

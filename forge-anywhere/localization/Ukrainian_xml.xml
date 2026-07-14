@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Кузня готова. Підійдіть до ковадла й натисніть E, щоб кувати.</Cell><Cell>Кузня готова. Підійдіть до ковадла й натисніть E, щоб кувати.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Кузню згорнуто.</Cell><Cell>Кузню згорнуто.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>Поблизу немає завантаженої кузні, щоб позичити інструменти.</Cell><Cell>Поблизу немає завантаженої кузні, щоб позичити інструменти.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>У вас уже влаштована кузня.</Cell><Cell>У вас уже влаштована кузня.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>У вас немає влаштованої кузні.</Cell><Cell>У вас немає влаштованої кузні.</Cell></Row>
+</Table>

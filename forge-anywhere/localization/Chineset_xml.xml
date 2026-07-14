@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>鍛爐就緒。走到鐵砧旁按 E 開始鍛造。</Cell><Cell>鍛爐就緒。走到鐵砧旁按 E 開始鍛造。</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>鍛爐已收起。</Cell><Cell>鍛爐已收起。</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>附近沒有已載入的鐵匠鋪可借用工具。</Cell><Cell>附近沒有已載入的鐵匠鋪可借用工具。</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>你已經搭建了一座鍛爐。</Cell><Cell>你已經搭建了一座鍛爐。</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>你沒有搭建鍛爐。</Cell><Cell>你沒有搭建鍛爐。</Cell></Row>
+</Table>

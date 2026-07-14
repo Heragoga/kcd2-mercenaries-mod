@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kcd_mod xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <info>
+    <name>Forge Anywhere</name>
+    <description>Set up a working blacksmith's forge anywhere in the field. Press F3 for a menu to set up or pack up a fully playable forge (real blacksmithing minigame). Needs a village forge loaded somewhere nearby to borrow tools from. No dependencies, no save changes. Localized into 16 languages.</description>
+    <author>Alex</author>
+    <version>1.0</version>
+    <created_on>2026-07-12T00:00:00.0000000+02:00</created_on>
+    <modid>forgeanywhere</modid>
+    <modifies_level>false</modifies_level>
+  </info>
+</kcd_mod>

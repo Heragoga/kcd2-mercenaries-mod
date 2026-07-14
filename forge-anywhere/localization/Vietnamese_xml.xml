@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Lò rèn đã sẵn sàng. Đến gần đe và nhấn E để rèn.</Cell><Cell>Lò rèn đã sẵn sàng. Đến gần đe và nhấn E để rèn.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Đã dọn lò rèn.</Cell><Cell>Đã dọn lò rèn.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>Không có lò rèn nào được tải gần đây để mượn dụng cụ.</Cell><Cell>Không có lò rèn nào được tải gần đây để mượn dụng cụ.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Bạn đã dựng một lò rèn rồi.</Cell><Cell>Bạn đã dựng một lò rèn rồi.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Bạn chưa dựng lò rèn nào.</Cell><Cell>Bạn chưa dựng lò rèn nào.</Cell></Row>
+</Table>

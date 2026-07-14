@@ -1,0 +1,7 @@
+﻿<Table>
+  <Row><Cell>ui_forge_created</Cell><Cell>Schmiede bereit. Tritt an den Amboss und drücke E zum Schmieden.</Cell><Cell>Schmiede bereit. Tritt an den Amboss und drücke E zum Schmieden.</Cell></Row>
+  <Row><Cell>ui_forge_destroyed</Cell><Cell>Schmiede abgebaut.</Cell><Cell>Schmiede abgebaut.</Cell></Row>
+  <Row><Cell>ui_forge_none</Cell><Cell>In der Nähe ist keine Schmiede geladen, von der du Werkzeug leihen könntest.</Cell><Cell>In der Nähe ist keine Schmiede geladen, von der du Werkzeug leihen könntest.</Cell></Row>
+  <Row><Cell>ui_forge_already</Cell><Cell>Du hast bereits eine Schmiede aufgebaut.</Cell><Cell>Du hast bereits eine Schmiede aufgebaut.</Cell></Row>
+  <Row><Cell>ui_forge_noforge</Cell><Cell>Du hast keine Schmiede aufgebaut.</Cell><Cell>Du hast keine Schmiede aufgebaut.</Cell></Row>
+</Table>
