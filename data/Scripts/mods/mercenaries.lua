@@ -62,6 +62,11 @@ mercenaries.TokenIDQMSmithy          = "679a655e-189d-4519-b437-ccc4b92be73d"
 mercenaries.TokenIDQMAlchemy         = "679a655e-189d-4519-b437-ccc4b92be74d"
 mercenaries.TokenIDQMPractice        = "679a655e-189d-4519-b437-ccc4b92be75d"
 
+--quartermaster deploy (take-N mercs out of camp) tokens
+mercenaries.TokenIDQMTakeHalf        = "679a655e-189d-4519-b437-ccc4b92be79d"
+mercenaries.TokenIDQMTakeThird       = "679a655e-189d-4519-b437-ccc4b92be7ad"
+mercenaries.TokenIDQMTakeQuarter     = "679a655e-189d-4519-b437-ccc4b92be7bd"
+
 -- Combat stance tokens (set via dialogue with a mercenary)
 mercenaries.TokenIDStanceEveryone = "679a655e-189d-4519-b437-ccc4b92be51d"
 mercenaries.TokenIDStancePlayerTarget = "679a655e-189d-4519-b437-ccc4b92be52d"
@@ -465,6 +470,35 @@ function mercenaries:SetState(state)
     end
 end
 
+-- Queue an order-acknowledgment bark on a specific merc. The follow BT's bark
+-- loop (mercenary_follow.xml) reads _G.MercBarkReq[wuid] on its next tick, plays
+-- that monolog alias once, and clears the entry. alias is one of merc_bark_ack /
+-- merc_bark_wait / merc_bark_follow / merc_bark_moveout.
+function mercenaries:RequestBark(wuid, alias)
+    if not wuid or not alias then return end
+    _G.MercBarkReq = _G.MercBarkReq or {}
+    _G.MercBarkReq[tostring(wuid)] = alias
+end
+
+-- The player's "wait here" / "follow me" toggle for the SORTIE (the mercs out of
+-- camp, or the whole squad when there's no camp). Sets the global idle order but,
+-- unlike SetState('follow'), does NOT break camp - the mercs who stayed in camp
+-- ignore this flag and keep camping. In-camp mercs are held by their roles, so a
+-- wait order only stops the sortie.
+function mercenaries:SetSortieWait(wait)
+    if wait then
+        _G.MercIdle = true
+        _G.MercPersistentIdleFlag = true
+        self:SaveString("MercIdlePersistent", "1")
+        Game.SendInfoText('merc_info_waiting', false, 0, 3)
+    else
+        _G.MercIdle = false
+        _G.MercPersistentIdleFlag = false
+        self:SaveString("MercIdlePersistent", "0")
+        Game.SendInfoText('merc_info_following', false, 0, 3)
+    end
+end
+
 -- Combat stance, set through dialogue with a mercenary. Applies whether the
 -- squad is following or waiting.
 --   everyone      - attack any hostile, drawn-weapon NPC nearby (default,
@@ -633,6 +667,9 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMSmithy,        function() self:LogiBuySmithy() end)
     tok(self.TokenIDQMAlchemy,       function() self:LogiBuyAlchemy() end)
     tok(self.TokenIDQMPractice,      function() self:LogiBuyPractice() end)
+    tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
+    tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
+    tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
 
     -- Food-delivery panel result: the token COUNT is the delivered food amount,
     -- so this one is handled specially (passes the count through).
@@ -711,6 +748,9 @@ function mercenaries.MonitorLoop()
         -- One shared "fell too far behind" pass over the whole squad instead
         -- of every merc's behavior tree running its own raycast sweep.
         mercenaries:MonitorDistanceAndTeleport()
+
+        -- Delayed "return to camp" teleports (mercs bark + jog first).
+        mercenaries:ProcessReturnPending()
     else
         mercenaries.CachedEnemies = {}
     end
@@ -836,6 +876,7 @@ Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
 Script.LoadScript("Scripts/mods/mercenaries_forge.lua")
+Script.LoadScript("Scripts/mods/mercenaries_alchemy.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")

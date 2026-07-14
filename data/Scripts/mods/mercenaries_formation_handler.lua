@@ -6,9 +6,11 @@ function mercenaries:UpdateFormationSlots()
         local unmounted = {}
 
         for name, ent in pairs(self.ActiveMercs) do
-            if self:IsAliveAndWell(ent, false) then
+            local entWuid  = ent and (ent.this and ent.this.id or ent.id)
+            -- Mercs holding the camp aren't part of the marching formation; only
+            -- sortie mercs (and the whole squad when there's no camp) form up.
+            if self:IsAliveAndWell(ent, false) and not self:IsMercInCampProper(entWuid) then
                 local mercType = self:GetMercType(ent)
-                local entWuid  = ent.this and ent.this.id or ent.id
                 local entName  = ent:GetName() or name
                 local hp       = 0
                 local isMounted = false

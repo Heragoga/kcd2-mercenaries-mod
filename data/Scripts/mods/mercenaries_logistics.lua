@@ -827,12 +827,29 @@ function mercenaries:LogiBuyAlchemy()
     if L.hasAlchemy then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
     if not self:LogiSpend(self.UpgAlchemyCost) then return end
     L.hasAlchemy = true; self:LogiApplyBuffs(); self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    -- If we're already in camp, build the alchemy bench right now (mirrors the
+    -- smithy). SpawnCampAlchemy no-ops if a bench is already up.
+    pcall(function()
+        if self.CampActive and self.CampCenter and not self.CampAlchemy then
+            self:SpawnCampAlchemy(self.CampCenter)
+        end
+    end)
 end
 function mercenaries:LogiBuyPractice()
     local L = self:LogiState()
     if L.hasPracticeYard then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
     if not self:LogiSpend(self.UpgPracticeCost) then return end
     L.hasPracticeYard = true; self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    -- Raise the practice yard right now if we're already in camp (mirrors the
+    -- smithy/alchemy), then set some mercs drilling; otherwise it comes up on the
+    -- next camp make.
+    pcall(function()
+        if self.CampActive and self.CampCenter and not self.CampPracticeYard then
+            if self:SpawnCampPracticeYard(self.CampCenter) then
+                self:AssignCampTrainers(self.CampPracticeYard.numDummies)
+            end
+        end
+    end)
 end
 
 -- Days of a supply the current squad has left.

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="merc_bark_follow">
+            <Text StringName="merc_bark_follow_name" Text="Mercenary merc_bark_follow" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_merc_bark_follow" Priority="General" Autoselect="true" Alias="merc_bark_follow">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_1"><Elements><Response Role="role_mercenary_test"><Text StringName="chat_musa_z_ma_rozumim_ta_FJ9q" Text="I understand. Lead the way!" /></Response></Elements></Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_2"><Elements><Response Role="role_mercenary_test"><Text StringName="chat_komar_tak_ja_stejne__OOmi" Text="I'll follow you anyway." /></Response></Elements></Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

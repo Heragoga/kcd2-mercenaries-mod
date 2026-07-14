@@ -23,6 +23,9 @@
                 <Port Name="quartermaster_smithy"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_alchemy"  Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_practice" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
             </Ports>
             <Text StringName="ui_quartermaster_root" />
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
@@ -143,6 +146,38 @@
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_practice" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_practice" /></Response></Elements>
                                     </Sequence>
                                     <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_upg_back">
+                                        <UiPrompt StringName="ui_qm_back" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
+                                    </Sequence>
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <!-- ===== Deploy (take mercs out of camp to follow you) ===== -->
+                        <Sequence EndType="Decision" Name="seq_qm_deploy">
+                            <UiPrompt StringName="ui_qm_deploy" />
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_deploy" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_deploy" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                            <Decision Name="dec_qm_deploy">
+                                <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_take_half">
+                                        <UiPrompt StringName="ui_qm_take_half" />
+                                        <Triggers><Port Name="quartermaster_take_half" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_take_half" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_take" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_take_third">
+                                        <UiPrompt StringName="ui_qm_take_third" />
+                                        <Triggers><Port Name="quartermaster_take_third" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_take_third" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_take" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_take_quarter">
+                                        <UiPrompt StringName="ui_qm_take_quarter" />
+                                        <Triggers><Port Name="quartermaster_take_quarter" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_take_quarter" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_take" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_deploy_back">
                                         <UiPrompt StringName="ui_qm_back" />
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
                                     </Sequence>

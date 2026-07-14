@@ -50,6 +50,9 @@
 
   <Row><Cell>ui_mercenary_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Wait here for me.</Cell></Row>
   <Row><Cell>ui_mercenary_follow_action</Cell><Cell>Follow me.</Cell><Cell>Follow me.</Cell></Row>
+  <Row><Cell>ui_mercenary_make_camp_action</Cell><Cell>Make camp here.</Cell><Cell>Make camp here.</Cell></Row>
+  <Row><Cell>ui_mercenary_break_camp_action</Cell><Cell>Break camp.</Cell><Cell>Break camp.</Cell></Row>
+  <Row><Cell>ui_mercenary_return_camp_action</Cell><Cell>Back to camp with you.</Cell><Cell>Back to camp with you.</Cell></Row>
   <Row><Cell>ui_mercenary_dismiss_action</Cell><Cell>I'd like to dismiss all of you.</Cell><Cell>I'd like to dismiss all of you.</Cell></Row>
 
   <Row><Cell>merc_henry_wait_action</Cell><Cell>Wait here for me.</Cell><Cell>Wait here for me.</Cell></Row>
@@ -311,6 +314,8 @@
   <Row><Cell>merc_info_camp_not_active</Cell><Cell>There's no camp to break.</Cell><Cell>There's no camp to break.</Cell></Row>
   <Row><Cell>merc_info_camp_no_squad</Cell><Cell>You have no company to make camp with.</Cell><Cell>You have no company to make camp with.</Cell></Row>
   <Row><Cell>merc_info_camp_no_spot</Cell><Cell>No clear ground nearby to make camp.</Cell><Cell>No clear ground nearby to make camp.</Cell></Row>
+  <Row><Cell>merc_info_camp_deployed</Cell><Cell>Company deployed. The chosen mercenaries will follow you; the rest hold the camp.</Cell><Cell>Company deployed. The chosen mercenaries will follow you; the rest hold the camp.</Cell></Row>
+  <Row><Cell>merc_info_camp_returned</Cell><Cell>Your mercenaries have returned to camp.</Cell><Cell>Your mercenaries have returned to camp.</Cell></Row>
   <Row><Cell>merc_info_recalled</Cell><Cell>Squad recalled.</Cell><Cell>Squad recalled.</Cell></Row>
 
 
@@ -501,6 +506,16 @@
   <Row><Cell>ui_qm_practice</Cell><Cell>Practice yard (1000 groschen).</Cell><Cell>Practice yard (1000 groschen).</Cell></Row>
   <Row><Cell>merc_henry_qm_practice</Cell><Cell>Lay out a practice yard.</Cell><Cell>Lay out a practice yard.</Cell></Row>
   <Row><Cell>merc_qm_practice</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell></Row>
+  <Row><Cell>ui_qm_deploy</Cell><Cell>I want to take some men with me.</Cell><Cell>I want to take some men with me.</Cell></Row>
+  <Row><Cell>merc_henry_qm_deploy</Cell><Cell>I want to take some of the men out. The rest can hold the camp.</Cell><Cell>I want to take some of the men out. The rest can hold the camp.</Cell></Row>
+  <Row><Cell>merc_qm_deploy</Cell><Cell>Aye. I'll rouse the best-equipped first. How many do you want?</Cell><Cell>Aye. I'll rouse the best-equipped first. How many do you want?</Cell></Row>
+  <Row><Cell>ui_qm_take_half</Cell><Cell>Half of them.</Cell><Cell>Half of them.</Cell></Row>
+  <Row><Cell>ui_qm_take_third</Cell><Cell>A third of them.</Cell><Cell>A third of them.</Cell></Row>
+  <Row><Cell>ui_qm_take_quarter</Cell><Cell>A quarter of them.</Cell><Cell>A quarter of them.</Cell></Row>
+  <Row><Cell>merc_henry_qm_take_half</Cell><Cell>Half the company, with me.</Cell><Cell>Half the company, with me.</Cell></Row>
+  <Row><Cell>merc_henry_qm_take_third</Cell><Cell>A third of the company, with me.</Cell><Cell>A third of the company, with me.</Cell></Row>
+  <Row><Cell>merc_henry_qm_take_quarter</Cell><Cell>A quarter of the company, with me.</Cell><Cell>A quarter of the company, with me.</Cell></Row>
+  <Row><Cell>merc_qm_take</Cell><Cell>Right away. They'll fall in behind you; the rest keep the camp.</Cell><Cell>Right away. They'll fall in behind you; the rest keep the camp.</Cell></Row>
   <Row><Cell>merc_logi_msg</Cell><Cell>-</Cell><Cell>-</Cell></Row>
   <Row><Cell>merc_logi_morale_low</Cell><Cell>The men's morale is low. If it sinks much lower they'll start to desert.</Cell><Cell>The men's morale is low. If it sinks much lower they'll start to desert.</Cell></Row>
   <Row><Cell>merc_logi_morale_mutiny</Cell><Cell>The men are on the verge of mutiny!</Cell><Cell>The men are on the verge of mutiny!</Cell></Row>

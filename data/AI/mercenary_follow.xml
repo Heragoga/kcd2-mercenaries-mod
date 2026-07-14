@@ -37,6 +37,11 @@
             <Variable name="isCampSleeper" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="campFurniture" type="_wuid" values="" isPersistent="0" form="single" />
             <Variable name="campFurniturePos" type="vec3" values="" isPersistent="0" form="single" />
+            <!-- campFurnitureFace: the campfire a seated merc turns to face after
+                 sitting - the seated pose does not inherit the seat smart object's
+                 rotation, so the Turn is what actually points them at the fire. -->
+            <Variable name="campFurnitureFace" type="vec3" values="" isPersistent="0" form="single" />
+            <Variable name="hasCampFurnitureFace" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Camp activities (see CampActivityCatalogue in mercenaries_camp.lua).
                  campActUnstance is an NPCStateUnstanceDatabase action name, passed
                  straight to UnstanceAction - that node accepts a _string variable
@@ -58,6 +63,12 @@
                  (a zero vec3 would aim them at the world origin). -->
             <Variable name="campActFace" type="vec3" values="" isPersistent="0" form="single" />
             <Variable name="campActHasFace" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- Order-acknowledgment bark: when the player gives this merc an order,
+                 mercenaries.lua sets _G.MercBarkReq[wuid] to a bark alias
+                 (merc_bark_ack / _wait / _follow / _moveout). The bark loop reads it,
+                 plays that monolog once, and clears the request. -->
+            <Variable name="barkAlias" type="_string" values="" isPersistent="0" form="single" />
+            <Variable name="hasBark" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Camp conversations (bodyguards-mod technique). CampChatTick in
                  mercenaries_camp.lua pairs up eligible mercs (concurrently) and
                  publishes each in _G.MercCampChats[wuid]; each merc senses its
@@ -98,12 +109,19 @@
                                 <ExecuteLua code="
                                     data.isCampSitter = false
                                     data.isCampSleeper = false
+                                    data.hasCampFurnitureFace = false
                                     local f = mercenaries:GetCampFurniture(entity.this.id)
                                     if f and f.wuid and f.pos then
                                         data.campFurniture = f.wuid
                                         data.campFurniturePos.x = f.pos.x
                                         data.campFurniturePos.y = f.pos.y
                                         data.campFurniturePos.z = f.pos.z
+                                        if f.facePos then
+                                            data.campFurnitureFace.x = f.facePos.x
+                                            data.campFurnitureFace.y = f.facePos.y
+                                            data.campFurnitureFace.z = f.facePos.z
+                                            data.hasCampFurnitureFace = true
+                                        end
                                         if f.kind == 'bed' then data.isCampSleeper = true else data.isCampSitter = true end
                                     end
                                 " />
@@ -163,14 +181,44 @@
                             </Sequence>
                         </Loop>
 
+                        <!-- Order-acknowledgment barks. Polls this merc's pending bark
+                             request (set by mercenaries.lua when the player gives an order)
+                             and plays that monolog once. Concurrent with everything else, so
+                             the merc barks whatever it's doing (like the gossip cases). -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <ExecuteLua code="
+                                    data.hasBark = false
+                                    local m = _G.MercBarkReq
+                                    local k = tostring(entity.this.id)
+                                    if m and m[k] then
+                                        data.barkAlias = m[k]
+                                        data.hasBark = true
+                                        m[k] = nil
+                                    end
+                                " />
+                                <!-- SuppressFailure MUST wrap the IfCondition (not sit inside it):
+                                     an unmatched IfCondition returns FAILURE, which would fail the
+                                     loop body every tick that there's no pending bark and stop the
+                                     loop. This is the exact shape the scheduler's own bark uses. -->
+                                <SuppressFailure>
+                                    <IfCondition failOnCondition="false" condition="$hasBark">
+                                        <Function_speech_schedulerMonolog alias="$barkAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__null" metarole="" skipInLod="false" subtitlesDown="false" />
+                                    </IfCondition>
+                                </SuppressFailure>
+                            </Sequence>
+                        </Loop>
+
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
 
-                                <!-- Suppress horse spawning while in camp - a patrolling guard
-                                     should walk the perimeter on foot, not mount up if the
-                                     player happens to be mounted. -->
-                                <ExecuteLua code="data.playerIsMounted = (_G.PlayerMounted and not _G.MercInCamp) or false" />
+                                <!-- Only SORTIE mercs mount up to follow a mounted player. A merc
+                                     holding the camp stays on foot (patrols/sits), even if the
+                                     player rides past - so this checks per-merc sortie status, not
+                                     just whether a camp exists. -->
+                                <ExecuteLua code="data.playerIsMounted = (_G.PlayerMounted and mercenaries:IsMercInSortie(entity.this.id)) or false" />
 
                                 <ExecuteLua code="
                                     local ok, err = pcall(function()
@@ -384,6 +432,14 @@
                                         <SuppressFailure>
                                             <Sequence>
                                                 <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <!-- Face the campfire before sitting - the seated pose keeps
+                                                     whatever way the merc is turned, so this points them at
+                                                     the fire instead of the way they walked up. -->
+                                                <IfCondition failOnCondition="false" condition="$campActHasFace">
+                                                    <SuppressFailure>
+                                                        <Turn target="$campActFace" align="false" />
+                                                    </SuppressFailure>
+                                                </IfCondition>
                                                 <StanceElement smartObject="$campActLoc" stance="sitting" allowAny="false" enabled="true">
                                                     <Sequence>
                                                         <WaitAction />
@@ -610,6 +666,14 @@
                                         <SuppressFailure>
                                             <Sequence>
                                                 <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campFurniturePos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <!-- Face the campfire before sitting (the seated pose keeps the
+                                                     merc's current facing; the seat SO's own rotation isn't
+                                                     applied to it). -->
+                                                <IfCondition failOnCondition="false" condition="$hasCampFurnitureFace">
+                                                    <SuppressFailure>
+                                                        <Turn target="$campFurnitureFace" align="false" />
+                                                    </SuppressFailure>
+                                                </IfCondition>
                                                 <StanceElement smartObject="$campFurniture" stance="sitting" allowAny="false" enabled="true">
                                                     <Sequence>
                                                         <WaitAction />

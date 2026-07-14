@@ -1,24 +1,50 @@
 -- =======================================================================
--- INJECT INTERACTION: Adds a dynamic 'Wait/Follow' toggle prompt to the merc
+-- INJECT INTERACTION: the look-at prompts on a merc. Up to TWO options:
+--
+--   1. CAMP option (always shown), decided live from the camp state and whether
+--      THIS merc is deployed:
+--        no camp                 -> Make camp
+--        camp up, merc in camp    -> Break camp
+--        camp up, merc deployed    -> Back to camp (returns the whole sortie)
+--
+--   2. WAIT / FOLLOW toggle (only shown for a merc that is "in a sortie" - i.e.
+--      deployed out of camp, or the whole squad when there is no camp). Sets the
+--      global wait order for the sortie; the mercs who stayed in camp ignore it.
+--      Hidden for a merc that is in camp (a camped merc can't be told to wait).
 -- =======================================================================
 function mercenaries:InjectInteraction(entity)
     if not entity then return end
 
-    -- 1. Define the callback function directly on the NPC entity
-    entity.ToggleWaitFollow = function(self, user)
-        -- Check your existing global idle flag to determine current state
-        if _G.MercPersistentIdleFlag then
-            mercenaries:SetState("follow")
+    -- Camp option callback - re-checks state at press time. The merc you looked
+    -- at barks an acknowledgment (the return order barks the whole sortie itself).
+    entity.CampContextAction = function(self, user)
+        local wuid = nil
+        pcall(function() wuid = XGenAIModule.GetMyWUID(self) end)
+
+        if not mercenaries.CampActive then
+            mercenaries:SpawnMercCamp()
+            mercenaries:RequestBark(wuid, "merc_bark_ack")
+        elseif wuid and mercenaries:IsCampOut(wuid) then
+            mercenaries:CampReturnAll()
         else
-            mercenaries:SetState("wait")
+            mercenaries:BreakMercCamp()
+            mercenaries:RequestBark(wuid, "merc_bark_ack")
         end
     end
 
-    -- 2. Override the engine's GetActions function for this specific NPC
+    -- Wait/follow toggle callback for the sortie. The looked-at merc barks.
+    entity.SortieWaitToggle = function(self, user)
+        local wuid = nil
+        pcall(function() wuid = XGenAIModule.GetMyWUID(self) end)
+        local newWait = not _G.MercPersistentIdleFlag
+        mercenaries:SetSortieWait(newWait)
+        mercenaries:RequestBark(wuid, newWait and "merc_bark_wait" or "merc_bark_follow")
+    end
+
     entity.GetActions = function(self, user, firstFast)
         local output = {}
 
-        -- Keep standard vanilla actions (Talk, Pickpocket, etc.) intact
+        -- Keep standard vanilla actions (Talk, Pickpocket, etc.) intact.
         if BasicAIActions and BasicAIActions.GetActions then
             local baseActions = BasicAIActions.GetActions(self, user, firstFast)
             for i, action in pairs(baseActions) do
@@ -26,27 +52,49 @@ function mercenaries:InjectInteraction(entity)
             end
         end
 
-        -- Only draw the button prompt if the mercenary is conscious and alive
+        -- Only draw prompts if the mercenary is conscious and alive.
         if self.actor and not self.actor:IsDead() and not self.actor:IsUnconscious() then
-            
-            -- Determine the text prompt based on their current state.
-            -- (You can change these to point to your localized XML string names like "ui_merc_follow")
-            local promptText = _G.MercPersistentIdleFlag and "ui_mercenary_follow_action" or "ui_mercenary_wait_action"
+            local wuid = nil
+            pcall(function() wuid = XGenAIModule.GetMyWUID(self) end)
+            local inSortie = (not wuid) or mercenaries:IsMercInSortie(wuid)
 
-            -- Add the interaction prompt to the UI
+            -- 1. Camp option (make / break / back-to-camp). Uses CampActive (does
+            --    a camp STRUCTURE exist) rather than the sortie check.
+            local campText = "ui_mercenary_make_camp_action"
+            if mercenaries.CampActive then
+                if wuid and mercenaries:IsCampOut(wuid) then
+                    campText = "ui_mercenary_return_camp_action"
+                else
+                    campText = "ui_mercenary_break_camp_action"
+                end
+            end
             AddInteractorAction(
-                output, 
-                firstFast, 
+                output, firstFast,
                 Action()
-                    :hint(promptText)            -- The text shown on screen
-                    :hintType(AHT_RELEASE)       -- Triggered on a standard button press
-                    :action("companion_bond")               -- Maps to the standard 'Use' key (E)  alch_use companion_bond
-                    :uiOrder(3)                  -- Position in the prompt list
-                    :func(self.ToggleWaitFollow) -- The callback to trigger
-                    :interaction(inr_loot)       -- Engine interaction category
+                    :hint(campText)
+                    :hintType(AHT_RELEASE)
+                    :action("companion_bond")
+                    :uiOrder(3)
+                    :func(self.CampContextAction)
+                    :interaction(inr_loot)
             )
-            
-            
+
+            -- 2. Wait / follow toggle - sortie mercs only. Uses the "use_other"
+            --    action (a hold), the way references/CompanionMerchant drives its
+            --    second prompt - "alch_use" rendered a blank/dead entry.
+            if inSortie then
+                local waitText = _G.MercPersistentIdleFlag and "ui_mercenary_follow_action" or "ui_mercenary_wait_action"
+                AddInteractorAction(
+                    output, firstFast,
+                    Action()
+                        :hint(waitText)
+                        :hintType(AHT_HOLD)
+                        :action("use_other")
+                        :uiOrder(4)
+                        :func(self.SortieWaitToggle)
+                        :interaction(inr_loot)
+                )
+            end
         end
 
         return output

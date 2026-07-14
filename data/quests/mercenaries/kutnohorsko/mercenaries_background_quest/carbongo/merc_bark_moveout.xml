@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="merc_bark_moveout">
+            <Text StringName="merc_bark_moveout_name" Text="Mercenary merc_bark_moveout" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_merc_bark_moveout" Priority="General" Autoselect="true" Alias="merc_bark_moveout">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_1"><Elements><Response Role="role_mercenary_test"><Text StringName="dial_duely_tre_uz_bezim_Gqhq" Text="I'm on my way!" /></Response></Elements></Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_2"><Elements><Response Role="role_mercenary_test"><Text StringName="beer_event_pre_vsak_skyt__4IUS" Text="Let's go!" /></Response></Elements></Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_3"><Elements><Response Role="role_mercenary_test"><Text StringName="deba_zbrane_pa_tak_pojdme_v8b8" Text="Alright, let's go." /></Response></Elements></Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_4"><Elements><Response Role="role_mercenary_test"><Text StringName="bord_ondrej_po_tak_pojdme_4v8G" Text="Let's go, then." /></Response></Elements></Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_5"><Elements><Response Role="role_mercenary_test"><Text StringName="alte_ptacek_dobre_tak_jdem_5S5o" Text="Fine, let's go then." /></Response></Elements></Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_6"><Elements><Response Role="role_mercenary_test"><Text StringName="bohu_bohuta_np_tak_jdeme__78Jn" Text="Let's go and get this over with." /></Response></Elements></Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

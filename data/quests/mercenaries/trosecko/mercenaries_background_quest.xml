@@ -73,6 +73,10 @@
                 <Definition File="mercenaries_background_quest/carbongo/merc_camp_barks.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/merc_travel_barks.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/merc_both_barks.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_ack.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_wait.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_follow.xml" />
+                <Definition File="mercenaries_background_quest/carbongo/merc_bark_moveout.xml" />
             </Definitions>
             <Nodes>
                 <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
@@ -901,6 +905,25 @@
                     <Constant Name="Amount" Value="1" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_practice" To="Exec" />
+                </EventFunction>
+                <!-- Quartermaster deploy (take mercs out of camp) -->
+                <EventFunction Name="exec_qm_take_half" PositionY="200" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be79d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_take_half" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_take_third" PositionY="240" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be7ad" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_take_third" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_take_quarter" PositionY="280" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be7bd" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_take_quarter" To="Exec" />
                 </EventFunction>
 
 

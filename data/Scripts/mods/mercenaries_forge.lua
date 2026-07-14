@@ -65,14 +65,25 @@ function mercenaries:ForgeFlatness(pos)
 end
 
 -- Try a ring of candidate spots around the camp and return the flattest one
--- (plus a facing that points the forge AWAY from the camp centre).
-function mercenaries:ForgeFindFlattest(center)
+-- (plus a facing that points the forge AWAY from the camp centre). An optional
+-- `avoid` position (e.g. an already-placed forge) makes nearby candidates be
+-- skipped, so two camp structures don't land on the same patch.
+function mercenaries:ForgeFindFlattest(center, avoid)
     local best, bestSpread, bestAng
-    for _, R in ipairs({ 6.5, 8.5, 10.5 }) do
+    -- Rings pushed out (was 6.5/8.5/10.5) so the forge/alchemy props - which
+    -- reach ~3.7m back toward camp - clear the tent ring (3.9m) with >=2m to
+    -- spare instead of overlapping it.
+    for _, R in ipairs({ 9.0, 11.0, 13.0 }) do
         for a = 0, 7 do
             local ang = a * (math.pi / 4)
             local cand = self:CampSnapToGround({ x = center.x + math.cos(ang) * R, y = center.y + math.sin(ang) * R, z = center.z })
-            local spread = self:ForgeFlatness(cand)
+            local skip = false
+            if avoid then
+                local ad = math.sqrt((cand.x - avoid.x) ^ 2 + (cand.y - avoid.y) ^ 2 + (cand.z - avoid.z) ^ 2)
+                -- 7m spot-to-spot keeps the two benches' own props >=2m apart.
+                if ad < 7.0 then skip = true end
+            end
+            local spread = (not skip) and self:ForgeFlatness(cand) or nil
             if spread and (not bestSpread or spread < bestSpread) then
                 best, bestSpread, bestAng = cand, spread, ang
             end
@@ -107,8 +118,11 @@ end
 function mercenaries:ForgeSpawnEnt(cls, name, pos, props, yaw, track)
     local e
     pcall(function()
+        -- orientation at spawn time so a StanceSmartObject seat caches its sit
+        -- helper facing correctly (SetAngles-after-spawn doesn't move that cached
+        -- transform - see SpawnCampFurnitureSO).
         e = System.SpawnEntity({ class = cls, name = name .. "_" .. tostring(math.random(100000, 999999)),
-                                 position = pos, properties = props })
+                                 position = pos, orientation = { x = 0, y = 0, z = yaw or 0 }, properties = props })
     end)
     if e then
         if yaw then pcall(function() e:SetAngles({ x = 0, y = 0, z = yaw }) end) end

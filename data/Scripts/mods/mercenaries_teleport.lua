@@ -8,8 +8,9 @@ function mercenaries:MonitorDistanceAndTeleport()
     local ok, err = pcall(function()
         -- Early exit: Don't teleport if they are explicitly told to wait/idle, or are fleeing/dismissed
         if _G.MercIdle or _G.MercenariesDismissed then return end
-        -- Don't yank mercs out from under a mounted player travelling fast — they'll catch up on foot/horse.
-        if _G.PlayerMounted then return end
+        -- (Sortie mercs teleport to keep up even while the player is mounted -
+        -- that's how a deployed party stays with a horseman. In-camp mercs are
+        -- skipped per-merc below so they're never yanked out of the camp.)
         if not player then return end
 
         local playerPos = player:GetPos()
@@ -24,7 +25,10 @@ function mercenaries:MonitorDistanceAndTeleport()
 
         for name, ent in pairs(self.ActiveMercs) do
             -- IsAliveAndWell already checked by PruneMercCache, but double-check cheaply
-            if ent and ent.actor then
+            -- A merc who stayed in camp must never be teleported to the player.
+            local inCampProper = false
+            pcall(function() inCampProper = self:IsMercInCampProper(ent.this and ent.this.id or ent.id) end)
+            if ent and ent.actor and not inCampProper then
                 -- Don't teleport a merc out of a fight mid-swing.
                 local inCombat = false
                 pcall(function() inCombat = ent.soul:HasScriptContext("crime_interruptAttack") end)

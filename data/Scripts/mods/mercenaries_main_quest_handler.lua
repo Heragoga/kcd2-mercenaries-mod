@@ -110,8 +110,11 @@ function mercenaries:MonitorMainQuestLoop()
     local inDialog = false
     local inCutscene = false
 
-    -- Combine ALL checks into the Master Idle Switch
-    local shouldBeIdle = inDialog or inCutscene or inFastTravelCooldown or inWaitSleep
+    -- Combine ALL checks into the Master Idle Switch. The player's own persistent
+    -- "wait here" order (MercPersistentIdleFlag, set from the look-at toggle) is
+    -- OR'd in so it survives once any cutscene/fast-travel interruption ends -
+    -- otherwise the falling edge below would clear the player's wait order.
+    local shouldBeIdle = inDialog or inCutscene or inFastTravelCooldown or inWaitSleep or _G.MercPersistentIdleFlag
 
     -- 8. Handle State Transitions
     if not _G.MercIdle and shouldBeIdle then
