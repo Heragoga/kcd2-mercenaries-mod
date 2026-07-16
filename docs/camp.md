@@ -71,7 +71,13 @@ Each guard patrols an 8-point ring encircling the whole camp, staggered by a per
 
 **Camp persistence**: the camp does not auto-despawn based on player distance. It stays up until "Break camp" is chosen explicitly (dialog or `merc_camp_break`). An explicit Follow or Dismiss order also breaks camp first (silently, since that order's own info text covers it) — otherwise the props would sit there abandoned with no mercs nearby. Recall does *not* break camp (see above).
 
-**Save/load**: camp is session-only, by design. It is never restored after a reload. `mercenaries:ClearAnyLeftoverCamp()` (called once from `OnGameplayStarted`) sweeps for and deletes any leftover camp props by name prefix, since the mod's own `CampActive`/`CampEntities` bookkeeping is gone after a fresh script load regardless of whether the physical entities themselves persisted in the save.
+**Save/load**: camp survives a save. The props themselves are not serialised (they are runtime `System.SpawnEntity` spawns) — instead the camp is *rebuilt* from the one thing that is saved: **where it was pitched**. `SpawnMercCamp` records `CampBuildOrigin = {x, y, z, ang}` once the centre is settled, and `SaveCampState()` persists it plus a "camp is standing" flag (`MercCampActive`); `BreakMercCamp` clears both, so a struck camp stays struck.
+
+On load, `mercenaries:ClearAnyLeftoverCamp()` (from `OnGameplayStarted`) first sweeps any leftover props by name prefix, then `RestoreCampDelayed` (4s, after the 2s merc-cache rebuild — it needs `ActiveMercs` to hand out tents) calls `SpawnMercCamp(savedOrigin, silent)`.
+
+`SpawnMercCamp(atOrigin, silent)` takes that anchor instead of using the player's position/facing, which is what makes the camp come back *in the same place with the same layout* rather than in front of wherever the player now stands. The same path is used by `LogiRebuildCampForUpgrade` (see below). Re-running the origin through the centre searches is stable: they tie-break toward the asked spot, so a saved centre wins again and the camp doesn't drift across reloads.
+
+**Camp upgrades are tiles**: every upgrade (forge, alchemy bench, hunting station, tavern, food cart) claims its own **grid tile** out of the cells the campfire clusters didn't take — same `CampClusterSpacing`, same `CampTileHalf` footprint validation, same `usedCell` bookkeeping (`CampActiveStations` → `CampStationTiles`, read back via `CampStationSpot`). That is what gives each upgrade the same room as a tent ring and makes overlap structurally impossible. The practice yard owns the reserved `(0,-1)` tile and the player house replaces the `(0,0)` tent, so neither needs one. Since a tile can only be reserved while the grid is being laid out, buying an upgrade mid-camp rebuilds the whole camp (`LogiRebuildCampForUpgrade`, at the saved origin) rather than squeezing the new structure into a gap.
 
 ---
 

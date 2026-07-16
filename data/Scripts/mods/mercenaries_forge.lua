@@ -119,8 +119,10 @@ function mercenaries:SpawnCampForge(center)
         return false
     end
 
-    -- Flattest patch, or fall back to a fixed offset if the scan found nothing.
-    local spot, ang = self:ForgeFindFlattest(center)
+    -- The camp reserves a grid tile per upgrade (see CampStationTiles); only fall
+    -- back to a flat-patch scan if there wasn't one.
+    local spot, ang = self:CampStationSpot("forge")
+    if not spot then spot, ang = self:ForgeFindFlattest(center) end
     if not spot then
         ang = 0
         spot = self:CampSnapToGround({ x = center.x + 8, y = center.y, z = center.z })
@@ -150,7 +152,7 @@ function mercenaries:SpawnCampForge(center)
             end
         else
             local params = { class = "BasicEntity", name = "MercCampForge_" .. tostring(math.random(100000, 999999)),
-                             position = w, properties = { object_Model = p.model, bMissionCritical = false } }
+                             position = w, properties = { object_Model = p.model, bMissionCritical = false, bSaved_by_game = false, bSerialize = false } }
             if p.s then params.scale = p.s end
             local e; pcall(function() e = System.SpawnEntity(params) end)
             if e then

@@ -90,7 +90,7 @@ function mercenaries:UpgradePreviewSpawnModel(model, pos, label)
         class = "BasicEntity",
         name = "MercUpgPreview_" .. tostring(math.random(100000, 999999)),
         position = pos,
-        properties = { object_Model = model, bMissionCritical = false },
+        properties = { object_Model = model, bMissionCritical = false, bSaved_by_game = false, bSerialize = false },
     })
     if ent then table.insert(self.UpgradePreviewEntities, ent.id) end
     return ent
@@ -116,7 +116,7 @@ function mercenaries:UpgradePreviewSpawnComposition(pieces, anchor, yawDeg)
             class = "BasicEntity",
             name = "MercUpgPreview_" .. tostring(math.random(100000, 999999)),
             position = { x = anchor.x + ox, y = anchor.y + oy, z = anchor.z + dz },
-            properties = { object_Model = pc.model, bMissionCritical = false },
+            properties = { object_Model = pc.model, bMissionCritical = false, bSaved_by_game = false, bSerialize = false },
         }
         if pc.s and pc.s ~= 1.0 then params.scale = pc.s end
         local ent = System.SpawnEntity(params)
@@ -479,7 +479,7 @@ function mercenaries:AnvilGrab()
                        y = standPos.y + F.y * p.fwd + L.y * p.lat,
                        z = standPos.z + (p.up or 0) }
         local params = { class = "BasicEntity", name = "MercForgeVis_" .. tostring(math.random(100000, 999999)),
-                         position = wpos, properties = { object_Model = p.model, bMissionCritical = false } }
+                         position = wpos, properties = { object_Model = p.model, bMissionCritical = false, bSaved_by_game = false, bSerialize = false } }
         if p.s and p.s ~= 1.0 then params.scale = p.s end
         local e; pcall(function() e = System.SpawnEntity(params) end)
         if e then
@@ -959,7 +959,7 @@ function mercenaries:PartSpawn(sel, dx, dy, dz, rx, ry, rz, s)
         name = "MercPart_" .. entry.name .. "_" .. tostring(math.random(100000, 999999)),
         position = { x = wx, y = wy, z = wz },
         orientation = { x = math.rad(rx), y = math.rad(ry), z = math.rad(rz) },
-        properties = { object_Model = entry.model, bMissionCritical = false },
+        properties = { object_Model = entry.model, bMissionCritical = false, bSaved_by_game = false, bSerialize = false },
     }
     if s ~= 1.0 then params.scale = s end
     local ent = System.SpawnEntity(params)

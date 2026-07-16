@@ -23,6 +23,8 @@
                 <Port Name="quartermaster_smithy"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_alchemy"  Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_practice" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_house"    Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_tutorial" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
@@ -145,6 +147,11 @@
                                         <Triggers><Port Name="quartermaster_practice" /></Triggers>
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_practice" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_practice" /></Response></Elements>
                                     </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_house">
+                                        <UiPrompt StringName="ui_qm_house" />
+                                        <Triggers><Port Name="quartermaster_house" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_house" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_house" /></Response></Elements>
+                                    </Sequence>
                                     <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_upg_back">
                                         <UiPrompt StringName="ui_qm_back" />
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
@@ -198,6 +205,7 @@
                         <!-- ===== Tutorial (spoken dialog, returns to the menu) ===== -->
                         <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_tutorial">
                             <UiPrompt StringName="ui_qm_tutorial" />
+                            <Triggers><Port Name="quartermaster_tutorial" /></Triggers>
                             <Elements>
                                 <Response Role="HENRY"><Text StringName="merc_henry_qm_tutorial" /><Commands><CameraCommand /></Commands></Response>
                                 <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_1" /><Commands><CameraCommand /></Commands></Response>

@@ -1,8 +1,10 @@
 -- Procedural mercenary camp: spawns tents/fire/chairs/beds near the player,
 -- moves the squad in, and idles them (guards patrol, the rest sit/sleep). Camp
--- props are plain BasicEntity + object_Model spawns; the whole feature is
--- session-only (never restored across save/load - ClearAnyLeftoverCamp sweeps
--- leftovers by name). See docs/camp.md for the full design and postmortems.
+-- props are plain BasicEntity + object_Model spawns, so they don't survive a save
+-- - the camp is made persistent by saving only where it was pitched
+-- (CampBuildOrigin) and rebuilding it there on load (RestoreCampDelayed), with
+-- ClearAnyLeftoverCamp sweeping any leftovers by name first.
+-- See docs/camp.md for the full design and postmortems.
 
 mercenaries.CampModels = {
     -- Small/standard tent, kept for potential reuse.
@@ -116,6 +118,15 @@ mercenaries.CampPlayerBedTriggerScale = { 0.7, 0.7, 0.7 }
 -- is a BasicEntity + SO properties + a linked vanilla BedTrigger (for the
 -- "E - Sleep" interaction) rather than a new custom entity class.
 function mercenaries:SpawnPlayerCampTent(centerPos, facingAngle)
+    -- Player House upgrade: a real hut (with its own bed) stands here instead of
+    -- the tent. See mercenaries_house.lua.
+    local house = false
+    pcall(function() house = self.LogiState and self:LogiState().hasHouse end)
+    if house then
+        self:SpawnCampHouse(centerPos, facingAngle)
+        return
+    end
+
     local ok, err = pcall(function()
         local tentPos = self:CampSnapToGround(centerPos)
         -- +45 degrees on top of the grid-derived facing per feedback, then
@@ -138,6 +149,8 @@ function mercenaries:SpawnPlayerCampTent(centerPos, facingAngle)
             properties = {
                 object_Model = self.CampPlayerBedModel,
                 bMissionCritical = false,
+                bSaved_by_game = false,
+                bSerialize = false,
                 guidSmartObjectType = "425d4fdf-8dcd-4a2b-fdc5-cbb1b5d25b89",
                 soclass_SmartObjectHelpers = "Bed_1Place_Low",
                 sWH_AI_EntityCategory = "Bed",
@@ -187,6 +200,8 @@ function mercenaries:SpawnCampBedTrigger(bedEnt, bedPos, bedAngle)
             scale = self.CampPlayerBedTriggerScale,
             properties = {
                 InteractorPriorityOverride = 1,
+                bSaved_by_game = false,
+                bSerialize = false,
                 Click = {
                     bIsActive = true,
                     bedEntity = bedEnt,
@@ -257,11 +272,12 @@ mercenaries.CampChairSO = {
 -- in the seat's own local frame to re-centre the pose; CampSitFacingFixDeg
 -- is added to the "face the campfire" angle if the pose comes out rotated.
 mercenaries.CampSitSOOffset = { right = 0.2, forward = 0, z = 0 }
--- Degrees added to the seat's "face the fire" angle. Left at 0: reliably turning
--- a seated merc to the fire turned out not to be controllable from the seat's
--- rotation (the sit pose ignores it), so this is a no-op knob for now - the seat
--- orients toward the fire but the merc's own facing is left to the engine.
-mercenaries.CampSitFacingFixDeg = 0
+-- Degrees added to the seat's "face the fire" angle. A merc sits facing OPPOSITE
+-- the SO's spawn direction vector, so 180 cancels it (see SpawnCampFurnitureSO;
+-- value settled in play on the tavern seats). The log seats still use the
+-- omnidirectional Bench_Low helper, so facing may resolve to either side - but the
+-- correct side is now one of the two, where before it was arbitrary.
+mercenaries.CampSitFacingFixDeg = 180
 
 -- (The per-merc activity spot radius moved outside the tent circle - see
 -- CampActivityOutsideGap in the schedule section below.)
@@ -342,6 +358,11 @@ mercenaries.CampActivities = {}
 -- further from the merc to create movement. See docs/camp.md.
 mercenaries.CampRoleCycle = { "sleep", "sit", "eat", "herbs", "snooze" }
 mercenaries.CampTrainerCycle = { "train", "sit", "train", "eat", "train", "sleep" }
+-- When a tavern (inn upgrade) is up, non-trainer mercs use this sit-heavy cycle
+-- instead: no herb-picking, mostly sitting - and sit/snooze prefer the tavern
+-- seats (see ClaimSpot), so the camp gravitates to the tables rather than moping
+-- around the fire.
+mercenaries.CampTavernCycle = { "sit", "eat", "sit", "snooze", "sit" }
 -- At night (CampIsNight, 9pm-6am) each role rotation has this chance to be
 -- overridden to "sleep" instead of the cycle step, so most of the camp beds
 -- down after dark (per feedback that too few slept at night).
@@ -898,9 +919,18 @@ function mercenaries:SpawnCampPropModel(model, pos, angleZ, namePrefix, trackLis
         class = "BasicEntity",
         name = name,
         position = groundPos,
+        -- Orientation at SPAWN as a forward DIRECTION VECTOR (SpawnEntity's
+        -- `orientation` is a vec3 direction, not Euler - see SpawnCampFurnitureSO).
+        -- Anything caching this entity's transform (e.g. an SO attached via the
+        -- "attachable" link) reads this; the SetAngles below covers the render.
+        orientation = { x = math.cos(angleZ or 0), y = math.sin(angleZ or 0), z = 0 },
         properties = {
             object_Model = model,
             bMissionCritical = false,
+            -- Never serialise camp props: the camp is rebuilt from scratch on load
+            -- (see docs/camp.md), and saved ones come back as broken placeholders.
+            bSaved_by_game = false,
+            bSerialize = false,
         }
     })
 
@@ -945,7 +975,7 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
     angleZ = angleZ or 0
 
     -- 1. The visual prop - purely decorative, no SO properties.
-    self:SpawnCampPropModel(model, groundPos, angleZ, namePrefix, trackList)
+    local propEnt = self:SpawnCampPropModel(model, groundPos, angleZ, namePrefix, trackList)
 
     -- 2. The smart object itself. Normally co-located with the prop, but
     -- callers can nudge it (soPosOverride) when the SO helper's authored pose
@@ -953,29 +983,37 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
     local soGroundPos = soPosOverride and self:CampSnapToGround(soPosOverride) or groundPos
     local wuid = nil
     local ok, err = pcall(function()
-        -- Orientation MUST be set at spawn time (orientation = euler radians,
-        -- the format every SpawnEntity call in this mod uses). A StanceSmartObject
-        -- caches its sit/lie helper transform when it is created; SetAngles AFTER
-        -- spawn moves the visible entity but NOT that cached helper, so a merc
-        -- sitting on it would face the default world direction (why every seated
-        -- merc used to face the same way regardless of the fire). SetAngles is
-        -- kept too, to keep the entity's own transform consistent.
+        -- Orientation MUST be set at spawn time and MUST be a forward DIRECTION
+        -- VECTOR - SpawnEntity's `orientation` is a vec3 direction, NOT Euler
+        -- angles. Euler {0,0,yaw} reads as a garbage up-vector, leaving every SO
+        -- helper at world-default: that is why seated mercs all faced one
+        -- direction for so long. A StanceSmartObject also caches its sit/lie
+        -- helper transform at creation, so rotating it AFTER spawn (SetAngles /
+        -- SetWorldAngles) moves the entity but not the helper. The SetAngles below
+        -- is kept only to keep the entity's own transform consistent.
         local soEnt = System.SpawnEntity({
             class = "StanceSmartObject",
             name = (namePrefix or "MercCampProp") .. "_SO_" .. tostring(math.random(100000, 999999)),
             position = soGroundPos,
-            orientation = { x = 0, y = 0, z = angleZ },
+            orientation = { x = math.cos(angleZ), y = math.sin(angleZ), z = 0 },
             properties = {
                 guidSmartObjectType = soProps.guidSmartObjectType,
                 soclass_SmartObjectHelpers = soProps.soclass_SmartObjectHelpers,
                 sWH_AI_EntityCategory = soProps.sWH_AI_EntityCategory,
                 Script = soProps.Script,
                 Bed = soProps.Bed,
+                bSaved_by_game = false,
+                bSerialize = false,
             }
         })
 
         if soEnt then
             pcall(function() soEnt:SetAngles({ x = 0, y = 0, z = angleZ }) end)
+            -- Attach the SO to the visual mesh the way the vanilla furniture
+            -- prefabs do (EntityLinks Name="attachable" -> the prop entity, see
+            -- references chairattable layer) - the sit helper then follows the
+            -- mesh instead of free-floating.
+            if propEnt then pcall(function() soEnt:SetLinkTarget("attachable", propEnt.id) end) end
             table.insert(trackList or self.CampEntities, soEnt.id)
             wuid = XGenAIModule.GetMyWUID(soEnt)
         end
@@ -1118,16 +1156,24 @@ end
 -- Claims a spot from a shared pool for `wuidStr`, preferring one a bit FURTHER
 -- from `fromPos` (per feedback, to create walking): frees the merc's current
 -- spot, then picks at random among the farther half of the free spots. Returns
--- the spot, or nil if the pool is full.
-function mercenaries:ClaimSpot(pool, wuidStr, fromPos)
+-- the spot, or nil if the pool is full. `excludeTavern` skips tavern chairs
+-- (snooze plays a stool-authored anim that looks wrong on a backed chair).
+function mercenaries:ClaimSpot(pool, wuidStr, fromPos, excludeTavern)
     self:ReleaseSpot(pool, wuidStr)
     local free = {}
     for _, sp in ipairs(pool) do
-        if not sp.occupant then table.insert(free, sp) end
+        if not sp.occupant and not (excludeTavern and sp.tavern) then table.insert(free, sp) end
     end
     if #free == 0 then return nil end
-    if fromPos then
+    if fromPos or self.CampInn then
         table.sort(free, function(a, b)
+            -- With a tavern up, its seats (flagged tavern) rank first so sit/snooze
+            -- fill the tables before the campfire logs.
+            if self.CampInn then
+                local at, bt = a.tavern and 1 or 0, b.tavern and 1 or 0
+                if at ~= bt then return at > bt end
+            end
+            if not fromPos then return false end
             local da = (a.pos.x - fromPos.x) ^ 2 + (a.pos.y - fromPos.y) ^ 2
             local db = (b.pos.x - fromPos.x) ^ 2 + (b.pos.y - fromPos.y) ^ 2
             return da > db
@@ -1169,7 +1215,9 @@ function mercenaries:ApplyCampRole(wuidStr, role)
             s.lastPos = seat.pos
         end
     elseif role == "snooze" then
-        local seat = self:ClaimSpot(self.CampSeats, wuidStr, from)
+        -- Tavern chairs excluded: camper_snooze is stool-authored and fights the
+        -- backed chair's helper. Snoozers doze on the campfire logs instead.
+        local seat = self:ClaimSpot(self.CampSeats, wuidStr, from, true)
         if seat then
             self.CampActivities[wuidStr] = { unstance = "camper_snooze", mode = 1, pos = seat.pos, locWuid = seat.wuid, facePos = seat.firePos }
             s.lastPos = seat.pos
@@ -1190,6 +1238,7 @@ end
 function mercenaries:CampCycleFor(wuidStr)
     local s = self.CampMercSpots and self.CampMercSpots[wuidStr]
     if s and s.isTrainer then return self.CampTrainerCycle end
+    if self.CampInn then return self.CampTavernCycle end   -- tavern up: sit-heavy, no herbs
     return self.CampRoleCycle
 end
 
@@ -1478,6 +1527,17 @@ function mercenaries:CampChatTick()
 
         -- Collect eligible mercs: alive, not already chatting, not on cooldown,
         -- not fighting, not mid-drill, with a position.
+        -- A merc counts as "at the tavern" if its claimed seat / snooze anchor is
+        -- one of the tavern seats - those get paired first (see below).
+        local innSeats = self.CampInn and self.CampInn.seatWuidSet or nil
+        local function atTavern(wuidStr)
+            if not innSeats then return false end
+            local f = self.CampFurniture and self.CampFurniture[wuidStr]
+            if f and f.wuid and innSeats[tostring(f.wuid)] then return true end
+            local a = self.CampActivities and self.CampActivities[wuidStr]
+            if a and a.locWuid and innSeats[tostring(a.locWuid)] then return true end
+            return false
+        end
         local list = {}
         for _, ent in pairs(self.ActiveMercs) do
             if ent and self:IsAliveAndWell(ent, false) then
@@ -1494,7 +1554,7 @@ function mercenaries:CampChatTick()
                     local act = self.CampActivities[wuidStr]
                     local isTraining = act and act.unstance == "noob_sword_training"
                     if wuid and p and not hasTarget and not isTraining then
-                        table.insert(list, { wuid = wuid, p = p })
+                        table.insert(list, { wuid = wuid, p = p, tav = atTavern(wuidStr) })
                     end
                 end
             end
@@ -1505,16 +1565,19 @@ function mercenaries:CampChatTick()
         local activePairs = 0
         for _, c in pairs(chats) do if c.role == 1 then activePairs = activePairs + 1 end end
 
-        -- Shuffle so pairings aren't biased by iteration order, then greedily
-        -- pair eligible mercs within radius - up to the concurrent-conversation cap.
+        -- Shuffle so pairings aren't biased by iteration order, then bring the
+        -- tavern-seated mercs to the front so they pair first (conversations are
+        -- more likely at the tables). A tavern also raises the concurrent cap.
         for i = #list, 2, -1 do
             local j = math.random(i)
             list[i], list[j] = list[j], list[i]
         end
+        table.sort(list, function(a, b) return (a.tav and 1 or 0) > (b.tav and 1 or 0) end)
+        local cap = self.CampMaxConcurrentChats + (self.CampInn and 2 or 0)
         local r2 = self.CampChatRadius * self.CampChatRadius
         local used = {}
         for i = 1, #list do
-            if activePairs >= self.CampMaxConcurrentChats then break end
+            if activePairs >= cap then break end
             if not used[i] then
                 for j = i + 1, #list do
                     if not used[j] then
@@ -1629,11 +1692,89 @@ function mercenaries:CampGridOffsets(count)
     return offsets
 end
 
+-- The camp upgrades that want a grid tile of their own this camp, in placement
+-- order. Each is treated exactly like a campfire cluster: its own tile, same
+-- spacing, same footprint validation - which is what stops them overlapping each
+-- other and the tents. The practice yard has the reserved (0,-1) tile and the
+-- house replaces the (0,0) player tent, so neither is listed here.
+-- Camp upgrades are bought through the quartermaster, which rebuilds the whole
+-- camp (see the LogiBuy* functions) so this list is re-read and the grid re-tiled.
+mercenaries.CampStationTiles = {}   -- [name] = { x, y, z, ang } while camped
+
+function mercenaries:CampActiveStations()
+    local list = {}
+    local L
+    pcall(function() L = self.LogiState and self:LogiState() end)
+    if not L then return list end
+    if L.hasSmithy then table.insert(list, "forge") end
+    if L.hasAlchemy then table.insert(list, "alchemy") end
+    if (L.hunterSpots or 0) > 0 then table.insert(list, "hunt") end
+    if L.innActive then table.insert(list, "inn") end
+    if (L.foodCartDays or 0) > 0 then table.insert(list, "cart") end
+    return list
+end
+
+-- The tile reserved for `name` this camp: a position + the outward facing (away
+-- from the camp centre). nil if the station has no tile, in which case its own
+-- spawn falls back to scanning for a flat patch.
+function mercenaries:CampStationSpot(name)
+    local t = self.CampStationTiles and self.CampStationTiles[name]
+    if not t then return nil end
+    return { x = t.x, y = t.y, z = t.z }, t.ang
+end
+
+-- ==== Camp persistence ====
+-- Where the player pitched camp: { x, y, z, ang }, saved with the game. The camp
+-- itself is rebuilt rather than serialised (its props are runtime-spawned and
+-- don't survive a save), so this anchor is all that's needed: on load - and on an
+-- upgrade rebuild - SpawnMercCamp is handed this instead of the player's current
+-- position, and the camp goes back exactly where it stood.
+mercenaries.CampBuildOrigin = nil
+
+function mercenaries:SaveCampState()
+    local o = self.CampBuildOrigin
+    if self.CampActive and o then
+        self:SaveString("MercCampActive", "1")
+        self:SaveString("MercCampX", tostring(o.x))
+        self:SaveString("MercCampY", tostring(o.y))
+        self:SaveString("MercCampZ", tostring(o.z))
+        self:SaveString("MercCampAng", tostring(o.ang))
+    else
+        self:SaveString("MercCampActive", "0")
+    end
+end
+
+-- The saved anchor, or nil if no camp was standing when the game was saved.
+function mercenaries:LoadCampOrigin()
+    if self:LoadString("MercCampActive") ~= "1" then return nil end
+    local function num(tag) local s = self:LoadString(tag); return s and tonumber(s) end
+    local x, y, z, a = num("MercCampX"), num("MercCampY"), num("MercCampZ"), num("MercCampAng")
+    if not (x and y and z and a) then return nil end
+    return { x = x, y = y, z = z, ang = a }
+end
+
+-- Put a saved camp back up after a load. Deferred until the merc cache exists
+-- (SpawnMercCamp needs ActiveMercs to hand out tents) - see the load sequence in
+-- mercenaries.lua.
+function mercenaries.RestoreCampDelayed()
+    local self = mercenaries
+    local o = self:LoadCampOrigin()
+    if not o or self.CampActive or _G.MercenariesDismissed then return end
+    self.CampBuildOrigin = o
+    local ok, err = pcall(function() self:SpawnMercCamp(o, true) end)
+    if ok then System.LogAlways("[Camp] restored saved camp")
+    else System.LogAlways("[Camp] restore failed: " .. tostring(err)) end
+end
+
 -- Build the physical camp layout and teleport the squad in. Tent recipients (up
 -- to CampMaxTents) are grouped into cells of CampClusterSize, each with its own
 -- fire/seats/tents, tiled in a grid; mercs beyond the cap get an outer-ring bed.
+-- `atOrigin` ({x,y,z,ang}) pitches the camp there instead of in front of the
+-- player - used by the upgrade rebuild and the save restore, so neither drags the
+-- camp to wherever the player happens to be standing. `silent` skips the
+-- "camp made" text for those non-player-initiated builds.
 -- See docs/camp.md for the full layout scheme.
-function mercenaries:SpawnMercCamp()
+function mercenaries:SpawnMercCamp(atOrigin, silent)
     if self.CampActive then
         Game.SendInfoText('merc_info_camp_already_active', false, 0, 3)
         return
@@ -1650,10 +1791,15 @@ function mercenaries:SpawnMercCamp()
     end
 
     local ok, err = pcall(function()
-        local center, _ = self:GetSafeSpawnPosition(player, 7)
-        if not center then
-            Game.SendInfoText('merc_info_camp_no_spot', false, 0, 3)
-            return
+        local center
+        if atOrigin then
+            center = { x = atOrigin.x, y = atOrigin.y, z = atOrigin.z }
+        else
+            center = self:GetSafeSpawnPosition(player, 7)
+            if not center then
+                Game.SendInfoText('merc_info_camp_no_spot', false, 0, 3)
+                return
+            end
         end
         center = self:CampSnapToGround(center)
 
@@ -1777,9 +1923,16 @@ function mercenaries:SpawnMercCamp()
         -- camp was made - the whole grid (and the player tent's own facing)
         -- is built around that, so the single reserved-empty tile always
         -- lines up with the tent's entrance. "right" is perpendicular to it.
-        local playerDir = player:GetDirectionVector()
-        local dirLen = math.sqrt(playerDir.x * playerDir.x + playerDir.y * playerDir.y)
-        local forward = dirLen > 0.0001 and { x = playerDir.x / dirLen, y = playerDir.y / dirLen } or { x = 0, y = 1 }
+        -- A rebuild/restore reuses the saved angle so the layout comes back
+        -- identical rather than swinging to wherever the player is now looking.
+        local forward
+        if atOrigin then
+            forward = { x = math.cos(atOrigin.ang), y = math.sin(atOrigin.ang) }
+        else
+            local playerDir = player:GetDirectionVector()
+            local dirLen = math.sqrt(playerDir.x * playerDir.x + playerDir.y * playerDir.y)
+            forward = dirLen > 0.0001 and { x = playerDir.x / dirLen, y = playerDir.y / dirLen } or { x = 0, y = 1 }
+        end
         local right = { x = -forward.y, y = forward.x }
         local spacing = self.CampClusterSpacing
 
@@ -1799,8 +1952,11 @@ function mercenaries:SpawnMercCamp()
         -- Size the map to the farthest tile the clusters actually reach (plus a
         -- tile half-extent, the centre search, and a margin), capped so a giant
         -- squad can't trigger a huge raycast burst.
+        -- Upgrades take a tile each on top of the clusters, so the map has to
+        -- reach far enough to validate those cells too.
+        local stationNames = self:CampActiveStations()
         local maxCellDist = 1
-        for _, off in ipairs(self:CampGridOffsets(numClusters)) do
+        for _, off in ipairs(self:CampGridOffsets(numClusters + #stationNames)) do
             local e = math.sqrt(off[1] * off[1] + off[2] * off[2])
             if e > maxCellDist then maxCellDist = e end
         end
@@ -1852,6 +2008,12 @@ function mercenaries:SpawnMercCamp()
             end
             center = self:CampSnapToGround(bestC)
         end
+
+        -- The camp's anchor is settled now (the searches above may have moved it).
+        -- Remember + persist it, so an upgrade rebuild or a save/load puts the camp
+        -- back on this exact spot and facing. Re-running the searches on it is
+        -- stable: they tie-break toward the asked spot, so it wins again.
+        self.CampBuildOrigin = { x = center.x, y = center.y, z = center.z, ang = worldForwardAngle }
 
         -- Cell (0, 0) is the player tent itself; (dx, dy) offsets are in
         -- grid tiles, dx = right/left, dy = forward(+)/behind(-).
@@ -1916,6 +2078,48 @@ function mercenaries:SpawnMercCamp()
                 end
             end
         end
+
+        -- STATION TILES: each camp upgrade claims its own grid tile out of the
+        -- cells the clusters didn't take - same spacing and same footprint
+        -- validation as a campfire cluster, so an upgrade is given exactly as much
+        -- room as a tent ring and can't land on top of one (or on another upgrade).
+        -- Each faces outward from the camp centre. Anything that can't get a
+        -- validated tile takes the next free cell raw, then falls back to its own
+        -- flat-patch scan if it got nothing at all.
+        self.CampStationTiles = {}
+        local placedStations = 0
+        local function claimStationTile(name, requireValid)
+            for _, off in ipairs(candidateOffsets) do
+                local key = off[1] .. "," .. off[2]
+                if not usedCell[key] then
+                    local raw = gridCellPos(off[1], off[2])
+                    local accept = true
+                    if requireValid and campMap then
+                        local v, t = self:CampFootprintStats(campMap, raw, worldForwardAngle, self.CampTileHalf, self.CampTileHalf)
+                        accept = t > 0 and ((t - v) / t) <= self.CampTileMaxInvalidFrac
+                        if accept then
+                            raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf))
+                        end
+                    end
+                    if accept then
+                        usedCell[key] = true
+                        self.CampStationTiles[name] = { x = raw.x, y = raw.y, z = raw.z or center.z,
+                            ang = math.atan2(raw.y - center.y, raw.x - center.x) }
+                        return true
+                    end
+                end
+            end
+            return false
+        end
+        for _, name in ipairs(stationNames) do
+            if claimStationTile(name, true) or claimStationTile(name, false) then
+                placedStations = placedStations + 1
+            end
+        end
+        if #stationNames > 0 then
+            System.LogAlways(string.format("[Camp] %d/%d upgrade tiles reserved", placedStations, #stationNames))
+        end
+
         for _, cPos in ipairs(clusterCenters) do
             self:SpawnCampFirePrefab(cPos, 0)
         end
@@ -2248,8 +2452,19 @@ function mercenaries:SpawnMercCamp()
         pcall(function()
             if self.LogiState and (self:LogiState().hunterSpots or 0) > 0 then self:SpawnCampHunt(center) end
         end)
+        -- Makeshift inn/tavern: sittable tables + barrels once the inn is bought.
+        pcall(function()
+            if self.LogiState and self:LogiState().innActive then self:SpawnCampInn(center) end
+        end)
+        -- Food cart: a loaded supply wagon while the Food Cart upgrade has days left.
+        pcall(function()
+            if self.LogiState and (self:LogiState().foodCartDays or 0) > 0 then self:SpawnCampFoodCart(center) end
+        end)
 
-        Game.SendInfoText('merc_info_camp_made', false, 0, 4)
+        -- Persist the camp (anchor + "a camp is standing") so it survives a save.
+        pcall(function() self:SaveCampState() end)
+
+        if not silent then Game.SendInfoText('merc_info_camp_made', false, 0, 4) end
     end)
 
     if not ok then
@@ -2284,6 +2499,10 @@ function mercenaries:BreakMercCamp(silent)
     pcall(function() self:DespawnCampForge() end)
     pcall(function() self:DespawnCampAlchemy() end)
     pcall(function() self:DespawnCampHunt() end)
+    pcall(function() self:DespawnCampInn() end)
+    pcall(function() self:DespawnCampFoodCart() end)
+    -- House props go with CampEntities; this just restores the grass CVar.
+    pcall(function() self:ClearCampHouse() end)
 
     self.CampEntities = {}
     self.CampSlots = {}
@@ -2299,10 +2518,16 @@ function mercenaries:BreakMercCamp(silent)
     self.CampCommunalChairs = {}
     self.CampOutParty = {}
     self.CampPracticeYard = nil
+    self.CampStationTiles = {}
     self.CampTrainCenter = nil
     self.CampForwardAngle = nil
     self.CampCenter = nil
     self.CampActive = false
+    -- Forget the pitch: a struck camp must not come back on the next load. (The
+    -- upgrade rebuild grabs CampBuildOrigin before it calls this - see
+    -- LogiRebuildCampForUpgrade.)
+    self.CampBuildOrigin = nil
+    pcall(function() self:SaveCampState() end)
     _G.MercCampMode = false
     _G.MercInCamp = false
     _G.MercCampChats = {}
@@ -2389,50 +2614,64 @@ function mercenaries:RecallMercs()
     Game.SendInfoText('merc_info_recalled', false, 0, 3)
 end
 
--- Called once from OnGameplayStarted. Camp never persists across a save/load
--- (see file header) - this sweeps away any leftover props from a camp that was
--- active when the game was saved, since our Lua-side CampEntities list is gone
--- after a fresh script load either way. Covers BasicEntity and ParticleEffect
--- props, plus the BedTrigger and smart-object classes handled further down.
+-- Every entity class we spawn camp/upgrade props as, and the name prefixes we
+-- give them. ClearAnyLeftoverCamp sweeps the cross product. Both lists must grow
+-- whenever a new prop class or prefix is introduced, or its props will be left
+-- behind on load and the rebuild will stack on top of them.
+-- Prefixes are matched from the START of the name and are deliberately more
+-- specific than a bare "Merc" - that would also match vanilla entities like a
+-- "Merchant..." stall.
+-- (Smithery/ItemSlot/TagPoint are the upgrade-preview rig's. Sweeping the class
+-- is safe because the prefixes only match OUR spawns - a village's own Smithery
+-- is never named "MercSmith...", and the camp forge only BORROWS one.)
+mercenaries.CampPropClasses = {
+    "BasicEntity", "ParticleEffect", "BedTrigger", "StanceSmartObject",
+    "SmartObjectHolder", "mercenaries_Prop", "Bed", "GeomEntity", "Light",
+    "Smithery", "ItemSlot", "TagPoint",
+}
+mercenaries.CampPropPrefixes = {
+    "MercCamp",       -- props, player tent/bed, forge, alchemy, hunt, inn, cart, house
+    "MercActTest_",   -- activity-test scaffolding
+    "MercHunt",       -- hunting console tester
+    "MercInn",        -- inn console tester + tavern stools
+    "MercForge",      -- forge rig / smith bench
+    "MercSmith",      -- borrowed-smithery scaffolding
+    "MercAnvil",
+    "MercPart_",      -- upgrade preview
+    "MercUpg",
+}
+
+local function isCampPropName(name)
+    for _, p in ipairs(mercenaries.CampPropPrefixes) do
+        if string.sub(name, 1, #p) == p then return true end
+    end
+    return false
+end
+
+-- Called once from OnGameplayStarted, before RestoreCampDelayed rebuilds a saved
+-- camp: sweeps away any leftover props from the camp that was standing when the
+-- game was saved, since our Lua-side CampEntities list is gone after a fresh
+-- script load either way (and the rebuild would otherwise stack on top of them).
+-- Props are spawned bSaved_by_game = false so they shouldn't survive at all; this
+-- is the backstop for any that do (a serialised one comes back as a broken white
+-- placeholder mesh, which is exactly what this prevents).
 function mercenaries:ClearAnyLeftoverCamp()
     local ok, err = pcall(function()
-        for _, cls in ipairs({ "BasicEntity", "ParticleEffect" }) do
+        local swept = 0
+        for _, cls in ipairs(self.CampPropClasses) do
             local ents = System.GetEntitiesByClass(cls)
             if ents then
                 for _, e in pairs(ents) do
                     local name = e and e:GetName() or ""
-                    if string.find(name, "MercCampProp_", 1, true) or string.find(name, "MercActTest_", 1, true) then
+                    if isCampPropName(name) then
                         System.RemoveEntity(e.id)
+                        swept = swept + 1
                     end
                 end
             end
         end
-
-        -- The player-bed sleep trigger is a BedTrigger, not a BasicEntity, so
-        -- the class sweep above can't catch it - sweep it by name here too.
-        local triggers = System.GetEntitiesByClass("BedTrigger")
-        if triggers then
-            for _, e in pairs(triggers) do
-                local name = e and e:GetName() or ""
-                if string.find(name, "MercCampProp_BedTrigger_", 1, true) then
-                    System.RemoveEntity(e.id)
-                end
-            end
-        end
-
-        -- Same for the merc sit/sleep smart objects and the activity-test
-        -- anchors - both are their own entity classes, so the BasicEntity
-        -- sweep above can't catch them.
-        for _, cls in ipairs({ "StanceSmartObject", "SmartObjectHolder" }) do
-            local smartObjects = System.GetEntitiesByClass(cls)
-            if smartObjects then
-                for _, e in pairs(smartObjects) do
-                    local name = e and e:GetName() or ""
-                    if string.find(name, "MercCampProp_", 1, true) or string.find(name, "MercActTest_", 1, true) then
-                        System.RemoveEntity(e.id)
-                    end
-                end
-            end
+        if swept > 0 then
+            System.LogAlways("[Camp] swept " .. swept .. " leftover camp props")
         end
     end)
     if not ok then
@@ -2446,6 +2685,10 @@ function mercenaries:ClearAnyLeftoverCamp()
     pcall(function() self:DespawnCampForge() end)
     pcall(function() self:DespawnCampAlchemy() end)
     pcall(function() self:DespawnCampHunt() end)
+    pcall(function() self:DespawnCampInn() end)
+    pcall(function() self:DespawnCampFoodCart() end)
+    -- House props go with CampEntities; this just restores the grass CVar.
+    pcall(function() self:ClearCampHouse() end)
 
     self.CampActive = false
     self.CampEntities = {}

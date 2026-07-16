@@ -30,6 +30,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 ### Skald
 * [How to add a top level quest](skald/add-top-level-quest.md) (Basic management quest, adds dialog and may create new quests)
 * [How to add dialog](skald/add-dialog.md) (Creating dialog, both ingame chatter and player to NPC conversation)
+* [Playing cutscenes](cutscenes.md) (How the cutscene tables, CutsceneHolder entities and quest assets fit together, why a mod that can't touch level data has no supported way to play one, and the runtime asset-link workaround)
 
 ### Combat & AI
 * [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)

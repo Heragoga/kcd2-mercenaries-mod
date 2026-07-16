@@ -17,9 +17,12 @@ function mercenaries:SpawnCampAlchemy(center)
         return false
     end
 
-    -- Avoid the camp forge's spot if one is up, so the two upgrades don't overlap.
-    local avoid = self.CampForge and self.CampForge.anvilPos or nil
-    local spot = self:ForgeFindFlattest(center, avoid)
+    -- The camp reserves a grid tile per upgrade (see CampStationTiles); only fall
+    -- back to a flat-patch scan (clear of the forge) if there wasn't one.
+    local spot = self:CampStationSpot("alchemy")
+    if not spot then
+        spot = self:ForgeFindFlattest(center, self.CampForge and self.CampForge.anvilPos or nil)
+    end
     if not spot then
         spot = self:CampSnapToGround({ x = center.x - 8, y = center.y, z = center.z })
     end
@@ -60,7 +63,7 @@ function mercenaries:SpawnCampAlchemy(center)
         mesh = System.SpawnEntity({ class = "BasicEntity",
             name = "MercCampAlchemyTable_" .. tostring(math.random(100000, 999999)),
             position = spot,
-            properties = { object_Model = mercenaries.CampAlchemyTableModel, bMissionCritical = false } })
+            properties = { object_Model = mercenaries.CampAlchemyTableModel, bMissionCritical = false, bSaved_by_game = false, bSerialize = false } })
     end)
     if mesh then
         if origAng then pcall(function() mesh:SetAngles(origAng) end) end

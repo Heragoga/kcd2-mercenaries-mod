@@ -266,7 +266,13 @@
                                      itself (EndCampChat) when done. See docs/camp.md and the two-NPC gossip notes. -->
                                 <IfCondition failOnCondition="false" condition="$chatRole == 1.0 &amp; (~$horseSpawned | $mountAbandoned)">
                                     <Sequence>
-                                        <Turn target="$chatPartner" align="false" />
+                                        <!-- Only standing mercs turn to their partner: turning a merc seated on
+                                             a chair spins the seated pose into a weird direction (tavern). -->
+                                        <IfCondition failOnCondition="false" condition="~$isCampSitter">
+                                            <SuppressFailure>
+                                                <Turn target="$chatPartner" align="false" />
+                                            </SuppressFailure>
+                                        </IfCondition>
                                         <Expression expressions="$polylog_participants[0] = $chatPartner &#10;$polylog_participantsMetaroles[0].soul = $chatPartner &#10;$polylog_participantsMetaroles[0].metaroles = 'GOSSIP'" />
                                         <!-- One conversation like vanilla gossip: a single gossip topic
                                              (Selector: GOSSIP, else FALLBACK_GOSSIP - never both). The Timeout
@@ -312,7 +318,12 @@
 
                                 <IfCondition failOnCondition="false" condition="$chatRole == 2.0 &amp; (~$horseSpawned | $mountAbandoned)">
                                     <Sequence>
-                                        <Turn target="$chatPartner" align="false" />
+                                        <!-- Seated mercs don't turn - see the initiator branch. -->
+                                        <IfCondition failOnCondition="false" condition="~$isCampSitter">
+                                            <SuppressFailure>
+                                                <Turn target="$chatPartner" align="false" />
+                                            </SuppressFailure>
+                                        </IfCondition>
                                         <!-- Receiver: each call blocks until the initiator drives the line;
                                              the initiator's EndCampChat clears the pair (chatRole back to 0). -->
                                         <SuppressFailure>
@@ -347,7 +358,9 @@
                                     <Sequence>
                                         <SuppressFailure>
                                             <Sequence>
-                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <!-- Tight stop: any distance left here is walked by the StanceElement
+                                                     AFTER the Turn, re-facing the merc to the approach direction. -->
+                                                <Move stopWithinDistance="0.100000" stopDistanceVariation="0.050000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
                                                 <!-- Face the campfire before sitting (the seated pose keeps the merc's current facing). -->
                                                 <IfCondition failOnCondition="false" condition="$campActHasFace">
                                                     <SuppressFailure>
@@ -518,7 +531,9 @@
                                     <Sequence>
                                         <SuppressFailure>
                                             <Sequence>
-                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campFurniturePos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <!-- Tight stop: leftover distance is walked by the StanceElement AFTER
+                                                     the Turn, re-facing the merc to the approach direction. -->
+                                                <Move stopWithinDistance="0.100000" stopDistanceVariation="0.050000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campFurniturePos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
                                                 <!-- Face the campfire before sitting (the seated pose keeps current facing). -->
                                                 <IfCondition failOnCondition="false" condition="$hasCampFurnitureFace">
                                                     <SuppressFailure>

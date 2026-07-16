@@ -88,7 +88,7 @@ function mercenaries:HuntPropsSpawn()
             e = System.SpawnEntity({ class = "BasicEntity",
                 name = "MercHuntProp_" .. i .. "_" .. tostring(math.random(100000, 999999)),
                 position = pos, orientation = { x = 0, y = 0, z = yaw + math.pi },
-                properties = { object_Model = p.m, bMissionCritical = false } })
+                properties = { object_Model = p.m, bMissionCritical = false, bSaved_by_game = false, bSerialize = false } })
         end)
         if e then table.insert(self.HuntPropEnts, e.id) end
         System.LogAlways(string.format("[HuntProp] col %d row %d = %-16s %s", col, row, p.n, e and "OK" or "FAILED"))
@@ -180,7 +180,7 @@ function mercenaries:SpawnHuntStation()
             e = System.SpawnEntity({ class = "BasicEntity",
                 name = "MercHuntStation_" .. i .. "_" .. tostring(math.random(100000, 999999)),
                 position = huntWorldPos(st, L),
-                properties = { object_Model = L.m, bMissionCritical = false } })
+                properties = { object_Model = L.m, bMissionCritical = false, bSaved_by_game = false, bSerialize = false } })
         end)
         if e then st.ents[i] = e end   -- store the entity ref (not the id)
         self:HuntApply(i)
@@ -259,14 +259,17 @@ function mercenaries:SpawnCampHunt(center)
     center = center or self.CampCenter
     if not center then return false end
 
-    -- Keep clear of the forge / alchemy / practice-yard patches already placed.
-    local avoid = {}
-    if self.CampForge and self.CampForge.anvilPos then table.insert(avoid, self.CampForge.anvilPos) end
-    if self.CampAlchemy and self.CampAlchemy.spot then table.insert(avoid, self.CampAlchemy.spot) end
-    if self.CampPracticeYard and self.CampPracticeYard.trainCenter then table.insert(avoid, self.CampPracticeYard.trainCenter) end
-    if #avoid == 0 then avoid = nil end   -- empty list would normalize to a bad {{}} avoid
-
-    local spot, ang = self:ForgeFindFlattest(center, avoid)
+    -- The camp reserves a grid tile per upgrade (see CampStationTiles); only fall
+    -- back to a flat-patch scan clear of the other stations if there wasn't one.
+    local spot, ang = self:CampStationSpot("hunt")
+    if not spot then
+        local avoid = {}
+        if self.CampForge and self.CampForge.anvilPos then table.insert(avoid, self.CampForge.anvilPos) end
+        if self.CampAlchemy and self.CampAlchemy.spot then table.insert(avoid, self.CampAlchemy.spot) end
+        if self.CampPracticeYard and self.CampPracticeYard.trainCenter then table.insert(avoid, self.CampPracticeYard.trainCenter) end
+        if #avoid == 0 then avoid = nil end   -- empty list would normalize to a bad {{}} avoid
+        spot, ang = self:ForgeFindFlattest(center, avoid)
+    end
     if not spot then
         ang = math.pi
         spot = self:CampSnapToGround({ x = center.x + math.cos(ang) * 10, y = center.y + math.sin(ang) * 10, z = center.z })
@@ -284,7 +287,7 @@ function mercenaries:SpawnCampHunt(center)
         pcall(function()
             e = System.SpawnEntity({ class = "BasicEntity",
                 name = "MercCampHunt_" .. i .. "_" .. tostring(math.random(100000, 999999)),
-                position = w, properties = { object_Model = L.m, bMissionCritical = false } })
+                position = w, properties = { object_Model = L.m, bMissionCritical = false, bSaved_by_game = false, bSerialize = false } })
         end)
         if e then
             pcall(function() e:SetAngles({ x = math.rad(L.rx or 0), y = math.rad(L.ry or 0), z = ang + math.rad(L.rz or 0) }) end)

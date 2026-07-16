@@ -16,6 +16,13 @@ mercenaries.QuartermasterId = nil
 -- reads this each cycle to walk him back and re-face the tent after a fight.
 mercenaries.QuartermasterPost = nil
 
+-- Where he stands, as {right, forward} from the doorway he's posted outside of.
+-- The tent and the house (Player House upgrade) have different doorways AND very
+-- different footprints, so each gets its own offset - the tent's would leave him
+-- standing inside the hut's side wall.
+mercenaries.QuartermasterTentOffset  = { right = 1.5, forward = 3.2 }
+mercenaries.QuartermasterHouseOffset = { right = 2.0, forward = 5.0 }
+
 function mercenaries:GetQuartermasterPost()
     return self.QuartermasterPost
 end
@@ -28,11 +35,17 @@ function mercenaries:SpawnQuartermaster(centerPos, facingAngle)
     self:DespawnQuartermaster()
 
     local ok, err = pcall(function()
-        -- Place him out the tent's door: the tent entrance faces (facingAngle +
-        -- 130deg) (SpawnPlayerCampTent), not raw grid-forward. Offset a little to
-        -- the side so he doesn't block the doorway, then ground-snap.
-        local entranceAngle = (facingAngle or 0) + math.rad(130)
-        local qpos = self:CampRelativeOffset(centerPos, entranceAngle, { right = 1.5, forward = 3.2 })
+        -- Place him out the doorway, offset a little to the side so he doesn't
+        -- block it. The tent's entrance faces (facingAngle + 130deg), not raw
+        -- grid-forward (see SpawnPlayerCampTent). The house instead opens along
+        -- grid-forward (its door gable is the local -X end, and it's spawned at
+        -- facingAngle + pi), and its body runs ~5m the OTHER way - so he needs the
+        -- forward axis and more clearance, or he ends up inside a wall.
+        local house = false
+        pcall(function() house = self.LogiState and self:LogiState().hasHouse end)
+        local entranceAngle = (facingAngle or 0) + (house and 0 or math.rad(130))
+        local off = house and self.QuartermasterHouseOffset or self.QuartermasterTentOffset
+        local qpos = self:CampRelativeOffset(centerPos, entranceAngle, off)
         qpos = self:FindValidGround(qpos, centerPos.z)
 
         -- Face back toward the tent/centre so he looks at the approaching player.

@@ -729,6 +729,13 @@
                     <Edge From="quartermaster_dialog.quartermaster_test" To="Exec" />
                 </EventFunction>
 
+                <!-- The CutsceneHolder this asset resolves to is spawned and linked
+                     at runtime by mercenaries_cutscene.lua. See docs/cutscenes.md. -->
+                <CutsceneHandler Name="qm_tutorial_cutscene" PositionY="700" PositionX="600">
+                    <Asset Name="CutsceneHolder" Alias="qm_tutorial_cs" />
+                    <Edge From="quartermaster_dialog.quartermaster_tutorial" To="EnqueueCutscene" />
+                </CutsceneHandler>
+
                 <!-- Quartermaster logistics: each dialog port hands the player a
                      token that mercenaries.lua polls and routes to
                      mercenaries_logistics.lua. -->
@@ -918,6 +925,12 @@
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_practice" To="Exec" />
                 </EventFunction>
+                <EventFunction Name="exec_qm_house" PositionY="180" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be7cd" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_house" To="Exec" />
+                </EventFunction>
                 <!-- Quartermaster deploy (take mercs out of camp) -->
                 <EventFunction Name="exec_qm_take_half" PositionY="200" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be79d" />
@@ -944,6 +957,7 @@
                 <SoulAsset Name="mercs" SharedSoulGuids="96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 27b1b43c-8df5-4850-af56-8a3aada124ce 81b39fbd-3c22-4d78-b16a-23539991309e 3cdf2729-9a0a-4dd9-bbc7-5b2082159675 2744267c-d252-4509-9288-a48d6e38bd40 2813fb9d-a08b-494c-93ed-6b045d1e3024 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
                 <SoulAsset Name="quartermaster" SharedSoulGuids="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
                 <SoulAsset Name="player" SharedSoulGuids="4c2dcffb-dea1-6263-72d7-b39f4db2d8b5" />
+                <CutsceneHolderAsset Name="qm_tutorial_cs" Comment="Linked at runtime by mercenaries_cutscene.lua" />
             </Assets>
         </Quest>
     </Skald>

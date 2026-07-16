@@ -570,6 +570,9 @@
   <Row><Cell>ui_qm_practice</Cell><Cell>Practice yard (1000 groschen).</Cell><Cell>Practice yard (1000 groschen).</Cell></Row>
   <Row><Cell>merc_henry_qm_practice</Cell><Cell>Lay out a practice yard.</Cell><Cell>Lay out a practice yard.</Cell></Row>
   <Row><Cell>merc_qm_practice</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell><Cell>Green lads become veterans. Cheaper than hiring them so.</Cell></Row>
+  <Row><Cell>ui_qm_house</Cell><Cell>A proper roof over my head (1000 groschen).</Cell><Cell>A proper roof over my head (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_house</Cell><Cell>Put up a hut for me, in place of my tent.</Cell><Cell>Put up a hut for me, in place of my tent.</Cell></Row>
+  <Row><Cell>merc_qm_house</Cell><Cell>Aye, walls and a door beat canvas. The lads will have it up by nightfall.</Cell><Cell>Aye, walls and a door beat canvas. The lads will have it up by nightfall.</Cell></Row>
   <Row><Cell>merc_logi_msg</Cell><Cell>-</Cell><Cell>-</Cell></Row>
   <Row><Cell>merc_logi_morale_low</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell></Row>
   <Row><Cell>merc_logi_morale_mutiny</Cell><Cell>The men are on the verge of mutiny!</Cell><Cell>The men are on the verge of mutiny!</Cell></Row>

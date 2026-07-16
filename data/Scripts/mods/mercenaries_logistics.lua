@@ -47,6 +47,7 @@ mercenaries.UpgAlchemyCost       = 3000
 mercenaries.UpgPracticeCost      = 1000
 mercenaries.PracticeMaxLevel     = 6
 mercenaries.PracticePctPerLevel  = 8
+mercenaries.UpgHouseCost         = 1000        -- swaps the player's tent for a hut
 
 -- Combat buff tiers (net effectiveness %). LogiApplyBuffs picks the closest.
 mercenaries.CombatBuffTiers = {
@@ -146,7 +147,7 @@ function mercenaries:LogiState()
             starving = false, drinkAvailable = false, innActive = false, unpaid = false,
             wagesWithheld = false, coffer = 0,
             foodCartDays = 0, innDays = 0, hunterSpots = 0,
-            hasSmithy = false, hasAlchemy = false, hasPracticeYard = false, trainLevel = 0,
+            hasSmithy = false, hasAlchemy = false, hasPracticeYard = false, hasHouse = false, trainLevel = 0,
             lastUpkeepDay = nil, lastTick = nil,
             -- runtime combat tracking
             lastAliveCount = nil, selfRemoved = 0, desertProgress = 0,
@@ -284,6 +285,7 @@ function mercenaries:LogiSave()
     self:LogiSaveField("QMSmithy", L.hasSmithy and 1 or 0)
     self:LogiSaveField("QMAlchemy", L.hasAlchemy and 1 or 0)
     self:LogiSaveField("QMPractice", L.hasPracticeYard and 1 or 0)
+    self:LogiSaveField("QMHouse", L.hasHouse and 1 or 0)
     self:LogiSaveField("QMTrainLevel", L.trainLevel)
 end
 function mercenaries:LogiLoad()
@@ -305,6 +307,7 @@ function mercenaries:LogiLoad()
     L.hasSmithy       = num("QMSmithy", 0) == 1
     L.hasAlchemy      = num("QMAlchemy", 0) == 1
     L.hasPracticeYard = num("QMPractice", 0) == 1
+    L.hasHouse        = num("QMHouse", 0) == 1
     L.trainLevel      = num("QMTrainLevel", 0)
     L.innActive       = L.innDays > 0
     L.lastTick = self:LogiNow()          -- not persisted (see comment in LogiTick)
@@ -478,6 +481,8 @@ function mercenaries:LogiProcessUpkeep()
     if (L.foodCartDays or 0) > 0 then
         covered = covered + self.UpgFoodCartFeeds
         L.foodCartDays = L.foodCartDays - 1
+        -- Out of supply days: the cart packs up and leaves camp.
+        if L.foodCartDays <= 0 then pcall(function() self:DespawnCampFoodCart() end) end
     end
     local toFeed = math.max(0, count - covered)
     local need = math.ceil(toFeed / self.FeedRatio)
@@ -765,54 +770,65 @@ function mercenaries:LogiWithdrawCoffer()
 end
 
 -- Upgrades
+--
+-- Every camp upgrade occupies a GRID TILE, allocated when the camp is laid out
+-- (see CampActiveStations / CampStationTiles) so it gets the same room as a
+-- campfire cluster and can't overlap one. A tile can only be reserved while the
+-- grid is being built, so buying an upgrade mid-camp rebuilds the whole camp
+-- rather than dropping the new structure into whatever gap it can find.
+function mercenaries:LogiRebuildCampForUpgrade()
+    pcall(function()
+        if not (self.CampActive and self.CampCenter) then return end
+        -- Grab the pitch before breaking (BreakMercCamp forgets it), so the camp
+        -- goes back up exactly where it stood instead of in front of the player -
+        -- who may have wandered off since making it.
+        local origin = self.CampBuildOrigin
+        self:BreakMercCamp(true)
+        -- Sweep anything the teardown didn't have tracked, so the camp is rebuilt
+        -- from scratch rather than stacking a second set of props on the first.
+        self:ClearAnyLeftoverCamp()
+        self:SpawnMercCamp(origin, true)
+    end)
+end
+
 function mercenaries:LogiBuyFoodCart()
     if not self:LogiSpend(self.UpgFoodCartCost) then return end
     self:LogiState().foodCartDays = self.UpgFoodCartDays
     self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    self:LogiRebuildCampForUpgrade()
 end
 function mercenaries:LogiBuyInn()
     if not self:LogiSpend(self.UpgInnCost) then return end
     local L = self:LogiState(); L.innDays = self.UpgInnDays; L.innActive = true
     self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    self:LogiRebuildCampForUpgrade()
 end
 function mercenaries:LogiBuyHunter()
     if not self:LogiSpend(self.UpgHunterCost) then return end
     local L = self:LogiState(); L.hunterSpots = (L.hunterSpots or 0) + 1
     self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
-    -- First hunter raises the camp hunting station right now if we're in camp
-    -- (mirrors smithy/alchemy/practice); otherwise it comes up on the next camp make.
-    pcall(function()
-        if self.CampActive and self.CampCenter and not self.CampHunt then
-            self:SpawnCampHunt(self.CampCenter)
-        end
-    end)
+    if L.hunterSpots == 1 then self:LogiRebuildCampForUpgrade() end   -- only the first one builds the station
 end
 function mercenaries:LogiBuySmithy()
     local L = self:LogiState()
     if L.hasSmithy then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
     if not self:LogiSpend(self.UpgSmithyCost) then return end
     L.hasSmithy = true; self:LogiApplyBuffs(); self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
-    -- If we're already in camp, build the forge right now instead of waiting for
-    -- the next camp make. SpawnCampForge runs its own flat-patch scan, so no full
-    -- rebuild is needed; it silently no-ops if a forge is already up.
-    pcall(function()
-        if self.CampActive and self.CampCenter and not self.CampForge then
-            self:SpawnCampForge(self.CampCenter)
-        end
-    end)
+    self:LogiRebuildCampForUpgrade()
 end
 function mercenaries:LogiBuyAlchemy()
     local L = self:LogiState()
     if L.hasAlchemy then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
     if not self:LogiSpend(self.UpgAlchemyCost) then return end
     L.hasAlchemy = true; self:LogiApplyBuffs(); self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
-    -- If we're already in camp, build the alchemy bench right now (mirrors the
-    -- smithy). SpawnCampAlchemy no-ops if a bench is already up.
-    pcall(function()
-        if self.CampActive and self.CampCenter and not self.CampAlchemy then
-            self:SpawnCampAlchemy(self.CampCenter)
-        end
-    end)
+    self:LogiRebuildCampForUpgrade()
+end
+function mercenaries:LogiBuyHouse()
+    local L = self:LogiState()
+    if L.hasHouse then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
+    if not self:LogiSpend(self.UpgHouseCost) then return end
+    L.hasHouse = true; self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    self:LogiRebuildCampForUpgrade()
 end
 function mercenaries:LogiBuyPractice()
     local L = self:LogiState()

@@ -61,6 +61,7 @@ mercenaries.TokenIDQMHunter          = "679a655e-189d-4519-b437-ccc4b92be72d"
 mercenaries.TokenIDQMSmithy          = "679a655e-189d-4519-b437-ccc4b92be73d"
 mercenaries.TokenIDQMAlchemy         = "679a655e-189d-4519-b437-ccc4b92be74d"
 mercenaries.TokenIDQMPractice        = "679a655e-189d-4519-b437-ccc4b92be75d"
+mercenaries.TokenIDQMHouse           = "679a655e-189d-4519-b437-ccc4b92be7cd"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
 mercenaries.TokenIDQMTakeHalf        = "679a655e-189d-4519-b437-ccc4b92be79d"
@@ -699,6 +700,7 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMSmithy,        function() self:LogiBuySmithy() end)
     tok(self.TokenIDQMAlchemy,       function() self:LogiBuyAlchemy() end)
     tok(self.TokenIDQMPractice,      function() self:LogiBuyPractice() end)
+    tok(self.TokenIDQMHouse,         function() self:LogiBuyHouse() end)
     tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
     tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
     tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
@@ -862,8 +864,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Load archer stance + skirmish AI variant
     self:LoadArcherState()
 
-    -- Camp is session-only - sweep away any leftover props from a camp
-    -- that was active when the game was saved (see mercenaries_camp.lua).
+    -- Camp props are runtime-spawned and don't survive a save, so sweep any that
+    -- lingered. The camp itself IS persistent: only its anchor is saved, and
+    -- RestoreCampDelayed below rebuilds it there once the merc cache exists.
     self:ClearAnyLeftoverCamp()
 
     -- Load the quartermaster logistics state (tiredness / food / drink / wages).
@@ -882,6 +885,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 
     -- Rebuild the merc cache: the one permitted full-world NPC scan, on load only.
     Script.SetTimerForFunction(2000, "mercenaries.RebuildMercCacheDelayed")
+    -- Put a saved camp back up - after the cache above, since it hands out tents
+    -- from ActiveMercs (see RestoreCampDelayed).
+    Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
+    Script.SetTimerForFunction(3000, "mercenaries.SetupCutsceneBindingDelayed")
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
@@ -904,9 +911,13 @@ Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
 Script.LoadScript("Scripts/mods/mercenaries_forge.lua")
 Script.LoadScript("Scripts/mods/mercenaries_alchemy.lua")
 Script.LoadScript("Scripts/mods/mercenaries_hunting.lua")
+Script.LoadScript("Scripts/mods/mercenaries_inn.lua")
+Script.LoadScript("Scripts/mods/mercenaries_foodcart.lua")
+Script.LoadScript("Scripts/mods/mercenaries_house.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
+Script.LoadScript("Scripts/mods/mercenaries_cutscene.lua")
 Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
 
 

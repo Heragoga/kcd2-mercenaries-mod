@@ -96,13 +96,19 @@ He is purely a camp fixture:
 
 - **Spawn**: `mercenaries:SpawnQuartermaster(center, facingAngle)`, called from
   `SpawnMercCamp` right after the player tent, placed a few metres out the
-  tent's **front** (its door, which faces `facingAngle + 130°` — the same
-  `tentAngle` the player tent is spawned with, not the raw grid-forward axis)
-  and turned to face it.
+  **doorway** and turned to face it. Which doorway depends on what's standing on
+  the `(0,0)` tile, and the two are nothing alike:
+  - *tent* — its door faces `facingAngle + 130°` (the same `tentAngle` the tent
+    is spawned with, **not** raw grid-forward); offset `QuartermasterTentOffset`.
+  - *player house* (House upgrade) — the hut opens along **grid-forward** (its
+    door gable is the local `-X` end and it spawns at `facingAngle + π`), with its
+    body running ~5m the other way, so he uses the forward axis and more
+    clearance (`QuartermasterHouseOffset`). The tent's offset would leave him
+    standing inside the hut's side wall.
 - **Despawn**: `mercenaries:DespawnQuartermaster()`, called from `BreakMercCamp`
   and `ClearAnyLeftoverCamp` (which also sweeps by the `MercQuartermaster_` name
-  prefix, since a camp active at save time loses the tracked handle — same
-  session-only story as the camp props).
+  prefix, since a camp standing at save time loses the tracked handle — he is
+  respawned with the camp by `RestoreCampDelayed`, like the rest of the props).
 
 ---
 
