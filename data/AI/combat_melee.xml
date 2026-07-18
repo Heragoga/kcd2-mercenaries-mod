@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Melee combat module: the one melee attack behaviour for every side.
+         Target comes entirely from $attackData.target (set by whichever
+         scheduler fires it); side differences (leash to the player, stance
+         disengage, none of that for enemies) are resolved in Lua by
+         UpdateMeleeCombatData from the entity name. Archers fired into melee
+         get WeaponChange=melee (sheathe bow, draw sidearm); everyone else
+         keeps their weapon. See docs/ai-modules.md. -->
+    <BehaviorTree name="combat_melee" is_function="0">
+        <Variables>
+            <Variable name="automation_defense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_guard" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_movement" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_offense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_weapon" type="_bool" values="true" isPersistent="0" form="single" />
+            <!-- melee (not none): actively DRAW the melee weapon. A freshly spawned,
+                 instantly-aggressive enemy races equip-vs-combat and a passive
+                 (none) draw loses that race - the NPC swings with fists for a few
+                 seconds until the offense automation gets around to it, or (worse)
+                 never draws at all. melee makes the WeaponAutomationDecorator own
+                 the draw, so weapons come out immediately. Mercs follow before they
+                 fight, so their weapon has already settled; this is just as safe for
+                 them. Archers fired into melee also want their sidearm drawn. -->
+            <Variable name="weaponChange" type="enum:weaponChange" values="$enum:weaponChange.melee" isPersistent="0" form="single" />
+            <Variable name="guardMode" type="enum:combatAutomationGuardMode" values="$enum:combatAutomationGuardMode.automate" isPersistent="0" form="single" />
+
+            <Variable name="isTargetAlive" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="disengage" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="isArcher" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="isEnemy" type="_bool" values="false" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                    <EntityContextElement context="crime_interrupt" enabled="true">
+                        <EntityContext context="crime_interruptAttack" target="$this.id">
+                            <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                                <Child canSkip="1">
+                                    <Sequence>
+                                        <!-- weaponChange defaults to melee for everyone (draws the melee
+                                             weapon / an archer's sidearm), so nothing to set here. -->
+                                        <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
+
+                                        <!-- Enemies engage the instant they spawn, so the weapon-automation
+                                             draw occasionally still loses the race and they charge in with
+                                             fists for a moment. An explicit draw first (melee fighters only)
+                                             gets the weapon out before the approach. Mercs follow before they
+                                             fight, so their weapon is long settled - they skip this and keep
+                                             their draw-while-charging (no engage delay). -->
+                                        <IfCondition failOnCondition="false" condition="$isEnemy &amp; ~$isArcher">
+                                            <SuppressFailure>
+                                                <DrawAction WeaponSet="Primary" fullBody="false" tags="" />
+                                            </SuppressFailure>
+                                        </IfCondition>
+
+                                        <Parallel successMode="Any" failureMode="Any">
+
+                                            <Loop count="-1">
+                                                <MoveParamsDecorator speed="Run" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                    <MeleeOffenseAutomationDecorator active="$automation_offense">
+                                                        <MeleeDefenseAutomationDecorator active="$automation_defense">
+                                                            <MeleeGuardAutomationDecorator GuardMode="$guardMode" active="$automation_guard">
+                                                                <WeaponAutomationDecorator WeaponChange="$weaponChange" active="$automation_weapon">
+                                                                    <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="$automation_movement">
+                                                                        <Sequence>
+                                                                            <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
+                                                                            <IfElseCondition failOnCondition="false" condition="$isTargetAlive &amp; ~$disengage" saveVersion="2">
+                                                                                <Then canSkip="1">
+                                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                                </Then>
+                                                                                <Else canSkip="1">
+                                                                                    <Fail />
+                                                                                </Else>
+                                                                            </IfElseCondition>
+                                                                        </Sequence>
+                                                                    </CombatFollowerDecorator>
+                                                                </WeaponAutomationDecorator>
+                                                            </MeleeGuardAutomationDecorator>
+                                                        </MeleeDefenseAutomationDecorator>
+                                                    </MeleeOffenseAutomationDecorator>
+                                                </MoveParamsDecorator>
+                                            </Loop>
+
+                                            <!-- Watchdog: disengage covers the per-side leash / stance /
+                                                 critical-health rules (Lua decides; enemies never leash). -->
+                                            <Loop count="-1">
+                                                <Sequence>
+                                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                                    <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
+                                                    <IfCondition failOnCondition="false" condition="$disengage">
+                                                        <Fail />
+                                                    </IfCondition>
+                                                </Sequence>
+                                            </Loop>
+
+                                        </Parallel>
+                                    </Sequence>
+                                </Child>
+
+                                <OnFail canSkip="1">
+                                    <Sequence>
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
+                                        <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                    </Sequence>
+                                </OnFail>
+                            </FuseBox>
+                        </EntityContext>
+                    </EntityContextElement>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

@@ -2,7 +2,7 @@
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<brain2subbrains version="1">
 		<!-- Custom switch: scans for the nearest player/merc target and fires
-		     the renegade_attack interrupt on it. The vanilla switch alone did
+		     the combat_melee interrupt on it. The vanilla switch alone did
 		     NOT work here - proactive "attack anything in sight" behaviour
 		     needs an active switch driving crime/interrupt reactions, not
 		     just negative FactionTree relations. -->

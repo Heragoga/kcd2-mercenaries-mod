@@ -214,7 +214,7 @@ function mercenaries:DespawnCampForge()
 end
 
 -- Camp smith: a merc seated by the anvil sharpening a conjured sword, driven as
--- camp activity mode 10 in mercenary_follow.xml. See docs/camp-forge.md.
+-- camp activity mode 10 in camp_actor.xml. See docs/camp-forge.md.
 
 -- Spawn the smith's bench: a stool prop + a sitting StanceSmartObject (CampChairSO
 -- properties), by the anvil facing it. Entities tracked in rec.smithSeatIds.

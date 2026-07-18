@@ -30,11 +30,13 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 ### Skald
 * [How to add a top level quest](skald/add-top-level-quest.md) (Basic management quest, adds dialog and may create new quests)
 * [How to add dialog](skald/add-dialog.md) (Creating dialog, both ingame chatter and player to NPC conversation)
-* [Playing cutscenes](cutscenes.md) (How the cutscene tables, CutsceneHolder entities and quest assets fit together, why a mod that can't touch level data has no supported way to play one, and the runtime asset-link workaround)
+* [Cutscenes: why a mod can't play one](cutscenes.md) (How the cutscene tables, CutsceneHolder entities and quest assets fit together, and the postmortem of why no cutscene of any type can be played without shipping level data - read before attempting it)
 
 ### Combat & AI
 * [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)
-* [Combat target selection](combat-target-selection.md) (How mercs, archers and renegades pick who to fight: the one-scan-per-second cache, anti-swarm cap, the -1 relationship rule, and the stance pickers)
+* [AI modules](ai-modules.md) (The five reusable behaviour modules - combat_melee, combat_archer_dynamic/static, follow, camp_actor - the schedulers that fire them, and the Lua control points for encounters)
+* [Combat target selection](combat-target-selection.md) (How mercs, archers and enemies pick who to fight: the one-scan-per-second cache, anti-swarm cap, the -1 relationship rule, and the stance pickers)
+* [Enemy groups](enemies.md) (The six hostile groups that replaced the renegades — looters, bandits, Sigismund's soldiers, Prague regiment, Cumans, Sigismund's knights — their souls/faction/brains/gear and the spawn commands)
 
 ### Camp
 * [Mercenary camp](camp.md) (Procedural camp spawn/despawn, how props render without a custom entity class, the smart-object sit/sleep integration, and deploying from camp)

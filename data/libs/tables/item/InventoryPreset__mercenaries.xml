@@ -27,6 +27,26 @@
             <ClothingPresetRef Name="soldier_generic_2_10"/>
             <WeaponPresetRef Name="huntingsword_2_01"/>
         </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_6">
+            <ClothingPresetRef Name="soldierLight_generic_1_05"/>
+            <WeaponPresetRef Name="sword_2_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_7">
+            <ClothingPresetRef Name="soldierLight_generic_2_05"/>
+            <WeaponPresetRef Name="mace_2_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_8">
+            <ClothingPresetRef Name="soldier_generic_1_09"/>
+            <WeaponPresetRef Name="axe_2_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_9">
+            <ClothingPresetRef Name="soldier_generic_2_08"/>
+            <WeaponPresetRef Name="polearm_2_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_weak_10">
+            <ClothingPresetRef Name="soldierLight_generic_3_02"/>
+            <WeaponPresetRef Name="huntingsword_shield_2_01"/>
+        </InventoryPreset>
 
         <InventoryPreset Name="inventory_mercenary_medium_1">
             <ClothingPresetRef Name="soldier_generic_3_05"/>
@@ -48,6 +68,26 @@
             <ClothingPresetRef Name="soldier_bergov_4_03"/>
             <WeaponPresetRef Name="axe_shield_3_01"/>
         </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_6">
+            <ClothingPresetRef Name="soldier_generic_3_09"/>
+            <WeaponPresetRef Name="sword_shield_4_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_7">
+            <ClothingPresetRef Name="soldier_generic_4_07"/>
+            <WeaponPresetRef Name="longsword_4_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_8">
+            <ClothingPresetRef Name="soldier_kh_4_03"/>
+            <WeaponPresetRef Name="mace_shield_4_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_9">
+            <ClothingPresetRef Name="soldier_pisek_4_02"/>
+            <WeaponPresetRef Name="axe_shield_4_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_medium_10">
+            <ClothingPresetRef Name="soldier_bergov_3_04"/>
+            <WeaponPresetRef Name="polearm_4_01"/>
+        </InventoryPreset>
 
         <InventoryPreset Name="inventory_mercenary_good_1">
             <ClothingPresetRef Name="soldier_generic_5_04"/>
@@ -68,6 +108,106 @@
         <InventoryPreset Name="inventory_mercenary_good_5">
             <ClothingPresetRef Name="soldier_prague_4_05"/>
             <WeaponPresetRef Name="hammer_shield_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_6">
+            <ClothingPresetRef Name="soldier_generic_5_08"/>
+            <WeaponPresetRef Name="sword_shield_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_7">
+            <ClothingPresetRef Name="soldier_generic_6_03"/>
+            <WeaponPresetRef Name="axe_shield_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_8">
+            <ClothingPresetRef Name="soldier_kh_5_03"/>
+            <WeaponPresetRef Name="longsword_6_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_9">
+            <ClothingPresetRef Name="soldier_prague_4_03"/>
+            <WeaponPresetRef Name="mace_shield_6_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_10">
+            <ClothingPresetRef Name="soldier_sigi_5_01"/>
+            <WeaponPresetRef Name="polearm_6_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_11">
+            <ClothingPresetRef Name="soldier_generic_5_01"/>
+            <WeaponPresetRef Name="longsword_5_02"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_12">
+            <ClothingPresetRef Name="soldier_generic_5_02"/>
+            <WeaponPresetRef Name="hammer_shield_6_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_13">
+            <ClothingPresetRef Name="soldier_generic_5_05"/>
+            <WeaponPresetRef Name="axe_shield_6_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_14">
+            <ClothingPresetRef Name="soldier_generic_5_09"/>
+            <WeaponPresetRef Name="sword_shield_5_01_kh"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_15">
+            <ClothingPresetRef Name="soldier_generic_5_11"/>
+            <WeaponPresetRef Name="mace_shield_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_16">
+            <ClothingPresetRef Name="soldier_generic_6_01"/>
+            <WeaponPresetRef Name="longsword_6_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_17">
+            <ClothingPresetRef Name="soldier_generic_6_07"/>
+            <WeaponPresetRef Name="polearm_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_18">
+            <ClothingPresetRef Name="soldier_generic_6_09"/>
+            <WeaponPresetRef Name="axe_5_01"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_19">
+            <ClothingPresetRef Name="soldier_kh_5_01"/>
+            <WeaponPresetRef Name="mace_shield_6_01_kh"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_20">
+            <ClothingPresetRef Name="soldier_kh_5_05"/>
+            <WeaponPresetRef Name="axe_shield_6_01_kh"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_21">
+            <ClothingPresetRef Name="soldier_kh_6_02"/>
+            <WeaponPresetRef Name="hammer_shield_6_01_kh"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_22">
+            <ClothingPresetRef Name="soldier_kh_6_04"/>
+            <WeaponPresetRef Name="sword_shield_5_01_kh"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_23">
+            <ClothingPresetRef Name="soldier_sigi_5_02"/>
+            <WeaponPresetRef Name="mace_shield_6_01_sigi"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_24">
+            <ClothingPresetRef Name="soldier_sigi_5_03"/>
+            <WeaponPresetRef Name="axe_shield_5_01_sigi"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_25">
+            <ClothingPresetRef Name="soldier_sigi_6_01"/>
+            <WeaponPresetRef Name="hammer_shield_6_01_sigi"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_26">
+            <ClothingPresetRef Name="soldier_bergov_5_02"/>
+            <WeaponPresetRef Name="axe_shield_5_01_bergov"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_27">
+            <ClothingPresetRef Name="soldier_bergov_5_05"/>
+            <WeaponPresetRef Name="mace_shield_6_01_bergov"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_28">
+            <ClothingPresetRef Name="soldier_pisek_5_01"/>
+            <WeaponPresetRef Name="axe_shield_6_01_pisek"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_29">
+            <ClothingPresetRef Name="soldier_prague_4_06"/>
+            <WeaponPresetRef Name="mace_shield_6_01_prague"/>
+        </InventoryPreset>
+        <InventoryPreset Name="inventory_mercenary_good_30">
+            <ClothingPresetRef Name="soldier_semin_4_07"/>
+            <WeaponPresetRef Name="hammer_shield_6_01_semin"/>
         </InventoryPreset>
 
         <InventoryPreset Name="inventory_mercenary_miroslav">
@@ -141,20 +281,10 @@
         <!-- Ranged mercenaries (archers). Light clothing plus a stack of
              arrows in the base inventory - runtime EquipMercenaryWeapon then
              applies the archer weapon preset (bow + arrows + sidearm) on top. -->
-        <InventoryPreset Name="inventory_mercenary_archer_weak">
-            <ClothingPresetRef Name="soldierLight_generic_1_01"/>
-            <WeaponPresetRef Name="huntingsword_1_01"/>
-            <PresetItem Name="arrow_normal" Amount="40"/>
-        </InventoryPreset>
-        <InventoryPreset Name="inventory_mercenary_archer_medium">
+        <InventoryPreset Name="inventory_mercenary_archer">
             <ClothingPresetRef Name="soldierLight_generic_2_03"/>
             <WeaponPresetRef Name="huntingsword_2_01"/>
             <PresetItem Name="arrow_hunting" Amount="40"/>
-        </InventoryPreset>
-        <InventoryPreset Name="inventory_mercenary_archer_strong">
-            <ClothingPresetRef Name="soldier_generic_2_10"/>
-            <WeaponPresetRef Name="huntingsword_2_01"/>
-            <PresetItem Name="arrow_enh_hunting" Amount="40"/>
         </InventoryPreset>
 
     </InventoryPresets>

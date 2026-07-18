@@ -48,6 +48,7 @@ mercenaries.UpgPracticeCost      = 1000
 mercenaries.PracticeMaxLevel     = 6
 mercenaries.PracticePctPerLevel  = 8
 mercenaries.UpgHouseCost         = 1000        -- swaps the player's tent for a hut
+mercenaries.UpgTowerCost         = 100         -- TEMP: buying only enables aim-placing an archer tower (no persistence)
 
 -- Combat buff tiers (net effectiveness %). LogiApplyBuffs picks the closest.
 mercenaries.CombatBuffTiers = {
@@ -829,6 +830,13 @@ function mercenaries:LogiBuyHouse()
     if not self:LogiSpend(self.UpgHouseCost) then return end
     L.hasHouse = true; self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
     self:LogiRebuildCampForUpgrade()
+end
+-- TEMP archer-tower upgrade: buying it just enables aim-placement (StartTowerPlacement).
+-- No hasTower flag / no save persistence yet - intentionally throwaway for now.
+function mercenaries:LogiBuyTower()
+    if not self:LogiSpend(self.UpgTowerCost) then return end
+    Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
+    self:StartTowerPlacement()
 end
 function mercenaries:LogiBuyPractice()
     local L = self:LogiState()

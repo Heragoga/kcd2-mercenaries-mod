@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<subbrain_switchings version="1">
+		<subbrain_switching file_name="static_archer_scheduler.xml" subbrain_id="2e5b8d13-9f47-4a26-b80c-1d3f6a9e5c74" tree_name="onUpdate" />
+	</subbrain_switchings>
+</database>

@@ -19,5 +19,7 @@
         <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11815" />
         <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11816" />
         <soul2perk perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" soul_id="c2a51ce4-449f-4a2e-83b9-c098c5b11817" />
+        <!-- Heinrich (boss) gets his own imba buff perk. -->
+        <soul2perk perk_id="12a34568-0ee3-41ed-ab54-3303b049019b" soul_id="1c9e791f-09ea-5171-96e7-102188affa24" />
 	</soul2perks>
 </database>

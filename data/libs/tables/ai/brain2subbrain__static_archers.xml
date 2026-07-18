@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<brain2subbrains version="1">
+		<!-- Custom switch: picks a target per the archer's mode and fires the
+		     combat_archer_static interrupt. Same reasoning as the renegades - a
+		     proactive "shoot what I am told to" switch, not faction relations. -->
+		<brain2subbrain brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" priority="0" subbrain_id="2e5b8d13-9f47-4a26-b80c-1d3f6a9e5c74" />
+
+		<!-- Vanilla basic npc scheduler -->
+		<brain2subbrain brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
+	</brain2subbrains>
+</database>

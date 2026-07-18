@@ -62,6 +62,7 @@ mercenaries.TokenIDQMSmithy          = "679a655e-189d-4519-b437-ccc4b92be73d"
 mercenaries.TokenIDQMAlchemy         = "679a655e-189d-4519-b437-ccc4b92be74d"
 mercenaries.TokenIDQMPractice        = "679a655e-189d-4519-b437-ccc4b92be75d"
 mercenaries.TokenIDQMHouse           = "679a655e-189d-4519-b437-ccc4b92be7cd"
+mercenaries.TokenIDQMTower           = "679a655e-189d-4519-b437-ccc4b92be7dd"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
 mercenaries.TokenIDQMTakeHalf        = "679a655e-189d-4519-b437-ccc4b92be79d"
@@ -121,21 +122,56 @@ mercenaries.Souls = {
         "b2c3d4e5-2345-4bcd-9ef0-234567890123",
         "c3d4e5f6-3456-4cde-a012-345678901234",
         "d4e5f6a7-4567-4def-b123-456789012345",
-        "e5f6a7b8-5678-4efa-c234-567890123456"
+        "e5f6a7b8-5678-4efa-c234-567890123456",
+        "4c8d59ed-f203-4e49-9217-104440b45a51",
+        "d619884a-8969-429a-b47b-2fe407dacd7d",
+        "f0c56057-0fc9-49a6-94f1-a48b4e966185",
+        "9bdecddd-5ed4-4e0a-b092-7a7c71b4f037",
+        "61ae064f-997d-490a-a391-c67150afaf24"
     },
     medium = {
         "f6a7b8c9-6789-4fab-d345-678901234567",
         "a7b8c9d0-7890-4abc-e456-789012345678",
         "b8c9d0e1-8901-4bcd-f567-890123456789",
         "c9d0e1f2-9012-4cde-a678-901234567890",
-        "d0e1f2a3-0123-4def-b789-012345678901"
+        "d0e1f2a3-0123-4def-b789-012345678901",
+        "cf3146a1-0690-4c47-b778-7d099794490c",
+        "e1a181c8-82b7-471c-b7fa-a87f33c92ae2",
+        "9dd1c7c7-21a0-43fa-ac10-49dfb24842c3",
+        "38a95e49-dc1e-4e76-87b7-7e40c7e1e546",
+        "9ee391c6-9a08-463e-9e7e-b73383f05b19"
     },
     strong = {
         "e1f2a3b4-1234-4efa-c890-123456789012",
         "f2a3b4c5-2345-4fab-d901-234567890123",
         "a3b4c5d6-3456-4abc-e012-345678901234",
         "b4c5d6e7-4567-4bcd-f123-456789012345",
-        "c5d6e7f8-5678-4cde-a234-567890123456"
+        "c5d6e7f8-5678-4cde-a234-567890123456",
+        "5a51c02e-1b4d-4627-9d14-2c12a2951b4a",
+        "e99dd9dc-b2c4-43b8-951d-ee7bb62297a1",
+        "725183ee-670a-4c45-837e-f487e864acc6",
+        "3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f",
+        "3ac796a9-9aee-4155-843e-2f5b0fed4ee6",
+        "908d1e8c-ea09-4c6e-8f08-8d56a87b7778",
+        "f9948fb0-58ee-49bf-b24b-ebc652c3658a",
+        "14bdb3fd-1965-4118-b725-a59ed3a248de",
+        "01df2788-7c3a-41af-a125-54f2c506e64c",
+        "bca70ad5-b4a1-434d-9064-553becb1a56d",
+        "c2b686a6-40fc-4df4-af23-85c7779ef81b",
+        "a69740bc-9ab7-4c8e-a862-58c0ce9b983c",
+        "225f6d3c-2b36-435c-be2d-aba2e721a71b",
+        "7420ece1-4bd5-41ca-b180-df017d21da3a",
+        "66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c",
+        "e22a11d1-4330-4df1-8965-03aea16fc773",
+        "7b40916c-f3a2-4931-8875-a9844abb57b4",
+        "a3e275ff-18b2-4662-9981-8938e95b8528",
+        "4832970f-6894-4063-8ece-4a049539f4fd",
+        "7c14e246-3adc-4c53-8fae-b3550dfb6a62",
+        "c934ed82-d767-4525-aa59-7512a1c308f1",
+        "9ffca017-d072-4286-a2fe-ef639ac874f5",
+        "7c1af7f9-af2c-45da-b181-545441ae2012",
+        "000af03d-249f-41ff-969a-d8941c792094",
+        "4dbeadb9-3019-4ca8-a18a-2509a4bab08b"
     }
 }
 
@@ -701,6 +737,7 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMAlchemy,       function() self:LogiBuyAlchemy() end)
     tok(self.TokenIDQMPractice,      function() self:LogiBuyPractice() end)
     tok(self.TokenIDQMHouse,         function() self:LogiBuyHouse() end)
+    tok(self.TokenIDQMTower,         function() self:LogiBuyTower() end)
     tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
     tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
     tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
@@ -789,6 +826,11 @@ function mercenaries.MonitorLoop()
         mercenaries.CachedEnemies = {}
     end
 
+    -- Tower archers stand off the navmesh, and the AI ground-snaps its actors, so
+    -- one that has been knocked/snapped down gets put back. Runs regardless of
+    -- ActiveMercs - static archers are not squad members. See KeepStaticArchersUp.
+    pcall(function() mercenaries:KeepStaticArchersUp() end)
+
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
 end
 
@@ -804,6 +846,10 @@ function mercenaries.LowPriorityMonitorLoop()
         -- Archers that emptied their quiver in a fight refill once it's over.
         mercenaries:ResupplyArchersOutOfCombat()
     end
+
+    -- Static (tower) archers are not in ActiveMercs, so they resupply outside the
+    -- block above - they never walk anywhere to restock.
+    pcall(function() mercenaries:ResupplyStaticArchers() end)
 
     -- Camp patrol tick runs regardless of ActiveMercs being empty, since a
     -- camp can (briefly) outlive its squad's cache entry.
@@ -888,7 +934,6 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Put a saved camp back up - after the cache above, since it hands out tents
     -- from ActiveMercs (see RestoreCampDelayed).
     Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
-    Script.SetTimerForFunction(3000, "mercenaries.SetupCutsceneBindingDelayed")
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
 
@@ -897,6 +942,7 @@ end
 
 -- Register the other scripts (most are also referenced from the AI behaviour trees).
 Script.LoadScript("Scripts/mods/mercenaries_spawning.lua")
+Script.LoadScript("Scripts/mods/mercenaries_ai_modules.lua")
 Script.LoadScript("Scripts/mods/mercenaries_equipment.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
 Script.LoadScript("Scripts/mods/mercenaries_management.lua")
@@ -914,10 +960,11 @@ Script.LoadScript("Scripts/mods/mercenaries_hunting.lua")
 Script.LoadScript("Scripts/mods/mercenaries_inn.lua")
 Script.LoadScript("Scripts/mods/mercenaries_foodcart.lua")
 Script.LoadScript("Scripts/mods/mercenaries_house.lua")
+Script.LoadScript("Scripts/mods/mercenaries_tower.lua")
+Script.LoadScript("Scripts/mods/mercenaries_static_archer.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
-Script.LoadScript("Scripts/mods/mercenaries_cutscene.lua")
 Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
 
 
@@ -934,10 +981,11 @@ function mercenaries:PrintHelp()
         "merc_stance_everyone|player_target|defend|passive   squad targeting stance (default: everyone)",
         "merc_hire_w1/w2/w3, d1/d2/d3, p1/p2/p3   hire weak/medium/strong mercs (debug, free)",
         "merc_weapon_random|swordshield|axeshield|longsword|maceshield|shortsword|mace|axe|polearm   melee loadout",
-        "archer_hire_w1/w3, d1/d3, p1/p3      hire archers (debug, free)",
+        "archer_hire_1/3                     hire archers (debug, free)",
         "archer_stance_skirmish|melee|hold   archer combat stance (default: skirmish)",
         "archer_weapon_bow|crossbow|handcannon    archer ranged weapon type",
-        "merc_spawn_renegade[_weak|_medium|_strong]   spawn hostile renegades (debug)",
+        "enemy_spawn_looters|bandits|sigi|prague|cumans|knights[_1|_20]   spawn an enemy group; base = row of 10 (debug)",
+        "enemy_spawn_heinrich[_3]            spawn the overpowered Heinrich boss (debug)",
         "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",
         "merc_recount                         re-sync the merc counter",
         "merc_lua <code>                      run raw Lua (debug)",
@@ -992,10 +1040,37 @@ System.AddCCommand("merc_hire_weak_horde", "mercenaries:Hire(0, 10, 'weak')", ""
 -- merc_lua mercenaries:SpawnTestBattle(...) for full control (see the function).
 System.AddCCommand("merc_spawn_battle", "mercenaries:SpawnTestBattle()", "Debug: spawns a merc battle line vs a renegade battle line, player centered in the merc line. merc_lua mercenaries:SpawnTestBattle(...) for full customization.")
 System.AddCCommand("merc_battle", "mercenaries:SpawnBattle(%1, %2, %3, %4, %5)", "Debug: merc_battle <mercOutfit> <mercWeapon> <enemyOutfit> <enemyWeapon> <countPerSide>. Spawns a mixed-tier merc battle line vs a renegade line.")
-System.AddCCommand("merc_spawn_renegade", "mercenaries:SpawnRenegade(1)", "Debug: spawns a renegade hostile to player and mercs, wearing an outfit different from your squad's current one.")
+System.AddCCommand("merc_spawn_renegade", "mercenaries:SpawnRenegade(1)", "Debug: legacy shim, spawns one bandit (renegades were replaced by the enemy groups).")
 System.AddCCommand("merc_spawn_renegade_weak", "mercenaries:SpawnRenegade(1, nil, 'weak')", "")
 System.AddCCommand("merc_spawn_renegade_medium", "mercenaries:SpawnRenegade(1, nil, 'medium')", "")
 System.AddCCommand("merc_spawn_renegade_strong", "mercenaries:SpawnRenegade(1, nil, 'strong')", "")
+
+-- Enemy group spawns (replaces renegades). The base command spawns a row of 10;
+-- _1 spawns a single unit and _20 a bigger wave. Groups: looter, bandit, sigi,
+-- prague, cuman, knight. They attack only the player and your mercs/archers/
+-- companions. Archers are sprinkled in automatically (roughly every 4th unit)
+-- for every group except the knights.
+System.AddCCommand("enemy_spawn_looters",      "mercenaries:SpawnEnemyGroup('looter', 10)", "Debug: spawn a row of 10 looters (weak bandits).")
+System.AddCCommand("enemy_spawn_looters_1",    "mercenaries:SpawnEnemyGroup('looter', 1)", "Debug: spawn 1 looter.")
+System.AddCCommand("enemy_spawn_looters_20",   "mercenaries:SpawnEnemyGroup('looter', 20)", "Debug: spawn 20 looters.")
+System.AddCCommand("enemy_spawn_bandits",      "mercenaries:SpawnEnemyGroup('bandit', 10)", "Debug: spawn a row of 10 bandits (medium/strong).")
+System.AddCCommand("enemy_spawn_bandits_1",    "mercenaries:SpawnEnemyGroup('bandit', 1)", "Debug: spawn 1 bandit.")
+System.AddCCommand("enemy_spawn_bandits_20",   "mercenaries:SpawnEnemyGroup('bandit', 20)", "Debug: spawn 20 bandits.")
+System.AddCCommand("enemy_spawn_sigi",         "mercenaries:SpawnEnemyGroup('sigi', 10)", "Debug: spawn a row of 10 Sigismund's soldiers (weak/medium).")
+System.AddCCommand("enemy_spawn_sigi_1",       "mercenaries:SpawnEnemyGroup('sigi', 1)", "Debug: spawn 1 Sigismund's soldier.")
+System.AddCCommand("enemy_spawn_sigi_20",      "mercenaries:SpawnEnemyGroup('sigi', 20)", "Debug: spawn 20 Sigismund's soldiers.")
+System.AddCCommand("enemy_spawn_prague",       "mercenaries:SpawnEnemyGroup('prague', 10)", "Debug: spawn a row of 10 Prague regiment soldiers (medium/strong).")
+System.AddCCommand("enemy_spawn_prague_1",     "mercenaries:SpawnEnemyGroup('prague', 1)", "Debug: spawn 1 Prague regiment soldier.")
+System.AddCCommand("enemy_spawn_prague_20",    "mercenaries:SpawnEnemyGroup('prague', 20)", "Debug: spawn 20 Prague regiment soldiers.")
+System.AddCCommand("enemy_spawn_cumans",       "mercenaries:SpawnEnemyGroup('cuman', 10)", "Debug: spawn a row of 10 Cumans (weak/medium/strong).")
+System.AddCCommand("enemy_spawn_cumans_1",     "mercenaries:SpawnEnemyGroup('cuman', 1)", "Debug: spawn 1 Cuman.")
+System.AddCCommand("enemy_spawn_cumans_20",    "mercenaries:SpawnEnemyGroup('cuman', 20)", "Debug: spawn 20 Cumans.")
+System.AddCCommand("enemy_spawn_knights",      "mercenaries:SpawnEnemyGroup('knight', 10)", "Debug: spawn a row of 10 Sigismund's knights (elite, plated, extra health).")
+System.AddCCommand("enemy_spawn_knights_1",    "mercenaries:SpawnEnemyGroup('knight', 1)", "Debug: spawn 1 Sigismund's knight.")
+System.AddCCommand("enemy_spawn_knights_20",   "mercenaries:SpawnEnemyGroup('knight', 20)", "Debug: spawn 20 Sigismund's knights.")
+-- Heinrich: overpowered late-game-player boss. Base spawns one; _3 for a trio.
+System.AddCCommand("enemy_spawn_heinrich",     "mercenaries:SpawnEnemyGroup('heinrich', 1)", "Debug: spawn 1 Heinrich (overpowered: best armour + St. George's sword, maxed skill, 2x health).")
+System.AddCCommand("enemy_spawn_heinrich_3",   "mercenaries:SpawnEnemyGroup('heinrich', 3)", "Debug: spawn 3 Heinrichs.")
 
 -- Usage in console: merc_save_string global_idle 1|true|105.5
 System.AddCCommand("merc_save_string", "mercenaries:SaveString('%1', '%2')", "Saves a string to a persistent entity. Usage: merc_save_string <tag> <data>")

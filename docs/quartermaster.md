@@ -34,13 +34,13 @@ loops — one senses whether he's under attack (`crime_interruptAttack`), one
 picks a defensive target every second (`FindQuartermasterTarget`), and a
 `ContinuousSwitch` fires behaviours:
 
-1. A raider is near and he's not yet fighting → fire **`mercenary_attack`** (the
+1. A raider is near and he's not yet fighting → fire **`combat_melee`** (the
    same shared melee combat tree the mercs use) on it.
 2. A fight is ongoing → do nothing, let the combat tree run.
 3. Otherwise → fire **`quartermaster_idle`** (once, re-fired after any fight).
 
 Both behaviours are fired with `AddInterrupt_attack`, the same generic
-interrupt-fire the merc scheduler uses to fire `mercenary_follow` — so
+interrupt-fire the merc scheduler uses to fire `follow` — so
 `quartermaster_idle` declares the `attackData` In-parameter even though it
 never touches it. The newest interrupt wins
 (`IgnorePriorityOnPreviousInterrupt`), so combat cleanly preempts the idle loop

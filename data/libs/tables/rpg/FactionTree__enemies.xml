@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          name="enemies"
+          xsi:noNamespaceSchemaLocation="FactionTree.xsd">
+    <!-- One faction for every enemy group. Hostile ONLY to the player and the
+         mercenaries faction (which also covers hired archers and companions).
+         NOT hostile to players_friends, so the player's friendly vanilla NPCs
+         are left alone. Everything else is neutral, so vanilla NPCs and the
+         enemy groups ignore each other, and the groups do not fight one another. -->
+    <FactionTree version="1">
+        <Faction Name="enemiesFaction">
+            <Relations>
+                <Relation target="player"              reputation="-1" />
+                <Relation target="mercenariesFaction"  reputation="-1" />
+            </Relations>
+        </Faction>
+    </FactionTree>
+</database>

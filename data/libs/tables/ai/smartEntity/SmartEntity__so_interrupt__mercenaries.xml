@@ -4,43 +4,11 @@
 		<SmartEntityTemplate BrainId="ea3ff907-6743-4ad4-8723-2c14ac2a01f0" DatabaseId="43c857b4-032b-844f-3d1b-3cc90d5a2382" Name="so_interrupt" UpdatePriority="false">
 			<BehaviorTemplates>
 
-				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="mercenary_attack" PreventsMonsterLod="true">
-					<TreeLocation FileName="mercenary_attack.xml" TreeName="mercenary_attack" />
-					<Inboxes>
-						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
-						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
-						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
-						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
-						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
-						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
-					</Inboxes>
-				</SmartBehaviorTemplate>
-				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="mercenary_follow" PreventsMonsterLod="true">
-					<TreeLocation FileName="mercenary_follow.xml" TreeName="mercenary_follow" />
-					<Inboxes>
-						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
-						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
-						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
-						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
-						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
-						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
-					</Inboxes>
-				</SmartBehaviorTemplate>
 
-				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="renegade_attack" PreventsMonsterLod="true">
-					<TreeLocation FileName="renegade_attack.xml" TreeName="renegade_attack" />
-					<Inboxes>
-						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
-						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
-						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
-						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
-						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
-						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
-					</Inboxes>
-				</SmartBehaviorTemplate>
+
 
 				<!-- The quartermaster's stand-and-eat default behaviour. Combat
-				     reuses mercenary_attack above; this is only the idle loop
+				     reuses combat_melee above; this is only the idle loop
 				     (see quartermaster_idle.xml / quartermaster_scheduler.xml). -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="quartermaster_idle" PreventsMonsterLod="true">
 					<TreeLocation FileName="quartermaster_idle.xml" TreeName="quartermaster_idle" />
@@ -54,13 +22,12 @@
 					</Inboxes>
 				</SmartBehaviorTemplate>
 
-				<!-- Archer (ranged merc) combat behaviours: skirmish (manual
-				     kiting, keep at range), guard (stick to the player and
-				     shoot), and melee (close in like a regular merc). The
-				     archer scheduler picks which one to fire based on the
-				     archer stance. -->
-				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="archer_skirmish" PreventsMonsterLod="true">
-					<TreeLocation FileName="archer_skirmish.xml" TreeName="archer_skirmish" />
+
+
+
+				<!-- Melee combat module: one melee attack for every side (mercs, quartermaster, enemies, archers in melee stance). Target via attackData. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="combat_melee" PreventsMonsterLod="true">
+					<TreeLocation FileName="combat_melee.xml" TreeName="combat_melee" />
 					<Inboxes>
 						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
 						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
@@ -70,8 +37,49 @@
 						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
 					</Inboxes>
 				</SmartBehaviorTemplate>
-				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="archer_melee" PreventsMonsterLod="true">
-					<TreeLocation FileName="archer_melee.xml" TreeName="archer_melee" />
+
+				<!-- Dynamic archer module: shoot while keeping distance (retreat step in the 4.5-9m band), melee fallback when cornered or out of arrows. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="combat_archer_dynamic" PreventsMonsterLod="true">
+					<TreeLocation FileName="combat_archer_dynamic.xml" TreeName="combat_archer_dynamic" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- Static archer module: pure stand-and-fire, no movement (tower/wall archers). -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="combat_archer_static" PreventsMonsterLod="true">
+					<TreeLocation FileName="combat_archer_static.xml" TreeName="combat_archer_static" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- Follow module: formation-follow a leader (player squad chain or an NPC leader via NpcFormations) + mounted following. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="follow" PreventsMonsterLod="true">
+					<TreeLocation FileName="follow.xml" TreeName="follow" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- Camp actor module: camp life (guard patrol, sit/sleep, activities, gossip) for any NPC with camp-role assignments - merc or bandit. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="camp_actor" PreventsMonsterLod="true">
+					<TreeLocation FileName="camp_actor.xml" TreeName="camp_actor" />
 					<Inboxes>
 						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
 						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<brains version="1">
+		<!-- Ranged enemy brain: same design as renegade_brain (melee) but its
+		     scheduler fires the combat_archer_dynamic module instead of the
+		     melee combat_melee. Used by the archer souls in soul__enemies.xml. -->
+		<brain brain_id="a7c3e1d9-4b2f-4a68-9c50-1e3d7f8a2b60" brain_name="enemy_archer_brain" />
+	</brains>
+</database>

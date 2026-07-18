@@ -229,7 +229,7 @@ end
 
 -- Property sets for the StanceSmartObject entities that let a merc actually
 -- sit/lie down (see SpawnCampFurnitureSO below, the sit/sleep assignment in
--- SpawnMercCamp, and the incamp-sitter/sleeper cases in mercenary_follow.xml).
+-- SpawnMercCamp, and the incamp-sitter/sleeper cases in camp_actor.xml).
 --
 -- IMPORTANT - the first attempt at this put these properties directly on the
 -- bed/stool BasicEntity prop, and mercs just stood around. That's not how the
@@ -245,7 +245,7 @@ end
 -- stance can be played. Intended for sitting and lying stance both for NPCs
 -- and player" - exactly what we need, and spawnable by name the same way the
 -- vanilla BedTrigger already is. Values below are copied verbatim from those
--- two prefabs. The `stance` field is what mercenary_follow.xml's StanceElement
+-- two prefabs. The `stance` field is what camp_actor.xml's StanceElement
 -- passes; it is NOT an entity property (stripped before spawning).
 mercenaries.CampBedSO = {
     stance = "lying",
@@ -963,7 +963,7 @@ end
 --
 -- Returns the StanceSmartObject's AI WUID (XGenAIModule.GetMyWUID - a spawned
 -- entity's plain .id is not a valid smart-object handle) and the ground
--- position, both of which mercenary_follow.xml needs: it Moves the merc to the
+-- position, both of which camp_actor.xml needs: it Moves the merc to the
 -- position first (StanceElement does not appear to navigate on its own - the
 -- vanilla scheduler walks the NPC to the spot before running the smart
 -- object's `use` behaviour), then runs the StanceElement against the WUID.
@@ -1027,7 +1027,7 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
     end
 
     -- Return the SMART OBJECT's position (not the prop's) - that's the spot
-    -- mercenary_follow.xml Moves the merc to before the StanceElement.
+    -- camp_actor.xml Moves the merc to before the StanceElement.
     return wuid, { x = soGroundPos.x, y = soGroundPos.y, z = soGroundPos.z }
 end
 
@@ -1075,7 +1075,7 @@ end
 -- stands. This is the "asks if he's a guard" check the schedulers/follow BT
 -- run per merc while in camp - see the incamp handling in
 -- mercenary_scheduler.xml / archer_scheduler.xml (routes guards into the
--- follow BT instead of the stand-still idle branch) and mercenary_follow.xml
+-- follow BT instead of the stand-still idle branch) and camp_actor.xml
 -- (the actual patrol Move loop).
 -- Camp deployment: the quartermaster can send a fraction of the squad (best-
 -- equipped first) out of camp to follow the player while the rest keep camping.
@@ -1111,7 +1111,7 @@ end
 
 -- Returns a non-guard camp merc's assigned furniture record { wuid=, kind= }
 -- ("bed" -> sleep/lie, "chair" -> sit), or nil. Set by SpawnMercCamp for the
--- non-patrolling mercs (half sit, half sleep). mercenary_follow.xml reads this
+-- non-patrolling mercs (half sit, half sleep). camp_actor.xml reads this
 -- and drives a StanceElement against the furniture's smart object.
 function mercenaries:GetCampFurniture(mercWuid)
     if not _G.MercInCamp or _G.MercenariesDismissed then return nil end
@@ -1123,7 +1123,7 @@ end
 --   { unstance = "<NPCStateUnstanceDatabase name>", mode = 1..4,
 --     pos = {x,y,z}, locWuid = <anchor/seat WUID or nil>, slaveWuid = <partner or nil> }
 -- Deliberately NOT gated on _G.MercInCamp, so merc_camp_activity_test can play
--- an activity outside of camp; the activity case in mercenary_follow.xml is
+-- an activity outside of camp; the activity case in camp_actor.xml is
 -- first in the ContinuousSwitch, so it preempts patrol/sit/sleep/follow.
 function mercenaries:GetCampActivity(mercWuid)
     if _G.MercenariesDismissed then return nil end
@@ -1132,7 +1132,7 @@ function mercenaries:GetCampActivity(mercWuid)
 end
 
 -- True if this merc has ANY camp role (guard, assigned sit/sleep furniture, or
--- a camp activity) - i.e. should be routed into mercenary_follow's camp handling
+-- a camp activity) - i.e. should be routed into camp_actor's camp handling
 -- rather than the schedulers' stand-still idle branch.
 --
 -- A deployed (sortie) merc is deliberately NOT a camp actor: it has no camp role,
@@ -1603,7 +1603,7 @@ end
 
 -- Returns the {x,y,z} POSITION of a guard's current target waypoint, or nil
 -- if this merc isn't a guard (or has no waypoints). Called from
--- mercenary_follow.xml each patrol step to pick the next Move destination
+-- camp_actor.xml each patrol step to pick the next Move destination
 -- (which is a vec3, not an entity - see the guard-assignment loop in
 -- SpawnMercCamp for why).
 function mercenaries:GetPatrolWaypoint(mercWuid)
@@ -1614,7 +1614,7 @@ function mercenaries:GetPatrolWaypoint(mercWuid)
 end
 
 -- Advances a guard to the next waypoint in their loop. Called from
--- mercenary_follow.xml once a Move to the current waypoint completes.
+-- camp_actor.xml once a Move to the current waypoint completes.
 function mercenaries:AdvancePatrolWaypoint(mercWuid)
     local rec = self.CampPatrollers and self.CampPatrollers[tostring(mercWuid)]
     if not rec or not rec.waypoints or #rec.waypoints == 0 then return end
@@ -2181,7 +2181,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
                     if logWuid then
                         -- Keep the fire this seat rings so a merc who claims it can
                         -- Turn to face it after sitting (the seated pose doesn't
-                        -- inherit the smart object's rotation - see mercenary_follow).
+                        -- inherit the smart object's rotation - see camp_actor).
                         table.insert(self.CampSeats, { wuid = logWuid, pos = logSoPos, firePos = { x = cPos.x, y = cPos.y, z = cPos.z }, occupant = nil })
                     end
                 end
@@ -2379,7 +2379,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- the follow BT walks them point-to-point with periodic pauses (see
         -- IsCampGuard / GetPatrolWaypoint / AdvancePatrolWaypoint above, and
         -- the incamp-guard handling in mercenary_scheduler.xml /
-        -- archer_scheduler.xml / mercenary_follow.xml). Guards are staggered
+        -- archer_scheduler.xml / camp_actor.xml). Guards are staggered
         -- by a per-guard angular offset so they spread around the perimeter
         -- rather than clumping.
         --
@@ -2634,6 +2634,7 @@ mercenaries.CampPropPrefixes = {
     "MercActTest_",   -- activity-test scaffolding
     "MercHunt",       -- hunting console tester
     "MercInn",        -- inn console tester + tavern stools
+    "MercTower",      -- archer-tower console tester
     "MercForge",      -- forge rig / smith bench
     "MercSmith",      -- borrowed-smithery scaffolding
     "MercAnvil",

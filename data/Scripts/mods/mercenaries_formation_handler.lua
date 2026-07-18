@@ -93,7 +93,18 @@ end
 
 function mercenaries:CalculateFormationTarget(bt_data, myWuid)
     local ok, err = pcall(function()
-        local key  = tostring(myWuid)
+        local key = tostring(myWuid)
+
+        -- NPC-led formations (patrols etc., see AssignNpcFormation) win over the
+        -- player-squad slots; their followTarget is always explicit, so nothing
+        -- here ever routes an enemy toward the player.
+        local npc = self.NpcFormations and self.NpcFormations[key]
+        if npc then
+            bt_data.formationSlot = npc.slot
+            bt_data.followTarget  = npc.followTarget
+            return
+        end
+
         local data = self.FormationSlots and self.FormationSlots[key]
 
         if data then

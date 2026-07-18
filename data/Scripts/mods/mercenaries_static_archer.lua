@@ -1,0 +1,559 @@
+-- Static (tower) archers: an archer that never moves and is NOT part of the
+-- squad. Everything squad-related keys off mercenaries.ActiveMercs (Recount and
+-- so the whole logistics/camp/formation stack), so simply never adding one to
+-- that table keeps it out of the merc count, wages, food, morale, camp roles,
+-- deploy and recall for free. They live in their own registry instead.
+--
+-- They also get their own souls + brain (static_archer_brain ->
+-- static_archer_scheduler.xml, see soul__static_archers.xml) rather than the
+-- ranged mercs' archer_brain, because that one follows/camps/patrols. The
+-- scheduler only ever does: pick a target (here, in Lua) -> fire the
+-- combat_archer_static interrupt (standFire, no chase, no player leash).
+--
+-- WHO they shoot is this file's job, per-archer, via StaticArcherMode:
+--   "defend"      - the player's and the mercs' enemies (a friendly tower)
+--   "hostile"     - the player and their mercs (an enemy tower)
+--   "mod_enemies" - only NPCs this mod spawned as enemies (see ModEnemyPrefixes)
+-- Faction is deliberately NOT the lever: they sit in mercenariesFaction and the
+-- attack sets RelationOverride="Hostile", so the mode alone decides.
+
+mercenaries.StaticArcherSouls = {
+    "8d2f4a61-7b93-4c05-9e18-3a6d5f2b7c41",
+    "9e3a5b72-8c04-4d16-af29-4b7e6a3c8d52",
+    "af4b6c83-9d15-4e27-b03a-5c8f7b4d9e63",
+    "b05c7d94-ae26-4f38-c14b-6d907c5eaf74",
+    "c16d8ea5-bf37-4049-d25c-7ea18d6fb085",
+}
+mercenaries.StaticArcherSoulIndex = 1
+
+-- Every NPC name prefix this mod spawns as an ENEMY. The "mod_enemies" mode
+-- shoots only these, and "defend" treats them as valid targets. Renegades are the
+-- first; add each new mod enemy's spawn-name prefix here and both modes pick it
+-- up with no other change.
+mercenaries.ModEnemyPrefixes = {
+    "SpawnedRenegade_",
+}
+
+mercenaries.StaticArcherModes = { defend = true, hostile = true, mod_enemies = true }
+mercenaries.StaticArcherDefaultMode = "defend"
+-- Console commands pass the mode as an int (the KCD console mangles bare word
+-- args): 1 = defend, 2 = hostile, 3 = mod_enemies. ResolveStaticArcherMode also
+-- accepts the mode name directly, so Lua callers can keep using strings.
+mercenaries.StaticArcherModeList = { "defend", "hostile", "mod_enemies" }
+
+function mercenaries:ResolveStaticArcherMode(v)
+    if v == nil or v == "" then return nil end
+    local n = tonumber(v)
+    if n then return self.StaticArcherModeList[n] end   -- nil if out of range
+    v = tostring(v)
+    return self.StaticArcherModes[v] and v or nil
+end
+
+-- Marksman buff applied to every static archer on spawn (merc_static_archer_buff
+-- in buff__mercenaries.xml): heavy marksmanship + agility + double action speed,
+-- so a tower archer aims and looses much faster than a footman. See the buff's
+-- own note on why marksmanship is the lever for "faster aiming/reloading".
+mercenaries.StaticArcherBuff = "e5a10008-2c4b-4e6a-9f01-000000000008"
+-- A tower archer sees and shoots much further than a footman on the ground - his
+-- reach is deliberately well past the mercs' 50m TargetDetectionRadius.
+mercenaries.StaticArcherRange = 90.0        -- how far one will look for a target
+mercenaries.StaticArcherStickRange = 100.0  -- keep the current target while it is this close
+
+-- [wuidStr] = { mode =, ent = }
+mercenaries.StaticArchers = {}
+-- [wuidStr] = targetWuidStr, cleared by combat_archer_static's OnFail
+mercenaries.StaticArcherTargetOf = {}
+
+-- Placement. SetPos is the mod's teleport everywhere else (it is what puts the
+-- forge smith on his off-navmesh bench), but putting a NPC on a tower deck needs
+-- care:
+--   * on a FRESHLY spawned NPC one SetPos does not stick - the spawn settles the
+--     body afterwards and he ends up on the ground;
+--   * placing him exactly ON the footing puts his capsule inside it, and he gets
+--     shoved out or tunnels straight through - which is what made every footing
+--     look "unreliable".
+-- So he is DROPPED: put a short distance ABOVE the spot and allowed to fall onto
+-- it. The tick then only intervenes if he actually fell through (ended up well
+-- below the spot) - it no longer fights the settle, which was half the jitter.
+-- Once he is standing he stays: his brain never issues a Move.
+-- [wuidStr] = { ent =, pos =, ticks = }
+mercenaries.StaticArcherPending = {}
+mercenaries.StaticArcherDropHeight = 1.2     -- spawn/retry this far ABOVE the spot
+mercenaries.StaticArcherFallTol = 1.8        -- this far below the spot = he fell through
+mercenaries.StaticArcherPlaceTicks = 6       -- retry the drop this many times...
+mercenaries.StaticArcherPlaceInterval = 400  -- ...this far apart (ms), time to land
+
+local function dropPos(self, pos)
+    return { x = pos.x, y = pos.y, z = pos.z + self.StaticArcherDropHeight }
+end
+
+function mercenaries.StaticArcherPlaceTick()
+    local self = mercenaries
+    local again = false
+    for ws, p in pairs(self.StaticArcherPending) do
+        local landed = false
+        p.ticks = (p.ticks or 0) - 1
+        pcall(function()
+            local cur = p.ent:GetWorldPos()
+            if cur then
+                -- Anywhere at or near the spot (he may rest slightly above/below
+                -- the asked height depending on the footing) counts as landed.
+                -- Only a real fall-through is worth another drop.
+                if cur.z > (p.pos.z - self.StaticArcherFallTol) then landed = true end
+            end
+            if not landed then p.ent:SetPos(dropPos(self, p.pos)) end
+        end)
+        if landed or p.ticks <= 0 then
+            self.StaticArcherPending[ws] = nil
+            System.LogAlways("[StaticArcher] " .. (landed and "landed OK" or "FELL THROUGH - footing does not hold NPCs"))
+        else
+            again = true
+        end
+    end
+    if again then Script.SetTimerForFunction(self.StaticArcherPlaceInterval, "mercenaries.StaticArcherPlaceTick") end
+end
+
+-- Drop `ent` onto `pos` (see the note above). `pos` is where he should END UP, and
+-- is remembered as his anchor so the keeper below can put him back.
+function mercenaries:PlaceStaticArcher(ent, pos)
+    if not (ent and pos) then return end
+    local ws = tostring(ent.this and ent.this.id or ent.id)
+    local anchor = { x = pos.x, y = pos.y, z = pos.z }
+    local rec = self.StaticArchers[ws]
+    if rec then rec.anchor = anchor end
+    pcall(function() ent:SetPos(dropPos(self, pos)) end)
+    self.StaticArcherPending[ws] = { ent = ent, pos = anchor, ticks = self.StaticArcherPlaceTicks }
+    Script.SetTimerForFunction(self.StaticArcherPlaceInterval, "mercenaries.StaticArcherPlaceTick")
+end
+
+-- KEEPER. Nothing physical reliably holds an NPC off the ground: the AI
+-- ground-snaps its actors, so a spawned prop wins for a moment and the AI wins
+-- after that - which is why every footing tested "unreliable" and why the drop
+-- height made no difference. Since a static archer never moves anyway, the fix is
+-- simply to notice he has fallen and put him back. Called every second from
+-- MonitorLoop; only touches an archer that is actually well below his anchor, so
+-- it costs nothing while he is standing.
+function mercenaries:KeepStaticArchersUp()
+    for ws, rec in pairs(self.StaticArchers) do
+        local a, ent = rec.anchor, rec.ent
+        -- holdTest archers are the diagnostic row (merc_tower_hold): each one is
+        -- deliberately held by its own strategy so its raw behaviour can be judged,
+        -- so the slow global keeper must leave them alone.
+        if a and ent and not self.StaticArcherPending[ws] and not rec.holdTest and not rec.attached then
+            pcall(function()
+                local cur = ent:GetWorldPos()
+                if cur and cur.z < (a.z - self.StaticArcherFallTol) then
+                    ent:SetPos({ x = a.x, y = a.y, z = a.z + 0.05 })
+                end
+            end)
+        end
+    end
+end
+
+-- WINNING HOLD (merc_tower_hold #6): parent the archer to a static, UNSCALED anchor
+-- entity at his feet. A child entity's transform is slaved to its parent, which
+-- overrides the AI ground-snap that pulled him down - so he is held with no keeper
+-- and keeps shooting (the physics-off / gravity strategies froze his aim; only the
+-- attach kept it). The anchor MUST be unscaled: attaching to the scaled deck slab in
+-- testing made him inherit its 2.5x0.3 scale and squashed him flat and wide. Any
+-- deliberate resize is applied to the archer himself via StaticArcherScale, not the
+-- anchor. Because the child also inherits the anchor's ORIENTATION, the anchor is
+-- turned to the archer's facing so he ends up looking outward, not snapped to east.
+mercenaries.StaticArcherAnchors = {}     -- [wuidStr] = anchor entity id
+mercenaries.StaticArcherAnchorModel = "objects/manmade/common_furniture/crates/crate_low_a.cgf"
+mercenaries.StaticArcherScale = 1.0      -- resize the man himself (merc_static_archer_scale)
+
+function mercenaries:AttachStaticArcher(ent, pos, faceAngle)
+    if not (ent and pos) then return end
+    local ws = tostring(ent.this and ent.this.id or ent.id)
+    faceAngle = faceAngle or 0
+    -- drop any previous anchor for this archer (re-attach on a re-drop)
+    local old = self.StaticArcherAnchors[ws]
+    if old then pcall(function() System.RemoveEntity(old) end); self.StaticArcherAnchors[ws] = nil end
+
+    local anchor
+    pcall(function()
+        anchor = System.SpawnEntity({
+            class = "mercenaries_Prop",
+            name = "MercArcherAnchor_" .. tostring(math.random(100000, 999999)),
+            position = { x = pos.x, y = pos.y, z = pos.z },
+            orientation = { x = math.cos(faceAngle), y = math.sin(faceAngle), z = 0 },
+            properties = { object_Model = self.StaticArcherAnchorModel, bMissionCritical = false,
+                           bSaved_by_game = false, bSerialize = false },
+        })
+    end)
+    if not anchor then System.LogAlways("[StaticArcher] anchor spawn FAILED"); return end
+    pcall(function() anchor:SetAngles({ x = 0, y = 0, z = faceAngle }) end)
+    pcall(function() anchor:DrawSlot(0, 0) end)                          -- invisible
+    pcall(function() ent:SetPos({ x = pos.x, y = pos.y, z = pos.z }) end)
+    pcall(function() anchor:AttachChild(ent.id, 0) end)
+    pcall(function() ent:SetScale(self.StaticArcherScale) end)          -- undo any inherited squash / resize
+
+    self.StaticArcherAnchors[ws] = anchor.id
+    local rec = self.StaticArchers[ws]
+    if rec then rec.anchorEnt = anchor.id; rec.attached = true end
+    System.LogAlways(string.format("[StaticArcher] attached to unscaled anchor, scale %.2f", self.StaticArcherScale))
+end
+
+-- Live-resize every static archer. He inherits scale 1 from the unscaled anchor, so
+-- this is a straight scale on the man himself. merc_static_archer_scale.
+function mercenaries:SetStaticArcherScale(s)
+    s = tonumber(s); if not s or s <= 0 then System.LogAlways("[StaticArcher] scale must be > 0"); return end
+    self.StaticArcherScale = s
+    for _, rec in pairs(self.StaticArchers) do
+        if rec.ent then pcall(function() rec.ent:SetScale(s) end) end
+    end
+    System.LogAlways("[StaticArcher] scale = " .. s)
+end
+
+mercenaries.StaticArcherNamePrefix = "SpawnedTower_archer_"
+
+function mercenaries:IsStaticArcherName(name)
+    return name ~= nil and string.find(name, self.StaticArcherNamePrefix, 1, true) == 1
+end
+
+function mercenaries:IsModEnemyName(name)
+    if not name then return false end
+    for _, p in ipairs(self.ModEnemyPrefixes) do
+        if string.find(name, p, 1, true) then return true end
+    end
+    return false
+end
+
+function mercenaries:IsStaticArcher(wuid)
+    return self.StaticArchers[tostring(wuid)] ~= nil
+end
+
+function mercenaries:GetStaticArcherMode(wuid)
+    local rec = self.StaticArchers[tostring(wuid)]
+    return (rec and rec.mode) or self.StaticArcherDefaultMode
+end
+
+-- Set one archer's mode, or every archer's if `wuid` is nil. `mode` may be an int
+-- (1/2/3 from the console) or the mode name (from Lua callers).
+function mercenaries:SetStaticArcherMode(mode, wuid)
+    local resolved = self:ResolveStaticArcherMode(mode)
+    if not resolved then
+        System.LogAlways("[StaticArcher] unknown mode '" .. tostring(mode) .. "' - use 1=defend 2=hostile 3=mod_enemies")
+        return
+    end
+    mode = resolved
+    if wuid then
+        local rec = self.StaticArchers[tostring(wuid)]
+        if rec then rec.mode = mode end
+    else
+        for _, rec in pairs(self.StaticArchers) do rec.mode = mode end
+        self.StaticArcherDefaultMode = mode
+    end
+    -- Drop current targets so the new mode takes effect on the next scan.
+    self.StaticArcherTargetOf = {}
+    System.LogAlways("[StaticArcher] mode = " .. mode)
+end
+
+-- Spawn one at `pos` (already ground/deck placed by the caller - a tower deck, so
+-- it is NOT snapped to terrain here). Deliberately not added to ActiveMercs.
+function mercenaries:SpawnStaticArcher(pos, mode, faceAngle)
+    if not pos then return nil end
+    mode = (mode and self.StaticArcherModes[mode]) and mode or self.StaticArcherDefaultMode
+
+    local ent
+    local ok, err = pcall(function()
+        local idx = self.StaticArcherSoulIndex
+        local soulGuid = self.StaticArcherSouls[idx]
+        self.StaticArcherSoulIndex = idx + 1
+        if self.StaticArcherSoulIndex > #self.StaticArcherSouls then self.StaticArcherSoulIndex = 1 end
+
+        -- '_archer_' in the name so the archer weapon/ammo helpers
+        -- (IsArcherName, EquipArcherWeapon, GiveArcherAmmo) apply as-is; the
+        -- SpawnedTower_ prefix is what keeps it out of everything else.
+        local entityName = self.StaticArcherNamePrefix .. self.ArcherTier .. "_" ..
+                           tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+
+        System.SpawnEntity({
+            class = "NPC",
+            name = entityName,
+            position = pos,
+            orientation = { x = 0, y = 0, z = faceAngle or 0 },
+            properties = { guidSharedSoulId = soulGuid },
+        })
+        ent = System.GetEntityByName(entityName)
+        if not ent then return end
+
+        self:EnsureMercIsAlwaysRendered(ent)
+        self:EquipMercenary(ent, _G.MercCurrentOutfit or 1)
+        self:EquipArcherWeapon(ent)   -- + 40 rounds of the current archer ammo type
+        pcall(function() ent.soul:AddBuff(self.StaticArcherBuff) end)   -- fast, deadly marksman
+
+        local ws = tostring(ent.this and ent.this.id or ent.id)
+        self.StaticArchers[ws] = { mode = mode, ent = ent }
+        -- Put him where he was asked for and hold him there - a fresh NPC settles
+        -- to the ground right after spawning, so one SetPos here is not enough.
+        self:PlaceStaticArcher(ent, pos)
+        System.LogAlways("[StaticArcher] spawned '" .. entityName .. "' mode=" .. mode)
+    end)
+    if not ok then System.LogAlways("[StaticArcher] SpawnStaticArcher error: " .. tostring(err)) end
+    return ent
+end
+
+-- Remove one (its tower came down).
+function mercenaries:RemoveStaticArcher(ent)
+    if not ent then return end
+    local ws = tostring(ent.this and ent.this.id or ent.id)
+    self.StaticArchers[ws] = nil
+    self.StaticArcherTargetOf[ws] = nil
+    self.StaticArcherPending[ws] = nil   -- stop re-placing a corpse
+    local anchorId = self.StaticArcherAnchors[ws]
+    if anchorId then pcall(function() System.RemoveEntity(anchorId) end); self.StaticArcherAnchors[ws] = nil end
+    pcall(function() System.RemoveEntity(ent.id) end)
+end
+
+function mercenaries:ClearStaticArchers()
+    local n = 0
+    for ws, rec in pairs(self.StaticArchers) do
+        if rec.ent then pcall(function() System.RemoveEntity(rec.ent.id) end) end
+        local anchorId = self.StaticArcherAnchors[ws]
+        if anchorId then pcall(function() System.RemoveEntity(anchorId) end) end
+        self.StaticArchers[ws] = nil
+        n = n + 1
+    end
+    self.StaticArcherTargetOf = {}
+    self.StaticArcherPending = {}
+    self.StaticArcherAnchors = {}
+    System.LogAlways("[StaticArcher] removed " .. n)
+end
+
+-- Is `ent` a thing this archer should shoot, given its mode? Only used by the
+-- "hostile" / "mod_enemies" modes - "defend" defers to the mercs' own
+-- IsValidEnemy instead (see FindStaticArcherTarget).
+function mercenaries:StaticArcherWantsTarget(mode, ent, isPlayer)
+    local name = (not isPlayer) and (ent:GetName() or "") or ""
+    if mode == "hostile" then
+        -- The player and their mercs (not other tower archers, not mod enemies).
+        if isPlayer then return true end
+        if self:IsStaticArcherName(name) then return false end
+        if self:IsModEnemyName(name) then return false end
+        return self.ActiveMercs[name] ~= nil
+    elseif mode == "mod_enemies" then
+        return (not isPlayer) and self:IsModEnemyName(name)
+    end
+    return false
+end
+
+-- "defend" target pick: exactly the mercs' own logic, just with a longer reach -
+-- a tower sees further than a footman. That means the squad's definition of an
+-- enemy (IsValidEnemy: hostile at the -1 faction floor, weapon drawn, not
+-- fleeing/surrendering, never one of our own souls), and the player's current
+-- combat target taken first, same as the mercs' "everyone" stance
+-- (PickNearestValidTarget). The only change is the range: IsValidEnemy measures
+-- against TargetDetectionRadius, so it is raised to StaticArcherRange for the
+-- scan and put straight back.
+--
+-- The mercs' CachedEnemies list is not reused: it is built around the PLAYER, and
+-- the whole point of a tower is to shoot things near the TOWER. So the sweep is
+-- centred on the archer, with the same per-entity test.
+function mercenaries:FindStaticArcherDefendTarget(data, myWuid, me, mp)
+    local playerWuid = player and player.this and player.this.id
+    local savedRadius = self.TargetDetectionRadius
+    self.TargetDetectionRadius = self.StaticArcherRange
+
+    local best, bestD2 = nil, nil
+    local ok = pcall(function()
+        -- 1. The player's current combat target, if it is a fair target at all
+        -- (skipRelationshipCheck, exactly as the mercs do - if the player picked
+        -- the fight, the tower backs him up).
+        if data.playerCombatTarget then
+            local t = XGenAIModule.GetEntityByWUID(data.playerCombatTarget)
+            if t and t.soul and self:IsValidEnemy(t, me, playerWuid, true) then
+                best = data.playerCombatTarget
+                return
+            end
+        end
+
+        -- 2. Otherwise the nearest genuine enemy within the tower's reach. A target
+        -- counts if EITHER:
+        --   * it is one of the mod's own spawned enemies (renegades etc., by name -
+        --     ModEnemyPrefixes). These are unconditionally valid: they exist only
+        --     to be fought, so they must be shot even before they have closed in
+        --     and drawn a weapon. IsValidEnemy would skip an approaching renegade
+        --     (it demands weapon-drawn AND relationship exactly -1 to the player),
+        --     which is what made the tower fire unreliably; OR
+        --   * it passes the squad's own IsValidEnemy (covers world hostiles the
+        --     mercs would also fight).
+        local ents = System.GetPhysicalEntitiesInBoxByClass(mp, self.StaticArcherRange, "NPC")
+        if not ents then return end
+        for _, ent in pairs(ents) do
+            if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id
+               and tostring(ent.this.id) ~= tostring(myWuid) and self:IsAliveAndWell(ent, true) then
+                local isModEnemy = self:IsModEnemyName(ent:GetName() or "")
+                if isModEnemy or self:IsValidEnemy(ent, me, playerWuid, false) then
+                    local ep = ent:GetPos()
+                    if ep then
+                        local dx, dy, dz = ep.x - mp.x, ep.y - mp.y, ep.z - mp.z
+                        local d2 = dx * dx + dy * dy + dz * dz
+                        if not bestD2 or d2 < bestD2 then best, bestD2 = ent.this.id, d2 end
+                    end
+                end
+            end
+        end
+    end)
+
+    self.TargetDetectionRadius = savedRadius
+    if not ok then return nil end
+    return best
+end
+
+-- Called every ~1s from static_archer_scheduler.xml. Sets data.currentTarget.
+-- Same shape as FindRenegadeTarget: keep a live, close target rather than
+-- re-scanning every tick.
+function mercenaries:FindStaticArcherTarget(data, myWuid)
+    local ok, err = pcall(function()
+        local myWuidStr = tostring(myWuid)
+        local rec = self.StaticArchers[myWuidStr]
+        if not rec then return end        -- not registered (e.g. after a reload)
+
+        -- Don't start combat while he's still being dropped onto his spot: the
+        -- placement SetPos teleports him every 400ms, which resets his AI and
+        -- yanks any combat mid-shot - that was the "enters and exits combat for a
+        -- few seconds" on a fresh tower archer. Hold fire until he's landed.
+        if self.StaticArcherPending[myWuidStr] then
+            data.currentTarget = nil
+            return
+        end
+
+        local mode = rec.mode or self.StaticArcherDefaultMode
+
+        local me = XGenAIModule.GetEntityByWUID(myWuid)
+        if not me then return end
+        local mp = me:GetPos()
+        if not mp then return end
+
+        -- Keep the current target while it is alive and in range.
+        if data.currentTarget then
+            local cur = XGenAIModule.GetEntityByWUID(data.currentTarget)
+            if cur and self:IsAliveAndWell(cur, true) then
+                local cp = cur:GetPos()
+                if cp then
+                    local dx, dy, dz = cp.x - mp.x, cp.y - mp.y, cp.z - mp.z
+                    if (dx * dx + dy * dy + dz * dz) <= (self.StaticArcherStickRange * self.StaticArcherStickRange) then
+                        return
+                    end
+                end
+            end
+        end
+
+        local best
+        if mode == "defend" then
+            best = self:FindStaticArcherDefendTarget(data, myWuid, me, mp)
+        else
+            -- "hostile" / "mod_enemies": these deliberately ignore the squad's
+            -- notion of an enemy (they shoot the player, or only our own spawns),
+            -- so they use the explicit per-mode test and a plain nearest-first sweep.
+            local radius = self.StaticArcherRange
+            local r2 = radius * radius
+            local bestD2 = nil
+
+            local function consider(wuid, p)
+                local dx, dy, dz = p.x - mp.x, p.y - mp.y, p.z - mp.z
+                local d2 = dx * dx + dy * dy + dz * dz
+                if d2 <= r2 and (not bestD2 or d2 < bestD2) then best, bestD2 = wuid, d2 end
+            end
+
+            if player and self:StaticArcherWantsTarget(mode, player, true) then
+                local pp = player:GetPos()
+                if pp and self:IsAliveAndWell(player, true) then consider(player.this.id, pp) end
+            end
+
+            local ents = System.GetPhysicalEntitiesInBoxByClass(mp, radius, "NPC")
+            if ents then
+                for _, ent in pairs(ents) do
+                    if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id then
+                        if tostring(ent.this.id) ~= myWuidStr and self:IsAliveAndWell(ent, true)
+                           and self:StaticArcherWantsTarget(mode, ent, false) then
+                            local ep = ent:GetPos()
+                            if ep then consider(ent.this.id, ep) end
+                        end
+                    end
+                end
+            end
+        end
+
+        data.currentTarget = best
+        self.StaticArcherTargetOf[myWuidStr] = best and tostring(best) or nil
+    end)
+    if not ok then System.LogAlways("[StaticArcher] FindStaticArcherTarget error: " .. tostring(err)) end
+end
+
+-- Called from combat_archer_static.xml: is the target still worth shooting, and
+-- do we still have ammo? (No distance/leash checks - a tower archer never moves.)
+function mercenaries:UpdateStaticArcherCombatData(data, myWuid)
+    local ok, err = pcall(function()
+        data.isTargetAlive = false
+        data.distanceToTarget = 9999.0
+
+        local me = XGenAIModule.GetEntityByWUID(myWuid)
+        local myPos = me and me:GetPos()
+
+        if data.attackData and data.attackData.target then
+            local t = XGenAIModule.GetEntityByWUID(data.attackData.target)
+            if t and self:IsAliveAndWell(t, true) then
+                data.isTargetAlive = true
+                local tp = t:GetPos()
+                if tp and myPos then
+                    local dx, dy, dz = tp.x - myPos.x, tp.y - myPos.y, tp.z - myPos.z
+                    data.distanceToTarget = math.sqrt(dx * dx + dy * dy + dz * dz)
+                end
+            end
+        end
+
+        data.outOfAmmo = false
+        local weaponType = self:GetArcherWeaponType()
+        if me and me.inventory and me.inventory.GetCountOfClass then
+            local ammoClasses = self.ArcherArrowClasses
+            if weaponType == "crossbow" then ammoClasses = self.ArcherBoltClasses
+            elseif weaponType == "handcannon" then ammoClasses = self.ArcherShotClasses end
+            local total = 0
+            for _, c in ipairs(ammoClasses) do
+                local ok2, n = pcall(function() return me.inventory:GetCountOfClass(c) end)
+                if ok2 and n then total = total + n end
+            end
+            data.outOfAmmo = (total == 0)
+        end
+    end)
+    if not ok then System.LogAlways("[StaticArcher] UpdateStaticArcherCombatData error: " .. tostring(err)) end
+end
+
+-- Keep their quivers full - they never walk to a resupply. Called from
+-- LowPriorityMonitorLoop alongside the mercs' own resupply.
+function mercenaries:ResupplyStaticArchers()
+    local ok, err = pcall(function()
+        local weaponType = self:GetArcherWeaponType()
+        local ammoClass = self.ArcherAmmoClass[weaponType] or self.ArcherAmmoClass["bow"]
+        for _, rec in pairs(self.StaticArchers) do
+            local ent = rec.ent
+            if ent and ent.inventory then
+                local have = 0
+                pcall(function() have = ent.inventory:GetCountOfClass(ammoClass) or 0 end)
+                if have < 10 then self:GiveArcherAmmo(ent, weaponType, 40) end
+            end
+        end
+    end)
+    if not ok then System.LogAlways("[StaticArcher] ResupplyStaticArchers error: " .. tostring(err)) end
+end
+
+-- Console: a plain ground-standing static archer, 3m in front of you and snapped
+-- to the terrain, facing you. Mode defaults to defend. Use this to test the archer
+-- itself (targeting/shooting) away from the tower's placement complications.
+function mercenaries:SpawnStaticArcherHere(mode)
+    if not player then return end
+    local o = player:GetWorldPos()
+    local ang; pcall(function() ang = player:GetWorldAngles() end)
+    local yaw = (ang and ang.z) or 0
+    local pos = { x = o.x + math.cos(yaw) * 3.0, y = o.y + math.sin(yaw) * 3.0, z = o.z }
+    if self.CampSnapToGround then pos = self:CampSnapToGround(pos) end
+    self:SpawnStaticArcher(pos, self:ResolveStaticArcherMode(mode), yaw + math.pi)
+end
+
+System.AddCCommand("merc_static_archer",       "mercenaries:SpawnStaticArcherHere(%1)", "Spawn a static archer 3m ahead on the ground: merc_static_archer [mode]  (mode: 1=defend 2=hostile 3=mod_enemies, default 1)")
+System.AddCCommand("merc_static_archer_clear", "mercenaries:ClearStaticArchers()",      "Remove all static archers")
+System.AddCCommand("merc_static_archer_mode",  "mercenaries:SetStaticArcherMode(%1)",   "Set the mode of every static archer: 1=defend 2=hostile 3=mod_enemies")
+System.AddCCommand("merc_static_archer_scale", "mercenaries:SetStaticArcherScale(%1)",  "Resize every static archer (1.0 = normal): merc_static_archer_scale <scale>")

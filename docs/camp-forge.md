@@ -2,7 +2,7 @@
 
 This documents the camp forge (the Portable Smithy upgrade) and — more importantly — the long hunt for an NPC smith animation. Roughly ten mechanically distinct approaches were tried before one worked. If you ever want an NPC to "work" at a player-built structure, read this first: it will save you days.
 
-**Files:** `data/Scripts/mods/mercenaries_forge.lua` (build/teardown + smith assignment), `data/AI/mercenary_follow.xml` (camp activity **mode 10** = the smith), `data/Scripts/mods/mercenaries_camp.lua` (`RotateCampRoles` skips `CampForgeSmithWuid`).
+**Files:** `data/Scripts/mods/mercenaries_forge.lua` (build/teardown + smith assignment), `data/AI/camp_actor.xml` (camp activity **mode 10** = the smith), `data/Scripts/mods/mercenaries_camp.lua` (`RotateCampRoles` skips `CampForgeSmithWuid`).
 
 ---
 
@@ -62,7 +62,7 @@ The smith is a merc **seated at a spawned bench by the anvil, sharpening a sword
 1. **Bench**: a stool prop + a `StanceSmartObject` seat with the same properties as the camp's `CampChairSO` — runtime-spawned seats demonstrably work (all camp sitting uses them). Placed 0.69 m from the anvil, facing it.
 2. **Pick a patroller** (`ForgeAssignSmith`): guards aren't mid a long in-place animation, so the takeover is clean. The pick is pinned in `CampForgeSmithWuid`, which `RotateCampRoles` skips so the camp role rotation never reassigns him.
 3. **Teleport him onto the bench** with Lua `SetPos` — the flat forge patch is often off-navmesh, so a BT `Move` could never reach it.
-4. **Camp activity mode 10** (`mercenary_follow.xml`): conjure a real sword into his hand **once** (`CreateItem` + `EquipItem`, guarded by `$m10Equipped` — unguarded it re-creates an item every loop), sit via `StanceElement`+`WaitAction`, then `UnstanceAction camper_knifeSharpening` with the **seat** as locationObject, held ~15 s, looped.
+4. **Camp activity mode 10** (`camp_actor.xml`): conjure a real sword into his hand **once** (`CreateItem` + `EquipItem`, guarded by `$m10Equipped` — unguarded it re-creates an item every loop), sit via `StanceElement`+`WaitAction`, then `UnstanceAction camper_knifeSharpening` with the **seat** as locationObject, held ~15 s, looped.
 
 Why this combination works when everything else failed: `camper_knifeSharpening` is a **camper** animation — built for NPCs *without* smart-object slot rigs, so it uses the **held** item. It was catalogued "BROKEN — needs a knife in hand" only because, at the time, we had no way to put one there. `EquipItem` closed that gap.
 

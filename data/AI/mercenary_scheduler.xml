@@ -18,6 +18,8 @@
             <Variable name="goFlee"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isIdle"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isFollowingActive"   type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <!-- Which follow-family behaviour is running: camp_actor (true) or follow (false). -->
+            <Variable name="firedCampActor"     type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Mirror of _G.PlayerMounted; stops the stuck-follower self-heal from restarting a mounted merc's follow tree. -->
             <Variable name="playerMounted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
 
@@ -27,8 +29,8 @@
             <Variable name="campStanceCode"      type="_int"                 values="0"                                 isPersistent="0" form="single" />
 
             <!-- isCampActor: this merc has any camp role (guard/sitter/sleeper). Camp
-                 actors are excluded from the idle branch and fall through to follow,
-                 which runs mercenary_follow.xml. patrol* here are unused leftovers. -->
+                 actors are excluded from the idle branch and run camp_actor.xml;
+                 the rest run follow.xml. patrol* here are unused leftovers. -->
             <Variable name="isCampActor"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolActive"        type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolWaypoint"      type="_wuid"                values=""                                  isPersistent="0" form="single" />
@@ -76,7 +78,7 @@
                 <SuppressFailure>
                     <Parallel successMode="Any" failureMode="Any">
 
-                        <!-- Order barks are consumed in mercenary_follow.xml (keyed by entity.this.id); a mirror for idle mercs is below. -->
+                        <!-- Order barks are consumed in follow.xml/camp_actor.xml (keyed by entity.this.id); a mirror for idle mercs is below. -->
 
                         <Loop count="-1">
                             <Sequence>
@@ -172,7 +174,7 @@
                                                             </LockDynamicInformationValues>
                                                             <SuppressFailure><Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898990" /></SuppressFailure>
                                                             <Expression expressions="$attackData.target = $playerTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
-                                                            <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'mercenary_attack'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                            <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                                         </Sequence>
                                                     </Then>
                                                     <Else canSkip="1">
@@ -263,8 +265,8 @@
                                                 </Sequence>
                                             </IfCondition>
 
-                                            <!-- Just stand. Camp sit/sleep and guard patrol both live in
-                                                 mercenary_follow.xml now (this branch only plain-idles). -->
+                                            <!-- Just stand. Camp sit/sleep and guard patrol live in
+                                                 camp_actor.xml now (this branch only plain-idles). -->
                                             <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                         </Sequence>
                                     </EntityContext>
@@ -282,6 +284,10 @@
                                 <IfCondition failOnCondition="false" condition="true">
                                     <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
                                         <Sequence>
+                                            <!-- Camp role changed while a follow-family behaviour runs: force a re-fire of the right one. -->
+                                            <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; (($isCampActor &amp; ~$firedCampActor) | (~$isCampActor &amp; $firedCampActor))">
+                                                <Expression expressions="$isFollowingActive = false" />
+                                            </IfCondition>
                                             <IfCondition failOnCondition="false" condition="~$isFollowingActive">
                                                 <Sequence>
 
@@ -296,7 +302,21 @@
                                                     </SuppressFailure>
                                                     
                                                     <Expression expressions="$attackData.target = $__player &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
-                                                    <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'mercenary_follow'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                    <!-- Camp actors run their camp life (camp_actor); everyone else follows in formation. -->
+                                                    <IfElseCondition failOnCondition="false" condition="$isCampActor" saveVersion="2">
+                                                        <Then canSkip="1">
+                                                            <Sequence>
+                                                                <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'camp_actor'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                                <Expression expressions="$firedCampActor = true" />
+                                                            </Sequence>
+                                                        </Then>
+                                                        <Else canSkip="1">
+                                                            <Sequence>
+                                                                <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'follow'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                                <Expression expressions="$firedCampActor = false" />
+                                                            </Sequence>
+                                                        </Else>
+                                                    </IfElseCondition>
                                                     <Expression expressions="$isFollowingActive = true" />
 
                                                 </Sequence>
@@ -316,7 +336,7 @@
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />
                                 <!-- Never force a follow-retry while mounted: re-firing the interrupt restarts
-                                     mercenary_follow and throws the merc off the horse (the "random dismount"). -->
+                                     the follow module and throws the merc off the horse (the "random dismount"). -->
                                 <ExecuteLua code="data.playerMounted = _G.PlayerMounted or false" />
                                 <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
                                     <Expression expressions="$isFollowingActive = false" />

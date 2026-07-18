@@ -81,7 +81,27 @@
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Наемник</Cell></Row>
   <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>Наемник-новичок</Cell></Row>
   <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>Наемник-ветеран</Cell></Row>
-  <Row><Cell>char_renegade_uiName</Cell><Cell>Renegade</Cell><Cell>Отступник</Cell></Row>
+  <Row><Cell>char_enemy_looter_uiName</Cell><Cell>Looter</Cell><Cell>Looter</Cell></Row>
+  <Row><Cell>char_enemy_looter_description</Cell><Cell>Looter</Cell><Cell>Looter</Cell></Row>
+  <Row><Cell>char_enemy_looter_fullName</Cell><Cell>Looter</Cell><Cell>Looter</Cell></Row>
+  <Row><Cell>char_enemy_bandit_uiName</Cell><Cell>Bandit</Cell><Cell>Bandit</Cell></Row>
+  <Row><Cell>char_enemy_bandit_description</Cell><Cell>Bandit</Cell><Cell>Bandit</Cell></Row>
+  <Row><Cell>char_enemy_bandit_fullName</Cell><Cell>Bandit</Cell><Cell>Bandit</Cell></Row>
+  <Row><Cell>char_enemy_sigi_uiName</Cell><Cell>Sigismund's Soldier</Cell><Cell>Sigismund's Soldier</Cell></Row>
+  <Row><Cell>char_enemy_sigi_description</Cell><Cell>Sigismund's Soldier</Cell><Cell>Sigismund's Soldier</Cell></Row>
+  <Row><Cell>char_enemy_sigi_fullName</Cell><Cell>Sigismund's Soldier</Cell><Cell>Sigismund's Soldier</Cell></Row>
+  <Row><Cell>char_enemy_prague_uiName</Cell><Cell>Prague Soldier</Cell><Cell>Prague Soldier</Cell></Row>
+  <Row><Cell>char_enemy_prague_description</Cell><Cell>Prague Soldier</Cell><Cell>Prague Soldier</Cell></Row>
+  <Row><Cell>char_enemy_prague_fullName</Cell><Cell>Prague Soldier</Cell><Cell>Prague Soldier</Cell></Row>
+  <Row><Cell>char_enemy_cuman_uiName</Cell><Cell>Cuman</Cell><Cell>Cuman</Cell></Row>
+  <Row><Cell>char_enemy_cuman_description</Cell><Cell>Cuman</Cell><Cell>Cuman</Cell></Row>
+  <Row><Cell>char_enemy_cuman_fullName</Cell><Cell>Cuman</Cell><Cell>Cuman</Cell></Row>
+  <Row><Cell>char_enemy_knight_uiName</Cell><Cell>Sigismund's Knight</Cell><Cell>Sigismund's Knight</Cell></Row>
+  <Row><Cell>char_enemy_knight_description</Cell><Cell>Sigismund's Knight</Cell><Cell>Sigismund's Knight</Cell></Row>
+  <Row><Cell>char_enemy_knight_fullName</Cell><Cell>Sigismund's Knight</Cell><Cell>Sigismund's Knight</Cell></Row>
+  <Row><Cell>char_enemy_heinrich_uiName</Cell><Cell>Heinrich</Cell><Cell>Heinrich</Cell></Row>
+  <Row><Cell>char_enemy_heinrich_description</Cell><Cell>Heinrich</Cell><Cell>Heinrich</Cell></Row>
+  <Row><Cell>char_enemy_heinrich_fullName</Cell><Cell>Heinrich</Cell><Cell>Heinrich</Cell></Row>
   <Row><Cell>ui_mercenary_spawn_renegades</Cell><Cell>Arrange a skirmish.</Cell><Cell>Устроим стычку.</Cell></Row>
   <Row><Cell>merc_henry_spawn_renegades_prompt</Cell><Cell>I want to test you against some renegades.</Cell><Cell>Хочу проверить вас против отступников.</Cell></Row>
   <Row><Cell>merc_test_spawn_renegades_prompt</Cell><Cell>How many, and how tough?</Cell><Cell>Сколько их и насколько они крепкие?</Cell></Row>
@@ -348,21 +368,10 @@
 <Row><Cell>a614a_story22</Cell><Cell>Генри, у тебя редкий дар — ты умеешь заставить вооружённых людей выглядеть как бумажная работа.</Cell><Cell>Генри, у тебя редкий дар — ты умеешь заставить вооружённых людей выглядеть как бумажная работа.</Cell></Row>
 
   <!-- Ranged mercenaries (archers) -->
-  <Row><Cell>char_mercenary_archer_weak_uiName</Cell><Cell>Mercenary Archer</Cell><Cell>Mercenary Archer</Cell></Row>
-  <Row><Cell>char_mercenary_archer_medium_uiName</Cell><Cell>Mercenary Archer</Cell><Cell>Mercenary Archer</Cell></Row>
-  <Row><Cell>char_mercenary_archer_strong_uiName</Cell><Cell>Veteran Archer</Cell><Cell>Veteran Archer</Cell></Row>
+  <Row><Cell>char_mercenary_archer_uiName</Cell><Cell>Mercenary Archer</Cell><Cell>Mercenary Archer</Cell></Row>
   <Row><Cell>ui_mercenary_type_archers</Cell><Cell>Ranged mercenaries.</Cell><Cell>Ranged mercenaries.</Cell></Row>
   <Row><Cell>merc_henry_archers</Cell><Cell>I need men who can use a bow.</Cell><Cell>I need men who can use a bow.</Cell></Row>
-  <Row><Cell>merc_provider_archers</Cell><Cell>Archers, eh? I know a few lads with steady hands. How good should they be?</Cell><Cell>Archers, eh? I know a few lads with steady hands. How good should they be?</Cell></Row>
-  <Row><Cell>ui_archer_tier_weak</Cell><Cell>The cheapest (75 groschen).</Cell><Cell>The cheapest (75 groschen).</Cell></Row>
-  <Row><Cell>merc_henry_archer_weak</Cell><Cell>Whatever's cheapest, as long as they can loose an arrow.</Cell><Cell>Whatever's cheapest, as long as they can loose an arrow.</Cell></Row>
-  <Row><Cell>merc_provider_archer_weak</Cell><Cell>Poachers, mostly. 75 groschen a head. How many?</Cell><Cell>Poachers, mostly. 75 groschen a head. How many?</Cell></Row>
-  <Row><Cell>ui_archer_tier_medium</Cell><Cell>Some decent shots (150 groschen).</Cell><Cell>Some decent shots (150 groschen).</Cell></Row>
-  <Row><Cell>merc_henry_archer_medium</Cell><Cell>Someone who can actually hit what they aim at.</Cell><Cell>Someone who can actually hit what they aim at.</Cell></Row>
-  <Row><Cell>merc_provider_archer_medium</Cell><Cell>Proper hunters. 150 groschen a head. How many?</Cell><Cell>Proper hunters. 150 groschen a head. How many?</Cell></Row>
-  <Row><Cell>ui_archer_tier_good</Cell><Cell>A master archer (400 groschen).</Cell><Cell>A master archer (400 groschen).</Cell></Row>
-  <Row><Cell>merc_henry_archer_good</Cell><Cell>The best bowman you can find.</Cell><Cell>The best bowman you can find.</Cell></Row>
-  <Row><Cell>merc_provider_archer_good</Cell><Cell>War archers, tournament winners. 400 groschen a head. How many?</Cell><Cell>War archers, tournament winners. 400 groschen a head. How many?</Cell></Row>
+  <Row><Cell>merc_provider_archers</Cell><Cell>Proper hunters. 150 groschen a head. How many?</Cell><Cell>Proper hunters. 150 groschen a head. How many?</Cell></Row>
   <Row><Cell>ui_archer_orders_hub</Cell><Cell>Orders for the archers.</Cell><Cell>Orders for the archers.</Cell></Row>
   <Row><Cell>merc_henry_archer_hub_prompt</Cell><Cell>I have orders for the archers.</Cell><Cell>I have orders for the archers.</Cell></Row>
   <Row><Cell>merc_test_archer_hub_prompt</Cell><Cell>The bowmen are listening. How should we fight?</Cell><Cell>The bowmen are listening. How should we fight?</Cell></Row>
@@ -507,6 +516,9 @@
   <Row><Cell>ui_qm_house</Cell><Cell>A proper roof over my head (1000 groschen).</Cell><Cell>A proper roof over my head (1000 groschen).</Cell></Row>
   <Row><Cell>merc_henry_qm_house</Cell><Cell>Put up a hut for me, in place of my tent.</Cell><Cell>Put up a hut for me, in place of my tent.</Cell></Row>
   <Row><Cell>merc_qm_house</Cell><Cell>Aye, walls and a door beat canvas. The lads will have it up by nightfall.</Cell><Cell>Aye, walls and a door beat canvas. The lads will have it up by nightfall.</Cell></Row>
+  <Row><Cell>ui_qm_tower</Cell><Cell>An archer tower for the camp (100 groschen).</Cell><Cell>An archer tower for the camp (100 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_tower</Cell><Cell>Put up an archer tower. I'll choose the spot.</Cell><Cell>Put up an archer tower. I'll choose the spot.</Cell></Row>
+  <Row><Cell>merc_qm_tower</Cell><Cell>A good perch and a bowman to man it. Just point out where you want it.</Cell><Cell>A good perch and a bowman to man it. Just point out where you want it.</Cell></Row>
   <Row><Cell>merc_logi_msg</Cell><Cell>-</Cell><Cell>-</Cell></Row>
   <Row><Cell>merc_logi_morale_low</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell></Row>
   <Row><Cell>merc_logi_morale_mutiny</Cell><Cell>The men are on the verge of mutiny!</Cell><Cell>The men are on the verge of mutiny!</Cell></Row>

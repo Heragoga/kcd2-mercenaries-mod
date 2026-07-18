@@ -30,11 +30,16 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     end
 
     if self.ArcherSouls then
-        for _, tierList in pairs(self.ArcherSouls) do
-            for _, guid in ipairs(tierList) do
-                if string.find(eid, guid) then
-                    return false
-                end
+        for _, guid in ipairs(self.ArcherSouls) do
+            if string.find(eid, guid) then
+                return false
+            end
+        end
+    end
+    if self.StaticArcherSouls then
+        for _, guid in ipairs(self.StaticArcherSouls) do
+            if string.find(eid, guid) then
+                return false
             end
         end
     end

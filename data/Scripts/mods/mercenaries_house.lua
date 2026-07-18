@@ -141,10 +141,17 @@ function mercenaries:SpawnCampHouseBed(origin, angle)
     local ok, err = pcall(function()
         local b = self.CampHouseBedOffset
         local wp = self:HouseLocalToWorld(origin, angle, b.x, b.y, (b.z or 0) + self.CampHouseZ)
-        local params = {
+        local bedAngle = angle + (b.yaw or 0)
+
+        -- Exactly the player TENT's bed recipe (SpawnPlayerCampTent): a plain
+        -- BasicEntity carrying the vanilla bed smart-object properties, plus a
+        -- linked BedTrigger. The trigger is what drives the "E - Sleep" prompt and
+        -- the lying stance - the spawn-house mod's `Bed`-class bed has no trigger,
+        -- so it looked right but couldn't be slept in.
+        local bedEnt = System.SpawnEntity({
+            class = "BasicEntity",
             name = "MercCampHouseBed_" .. tostring(math.random(100000, 999999)),
             position = wp,
-            orientation = { x = 0, y = 0, z = angle + (b.yaw or 0) },
             properties = {
                 object_Model = self.CampHouseBedModel,
                 bMissionCritical = false,
@@ -154,23 +161,20 @@ function mercenaries:SpawnCampHouseBed(origin, angle)
                 soclass_SmartObjectHelpers = "Bed_1Place_Low",
                 sWH_AI_EntityCategory = "Bed",
                 sSittingTagGlobal = "sittingNoTable",
-                fUsabilityDistance = 1.75,
+                fUsabilityDistance = 1.25,
                 bInteractiveCollisionClass = true,
-                Script = { esBedTypes = "bench" },
-                Bed = { esSleepQuality = "low", esReadingQuality = "none" },
-            },
-        }
-        params.class = "Bed"
-        local bed = System.SpawnEntity(params)
-        if not bed then
-            params.class = "BasicEntity"
-            bed = System.SpawnEntity(params)
-        end
-        if bed then
-            pcall(function() bed:SetAngles({ x = 0, y = 0, z = angle + (b.yaw or 0) }) end)
-            pcall(function() bed:SetViewDistUnlimited() end)
-            pcall(function() bed:RenderShadow(true) end)
-            table.insert(self.CampEntities, bed.id)
+                Script = { esBedTypes = "GroundBed" },
+                Bed = { esSleepQuality = "low", esReadingQuality = "bed_ground" },
+            }
+        })
+
+        if bedEnt then
+            pcall(function() bedEnt:SetAngles({ x = 0, y = 0, z = bedAngle }) end)
+            pcall(function() bedEnt:SetViewDistUnlimited() end)
+            pcall(function() bedEnt:RenderShadow(true) end)
+            table.insert(self.CampEntities, bedEnt.id)
+            -- No ground-snap: the bed sits on the hut's raised deck, not the terrain.
+            self:SpawnCampBedTrigger(bedEnt, wp, bedAngle)
         end
     end)
     if not ok then System.LogAlways("[CampHouse] SpawnCampHouseBed error: " .. tostring(err)) end

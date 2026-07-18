@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<mailbox_groups version="1">
-		<mailbox_group mailbox_group_file_name="renegade_scheduler.xml" mailbox_group_id="2b0d4f80-3c9e-4d71-af6b-408c2e9d7b03" mailbox_group_tree_name="onUpdate" />
+		<mailbox_group mailbox_group_file_name="enemy_melee_scheduler.xml" mailbox_group_id="2b0d4f80-3c9e-4d71-af6b-408c2e9d7b03" mailbox_group_tree_name="onUpdate" />
 	</mailbox_groups>
 </database>

@@ -2,7 +2,7 @@
 <storm>
 	<tasks>
 		<task name="appearance" class="appearance">
-			<source path="appearance\renegadesappearance.xml" />
+			<source path="appearance\enemiesappearance.xml" />
 		</task>
 	</tasks>
 </storm>

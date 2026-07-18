@@ -132,7 +132,7 @@ Finally, the part that ties your subbrain to the actual XML in `yourmodid/data/a
 
 This is how KCD2 handles interrupts — situations where the NPC needs to break out of their current behaviour and do something else, like fight back when attacked. A SmartEntity is essentially a registry of named behaviour templates that other behaviour trees can trigger by name.
 
-When a behaviour tree fires an interrupt (e.g. `AddInterrupt_attack` with `Behavior="'mercenary_attack'"`), the engine looks up `mercenary_attack` in the SmartEntity registry, finds the corresponding tree file, and executes it. While that interrupt tree is running, the original switch is temporarily suspended.
+When a behaviour tree fires an interrupt (e.g. `AddInterrupt_attack` with `Behavior="'combat_melee'"`), the engine looks up `combat_melee` in the SmartEntity registry, finds the corresponding tree file, and executes it. While that interrupt tree is running, the original switch is temporarily suspended.
 
 ```xml
 <?xml version="1.0" encoding="us-ascii"?>
@@ -141,8 +141,8 @@ When a behaviour tree fires an interrupt (e.g. `AddInterrupt_attack` with `Behav
         <SmartEntityTemplate BrainId="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" DatabaseId="43c857b4-032b-844f-3d1b-3cc90d5a2382" Name="so_interrupt" UpdatePriority="false">
             <BehaviorTemplates>
 
-                <SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="mercenary_attack" PreventsMonsterLod="true">
-                    <TreeLocation FileName="mercenary_attack.xml" TreeName="mercenary_attack" />
+                <SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="combat_melee" PreventsMonsterLod="true">
+                    <TreeLocation FileName="combat_melee.xml" TreeName="combat_melee" />
                     <Inboxes>
                         <InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
                         <InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />

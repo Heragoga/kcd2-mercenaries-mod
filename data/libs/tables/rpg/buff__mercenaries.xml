@@ -53,6 +53,28 @@
         <buff buff_class_id="15" buff_exclusivity_id="5" buff_id="e5a10007-2c4b-4e6a-9f01-000000000007" buff_lifetime_id="1" buff_name="merc_alchemy_buff"
               buff_params="vitality+20,strength+5,hlh*0.8,slh*0.8"
               duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Static (tower) archer: a fast, deadly marksman. marksmanship is the
+             verified lever for an archer's aim speed/steadiness and hit rate (the
+             mod's combat tiers use it), cranked hard here; agility and rms*2 push
+             his action/handling speed. NOTE: a literal "reload speed x2" stat code
+             is not confirmable from the reference data, so marksmanship+agility is
+             the working proxy - swap in the real reload code here if found.
+             Applied on spawn by mercenaries_static_archer.lua. -->
+        <buff buff_class_id="15" buff_exclusivity_id="6" buff_id="e5a10008-2c4b-4e6a-9f01-000000000008" buff_lifetime_id="1" buff_name="merc_static_archer_buff"
+              buff_params="marksmanship+40,agility+30,rms*2.0"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Heinrich (boss): near-imba combat buff so one Heinrich can wade into
+             a group and win. Modelled on vanilla's imba_combat_guy but toned down
+             so he is still beatable. Stat codes verified from vanilla buffs:
+             srg = stamina regen (x4), mst = max stamina (+50%), src/sco = stamina
+             cooldowns (0 = attack relentlessly), hlh/slh = health/stamina damage
+             taken (x0.3 = 70% resistance), health+/s = regen in combat. Applied to
+             his soul via the perk chain (perk__/perk_buff__/soul2perk__mercenaries). -->
+        <buff buff_class_id="15" buff_exclusivity_id="7"
+              buff_id="e5a10009-2c4b-4e6a-9f01-000000000009"
+              buff_lifetime_id="0" buff_name="heinrich_imba_buff"
+              buff_params="strength+40,agility+40,vitality+40,fencing+45,defense+45,weapon_sword+45,weapon_unarmed+40,weapon_large+45,heavy_weapons+40,marksmanship+30,mor+2.5,rms+0.02,hlh*0.3,slh*0.3,srg*4,mst*1.5,src=0,sco=0,health+5/s"
+              duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
 	</buffs>
 
         <buff buff_class_id="15" buff_exclusivity_id="1" buff_id="f123ee45-aade-4a13-a776-597c97d34bab" buff_lifetime_id="0" buff_name="merc_decreaseddamageintake" buff_params="hlh*0.7,slh*0.7" duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
