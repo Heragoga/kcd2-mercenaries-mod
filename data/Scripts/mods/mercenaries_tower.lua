@@ -229,7 +229,15 @@ mercenaries.TowerArcherMode = "defend"
 mercenaries.TowerArcherDelay = 2000
 
 mercenaries.TowerStationDist = 10.0
-mercenaries.TowerStation = nil   -- { ids =, cols =, origin =, yaw = } while up
+-- Any number of towers can be up at once (place as many as you like). Each station
+-- is { ids =, cols =, origin =, yaw =, placedGround =, archer =, archerPos =, dead = }.
+mercenaries.TowerStations = {}   -- every live tower
+mercenaries.TowerStation = nil   -- the latest one - the subject of the tuning commands
+-- Deferred archer spawn/attach run off FIFO queues, not self.TowerStation: placing a
+-- second tower before the first's timer fires would otherwise move the target out
+-- from under it. Each build pushes its station; each timer pops the front.
+mercenaries.TowerArcherSpawnQueue = {}
+mercenaries.TowerArcherAttachQueue = {}
 
 -- One tower part, spawned STATIC (mercenaries_Prop) so anything whose mesh does
 -- carry a physics proxy collides.
@@ -315,21 +323,46 @@ function mercenaries:TowerColApply(i)
     end
 end
 
--- Build the tower. With no args it uses the last placed spot if there is one (so
--- merc_tower_sink and other re-tunes rebuild in place), else a fixed offset ahead
--- of the player. `atPos`/`atYaw` (from aim-placement) set and remember a new spot.
-function mercenaries:SpawnTowerStation(atPos, atYaw)
-    self:TowerStationClear()
-    if not player then return end
-    if atPos then
-        self.TowerPlacedPos = { x = atPos.x, y = atPos.y, z = atPos.z }
-        self.TowerPlacedYaw = atYaw
+-- Build ONE tower at an already-decided ground spot (pre-sink) + yaw, and add it to
+-- the live list. Never clears anything - placing another just calls this again.
+function mercenaries:TowerBuildStation(ground, yaw)
+    if not player then return nil end
+    local origin = { x = ground.x, y = ground.y, z = ground.z }
+    if self.CampSnapToGround then origin = self:CampSnapToGround(origin) end
+    origin.z = origin.z + self.TowerSink
+
+    local st = { origin = origin, yaw = yaw, ids = {}, cols = {},
+                 placedGround = { x = ground.x, y = ground.y, z = ground.z } }
+    table.insert(self.TowerStations, st)
+    self.TowerStation = st   -- newest becomes the tuning subject
+
+    for _, p in ipairs(self.TowerParts) do self:TowerSpawnPart(p, origin, yaw, st.ids) end
+    local nl = 0
+    for _, L in ipairs(self.TowerLadders) do
+        if self:TowerSpawnLadder(L, origin, yaw, st.ids) then nl = nl + 1 end
     end
-    local yaw, origin
-    if self.TowerPlacedPos then
-        origin = { x = self.TowerPlacedPos.x, y = self.TowerPlacedPos.y, z = self.TowerPlacedPos.z }
-        if self.TowerPlacedYaw ~= nil then
-            yaw = self.TowerPlacedYaw
+    for i = 1, #self.TowerColliders do self:TowerColApply(i) end   -- acts on self.TowerStation = st
+
+    -- Archer via the FIFO queue (see the queue note above): remember his world spot
+    -- now, spawn him once the deck collider is physicalised.
+    st.archerPos = self:HouseLocalToWorld(origin, yaw, self.TowerArcherLocal.x, self.TowerArcherLocal.y, self.TowerArcherLocal.z)
+    table.insert(self.TowerArcherSpawnQueue, st)
+    Script.SetTimerForFunction(self.TowerArcherDelay, "mercenaries.TowerSpawnArcherDelayed")
+
+    System.LogAlways(string.format("[Tower] built #%d: %d parts, %d/%d ladders, %d colliders, sunk %.2fm - archer in %dms",
+        #self.TowerStations, #self.TowerParts, nl, #self.TowerLadders, #self.TowerColliders, self.TowerSink, self.TowerArcherDelay))
+    return st
+end
+
+-- Place a NEW tower: from an aim spot (atPos/atYaw) or, with no args, a fixed offset
+-- ahead of the player. Additive - existing towers stay up.
+function mercenaries:SpawnTowerStation(atPos, atYaw)
+    if not player then return end
+    local yaw, ground
+    if atPos then
+        ground = { x = atPos.x, y = atPos.y, z = atPos.z }
+        if atYaw ~= nil then
+            yaw = atYaw
         else
             local pang; pcall(function() pang = player:GetWorldAngles() end)
             yaw = (pang and pang.z) or 0
@@ -338,73 +371,68 @@ function mercenaries:SpawnTowerStation(atPos, atYaw)
         local o = player:GetWorldPos()
         local pang; pcall(function() pang = player:GetWorldAngles() end)
         yaw = (pang and pang.z) or 0
-        origin = { x = o.x + math.cos(yaw) * self.TowerStationDist,
+        ground = { x = o.x + math.cos(yaw) * self.TowerStationDist,
                    y = o.y + math.sin(yaw) * self.TowerStationDist, z = o.z }
-        -- remember it so sink/tuning re-tunes rebuild here, not wherever I've walked to
-        self.TowerPlacedPos = { x = origin.x, y = origin.y, z = origin.z }
-        self.TowerPlacedYaw = yaw
     end
-    if self.CampSnapToGround then origin = self:CampSnapToGround(origin) end
-    origin.z = origin.z + self.TowerSink
-
-    local st = { origin = origin, yaw = yaw, ids = {}, cols = {} }
-    self.TowerStation = st
-
-    for _, p in ipairs(self.TowerParts) do self:TowerSpawnPart(p, origin, yaw, st.ids) end
-    local nl = 0
-    for _, L in ipairs(self.TowerLadders) do
-        if self:TowerSpawnLadder(L, origin, yaw, st.ids) then nl = nl + 1 end
-    end
-    for i = 1, #self.TowerColliders do self:TowerColApply(i) end
-
-    -- The archer who mans it follows in a moment, once the deck collider above is
-    -- actually physicalised - see TowerArcherDelay.
-    Script.SetTimerForFunction(self.TowerArcherDelay, "mercenaries.TowerSpawnArcherDelayed")
-
-    System.LogAlways(string.format("[Tower] built: %d parts, %d/%d ladders, %d colliders, sunk %.2fm - archer in %dms",
-        #self.TowerParts, nl, #self.TowerLadders, #self.TowerColliders, self.TowerSink, self.TowerArcherDelay))
-    System.LogAlways("[Tower] tune: merc_tower_col_show 1 | merc_tower_col_sel <i> | merc_tower_col_move <dx> <dy> <dz> | merc_tower_col_scale <sx> <sy> <sz> | merc_tower_col_dump")
-    self:TowerColList()
+    self:TowerBuildStation(ground, yaw)
 end
 
--- Deferred archer spawn (see TowerArcherDelay). No-ops if the tower came down in
--- the meantime, or already has its archer.
+-- Tear down the current tower and rebuild it in place (for the sink/archer tuners).
+function mercenaries:RebuildCurrentTower()
+    local st = self.TowerStation
+    if not st then self:SpawnTowerStation(); return end
+    local ground, yaw = st.placedGround, st.yaw
+    self:TowerStationClearOne(st)
+    self:TowerBuildStation(ground, yaw)
+end
+
+-- Deferred archer spawn (see TowerArcherDelay), FIFO - one pop per build.
 function mercenaries.TowerSpawnArcherDelayed()
     local self = mercenaries
-    local st = self.TowerStation
-    if not st or st.archer then return end
-    local a = self.TowerArcherLocal
-    local ap = self:HouseLocalToWorld(st.origin, st.yaw, a.x, a.y, a.z)
-    st.archerPos = ap
-    st.archer = self:SpawnStaticArcher(ap, self.TowerArcherMode, st.yaw)
+    local st = table.remove(self.TowerArcherSpawnQueue, 1)
+    if not st or st.dead or st.archer then return end
+    st.archer = self:SpawnStaticArcher(st.archerPos, self.TowerArcherMode, st.yaw)
     System.LogAlways("[Tower] archer " .. (st.archer and ("manned the deck (" .. self.TowerArcherMode .. ")") or "FAILED"))
     -- Once he has settled onto the deck, pin him for good by attaching him to a
     -- static unscaled anchor (the winning merc_tower_hold #6 method) - that holds an
     -- NPC off the ground where nothing else did, and unlike the slab it does not
     -- squash him. Deferred so he is standing before the attach snaps his transform.
-    if st.archer then Script.SetTimerForFunction(2500, "mercenaries.TowerAttachArcherDelayed") end
+    if st.archer then
+        table.insert(self.TowerArcherAttachQueue, st)
+        Script.SetTimerForFunction(2500, "mercenaries.TowerAttachArcherDelayed")
+    end
 end
 
 function mercenaries.TowerAttachArcherDelayed()
     local self = mercenaries
-    local st = self.TowerStation
-    if not (st and st.archer and st.archerPos) then return end
+    local st = table.remove(self.TowerArcherAttachQueue, 1)
+    if not (st and not st.dead and st.archer and st.archerPos) then return end
     self:AttachStaticArcher(st.archer, st.archerPos, st.yaw)
 end
 
-function mercenaries:TowerStationClear()
-    local st = self.TowerStation
+-- Remove one tower (its parts, colliders, archer) and drop it from the live list.
+function mercenaries:TowerStationClearOne(st)
     if not st then return end
+    st.dead = true   -- stop any queued archer spawn/attach from touching it
     for _, id in ipairs(st.ids or {}) do pcall(function() System.RemoveEntity(id) end) end
     for _, id in pairs(st.cols or {}) do pcall(function() System.RemoveEntity(id) end) end
-    if st.archer then pcall(function() self:RemoveStaticArcher(st.archer) end) end
-    self.TowerStation = nil
+    if st.archer then pcall(function() self:RemoveStaticArcher(st.archer) end); st.archer = nil end
+    for i = #self.TowerStations, 1, -1 do
+        if self.TowerStations[i] == st then table.remove(self.TowerStations, i) end
+    end
+    if self.TowerStation == st then self.TowerStation = self.TowerStations[#self.TowerStations] end
 end
 
--- Debug: spawn fresh ahead of the player (forgets any placed spot).
+-- Remove every tower.
+function mercenaries:TowerStationClearAll()
+    for i = #self.TowerStations, 1, -1 do self:TowerStationClearOne(self.TowerStations[i]) end
+    self.TowerStations = {}
+    self.TowerStation = nil
+    System.LogAlways("[Tower] all towers removed")
+end
+
+-- Debug: add one more tower ahead of the player.
 function mercenaries:SpawnTowerAhead()
-    self.TowerPlacedPos = nil
-    self.TowerPlacedYaw = nil
     self:SpawnTowerStation()
 end
 
@@ -500,10 +528,9 @@ end
 function mercenaries:ConfirmTowerPlacement()
     if not self.TowerBuildActive then Game.SendInfoText("You're not placing a tower right now.", false, 0, 3); return end
     if not self.TowerBuildPos then Game.SendInfoText("Aim at solid ground first.", false, 0, 3); return end
-    local pos, angle = self.TowerBuildPos, self.TowerBuildAngle
-    self:EndTowerPlacement()
-    self:SpawnTowerStation(pos, angle)
-    Game.SendInfoText("Tower raised.", false, 0, 3)
+    -- Stay in placement mode so any number of towers can be raised in one go; F3 ends it.
+    self:SpawnTowerStation(self.TowerBuildPos, self.TowerBuildAngle)
+    Game.SendInfoText("Tower raised - aim for another, or F3 to finish.", false, 0, 3)
 end
 
 function mercenaries:CancelTowerPlacement()
@@ -578,11 +605,12 @@ function mercenaries:TowerColDump()
     System.LogAlways(string.format("    -- TowerSink = %.2f", self.TowerSink))
 end
 
--- How deep the whole tower sits in the ground (negative = sunk). Respawns it.
+-- How deep the whole tower sits in the ground (negative = sunk). Rebuilds the
+-- current tower in place to preview it.
 function mercenaries:TowerSetSink(v)
     self.TowerSink = tonumber(v) or self.TowerSink
     System.LogAlways("[Tower] sink = " .. tostring(self.TowerSink))
-    self:SpawnTowerStation()
+    self:RebuildCurrentTower()
 end
 
 -- Re-drop the tower's archer at a different deck height, without rebuilding the
@@ -598,12 +626,15 @@ function mercenaries:TowerArcherZ(z, drop)
     local ap = self:HouseLocalToWorld(st.origin, st.yaw, a.x, a.y, a.z)
     st.archerPos = ap
     st.archer = self:SpawnStaticArcher(ap, self.TowerArcherMode, st.yaw)
-    if st.archer then Script.SetTimerForFunction(2500, "mercenaries.TowerAttachArcherDelayed") end
+    if st.archer then
+        table.insert(self.TowerArcherAttachQueue, st)
+        Script.SetTimerForFunction(2500, "mercenaries.TowerAttachArcherDelayed")
+    end
     System.LogAlways(string.format("[Tower] archer z = %.2f, dropped from %.2f above", a.z, self.StaticArcherDropHeight))
 end
 
 System.AddCCommand("merc_tower_spawn",     "mercenaries:SpawnTowerAhead()",               "Spawn the scaffolding tower fresh ahead of you (parts, climbable ladder, deck collider)")
-System.AddCCommand("merc_tower_clear",     "mercenaries:TowerStationClear()",             "Remove the tower")
+System.AddCCommand("merc_tower_clear",     "mercenaries:TowerStationClearAll()",          "Remove all towers")
 System.AddCCommand("merc_tower_build",        "mercenaries:StartTowerPlacement()",   "Enter tower placement mode: aim at a spot, F2 to place, F3 to cancel")
 System.AddCCommand("merc_tower_place",        "mercenaries:ConfirmTowerPlacement()", "Place the tower at the ghost marker (bound to F2 in placement mode)")
 System.AddCCommand("merc_tower_place_cancel", "mercenaries:CancelTowerPlacement()",  "Cancel tower placement (bound to F3 in placement mode)")
