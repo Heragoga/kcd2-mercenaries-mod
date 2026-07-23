@@ -9,6 +9,7 @@
 		</task>
 		<task name="appearance" class="appearance">
 			<source path="appearance\mercenariesappearance.xml" />
+			<source path="appearance\enemiesappearance.xml" />
 		</task>
 	</tasks>
 </storm>

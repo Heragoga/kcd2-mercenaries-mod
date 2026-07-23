@@ -1,20 +1,35 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<brain2subbrains version="1">
-		<!-- Custom subbrain switch, supposed to overwrite npc_basic_switch so that mercenary follows player, but in combat, npc_basic_switch should take over -->
+		<!-- Each brain gets its own custom switch plus the vanilla basic npc SCHEDULER
+		     (4eaa0620-d090-e268-c244-cba09ad5ec80). The vanilla basic npc SWITCH
+		     (...ec81) is left out on purpose - the custom switch replaces it.
+		     Proactive behaviour (follow, attack on sight) needs an active switch driving
+		     the crime/interrupt reactions; negative FactionTree relations alone are not
+		     enough. -->
+
+		<!-- Melee mercenary -->
 		<brain2subbrain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" priority="0" subbrain_id="26e83d2a-964c-4fd3-b077-6de567b0d081" />
-
-		<!-- Vanilla basic npc subrrain SWITCH switch is a file defined in data/ai -->
-       <!--  <brain2subbrain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec81" /> -->
-
-		<!-- Vanilla basic npc subrrain SCHEDULER not a single reference to this anywhere, probably hard coded or something-->
 		<brain2subbrain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
 
-		<!-- Ranged mercenaries (archers): archer switch, follows the player like the melee merc switch,
-		     but fires ranged attack interrupts instead of the melee one. -->
+		<!-- Mercenary archer -->
 		<brain2subbrain brain_id="ade0335c-3a66-4601-a5d7-7a08f9f9aa8d" priority="0" subbrain_id="dac3e294-54e7-4a6b-a27f-e4241c63e305" />
-
-		<!-- Vanilla basic npc scheduler, shared with the archer brain -->
 		<brain2subbrain brain_id="ade0335c-3a66-4601-a5d7-7a08f9f9aa8d" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
+
+		<!-- Tower archer -->
+		<brain2subbrain brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" priority="0" subbrain_id="2e5b8d13-9f47-4a26-b80c-1d3f6a9e5c74" />
+		<brain2subbrain brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
+
+		<!-- Quartermaster -->
+		<brain2subbrain brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" priority="0" subbrain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a22" />
+		<brain2subbrain brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
+
+		<!-- Enemy melee -->
+		<brain2subbrain brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" priority="0" subbrain_id="1a9c3e7f-2b8d-4c60-9e5a-3f7b1d8c6a92" />
+		<brain2subbrain brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
+
+		<!-- Enemy archer -->
+		<brain2subbrain brain_id="a7c3e1d9-4b2f-4a68-9c50-1e3d7f8a2b60" priority="0" subbrain_id="b8d4f2ea-5c3a-4b79-ad61-2f4e8a9b3c71" />
+		<brain2subbrain brain_id="a7c3e1d9-4b2f-4a68-9c50-1e3d7f8a2b60" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
 	</brain2subbrains>
 </database>

@@ -2,7 +2,24 @@
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<brains version="1">
 		<brain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" brain_name="mercenary_brain" />
+
 		<!-- Ranged mercenaries (archers) - separate brain so they get ranged combat behaviour instead of the melee one -->
 		<brain brain_id="ade0335c-3a66-4601-a5d7-7a08f9f9aa8d" brain_name="archer_brain" />
+
+		<!-- Tower archer: stands on a static anchor, shoots per its Lua-driven mode. -->
+		<brain brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" brain_name="static_archer_brain" />
+
+		<!-- Quartermaster: a "lobotomized merc". His switch just stands him in place,
+		     occasionally plays an eating animation (quartermaster_idle.xml), and fires a
+		     stripped attack interrupt (combat_melee, reused) when the camp is raided.
+		     No follow, no schedule, no barks. -->
+		<brain brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" brain_name="quartermaster_brain" />
+
+		<!-- Hostile melee enemy. -->
+		<brain brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" brain_name="renegade_brain" />
+
+		<!-- Hostile ranged enemy: same design as renegade_brain, but its scheduler fires
+		     combat_archer_dynamic instead of combat_melee. -->
+		<brain brain_id="a7c3e1d9-4b2f-4a68-9c50-1e3d7f8a2b60" brain_name="enemy_archer_brain" />
 	</brains>
 </database>

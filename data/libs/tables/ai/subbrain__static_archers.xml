@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
-	<subbrains version="1">
-		<subbrain always_active="true" subbrain_id="2e5b8d13-9f47-4a26-b80c-1d3f6a9e5c74" subbrain_name="static_archer_scheduler" subbrain_type="6" timeout="0" />
-	</subbrains>
-</database>

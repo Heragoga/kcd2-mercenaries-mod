@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
-	<mailbox_groups version="1">
-		<mailbox_group mailbox_group_file_name="enemy_archer_scheduler.xml" mailbox_group_id="c9e5a3fb-6d4b-4c80-be72-3a5f9b0c4d82" mailbox_group_tree_name="onUpdate" />
-	</mailbox_groups>
-</database>

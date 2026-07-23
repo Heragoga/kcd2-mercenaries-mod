@@ -1,72 +1,61 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
-    <skald_character2roles version="1">
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_test" />
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_kubyenka" />
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_vasko" />
+	<skald_character2roles version="1">
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_test" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_kubyenka" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_vasko" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_jasak" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_black_bartosch" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_gnarly" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_jan_posy" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_miroslav" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_menhard" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_arne" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_janek" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_jaroslav" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_adder" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_janosh" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_mathew" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_zizka" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_devil" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_godwin" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_hans_capon" />
+	<!-- Ranged mercenaries (archers) -->
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_archer_1" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_archer_2" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_archer_3" />
+	<!-- Second casting role, so two-NPC camp gossips (gossip_merc_*) can cast a
+	distinct "speaker A" (role_mercenary_test) and "speaker B"
+	(role_mercenary_test2). Every merc holds BOTH roles, so either merc of
+	a chatting pair can be cast into either slot. -->
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_test" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_kubyenka" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_vasko" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_jasak" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_black_bartosch" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_gnarly" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_jan_posy" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_miroslav" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_menhard" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_arne" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_janek" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_jaroslav" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_adder" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_janosh" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_mathew" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_zizka" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_devil" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_godwin" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_hans_capon" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_archer_1" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_archer_2" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_archer_3" />
 
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_jasak" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_black_bartosch" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_gnarly" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_jan_posy" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_miroslav" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_menhard" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_arne" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_janek" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_jaroslav" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_adder" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_janosh" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_mathew" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_zizka" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_devil" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_godwin" />
-
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_hans_capon" />
-
-        <!-- Ranged mercenaries (archers) -->
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_archer_1" />
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_archer_2" />
-        <skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_archer_3" />
-
-        <!-- Second casting role, so two-NPC camp gossips (gossip_merc_*) can cast a
-             distinct "speaker A" (role_mercenary_test) and "speaker B"
-             (role_mercenary_test2). Every merc holds BOTH roles, so either merc of
-             a chatting pair can be cast into either slot. -->
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_test" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_kubyenka" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_vasko" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_jasak" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_black_bartosch" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_gnarly" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_jan_posy" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_miroslav" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_menhard" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_arne" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_janek" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_jaroslav" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_adder" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_janosh" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_mathew" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_zizka" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_devil" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_godwin" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_hans_capon" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_archer_1" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_archer_2" />
-        <skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_archer_3" />
-    </skald_character2roles>
+	<!-- Quartermaster -->
+	<!-- Ties the quartermaster's Skald character to his dialog role. Without
+	this link the "Talk" prompt appears but pressing E does nothing -
+	Skald can't cast him into quartermaster_dialog's role. Mirrors the
+	mercs' skald_character2role__mercenaries.xml. -->
+	<skald_character2role role_id="role_mercenary_quartermaster" skald_character_id="char_mercenary_quartermaster" />
+	</skald_character2roles>
 </database>

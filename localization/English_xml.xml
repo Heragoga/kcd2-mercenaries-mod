@@ -336,6 +336,21 @@
   <Row><Cell>merc_info_camp_no_spot</Cell><Cell>No clear ground nearby to make camp.</Cell><Cell>No clear ground nearby to make camp.</Cell></Row>
   <Row><Cell>merc_info_camp_deployed</Cell><Cell>Company deployed. The chosen mercenaries will follow you; the rest hold the camp.</Cell><Cell>Company deployed. The chosen mercenaries will follow you; the rest hold the camp.</Cell></Row>
   <Row><Cell>merc_info_camp_returned</Cell><Cell>Your mercenaries have returned to camp.</Cell><Cell>Your mercenaries have returned to camp.</Cell></Row>
+  <Row><Cell>merc_info_tower_placing</Cell><Cell>Look where you want the tower and click. Right-click when you're done.</Cell><Cell>Look where you want the tower and click. Right-click when you're done.</Cell></Row>
+  <Row><Cell>merc_info_tower_already</Cell><Cell>You're already choosing a spot for a tower.</Cell><Cell>You're already choosing a spot for a tower.</Cell></Row>
+  <Row><Cell>merc_info_tower_not_placing</Cell><Cell>You're not building a tower right now.</Cell><Cell>You're not building a tower right now.</Cell></Row>
+  <Row><Cell>merc_info_tower_aim</Cell><Cell>Look at solid ground first.</Cell><Cell>Look at solid ground first.</Cell></Row>
+  <Row><Cell>merc_info_tower_raised</Cell><Cell>The tower is up. Pick another spot, or right-click to finish.</Cell><Cell>The tower is up. Pick another spot, or right-click to finish.</Cell></Row>
+  <Row><Cell>merc_info_tower_cancelled</Cell><Cell>Tower building called off.</Cell><Cell>Tower building called off.</Cell></Row>
+  <Row><Cell>merc_info_tower_limit</Cell><Cell>You've as many towers as the company can man.</Cell><Cell>You've as many towers as the company can man.</Cell></Row>
+  <Row><Cell>merc_info_tower_blocked</Cell><Cell>There's no room for a tower here.</Cell><Cell>There's no room for a tower here.</Cell></Row>
+  <Row><Cell>merc_info_cart_placing</Cell><Cell>Look where you want the cart and click. Right-click when you're done.</Cell><Cell>Look where you want the cart and click. Right-click when you're done.</Cell></Row>
+  <Row><Cell>merc_info_cart_already</Cell><Cell>You're already choosing a spot for a cart.</Cell><Cell>You're already choosing a spot for a cart.</Cell></Row>
+  <Row><Cell>merc_info_cart_aim</Cell><Cell>Look at solid ground first.</Cell><Cell>Look at solid ground first.</Cell></Row>
+  <Row><Cell>merc_info_cart_blocked</Cell><Cell>There's no room for a cart here.</Cell><Cell>There's no room for a cart here.</Cell></Row>
+  <Row><Cell>merc_info_cart_limit</Cell><Cell>You've as many carts as the company can crew.</Cell><Cell>You've as many carts as the company can crew.</Cell></Row>
+  <Row><Cell>merc_info_cart_raised</Cell><Cell>The cart is manned. Pick another spot, or right-click to finish.</Cell><Cell>The cart is manned. Pick another spot, or right-click to finish.</Cell></Row>
+  <Row><Cell>merc_info_cart_cancelled</Cell><Cell>Cart placing called off.</Cell><Cell>Cart placing called off.</Cell></Row>
   <Row><Cell>merc_info_recalled</Cell><Cell>Squad recalled.</Cell><Cell>Squad recalled.</Cell></Row>
 
 
@@ -521,6 +536,9 @@
   <Row><Cell>ui_qm_tower</Cell><Cell>An archer tower for the camp (100 groschen).</Cell><Cell>An archer tower for the camp (100 groschen).</Cell></Row>
   <Row><Cell>merc_henry_qm_tower</Cell><Cell>Put up an archer tower. I'll choose the spot.</Cell><Cell>Put up an archer tower. I'll choose the spot.</Cell></Row>
   <Row><Cell>merc_qm_tower</Cell><Cell>A good perch and a bowman to man it. Just point out where you want it.</Cell><Cell>A good perch and a bowman to man it. Just point out where you want it.</Cell></Row>
+  <Row><Cell>ui_qm_archercart</Cell><Cell>An archer cart for the camp (300 groschen).</Cell><Cell>An archer cart for the camp (300 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_archercart</Cell><Cell>Fit out a cart with archers. I'll choose where it stands.</Cell><Cell>Fit out a cart with archers. I'll choose where it stands.</Cell></Row>
+  <Row><Cell>merc_qm_archercart</Cell><Cell>Three good bowmen on a wagon bed. Show me where to park it.</Cell><Cell>Three good bowmen on a wagon bed. Show me where to park it.</Cell></Row>
   <Row><Cell>ui_qm_deploy</Cell><Cell>I want to take some men with me.</Cell><Cell>I want to take some men with me.</Cell></Row>
   <Row><Cell>merc_henry_qm_deploy</Cell><Cell>I want to take some of the men out. The rest can hold the camp.</Cell><Cell>I want to take some of the men out. The rest can hold the camp.</Cell></Row>
   <Row><Cell>merc_qm_deploy</Cell><Cell>Aye. I'll rouse the best-equipped first. How many do you want?</Cell><Cell>Aye. I'll rouse the best-equipped first. How many do you want?</Cell></Row>
@@ -578,4 +596,18 @@
   <Row><Cell>merc_n_heroes</Cell><Cell>| heroes:</Cell><Cell>| heroes:</Cell></Row>
   <Row><Cell>merc_n_health</Cell><Cell>| avg health:</Cell><Cell>| avg health:</Cell></Row>
   <Row><Cell>merc_n_injured</Cell><Cell>| injured:</Cell><Cell>| injured:</Cell></Row>
+
+  <Row><Cell>buff_merc_low_morale_name</Cell><Cell>Low Morale</Cell><Cell>Low Morale</Cell></Row>
+  <Row><Cell>buff_merc_low_morale_desc</Cell><Cell>Your mercenaries are disgruntled. Their spirits are low and their loyalty is wearing thin.</Cell><Cell>Your mercenaries are disgruntled. Their spirits are low and their loyalty is wearing thin.</Cell></Row>
+
+  <Row><Cell>buff_merc_exhausted_name</Cell><Cell>Exhausted Mercenaries</Cell><Cell>Exhausted Mercenaries</Cell></Row>
+  <Row><Cell>buff_merc_exhausted_desc</Cell><Cell>Your mercenaries are worn out. They have been on the march too long without proper rest.</Cell><Cell>Your mercenaries are worn out. They have been on the march too long without proper rest.</Cell></Row>
+  <Row><Cell>buff_merc_injured_name</Cell><Cell>Wounded Mercenaries</Cell><Cell>Wounded Mercenaries</Cell></Row>
+  <Row><Cell>buff_merc_injured_desc</Cell><Cell>Your mercenaries are carrying wounds. They need tending before the next fight.</Cell><Cell>Your mercenaries are carrying wounds. They need tending before the next fight.</Cell></Row>
+  <Row><Cell>buff_merc_no_drink_name</Cell><Cell>Nothing to Drink</Cell><Cell>Nothing to Drink</Cell></Row>
+  <Row><Cell>buff_merc_no_drink_desc</Cell><Cell>Your mercenaries have run dry. Not a drop of ale left in the camp.</Cell><Cell>Your mercenaries have run dry. Not a drop of ale left in the camp.</Cell></Row>
+  <Row><Cell>buff_merc_starvation_mild_name</Cell><Cell>Short Rations</Cell><Cell>Short Rations</Cell></Row>
+  <Row><Cell>buff_merc_starvation_mild_desc</Cell><Cell>Your mercenaries are on short rations. The stores are running low and they know it.</Cell><Cell>Your mercenaries are on short rations. The stores are running low and they know it.</Cell></Row>
+  <Row><Cell>buff_merc_starvation_strong_name</Cell><Cell>Starving Mercenaries</Cell><Cell>Starving Mercenaries</Cell></Row>
+  <Row><Cell>buff_merc_starvation_strong_desc</Cell><Cell>Your mercenaries are starving. Feed them soon or they will not stay much longer.</Cell><Cell>Your mercenaries are starving. Feed them soon or they will not stay much longer.</Cell></Row>
 </Table>

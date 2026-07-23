@@ -2061,6 +2061,8 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
                 accept = valid
                 if accept then raw = { x = raw.x, y = raw.y, z = gz } end
             end
+            -- never drop a fire cluster on an archer tower (mercenaries_tower.lua)
+            if accept and self.IsSpotNearTower and self:IsSpotNearTower(raw) then accept = false end
             if accept then
                 usedCell[off[1] .. "," .. off[2]] = true
                 table.insert(clusterCenters, { x = raw.x, y = raw.y, z = raw.z or center.z })
@@ -2101,6 +2103,8 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
                             raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf))
                         end
                     end
+                    -- and don't hand an upgrade a tile that a tower is standing on
+                    if accept and self.IsSpotNearTower and self:IsSpotNearTower(raw) then accept = false end
                     if accept then
                         usedCell[key] = true
                         self.CampStationTiles[name] = { x = raw.x, y = raw.y, z = raw.z or center.z,

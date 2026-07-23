@@ -231,6 +231,7 @@ mercenaries.TowerArcherDelay = 2000
 mercenaries.TowerStationDist = 10.0
 -- Any number of towers can be up at once (place as many as you like). Each station
 -- is { ids =, cols =, origin =, yaw =, placedGround =, archer =, archerPos =, dead = }.
+mercenaries.TowerMaxCount = 5    -- how many archer towers may stand at once
 mercenaries.TowerStations = {}   -- every live tower
 mercenaries.TowerStation = nil   -- the latest one - the subject of the tuning commands
 -- Deferred archer spawn/attach run off FIFO queues, not self.TowerStation: placing a
@@ -358,6 +359,11 @@ end
 -- ahead of the player. Additive - existing towers stay up.
 function mercenaries:SpawnTowerStation(atPos, atYaw)
     if not player then return end
+    if #self.TowerStations >= self.TowerMaxCount then
+        System.LogAlways("[Tower] limit reached (" .. self.TowerMaxCount .. ") - merc_tower_clear first")
+        Game.SendInfoText('merc_info_tower_limit', false, 0, 4)
+        return
+    end
     local yaw, ground
     if atPos then
         ground = { x = atPos.x, y = atPos.y, z = atPos.z }
@@ -436,18 +442,193 @@ function mercenaries:SpawnTowerAhead()
     self:SpawnTowerStation()
 end
 
--- ==== PLACEMENT: aim + F2 ====
+-- ==== PLACEMENT: aim + click ====
 -- Ported from references/spawn house (villagebuilding's building mode): each tick,
--- raycast from the camera, show a ghost model at the crosshair; F2 raises the real
--- tower there, F3 cancels. The upgrade purchase (LogiBuyTower) just calls
--- StartTowerPlacement - buying it enables placing, nothing more (no persistence yet).
-mercenaries.TowerBuildActive = false
-mercenaries.TowerPreviewId = nil
-mercenaries.TowerBuildPos = nil
-mercenaries.TowerBuildAngle = 0.0
--- A single representative ghost (one main beam) - the whole composite is too heavy
--- to respawn every tick; this just marks the spot/footing.
-mercenaries.TowerPreviewModel = "objects/manmade/structures/scafolding/scaffolding_main_beam_c.cgf"
+-- raycast from the camera and slide a white ghost to the crosshair; LMB places, RMB
+-- cancels (through the Player.OnAction hook below). The engine is generic (see the
+-- GENERIC PLACEMENT ENGINE section); the tower and the archer cart just hand it a
+-- spec. The upgrade purchase (LogiBuyTower / LogiBuyArcherCart) starts placement.
+
+-- GHOST: the real tower (every part + the ladder mesh, no archer) in a flat white
+-- material, so what you aim is what you get. It is spawned ONCE when placement
+-- starts and MOVED each tick - respawning a nine-part composite four times a second
+-- would flicker badly. Ghost parts are plain BasicEntities: no mercenaries_Prop, so
+-- no physics and nothing to collide with while it slides around under the crosshair.
+-- MATERIAL: poses_nomultimaterial (what the vanilla trigger scripts use) renders
+-- PINK - that is CryEngine's missing-material placeholder, i.e. the path does not
+-- resolve at runtime. The candidates below are all materials the game's own prefab
+-- data actually references, so they exist. Cycle them with merc_tower_ghost_mtl <n>.
+-- (Pink is worth keeping in mind as the "invalid placement" colour later.)
+mercenaries.TowerGhostMaterials = {
+    "objects/manmade/task_specific_props/clothing_industry/tailoring/cloth_folded_b_linen_white",
+    "objects/intermediates/elements/textures/timbered_wall_a_elements_white_bright",
+    "objects/intermediates/elements/textures/timbered_wall_a_elements_plastered_beige_white",
+    "objects/intermediates/elements/textures/window_halftimber_halfwhite",
+    "objects/manmade/structures/defensive/fortress/suchdol/suchdol_fortress_white_decal",
+}
+mercenaries.TowerGhostMaterial = mercenaries.TowerGhostMaterials[1]   -- #2 in the old list, the linen white
+-- The missing-material placeholder renders bright pink, which is exactly the "you
+-- can't build here" signal we want - so the broken path earns its keep after all.
+mercenaries.TowerGhostBadMaterial = "objects/intermediates/poses/poses_nomultimaterial"
+
+-- VALIDITY. A tower may not land on what the camp has already built (a tower on top
+-- of a tent), nor on another tower. Slight clipping is fine, so these are generous
+-- rather than exact footprints; tune with merc_tower_clearance.
+mercenaries.TowerCampClearRadius = 3.5   -- keep this far from any spawned camp prop
+mercenaries.TowerClearRadius     = 6.0   -- and this far from another tower
+mercenaries.TowerCampBlockers = {}
+mercenaries.TowerBlockerScanRadius = 60.0   -- how far around camp to gather props
+mercenaries._ghostValid = nil
+
+-- Does `name` belong to a mod-spawned camp prop? Same prefixes the camp teardown
+-- uses (CampPropPrefixes). Tower/ghost/anchor pieces are deliberately NOT counted
+-- here - towers get their own IsSpotNearTower check, and the ghost must not block
+-- itself.
+function mercenaries:IsTowerBlockerName(name)
+    if not name then return false end
+    if string.sub(name, 1, 9)  == "MercTower" then return false end   -- towers, ghost, testers
+    if string.sub(name, 1, 16) == "MercArcherAnchor" then return false end
+    for _, p in ipairs(self.CampPropPrefixes or {}) do
+        if string.sub(name, 1, #p) == p then return true end
+    end
+    return false
+end
+
+-- Snapshot every mod prop near camp when placement starts. Done by SPATIAL QUERY +
+-- name, not by walking one id list: each upgrade tracks its props in its own list
+-- (the food cart in its st.ids, the house in CampEntities, ...), so no single list
+-- is complete - the earlier CampEntities-only version missed the cart and the rest.
+-- Props don't move, so one snapshot per placement session is enough.
+function mercenaries:TowerCacheCampBlockers()
+    self.TowerCampBlockers = {}
+    local center = self.CampCenter
+    if not center and player then center = player:GetWorldPos() end
+    if not center then return end
+    local ents
+    pcall(function() ents = System.GetEntitiesInSphere(center, self.TowerBlockerScanRadius) end)
+    if not ents then return end
+    for _, e in pairs(ents) do
+        pcall(function()
+            if e and self:IsTowerBlockerName(e:GetName() or "") then
+                local p = e:GetWorldPos() or e:GetPos()
+                if p then table.insert(self.TowerCampBlockers, { x = p.x, y = p.y }) end
+            end
+        end)
+    end
+    System.LogAlways("[Tower] " .. #self.TowerCampBlockers .. " camp props to build around")
+end
+
+-- Public: is `pos` inside an existing tower's footprint? Used by the camp too, so a
+-- newly built tent/upgrade doesn't land on a tower (mercenaries_camp.lua).
+function mercenaries:IsSpotNearTower(pos, radius)
+    if not pos then return false end
+    radius = radius or self.TowerClearRadius
+    for _, st in ipairs(self.TowerStations or {}) do
+        if st.origin then
+            local dx, dy = pos.x - st.origin.x, pos.y - st.origin.y
+            if (dx * dx + dy * dy) < (radius * radius) then return true end
+        end
+    end
+    return false
+end
+
+function mercenaries:TowerSpotIsValid(pos)
+    if not pos then return false end
+    if self:IsSpotNearTower(pos) then return false end
+    local r2 = self.TowerCampClearRadius * self.TowerCampClearRadius
+    for _, b in ipairs(self.TowerCampBlockers) do
+        local dx, dy = pos.x - b.x, pos.y - b.y
+        if (dx * dx + dy * dy) < r2 then return false end
+    end
+    return true
+end
+
+-- Recolour the ghost only when validity actually flips, not every tick.
+function mercenaries:GhostSetValid(valid)
+    if valid == self._ghostValid then return end
+    self._ghostValid = valid
+    local m = valid and self.TowerGhostMaterial or self.TowerGhostBadMaterial
+    for _, g in ipairs(self.GhostParts) do
+        if g.ent then pcall(function() g.ent:SetMaterial(m) end) end
+    end
+end
+
+function mercenaries:SetTowerClearance(campR, towerR)
+    if campR and campR ~= "" and tonumber(campR) then self.TowerCampClearRadius = tonumber(campR) end
+    if towerR and towerR ~= "" and tonumber(towerR) then self.TowerClearRadius = tonumber(towerR) end
+    System.LogAlways(string.format("[Tower] clearance: camp %.1fm, tower %.1fm",
+        self.TowerCampClearRadius, self.TowerClearRadius))
+end
+-- ==== GENERIC GHOST (shared by every placeable: tower, archer cart, ...) ====
+-- `parts` is a flat list of { model, x, y, z, rx, ry, rz } in the thing's local
+-- frame. Spawned once as white BasicEntities, then slid to the aim point each tick.
+mercenaries.GhostParts = {}   -- { { ent =, x,y,z, rx,ry,rz } }
+
+function mercenaries:GhostBuild(parts)
+    self:GhostClear()
+    if not player then return end
+    local o = player:GetWorldPos()
+    for i, src in ipairs(parts) do
+        local g = { model = src.model, x = src.x, y = src.y, z = src.z,
+                    rx = src.rx or 0, ry = src.ry or 0, rz = src.rz or 0 }
+        local e
+        pcall(function()
+            e = System.SpawnEntity({
+                class = "BasicEntity",
+                name = "MercPlaceGhost_" .. i .. "_" .. tostring(math.random(100000, 999999)),
+                position = { x = o.x, y = o.y, z = o.z - 50 },   -- parked below until the first move
+                properties = { object_Model = g.model, bMissionCritical = false,
+                               bSaved_by_game = false, bSerialize = false },
+            })
+        end)
+        if e then
+            pcall(function() e:SetMaterial(self.TowerGhostMaterial) end)
+            pcall(function() e:SetViewDistUnlimited() end)
+            g.ent = e
+            table.insert(self.GhostParts, g)
+        end
+    end
+    System.LogAlways("[Place] ghost: " .. #self.GhostParts .. "/" .. #parts .. " parts")
+end
+
+-- Slide the whole ghost to the aim point. `sink` matches the real build's z offset
+-- (the tower's TowerSink, 0 for a cart) so the preview sits where it will land.
+function mercenaries:GhostMove(pos, yaw, sink)
+    local base = { x = pos.x, y = pos.y, z = pos.z + (sink or 0) }
+    for _, g in ipairs(self.GhostParts) do
+        if g.ent then
+            pcall(function()
+                g.ent:SetPos(self:HouseLocalToWorld(base, yaw, g.x, g.y, g.z))
+                g.ent:SetAngles({ x = g.rx, y = g.ry, z = g.rz + yaw })
+            end)
+        end
+    end
+end
+
+function mercenaries:GhostClear()
+    for _, g in ipairs(self.GhostParts or {}) do
+        if g.ent then pcall(function() System.RemoveEntity(g.ent.id) end) end
+    end
+    self.GhostParts = {}
+end
+
+-- Accepts an index into TowerGhostMaterials, or a full material path. No arg lists
+-- the candidates. Applies live, so it can be judged without leaving placement mode.
+function mercenaries:SetTowerGhostMaterial(m)
+    if not m or m == "" then
+        System.LogAlways("[Tower] ghost material = " .. self.TowerGhostMaterial)
+        for i, p in ipairs(self.TowerGhostMaterials) do
+            System.LogAlways(string.format("[Tower]   %d = %s", i, p))
+        end
+        return
+    end
+    local idx = tonumber(m)
+    self.TowerGhostMaterial = (idx and self.TowerGhostMaterials[idx]) or tostring(m)
+    for _, g in ipairs(self.GhostParts or {}) do
+        if g.ent then pcall(function() g.ent:SetMaterial(self.TowerGhostMaterial) end) end
+    end
+    System.LogAlways("[Tower] ghost material = " .. self.TowerGhostMaterial)
+end
 
 -- Raycast from the camera; world position under the crosshair (terrain + static only).
 function mercenaries:TowerLookedAtPos()
@@ -474,70 +655,351 @@ function mercenaries:TowerLookedAtPos()
     return result
 end
 
-function mercenaries:TowerDespawnPreview()
-    if self.TowerPreviewId then
-        pcall(function() System.RemoveEntity(self.TowerPreviewId) end)
-        self.TowerPreviewId = nil
-    end
-end
+-- ==== GENERIC PLACEMENT ENGINE ====
+-- Driven by a `spec` (built per placeable - see TowerPlaceSpec, and CartPlaceSpec in
+-- mercenaries_archer_cart.lua). Fields:
+--   parts   : ghost geometry (list passed to GhostBuild)
+--   sink    : z offset applied to ghost and to the real build
+--   isValid : function(self, pos) -> bool  (drives the pink invalid recolour)
+--   atMax   : function(self) -> bool
+--   confirm : function(self, pos, angle)   (spawn the real thing; stays in mode)
+--   info    : { placing, already, aim, blocked, limit, raised, cancelled } string keys
+-- The mouse (LMB place / RMB cancel) reaches this through HandlePlacementAction.
+mercenaries.ActivePlacement = nil
+mercenaries.PlacePos = nil
+mercenaries.PlaceAngle = 0.0
+mercenaries.PlaceValid = true
 
-function mercenaries.TowerBuildTick()
+function mercenaries.PlaceTick()
     local self = mercenaries
-    if not self.TowerBuildActive then return end
+    local spec = self.ActivePlacement
+    if not spec then return end
     pcall(function()
-        self:TowerDespawnPreview()
         local pos = self:TowerLookedAtPos()
         if pos then
-            self.TowerBuildPos = pos
+            self.PlacePos = pos
             if player then
                 local pp = player:GetWorldPos()
-                -- face the tower (and its archer) outward, away from where you stand
-                self.TowerBuildAngle = math.atan2(pos.y - pp.y, pos.x - pp.x)
+                -- face outward, away from where you stand
+                self.PlaceAngle = math.atan2(pos.y - pp.y, pos.x - pp.x)
             end
-            local ent = System.SpawnEntity({
-                class = "BasicEntity",
-                name = "MercTowerPreview_" .. tostring(math.random(100000, 999999)),
-                position = pos,
-                properties = { object_Model = self.TowerPreviewModel, bMissionCritical = false,
-                               bSaved_by_game = false, bSerialize = false },
-            })
-            if ent then pcall(function() ent:SetViewDistUnlimited() end); self.TowerPreviewId = ent.id end
+            self:GhostMove(pos, self.PlaceAngle, spec.sink)
+            self.PlaceValid = spec.isValid(self, pos)
+            self:GhostSetValid(self.PlaceValid)
         end
     end)
-    Script.SetTimerForFunction(250, "mercenaries.TowerBuildTick")
+    -- 100ms: the ghost is only moved, not respawned, so it tracks the crosshair smoothly.
+    Script.SetTimerForFunction(100, "mercenaries.PlaceTick")
 end
 
-function mercenaries:StartTowerPlacement()
-    if self.TowerBuildActive then
-        Game.SendInfoText("Already placing the tower - aim and press F2.", false, 0, 3)
-        return
+function mercenaries:StartPlacement(spec)
+    if self.ActivePlacement then Game.SendInfoText(self.ActivePlacement.info.already, false, 0, 3); return end
+    self.ActivePlacement = spec
+    self.PlacePos = nil
+    -- Mouse-driven (LMB place / RMB cancel) via the Player.OnAction hook - no key binds.
+    self:TowerCacheCampBlockers()
+    self._ghostValid = nil          -- force the first recolour
+    self:GhostBuild(spec.parts)
+    Game.SendInfoText(spec.info.placing, false, 0, 5)
+    Script.SetTimerForFunction(100, "mercenaries.PlaceTick")
+end
+
+function mercenaries:EndPlacement()
+    self.ActivePlacement = nil
+    self:GhostClear()
+end
+
+function mercenaries:ConfirmPlacement()
+    local spec = self.ActivePlacement
+    if not spec then return end
+    if not self.PlacePos then Game.SendInfoText(spec.info.aim, false, 0, 3); return end
+    if not self.PlaceValid then Game.SendInfoText(spec.info.blocked, false, 0, 3); return end
+    if spec.atMax(self) then Game.SendInfoText(spec.info.limit, false, 0, 4); self:EndPlacement(); return end
+    -- Stays in placement mode so more can be placed in one go; RMB ends it.
+    spec.confirm(self, self.PlacePos, self.PlaceAngle)
+    Game.SendInfoText(spec.info.raised, false, 0, 3)
+end
+
+function mercenaries:CancelPlacement()
+    local spec = self.ActivePlacement
+    if not spec then return end
+    self:EndPlacement()
+    Game.SendInfoText(spec.info.cancelled, false, 0, 3)
+end
+
+-- ---- Tower placeable ----
+function mercenaries:TowerPlaceSpec()
+    local parts = {}
+    for _, p in ipairs(self.TowerParts) do
+        local rx, ry, rz = self:HouseQuatToEuler(p.qx or 0, p.qy or 0, p.qz or 0, p.qw or 1)
+        table.insert(parts, { model = p.model, x = p.x, y = p.y, z = p.z, rx = rx, ry = ry, rz = rz })
     end
-    self.TowerBuildActive = true
-    self.TowerBuildPos = nil
-    pcall(function() System.ExecuteCommand("bind f2 merc_tower_place") end)
-    pcall(function() System.ExecuteCommand("bind f3 merc_tower_place_cancel") end)
-    Game.SendInfoText("Aim at a spot, F2 to raise the tower (F3 to cancel).", false, 0, 5)
-    Script.SetTimerForFunction(100, "mercenaries.TowerBuildTick")
+    for _, L in ipairs(self.TowerLadders) do
+        local rx, ry, rz = self:HouseQuatToEuler(L.qx, L.qy, L.qz, L.qw)
+        table.insert(parts, { model = L.model, x = L.x, y = L.y, z = L.z, rx = rx, ry = ry, rz = rz })
+    end
+    return {
+        parts = parts,
+        sink = self.TowerSink,
+        isValid = function(s, pos) return s:TowerSpotIsValid(pos) end,
+        atMax   = function(s) return #s.TowerStations >= s.TowerMaxCount end,
+        confirm = function(s, pos, angle) s:SpawnTowerStation(pos, angle) end,
+        info = { placing = 'merc_info_tower_placing', already = 'merc_info_tower_already',
+                 aim = 'merc_info_tower_aim', blocked = 'merc_info_tower_blocked',
+                 limit = 'merc_info_tower_limit', raised = 'merc_info_tower_raised',
+                 cancelled = 'merc_info_tower_cancelled' },
+    }
 end
 
-function mercenaries:EndTowerPlacement()
-    self.TowerBuildActive = false
-    self:TowerDespawnPreview()
+function mercenaries:StartTowerPlacement() self:StartPlacement(self:TowerPlaceSpec()) end
+
+-- ==== MOUSE INPUT: Player.OnAction hook ====
+-- Animation polling was a dead end - Actor.GetCurrentAnimationState() only ever
+-- reports locomotion (MotionIdle/Movement/Jump/Land), never an attack or block, and
+-- Entity.GetCurAnimation() is always nil. The real input path is the player's
+-- OnAction callback, which receives the ACTION NAME directly (the pattern is lifted
+-- from references/CompanionMerchant, which hooks it the same way).
+--
+-- Action names come from references/Libs/Config/keybindSuperactions.xml:
+--   mouse1 -> superaction "attack_primary" -> action "attack_primary_mouse" (combat_base)
+--   mouse2 -> superaction "block"          -> action "block"                (combat_base)
+-- Both live in the combat_base map, so they may only fire with a weapon drawn -
+-- merc_action_log 1 shows exactly what arrives, whatever the state.
+mercenaries.ActionLog = false   -- merc_action_log 1 to watch input names again
+mercenaries._onActionHooked = false
+
+-- Confirmed live: LMB = attack_primary_mouse press/release. RMB = attack_abort AND
+-- block together (attack_abort arrives FIRST), then block hold... then both release.
+mercenaries.TowerPlaceActions  = { attack_primary_mouse = true }
+mercenaries.TowerCancelActions = { block = true }
+-- Everything a mouse button emits while placing, acted on or not. All of it is
+-- swallowed so Henry never swings or raises his guard while choosing a spot - and
+-- because attack_abort precedes block on RMB, it must be eaten too or the cancel
+-- would fire on block while attack_abort had already leaked through to the game.
+mercenaries.TowerSwallowActions = { attack_primary_mouse = true, block = true, attack_abort = true }
+
+-- After a cancel, placement is already off but the trailing block/hold, block/release
+-- and attack_abort/release are still coming; this brief window keeps eating them.
+mercenaries._swallowInput = false
+function mercenaries.TowerClearInputSwallow() mercenaries._swallowInput = false end
+
+-- Returns true if the action was consumed by tower placement.
+function mercenaries:HandlePlacementAction(action, activation)
+    if not self.TowerSwallowActions[action] then return false end
+    if not (self.ActivePlacement or self._swallowInput) then return false end
+
+    if self.ActivePlacement and activation == "press" then
+        if self.TowerPlaceActions[action] then
+            self:ConfirmPlacement()               -- stays in placement mode for the next one
+        elseif self.TowerCancelActions[action] then
+            self:CancelPlacement()
+            self._swallowInput = true
+            Script.SetTimerForFunction(400, "mercenaries.TowerClearInputSwallow")
+        end
+    end
+    return true
 end
 
-function mercenaries:ConfirmTowerPlacement()
-    if not self.TowerBuildActive then Game.SendInfoText("You're not placing a tower right now.", false, 0, 3); return end
-    if not self.TowerBuildPos then Game.SendInfoText("Aim at solid ground first.", false, 0, 3); return end
-    -- Stay in placement mode so any number of towers can be raised in one go; F3 ends it.
-    self:SpawnTowerStation(self.TowerBuildPos, self.TowerBuildAngle)
-    Game.SendInfoText("Tower raised - aim for another, or F3 to finish.", false, 0, 3)
+-- Chain onto Player.OnAction. Registered once, re-applied a moment after gameplay
+-- start so a mod that overwrote the callback without chaining cannot lock us out.
+function mercenaries.UpdateOnAction()
+    local self = mercenaries
+    if not Player then return end
+    if not self._onActionHooked then
+        self._originalOnAction = Player.OnAction
+        self._onActionHooked = true
+    end
+    Player.OnAction = function(p, action, activation, value)
+        local consumed = false
+        pcall(function() consumed = self:HandlePlacementAction(action, activation) end)
+        if self.ActionLog then
+            System.LogAlways(string.format("[Action] %s / %s / %s%s",
+                tostring(action), tostring(activation), tostring(value), consumed and "  <- CONSUMED" or ""))
+        end
+        -- Pass through to whatever was there before, unless placement took it.
+        if not consumed and self._originalOnAction then
+            self._originalOnAction(p, action, activation, value)
+        end
+    end
 end
 
-function mercenaries:CancelTowerPlacement()
-    if not self.TowerBuildActive then return end
-    self:EndTowerPlacement()
-    Game.SendInfoText("Tower placement cancelled.", false, 0, 3)
+-- Only "0" turns it off; a bare `merc_action_log` (empty arg) turns it ON, which is
+-- what the old tostring(v)=="1" test got wrong.
+function mercenaries:SetActionLog(v)
+    self.ActionLog = (tonumber(v) ~= 0)
+    self:UpdateOnAction()   -- make sure the hook is live even if called early
+    System.LogAlways("[Action] logging " .. (self.ActionLog and "ON - press LMB/RMB and read the names" or "off"))
 end
+
+System.AddCCommand("merc_action_log", "mercenaries:SetActionLog('%1')", "Log every player input action: merc_action_log 1 (0 to stop)")
+
+-- ==== INPUT PROBE (legacy): what is the player playing when he clicks? ====
+-- There is no mouse-button hook in KCD's Lua, so left/right click have to be
+-- inferred from what Henry is DOING - a swing for LMB, a block/guard for RMB. This
+-- logs his current animation so those two can be identified by name and then matched
+-- in the placement handler. Which getter actually exists in this build is unknown,
+-- so every one we know of is tried and whichever return something are reported.
+--   merc_anim_poll 1          start (500ms, as asked)
+--   merc_anim_poll 1 100      start with a tighter interval - a swing is quick and
+--                             500ms will very likely step straight over it
+--   merc_anim_poll 0          stop
+mercenaries.AnimPollActive = false
+mercenaries.AnimPollInterval = 500
+mercenaries.AnimPollLast = ""
+
+-- All verified against references/script_bind_2025_01_14 (the Warhorse scriptbind
+-- docs) rather than guessed:
+--   Entity.GetCurAnimation()                    - no args
+--   Entity.IsAnimationRunning(charSlot, layer)  - two ints
+--   Entity.GetAnimationTime(charSlot, layer)    - two ints
+--   Actor.GetCurrentAnimationState()            - "state for the current animation"
+--   Human.IsWeaponDrawn()                       - any weapon active
+mercenaries.AnimProbes = {
+    { n = "GetCurAnimation()",        f = function(p) return p:GetCurAnimation() end },
+    { n = "actor:GetCurAnimState()",  f = function(p) return p.actor:GetCurrentAnimationState() end },
+    { n = "human:IsWeaponDrawn()",    f = function(p) return p.human:IsWeaponDrawn() end },
+    { n = "IsAnimRunning(0,0)",       f = function(p) return p:IsAnimationRunning(0, 0) end },
+    { n = "IsAnimRunning(0,1)",       f = function(p) return p:IsAnimationRunning(0, 1) end },
+    { n = "IsAnimRunning(0,2)",       f = function(p) return p:IsAnimationRunning(0, 2) end },
+    { n = "IsAnimRunning(0,3)",       f = function(p) return p:IsAnimationRunning(0, 3) end },
+    { n = "GetAnimationTime(0,0)",    f = function(p) return p:GetAnimationTime(0, 0) end },
+}
+
+-- Add a probe at runtime once merc_player_dump has shown a promising method:
+--   merc_anim_add human GetCombatState      -> calls player.human:GetCombatState()
+--   merc_anim_add . GetCurAnimation 0       -> calls player:GetCurAnimation(0)
+function mercenaries:AnimProbeAdd(sub, method, arg)
+    if not method or method == "" then System.LogAlways("[AnimPoll] usage: merc_anim_add <sub|.> <method> [arg]"); return end
+    local a = (arg ~= nil and arg ~= "") and (tonumber(arg) or tostring(arg)) or nil
+    local label = ((sub and sub ~= "" and sub ~= ".") and (sub .. ":") or "") .. method .. "(" .. tostring(a or "") .. ")"
+    table.insert(self.AnimProbes, { n = label, f = function(p)
+        local obj = (sub and sub ~= "" and sub ~= ".") and p[sub] or p
+        if a ~= nil then return obj[method](obj, a) end
+        return obj[method](obj)
+    end })
+    System.LogAlways("[AnimPoll] added probe " .. label)
+end
+
+-- A returned nil and a missing method are NOT the same thing - conflating them is
+-- what made every probe read "<unavailable>" last time. Errors report <err>, a live
+-- call that simply has nothing to say reports nil.
+local function animProbeValue(pr)
+    local v
+    local ok = pcall(function() v = pr.f(player) end)
+    if not ok then return "<err>" end
+    if v == nil then return "nil" end
+    return tostring(v)
+end
+
+-- One-shot: which of the getters exist at all.
+function mercenaries:AnimProbeOnce()
+    if not player then System.LogAlways("[AnimPoll] no player"); return end
+    System.LogAlways("[AnimPoll] --- probing every known animation getter ---")
+    for _, pr in ipairs(self.AnimProbes) do
+        local v = animProbeValue(pr)
+        System.LogAlways(string.format("[AnimPoll] %-26s = %s", pr.n, v or "<unavailable>"))
+    end
+end
+
+function mercenaries.AnimPollTick()
+    local self = mercenaries
+    if not self.AnimPollActive then return end
+    if player then
+        local parts = {}
+        for _, pr in ipairs(self.AnimProbes) do
+            local v = animProbeValue(pr)
+            -- dead probes are constant, so keep them out of the running log
+            if v ~= "<err>" then table.insert(parts, pr.n .. "=" .. v) end
+        end
+        local line = table.concat(parts, "  |  ")
+        -- only on change, so the swing/block stand out instead of drowning in idle
+        if line ~= "" and line ~= self.AnimPollLast then
+            self.AnimPollLast = line
+            System.LogAlways("[AnimPoll] " .. line)
+        end
+    end
+    Script.SetTimerForFunction(self.AnimPollInterval, "mercenaries.AnimPollTick")
+end
+
+function mercenaries:AnimPoll(on, ms)
+    local want = (tonumber(on) ~= 0)
+    if ms and ms ~= "" and tonumber(ms) then self.AnimPollInterval = tonumber(ms) end
+    if want and not self.AnimPollActive then
+        self.AnimPollActive = true
+        self.AnimPollLast = ""
+        self:AnimProbeOnce()
+        System.LogAlways("[AnimPoll] polling every " .. self.AnimPollInterval ..
+            "ms - draw a weapon, swing (LMB) and block (RMB), and watch which names appear. merc_anim_poll 0 to stop")
+        Script.SetTimerForFunction(self.AnimPollInterval, "mercenaries.AnimPollTick")
+    elseif not want then
+        self.AnimPollActive = false
+        System.LogAlways("[AnimPoll] stopped")
+    end
+end
+
+-- ==== REFLECTION: what does `player` actually expose? ====
+-- Enumerates the player entity and its sub-objects (and what sits behind their
+-- metatable __index, which is where C++-bound methods live) so the real animation /
+-- combat getters can be read off instead of guessed at.
+--   merc_player_dump            player + every known sub-object
+--   merc_player_dump human      just player.human
+function mercenaries:PlayerApiDump(which)
+    if not player then System.LogAlways("[PlayerAPI] no player"); return end
+
+    local seen = {}
+    local function dump(name, tbl, depth)
+        if tbl == nil then System.LogAlways("[PlayerAPI] " .. name .. " = nil"); return end
+        local t = type(tbl)
+        if t ~= "table" and t ~= "userdata" then
+            System.LogAlways(string.format("[PlayerAPI] %s = %s (%s)", name, tostring(tbl), t))
+            return
+        end
+        if seen[tbl] or depth > 2 then return end
+        seen[tbl] = true
+
+        local keys = {}
+        local ok = pcall(function()
+            for k, v in pairs(tbl) do table.insert(keys, tostring(k) .. ":" .. type(v)) end
+        end)
+        if not ok or #keys == 0 then
+            System.LogAlways(string.format("[PlayerAPI] ===== %s (%s) - not enumerable directly =====", name, t))
+        else
+            table.sort(keys)
+            System.LogAlways(string.format("[PlayerAPI] ===== %s (%s, %d keys) =====", name, t, #keys))
+            local line = ""
+            for _, k in ipairs(keys) do
+                if #line + #k + 2 > 170 then System.LogAlways("[PlayerAPI]   " .. line); line = "" end
+                line = (line == "") and k or (line .. ", " .. k)
+            end
+            if line ~= "" then System.LogAlways("[PlayerAPI]   " .. line) end
+        end
+
+        -- C++ bindings usually hide behind the metatable rather than being direct keys
+        local mt = nil
+        pcall(function() mt = getmetatable(tbl) end)
+        if mt and type(mt) == "table" and type(mt.__index) == "table" then
+            dump(name .. ".__index", mt.__index, depth + 1)
+        end
+    end
+
+    which = (which and which ~= "" and which ~= "%1") and tostring(which) or nil
+    if which then
+        dump("player." .. which, player[which], 0)
+    else
+        dump("player", player, 0)
+        for _, sub in ipairs({ "actor", "human", "soul", "player", "inventory", "Properties" }) do
+            local v = nil
+            pcall(function() v = player[sub] end)
+            if v ~= nil then dump("player." .. sub, v, 0) end
+        end
+    end
+    System.LogAlways("[PlayerAPI] done - look for anything animation/combat/attack/stance related")
+end
+
+-- Quoted args so a missing one is an empty string rather than "Not enough arguments".
+System.AddCCommand("merc_anim_poll",   "mercenaries:AnimPoll('%1', '%2')",              "Log the player's probed state on change: merc_anim_poll 1 [intervalMs] (0 to stop)")
+System.AddCCommand("merc_anim_add",    "mercenaries:AnimProbeAdd('%1', '%2', '%3')",    "Add a probe: merc_anim_add <sub|.> <method> [arg]")
+System.AddCCommand("merc_player_dump", "mercenaries:PlayerApiDump('%1')",               "List what the player entity actually exposes: merc_player_dump [sub]")
 
 -- ==== Collider tuner ====
 mercenaries.TowerColSel = 1
@@ -635,9 +1097,11 @@ end
 
 System.AddCCommand("merc_tower_spawn",     "mercenaries:SpawnTowerAhead()",               "Spawn the scaffolding tower fresh ahead of you (parts, climbable ladder, deck collider)")
 System.AddCCommand("merc_tower_clear",     "mercenaries:TowerStationClearAll()",          "Remove all towers")
-System.AddCCommand("merc_tower_build",        "mercenaries:StartTowerPlacement()",   "Enter tower placement mode: aim at a spot, F2 to place, F3 to cancel")
-System.AddCCommand("merc_tower_place",        "mercenaries:ConfirmTowerPlacement()", "Place the tower at the ghost marker (bound to F2 in placement mode)")
-System.AddCCommand("merc_tower_place_cancel", "mercenaries:CancelTowerPlacement()",  "Cancel tower placement (bound to F3 in placement mode)")
+System.AddCCommand("merc_tower_build",        "mercenaries:StartTowerPlacement()",   "Enter tower placement mode: look at a spot, left-click to place, right-click to finish")
+System.AddCCommand("merc_tower_place",        "mercenaries:ConfirmPlacement()",      "Place at the ghost marker (normally left-click)")
+System.AddCCommand("merc_tower_place_cancel", "mercenaries:CancelPlacement()",       "Leave placement mode (normally right-click)")
+System.AddCCommand("merc_tower_ghost_mtl",    "mercenaries:SetTowerGhostMaterial('%1')", "Set the placement ghost's material (blank = show current)")
+System.AddCCommand("merc_tower_clearance",    "mercenaries:SetTowerClearance('%1', '%2')", "How much room a tower needs: merc_tower_clearance <fromCampProps> <fromTowers>")
 System.AddCCommand("merc_tower_sink",      "mercenaries:TowerSetSink(%1)",                "Move the tower into the ground (negative = deeper), e.g. -2.0 - lowers the on-top archer's height. Respawns it.")
 System.AddCCommand("merc_tower_archer_z",  "mercenaries:TowerArcherZ('%1', '%2')",        "Re-drop the tower archer: merc_tower_archer_z <deck z> [drop height]")
 System.AddCCommand("merc_tower_col_show",  "mercenaries:TowerColShow(%1)",                "Show/hide the deck colliders while tuning: merc_tower_col_show <0|1>")

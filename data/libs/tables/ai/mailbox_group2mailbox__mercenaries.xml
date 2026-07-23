@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<mailbox_group2mailboxs version="1">
-		<!-- mailbox_group2mailbox mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66856" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" /-->
-		<!-- this xml does support connecting multiple mailbox_group to one mailbox_id -->
+		<!-- Several mailbox_groups may point at the same mailbox_id. -->
 		<mailbox_group2mailbox mailbox_group_id="61426837-4d6f-4669-9f4a-16553ab66857" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
-
-		<!-- Ranged mercenaries (archers) -->
 		<mailbox_group2mailbox mailbox_group_id="ba89450b-07cd-4548-8599-79549cca1253" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
-
+		<mailbox_group2mailbox mailbox_group_id="5a3f2c98-6b1d-4e70-8c95-2f4a7d1b9e60" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+		<mailbox_group2mailbox mailbox_group_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a33" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+		<mailbox_group2mailbox mailbox_group_id="2b0d4f80-3c9e-4d71-af6b-408c2e9d7b03" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
+		<!-- enemy_archer_scheduler (c9e5a3fb-6d4b-4c80-be72-3a5f9b0c4d82) has never had a mailbox link. -->
 	</mailbox_group2mailboxs>
 </database>

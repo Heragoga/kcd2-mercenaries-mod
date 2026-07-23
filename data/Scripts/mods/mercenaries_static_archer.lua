@@ -191,8 +191,47 @@ function mercenaries:AttachStaticArcher(ent, pos, faceAngle)
 
     self.StaticArcherAnchors[ws] = anchor.id
     local rec = self.StaticArchers[ws]
-    if rec then rec.anchorEnt = anchor.id; rec.attached = true end
+    if rec then rec.anchorEnt = anchor.id; rec.attached = true; rec.anchor = { x = pos.x, y = pos.y, z = pos.z } end
     System.LogAlways(string.format("[StaticArcher] attached to unscaled anchor, scale %.2f", self.StaticArcherScale))
+
+    if not self.StaticArcherPinActive then
+        self.StaticArcherPinActive = true
+        Script.SetTimerForFunction(self.StaticArcherPinInterval, "mercenaries.StaticArcherPinTick")
+    end
+end
+
+-- DRIFT PIN. The attach holds an archer's HEIGHT (his transform is slaved to the
+-- static anchor, which is what beats the AI ground-snap) but it does NOT stop the AI
+-- issuing horizontal movement - the attack tree still repositions/strafes him. So he
+-- strolls off the deck edge while keeping the deck's height: "walking off the
+-- platform but still floating at its height". Nothing about the attach prevents that,
+-- so he is simply put back whenever he wanders past StaticArcherDriftTol. Checked
+-- often enough (250ms) that a step or two is the most that ever shows, and only
+-- touched when he has actually moved, so a standing archer is never interrupted.
+mercenaries.StaticArcherDriftTol = 0.6      -- how far he may wander before being put back
+mercenaries.StaticArcherPinInterval = 250   -- ms between drift checks
+mercenaries.StaticArcherPinActive = false
+
+function mercenaries.StaticArcherPinTick()
+    local self = mercenaries
+    local any = false
+    for ws, rec in pairs(self.StaticArchers) do
+        if rec.attached and rec.anchor and rec.ent and not self.StaticArcherPending[ws] then
+            any = true
+            pcall(function()
+                local a = rec.anchor
+                local cur = rec.ent:GetWorldPos()
+                if not cur then return end
+                local dx, dy, dz = cur.x - a.x, cur.y - a.y, cur.z - a.z
+                local tol = self.StaticArcherDriftTol
+                if (dx * dx + dy * dy) > (tol * tol) or math.abs(dz) > tol then
+                    rec.ent:SetPos({ x = a.x, y = a.y, z = a.z })
+                end
+            end)
+        end
+    end
+    self.StaticArcherPinActive = any
+    if any then Script.SetTimerForFunction(self.StaticArcherPinInterval, "mercenaries.StaticArcherPinTick") end
 end
 
 -- Live-resize every static archer. He inherits scale 1 from the unscaled anchor, so

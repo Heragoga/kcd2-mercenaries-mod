@@ -25,6 +25,7 @@
                 <Port Name="quartermaster_practice" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_house"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_tower"    Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_archercart" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
@@ -556,6 +557,11 @@
                                         <UiPrompt StringName="ui_qm_tower" />
                                         <Triggers><Port Name="quartermaster_tower" /></Triggers>
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_tower" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_tower" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_archercart">
+                                        <UiPrompt StringName="ui_qm_archercart" />
+                                        <Triggers><Port Name="quartermaster_archercart" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_archercart" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_archercart" /></Response></Elements>
                                     </Sequence>
                                     <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_upg_back">
                                         <UiPrompt StringName="ui_qm_back" />

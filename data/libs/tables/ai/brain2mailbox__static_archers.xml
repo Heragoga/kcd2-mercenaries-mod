@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
-	<brain2mailboxs version="1">
-		<brain2mailbox brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
-	</brain2mailboxs>
-</database>

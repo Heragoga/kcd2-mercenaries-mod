@@ -24,7 +24,7 @@ pattern): a custom switch subbrain plus the shared vanilla scheduler.
 
 | Piece | File |
 |---|---|
-| Brain + subbrain wiring | `data/libs/tables/ai/*__quartermaster.xml` |
+| Brain + subbrain wiring | `data/libs/tables/ai/*__mercenaries.xml` |
 | Switch (stand / eat / defend) | `data/AI/quartermaster_scheduler.xml` |
 | Default behaviour (stand + eat) | `data/AI/quartermaster_idle.xml` |
 | Interrupt registration (`quartermaster_idle`) | `data/libs/tables/ai/smartEntity/SmartEntity__so_interrupt__mercenaries.xml` |
@@ -72,7 +72,7 @@ indiscriminate `FindRenegadeTarget`, he only ever engages real raiders.
 
 ## Identity, look and dialog
 
-- **Soul / faction**: `soul__quartermaster.xml`, in `mercenariesFaction` — so
+- **Soul / faction**: `soul__mercenaries.xml`, in `mercenariesFaction` — so
   renegades already treat him as an enemy and attack him during a raid (he
   fights back but can't die). Not added to `ActiveMercs`, so no merc system
   counts, heals, teleports or forms him up.

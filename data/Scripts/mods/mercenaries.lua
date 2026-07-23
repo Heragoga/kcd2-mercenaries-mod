@@ -63,6 +63,7 @@ mercenaries.TokenIDQMAlchemy         = "679a655e-189d-4519-b437-ccc4b92be74d"
 mercenaries.TokenIDQMPractice        = "679a655e-189d-4519-b437-ccc4b92be75d"
 mercenaries.TokenIDQMHouse           = "679a655e-189d-4519-b437-ccc4b92be7cd"
 mercenaries.TokenIDQMTower           = "679a655e-189d-4519-b437-ccc4b92be7dd"
+mercenaries.TokenIDQMArcherCart      = "679a655e-189d-4519-b437-ccc4b92be7ed"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
 mercenaries.TokenIDQMTakeHalf        = "679a655e-189d-4519-b437-ccc4b92be79d"
@@ -491,6 +492,7 @@ function mercenaries:SetState(state)
     if state == "dismiss" then
         _G.MercenariesDismissed = true
         self:SaveString("MercenariesDismissed", "1")
+        self:LogiUpdateStatusBuffs()   -- clear the HUD icons now, not on the next tick
         Game.SendInfoText('merc_info_dismissed', false, 0, 3)
     elseif state == "wait" then
         _G.MercIdle = true
@@ -738,6 +740,7 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMPractice,      function() self:LogiBuyPractice() end)
     tok(self.TokenIDQMHouse,         function() self:LogiBuyHouse() end)
     tok(self.TokenIDQMTower,         function() self:LogiBuyTower() end)
+    tok(self.TokenIDQMArcherCart,    function() self:LogiBuyArcherCart() end)
     tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
     tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
     tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
@@ -866,7 +869,12 @@ end
 -- Mod Initialization
 function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     System.LogAlways("[Mercenaries] Game loaded! Starting the inventory monitor loop...")
-    
+
+    -- Hook Player.OnAction (mouse input for tower placement). Delayed so that a mod
+    -- which replaced the callback without chaining cannot lock us out - the same
+    -- reasoning as references/CompanionMerchant. See mercenaries_tower.lua.
+    Script.SetTimerForFunction(1000, "mercenaries.UpdateOnAction")
+
     -- Load IDLE State
     local savedIdle = mercenaries:LoadString("MercIdlePersistent")
     if savedIdle == "1" then
@@ -962,6 +970,7 @@ Script.LoadScript("Scripts/mods/mercenaries_foodcart.lua")
 Script.LoadScript("Scripts/mods/mercenaries_house.lua")
 Script.LoadScript("Scripts/mods/mercenaries_tower.lua")
 Script.LoadScript("Scripts/mods/mercenaries_static_archer.lua")
+Script.LoadScript("Scripts/mods/mercenaries_archer_cart.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
@@ -987,6 +996,7 @@ function mercenaries:PrintHelp()
         "enemy_spawn_looters|bandits|sigi|prague|cumans|knights[_1|_20]   spawn an enemy group; base = row of 10 (debug)",
         "enemy_spawn_heinrich[_3]            spawn the overpowered Heinrich boss (debug)",
         "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",
+        "merc_buff_list                       squad status HUD icons (auto-driven by logistics); merc_buff_all tests them, merc_buff_auto hands back",
         "merc_recount                         re-sync the merc counter",
         "merc_lua <code>                      run raw Lua (debug)",
     }
@@ -1071,6 +1081,20 @@ System.AddCCommand("enemy_spawn_knights_20",   "mercenaries:SpawnEnemyGroup('kni
 -- Heinrich: overpowered late-game-player boss. Base spawns one; _3 for a trio.
 System.AddCCommand("enemy_spawn_heinrich",     "mercenaries:SpawnEnemyGroup('heinrich', 1)", "Debug: spawn 1 Heinrich (overpowered: best armour + St. George's sword, maxed skill, 2x health).")
 System.AddCCommand("enemy_spawn_heinrich_3",   "mercenaries:SpawnEnemyGroup('heinrich', 3)", "Debug: spawn 3 Heinrichs.")
+
+-- Player status buffs: cosmetic HUD/inventory indicators for the management layer.
+-- One no-arg command per variant (merc_buff_1 .. merc_buff_9), each clearing the
+-- others so only one is ever on screen. merc_buff_list prints the mapping.
+-- The logistics tick normally drives these from the squad's real state. The
+-- manual commands flip on a test-mode freeze so they aren't overwritten within
+-- 5s; merc_buff_auto returns control to the system.
+System.AddCCommand("merc_buff_list", "mercenaries:ListPlayerStatusBuffs()", "Lists the player status buffs, their trigger conditions, and which are on.")
+System.AddCCommand("merc_buff_all", "mercenaries:ShowAllPlayerStatusBuffs()", "TEST: shows every player status buff at once (freezes the system until merc_buff_auto).")
+System.AddCCommand("merc_buff_off_all", "mercenaries:ClearPlayerStatusBuffs()", "Removes every player status buff.")
+System.AddCCommand("merc_buff_auto", "mercenaries:AutoPlayerStatusBuffs()", "Hands the status buffs back to the logistics system after testing.")
+for i, def in ipairs(mercenaries.PlayerStatusBuffs) do
+    System.AddCCommand("merc_buff_" .. i, "mercenaries:OnlyPlayerStatusBuff(" .. i .. ")", "TEST: " .. def.name .. " (" .. def.note .. ")")
+end
 
 -- Usage in console: merc_save_string global_idle 1|true|105.5
 System.AddCCommand("merc_save_string", "mercenaries:SaveString('%1', '%2')", "Saves a string to a persistent entity. Usage: merc_save_string <tag> <data>")

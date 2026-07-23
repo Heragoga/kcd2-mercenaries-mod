@@ -894,6 +894,12 @@
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_tower" To="Exec" />
                 </EventFunction>
+                <EventFunction Name="exec_qm_archercart" PositionY="220" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be7ed" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_archercart" To="Exec" />
+                </EventFunction>
                 <!-- Quartermaster deploy (take mercs out of camp) -->
                 <EventFunction Name="exec_qm_take_half" PositionY="200" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be79d" />

@@ -16,19 +16,25 @@ desertion and mutiny all read off it.
 | Input | Effect |
 |---|---|
 | Kills (mercs or player) | up to **+20 per fight** (`MoralePerKill` each, capped) |
-| Merc deaths | **−10** each |
-| Tiredness (>2 days out of camp) | **−20/day** |
-| Starving | **−10/day** |
+| Merc deaths | **−5** each |
+| Tiredness (>2 days out of camp) | **−10/day** |
+| Starving | **−5/day** |
 | Drink available | **+10/day** |
 | Makeshift inn standing | **+10/day** (social) |
-| Wages unpaid | **−20/day** |
+| Wages unpaid | **−10/day** |
 | Passive drift toward 0 | **5/day** (negative morale only recovers while **camped**) |
 
 - **Positive morale → combat boost.** Morale 100 ≈ +50% effectiveness ("150%").
-- **Negative morale → desertions** (one merc/day of continuous negative morale).
-- **≤ −80 → mutiny**: instead of deserting, a merc turns on you — it's removed
+- **≤ −50 → low-morale icon** on the player (warning only; see Status icons).
+- **Negative morale → desertions**, but only **below −70** (one merc/day of
+  continuous morale that low). Above that a sagging squad just fights a bit worse.
+- **≤ −90 → mutiny**: instead of deserting, a merc turns on you — it's removed
   and reappears as a hostile **renegade** in the squad's current colours (reusing
   the renegade combat AI).
+
+The drain rates and desertion thresholds above were softened in a balance pass
+(deaths/tiredness/wages roughly halved, desertion pushed from −50 to −70) to make
+the system more forgiving.
 
 **Kills/deaths are polled**, not event-hooked: a drop in the live merc count we
 didn't cause ourselves = deaths; enemies from `CachedEnemies` that later read
@@ -36,7 +42,7 @@ didn't cause ourselves = deaths; enemies from `CachedEnemies` that later read
 
 ## Food / Drink
 
-1 unit feeds `FeedRatio` (5) mercs/day, consumed each evening. **Passive food**
+1 unit feeds `FeedRatio` (8) mercs/day, consumed each evening. **Passive food**
 from upgrades (food cart, hunter's spots) is subtracted from the need first.
 Short at the tally → **starving** (a −50% contribution to the combat number,
 plus the morale drain); lifts the moment food is resupplied (`LogiReconcile`),
@@ -60,6 +66,34 @@ buffs (−50 / −25 / +15 / +30 / +50 / +75 %) is applied to each merc, plus th
 alchemy survivability buff if built. `LogiApplyBuffs` only touches a soul when
 its signature changes, so it's cheap every tick and new mercs inherit the state.
 Magnitudes (buff params) are first-pass.
+
+## Status icons (player HUD)
+
+Six red debuff icons on the player's soul mirror the squad's state, so the
+management layer is legible without opening a dialog. They carry **no stats** —
+purely visual. Defined in
+[buff__mercenaries.xml](../data/libs/tables/rpg/buff__mercenaries.xml) with
+custom art in `data/libs/UI/textures/icons/buffs/` (`<name>_icon.dds`, referenced
+without the `_icon` suffix); registered and driven in
+[mercenaries_management.lua](../data/Scripts/mods/mercenaries_management.lua)
+(`LogiUpdateStatusBuffs`, called each logistics tick).
+
+| Icon | Triggers when |
+|---|---|
+| Low morale | morale **≤ −50** |
+| Exhausted | **2 days** out of camp (`tiredness`) |
+| Wounded | any live merc **< 50% health** |
+| No drink | drink stock **0** and no inn covering |
+| Short rations | **1 day** of food left (`LogiSupplyDays == 1`) |
+| Starving | **0 days** of food left |
+
+`SetStatusBuff` only touches the soul on a state change, so the once-per-tick
+evaluation never replays the buff-appeared animation. The icons use a week-long
+`Cpp:Fading` duration purely so the disk renders a full-red ring rather than a
+flat icon; the duration is a drain rate, not a lifetime — the evaluator owns
+on/off. Testing: `merc_buff_all` / `merc_buff_1..6` freeze the evaluator
+(**test mode**) so a forced icon isn't overwritten within 5 s; `merc_buff_auto`
+hands control back. `merc_buff_list` shows the mapping and current mode.
 
 ## Upgrades (stat-only; no visuals yet)
 

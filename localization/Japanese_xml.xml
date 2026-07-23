@@ -527,6 +527,24 @@
   <Row><Cell>ui_qm_tower</Cell><Cell>An archer tower for the camp (100 groschen).</Cell><Cell>An archer tower for the camp (100 groschen).</Cell></Row>
   <Row><Cell>merc_henry_qm_tower</Cell><Cell>Put up an archer tower. I'll choose the spot.</Cell><Cell>Put up an archer tower. I'll choose the spot.</Cell></Row>
   <Row><Cell>merc_qm_tower</Cell><Cell>A good perch and a bowman to man it. Just point out where you want it.</Cell><Cell>A good perch and a bowman to man it. Just point out where you want it.</Cell></Row>
+  <Row><Cell>ui_qm_archercart</Cell><Cell>An archer cart for the camp (300 groschen).</Cell><Cell>An archer cart for the camp (300 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_archercart</Cell><Cell>Fit out a cart with archers. I'll choose where it stands.</Cell><Cell>Fit out a cart with archers. I'll choose where it stands.</Cell></Row>
+  <Row><Cell>merc_qm_archercart</Cell><Cell>Three good bowmen on a wagon bed. Show me where to park it.</Cell><Cell>Three good bowmen on a wagon bed. Show me where to park it.</Cell></Row>
+  <Row><Cell>merc_info_tower_placing</Cell><Cell>Look where you want the tower and click. Right-click when you're done.</Cell><Cell>Look where you want the tower and click. Right-click when you're done.</Cell></Row>
+  <Row><Cell>merc_info_tower_already</Cell><Cell>You're already choosing a spot for a tower.</Cell><Cell>You're already choosing a spot for a tower.</Cell></Row>
+  <Row><Cell>merc_info_tower_not_placing</Cell><Cell>You're not building a tower right now.</Cell><Cell>You're not building a tower right now.</Cell></Row>
+  <Row><Cell>merc_info_tower_aim</Cell><Cell>Look at solid ground first.</Cell><Cell>Look at solid ground first.</Cell></Row>
+  <Row><Cell>merc_info_tower_raised</Cell><Cell>The tower is up. Pick another spot, or right-click to finish.</Cell><Cell>The tower is up. Pick another spot, or right-click to finish.</Cell></Row>
+  <Row><Cell>merc_info_tower_cancelled</Cell><Cell>Tower building called off.</Cell><Cell>Tower building called off.</Cell></Row>
+  <Row><Cell>merc_info_tower_limit</Cell><Cell>You've as many towers as the company can man.</Cell><Cell>You've as many towers as the company can man.</Cell></Row>
+  <Row><Cell>merc_info_tower_blocked</Cell><Cell>There's no room for a tower here.</Cell><Cell>There's no room for a tower here.</Cell></Row>
+  <Row><Cell>merc_info_cart_placing</Cell><Cell>Look where you want the cart and click. Right-click when you're done.</Cell><Cell>Look where you want the cart and click. Right-click when you're done.</Cell></Row>
+  <Row><Cell>merc_info_cart_already</Cell><Cell>You're already choosing a spot for a cart.</Cell><Cell>You're already choosing a spot for a cart.</Cell></Row>
+  <Row><Cell>merc_info_cart_aim</Cell><Cell>Look at solid ground first.</Cell><Cell>Look at solid ground first.</Cell></Row>
+  <Row><Cell>merc_info_cart_blocked</Cell><Cell>There's no room for a cart here.</Cell><Cell>There's no room for a cart here.</Cell></Row>
+  <Row><Cell>merc_info_cart_limit</Cell><Cell>You've as many carts as the company can crew.</Cell><Cell>You've as many carts as the company can crew.</Cell></Row>
+  <Row><Cell>merc_info_cart_raised</Cell><Cell>The cart is manned. Pick another spot, or right-click to finish.</Cell><Cell>The cart is manned. Pick another spot, or right-click to finish.</Cell></Row>
+  <Row><Cell>merc_info_cart_cancelled</Cell><Cell>Cart placing called off.</Cell><Cell>Cart placing called off.</Cell></Row>
   <Row><Cell>merc_logi_msg</Cell><Cell>-</Cell><Cell>-</Cell></Row>
   <Row><Cell>merc_logi_morale_low</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell><Cell>The men's morale is low. They're starting to slip away.</Cell></Row>
   <Row><Cell>merc_logi_morale_mutiny</Cell><Cell>The men are on the verge of mutiny!</Cell><Cell>The men are on the verge of mutiny!</Cell></Row>

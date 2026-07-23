@@ -17,7 +17,7 @@ Every merc's current target is recorded in `MercTargetOf`. Once per second `Upda
 
 A candidate must be: not the player or the companion dog; alive and conscious; **weapon drawn**; not one of ours (regular-merc soul, archer soul, or custom hero companion); and not fleeing/surrendering/immortal (`combat_flee`, `combat_surrender`, `crime_interruptFlee`, `crime_fleeAfterSurrender`, `combat_immortalityProtection`).
 
-**The relationship rule (the important one):** hostility requires the candidate's relationship to the player to be pinned at exactly **−1**, the faction-hostile floor (see `FactionTree__enemies.xml`, where the player/mercs relations are `reputation="-1"`). Anything above that — 0, 0.5, or unresolved/nil — is **not** treated as fair game. "Merely not a confirmed friend" was the old bug that made mercs attack armed-but-unrelated NPCs like guards and hunters.
+**The relationship rule (the important one):** hostility requires the candidate's relationship to the player to be pinned at exactly **−1**, the faction-hostile floor (see `FactionTree__mercenaries.xml`, where `enemiesFaction`'s player/mercs relations are `reputation="-1"`). Anything above that — 0, 0.5, or unresolved/nil — is **not** treated as fair game. "Merely not a confirmed friend" was the old bug that made mercs attack armed-but-unrelated NPCs like guards and hunters.
 
 **`skipRelationshipCheck`** bypasses only that one gate for whoever the player is *already* fighting (`playerCombatTarget`): active aggression against the player is itself proof of hostility, and can come from crime/quest triggers that never resolve to a clean faction −1. Every other check still applies.
 

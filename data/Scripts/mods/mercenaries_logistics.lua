@@ -7,23 +7,23 @@
 -- ==== Tunables ====
 mercenaries.SecondsPerDay        = 86400
 mercenaries.LogiEveningHour      = 18
-mercenaries.FeedRatio            = 5
+mercenaries.FeedRatio            = 8           -- mercs fed per food unit/day (higher = supplies stretch further)
 
 mercenaries.MoraleMin            = -100
 mercenaries.MoraleMax            = 100
 mercenaries.MoraleDecayPerDay    = 5           -- toward 0
-mercenaries.MoraleLowWarnAt      = -20         -- "morale is low" warning below this
-mercenaries.MoraleDesertAt       = -50         -- mercs only start deserting below this
-mercenaries.MoraleMutinyAt       = -80         -- desertions escalate to hostile mutiny below this
-mercenaries.MoraleTiredDrain     = 20          -- /day once out of camp > grace
-mercenaries.MoraleStarveDrain    = 10          -- /day while starving
+mercenaries.MoraleLowWarnAt      = -20         -- "morale is low" text warning below this
+mercenaries.MoraleDesertAt       = -70         -- mercs only start deserting below this (low-morale icon warns at -50 first)
+mercenaries.MoraleMutinyAt       = -90         -- desertions escalate to hostile mutiny below this
+mercenaries.MoraleTiredDrain     = 10          -- /day once out of camp > grace
+mercenaries.MoraleStarveDrain    = 5           -- /day while starving
 mercenaries.MoraleDrinkGain      = 10          -- /day while drink available
 mercenaries.MoraleInnGain        = 10          -- /day while the inn stands
-mercenaries.MoraleWageDrain      = 20          -- /day while unpaid
+mercenaries.MoraleWageDrain      = 10          -- /day while unpaid
 mercenaries.MoraleKillCapPerFight= 20          -- max morale from one fight's kills
 mercenaries.MoralePerKill        = 5
-mercenaries.MoraleDeathPenalty   = 10          -- per merc that dies
-mercenaries.TirednessGraceDays   = 2           -- days out of camp before tiredness bites
+mercenaries.MoraleDeathPenalty   = 5           -- per merc that dies
+mercenaries.TirednessGraceDays   = 2           -- days out of camp before tiredness bites (kept at 2 so the exhausted icon and the morale penalty line up)
 
 mercenaries.DesertSecondsPerMerc = 86400       -- one desertion/mutiny per game-day of negative morale
 
@@ -49,6 +49,7 @@ mercenaries.PracticeMaxLevel     = 6
 mercenaries.PracticePctPerLevel  = 8
 mercenaries.UpgHouseCost         = 1000        -- swaps the player's tent for a hut
 mercenaries.UpgTowerCost         = 100         -- TEMP: buying only enables aim-placing an archer tower (no persistence)
+mercenaries.UpgArcherCartCost    = 300         -- TEMP: buying only enables aim-placing an archer cart (3 archers, no persistence)
 
 -- Combat buff tiers (net effectiveness %). LogiApplyBuffs picks the closest.
 mercenaries.CombatBuffTiers = {
@@ -221,8 +222,8 @@ function mercenaries:LogiCombatPct()
     local L = self:LogiState()
     local pct = 0
     -- Morale swings effectiveness both ways: +50% at full morale, and a slight
-    -- debuff as it goes negative (~-25% by the time it reaches -50, which is where
-    -- desertions begin). Positive and negative scale the same, 0.5% per point.
+    -- debuff as it goes negative (~-25% by -50, where the low-morale icon shows;
+    -- desertions only start at -70). Positive and negative scale the same, 0.5%/pt.
     pct = pct + L.morale * 0.5
     if L.hasSmithy then pct = pct + self.UpgSmithyPct end
     if L.hasPracticeYard then pct = pct + (L.trainLevel or 0) * self.PracticePctPerLevel end
@@ -621,6 +622,7 @@ function mercenaries:LogiTick()
         self:LogiReconcile()
         self:LogiDesertionTick(dt)
         self:LogiApplyBuffs()
+        self:LogiUpdateStatusBuffs()    -- mirror squad state onto the HUD icons
         self:LogiSave()
     end)
     if not ok then System.LogAlways('[Logistics] LogiTick error: ' .. tostring(err)) end
@@ -837,6 +839,12 @@ function mercenaries:LogiBuyTower()
     if not self:LogiSpend(self.UpgTowerCost) then return end
     Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
     self:StartTowerPlacement()
+end
+-- TEMP archer-cart upgrade: buying it enables aim-placement, same as the tower.
+function mercenaries:LogiBuyArcherCart()
+    if not self:LogiSpend(self.UpgArcherCartCost) then return end
+    Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
+    self:StartArcherCartPlacement()
 end
 function mercenaries:LogiBuyPractice()
     local L = self:LogiState()

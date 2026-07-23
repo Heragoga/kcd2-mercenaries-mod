@@ -75,8 +75,76 @@
               buff_lifetime_id="0" buff_name="heinrich_imba_buff"
               buff_params="strength+40,agility+40,vitality+40,fencing+45,defense+45,weapon_sword+45,weapon_unarmed+40,weapon_large+45,heavy_weapons+40,marksmanship+30,mor+2.5,rms+0.02,hlh*0.3,slh*0.3,srg*4,mst*1.5,src=0,sco=0,health+5/s"
               duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
-	</buffs>
+
+        <!-- Player-facing status indicators. No buff_params on purpose: these
+             only exist to show a HUD/inventory icon, they change nothing.
+             Added/removed from Lua - see mercenaries_management.lua.
+
+             Low morale uses the ShortTerm + Cpp:Fading shape (the T2 test): a
+             timed buff draws a red countdown ring that drains to grey, which
+             reads far better than an untimed icon. duration is a drain rate,
+             not how long the state lasts - a week means the ring sits at full
+             red for any realistic session, so the Lua never has to re-apply it
+             (and never replays the buff-appeared animation). How long low
+             morale actually lasts is the management layer's call. -->
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10010-2c4b-4e6a-9f01-000000000010"
+              buff_lifetime_id="0" buff_name="merc_low_morale"
+              buff_ui_name="buff_merc_low_morale_name"
+              buff_desc="buff_merc_low_morale_desc"
+              buff_ui_order="-100" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="low_morale_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <!-- The rest of the squad states, same shape as low morale. Custom icons
+             live in data/libs/UI/textures/icons/buffs as <name>_icon.dds and are
+             referenced here without the _icon suffix. buff_ui_type_id 2 (Debuff)
+             is what paints the disk behind the icon red - there is no colour
+             attribute, the disk art comes from the ui type.
+             ui_order runs worst-first so the row reads in severity order. -->
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10020-2c4b-4e6a-9f01-000000000020"
+              buff_lifetime_id="0" buff_name="merc_exhausted"
+              buff_ui_name="buff_merc_exhausted_name" buff_desc="buff_merc_exhausted_desc"
+              buff_ui_order="-101" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="exhausted_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10021-2c4b-4e6a-9f01-000000000021"
+              buff_lifetime_id="0" buff_name="merc_injured"
+              buff_ui_name="buff_merc_injured_name" buff_desc="buff_merc_injured_desc"
+              buff_ui_order="-102" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="injured_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10022-2c4b-4e6a-9f01-000000000022"
+              buff_lifetime_id="0" buff_name="merc_no_drink"
+              buff_ui_name="buff_merc_no_drink_name" buff_desc="buff_merc_no_drink_desc"
+              buff_ui_order="-103" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="no_drink_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10023-2c4b-4e6a-9f01-000000000023"
+              buff_lifetime_id="0" buff_name="merc_starvation_mild"
+              buff_ui_name="buff_merc_starvation_mild_name" buff_desc="buff_merc_starvation_mild_desc"
+              buff_ui_order="-104" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="starvation_mild_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10024-2c4b-4e6a-9f01-000000000024"
+              buff_lifetime_id="0" buff_name="merc_starvation_strong"
+              buff_ui_name="buff_merc_starvation_strong_name" buff_desc="buff_merc_starvation_strong_desc"
+              buff_ui_order="-105" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="starvation_strong_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
 
         <buff buff_class_id="15" buff_exclusivity_id="1" buff_id="f123ee45-aade-4a13-a776-597c97d34bab" buff_lifetime_id="0" buff_name="merc_decreaseddamageintake" buff_params="hlh*0.7,slh*0.7" duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
+
+	</buffs>
+
 
 </database>
