@@ -23,7 +23,8 @@ mercenaries.MoraleWageDrain      = 10          -- /day while unpaid
 mercenaries.MoraleKillCapPerFight= 20          -- max morale from one fight's kills
 mercenaries.MoralePerKill        = 5
 mercenaries.MoraleDeathPenalty   = 5           -- per merc that dies
-mercenaries.TirednessGraceDays   = 2           -- days out of camp before tiredness bites (kept at 2 so the exhausted icon and the morale penalty line up)
+mercenaries.TirednessGraceDays   = 3           -- days out of camp before tiredness bites (kept in step with ExhaustedBuffDays so the icon and the morale penalty line up)
+mercenaries.StartingSupplyDays   = 3           -- days of food and drink handed out when the first camp goes up
 
 mercenaries.DesertSecondsPerMerc = 86400       -- one desertion/mutiny per game-day of negative morale
 
@@ -50,6 +51,8 @@ mercenaries.PracticePctPerLevel  = 8
 mercenaries.UpgHouseCost         = 1000        -- swaps the player's tent for a hut
 mercenaries.UpgTowerCost         = 100         -- TEMP: buying only enables aim-placing an archer tower (no persistence)
 mercenaries.UpgArcherCartCost    = 300         -- TEMP: buying only enables aim-placing an archer cart (3 archers, no persistence)
+
+mercenaries.UpgWallCost          = 2000        -- palisade around the camp; stays with this pitch
 
 -- Combat buff tiers (net effectiveness %). LogiApplyBuffs picks the closest.
 mercenaries.CombatBuffTiers = {
@@ -357,9 +360,11 @@ function mercenaries:LogiTrackCombat()
     L.lastAliveCount = alive
 
     -- Kills: enemies we were engaged with that are now confirmed dead.
+    -- armed only: CachedEnemies also holds hostiles who haven't drawn yet (they
+    -- are aggro sources, not a fight in progress).
     local nowEngaged = {}
     for _, entry in ipairs(self.CachedEnemies or {}) do
-        if entry.wuid then nowEngaged[tostring(entry.wuid)] = entry.wuid end
+        if entry.wuid and entry.armed then nowEngaged[tostring(entry.wuid)] = entry.wuid end
     end
     local anyLive = next(nowEngaged) ~= nil
     if anyLive and not L.wasInFight then
@@ -794,6 +799,35 @@ function mercenaries:LogiRebuildCampForUpgrade()
     end)
 end
 
+-- Strip every upgrade back to a bare camp. No refund - this is for undoing a layout,
+-- not selling. The timed ones (food cart, inn) are zeroed like the permanent ones, and
+-- the smithy/alchemy buffs are re-applied afterwards so the mercs lose their bonuses.
+-- The camp is rebuilt the same way buying one rebuilds it, so the freed grid tiles are
+-- released and the props actually disappear.
+function mercenaries:LogiRemoveAllUpgrades()
+    local L = self:LogiState()
+    L.foodCartDays    = 0
+    L.innDays         = 0
+    L.innActive       = false
+    L.hunterSpots     = 0
+    L.hasSmithy       = false
+    L.hasAlchemy      = false
+    L.hasPracticeYard = false
+    L.hasHouse        = false
+    L.trainLevel      = 0
+
+    pcall(function() self:DespawnCampFoodCart() end)
+    -- defences are per-pitch: take them down AND forget them, or they would come back
+    -- with the camp rebuild below
+    pcall(function() self:DefClearWorld() end)
+    pcall(function() self:DefForget() end)
+    pcall(function() self:LogiApplyBuffs() end)
+    self:LogiSave()
+    self:LogiRebuildCampForUpgrade()
+    Game.SendInfoText('merc_logi_upg_removed', false, 0, 4)
+    System.LogAlways("[Logistics] all upgrades removed")
+end
+
 function mercenaries:LogiBuyFoodCart()
     if not self:LogiSpend(self.UpgFoodCartCost) then return end
     self:LogiState().foodCartDays = self.UpgFoodCartDays
@@ -841,6 +875,18 @@ function mercenaries:LogiBuyTower()
     self:StartTowerPlacement()
 end
 -- TEMP archer-cart upgrade: buying it enables aim-placement, same as the tower.
+-- The wall is bought once per pitch, then drawn by the player (merc_wall_build's
+-- click-to-place). It is saved against this camp's anchor, so it survives a save
+-- and an upgrade rebuild but is left behind if the company pitches elsewhere.
+function mercenaries:LogiBuyWall()
+    if not (self.CampActive and self.CampBuildOrigin) then
+        Game.SendInfoText('merc_info_camp_not_active', false, 0, 3); return
+    end
+    if not self:LogiSpend(self.UpgWallCost) then return end
+    Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
+    self:StartWallBuild()
+end
+
 function mercenaries:LogiBuyArcherCart()
     if not self:LogiSpend(self.UpgArcherCartCost) then return end
     Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
@@ -861,6 +907,22 @@ function mercenaries:LogiBuyPractice()
             end
         end
     end)
+end
+
+-- Starting stores, granted once: the first camp you ever pitch comes with
+-- StartingSupplyDays of rations and drink for the squad you have at the time.
+-- Guarded by a saved flag, so rebuilds (upgrades) and save restores don't top up.
+function mercenaries:LogiGrantStartingSupplies()
+    if self:LoadString("QMStartSupplies") == "1" then return end
+    self:SaveString("QMStartSupplies", "1")
+    self:Recount()
+    local perDay = math.max(1, math.ceil((_G.MercCount or 0) / self.FeedRatio))
+    local units = perDay * self.StartingSupplyDays
+    local L = self:LogiState()
+    self:LogiAdjust("food", units, "starting stores")
+    self:LogiAdjust("drink", units, "starting stores")
+    L.starving = false
+    L.drinkAvailable = true
 end
 
 -- Days of a supply the current squad has left.

@@ -2,12 +2,14 @@
 
 How mercs (and archers) decide who to fight. All of this lives in [mercenaries_target_selection.lua](../data/Scripts/mods/mercenaries_target_selection.lua) and is driven from the schedulers (`mercenary_scheduler.xml`, `archer_scheduler.xml`).
 
-## The one-scan-per-second architecture
+## The shared-scan architecture
 
-The soul API (relationship, script-context, alive checks) is expensive, so it runs **once per second for the whole squad**, not once per merc per candidate:
+The soul API (relationship, script-context, alive checks) is expensive, so it runs **once for the whole squad**, not once per merc per candidate:
 
-- **`UpdateEnemyCache`** (called once/sec from `MonitorLoop`) does a single 15 m sphere query around the player, runs every candidate through `IsValidEnemy`, and stores the survivors in `mercenaries.CachedEnemies`. NPCs are queried every tick; animals (`Wolf`/`Dog`) every 3rd tick — they don't need per-second precision. This pass also does orphan-horse cleanup (despawn `MercenaryHorse_*` whose owner is dead/missing).
-- **`ScanForEnemies`** (per-merc, each second, from the BT) reads the pre-validated `CachedEnemies` and re-sorts by distance from *this* merc using cheap math only — no soul API calls. It caps the list to the **8 nearest** candidates, because each one the BT then examines costs an engine `GetTarget` call.
+- **`UpdateEnemyCache`** (called every 300 ms from `CombatScanLoop`) does a single `EnemyScanRadius` (18 m, up from 15) box query around the player, runs every candidate through `IsValidEnemy`, and stores the survivors in `mercenaries.CachedEnemies`. NPCs are queried every tick; animals (`Wolf`/`Dog`) every 3rd (~0.9 s); orphan-horse cleanup (despawn `MercenaryHorse_*` whose owner is dead/missing) every 9th (~2.7 s). It lives on its own timer rather than in `MonitorLoop` because this cadence *is* the squad's reaction time — the behaviour trees only ever see what this pass left behind.
+- **`ScanForEnemies`** (per-merc, each BT tick) reads the pre-validated `CachedEnemies` and re-sorts by distance from *this* merc using cheap math only — no soul API calls. It caps the list to the **8 nearest** candidates, because each one the BT then examines costs an engine `GetTarget` call.
+
+Reaction time end to end is one cache tick (≤300 ms) plus one scheduler tick (300 ms ±100 ms), so roughly 0.2–0.7 s from a hostile entering range to the mercs firing their attack interrupt.
 
 ## Anti-swarm cap
 
@@ -15,23 +17,46 @@ Every merc's current target is recorded in `MercTargetOf`. Once per second `Upda
 
 ## What counts as a valid enemy (`IsValidEnemy`)
 
-A candidate must be: not the player or the companion dog; alive and conscious; **weapon drawn**; not one of ours (regular-merc soul, archer soul, or custom hero companion); and not fleeing/surrendering/immortal (`combat_flee`, `combat_surrender`, `crime_interruptFlee`, `crime_fleeAfterSurrender`, `combat_immortalityProtection`).
+A candidate must be: not the player or the companion dog; alive and conscious; weapon drawn; not one of ours (regular-merc soul, archer soul, or custom hero companion); and not fleeing/surrendering/immortal (`combat_flee`, `combat_surrender`, `crime_interruptFlee`, `crime_fleeAfterSurrender`, `combat_immortalityProtection`).
 
 **The relationship rule (the important one):** hostility requires the candidate's relationship to the player to be pinned at exactly **−1**, the faction-hostile floor (see `FactionTree__mercenaries.xml`, where `enemiesFaction`'s player/mercs relations are `reputation="-1"`). Anything above that — 0, 0.5, or unresolved/nil — is **not** treated as fair game. "Merely not a confirmed friend" was the old bug that made mercs attack armed-but-unrelated NPCs like guards and hunters.
 
-**`skipRelationshipCheck`** bypasses only that one gate for whoever the player is *already* fighting (`playerCombatTarget`): active aggression against the player is itself proof of hostility, and can come from crime/quest triggers that never resolve to a clean faction −1. Every other check still applies.
+Two gates can be waived individually:
 
-## The stance pickers
+- **`skipRelationshipCheck`** — for whoever the player is *already* fighting (`playerCombatTarget`): active aggression against the player is itself proof of hostility, and can come from crime/quest triggers that never resolve to a clean faction −1.
+- **`skipWeaponCheck`** — used when building the cache, so hostiles who haven't drawn yet still land in `CachedEnemies` (flagged `armed = false`) and are targeted like any other. An enemy sizing the player up decides who to kill before it unsheathes, and waiting for the sheathe animation was most of the "why are my mercs just standing there" delay. The `armed` flag survives only so the logistics tick can tell a fight in progress from a hostile merely standing nearby.
 
-The player's squad stance (`_G.MercStance` / `GetStanceCode`) selects which picker the scheduler runs. All three first bail if the merc already has a target or is health-critical (`IsHealthCritical`, ≤25 HP — hurt mercs look after themselves).
+## Acquisition: always on, two passes
 
-| Stance | Function | Behaviour |
-|---|---|---|
-| everyone | `PickNearestValidTarget` | The player's current combat target first (claimed regardless of relationship), else the nearest strictly-hostile cached enemy. |
-| player_target | `PickPlayersTarget` | Only join whatever the player is currently fighting. |
-| defend | `EvaluateCombatTarget` | Only fight back at a candidate personally targeting this merc. The only stance that walks `enemiesArray` and asks the engine who each candidate targets (hence the 8-cap). |
+There is no combat stance. Every merc and archer runs the same rule every scheduler tick, whenever it isn't already in combat. Both passes bail only if the merc already has a target, and both go through `TryClaimTarget`, so the anti-swarm cap still applies. **Health is not a factor** — see "Fighting to the death" below.
 
-`playerCombatTarget` is filled by a single `GetTarget` node on the player — once per merc, not once per candidate.
+1. **`EvaluateCombatTarget`** — the lock-on pass. The BT walks `enemiesArray` (nearest first, breaking as soon as one is claimed), asks the engine `GetTarget` for each candidate, and claims anyone whose target is **the player or this merc**. This is what makes the squad move the instant an enemy picks its victim, rather than when the first blow lands.
+2. **`PickCombatTarget`** — the fallback. Takes whoever the player is fighting (`playerCombatTarget`), else the nearest cached hostile.
+
+### Exactly one gate may be waived per path — never both
+
+This is the rule that keeps the squad both responsive and sane, and breaking it produces two very different bugs:
+
+| Path | Waives | Still demands | Why |
+|---|---|---|---|
+| pass 1, and the nearest-hostile sweep | drawn weapon | relationship = −1 | −1 is already proof of hostility. Waiting for the unsheathe animation on top of it meant the squad never moved until someone had been hit — both `GetTarget` paths only resolve *after* somebody commits to a fight, so this sweep is the only trigger that can fire early. |
+| `playerCombatTarget` | relationship | drawn weapon | The player may pick a fight with anyone, so relationship can't apply. But `GetTarget` on the player hands back whoever he happens to be looking at, so without the drawn-weapon proof the squad charges villagers and parks in a permanent combat state (engine NPC state reads "running towards battle", which also blocks dialogue). |
+
+`playerCombatTarget` additionally has to pass `IsWithinAggroRange` — the player's lock-on reaches far past the 20 m follow leash, and a merc sent that far just gets pulled back, re-acquires, and never arrives.
+
+The intended consequence of the first row is that mercs will start a fight with a faction-hostile NPC merely standing within `EnemyScanRadius`. That is the "always aggro" behaviour, not a bug.
+
+## Fighting to the death
+
+Nothing on the player's side breaks off combat over health. `UpdateMeleeCombatData` disengages only on distance/orders, and `UpdateRangedCombatData`'s health flee (≤12 HP) is gated to `side ~= "friend"`, so enemy archers still run but ours don't. There is no `IsHealthCritical` gate on acquisition either.
+
+This was the old behaviour and it read badly: a merc below the threshold dropped its target, sheathed, and trailed the player around unarmed in the middle of a fight — then died anyway, because disengaging in melee doesn't stop anyone hitting you.
+
+`idleTicks` in both schedulers had the same symptom from a different cause. Acquisition is gated on `~inCombat`, so `playerTarget` is null on every tick of a fight — meaning `idleTicks` climbed *during* combat and hit its sheathe-and-relax threshold mid-swing. It is now gated on `~$inCombat` as well, so it only counts genuine idleness. The 20 m follow leash, not `idleTicks`, is what rescues a merc stuck chasing something unreachable.
+
+`playerCombatTarget` is filled by a single `GetTarget` node on the player — once per merc, not once per candidate. The per-candidate `GetTarget` calls in pass 1 are why `ScanForEnemies` caps at 8; they only cost anything when hostiles are actually cached, i.e. in a fight.
+
+The one exception is the archers' **hold** order (`ArcherStance` = hold), which skips acquisition entirely — "hold your fire" would be meaningless otherwise. Skirmish and melee only choose which combat behaviour the interrupt fires.
 
 ## Enemy groups (the test enemies)
 

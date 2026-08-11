@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="zacatek_boje">
+			<Ports>
+				<Port Name="start" Direction="In" Type="trigger">
+					<DesignName StringName="zacatek_b_start_phb4" Text="Start" />
+				</Port>
+				<Port Name="utocnik_zemrel_nebo_seskocil" Direction="Out" Type="trigger">
+					<DesignName StringName="zacatek_b_utocnik_seskoci_MHQC" Text="Útočník zemřel nebo seskočil" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<AreaTrigger Name="areatrigger22" PositionY="-120" PositionX="260">
+					<Asset Name="Areas" Alias="sideWallLadderManJumpAreaTrigger" />
+					<Edge From="sideWallBattleStart.Active" To="IsActive" />
+					<Edge From="joinarrays23.Array" To="Souls" />
+				</AreaTrigger>
+				<SoulDeathTrigger Name="deathtrigger16" PositionY="-110" PositionX="1170">
+					<Asset Name="Souls" Alias="playerOpponent" />
+					<Edge From="or10.bool" To="IsActive" />
+				</SoulDeathTrigger>
+				<SoulDeathTrigger Name="deathtrigger3" PositionY="1040" PositionX="710">
+					<Asset Name="Souls" Alias="certPrimarySideWallTarget" />
+					<Edge From="or5.bool" To="IsActive" />
+				</SoulDeathTrigger>
+				<EnableBehavior Name="enablebehaviorwuiddatastring1_2" PositionY="660" PositionX="730" Signature="wuidData_string" EventSet="">
+					<Constant Name="Behavior" Value="fight" />
+					<Asset Name="SmartEntity" Alias="ladderAttackersOnTheWallGroupController" />
+					<Asset Name="NPC" Alias="certPrimarySideWallTarget" />
+					<Constant Name="string" Value="battleEntity" />
+					<Asset Name="wuid" Alias="sideWallStationaryDefendersGroupController" />
+					<Edge From="or18.bool" To="IsActive" />
+				</EnableBehavior>
+				<EnableBehavior Name="enablebehaviorzoufalaobranazabohutuprazansituationendnotification17" PositionY="-720" PositionX="1110" Signature="zoufalaObranaZaBohutu_prazanSituation" EventSet="endNotification">
+					<Constant Name="Behavior" Value="prazan_jumpFromLadder" />
+					<Asset Name="SmartEntity" Alias="battleSO" />
+					<Asset Name="NPC" Alias="playerOpponent" />
+					<Asset Name="ladderSO" Alias="sideWallLadder_2" />
+					<Edge From="prazanSituation.OnExec" To="UpdateReferences" />
+					<Edge From="or10.bool" To="IsActive" />
+					<Edge From="prazanSituation.State" To="situationState">
+						<Vertex>vertex5</Vertex>
+					</Edge>
+				</EnableBehavior>
+				<IfFunction Name="ifand27" PositionY="-480" PositionX="-70" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="ifareacheck24.False" To="Exec">
+						<Vertex>VuveBFch</Vertex>
+						<Vertex>4DQdIQl4</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24.True" To="Exec">
+						<Vertex>UVm1NbDV</Vertex>
+						<Vertex>vertex4</Vertex>
+					</Edge>
+					<Edge From="prazanSituation.ClimbingLadder" To="A">
+						<Vertex>RToc6YrL</Vertex>
+						<Vertex>VESye7Ks</Vertex>
+					</Edge>
+					<Edge From="deathtrigger3.OnDeath" To="Exec">
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+				</IfFunction>
+				<IfFunction Name="ifareacheck24" PositionY="-20" PositionX="770" MethodName="wh::rpgmodule::AreaCheck" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="player_bohuta" />
+					<Asset Name="Areas" Alias="sideWallArea" />
+					<Edge From="areatrigger22.OnEnter" To="Exec" />
+				</IfFunction>
+				<Function Name="joinarrays23" PositionY="-140" PositionX="-40" TypeT="wh::rpgmodule::Souls" MethodName="utilities::array::JoinArrays" DeclaringType="utilities::array">
+					<Asset Name="A" Alias="player_bohuta" />
+					<Asset Name="B" Alias="cert" />
+				</Function>
+				<Function Name="or10" PositionY="-580" PositionX="720" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="prazanSituation.ClimbingLadder" To="A" />
+					<Edge From="prazanSituation.JumpingFromLadder" To="B" />
+				</Function>
+				<Function Name="or18" PositionY="740" PositionX="430" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="sideWallBattleStart.Updated" To="A" />
+					<Edge From="sideWallBattleStart.Done" To="B" />
+				</Function>
+				<Function Name="or5" PositionY="420" PositionX="400" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="sideWallBattleStart.Active" To="B" />
+					<Edge From="sideWallBattleStart.Updated" To="A" />
+				</Function>
+				<Output Name="Output">
+					<Edge From="prazanSituation.OnDone" To="utocnik_zemrel_nebo_seskocil">
+						<Vertex>vertex14</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="prazanSituation.OnPrazanDied" To="utocnik_zemrel_nebo_seskocil">
+						<Vertex>vertex14</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+				</Output>
+				<State Name="prazanSituation" PositionY="-720" PositionX="230" TypeT="zoufalaObranaZaBohutu_prazanSituation">
+					<Constant Name="DefaultValue" Value="ClimbingLadder" />
+					<Edge From="enablebehaviorzoufalaobranazabohutuprazansituationendnotification17.OnFinished" To="SetDone">
+						<Vertex>vertex8</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="deathtrigger16.OnDeath" To="SetPrazanDied">
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex11</Vertex>
+					</Edge>
+					<Edge From="ifand27.True" To="SetJumpingFromLadder" />
+				</State>
+				<SetRelationContext Name="setrelationcontext2" PositionY="220" PositionX="720">
+					<Constant Name="Context" Value="combat_forcedTarget" />
+					<Asset Name="From" Alias="cert" />
+					<Asset Name="To" Alias="certPrimarySideWallTarget" />
+					<Edge From="or5.bool" To="IsActive" />
+				</SetRelationContext>
+				<SetRelationContext Name="setrelationcontext2_1" PositionY="430" PositionX="730">
+					<Constant Name="Context" Value="combat_forcedTarget" />
+					<Asset Name="From" Alias="playerOpponent" />
+					<Asset Name="To" Alias="player_bohuta" />
+					<Edge From="or5.bool" To="IsActive" />
+				</SetRelationContext>
+				<State Name="sideWallBattleStart" PositionY="10" PositionX="-50" TypeT="ProgressUpdated">
+					<Edge From="start" To="SetActive" />
+					<Edge From="deathtrigger3.OnDeath" To="SetDone">
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24.True" To="SetUpdated">
+						<Vertex>UVm1NbDV</Vertex>
+						<Vertex>vertex4</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24.False" To="SetDone">
+						<Vertex>VuveBFch</Vertex>
+						<Vertex>4DQdIQl4</Vertex>
+					</Edge>
+				</State>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="4DQdIQl4" PositionY="-170" PositionX="-59" />
+				<EdgeVertex Name="RToc6YrL" PositionY="-760" PositionX="574" />
+				<EdgeVertex Name="UVm1NbDV" PositionY="-180" PositionX="970" />
+				<EdgeVertex Name="vertex1" PositionY="1270" PositionX="1010" />
+				<EdgeVertex Name="vertex10" PositionY="-210" PositionX="1370" />
+				<EdgeVertex Name="vertex11" PositionY="-200" PositionX="230" />
+				<EdgeVertex Name="vertex14" PositionY="170" PositionX="720" />
+				<EdgeVertex Name="vertex15" PositionY="164" PositionX="1747" />
+				<EdgeVertex Name="vertex2" PositionY="1280" PositionX="-60" />
+				<EdgeVertex Name="vertex4" PositionY="-180" PositionX="-63" />
+				<EdgeVertex Name="vertex5" PositionY="-590" PositionX="1020" />
+				<EdgeVertex Name="vertex8" PositionY="-800" PositionX="1610" />
+				<EdgeVertex Name="vertex9" PositionY="-800" PositionX="230" />
+				<EdgeVertex Name="VESye7Ks" PositionY="-760" PositionX="-70" />
+				<EdgeVertex Name="VuveBFch" PositionY="-170" PositionX="970" />
+			</EdgeVertices>
+			<Assets>
+				<SoulAsset Name="playerOpponent" SharedSoulGuids="dbbc0638-ad36-46c0-b7fc-875f029bafef" />
+				<TriggerAreaAsset Name="sideWallLadderManJumpAreaTrigger" />
+			</Assets>
+			<Text StringName="zacatek_boje_lxtT" Text="Začátek boje" />
+		</Module>
+	</Skald>
+</Database>

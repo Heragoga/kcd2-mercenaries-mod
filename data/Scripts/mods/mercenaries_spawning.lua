@@ -566,6 +566,46 @@ function mercenaries:EquipEnemy(ent, groupKey, isArcher)
     end
 end
 
+-- Spawn ONE member of a group at an exact spot. The single spawn path for every
+-- encounter (ambushes, patrols, bandit camps, the siege) - see docs/encounters.md.
+-- Souls round-robin per group so repeats vary; the tier (or "archer") goes in the
+-- name because the weapon/AI code parses it back out of there.
+function mercenaries:SpawnEnemyAt(groupKey, isArcher, pos, yaw)
+    local grp = self.EnemyGroups[groupKey]
+    if not (grp and pos) then return nil end
+    if isArcher and #grp.archers == 0 then isArcher = false end
+
+    local ent
+    local ok, err = pcall(function()
+        local soulGuid, tierName
+        if isArcher then
+            soulGuid = grp.archers[self.EnemyArcherIndex[groupKey]]
+            self.EnemyArcherIndex[groupKey] = (self.EnemyArcherIndex[groupKey] % #grp.archers) + 1
+            tierName = "archer"
+        else
+            local m = grp.melee[self.EnemySoulIndex[groupKey]]
+            self.EnemySoulIndex[groupKey] = (self.EnemySoulIndex[groupKey] % #grp.melee) + 1
+            soulGuid, tierName = m.guid, m.tier
+        end
+
+        local entityName = "SpawnedEnemy_" .. groupKey .. "_" .. tierName .. "_" ..
+                           tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+
+        System.SpawnEntity({
+            class = "NPC",
+            name = entityName,
+            position = pos,
+            orientation = { x = 0, y = 0, z = yaw or 0 },
+            properties = { guidSharedSoulId = soulGuid }
+        })
+
+        ent = System.GetEntityByName(entityName)
+        if ent then self:EquipEnemy(ent, groupKey, isArcher) end
+    end)
+    if not ok then System.LogAlways('[Enemies] SpawnEnemyAt error: ' .. tostring(err)) end
+    return ent
+end
+
 -- Spawn `amount` members of an enemy group behind the player. Mostly melee, with
 -- roughly every 4th unit an archer when the group has any (knights have none).
 function mercenaries:SpawnEnemyGroup(groupKey, amount)
@@ -601,34 +641,8 @@ function mercenaries:SpawnEnemyGroup(groupKey, amount)
             local py = spawnPos.y + rightY * colOffset + awayY * rowOffset
             local unitPos = self:FindValidGround({ x = px, y = py, z = spawnPos.z }, spawnPos.z)
 
-            local isArcher = (#grp.archers > 0) and (i % 4 == 0)
-            local soulGuid, tierName
-            if isArcher then
-                soulGuid = grp.archers[self.EnemyArcherIndex[groupKey]]
-                self.EnemyArcherIndex[groupKey] = (self.EnemyArcherIndex[groupKey] % #grp.archers) + 1
-                tierName = "archer"
-            else
-                local m = grp.melee[self.EnemySoulIndex[groupKey]]
-                self.EnemySoulIndex[groupKey] = (self.EnemySoulIndex[groupKey] % #grp.melee) + 1
-                soulGuid, tierName = m.guid, m.tier
-            end
-
-            -- Tier lives in the name; EquipMercenaryWeapon / camp code parse it back out.
-            local entityName = "SpawnedEnemy_" .. groupKey .. "_" .. tierName .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
-
-            System.SpawnEntity({
-                class = "NPC",
-                name = entityName,
-                position = unitPos,
-                orientation = { x = 0, y = 0, z = playerRot.z },
-                properties = { guidSharedSoulId = soulGuid }
-            })
-
-            local ent = System.GetEntityByName(entityName)
-            if ent then
-                self:EquipEnemy(ent, groupKey, isArcher)
-                -- No manual DrawWeapon(): the attack tree's automation owns weapon draw.
-            end
+            -- No manual DrawWeapon(): the attack tree's automation owns weapon draw.
+            self:SpawnEnemyAt(groupKey, (i % 4 == 0), unitPos, playerRot.z)
         end
     end)
 
@@ -710,8 +724,14 @@ function mercenaries:FindEnemyTarget(data, myWuid)
                 local cp = curEnt:GetPos()
                 if cp then
                     local dx, dy, dz = cp.x - mp.x, cp.y - mp.y, cp.z - mp.z
-                    if (dx*dx + dy*dy + dz*dz) <= (self.EnemyTargetStickRange * self.EnemyTargetStickRange) then
+                    local walled = self.NavTargetBlocked and self:NavTargetBlocked(me, curEnt)
+                    if not walled and (dx*dx + dy*dy + dz*dz) <= (self.EnemyTargetStickRange * self.EnemyTargetStickRange) then
                         return -- keep current close, live target
+                    end
+                    -- a wall went up between us (or he ran behind one): drop him
+                    if walled then
+                        data.currentTarget = nil
+                        self.EnemyTargetOf[tostring(myWuid)] = nil
                     end
                 end
             end
@@ -732,7 +752,8 @@ function mercenaries:FindEnemyTarget(data, myWuid)
             if pp then
                 local dx, dy, dz = pp.x - mp.x, pp.y - mp.y, pp.z - mp.z
                 local d2 = dx*dx + dy*dy + dz*dz
-                if d2 <= radiusSq then table.insert(candidates, { wuid = player.this.id, distSq = d2 }) end
+                local walled = self.NavTargetBlocked and self:NavTargetBlocked(me, player)
+                if d2 <= radiusSq and not walled then table.insert(candidates, { wuid = player.this.id, distSq = d2 }) end
             end
         end
 
@@ -740,7 +761,8 @@ function mercenaries:FindEnemyTarget(data, myWuid)
         if ents then
             for _, ent in pairs(ents) do
                 if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id then
-                    if tostring(ent.this.id) ~= myWuidStr and self:IsEnemyTargetable(ent) and self:IsAliveAndWell(ent, true) then
+                    if tostring(ent.this.id) ~= myWuidStr and self:IsEnemyTargetable(ent) and self:IsAliveAndWell(ent, true)
+                       and not (self.NavTargetBlocked and self:NavTargetBlocked(me, ent)) then
                         local ep = ent:GetPos()
                         if ep then
                             local dx, dy, dz = ep.x - mp.x, ep.y - mp.y, ep.z - mp.z
@@ -778,4 +800,115 @@ end
 -- Legacy alias (no tree calls this anymore, kept for safety).
 function mercenaries:FindRenegadeTarget(data, myWuid)
     return self:FindEnemyTarget(data, myWuid)
+end
+
+-- ============================================================
+-- Control test: single fixed-soul merc.
+--
+-- The Malesov quest-override experiment needs the SAME soul GUID every time
+-- so it can be pre-injected into specific SoulAssets - the normal Hire path
+-- cycles SoulIndex through the whole tier list. This spawns exactly one merc
+-- bound to mercenaries.TestSoulGuid: free, no cap check, no dismissal/idle
+-- state changes. See docs/quest-override-test.md.
+mercenaries.TestSoulGuid = "e1f2a3b4-1234-4efa-c890-123456789012"
+
+-- Isolation test soul: isolation_test_brain, wired to ZERO vanilla subbrains (no
+-- npc_basic_scheduler, no npc_basic_switch) and a scheduler that does nothing but log a
+-- heartbeat. testFaction, so no inherited hostility either. If this soul gets engaged or
+-- attacks anything once injected into a quest's hostile SoulArray, that cannot come from
+-- our own AI or from static faction relations - see docs/malesov-structure.md.
+mercenaries.IsolationTestSoulGuid = "f1e2d3c4-0012-4a00-8b00-000000000012"
+
+function mercenaries:SpawnTestMerc()
+    local soulGuid = self.TestSoulGuid
+
+    local ok, err = pcall(function()
+        local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
+        if not spawnPos then
+            System.LogAlways('[MercTest] no safe spawn position found')
+            return
+        end
+
+        -- Name keeps the SpawnedFriend_ prefix so every existing system
+        -- (cache, follow, targeting) treats it as a normal merc.
+        local entityName = "SpawnedFriend_strong_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+
+        System.SpawnEntity({
+            class = "NPC",
+            name = entityName,
+            position = self:FindValidGround(spawnPos, spawnPos.z),
+            orientation = {x = 0, y = 0, z = playerRot.z},
+            properties = {guidSharedSoulId = soulGuid}
+        })
+
+        local ent = System.GetEntityByName(entityName)
+        if not ent then
+            System.LogAlways('[MercTest] SpawnEntity produced no entity: ' .. entityName)
+            return
+        end
+
+        self:EquipMercenary(ent, _G.MercCurrentOutfit or 1)
+        self:EquipMercenaryWeapon(ent, _G.MercCurrentWeapon or 1, _G.MercCurrentOutfit or 1)
+        self.ActiveMercs[entityName] = ent
+        self:InjectInteraction(ent)
+
+        -- Follow needs the squad to be un-dismissed and not idling.
+        _G.MercenariesDismissed = false
+        _G.MercIdle = false
+        self:Recount()
+
+        System.LogAlways('[MercTest] spawned ' .. entityName)
+        System.LogAlways('[MercTest] soul guid: ' .. soulGuid)
+    end)
+
+    if not ok then
+        System.LogAlways('[MercTest] spawn error: ' .. tostring(err))
+    end
+end
+
+-- Spawns the isolation-test soul (isolation_test_brain: zero vanilla subbrains, a
+-- do-nothing scheduler). Deliberately NOT added to ActiveMercs/InjectInteraction/follow -
+-- this NPC should do nothing on its own. Its only job is to sit wherever the quest's
+-- SoulArray injection puts it and be watched.
+function mercenaries:SpawnIsolationTestNpc()
+    local soulGuid = self.IsolationTestSoulGuid
+
+    local ok, err = pcall(function()
+        local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
+        if not spawnPos then
+            System.LogAlways('[IsoTest] no safe spawn position found')
+            return
+        end
+
+        local entityName = "IsolationTest_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+
+        System.SpawnEntity({
+            class = "NPC",
+            name = entityName,
+            position = self:FindValidGround(spawnPos, spawnPos.z),
+            orientation = {x = 0, y = 0, z = playerRot.z},
+            properties = {guidSharedSoulId = soulGuid}
+        })
+
+        local ent = System.GetEntityByName(entityName)
+        if not ent then
+            System.LogAlways('[IsoTest] SpawnEntity produced no entity: ' .. entityName)
+            return
+        end
+
+        -- MUST equip: KCD2 characters have no .cdf/.chr, the body is assembled at runtime by
+        -- the clothing system. An unequipped NPC is alive and ticking but has NO MESH, which
+        -- reads exactly like the invisibility bug and is not it. The first version of this
+        -- function skipped equipping and produced a false "doesn't render" result.
+        -- Weapon deliberately omitted: nothing to swing == no combat initiative of its own.
+        if self.EquipEnemy then self:EquipEnemy(ent, "looter", false) end
+
+        System.LogAlways('[IsoTest] spawned ' .. entityName)
+        System.LogAlways('[IsoTest] soul guid: ' .. soulGuid)
+        System.LogAlways('[IsoTest] watch for "[IsolationTest] heartbeat" every 5s in this log - that confirms it is alive with no AI running.')
+    end)
+
+    if not ok then
+        System.LogAlways('[IsoTest] spawn error: ' .. tostring(err))
+    end
 end

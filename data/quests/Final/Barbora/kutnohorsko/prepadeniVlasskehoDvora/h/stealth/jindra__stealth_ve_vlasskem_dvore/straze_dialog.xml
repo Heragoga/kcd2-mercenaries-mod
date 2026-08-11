@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="straze_dialog">
+			<Ports>
+				<Port Name="zacatek_stealthu" Direction="In" Type="trigger">
+					<DesignName StringName="straze_di_start_DrPO" Text="zacatek stealthu" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="straze_dialog/straze_se_bavi_u_vozu.xml" />
+			</Definitions>
+			<Nodes>
+				<DistanceTrigger Name="distancetrigger7" PositionY="-60" PositionX="150">
+					<Asset Name="Origin" Alias="player" />
+					<Asset Name="Target" Alias="guard_courtyard_6" />
+					<Constant Name="Operator" Value="LessEquals" />
+					<Constant Name="Distance" Value="18" />
+					<Edge From="slacking.WaitingForPlayerPresence" To="IsActive" />
+				</DistanceTrigger>
+				<ExactMove Name="ExactMove" PositionY="-380" PositionX="170" Namespace="utils.move">
+					<Asset Name="smartentity" Alias="qSo" />
+					<Asset Name="npc" Alias="guardCourtyard6" />
+					<Asset Name="destination" Alias="tagpoint_guardTalkingCart_1" />
+					<Constant Name="speed" Value="walk" />
+					<Constant Name="fastforwardincludes" Value="false" />
+					<Edge From="slacking.WaitingForPlayerPresence" To="isactive" />
+				</ExactMove>
+				<ExactMove Name="ExactMove_1" PositionY="-650" PositionX="170" Namespace="utils.move">
+					<Asset Name="smartentity" Alias="qSo" />
+					<Asset Name="npc" Alias="guardCourtyard7" />
+					<Asset Name="destination" Alias="tagpoint_guardTalkingCart_2" />
+					<Constant Name="speed" Value="walk" />
+					<Constant Name="fastforwardincludes" Value="false" />
+					<Edge From="slacking.WaitingForPlayerPresence" To="isactive" />
+				</ExactMove>
+				<npcdialogonspots Name="npcdialogonspots" PositionY="260" PositionX="470" Namespace="utils.speech">
+					<Asset Name="npc_initiator" Alias="guardCourtyard6" />
+					<Asset Name="npc_receiver" Alias="guardCourtyard7" />
+					<Asset Name="smart_entity" Alias="qSo" />
+					<Constant Name="alias" Value="prepadeniVlasskehoDvora_strazeSeBaviUVozu" />
+					<Asset Name="initiator_spot" Alias="tagpoint_guardTalkingCart_1" />
+					<Asset Name="receiver_spot" Alias="tagpoint_guardTalkingCart_2" />
+					<Constant Name="forcekick" Value="false" />
+					<Constant Name="fastforwardincludesmove" Value="true" />
+					<Constant Name="speed" Value="alertedWalk" />
+					<Constant Name="animationapproach" Value="ingameDialogPoseAndAnimations" />
+					<Constant Name="initiator_haveweapondrawn" Value="false" />
+					<Constant Name="receiver_haveweapondrawn" Value="false" />
+					<Constant Name="perceptiondebuff" Value="false" />
+					<Edge From="or2.bool" To="active" />
+				</npcdialogonspots>
+				<Function Name="or2" PositionY="340" PositionX="190" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="slacking.FirstDialog" To="A" />
+					<Edge From="slacking.SecondDialog" To="B" />
+					<Edge From="slacking.ThirdDialog" To="C" />
+				</Function>
+				<Function Name="or5" PositionY="580" PositionX="190" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="slacking.FirstSlacking" To="A" />
+					<Edge From="slacking.SecondSlacking" To="B" />
+					<Edge From="slacking.FinalSlacking" To="C" />
+				</Function>
+				<SchedulerLinkActivation Name="schedule4" PositionY="750" PositionX="470">
+					<Constant Name="LinkTag" Value="prepadeniVlasskehoDvora_slacking" />
+					<Edge From="or5.bool" To="IsActive" />
+				</SchedulerLinkActivation>
+				<State Name="slacking" PositionY="250" PositionX="-300" TypeT="GuardsSlacking">
+					<Edge From="zacatek_stealthu" To="SetWaitingForPlayerPresence">
+						<Vertex>y7nnecko</Vertex>
+					</Edge>
+					<Edge From="switch8.Value1" To="Value" />
+					<Edge From="distancetrigger7.OnMatch" To="Exec">
+						<Vertex>vertex7</Vertex>
+						<Vertex>vertex8</Vertex>
+					</Edge>
+					<Edge From="timer3.OnFinished" To="Exec">
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+					<Edge From="npcdialogonspots.behavior_success" To="Exec">
+						<Vertex>XUmQM3pK</Vertex>
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+				</State>
+				<straze_se_bavi_u_vozu Name="straze_se_bavi_u_vozu" PositionY="20" PositionX="480" />
+				<Switch Name="switch8" PositionY="290" PositionX="-750" TypeT="GuardsSlacking" ValueTypes="GuardsSlacking" SwitchValues="WaitingForPlayerPresence FirstDialog FirstSlacking SecondDialog SecondSlacking ThirdDialog">
+					<Constant Name="WaitingForPlayerPresenceValue1" Value="FirstDialog" />
+					<Constant Name="FirstDialogValue1" Value="FirstSlacking" />
+					<Constant Name="FirstSlackingValue1" Value="SecondDialog" />
+					<Constant Name="SecondDialogValue1" Value="SecondSlacking" />
+					<Constant Name="SecondSlackingValue1" Value="ThirdDialog" />
+					<Constant Name="ThirdDialogValue1" Value="FinalSlacking" />
+					<Constant Name="DefaultValue1" Value="FinalSlacking" />
+					<Edge From="slacking.State" To="Switch">
+						<Vertex>ketqKPrB</Vertex>
+						<Vertex>bfKHMbR9</Vertex>
+					</Edge>
+				</Switch>
+				<Timer Name="timer3" PositionY="790" PositionX="160">
+					<Constant Name="Duration" Value="3m" />
+					<Constant Name="TimeType" Value="GameTime" />
+					<Edge From="slacking.OnFirstSlacking" To="SetRunning" />
+					<Edge From="slacking.OnSecondSlacking" To="SetRunning" />
+				</Timer>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="bfKHMbR9" PositionY="220" PositionX="-740" />
+				<EdgeVertex Name="ketqKPrB" PositionY="224" PositionX="32" />
+				<EdgeVertex Name="vertex1" PositionY="1118" PositionX="370" />
+				<EdgeVertex Name="vertex2" PositionY="1120" PositionX="-270" />
+				<EdgeVertex Name="vertex7" PositionY="-72" PositionX="384" />
+				<EdgeVertex Name="vertex8" PositionY="-76" PositionX="-265" />
+				<EdgeVertex Name="XUmQM3pK" PositionY="1120" PositionX="780" />
+				<EdgeVertex Name="y7nnecko" PositionY="40" PositionX="-440" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="GuardsSlacking">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="WaitingForPlayerPresence" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="FirstDialog" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="FirstSlacking" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="SecondDialog" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="SecondSlacking" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="ThirdDialog" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="FinalSlacking" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Assets>
+				<TagPointAsset Name="tagpoint_guardTalkingCart_1" />
+				<TagPointAsset Name="tagpoint_guardTalkingCart_2" />
+				<SoulAsset Name="guard_courtyard_6" SharedSoulGuids="c3c8114f-55e7-4f1a-9b0a-dbceab00fbf5 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+			</Assets>
+			<Text StringName="straze_eZsC" Text="Straze dialog" />
+		</Module>
+	</Skald>
+</Database>

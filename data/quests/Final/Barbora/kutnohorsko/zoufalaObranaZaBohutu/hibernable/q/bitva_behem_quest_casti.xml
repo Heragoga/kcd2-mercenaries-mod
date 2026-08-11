@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="bitva_behem_quest_casti">
+			<Ports>
+				<Port Name="inicializovat" Direction="In" Type="trigger">
+					<DesignName StringName="bitva_beh_isactive_6wwW" Text="Inicializovat" />
+				</Port>
+				<Port Name="registrovat" Direction="In" Type="trigger">
+					<DesignName StringName="bitva_beh_start_PbPa" Text="Registrovat" />
+				</Port>
+				<Port Name="konec" Direction="In" Type="trigger">
+					<DesignName StringName="bitva_beh_konec_mc2i" Text="Konec" />
+				</Port>
+				<Port Name="bitva_zacala" Direction="Out" Type="bool">
+					<DesignName StringName="bitva_beh_bitva_zacala_cnqo" Text="Bitva začala" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="bitva_behem_quest_casti/nahravani.xml" />
+				<Definition File="bitva_behem_quest_casti/inicializace_a_registrace.xml" />
+			</Definitions>
+			<Nodes>
+				<Function Name="and23" PositionY="31" PositionX="-931" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="inicializace_a_registrace.bitva_zacala" To="B" />
+					<Edge From="movingSoldiers.None" To="A">
+						<Vertex>Jhjasz1a</Vertex>
+						<Vertex>eKRSEF8y</Vertex>
+					</Edge>
+				</Function>
+				<DistanceTrigger Name="distancetrigger22" PositionY="-40" PositionX="-640">
+					<Asset Name="Origin" Alias="player_bohuta" />
+					<Asset Name="Target" Alias="morningAfterBed" />
+					<Constant Name="Operator" Value="GreaterEquals" />
+					<Constant Name="Distance" Value="5" />
+					<Edge From="and23.bool" To="IsActive" />
+				</DistanceTrigger>
+				<EnableBehavior Name="enablebehaviorwuiddata11" PositionY="1580" PositionX="-1280" Signature="wuidData" EventSet="">
+					<Constant Name="Behavior" Value="soldier_waitInBattleIdle" />
+					<Asset Name="SmartEntity" Alias="qSO" />
+					<Asset Name="NPC" Alias="cert" />
+					<Asset Name="data" Alias="certSpotForQuestPart" />
+					<Edge From="questPartBehaviors.Active" To="IsActive" />
+				</EnableBehavior>
+				<inicializace_a_registrace Name="inicializace_a_registrace" PositionY="-80" PositionX="-1400">
+					<Edge From="inicializovat" To="start">
+						<Vertex>n3php3YC</Vertex>
+					</Edge>
+					<Edge From="nahravani.nahravani_je_povolene" To="nahravani_je_zapnute" />
+					<Edge From="registrovat" To="zaregistrovat" />
+					<Edge From="konec" To="konec">
+						<Vertex>QNo6koFE</Vertex>
+						<Vertex>WntUch4m</Vertex>
+					</Edge>
+				</inicializace_a_registrace>
+				<State Name="movingSoldiers" PositionY="-20" PositionX="220" TypeT="MovingSoldiers">
+					<Constant Name="DefaultValue" Value="None" />
+					<Edge From="select6.Value1" To="Value" />
+					<Edge From="select6.OnExec" To="Exec" />
+					<Edge From="konec" To="SetDone">
+						<Vertex>QNo6koFE</Vertex>
+						<Vertex>WntUch4m</Vertex>
+						<Vertex>vertex30</Vertex>
+					</Edge>
+				</State>
+				<nahravani Name="nahravani" PositionY="-310" PositionX="-1700" />
+				<Function Name="not24" PositionY="1370" PositionX="-1280" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+					<Edge From="questPartBehaviors.None" To="Value" />
+				</Function>
+				<Output Name="Output">
+					<Edge From="not24.bool" To="bitva_zacala">
+						<Vertex>yc4kmbc6</Vertex>
+						<Vertex>QaYKw3uk</Vertex>
+					</Edge>
+				</Output>
+				<PlayTrackView Name="playtrackview12" PositionY="70" PositionX="700">
+					<Asset Name="CutsceneHolder" Alias="soldierToOilRoomTrackview" />
+					<Edge From="movingSoldiers.SoldierToOilRoom" To="IsActive" />
+				</PlayTrackView>
+				<PlayTrackView Name="playtrackview13" PositionY="240" PositionX="700">
+					<Asset Name="CutsceneHolder" Alias="soldiersAcrossCourtyardTrackview" />
+					<Edge From="movingSoldiers.SoldierAcrossCourtyard" To="IsActive" />
+				</PlayTrackView>
+				<PlayTrackView Name="playtrackview14" PositionY="440" PositionX="730">
+					<Asset Name="CutsceneHolder" Alias="soldierToSideWallTrackview" />
+					<Edge From="movingSoldiers.SoldierToSideWall" To="IsActive" />
+				</PlayTrackView>
+				<State Name="questPartBehaviors" PositionY="1280" PositionX="-1580" TypeT="Progress">
+					<Edge From="konec" To="SetDone" />
+					<Edge From="inicializovat" To="SetActive" />
+				</State>
+				<Function Name="randominteger4" PositionY="190" PositionX="-1680" MethodName="math::random::RandomInteger" DeclaringType="math::random">
+					<Constant Name="Max" Value="2" />
+				</Function>
+				<Function Name="randominteger7" PositionY="480" PositionX="-1710" MethodName="math::random::RandomInteger" DeclaringType="math::random">
+					<Constant Name="Max" Value="1" />
+				</Function>
+				<SchedulerLinkActivation Name="schedule15" PositionY="1910" PositionX="-1300">
+					<Constant Name="LinkTag" Value="zoufalaObranaZaBohutu_frenczlovaHealing" />
+					<Edge From="questPartBehaviors.Active" To="IsActive" />
+				</SchedulerLinkActivation>
+				<Select Name="select6" PositionY="-40" PositionX="-100" InputPortGroups="4" ValueTypes="MovingSoldiers">
+					<Edge From="switch5.Value1" To="AValue1">
+						<Vertex>GrNNwtFv</Vertex>
+						<Vertex>sdstf9UY</Vertex>
+					</Edge>
+					<Edge From="switch8.Value1" To="BValue1">
+						<Vertex>UG4QunvS</Vertex>
+						<Vertex>LVK8olgK</Vertex>
+					</Edge>
+					<Edge From="switch8_1.Value1" To="CValue1">
+						<Vertex>4YsbuUBs</Vertex>
+						<Vertex>8KRYUnN6</Vertex>
+					</Edge>
+					<Edge From="switch8_2.Value1" To="DValue1">
+						<Vertex>YC30y0bf</Vertex>
+						<Vertex>SIRtyVJs</Vertex>
+					</Edge>
+					<Edge From="playtrackview12.OnFinished" To="SelectB">
+						<Vertex>vertex14</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="playtrackview13.OnFinished" To="SelectC">
+						<Vertex>vertex32</Vertex>
+						<Vertex>vertex33</Vertex>
+					</Edge>
+					<Edge From="playtrackview14.OnFinished" To="SelectD">
+						<Vertex>vertex34</Vertex>
+						<Vertex>vertex35</Vertex>
+					</Edge>
+					<Edge From="distancetrigger22.OnMatch" To="SelectA" />
+				</Select>
+				<Switch Name="switch5" PositionY="170" PositionX="-1410" TypeT="int" ValueTypes="MovingSoldiers" SwitchValues="0 1 2">
+					<Constant Name="0Value1" Value="SoldierToOilRoom" />
+					<Constant Name="1Value1" Value="SoldierAcrossCourtyard" />
+					<Constant Name="2Value1" Value="SoldierToSideWall" />
+					<Constant Name="DefaultValue1" Value="SoldierToOilRoom" />
+					<Edge From="randominteger4.int" To="Switch" />
+				</Switch>
+				<Switch Name="switch8" PositionY="410" PositionX="-1420" TypeT="int" ValueTypes="MovingSoldiers" SwitchValues="0 1">
+					<Constant Name="0Value1" Value="SoldierAcrossCourtyard" />
+					<Constant Name="1Value1" Value="SoldierToSideWall" />
+					<Constant Name="DefaultValue1" Value="SoldierAcrossCourtyard" />
+					<Edge From="randominteger7.int" To="Switch" />
+				</Switch>
+				<Switch Name="switch8_1" PositionY="670" PositionX="-1406" TypeT="int" ValueTypes="MovingSoldiers" SwitchValues="0 1">
+					<Constant Name="0Value1" Value="SoldierToOilRoom" />
+					<Constant Name="1Value1" Value="SoldierToSideWall" />
+					<Constant Name="DefaultValue1" Value="SoldierToSideWall" />
+					<Edge From="randominteger7.int" To="Switch" />
+				</Switch>
+				<Switch Name="switch8_2" PositionY="890" PositionX="-1410" TypeT="int" ValueTypes="MovingSoldiers" SwitchValues="0 1">
+					<Constant Name="0Value1" Value="SoldierToOilRoom" />
+					<Constant Name="1Value1" Value="SoldierAcrossCourtyard" />
+					<Constant Name="DefaultValue1" Value="SoldierToOilRoom" />
+					<Edge From="randominteger7.int" To="Switch" />
+				</Switch>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="4YsbuUBs" PositionY="250" PositionX="-1000" />
+				<EdgeVertex Name="8KRYUnN6" PositionY="250" PositionX="-210" />
+				<EdgeVertex Name="eKRSEF8y" PositionY="-150" PositionX="-920" />
+				<EdgeVertex Name="GrNNwtFv" PositionY="230" PositionX="-1000" />
+				<EdgeVertex Name="Jhjasz1a" PositionY="-151" PositionX="618" />
+				<EdgeVertex Name="LVK8olgK" PositionY="240" PositionX="-210" />
+				<EdgeVertex Name="n3php3YC" PositionY="-50" PositionX="-1700" />
+				<EdgeVertex Name="QaYKw3uk" PositionY="640" PositionX="1120" />
+				<EdgeVertex Name="QNo6koFE" PositionY="-70" PositionX="-1700" />
+				<EdgeVertex Name="sdstf9UY" PositionY="230" PositionX="-210" />
+				<EdgeVertex Name="SIRtyVJs" PositionY="260" PositionX="-210" />
+				<EdgeVertex Name="UG4QunvS" PositionY="240" PositionX="-1000" />
+				<EdgeVertex Name="vertex14" PositionY="-140" PositionX="1080" />
+				<EdgeVertex Name="vertex15" PositionY="-140" PositionX="-90" />
+				<EdgeVertex Name="vertex30" PositionY="-70" PositionX="110" />
+				<EdgeVertex Name="vertex32" PositionY="660" PositionX="1120" />
+				<EdgeVertex Name="vertex33" PositionY="660" PositionX="-70" />
+				<EdgeVertex Name="vertex34" PositionY="660" PositionX="1100" />
+				<EdgeVertex Name="vertex35" PositionY="660" PositionX="-70" />
+				<EdgeVertex Name="WntUch4m" PositionY="-71" PositionX="-1470" />
+				<EdgeVertex Name="YC30y0bf" PositionY="260" PositionX="-1000" />
+				<EdgeVertex Name="yc4kmbc6" PositionY="650" PositionX="-950" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="MovingSoldiers">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="SoldierToOilRoom" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="SoldierAcrossCourtyard" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="SoldierToSideWall" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Done" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Assets>
+				<SmartObjectAsset Name="soldierToSideWallGroupController" />
+				<SmartObjectAsset Name="soldiersAcrossCourtyardGroupController" />
+				<SmartObjectAsset Name="soldierToOilRoomGroupController" />
+				<AnimDoorAsset Name="doorToOilRoom" />
+				<AnimDoorAsset Name="doorToWinchRoom" />
+				<TagPointAsset Name="oilRoomSpot" />
+				<SoulAsset Name="oilRoomSoldier" SharedSoulGuids="31e07c2f-9f83-4b0a-ad4a-2a0c981f4b8d 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<CutsceneHolderAsset Name="soldierToOilRoomTrackview" />
+				<SoulAsset Name="acrossCourtyardSoldiers" SharedSoulGuids="fa024ac9-9bc9-420e-bab9-28d2f6faeb58 afea7ef0-d6ff-4aa7-92ee-2e09cb0c5f20 f1654070-bc90-4638-989f-c2048ba37848 7bc5bd77-c600-4e61-8474-b65e325852f4 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<CutsceneHolderAsset Name="soldiersAcrossCourtyardTrackview" />
+				<TagPointAsset Name="sideWallSpot" />
+				<SoulAsset Name="sideWallSoldier" SharedSoulGuids="cef39458-82ca-4e55-a2a7-4990c5e0a894 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<CutsceneHolderAsset Name="soldierToSideWallTrackview" />
+				<SmartObjectAsset Name="questPartShootersAttackersGroupController" />
+				<SmartObjectAsset Name="questPartShootersDefendersGroupController" />
+				<TagPointAsset Name="certSpotForQuestPart" />
+				<SmartObjectAsset Name="questPartAIGroupController" />
+			</Assets>
+			<Text StringName="bitva_behem_quest_casti_fN1B" Text="Bitva během quest části" />
+		</Module>
+	</Skald>
+</Database>

@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="synagoga_a_jine_hity" HibernateMode="Script">
+			<Ports>
+				<Port Name="vypalena_synagoga__streamovani" Direction="Out" Type="trigger">
+					<DesignName StringName="synagoga__za_mestem_R3db" Text="vypalena synagoga - streamovani" />
+				</Port>
+				<Port Name="za_mestem" Direction="Out" Type="trigger">
+					<DesignName StringName="synagoga__za_mestem_JvCr" Text="za městem" />
+				</Port>
+				<Port Name="zacatek_cutsceny" Direction="Out" Type="trigger">
+					<DesignName StringName="synagoga__zacatek_cutsceny_RRoQ" Text="zacatek cutsceny - bitva" />
+				</Port>
+				<Port Name="konec_questu__streamovani" Direction="Out" Type="trigger">
+					<DesignName StringName="synagoga__konec_questu__s_myRl" Text="konec questu - streamovani" />
+				</Port>
+				<Port Name="stream_erika" Direction="Out" Type="trigger">
+					<DesignName StringName="synagoga__stream_erika_K2XL" Text="Stream Erika" />
+				</Port>
+				<Port Name="unstream_erika" Direction="Out" Type="trigger">
+					<DesignName StringName="synagoga__unstream_erika_nRgf" Text="Unstream Erika" />
+				</Port>
+				<Port Name="bitka_je_aktivni" Direction="Out" Type="bool">
+					<DesignName StringName="synagoga__bitka_je_aktivni_ZmJl" Text="Bitka je aktivni" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="synagoga_a_jine_hity/cin_m4210k_pogrom__defend_synagogue.xml" />
+				<Definition File="synagoga_a_jine_hity/posledni_obrana.xml" />
+				<Definition File="synagoga_a_jine_hity/cin_m4220k_pogrom__blockade_fire.xml" />
+				<Definition File="synagoga_a_jine_hity/chovani_behem_obrany.xml" />
+				<Definition File="synagoga_a_jine_hity/dvere_u_synagogy.xml" />
+				<Definition File="synagoga_a_jine_hity/priprava_bitvy.xml" />
+				<Definition File="synagoga_a_jine_hity/erik_barkuje_pri_obrane.xml" />
+			</Definitions>
+			<Nodes>
+				<HasteTrigger Name="04a_cutscene_blockadeFire" PositionY="-750" PositionX="-410" />
+				<Function Name="audiooneshot35" PositionY="-470" PositionX="270" MethodName="wh::soundmodule::AudioOneShot" DeclaringType="wh::soundmodule">
+					<Constant Name="AtlTriggerName" Value="a_o_bell_kkut_kostelni" />
+					<Asset Name="LinkableObject" Alias="zaBranouPoint" />
+					<Edge From="cutscenehandler42.OnFinished" To="Exec" />
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.konec_cutsceny" To="Exec">
+						<Vertex>ShQAANVY</Vertex>
+					</Edge>
+				</Function>
+				<chovani_behem_obrany Name="chovani_behem_obrany" PositionY="590" PositionX="-1390">
+					<Edge From="Awake" To="je_aktivni" />
+				</chovani_behem_obrany>
+				<cin_m4210k_pogrom__defend_synagogue Name="cin_m4210k_pogrom__defend_synagogue" PositionY="-140" PositionX="-560">
+					<Edge From="CutscenaJeSpoustena.OnTrue" To="enqueue_cutsceny" />
+				</cin_m4210k_pogrom__defend_synagogue>
+				<cin_m4220k_pogrom__blockade_fire Name="cin_m4220k_pogrom__blockade_fire" PositionY="-170" PositionX="680">
+					<Edge From="skirmishAtSynagogue.OnDone" To="cutscena_utek_podzemim">
+						<Vertex>vertex3</Vertex>
+						<Vertex>vertex4</Vertex>
+					</Edge>
+				</cin_m4220k_pogrom__blockade_fire>
+				<State Name="CutscenaJeSpoustena" PositionY="-130" PositionX="-870" TypeT="bool">
+					<Edge From="ifand52.True" To="SetTrue" />
+				</State>
+				<CutsceneHandler Name="cutscenehandler42" PositionY="-530" PositionX="-540">
+					<Asset Name="CutsceneHolder" Alias="faderAfterLoading" />
+					<Edge From="FaderPoSavuAktivni.OnTrue" To="EnqueueCutscene" />
+				</CutsceneHandler>
+				<dvere_u_synagogy Name="dvere_u_synagogy" PositionY="210" PositionX="360">
+					<Edge From="skirmishAtSynagogue.Active" To="nejsou_interaktivni" />
+				</dvere_u_synagogy>
+				<erik_barkuje_pri_obrane Name="erik_barkuje_pri_obrane" PositionY="-450" PositionX="730" />
+				<State Name="FaderPoSavuAktivni" PositionY="-560" PositionX="-790" TypeT="bool">
+					<Edge From="ifand50.True" To="SetTrue" />
+				</State>
+				<IfFunction Name="ifand50" PositionY="-590" PositionX="-1030" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="OnWake" To="Exec" />
+					<Edge From="skirmishAtSynagogue.Active" To="B">
+						<Vertex>eYWcypuR</Vertex>
+						<Vertex>v1jHjQI3</Vertex>
+					</Edge>
+					<Edge From="not51.bool" To="A" />
+				</IfFunction>
+				<IfFunction Name="ifand52" PositionY="-120" PositionX="-1150" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="OnWake" To="Exec" />
+					<Edge From="skirmishAtSynagogue.None" To="A">
+						<Vertex>vertex5</Vertex>
+						<Vertex>vertex6</Vertex>
+					</Edge>
+					<Edge From="not53.bool" To="B" />
+				</IfFunction>
+				<IfFunction Name="ifnot45" PositionY="-850" PositionX="-50" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+					<Edge From="loadedprofilestate.isloaded" To="Value" />
+					<Edge From="cutscenehandler42.BeforePlay" To="Exec" />
+				</IfFunction>
+				<Function Name="joinarrays40" PositionY="1080" PositionX="220" TypeT="wh::rpgmodule::Souls" MethodName="utilities::array::JoinArrays" DeclaringType="utilities::array">
+					<Asset Name="A" Alias="samuel" />
+					<Asset Name="B" Alias="kubenka" />
+					<Asset Name="C" Alias="obranciSynagogy" />
+				</Function>
+				<loadedprofilestate Name="loadedprofilestate" PositionY="-990" PositionX="-380" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="erikProfile" />
+				</loadedprofilestate>
+				<Function Name="not51" PositionY="-740" PositionX="-1300" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+					<Edge From="FaderPoSavuAktivni.State" To="Value">
+						<Vertex>JDccYgc1</Vertex>
+						<Vertex>dFIt0WjP</Vertex>
+					</Edge>
+				</Function>
+				<Function Name="not53" PositionY="70" PositionX="-1420" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+					<Edge From="CutscenaJeSpoustena.State" To="Value">
+						<Vertex>dL12hsED</Vertex>
+						<Vertex>RClmIKEX</Vertex>
+					</Edge>
+				</Function>
+				<vydrz_napor_pred_synagogou Name="objectiveVisual2" PositionY="-250" PositionX="260" RequiredForOutput="kutnohorsko">
+					<Edge From="skirmishAtSynagogue.State" To="Progress" />
+				</vydrz_napor_pred_synagogou>
+				<Output Name="Output">
+					<Edge From="cin_m4220k_pogrom__blockade_fire.vypalena_synagoga__streamovani" To="vypalena_synagoga__streamovani" />
+					<Edge From="cin_m4220k_pogrom__blockade_fire.za_mestem" To="za_mestem" />
+					<Edge From="cin_m4220k_pogrom__blockade_fire.konec_questu__streamovani" To="konec_questu__streamovani" />
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.pred_cutscenou" To="zacatek_cutsceny">
+						<Vertex>vertex10</Vertex>
+					</Edge>
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.pred_cutscenou" To="stream_erika">
+						<Vertex>vertex10</Vertex>
+					</Edge>
+					<Edge From="ifnot45.True" To="stream_erika">
+						<Vertex>PqSQDdyX</Vertex>
+						<Vertex>TTowxD5P</Vertex>
+					</Edge>
+					<Edge From="cin_m4220k_pogrom__blockade_fire.konec_questu__streamovani" To="unstream_erika" />
+					<Edge From="skirmishAtSynagogue.Active" To="bitka_je_aktivni">
+						<Vertex>zLSGguk4</Vertex>
+						<Vertex>UcRXThIf</Vertex>
+					</Edge>
+				</Output>
+				<PlayerAction_DrawWeapon Name="PlayerAction_DrawWeapon_2" PositionY="-660" PositionX="-70" Namespace="utils.player">
+					<Constant Name="loadsecondaryweapon" Value="false" />
+					<Constant Name="useselectedweaponset" Value="true" />
+					<Constant Name="weaponset" Value="primary" />
+					<Constant Name="allowdifferentweaponset" Value="true" />
+					<Constant Name="urgency" Value="Instant" />
+					<Edge From="cutscenehandler42.AfterPlay" To="drawweapon" />
+				</PlayerAction_DrawWeapon>
+				<posledni_obrana Name="posledni_obrana" PositionY="-40" PositionX="370">
+					<Edge From="skirmishAtSynagogue.Active" To="je_aktivni" />
+					<Edge From="skirmishAtSynagogue.OnActive" To="zacatek_obrany" />
+				</posledni_obrana>
+				<priprava_bitvy Name="priprava_bitvy" PositionY="590" PositionX="660">
+					<Edge From="TrackviewZaCombatem.Active" To="Awake" />
+				</priprava_bitvy>
+				<SaveGame Name="savegame46" PositionY="430" PositionX="-70">
+					<Constant Name="Objective" Value="vydrz_napor_pred_synagogou" />
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.konec_cutsceny" To="EnqueueSave" />
+				</SaveGame>
+				<SetEntityContext Name="setentitycontext3" PositionY="1400" PositionX="370">
+					<Constant Name="Context" Value="deterrenceImmunity" />
+					<Asset Name="Souls" Alias="davUtocniku" />
+					<Edge From="streamprofileshandling_1.profileactive" To="IsActive" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext39" PositionY="1090" PositionX="490">
+					<Constant Name="Context" Value="combat_forceArmed" />
+					<Edge From="streamprofileshandling.profileactive" To="IsActive" />
+					<Edge From="joinarrays40.Array" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContextPreset Name="setentitycontextpreset4" PositionY="1590" PositionX="370">
+					<Constant Name="Preset" Value="switch_unresponsive" />
+					<Asset Name="Souls" Alias="davUtocniku" />
+					<Edge From="streamprofileshandling_1.profileactive" To="IsActive" />
+				</SetEntityContextPreset>
+				<State Name="skirmishAtSynagogue" PositionY="-130" PositionX="-90" RequiredForOutput="kutnohorsko" TypeT="Progress">
+					<Edge From="posledni_obrana.posledni_vlna_porazena" To="SetDone">
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+					<Edge From="04a_cutscene_blockadeFire.OnTrigger" To="SetDone" />
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.po_cutscene" To="SetActive" />
+				</State>
+				<streamprofileshandling Name="streamprofileshandling" PositionY="1080" PositionX="-80" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="firstWave" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.pred_cutscenou" To="streamprofiles" />
+					<Edge From="cin_m4220k_pogrom__blockade_fire.konec_questu__streamovani" To="unstreamprofiles">
+						<Vertex>vertex16</Vertex>
+						<Vertex>vertex17</Vertex>
+					</Edge>
+				</streamprofileshandling>
+				<streamprofileshandling Name="streamprofileshandling_1" PositionY="1360" PositionX="-80" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="battleWave" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.po_cutscene" To="streamprofiles" />
+					<Edge From="cin_m4220k_pogrom__blockade_fire.konec_questu__streamovani" To="unstreamprofiles">
+						<Vertex>vertex16</Vertex>
+						<Vertex>vertex17</Vertex>
+					</Edge>
+				</streamprofileshandling>
+				<State Name="TrackviewZaCombatem" PositionY="510" PositionX="360" TypeT="Progress">
+					<Edge From="skirmishAtSynagogue.OnDone" To="SetDone">
+						<Vertex>vertex3</Vertex>
+					</Edge>
+					<Edge From="cin_m4210k_pogrom__defend_synagogue.po_cutscene" To="SetActive" />
+				</State>
+				<WeaponPresetOverride Name="weaponpresetoverride54" PositionY="760" PositionX="-1410">
+					<Asset Name="Souls" Alias="kubenka" />
+					<Constant Name="PriorityEquip" Value="true" />
+					<Constant Name="WeaponPreset" Value="bfa8d2e3-ae36-438e-96a3-09bf099c7567" />
+					<Edge From="Awake" To="IsActive" />
+				</WeaponPresetOverride>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="dFIt0WjP" PositionY="-850" PositionX="-1290" />
+				<EdgeVertex Name="dL12hsED" PositionY="250" PositionX="-710" />
+				<EdgeVertex Name="eYWcypuR" PositionY="-210" PositionX="90" />
+				<EdgeVertex Name="JDccYgc1" PositionY="-850" PositionX="-650" />
+				<EdgeVertex Name="PqSQDdyX" PositionY="-690" PositionX="240" />
+				<EdgeVertex Name="RClmIKEX" PositionY="250" PositionX="-1410" />
+				<EdgeVertex Name="ShQAANVY" PositionY="-300" PositionX="-140" />
+				<EdgeVertex Name="TTowxD5P" PositionY="-690" PositionX="980" />
+				<EdgeVertex Name="UcRXThIf" PositionY="430" PositionX="1000" />
+				<EdgeVertex Name="v1jHjQI3" PositionY="-210" PositionX="-1020" />
+				<EdgeVertex Name="vertex1" PositionY="400" PositionX="520" />
+				<EdgeVertex Name="vertex10" PositionY="1020" PositionX="980" />
+				<EdgeVertex Name="vertex16" PositionY="1050" PositionX="980" />
+				<EdgeVertex Name="vertex17" PositionY="1050" PositionX="-70" />
+				<EdgeVertex Name="vertex2" PositionY="400" PositionX="-70" />
+				<EdgeVertex Name="vertex3" PositionY="-50" PositionX="260" />
+				<EdgeVertex Name="vertex4" PositionY="-50" PositionX="600" />
+				<EdgeVertex Name="vertex5" PositionY="-177" PositionX="100" />
+				<EdgeVertex Name="vertex6" PositionY="-180" PositionX="-1130" />
+				<EdgeVertex Name="zLSGguk4" PositionY="430" PositionX="280" />
+			</EdgeVertices>
+			<Assets>
+				<ProfileAsset Name="battleWave" AssetProfiles="pogrom_finalBattleWave1" />
+				<SoulAsset Name="prvniVlnaUtocniku" SharedSoulGuids="03ad12d8-a1b9-4771-bd9f-ee312d946b9b 06928f8f-c13b-48c8-a2a8-ec32d8d2921d 1389eabc-8f5d-47f9-8a6a-5fb56edf4c50 15cd23ae-9b85-4154-8338-1cdef78d87fc 1aa764a5-d624-4a97-96c8-c7e71b181da8 1b9a84fd-73ef-4ce1-b79e-add3caff58b4 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<TagPointAsset Name="skirmishNearSynagoguePoint" />
+				<AnimDoorAsset Name="dvereUSynagogy1" />
+				<AnimDoorAsset Name="dvereUSynagogy2" />
+				<SoulAsset Name="ostatniUtocnici" SharedSoulGuids="42b6fc09-f03d-4123-a079-04f1c0245541 552ccab3-a302-4ae2-aeed-22f2646f816a 5bdda8d4-52c7-49c5-9d9e-4bad72a613e8 68259fe7-a49f-4eb4-a910-00e2d5b51ef3 70d5f98d-81fa-4e3f-a073-30daa0aca488 7c5195dc-ccf1-475e-ae97-2140eebec637 9b484ee0-5987-4ce5-ba29-5ba3cb7c6ea4 a112fd54-b441-4ae3-896d-8b0be7e486c0 a1d3376e-4747-49ef-9b7c-db8cd3a811b7 a43d319e-a6e8-4ecf-89b7-6f0e1d84c9ff" />
+				<SoulAsset Name="prvniRadaAnimcharu" SharedSoulGuids="492471ba-b2ba-4383-b6a4-b23aaa9ddee3 2f2d9420-051c-49de-a95d-171c0b188f86 4ff91f98-d37a-436e-8e2c-08181f36ce36 6d4dee71-deae-4984-9f55-ce580f241694 0f3dfc16-afb3-4665-abe9-5e52cf7c15a3" />
+				<SoulAsset Name="stojiciUtocnici" SharedSoulGuids="280b39b2-2747-4582-86a0-4b03efd704ca 32bdb400-35ec-4adc-a8d4-b8b0d490a69a 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="stojiciUtocniciSHalapartnou" SharedSoulGuids="1e57cb68-2dca-4c02-9e63-5bcd4b6921b8 2b332cdf-9b23-47f5-b903-f573a72c421f 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<CutsceneHolderAsset Name="davZaCombatem" />
+				<SoulAsset Name="utocnikProHrace1" SharedSoulGuids="03ad12d8-a1b9-4771-bd9f-ee312d946b9b" />
+				<SoulAsset Name="utocnikProHrace2" SharedSoulGuids="5bdda8d4-52c7-49c5-9d9e-4bad72a613e8" />
+				<SoulAsset Name="davUtocniku" SharedSoulGuids="287e7921-88c7-42c7-9116-0636d9377bd7 cabe0c9e-1daa-4778-8742-1be7898bc596 9d25ee42-f790-434d-bf6f-dea92bd41024 6f53f429-1a25-4503-b347-7dcf77a29b0d 831d81ae-8890-4c88-9e14-5e07a8581b08 08d35b84-a9fe-45fb-9bcc-122ffbbfc4de 1b37da0c-849c-4f54-8f2d-f70df012d628 245f65cc-b3c8-4f4c-bd42-4a1287cad5e6 9be83fa3-a56d-4248-8632-7dc46a89d813 e72aa08f-b357-416d-a39e-d0e0235dc35f 2f2d9420-051c-49de-a95d-171c0b188f86 711528ef-21b0-474c-b1d4-0876b002fed0 ca420fb1-2583-4a6c-9efc-2aa094fc7175 0b22ed43-4f33-47f7-b0c9-230f80c947f9 b8c60844-b533-44e3-8265-de8cc9625eb8 5e71d4a6-dc45-4465-92e6-645d31e82c95 c4a57fbe-417d-4839-ae6c-eb6347b570aa 6c4ad4b9-6c33-4d04-8b22-677f7b8fff88 f0dbe163-ef76-4733-b63c-6cf74a089e7d 1a55893e-1e17-4992-908a-47a2fc528d02 3942a590-25b9-4146-984c-ff9b04f845e2 4ff91f98-d37a-436e-8e2c-08181f36ce36 7f76d7bd-04c6-4f71-8357-62e6fc676905 fec0d1ac-ccd6-4b5d-937e-2995631111b8 e05f046c-a187-423a-94f9-29f6b862eab1 ae93553d-4ebb-4ac6-852a-545997d4c284 6d4dee71-deae-4984-9f55-ce580f241694 967e4fa0-76e9-4b34-8863-eb14c83d154d 0f3dfc16-afb3-4665-abe9-5e52cf7c15a3 013356e2-b207-48e6-be35-e7993461bdfe 04681c83-0d38-4185-9164-538b2537c0f2 c4cf49f1-f83e-40f6-8cd8-fc50dedb0131 55678a16-670b-4e90-bda0-9b331b3ce6a3 be8eda7c-7b77-4bc3-b765-241c31177204 492471ba-b2ba-4383-b6a4-b23aaa9ddee3 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<CutsceneHolderAsset Name="utekZaCombatem" />
+				<ProfileAsset Name="firstWave" AssetProfiles="pogrom_firstWave" />
+				<CutsceneHolderAsset Name="faderAfterLoading" />
+				<SmartObjectAsset Name="fightUSynagogySO" />
+				<ProfileAsset Name="erikProfile" AssetProfiles="erik_erik" />
+				<SmartObjectAsset Name="bitkaSO_halapartna" />
+			</Assets>
+			<Notes>
+				<Note Name="note43" PositionY="-690" PositionX="-940">
+					<Text StringName="synagoga__note43_Ngvd" Text="Fix: Fast forward po loadu savu v bitve." />
+				</Note>
+			</Notes>
+			<Text StringName="synagoga_a_jine_hity_56Fh" Text="Synagoga a jiné hity" />
+			<Elements>
+				<GameplayActionElement>
+					<Text StringName="synagoga__prvni_cutscena__2ByB" Text="První cutscéna uklidí matku a ostatní lidi z cutscény a teleportuje Kuběnku, Sama a Henryho na místa kde je budeme potřebovat. Vysvětlí také, že se naše trojice musí bránit před přicházejícími útočníky, dokud se všichni nedostanou ven z města." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="synagoga__kazda_vlna_ma_t_2vG9" Text="Každá vlna má tedy 4-5 útočníků, různého vybavení a skill třídy, je tam vlastně městská lůza + erikovi bíjci. Pokud se nám tam podaří dostat nějakého výrazného kupce či měšťana, tak to bude hezké, ale nevěřím, že si toho někdo všimne (a navíc ještě nevím o tom, že ve hře máme nějakého výrazného měšťana nebo kupce)" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="synagoga__jakmile_jedna_v_6fzU" Text="Jakmile jedna vlna padne, objeví se tam nová a až i ta pátá bude dead, spustí se druhá cutscéna, ve které ti tři utíkají přes synagogu, kterou zapálí tajnou cestou ven..." />
+				</GameplayActionElement>
+			</Elements>
+			<MapVizLocation MapName="kutnohorsko" PositionX="3322" PositionY="823" />
+		</Gameplay>
+	</Skald>
+</Database>

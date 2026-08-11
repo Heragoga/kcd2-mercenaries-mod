@@ -75,11 +75,10 @@ function mercenaries:ShowSquadStatus()
         end)
         -- Full detail (including wordy state) goes to the log.
         local msg = string.format(
-            "Squad: %d (%d melee / %d archers / %d heroes) | Health: %.0f%% avg, %d injured | Orders: %s | Targeting: %s | Archers: %s, %s",
+            "Squad: %d (%d melee / %d archers / %d heroes) | Health: %.0f%% avg, %d injured | Orders: %s | Archers: %s, %s",
             total, total - archers - heroes, archers, heroes,
             avg, injured,
             _G.MercenariesDismissed and "dismissed" or (self.CampActive and "camped" or (_G.MercIdle and "waiting" or "following")),
-            tostring(_G.MercStance or "everyone"),
             tostring(_G.ArcherStance or "skirmish"),
             self:GetArcherWeaponType())
         System.LogAlways('[Mercenary Jeff] ' .. msg)
@@ -199,7 +198,7 @@ end
 -- Test mode freezes it so the manual merc_buff_* commands aren't overwritten
 -- within 5s; merc_buff_auto hands control back.
 mercenaries.StatusBuffTestMode = false
-mercenaries.ExhaustedBuffDays  = 2      -- days out of camp before the exhausted icon
+mercenaries.ExhaustedBuffDays  = 3      -- days out of camp before the exhausted icon
 mercenaries.MoraleLowBuffAt    = -50    -- morale at/below this shows the low-morale icon
 
 function mercenaries:LogiUpdateStatusBuffs()

@@ -36,11 +36,13 @@ end
 
 -- ---------------------------------------------------------------------------
 -- combat_melee support. Sets: isTargetAlive, disengage, isArcher.
--- Disengage keeps each consumer's old semantics:
---   friend melee:  >20m from player, squad stance passive, or health critical
---   friend archer (melee stance): >25m from player, archer stance left melee,
---                  or health critical
---   enemy:         never (fights to the death; target death ends the burst)
+-- Disengage is distance/orders only - nobody breaks off over health. A merc that
+-- dropped combat when hurt just trailed the player unarmed in the middle of a
+-- fight, which read as cowardice and got him killed anyway; fighting on is both
+-- better-looking and no worse for survival.
+--   friend melee:  >20m from player
+--   friend archer (melee stance): >25m from player, or archer stance left melee
+--   enemy:         never (target death ends the burst)
 -- ---------------------------------------------------------------------------
 function mercenaries:UpdateMeleeCombatData(data, myWuid)
     local ok, err = pcall(function()
@@ -59,10 +61,6 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
 
         if data.isEnemy then return end
 
-        local hp = nil
-        pcall(function() hp = me.soul:GetState('health') end)
-        if hp ~= nil and hp <= 15 then data.disengage = true return end
-
         local distToPlayer = 0
         if player and me then
             local pp, mp = player:GetPos(), me:GetPos()
@@ -77,7 +75,6 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
             if (_G.ArcherStance or "skirmish") ~= "melee" then data.disengage = true end
         else
             if distToPlayer > 20.0 then data.disengage = true end
-            if _G.MercStance == "passive" then data.disengage = true end
         end
     end)
     if not ok then System.LogAlways('[AI] UpdateMeleeCombatData error: ' .. tostring(err)) end
@@ -87,8 +84,9 @@ end
 -- combat_archer_dynamic support. Sets: isTargetAlive, distanceToTarget,
 -- outOfAmmo, stanceValid, leashExceeded, hasRetreat (+retreatPos vec3).
 --   friend: leashes to the player at 40m, invalid when the archer stance
---           leaves skirmish (the merc archers' stance toggle)
---   enemy:  leashes to its own target at 60m, stance-free
+--           leaves skirmish (the merc archers' stance toggle). Never breaks off
+--           over health - our side fights to the death, same as the melee mercs.
+--   enemy:  leashes to its own target at 60m, stance-free, still flees when hurt
 -- Retreat: when the target closes into 4.5-9m, offer a ground-validated point
 -- ~4m further away so the archer keeps its distance while shooting.
 -- ---------------------------------------------------------------------------
@@ -135,10 +133,12 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
             data.outOfAmmo = (total == 0)
         end
 
-        -- Health flee, both sides (enemy archers also break at critical health).
-        local hp = nil
-        pcall(function() hp = me.soul:GetState('health') end)
-        if hp ~= nil and hp <= 12 then data.leashExceeded = true return end
+        -- Health flee, enemies only. Our archers hold their ground and die shooting.
+        if side ~= "friend" then
+            local hp = nil
+            pcall(function() hp = me.soul:GetState('health') end)
+            if hp ~= nil and hp <= 12 then data.leashExceeded = true return end
+        end
 
         local distToPlayer = 0
         if player and myPos then
@@ -165,7 +165,14 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
             if len > 0.1 then
                 ax, ay = ax / len, ay / len
                 local raw = { x = myPos.x + ax * 4.0, y = myPos.y + ay * 4.0, z = myPos.z }
-                local ground = self:FindValidGround(raw, myPos.z)
+                -- Don't kite backwards through a camp wall: if the step crosses one,
+                -- simply don't take it (the tree tolerates hasRetreat = false and just
+                -- keeps shooting from where it stands).
+                local blocked = false
+                if self.NavIsBlocked then
+                    pcall(function() blocked = self:NavIsBlocked(myPos, raw) end)
+                end
+                local ground = (not blocked) and self:FindValidGround(raw, myPos.z) or nil
                 if ground then
                     data.retreatPos.x = ground.x
                     data.retreatPos.y = ground.y

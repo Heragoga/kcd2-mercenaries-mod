@@ -17,7 +17,7 @@ desertion and mutiny all read off it.
 |---|---|
 | Kills (mercs or player) | up to **+20 per fight** (`MoralePerKill` each, capped) |
 | Merc deaths | **−5** each |
-| Tiredness (>2 days out of camp) | **−10/day** |
+| Tiredness (>3 days out of camp) | **−10/day** |
 | Starving | **−5/day** |
 | Drink available | **+10/day** |
 | Makeshift inn standing | **+10/day** (social) |
@@ -50,6 +50,11 @@ consuming a ration only at the evening tally. Drink is optional — having it ju
 feeds morale. Deliver any vanilla food/drink item (generated `FoodItemClasses` /
 `DrinkItemClasses`), or buy food (100 gr → 5).
 
+The **first camp you pitch** stocks `StartingSupplyDays` (3) days of food and
+drink for the squad size at that moment (`LogiGrantStartingSupplies`, called from
+`SpawnMercCamp`). A saved flag (`QMStartSupplies`) makes it once-only, so upgrade
+rebuilds and save restores don't top the stores back up.
+
 ## Wages & the war chest
 
 Deducted each evening by tier (5 / 10 / 20). Paid from the **coffer** (war chest)
@@ -81,7 +86,7 @@ without the `_icon` suffix); registered and driven in
 | Icon | Triggers when |
 |---|---|
 | Low morale | morale **≤ −50** |
-| Exhausted | **2 days** out of camp (`tiredness`) |
+| Exhausted | **3 days** out of camp (`tiredness`) |
 | Wounded | any live merc **< 50% health** |
 | No drink | drink stock **0** and no inn covering |
 | Short rations | **1 day** of food left (`LogiSupplyDays == 1`) |

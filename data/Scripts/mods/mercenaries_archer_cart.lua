@@ -109,6 +109,7 @@ function mercenaries:SpawnArcherCart(atPos, atYaw)
     Script.SetTimerForFunction(self.ArcherCartDelay, "mercenaries.ArcherCartSpawnArchersDelayed")
 
     System.LogAlways("[ArcherCart] cart #" .. #self.ArcherCarts .. " parked - archers in " .. self.ArcherCartDelay .. "ms")
+    pcall(function() if self.DefSave then self:DefSave() end end)
     return st
 end
 
@@ -197,9 +198,15 @@ function mercenaries:CartSpotIsValid(pos)
     return true
 end
 
+-- GHOST. The whole wagon mesh, keeping its OWN materials while the spot is valid
+-- (validMaterial = nil): wagon_b.cgf is multi-submaterial, and forcing a single white
+-- material onto it drops every submesh bound to another slot - only wheels and axle
+-- survived. Pink still works when blocked, because the engine substitutes the
+-- placeholder for every slot. See the note on GhostSetValid in mercenaries_tower.lua.
 function mercenaries:CartPlaceSpec()
     return {
         parts = { { model = self.ArcherCartModel, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0 } },
+        validMaterial = nil,
         sink = 0,
         isValid = function(s, pos) return s:CartSpotIsValid(pos) end,
         atMax   = function(s) return #s.ArcherCarts >= s.ArcherCartMax end,

@@ -1,3 +1,34 @@
+-- Follow chain: the fallback locomotion for any merc without a formation slot
+-- (mounted, waiting, NPC-led patrols). Each merc follows either the player or
+-- another merc a couple of places ahead, so the squad trails in a rough line.
+--
+-- The squad's real formation is docs/slot-formation.md (mercenaries_slots.lua).
+-- An earlier attempt drove it from the ENGINE formation system, which anchors on
+-- whoever ran MakeFormation - and the player has no behaviour tree, so it had to
+-- elect a merc to stand in for him. That is removed; docs/formations.md keeps the
+-- postmortem. FormationRank and IsFormationEligible survive because both systems
+-- share them.
+
+-- Formation rank: heroes lead, melee regulars next, archers at the back.
+function mercenaries:FormationRank(mercType)
+    if mercType == "hero" then return 0 end
+    if mercType == "archer" then return 2 end
+    return 1
+end
+
+-- One membership rule, shared by the slot formation and the follow chain. Keeping
+-- two copies is how they once diverged on IsCampActor, which let a merc be picked
+-- for a formation he was never eligible to join.
+function mercenaries:IsFormationEligible(ent, wuid)
+    if not wuid then return false end
+    if ent and not self:IsAliveAndWell(ent, false) then return false end
+    if self:IsMercInCampProper(wuid) then return false end
+    if self:IsCampActor(wuid) then return false end
+    if self.NpcFormations and self.NpcFormations[tostring(wuid)] then return false end
+    return true
+end
+
+
 function mercenaries:UpdateFormationSlots()
     local ok, err = pcall(function()
         self.FormationSlots = {}
@@ -34,12 +65,7 @@ function mercenaries:UpdateFormationSlots()
             end
         end
 
-        -- Formation rank: heroes lead, melee regulars next, archers at the back
-        local function formationRank(mercType)
-            if mercType == "hero" then return 0 end
-            if mercType == "archer" then return 2 end
-            return 1
-        end
+        local function formationRank(mercType) return mercenaries:FormationRank(mercType) end
 
         -- Mounted mercs: heroes first by name, then regulars, archers last
         table.sort(mounted, function(a, b)

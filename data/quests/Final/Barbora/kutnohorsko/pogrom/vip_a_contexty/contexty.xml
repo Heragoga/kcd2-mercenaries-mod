@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="contexty">
+			<Ports>
+				<Port Name="je_aktivni" Direction="In" Type="bool">
+					<DesignName StringName="contexty_je_aktivni_tzFX" Text="je aktivni" />
+				</Port>
+				<Port Name="all_npc" Direction="In" Type="wh::rpgmodule::Souls">
+					<DesignName StringName="contexty_npc_n9br" Text="all NPC" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<Function Name="joinarrays10" PositionY="-540" PositionX="-600" TypeT="wh::rpgmodule::Souls" MethodName="utilities::array::JoinArrays" DeclaringType="utilities::array">
+					<Asset Name="A" Alias="licht" />
+					<Edge From="all_npc" To="B" />
+				</Function>
+				<Function Name="joinarrays8" PositionY="-850" PositionX="-310" TypeT="wh::rpgmodule::Souls" MethodName="utilities::array::JoinArrays" DeclaringType="utilities::array">
+					<Asset Name="C" Alias="mrtvoly" />
+					<Asset Name="D" Alias="obranciSynagogy" />
+					<Asset Name="E" Alias="utocniciSynagogy" />
+					<Asset Name="F" Alias="utikajiciSPanikouSPochodnemi" />
+					<Asset Name="G" Alias="enemiesZTrackview" />
+					<Edge From="makearray9.Array" To="A" />
+					<Edge From="joinarrays10.Array" To="B" />
+				</Function>
+				<MakeArray Name="makearray9" PositionY="-1000" PositionX="-590" TypeT="wh::rpgmodule::Souls">
+					<Asset Name="A" Alias="pubLooter1" />
+					<Asset Name="B" Alias="pubLooter2" />
+					<Asset Name="C" Alias="pubLooter3" />
+					<Asset Name="D" Alias="pubLooter4" />
+					<Asset Name="E" Alias="obetNaHradbach" />
+					<Asset Name="F" Alias="erik" />
+				</MakeArray>
+				<SetEntityContext Name="setentitycontext7" PositionY="-450" PositionX="140">
+					<Constant Name="Context" Value="crime_disableHitFromPlayerReaction" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="joinarrays10.Array" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext7_1" PositionY="-240" PositionX="140">
+					<Constant Name="Context" Value="crime_ignoreCorpses" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="joinarrays10.Array" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext7_1_1" PositionY="-40" PositionX="150">
+					<Constant Name="Context" Value="crime_ignoreThefts" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="joinarrays10.Array" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext7_1_1_1" PositionY="170" PositionX="120">
+					<Constant Name="Context" Value="crime_ignoreCombatSounds" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="all_npc" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext7_1_1_1_1" PositionY="360" PositionX="120">
+					<Constant Name="Context" Value="crime_disableArrowTouchdownReaction" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="joinarrays10.Array" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext7_1_1_1_1_1" PositionY="560" PositionX="130">
+					<Constant Name="Context" Value="crime_ignorePlayerAiming" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="joinarrays10.Array" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext7_1_1_1_1_1_1" PositionY="750" PositionX="140">
+					<Constant Name="Context" Value="crime_ignorePlayersDrawnWeapon" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="joinarrays10.Array" To="Souls" />
+				</SetEntityContext>
+				<SetEntityContext Name="setentitycontext7_2" PositionY="-650" PositionX="120">
+					<Constant Name="Context" Value="deterrenceImmunity" />
+					<Edge From="je_aktivni" To="IsActive" />
+					<Edge From="joinarrays8.Array" To="Souls" />
+				</SetEntityContext>
+			</Nodes>
+			<Assets>
+				<SoulAsset Name="enemiesZTrackview" SharedSoulGuids="d554a68b-2c21-4a0e-94b5-8d907781bc45 aad9714c-4c6d-41ee-91d6-0ff990279ca4 315b1839-60fd-4ad3-b652-58e6ed944ea9 41cf0a64-c78a-4602-b52c-b1e304b93d5d c0f32066-cce0-4bbb-bef9-3300e6f5353d 351d1a3a-bb7a-4a10-88f3-5a98f1b4eca7 374447f3-1ca8-4ac8-9312-d84a766895ef d4987d50-9104-45d9-a8bc-2fc5f57828a0 4a99919d-acfa-40ea-a1f9-1f32b74d9ad7 153adf1e-a142-4bc9-aba3-7b67d333f1a2 607d19ee-0daa-4e89-bb18-69c80f2e2ffd 6c6b39af-e02b-4e94-b0bf-39bd47809864 df9ffe11-7bfa-41fb-a578-be9099592afc ce0f096d-abc7-4dda-be2b-67e8daad9efe df41ae9b-9005-4367-a6ae-291303fd8b0a 1611b098-9d1d-4499-9e50-a3ae1123b8e3 23ae56a0-c2ac-46ce-ab40-cdbd76940534 85986c8c-aacc-4a92-b324-41e5bba6703a 4dda01c0-c973-4531-9745-4813b9266289 4412adc0-78c9-4bf4-bae6-2787267c74d8 71eca5f4-1759-481d-bc20-0c593b0944b8 12ab28d3-02e1-4b58-9316-ae62916fbd30 c3b8c260-b9a3-42ff-9fe0-9c1046963b61 976f686e-2033-4e71-b50d-00804289701f 1483ab1a-8aee-4d04-b50f-c4da05637efc 9b4bc1b5-a0a0-4557-90db-f721d9419a54 a92fe9aa-5d6f-4199-8297-9665c924728f 4b543434-45f4-4a70-8401-0890b7ae9a2f 8b98b7af-fe3f-441f-b0fb-3b36f4db261e 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+			</Assets>
+			<Text StringName="contexty_2T9y" Text="Contexty" />
+		</Module>
+	</Skald>
+</Database>

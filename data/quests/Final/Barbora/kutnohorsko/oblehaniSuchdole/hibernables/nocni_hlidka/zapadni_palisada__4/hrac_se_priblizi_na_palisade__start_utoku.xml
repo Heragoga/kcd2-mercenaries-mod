@@ -1,0 +1,359 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="hrac_se_priblizi_na_palisade__start_utoku">
+			<Ports>
+				<Port Name="utok_startuje" Direction="Out" Type="trigger">
+					<DesignName StringName="hrac_se_p_utok_startuje_0krw" Text="útok startuje" />
+				</Port>
+				<Port Name="chat_timeoutuje" Direction="Out" Type="trigger">
+					<DesignName StringName="hrac_se_p_chat_timeoutuje_sJmB" Text="chat timeoutuje" />
+				</Port>
+				<Port Name="jindra_odhalil_utocniky" Direction="Out" Type="bool">
+					<DesignName StringName="hrac_se_p_jindra_odhalil__NH1l" Text="Jindra odhalil útočníky" />
+				</Port>
+				<Port Name="chat_aktivni" Direction="In" Type="trigger">
+					<DesignName StringName="hrac_se_p_chat_aktivni_JASZ" Text="chat aktivní" />
+				</Port>
+				<Port Name="hlidac_byl_probuzen" Direction="In" Type="bool">
+					<DesignName StringName="hrac_se_p_hlidac_byl_prob_FChn" Text="hlídač byl probuzen" />
+				</Port>
+				<Port Name="hrac_odhaluje_nepritele" Direction="Out" Type="trigger">
+					<DesignName StringName="hrac_se_p_hrac_odhaluje_n_m6uS" Text="hráč odhaluje nepřítele" />
+				</Port>
+				<Port Name="neco_je_spatne" Direction="Out" Type="trigger">
+					<DesignName StringName="hrac_se_p_neco_je_spatne_Id4I" Text="něco je špatně" />
+				</Port>
+				<Port Name="hrac_jde_na_hlidku" Direction="In" Type="trigger">
+					<DesignName StringName="hrac_se_p_hrac_jde_na_hli_VQxK" Text="hráč jde na hlídku" />
+				</Port>
+				<Port Name="utok_nastartoval" Direction="In" Type="trigger">
+					<DesignName StringName="hrac_se_p_utok_nastartoval_fqco" Text="útok nastartoval" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="hrac_se_priblizi_na_palisade__start_utoku/podezrely_hlidac_oslovuje_hrace.xml" />
+				<Definition File="hrac_se_priblizi_na_palisade__start_utoku/spousteni_utoku.xml" />
+				<Definition File="hrac_se_priblizi_na_palisade__start_utoku/hrac_vola_na_poplach.xml" />
+				<Definition File="hrac_se_priblizi_na_palisade__start_utoku/hlidac_z_hlavni_brany_troubi_na_poplach.xml" />
+				<Definition File="hrac_se_priblizi_na_palisade__start_utoku/strazny_na_brane_1_barkuje_kdyz_slysi_poplach.xml" />
+				<Definition File="hrac_se_priblizi_na_palisade__start_utoku/strazny_na_brane_2_barkuje_kdyz_slysi_poplach.xml" />
+				<Definition File="hrac_se_priblizi_na_palisade__start_utoku/hracovi_muzi_barkuji_kdyz_slysi_poplach.xml" />
+			</Definitions>
+			<Nodes>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17" PositionY="-70" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="chatujiciNepritel" />
+					<Constant Name="hitType_filter" Value="missile" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17_1" PositionY="570" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="nepritelSMozkem2" />
+					<Constant Name="hitType_filter" Value="missile" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17_1_1" PositionY="790" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="nepritelSMozkem3" />
+					<Constant Name="hitType_filter" Value="missile" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17_1_2" PositionY="1010" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="nepritelSMozkem4" />
+					<Constant Name="hitType_filter" Value="missile" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17_1_3" PositionY="1230" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="nepritelSMozkem5" />
+					<Constant Name="hitType_filter" Value="missile" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17_1_3_1" PositionY="1460" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="nepritelSMozkem6" />
+					<Constant Name="hitType_filter" Value="missile" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17_2" PositionY="140" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="chatujiciNepritel" />
+					<Constant Name="hitType_filter" Value="unarmed" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<AIConceptSignalTrigger Name="aiconceptsignaltriggerhitreactionnotification17_3" PositionY="350" PositionX="-640" NotificationName="hitReactionNotification">
+					<Asset Name="attacker_value_filter" Alias="player" />
+					<Asset Name="victim_value_filter" Alias="chatujiciNepritel" />
+					<Constant Name="hitType_filter" Value="armed" />
+					<Edge From="missileAttackTrigger.Active" To="IsActive" />
+				</AIConceptSignalTrigger>
+				<State Name="chatOnPalisade" PositionY="-260" PositionX="-1890" TypeT="NightWatchPalisade">
+					<Edge From="chat_aktivni" To="SetCheckingDistance">
+						<Vertex>wvBpkyPj</Vertex>
+						<Vertex>eRfbDsJ3</Vertex>
+					</Edge>
+					<Edge From="distancetrigger5.OnMatch" To="SetChatActive">
+						<Vertex>vertex16</Vertex>
+						<Vertex>vertex17</Vertex>
+					</Edge>
+					<Edge From="spousteni_utoku.utok_startuje" To="SetDone">
+						<Vertex>vertex9</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="ifnot28.True" To="SetNone" />
+				</State>
+				<DistanceTrigger Name="distancetrigger5" PositionY="-260" PositionX="-1480">
+					<Asset Name="Origin" Alias="chatujiciNepritel" />
+					<Asset Name="Target" Alias="player" />
+					<Constant Name="Operator" Value="LessEquals" />
+					<Constant Name="Distance" Value="6" />
+					<Edge From="chatOnPalisade.CheckingDistance" To="IsActive" />
+				</DistanceTrigger>
+				<hlidac_z_hlavni_brany_troubi_na_poplach Name="hlidac_z_hlavni_brany_troubi_na_poplach" PositionY="-250" PositionX="280">
+					<Edge From="spousteni_utoku.utok_startuje" To="utok_startuje">
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="hlidac_byl_probuzen" To="hlidac_byl_probuzen">
+						<Vertex>vertex3</Vertex>
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="podezrely_hlidac_oslovuje_hrace.hrac_odhaluje_nepritele" To="hrac_odhaluje_nepritele">
+						<Vertex>vertex18</Vertex>
+						<Vertex>VGqWNxkN</Vertex>
+					</Edge>
+					<Edge From="utok_nastartoval" To="utok_startuje">
+						<Vertex>KmTTLGpB</Vertex>
+						<Vertex>soLgTqfJ</Vertex>
+						<Vertex>IkpSFMT0</Vertex>
+					</Edge>
+				</hlidac_z_hlavni_brany_troubi_na_poplach>
+				<hrac_vola_na_poplach Name="hrac_vola_na_poplach" PositionY="190" PositionX="-150" />
+				<hracovi_muzi_barkuji_kdyz_slysi_poplach Name="hracovi_muzi_barkuji_kdyz_slysi_poplach" PositionY="740" PositionX="380" />
+				<IfFunction Name="ifnot28" PositionY="-260" PositionX="-2220" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+					<Edge From="utok_nastartoval" To="Exec" />
+					<Edge From="chatOnPalisade.Done" To="Value">
+						<Vertex>yjo7oYTG</Vertex>
+						<Vertex>JCcfeeWy</Vertex>
+					</Edge>
+				</IfFunction>
+				<Function Name="joinarrays26" PositionY="590" PositionX="-1890" TypeT="wh::rpgmodule::Souls" MethodName="utilities::array::JoinArrays" DeclaringType="utilities::array">
+					<Asset Name="A" Alias="chatujiciNepritel" />
+					<Asset Name="B" Alias="nepritelSMozkem2" />
+					<Asset Name="C" Alias="nepritelSMozkem3" />
+					<Asset Name="D" Alias="nepritelSMozkem4" />
+					<Asset Name="E" Alias="nepritelSMozkem5" />
+				</Function>
+				<State Name="missileAttackTrigger" PositionY="-70" PositionX="-1040" TypeT="Progress">
+					<Edge From="hrac_jde_na_hlidku" To="SetActive">
+						<Vertex>vertex43</Vertex>
+						<Vertex>vertex44</Vertex>
+					</Edge>
+					<Edge From="chatOnPalisade.OnDone" To="SetDone">
+						<Vertex>vertex32</Vertex>
+						<Vertex>vertex42</Vertex>
+					</Edge>
+					<Edge From="ifnot28.True" To="SetNone">
+						<Vertex>RvgLUV7W</Vertex>
+						<Vertex>E9YwRyeS</Vertex>
+					</Edge>
+				</State>
+				<Output Name="Output">
+					<Edge From="spousteni_utoku.utok_startuje" To="utok_startuje">
+						<Vertex>vertex9</Vertex>
+						<Vertex>vertex10</Vertex>
+					</Edge>
+					<Edge From="podezrely_hlidac_oslovuje_hrace.chat_timeoutuje" To="chat_timeoutuje">
+						<Vertex>vertex4</Vertex>
+						<Vertex>vertex5</Vertex>
+					</Edge>
+					<Edge From="podezrely_hlidac_oslovuje_hrace.hrac_odhaluje_nepritele" To="hrac_odhaluje_nepritele">
+						<Vertex>vertex18</Vertex>
+						<Vertex>VGqWNxkN</Vertex>
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="hrac_vola_na_poplach.seq1" To="jindra_odhalil_utocniky">
+						<Vertex>R3he0Moz</Vertex>
+						<Vertex>13IHkc0h</Vertex>
+					</Edge>
+					<Edge From="chatOnPalisade.OnCheckingDistance" To="neco_je_spatne">
+						<Vertex>vertex22</Vertex>
+						<Vertex>vertex12</Vertex>
+						<Vertex>vertex13</Vertex>
+						<Vertex>x9QorE1k</Vertex>
+					</Edge>
+				</Output>
+				<podezrely_hlidac_oslovuje_hrace Name="podezrely_hlidac_oslovuje_hrace" PositionY="-280" PositionX="-640" />
+				<Function Name="requestmonologue4" PositionY="410" PositionX="-150" MethodName="wh::xgenaimodule::RequestMonologue" DeclaringType="wh::xgenaimodule">
+					<Asset Name="Souls" Alias="player" />
+					<Constant Name="DecisionAlias" Value="oblehaniSuchdole_hracVolaNaPoplach" />
+					<Constant Name="CanBeDelayed" Value="true" />
+					<Constant Name="ForceSubtitles" Value="true" />
+					<Edge From="missileAttackTrigger.OnDone" To="Exec">
+						<Vertex>eWLlKe83</Vertex>
+						<Vertex>JPhG30SX</Vertex>
+					</Edge>
+				</Function>
+				<SetEntityContext Name="setentitycontext21" PositionY="350" PositionX="-1480">
+					<Constant Name="Context" Value="combat_neverSurrenderOrFlee" />
+					<Edge From="unresponsiveNinjove.State" To="IsActive">
+						<Vertex>vertex37</Vertex>
+					</Edge>
+					<Edge From="joinarrays26.Array" To="Souls">
+						<Vertex>vertex38</Vertex>
+					</Edge>
+				</SetEntityContext>
+				<SetEntityContextPreset Name="setentitycontextpreset9" PositionY="560" PositionX="-1480">
+					<Constant Name="Preset" Value="switch_unresponsive" />
+					<Edge From="unresponsiveNinjove.State" To="IsActive">
+						<Vertex>vertex37</Vertex>
+					</Edge>
+					<Edge From="joinarrays26.Array" To="Souls">
+						<Vertex>vertex38</Vertex>
+					</Edge>
+				</SetEntityContextPreset>
+				<spousteni_utoku Name="spousteni_utoku" PositionY="-240" PositionX="-150">
+					<Edge From="podezrely_hlidac_oslovuje_hrace.hrac_odhaluje_nepritele" To="hrac_odhaluje_nepritele" />
+					<Edge From="podezrely_hlidac_oslovuje_hrace.chat_timeoutuje" To="chat_timeoutuje" />
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17_1.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17_1_1.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17_1_2.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17_1_3.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="chatOnPalisade.OnCheckingDistance" To="aktivace">
+						<Vertex>vertex22</Vertex>
+						<Vertex>vertex12</Vertex>
+						<Vertex>vertex13</Vertex>
+					</Edge>
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17_1_3_1.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17_2.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="aiconceptsignaltriggerhitreactionnotification17_3.OnNotification" To="hrac_odhaluje_nepritele" />
+					<Edge From="utok_nastartoval" To="deaktivace">
+						<Vertex>KmTTLGpB</Vertex>
+						<Vertex>soLgTqfJ</Vertex>
+					</Edge>
+				</spousteni_utoku>
+				<startchat Name="startchat" PositionY="-10" PositionX="-1480" Namespace="utils.speech">
+					<Asset Name="smartenity" Alias="qso" />
+					<Asset Name="npc" Alias="chatujiciNepritel" />
+					<Constant Name="alias" Value="oblehaniSuchdole_podezrelyHlidacOslovujeHrace" />
+					<Edge From="chatOnPalisade.ChatActive" To="active" />
+				</startchat>
+				<strazny_na_brane_1_barkuje_kdyz_slysi_poplach Name="strazny_na_brane_1_barkuje_kdyz_slysi_poplach" PositionY="320" PositionX="380" />
+				<strazny_na_brane_2_barkuje_kdyz_slysi_poplach Name="strazny_na_brane_2_barkuje_kdyz_slysi_poplach" PositionY="530" PositionX="380" />
+				<State Name="unresponsiveNinjove" PositionY="340" PositionX="-1890" TypeT="bool">
+					<Edge From="hrac_jde_na_hlidku" To="SetTrue">
+						<Vertex>0ottzKNo</Vertex>
+						<Vertex>h2huB121</Vertex>
+					</Edge>
+				</State>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="0ottzKNo" PositionY="320" PositionX="-2200" />
+				<EdgeVertex Name="13IHkc0h" PositionY="-330" PositionX="870" />
+				<EdgeVertex Name="E9YwRyeS" PositionY="280" PositionX="-1150" />
+				<EdgeVertex Name="eRfbDsJ3" PositionY="280" PositionX="-1960" />
+				<EdgeVertex Name="eWLlKe83" PositionY="-270" PositionX="-720" />
+				<EdgeVertex Name="h2huB121" PositionY="320" PositionX="-1960" />
+				<EdgeVertex Name="IkpSFMT0" PositionY="-370" PositionX="180" />
+				<EdgeVertex Name="JCcfeeWy" PositionY="260" PositionX="-2200" />
+				<EdgeVertex Name="JPhG30SX" PositionY="-270" PositionX="-220" />
+				<EdgeVertex Name="KmTTLGpB" PositionY="-370" PositionX="-2220" />
+				<EdgeVertex Name="R3he0Moz" PositionY="-330" PositionX="250" />
+				<EdgeVertex Name="RvgLUV7W" PositionY="280" PositionX="-1910" />
+				<EdgeVertex Name="soLgTqfJ" PositionY="-372" PositionX="-226" />
+				<EdgeVertex Name="vertex1" PositionY="-330" PositionX="180" />
+				<EdgeVertex Name="vertex10" PositionY="-290" PositionX="870" />
+				<EdgeVertex Name="vertex12" PositionY="-310" PositionX="-720" />
+				<EdgeVertex Name="vertex13" PositionY="-310" PositionX="-220" />
+				<EdgeVertex Name="vertex15" PositionY="-290" PositionX="-1890" />
+				<EdgeVertex Name="vertex16" PositionY="-350" PositionX="-1210" />
+				<EdgeVertex Name="vertex17" PositionY="-350" PositionX="-1890" />
+				<EdgeVertex Name="vertex18" PositionY="-270" PositionX="-180" />
+				<EdgeVertex Name="vertex19" PositionY="-270" PositionX="870" />
+				<EdgeVertex Name="vertex22" PositionY="-310" PositionX="-1480" />
+				<EdgeVertex Name="vertex3" PositionY="-330" PositionX="-2220" />
+				<EdgeVertex Name="vertex32" PositionY="320" PositionX="-1460" />
+				<EdgeVertex Name="vertex37" PositionY="550" PositionX="-1560" />
+				<EdgeVertex Name="vertex38" PositionY="530" PositionX="-1560" />
+				<EdgeVertex Name="vertex4" PositionY="-250" PositionX="-180" />
+				<EdgeVertex Name="vertex42" PositionY="320" PositionX="-1150" />
+				<EdgeVertex Name="vertex43" PositionY="300" PositionX="-2200" />
+				<EdgeVertex Name="vertex44" PositionY="300" PositionX="-1150" />
+				<EdgeVertex Name="vertex5" PositionY="-250" PositionX="870" />
+				<EdgeVertex Name="vertex9" PositionY="-290" PositionX="210" />
+				<EdgeVertex Name="VGqWNxkN" PositionY="-271" PositionX="214" />
+				<EdgeVertex Name="wvBpkyPj" PositionY="280" PositionX="-2200" />
+				<EdgeVertex Name="x9QorE1k" PositionY="-310" PositionX="870" />
+				<EdgeVertex Name="yjo7oYTG" PositionY="260" PositionX="-1630" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="NightWatchPalisade">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="CheckingDistance" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="ChatActive" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Done" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Assets>
+				<TagPointAsset Name="podezrelyHlidac_tp" />
+				<SoulAsset Name="nepritelSMozkem4" SharedSoulGuids="08b8e6f8-b417-42d8-aad4-8f7a08517762 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="nepritelSMozkem5" SharedSoulGuids="0360e812-f325-4d23-b708-90f226950493 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="nepritelSMozkem2" SharedSoulGuids="ee06d119-4e93-4c57-9292-09bf1487ace2 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="nepritelSMozkem3" SharedSoulGuids="60eb68c2-9ccc-4996-a174-811d316567bd 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<TriggerAreaAsset Name="nightAttack_startingArea" />
+			</Assets>
+			<Notes>
+				<Note Name="note1" PositionY="680" PositionX="870">
+					<Text StringName="hrac_se_p_note1_zF3n" Text="Jen pokud je dal hráč na hlídku - zapojit" />
+				</Note>
+				<Note Name="note11" PositionY="-130" PositionX="-1160">
+					<Text StringName="hrac_se_p_note11_5anC" Text="deaktivace kdyz hrac odejde dal nez 7m" />
+				</Note>
+				<Note Name="note11_1" PositionY="770" PositionX="-1480">
+					<Text StringName="hrac_se_p_note11_1_0BXW" Text="cteni hitreakce na NPC" />
+				</Note>
+				<Note Name="note19" PositionY="110" PositionX="280">
+					<Text StringName="hrac_se_p_note19_XEat" Text="Zadat zvuk a zjistit jak je na tom animace - zjistit co je s animaci a zvukem a dodelat" />
+				</Note>
+			</Notes>
+			<Text StringName="hrac_se_priblizi_na_palis_SVwH" Text="Hráč se přiblíží na palisádě - start útoku" />
+			<Elements>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p_objective_na_ko_SPaD" Text="Objective na kontrolu Podezřelý hlídač pouští na hráče chat." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p_utok_startuje_o_4kzc" Text="Útok startuje odhalením, nebo neodhalením." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p_odhaleni_MZa1" Text="Odhalení:" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p__hrac_v_chatu_o_sy0O" Text="- Hráč v chatu odhalí nepřítele." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p__hrac_prijde_na_7td8" Text="- Hráč přijde na dosah hlídače, chat končí a začíná útok." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p__hrac_zautoci_o_lqyk" Text="- Hráč zaútočí odkudkoli na hlídače nebo některého z nindžů." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p__chat_timeoutuj_6BYy" Text="- Chat timeoutuje a hráč je stále blízko." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p_neodhaleni_ZqVl" Text="Neodhalení:" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p__chat_timeoutuj_P9Dm" Text="- Chat timeoutuje a hráč je daleko / chat je zrušen, protože hráč odešel moc daleko. v ten moment se na hradbu zvedne druhý žebřík a NPC začnou lézt nahoru. Jakmile je na hradbě 10 NPC, začíná útok." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="hrac_se_p__hraci_prohlidk_SRHY" Text="- Hráči prohlídka trvá moc dlouho - od začátku běží timer na 20 minut, a pokud hráč za tu dobu nedojde na západní palisádu, spouští se stejná situace jako v první variantě neodhalení." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text Text="" />
+				</GameplayActionElement>
+			</Elements>
+		</Gameplay>
+	</Skald>
+</Database>

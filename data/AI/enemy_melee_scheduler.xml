@@ -16,6 +16,10 @@
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" />
             <Variable name="crimeInformation" type="information" values="" isPersistent="0" form="single" />
             <Variable name="mrkev" type="_wuid" values="" isPersistent="0" form="single" />
+        <!-- wbLocked: forming up for a walled battle - do not start fights. -->
+        <Variable name="wbLocked" type="_bool" values="false" isPersistent="0" form="single" />
+        <Variable name="wbStageGo" type="_bool" values="false" isPersistent="0" form="single" />
+        <Variable name="wbMrkev" type="_wuid" values="" isPersistent="0" form="single" />
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">
@@ -49,7 +53,7 @@
 
                         <Loop count="-1">
                             <Sequence>
-                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $currentTarget ~= $__null">
+                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $currentTarget ~= $__null &amp; ~$wbLocked">
                                     <Sequence>
                                         <Expression expressions="$playerWUID = $__player" />
                                         <SuppressFailure>
@@ -73,7 +77,6 @@
                             </Sequence>
                         </Loop>
 
-                    
                         <!-- Enemy camp life: while assigned a camp role and not fighting, run
                              camp_actor. Combat interrupts replace it (same priority + ignore),
                              and it re-fires once combat is over. -->
@@ -83,7 +86,7 @@
                                 <IfCondition failOnCondition="false" condition="$inCombat">
                                     <Expression expressions="$campFired = false" />
                                 </IfCondition>
-                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $isCampActor &amp; $currentTarget == $__null &amp; ~$campFired">
+                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $isCampActor &amp; $currentTarget == $__null &amp; ~$campFired &amp; ~$wbLocked">
                                     <Sequence>
                                         <SuppressFailure>
                                             <Function_crime_getMrkev mrkev="$campMrkev" nodeLabel="1236" />
@@ -99,6 +102,24 @@
                                     </Sequence>
                                 </IfCondition>
                                 <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'500ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Staged walled battle: walk to the muster point at the gap. Only a tree can
+                             fire the interrupt that actually moves him, and this fires only while he
+                             has a staging assignment, so it cannot compete with anything else. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:WBCombatPoll(data, entity); mercenaries:WBStagePoll(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$wbStageGo">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$wbMrkev" nodeLabel="1243" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$wbMrkev" Behavior="'nav_goto'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                             </Sequence>
                         </Loop>
 

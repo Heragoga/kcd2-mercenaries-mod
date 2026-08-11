@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="cekani_v_krypte">
+			<Ports>
+				<Port Name="je_aktivni" Direction="In" Type="bool">
+					<DesignName StringName="cekani_v__je_aktivni_gFtW" Text="je aktivni" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<EnableBehavior Name="enablebehaviorgoto2" PositionY="210" PositionX="-30" Signature="goto" EventSet="">
+					<Constant Name="Behavior" Value="waitWithTorch" />
+					<Asset Name="SmartEntity" Alias="qSo" />
+					<Asset Name="NPC" Alias="bohuta_npc" />
+					<Asset Name="tagpoint" Alias="bohutaVKryptePoint" />
+					<Edge From="je_aktivni" To="IsActive" />
+				</EnableBehavior>
+				<EnableBehavior Name="enablebehaviorgoto2_1" PositionY="-80" PositionX="-30" Signature="goto" EventSet="">
+					<Constant Name="Behavior" Value="waitWithTorch" />
+					<Asset Name="SmartEntity" Alias="qSo" />
+					<Asset Name="NPC" Alias="sam" />
+					<Asset Name="tagpoint" Alias="samuelVKryptePoint" />
+					<Edge From="je_aktivni" To="IsActive" />
+				</EnableBehavior>
+				<ExactMove Name="ExactMove_1_1" PositionY="-340" PositionX="-30" Namespace="prepadenivlasskehodvora">
+					<Asset Name="npc" Alias="katerina" />
+					<Asset Name="destination" Alias="katerinaVKryptePoint" />
+					<Constant Name="speed" Value="AlertedWalk" />
+					<Edge From="je_aktivni" To="isactive" />
+				</ExactMove>
+			</Nodes>
+			<Text StringName="cekani_v_krypte_5GLZ" Text="Cekani v krypte" />
+		</Module>
+	</Skald>
+</Database>

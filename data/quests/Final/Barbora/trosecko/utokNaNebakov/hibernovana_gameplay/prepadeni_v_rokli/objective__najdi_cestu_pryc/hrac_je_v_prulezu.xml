@@ -1,0 +1,398 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="hrac_je_v_prulezu">
+			<Ports>
+				<Port Name="obj__najdi_cestu" Direction="In" Type="bool">
+					<DesignName StringName="hrac_je_v_obj__najdi_cestu_H5pI" Text="obj - Najdi cestu" />
+				</Port>
+				<Port Name="seskocil_ze_skaly" Direction="In" Type="trigger">
+					<DesignName StringName="hrac_je_v_seskocil_ze_ska_hoNl" Text="seskočil ze skály" />
+				</Port>
+				<Port Name="ptacek_bezi_za_mlyn" Direction="Out" Type="bool">
+					<DesignName StringName="hrac_je_v_hrac_se_nekde_m_hYhh" Text="Ptáček běží za mlýn" />
+				</Port>
+				<Port Name="jindra_nasel_cestu" Direction="Out" Type="trigger">
+					<DesignName StringName="hrac_je_v_jindra_nasel_ce_kLb0" Text="Jindra našel cestu" />
+				</Port>
+				<Port Name="hrac_je_v_prulezu" Direction="Out" Type="bool">
+					<DesignName StringName="hrac_je_v_hrac_je_v_prule_JEg0" Text="hráč je v průlezu" />
+				</Port>
+				<Port Name="jde_cekat" Direction="Out" Type="trigger">
+					<DesignName StringName="hrac_je_v_jde_cekat_DMst" Text="Ptáček už nečeká pod seskokem" />
+				</Port>
+				<Port Name="obj_zachran_se_s_ptackem__aktivni" Direction="In" Type="bool">
+					<DesignName StringName="hrac_je_v_obj_zachran_se__UV8x" Text="obj Zachraň se s Ptáčkem - aktivní" />
+				</Port>
+				<Port Name="spusteni_cutsceny_se_zizkou" Direction="In" Type="trigger">
+					<DesignName StringName="hrac_je_v_spusteni_cutsce_y6Yd" Text="spuštění cutscény se Žižkou" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<Function Name="addbuff34" PositionY="690" PositionX="-480" MethodName="wh::rpgmodule::AddBuff" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="rockPath_enemy_2" />
+					<Constant Name="Buff" Value="f8d60fe4-e2c1-420a-946a-213e1cd09264" />
+					<Edge From="area_triggeronce_2_1.onenter" To="Exec" />
+				</Function>
+				<Function Name="addbuff34_1" PositionY="460" PositionX="-480" MethodName="wh::rpgmodule::AddBuff" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="rockPath_enemy_1" />
+					<Constant Name="Buff" Value="f8d60fe4-e2c1-420a-946a-213e1cd09264" />
+					<Edge From="area_triggeronce_2.onenter" To="Exec" />
+				</Function>
+				<Function Name="and15" PositionY="-400" PositionX="-2660" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="prulez.None" To="B">
+						<Vertex>vertex18</Vertex>
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="obj__najdi_cestu" To="A" />
+				</Function>
+				<Function Name="and19" PositionY="1170" PositionX="-1080" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="streamprofileshandling.profileactive" To="A" />
+					<Edge From="or17.bool" To="B">
+						<Vertex>duLJdEq5</Vertex>
+						<Vertex>4Hzm1Vta</Vertex>
+						<Vertex>Mz6clPnt</Vertex>
+					</Edge>
+				</Function>
+				<Function Name="and25" PositionY="-840" PositionX="-1430" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="prulez.CaponIsComing" To="A" />
+					<Edge From="streamprofileshandling.profileactive" To="B">
+						<Vertex>AvlzGAFz</Vertex>
+						<Vertex>sRFfptcS</Vertex>
+					</Edge>
+				</Function>
+				<Function Name="and30" PositionY="1470" PositionX="-1080" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="streamprofileshandling.profileactive" To="A" />
+					<Edge From="obj_zachran_se_s_ptackem__aktivni" To="B">
+						<Vertex>MVNXF88B</Vertex>
+						<Vertex>aounDXFD</Vertex>
+						<Vertex>Cjf2MTlm</Vertex>
+						<Vertex>Kl8P1hbm</Vertex>
+					</Edge>
+				</Function>
+				<area_triggeronce Name="area_triggeronce_1" PositionY="50" PositionX="-1430" Namespace="utoknanebakov">
+					<Asset Name="souls" Alias="ptacek" />
+					<Asset Name="areas" Alias="valley_immortalityForCaponArea" />
+					<Edge From="prulez.CaponIsComing" To="isactive" />
+				</area_triggeronce>
+				<area_triggeronce Name="area_triggeronce_2" PositionY="440" PositionX="-800" Namespace="utoknanebakov">
+					<Asset Name="souls" Alias="rockPath_enemy_1" />
+					<Asset Name="areas" Alias="rockPath_killArea" />
+					<Edge From="streamprofileshandling.profileactive" To="isactive">
+						<Vertex>m6mAShcy</Vertex>
+					</Edge>
+				</area_triggeronce>
+				<area_triggeronce Name="area_triggeronce_2_1" PositionY="670" PositionX="-800" Namespace="utoknanebakov">
+					<Asset Name="souls" Alias="rockPath_enemy_2" />
+					<Asset Name="areas" Alias="rockPath_killArea" />
+					<Edge From="streamprofileshandling.profileactive" To="isactive">
+						<Vertex>m6mAShcy</Vertex>
+					</Edge>
+				</area_triggeronce>
+				<AreaTrigger Name="areatrigger16" PositionY="-400" PositionX="-2360">
+					<Asset Name="Souls" Alias="player" />
+					<Asset Name="Areas" Alias="valley_immortalityForCaponArea" />
+					<Edge From="and15.bool" To="IsActive" />
+				</AreaTrigger>
+				<Function Name="audiooneshot32" PositionY="460" PositionX="-150" MethodName="wh::soundmodule::AudioOneShot" DeclaringType="wh::soundmodule">
+					<Constant Name="AtlTriggerName" Value="v_soldier_1_hit" />
+					<Asset Name="LinkableObject" Alias="rockPath_enemy_1" />
+					<Edge From="addbuff34_1.OnExec" To="Exec" />
+				</Function>
+				<Function Name="audiooneshot32_1" PositionY="690" PositionX="-150" MethodName="wh::soundmodule::AudioOneShot" DeclaringType="wh::soundmodule">
+					<Constant Name="AtlTriggerName" Value="v_soldier_2_hit" />
+					<Asset Name="LinkableObject" Alias="rockPath_enemy_2" />
+					<Edge From="addbuff34.OnExec" To="Exec" />
+				</Function>
+				<State Name="caponIsComingToPrulez" PositionY="-1610" PositionX="-1450" TypeT="Progress">
+					<Edge From="prulez.OnCaponFighting" To="SetActive" />
+					<Edge From="movewithweapon_1.reacheddestination" To="SetDone">
+						<Vertex>TCRouVLT</Vertex>
+						<Vertex>h1cbcv6z</Vertex>
+					</Edge>
+					<Edge From="deathtrigger1.OnAllDeath" To="SetDone">
+						<Vertex>vertex1</Vertex>
+						<Vertex>VaMHtmDD</Vertex>
+					</Edge>
+					<Edge From="fight.first_group_won" To="SetDone">
+						<Vertex>vertex1</Vertex>
+						<Vertex>VaMHtmDD</Vertex>
+					</Edge>
+				</State>
+				<SoulDeathTrigger Name="deathtrigger1" PositionY="420" PositionX="-1430">
+					<Edge From="prulez.CaponFighting" To="IsActive">
+						<Vertex>vertex16</Vertex>
+					</Edge>
+					<Edge From="makearray24.Array" To="Souls" />
+				</SoulDeathTrigger>
+				<DistanceTrigger Name="distancetrigger20" PositionY="-1090" PositionX="-1130">
+					<Asset Name="Origin" Alias="player" />
+					<Asset Name="Target" Alias="rockPath_enemy_1" />
+					<Constant Name="Operator" Value="LessEquals" />
+					<Constant Name="Distance" Value="3" />
+					<Edge From="and25.bool" To="IsActive" />
+				</DistanceTrigger>
+				<DistanceTrigger Name="distancetrigger20_1" PositionY="-830" PositionX="-1130">
+					<Asset Name="Origin" Alias="player" />
+					<Asset Name="Target" Alias="rockPath_enemy_2" />
+					<Constant Name="Operator" Value="LessEquals" />
+					<Constant Name="Distance" Value="3" />
+					<Edge From="and25.bool" To="IsActive" />
+				</DistanceTrigger>
+				<EnableBehavior Name="enablebehaviorutoknanebakovcaponwaitingunderrockjumpendnotification13" PositionY="-410" PositionX="-1430" Signature="utokNaNebakov_caponWaitingUnderRockJump" EventSet="endNotification">
+					<Constant Name="Behavior" Value="caponWaitingUnderRockJump" />
+					<Asset Name="SmartEntity" Alias="rockPath_SO" />
+					<Asset Name="NPC" Alias="ptacek" />
+					<Constant Name="ForceKick" Value="true" />
+					<Asset Name="goto" Alias="rockPath_crouchingCapon" />
+					<Constant Name="waitDelay" Value="15s" />
+					<Edge From="prulez.CaponIsComing" To="IsActive" />
+				</EnableBehavior>
+				<fight Name="fight" PositionY="620" PositionX="-1430" Namespace="utils.battle">
+					<Constant Name="isrecordingsession" Value="false" />
+					<Constant Name="redordingsession" Value="_" />
+					<Asset Name="groupcontroller" Alias="rockPath_caponController" />
+					<Asset Name="enemygroupcontroller" Alias="rockPath_enemyController" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="forcekick" Value="true" />
+					<Edge From="prulez.CaponFighting" To="isactive">
+						<Vertex>vertex16</Vertex>
+					</Edge>
+				</fight>
+				<IfFunction Name="ifdeathcheck3" PositionY="70" PositionX="-1080" MethodName="wh::rpgmodule::DeathCheck" DeclaringType="wh::rpgmodule">
+					<Edge From="area_triggeronce_1.onenter" To="Exec" />
+					<Edge From="makearray24.Array" To="Souls">
+						<Vertex>lPwHbPuf</Vertex>
+						<Vertex>2JW57LWl</Vertex>
+					</Edge>
+				</IfFunction>
+				<KillNpc Name="KillNpc" PositionY="680" PositionX="730" Namespace="utils.general">
+					<Asset Name="victims" Alias="rockPath_enemy_2" />
+					<Asset Name="attacker" Alias="rockPath_enemy_2" />
+					<Constant Name="suppresshitreaction" Value="true" />
+					<Edge From="timer35_1.OnFinished" To="exec" />
+				</KillNpc>
+				<KillNpc Name="KillNpc_1" PositionY="460" PositionX="730" Namespace="utils.general">
+					<Asset Name="victims" Alias="rockPath_enemy_1" />
+					<Asset Name="attacker" Alias="rockPath_enemy_1" />
+					<Constant Name="suppresshitreaction" Value="true" />
+					<Edge From="timer35.OnFinished" To="exec" />
+				</KillNpc>
+				<MakeArray Name="makearray24" PositionY="450" PositionX="-1880" TypeT="wh::rpgmodule::Souls">
+					<Asset Name="A" Alias="rockPath_enemy_1" />
+					<Asset Name="B" Alias="rockPath_enemy_2" />
+				</MakeArray>
+				<MakeArray Name="makearray29" PositionY="2230" PositionX="-1560" TypeT="wh::rpgmodule::Souls">
+					<Asset Name="A" Alias="prulezSoldier_1" />
+					<Asset Name="B" Alias="prulezSoldier_2" />
+				</MakeArray>
+				<movewithweapon Name="movewithweapon" PositionY="1150" PositionX="-800" Namespace="utils.utoknanebakov_utils">
+					<Asset Name="smartentity" Alias="utokNaNebakov" />
+					<Asset Name="destination" Alias="behindSecondTreeAttack" />
+					<Constant Name="speed" Value="Run" />
+					<Constant Name="successdistance" Value="2" />
+					<Constant Name="deactivateoninterrupt" Value="true" />
+					<Constant Name="exactmove" Value="false" />
+					<Constant Name="weaponslot" Value="Primary" />
+					<Edge From="and19.bool" To="active" />
+					<Edge From="makearray24.Array" To="npc">
+						<Vertex>KMlAEXBh</Vertex>
+						<Vertex>6nM5B35b</Vertex>
+					</Edge>
+				</movewithweapon>
+				<movewithweapon Name="movewithweapon_1" PositionY="-1640" PositionX="-1140" Namespace="utils.utoknanebakov_utils">
+					<Asset Name="smartentity" Alias="utokNaNebakov_valley" />
+					<Asset Name="npc" Alias="ptacek" />
+					<Asset Name="destination" Alias="behindSecondTreeAttack" />
+					<Constant Name="speed" Value="SlowDash" />
+					<Constant Name="successdistance" Value="2" />
+					<Constant Name="deactivateoninterrupt" Value="true" />
+					<Constant Name="exactmove" Value="false" />
+					<Constant Name="weaponslot" Value="Primary" />
+					<Edge From="caponIsComingToPrulez.Active" To="active" />
+				</movewithweapon>
+				<movewithweapon Name="movewithweapon_2" PositionY="1730" PositionX="-1080" Namespace="utils.utoknanebakov_utils">
+					<Asset Name="smartentity" Alias="utokNaNebakov_valley" />
+					<Asset Name="destination" Alias="reinforcementFleePoint" />
+					<Constant Name="speed" Value="Dash" />
+					<Constant Name="successdistance" Value="1" />
+					<Constant Name="deactivateoninterrupt" Value="true" />
+					<Constant Name="exactmove" Value="false" />
+					<Constant Name="weaponslot" Value="Primary" />
+					<Edge From="prulezSoldiersAreNearSeskok.Active" To="active" />
+					<Edge From="makearray29.Array" To="npc" />
+				</movewithweapon>
+				<Function Name="or17" PositionY="-670" PositionX="-1430" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="prulez.CaponIsComing" To="A" />
+					<Edge From="prulez.CaponFighting" To="B" />
+				</Function>
+				<Output Name="Output">
+					<Edge From="prulez.Done" To="ptacek_bezi_za_mlyn">
+						<Vertex>vertex12</Vertex>
+					</Edge>
+					<Edge From="or17.bool" To="hrac_je_v_prulezu">
+						<Vertex>duLJdEq5</Vertex>
+						<Vertex>DNyomzyn</Vertex>
+					</Edge>
+					<Edge From="prulez.OnCaponIsComing" To="jindra_nasel_cestu">
+						<Vertex>vertex20</Vertex>
+						<Vertex>vertex21</Vertex>
+					</Edge>
+					<Edge From="enablebehaviorutoknanebakovcaponwaitingunderrockjumpendnotification13.OnFinished" To="jde_cekat" />
+				</Output>
+				<State Name="prulez" PositionY="-410" PositionX="-1900" TypeT="Prulez">
+					<Edge From="seskocil_ze_skaly" To="SetDone">
+						<Vertex>vertex3</Vertex>
+						<Vertex>PQlCjKE1</Vertex>
+					</Edge>
+					<Edge From="enablebehaviorutoknanebakovcaponwaitingunderrockjumpendnotification13.OnFinished" To="SetDone">
+						<Vertex>vertex8</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="ifdeathcheck3.False" To="SetCaponFighting">
+						<Vertex>vertex14</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="movewithweapon.reacheddestination" To="SetCaponFighting">
+						<Vertex>vmE5UhaC</Vertex>
+						<Vertex>vertex14</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="areatrigger16.OnEnter" To="SetCaponIsComing" />
+					<Edge From="fight.first_group_won" To="SetCaponIsComing">
+						<Vertex>vertex1</Vertex>
+						<Vertex>VaMHtmDD</Vertex>
+						<Vertex>vertex13</Vertex>
+					</Edge>
+					<Edge From="deathtrigger1.OnAllDeath" To="SetCaponIsComing">
+						<Vertex>vertex1</Vertex>
+						<Vertex>VaMHtmDD</Vertex>
+						<Vertex>vertex13</Vertex>
+					</Edge>
+					<Edge From="distancetrigger20_1.OnMatch" To="SetCaponFighting">
+						<Vertex>C7DdNWQM</Vertex>
+						<Vertex>vmE5UhaC</Vertex>
+						<Vertex>vertex14</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="distancetrigger20.OnMatch" To="SetCaponFighting">
+						<Vertex>C7DdNWQM</Vertex>
+						<Vertex>vmE5UhaC</Vertex>
+						<Vertex>vertex14</Vertex>
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="prulezSoldiersAreNearSeskok.OnActive" To="SetDone">
+						<Vertex>AcJY5NLf</Vertex>
+						<Vertex>P37DvBkG</Vertex>
+					</Edge>
+				</State>
+				<State Name="prulezSoldiersAreNearSeskok" PositionY="1760" PositionX="-1420" TypeT="Progress">
+					<Edge From="seskocil_ze_skaly" To="SetActive">
+						<Vertex>vertex3</Vertex>
+						<Vertex>PQlCjKE1</Vertex>
+						<Vertex>2cWRQ8QP</Vertex>
+					</Edge>
+					<Edge From="movewithweapon_2.reacheddestination" To="SetDone">
+						<Vertex>3pQv8wEJ</Vertex>
+						<Vertex>FYDSRnXe</Vertex>
+					</Edge>
+				</State>
+				<registerbattlegroups Name="registerbattlegroups" PositionY="1530" PositionX="-800" Namespace="utils.battle">
+					<Asset Name="groupcontrollers" Alias="rockPath_enemyController" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="and30.bool" To="isactive" />
+				</registerbattlegroups>
+				<SetEntityContext Name="setentitycontext26" PositionY="940" PositionX="-800">
+					<Constant Name="Context" Value="combat_forceMelee" />
+					<Edge From="streamprofileshandling.profileactive" To="IsActive" />
+					<Edge From="makearray24.Array" To="Souls">
+						<Vertex>KMlAEXBh</Vertex>
+						<Vertex>6nM5B35b</Vertex>
+					</Edge>
+				</SetEntityContext>
+				<streamprofileshandling Name="streamprofileshandling" PositionY="960" PositionX="-1430" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="rockPath_profile" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="prulez.OnCaponIsComing" To="streamprofiles" />
+					<Edge From="spusteni_cutsceny_se_zizkou" To="unstreamprofiles">
+						<Vertex>r7zJS6Ap</Vertex>
+						<Vertex>QNPYTs9h</Vertex>
+					</Edge>
+				</streamprofileshandling>
+				<Timer Name="timer35" PositionY="460" PositionX="300">
+					<Constant Name="Duration" Value="200ms" />
+					<Constant Name="TimeType" Value="GameTime" />
+					<Edge From="audiooneshot32.OnExec" To="SetRunning" />
+				</Timer>
+				<Timer Name="timer35_1" PositionY="770" PositionX="300">
+					<Constant Name="Duration" Value="200ms" />
+					<Constant Name="TimeType" Value="GameTime" />
+					<Edge From="audiooneshot32_1.OnExec" To="SetRunning" />
+				</Timer>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="2cWRQ8QP" PositionY="1980" PositionX="-1730" />
+				<EdgeVertex Name="2JW57LWl" PositionY="318" PositionX="-1174" />
+				<EdgeVertex Name="3pQv8wEJ" PositionY="2190" PositionX="-870" />
+				<EdgeVertex Name="4Hzm1Vta" PositionY="-460" PositionX="-1430" />
+				<EdgeVertex Name="6nM5B35b" PositionY="1350" PositionX="-910" />
+				<EdgeVertex Name="AcJY5NLf" PositionY="2140" PositionX="-1240" />
+				<EdgeVertex Name="aounDXFD" PositionY="110" PositionX="-1630" />
+				<EdgeVertex Name="AvlzGAFz" PositionY="-10" PositionX="-1190" />
+				<EdgeVertex Name="C7DdNWQM" PositionY="-740" PositionX="-620" />
+				<EdgeVertex Name="Cjf2MTlm" PositionY="1400" PositionX="-1430" />
+				<EdgeVertex Name="DNyomzyn" PositionY="-460" PositionX="-880" />
+				<EdgeVertex Name="duLJdEq5" PositionY="-460" PositionX="-1130" />
+				<EdgeVertex Name="FYDSRnXe" PositionY="2190" PositionX="-1410" />
+				<EdgeVertex Name="h1cbcv6z" PositionY="-1210" PositionX="-1430" />
+				<EdgeVertex Name="Kl8P1hbm" PositionY="1400" PositionX="-1180" />
+				<EdgeVertex Name="KMlAEXBh" PositionY="1350" PositionX="-1430" />
+				<EdgeVertex Name="lPwHbPuf" PositionY="320" PositionX="-1427" />
+				<EdgeVertex Name="m6mAShcy" PositionY="710" PositionX="-910" />
+				<EdgeVertex Name="MVNXF88B" PositionY="110" PositionX="-2640" />
+				<EdgeVertex Name="Mz6clPnt" PositionY="1290" PositionX="-1430" />
+				<EdgeVertex Name="P37DvBkG" PositionY="2140" PositionX="-1730" />
+				<EdgeVertex Name="PQlCjKE1" PositionY="-59" PositionX="-2021" />
+				<EdgeVertex Name="QNPYTs9h" PositionY="150" PositionX="-1630" />
+				<EdgeVertex Name="r7zJS6Ap" PositionY="150" PositionX="-2640" />
+				<EdgeVertex Name="sRFfptcS" PositionY="-10" PositionX="-1410" />
+				<EdgeVertex Name="TCRouVLT" PositionY="-1210" PositionX="-910" />
+				<EdgeVertex Name="VaMHtmDD" PositionY="372" PositionX="-1506" />
+				<EdgeVertex Name="vertex1" PositionY="370" PositionX="-1180" />
+				<EdgeVertex Name="vertex12" PositionY="-30" PositionX="-880" />
+				<EdgeVertex Name="vertex13" PositionY="370" PositionX="-1880" />
+				<EdgeVertex Name="vertex14" PositionY="30" PositionX="-880" />
+				<EdgeVertex Name="vertex15" PositionY="30" PositionX="-1890" />
+				<EdgeVertex Name="vertex16" PositionY="660" PositionX="-1560" />
+				<EdgeVertex Name="vertex18" PositionY="70" PositionX="-1630" />
+				<EdgeVertex Name="vertex19" PositionY="70" PositionX="-2640" />
+				<EdgeVertex Name="vertex20" PositionY="-60" PositionX="-1410" />
+				<EdgeVertex Name="vertex21" PositionY="-60" PositionX="-880" />
+				<EdgeVertex Name="vertex3" PositionY="-60" PositionX="-2640" />
+				<EdgeVertex Name="vertex8" PositionY="10" PositionX="-880" />
+				<EdgeVertex Name="vertex9" PositionY="10" PositionX="-1890" />
+				<EdgeVertex Name="vmE5UhaC" PositionY="30" PositionX="-640" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="Prulez">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="CaponIsComing" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="CaponFighting" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Done" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Assets>
+				<SoulAsset Name="rockPath_enemies" SharedSoulGuids="8dfe96f5-c761-4992-916e-5d5307026038 1410a3e5-1a48-4dfe-b2ab-7a8d02ac0bc8 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SmartObjectAsset Name="rockPath_caponController" />
+				<TagPointAsset Name="behindSecondTreeAttack" />
+				<ProfileAsset Name="rockPath_profile" AssetProfiles="utoknanebakov_valley_soldiers_beforejumpingoffrock" />
+				<SoulAsset Name="rockPath_enemy_1" SharedSoulGuids="8dfe96f5-c761-4992-916e-5d5307026038 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="rockPath_enemy_2" SharedSoulGuids="1410a3e5-1a48-4dfe-b2ab-7a8d02ac0bc8 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<TagPointAsset Name="reinforcementFleePoint" />
+				<TriggerAreaAsset Name="area_prulez" />
+				<TriggerAreaAsset Name="rockPath_killArea" />
+			</Assets>
+			<Text StringName="hrac_je_v_prulezu_GcM6" Text="Hráč je v průlezu" />
+		</Module>
+	</Skald>
+</Database>

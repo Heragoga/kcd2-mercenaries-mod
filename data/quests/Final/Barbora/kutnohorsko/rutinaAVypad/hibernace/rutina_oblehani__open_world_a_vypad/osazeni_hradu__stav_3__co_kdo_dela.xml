@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="osazeni_hradu__stav_3__co_kdo_dela">
+			<Ports>
+				<Port Name="cutscena_prechazi_do_polylogu" Direction="In" Type="trigger">
+					<DesignName StringName="osazeni_h_cutscena_precha_IFze" Text="Chovani po CS" />
+				</Port>
+				<Port Name="hrac_odstartoval_vypad" Direction="In" Type="trigger">
+					<DesignName StringName="osazeni_h_hrac_odstartova_Ggwv" Text="hráč odstartoval výpad" />
+				</Port>
+				<Port Name="quest_active" Direction="In" Type="bool">
+					<DesignName StringName="osazeni_h_quest_active_4IXQ" Text="Quest Active" />
+				</Port>
+				<Port Name="kopaci_kopaji" Direction="In" Type="trigger">
+					<DesignName StringName="osazeni_h_kopaci_kopaji_wq6M" Text="Kopaci kopaji" />
+				</Port>
+				<Port Name="vypad_prave_probiha" Direction="In" Type="bool">
+					<DesignName StringName="osazeni_h_vypad_prave_pro_G47b" Text="výpad právě probíhá" />
+				</Port>
+				<Port Name="kopaci_utikaji" Direction="In" Type="trigger">
+					<DesignName StringName="osazeni_h_kopaci_utikaji_cvFm" Text="Kopaci utikaji" />
+				</Port>
+				<Port Name="po_vypadu" Direction="In" Type="bool">
+					<DesignName StringName="osazeni_h_po_vypadu_nsRd" Text="po výpadu" />
+				</Port>
+				<Port Name="pred_vypadem" Direction="In" Type="bool">
+					<DesignName StringName="osazeni_h_pred_vypadem_QOch" Text="před výpadem" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="osazeni_hradu__stav_3__co_kdo_dela/petr.xml" />
+				<Definition File="osazeni_hradu__stav_3__co_kdo_dela/ptackovi_muzi_a_ptacek.xml" />
+				<Definition File="osazeni_hradu__stav_3__co_kdo_dela/oblehani__truchleni__zena.xml" />
+				<Definition File="osazeni_hradu__stav_3__co_kdo_dela/digging.xml" />
+				<Definition File="osazeni_hradu__stav_3__co_kdo_dela/hide.xml" />
+				<Definition File="osazeni_hradu__stav_3__co_kdo_dela/ptacek_barkuje.xml" />
+			</Definitions>
+			<Nodes>
+				<AddFactionRelationBetweenArrays Name="addfactionrelationbetweenarrays19" PositionY="2480" PositionX="650">
+					<Constant Name="RelationValue" Value="0" />
+					<Asset Name="SoulArray0" Alias="guards" />
+					<Asset Name="SoulArray1" Alias="diggers" />
+					<Edge From="or12.bool" To="IsActive" />
+				</AddFactionRelationBetweenArrays>
+				<State Name="cekaniNaVypad" PositionY="1190" PositionX="110" TypeT="Progress">
+					<Edge From="cutscena_prechazi_do_polylogu" To="SetActive" />
+					<Edge From="hrac_odstartoval_vypad" To="SetDone" />
+				</State>
+				<State Name="diggers" PositionY="1710" PositionX="110" TypeT="Diggers">
+					<Edge From="cutscena_prechazi_do_polylogu" To="SetDig" />
+					<Edge From="digging.kopaci_se_kryji" To="SetHide">
+						<Vertex>vertex5</Vertex>
+						<Vertex>vertex6</Vertex>
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+					<Edge From="kopaci_kopaji" To="SetDig" />
+					<Edge From="hrac_odstartoval_vypad" To="SetDig" />
+					<Edge From="kopaci_utikaji" To="SetFlee" />
+					<Edge From="digging.kopaci_utikaji" To="SetFlee">
+						<Vertex>vertex9</Vertex>
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex11</Vertex>
+						<Vertex>vertex12</Vertex>
+					</Edge>
+					<Edge From="enablebehaviorwuiddataendnotification10.OnFinished" To="SetDone">
+						<Vertex>vertex3</Vertex>
+						<Vertex>vertex4</Vertex>
+					</Edge>
+				</State>
+				<digging Name="digging" PositionY="1550" PositionX="380">
+					<Edge From="diggers.Dig" To="Awake" />
+					<Edge From="vypad_prave_probiha" To="vypad_prave_probiha">
+						<Vertex>vertex13</Vertex>
+						<Vertex>vertex14</Vertex>
+					</Edge>
+				</digging>
+				<EnableBehavior Name="enablebehaviorwuiddata5" PositionY="340" PositionX="110" Signature="wuidData" EventSet="">
+					<Constant Name="Behavior" Value="zizka_looking" />
+					<Asset Name="SmartEntity" Alias="qSO" />
+					<Asset Name="NPC" Alias="zizka" />
+					<Asset Name="data" Alias="zizka_looking" />
+					<Edge From="quest_active" To="IsActive" />
+				</EnableBehavior>
+				<EnableBehavior Name="enablebehaviorwuiddataendnotification10" PositionY="1910" PositionX="380" Signature="wuidData" EventSet="endNotification">
+					<Constant Name="Behavior" Value="runFastAndWait" />
+					<Asset Name="SmartEntity" Alias="qSO" />
+					<Constant Name="ForceKick" Value="true" />
+					<Asset Name="data" Alias="enemyFlee" />
+					<Edge From="diggers.Flee" To="IsActive" />
+				</EnableBehavior>
+				<hide Name="hide" PositionY="1750" PositionX="380">
+					<Edge From="diggers.Hide" To="Awake" />
+				</hide>
+				<Function Name="kill11" PositionY="2290" PositionX="410" MethodName="wh::rpgmodule::Kill" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="diggers" />
+					<Constant Name="HideBody" Value="false" />
+					<Edge From="diggers.OnDone" To="Exec" />
+				</Function>
+				<oblehani__truchleni__zena Name="oblehani__truchleni__zena" PositionY="910" PositionX="360" />
+				<Function Name="or12" PositionY="2480" PositionX="410" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="diggers.Dig" To="A" />
+					<Edge From="diggers.Hide" To="B" />
+				</Function>
+				<petr Name="petr" PositionY="760" PositionX="110">
+					<Edge From="quest_active" To="quest_active" />
+				</petr>
+				<ptacek_barkuje Name="ptacek_barkuje" PositionY="1560" PositionX="620">
+					<Edge From="digging.kopaci_se_kryji" To="kopaci_se_kryji" />
+				</ptacek_barkuje>
+				<ptackovi_muzi_a_ptacek Name="ptackovi_muzi_a_ptacek" PositionY="1380" PositionX="370">
+					<Edge From="cekaniNaVypad.Active" To="cutscena_prechazi_do_polylogu" />
+				</ptackovi_muzi_a_ptacek>
+				<SchedulerLinkActivation Name="schedule1" PositionY="1230" PositionX="370">
+					<Constant Name="LinkTag" Value="rutinaAVypad_cert_leaning" />
+					<Edge From="cekaniNaVypad.Active" To="IsActive" />
+				</SchedulerLinkActivation>
+				<SchedulerLinkActivation Name="schedule1_1" PositionY="910" PositionX="110">
+					<Constant Name="LinkTag" Value="rutinaAVypad_daycycle" />
+					<Edge From="quest_active" To="IsActive" />
+				</SchedulerLinkActivation>
+				<SchedulerLinkActivation Name="schedule1_1_1" PositionY="170" PositionX="120">
+					<Constant Name="LinkTag" Value="rutinaAVypad_daycycle_afterAttack" />
+					<Edge From="po_vypadu" To="IsActive" />
+				</SchedulerLinkActivation>
+				<SchedulerLinkActivation Name="schedule1_1_1_1" PositionY="0" PositionX="130">
+					<Constant Name="LinkTag" Value="rutinaAVypad_daycycle_beforeAttack" />
+					<Edge From="pred_vypadem" To="IsActive" />
+				</SchedulerLinkActivation>
+				<SchedulerLinkActivation Name="schedule2" PositionY="620" PositionX="110">
+					<Constant Name="LinkTag" Value="rutinaAVypad_frenclLeaning" />
+					<Edge From="quest_active" To="IsActive" />
+				</SchedulerLinkActivation>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="vertex1" PositionY="2230" PositionX="690" />
+				<EdgeVertex Name="vertex10" PositionY="1780" PositionX="720" />
+				<EdgeVertex Name="vertex11" PositionY="2270" PositionX="690" />
+				<EdgeVertex Name="vertex12" PositionY="2270" PositionX="100" />
+				<EdgeVertex Name="vertex13" PositionY="1580" PositionX="110" />
+				<EdgeVertex Name="vertex14" PositionY="1580" PositionX="300" />
+				<EdgeVertex Name="vertex2" PositionY="2230" PositionX="100" />
+				<EdgeVertex Name="vertex3" PositionY="2210" PositionX="690" />
+				<EdgeVertex Name="vertex4" PositionY="2210" PositionX="100" />
+				<EdgeVertex Name="vertex5" PositionY="1760" PositionX="630" />
+				<EdgeVertex Name="vertex6" PositionY="1760" PositionX="720" />
+				<EdgeVertex Name="vertex9" PositionY="1780" PositionX="630" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="Diggers">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Dig" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Hide" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Flee" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Done" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Assets>
+				<TagPointAsset Name="zizka_looking" />
+				<SoulAsset Name="digger_1" SharedSoulGuids="95b978f5-1fe0-44ee-b844-21fe963557a4 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="digger_2" SharedSoulGuids="b01a702c-dd60-4183-add9-5b8be8484342 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="digger_3" SharedSoulGuids="4958640b-6095-4002-99dc-bd6d542f8c41 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="digger_4" SharedSoulGuids="d0f708c1-4762-45eb-88f6-76e3631af573 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="digger_5" SharedSoulGuids="5db83016-dd9b-492c-af72-33b62aa16571 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="enemy_attackers" />
+				<TagPointAsset Name="beforeAssault_ptacek" />
+			</Assets>
+			<Text StringName="osazeni_hradu__stav_3_QSFG" Text="Osazení hradu - stav 3 - co kdo dělá" />
+			<Elements>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h_ve_fazi_od_pora_mPs0" Text="Ve fázi od porady do vydání rozkazu je zvednutý padací most a zavřená brána předhradí." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h_na_hradbe_palis_tCGe" Text="Na hradbě palisády se nachází 12 animcharů, kteří tu jen idlují s připravenými kušemi: goto 800.89 3341.79 145.30 -24.52 0.00 -105.34" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h_jednotlive_post_Lyy9" Text="Jednotlivé postavy provádějí:" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__zizka__po_dial_djZo" Text="- Žižka - po dialozích zůstává v plánovací síni a dívá se z okna." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__bohuta__jde_se_dOz5" Text="- Bohuta - jde se připravit na výslech k místnosti, po výslechu si jde sednout k Žižkovi do paláce: goto 764.87 3337.12 140.33 -2.75 0.00 -82.23" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__petr_z_pisku_s_6y2E" Text="- Petr z Písku stojí na hradbách předhradí a barkuje pořád dokola: goto 800.89 3341.79 145.30 -24.52 0.00 -105.34" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h___MgLr" Text="- Ptáček si jde stoupnout na hradby, kde je připraven k palbě z hradeb dolů a hráč u něj pak startuje výpad: goto 733.52 3344.21 151.41 -25.55 0.00 110.74" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__katerina__se_v_Q56m" Text="- Kateřina - se v ošetřovně stará o raněné: goto 758.46 3367.68 144.11 -0.57 0.00 144.15" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__musa__pomaha_k_yM4k" Text="- Musa - pomáhá Kateřině s péči o raněné - je tu scénka s raněným: goto 758.46 3367.68 144.11 -0.57 0.00 144.15" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__hans_uher__dav_DSFP" Text="- Hans Uher - dává proviant: goto 737.67 3335.42 143.66 4.58 0.00 177.27" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__frenczl__je_u__oUBs" Text="- Frenczl - je u kovárny a dává hráči šípy: goto 799.81 3359.04 143.11 -9.05 0.00 -75.36" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__kubenka__kuben_lPLt" Text="- Kuběnka - Kuběnka sedí někde v předhradí a brousí meč: goto 793.85 3372.27 142.69 -9.17 0.00 73.50" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__cert__cert_si__QXFT" Text="- Čert - Čert si jde stoupnout k bráně ven z hradu, kde čeká na výpad: goto 796.39 3342.56 143.17 -8.37 0.00 -174.32" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__dobros__dobros_YeqA" Text="- Dobroš - Dobroš péro sedí u jídla v jídelně: goto 744.16 3334.10 144.17 1.60 0.00 -79.14" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__wolfram__ras_w_SqQT" Text="- Wolfram - Ras Wolfram leží na jednom z lůžek ošetřovny a je mu špatně: goto 749.42 3367.99 143.82 -9.63 0.00 -17.38 " />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__janek__hlida_b_e5ct" Text="- Janek - hlídá bránu zevnitř předhradí ven: goto 760.95 3356.20 144.00 -8.02 0.00 93.39" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__jaroslav__hlid_mw50" Text="- Jaroslav - hlídá bránu zevnitř předhradí ven: goto 760.41 3352.85 143.95 3.67 0.00 105.88" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__mikes__trenuje_vpwd" Text="- Mikeš - trénuje šerm v předhradí: goto 788.64 3346.82 143.32 -4.24 0.00 126.00" />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="osazeni_h__kozlik__sedi_n_hbrV" Text="- Kozlík - sedí na zemi poblíž Mikeše: goto 788.64 3346.82 143.32 -4.24 0.00 126.00" />
+				</GameplayActionElement>
+			</Elements>
+		</Gameplay>
+	</Skald>
+</Database>

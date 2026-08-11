@@ -1,0 +1,385 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="utocnici">
+			<Ports>
+				<Port Name="stream" Direction="In" Type="trigger">
+					<DesignName StringName="utocnici_stream_LhTM" Text="stream" />
+				</Port>
+				<Port Name="streamed" Direction="Out" Type="trigger">
+					<DesignName StringName="utocnici_streamed_oku8" Text="streamed" />
+				</Port>
+				<Port Name="afterload" Direction="In" Type="trigger">
+					<DesignName StringName="utocnici_register_Gkht" Text="afterLoad" />
+				</Port>
+				<Port Name="unstream_for_cs" Direction="In" Type="trigger">
+					<DesignName StringName="utocnici_unstream_for_cs_1SQw" Text="unstream for cs" />
+				</Port>
+				<Port Name="unstream_ambush_prepare" Direction="In" Type="trigger">
+					<DesignName StringName="utocnici_hibeawake_sVTs" Text="unstream ambush prepare" />
+				</Port>
+				<Port Name="unstream_attakconwalls" Direction="In" Type="trigger">
+					<DesignName StringName="utocnici_unstream_attakco_is8h" Text="unstream attakcOnWalls" />
+				</Port>
+				<Port Name="unstream_attackongate" Direction="In" Type="trigger">
+					<DesignName StringName="utocnici_unstream_attacko_gmlI" Text="unstream attackOnGate" />
+				</Port>
+				<Port Name="attackersready" Direction="Out" Type="bool">
+					<DesignName StringName="utocnici_attackersready_ou2l" Text="attackersReady" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<IfFunction Name="ifand1" PositionY="520" PositionX="2270" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="initializebattlegroup.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_3.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_4.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_5_4.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_2_1.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_2.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_2_2.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_1.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="initializebattlegroup_5_4_1.finished" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="rockPiratesReady.OnTrue" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="rockArchersReady.OnTrue" To="Exec">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="rockPiratesReady.State" To="K" />
+					<Edge From="initializebattlegroup_4.isfinished" To="J" />
+					<Edge From="rockArchersReady.State" To="A" />
+					<Edge From="initializebattlegroup.isfinished" To="D" />
+					<Edge From="initializebattlegroup_5_4.isfinished" To="C" />
+					<Edge From="initializebattlegroup_5_4_1.isfinished" To="B" />
+					<Edge From="initializebattlegroup_3.isfinished" To="I" />
+					<Edge From="initializebattlegroup_2.isfinished" To="G" />
+					<Edge From="initializebattlegroup_2_2.isfinished" To="H" />
+					<Edge From="initializebattlegroup_1.isfinished" To="E" />
+					<Edge From="initializebattlegroup_2_1.isfinished" To="F" />
+				</IfFunction>
+				<initializebattlegroup Name="initializebattlegroup" PositionY="670" PositionX="1240" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupArchers" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="ranged" />
+					<Edge From="streamprofileshandling.onloaded" To="activate">
+						<Vertex>vertex5</Vertex>
+					</Edge>
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_1" PositionY="890" PositionX="940" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupOnWallOne" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="melee" />
+					<Edge From="streamprofileshandling_1.onloaded" To="activate" />
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_1_1" PositionY="2480" PositionX="510" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupAttackersRocks" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="melee" />
+					<Edge From="streamprofileshandling_2_1.onloaded" To="activate">
+						<Vertex>vertex17</Vertex>
+					</Edge>
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_2" PositionY="1370" PositionX="940" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupOnWallTwo" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="melee" />
+					<Edge From="streamprofileshandling_1.onloaded" To="activate" />
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_2_1" PositionY="1130" PositionX="940" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupOnWallThree" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="melee" />
+					<Edge From="streamprofileshandling_1.onloaded" To="activate" />
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_2_2" PositionY="1610" PositionX="940" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupOnWallFour" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="melee" />
+					<Edge From="streamprofileshandling_1.onloaded" To="activate" />
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_3" PositionY="1980" PositionX="950" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupOnGateOne" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="melee" />
+					<Edge From="streamprofileshandling_1_2.onloaded" To="activate" />
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_4" PositionY="2260" PositionX="950" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupOnGateTwo" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="melee" />
+					<Edge From="streamprofileshandling_1_2_1.onloaded" To="activate" />
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_5_4" PositionY="420" PositionX="1240" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupFreeRanger_1" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="shield" />
+					<Edge From="streamprofileshandling.onloaded" To="activate">
+						<Vertex>vertex5</Vertex>
+					</Edge>
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_5_4_1" PositionY="180" PositionX="1240" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupGateRanger" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="shield" />
+					<Edge From="streamprofileshandling.onloaded" To="activate">
+						<Vertex>vertex5</Vertex>
+					</Edge>
+				</initializebattlegroup>
+				<initializebattlegroup Name="initializebattlegroup_6" PositionY="-50" PositionX="910" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="battleGroupArchers_2" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="weaponsetup" Value="ranged" />
+					<Edge From="streamprofileshandling.onloaded" To="activate">
+						<Vertex>vertex5</Vertex>
+					</Edge>
+				</initializebattlegroup>
+				<initializebattleladder Name="initializebattleladder" PositionY="1060" PositionX="0" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="ladderController_1" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="laddersStreamed.OnDone" To="activate">
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="afterload" To="activate">
+						<Vertex>A7DoqeXs</Vertex>
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+				</initializebattleladder>
+				<initializebattleladder Name="initializebattleladder_1" PositionY="1280" PositionX="0" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="ladderController_2" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="laddersStreamed.OnDone" To="activate">
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="afterload" To="activate">
+						<Vertex>A7DoqeXs</Vertex>
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+				</initializebattleladder>
+				<initializebattleladder Name="initializebattleladder_2" PositionY="1500" PositionX="0" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="ladderController_5" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="laddersStreamed.OnDone" To="activate">
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="afterload" To="activate">
+						<Vertex>A7DoqeXs</Vertex>
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+				</initializebattleladder>
+				<initializebattleladder Name="initializebattleladder_2_1" PositionY="1720" PositionX="0" Namespace="utils.battle">
+					<Asset Name="groupcontroller" Alias="ladderController_7" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="laddersStreamed.OnDone" To="activate">
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="afterload" To="activate">
+						<Vertex>A7DoqeXs</Vertex>
+						<Vertex>vertex10</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+				</initializebattleladder>
+				<State Name="laddersStreamed" PositionY="590" PositionX="0" TypeT="Progress">
+					<Edge From="stream" To="SetActive" />
+					<Edge From="profilestatetrigger8.OnLoaded" To="SetDone">
+						<Vertex>kxt1sQV7</Vertex>
+						<Vertex>cIQ0d51E</Vertex>
+					</Edge>
+				</State>
+				<MakeArray Name="makearray3" PositionY="960" PositionX="2790" TypeT="wh::xgenaimodule::SmartObjects">
+					<Asset Name="A" Alias="battleGroupOnGateTwo" />
+					<Asset Name="B" Alias="battleGroupArchers" />
+					<Asset Name="C" Alias="battleGroupGateRanger" />
+					<Asset Name="D" Alias="battleGroupFreeRanger_1" />
+					<Asset Name="E" Alias="battleGroupArchers_2" />
+					<Asset Name="F" Alias="battleGroupAttackersRocks" />
+				</MakeArray>
+				<MakeArray Name="makearray3_1" PositionY="2570" PositionX="2810" TypeT="wh::xgenaimodule::SmartObjects">
+					<Asset Name="A" Alias="battleGroupOnWallOne" />
+					<Asset Name="B" Alias="battleGroupOnWallTwo" />
+					<Asset Name="C" Alias="battleGroupOnWallThree" />
+					<Asset Name="D" Alias="battleGroupOnWallFour" />
+				</MakeArray>
+				<Output Name="Output">
+					<Edge From="registerAttackers.Active" To="attackersready" />
+					<Edge From="ifand1.True" To="streamed" />
+				</Output>
+				<ProfileStateTrigger Name="profilestatetrigger8" PositionY="590" PositionX="400">
+					<Asset Name="Profiles" Alias="battle_profile" />
+					<Edge From="laddersStreamed.Active" To="IsActive" />
+				</ProfileStateTrigger>
+				<State Name="registerAttackers" PositionY="550" PositionX="2820" TypeT="Progress">
+					<Edge From="unstream_for_cs" To="SetDone">
+						<Vertex>vertex18</Vertex>
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="afterload" To="SetActive">
+						<Vertex>TFml9yXf</Vertex>
+						<Vertex>G1hWNH1w</Vertex>
+					</Edge>
+				</State>
+				<State Name="registerAttackers_ambushPrepare" PositionY="1400" PositionX="2810" TypeT="Progress">
+					<Edge From="streamprofileshandling_2_1.onunloaded" To="SetDone">
+						<Vertex>4dt2hcGA</Vertex>
+						<Vertex>PCaeXUTY</Vertex>
+					</Edge>
+					<Edge From="afterload" To="SetActive">
+						<Vertex>TFml9yXf</Vertex>
+						<Vertex>G1hWNH1w</Vertex>
+						<Vertex>mp2uF0Yj</Vertex>
+					</Edge>
+				</State>
+				<State Name="registerAttackers_ambushPrepare_1_1" PositionY="2180" PositionX="2810" TypeT="Progress">
+					<Edge From="streamprofileshandling_1.onunloaded" To="SetDone">
+						<Vertex>epaPUkNT</Vertex>
+						<Vertex>8Cv5Uj2G</Vertex>
+					</Edge>
+					<Edge From="afterload" To="SetActive">
+						<Vertex>TFml9yXf</Vertex>
+						<Vertex>G1hWNH1w</Vertex>
+						<Vertex>mp2uF0Yj</Vertex>
+					</Edge>
+				</State>
+				<State Name="registerAttackers_GateOne" PositionY="1790" PositionX="2810" TypeT="Progress">
+					<Edge From="streamprofileshandling_1_2.onunloaded" To="SetDone">
+						<Vertex>7VFsfYV2</Vertex>
+						<Vertex>P6R8dmpL</Vertex>
+					</Edge>
+					<Edge From="afterload" To="SetActive">
+						<Vertex>TFml9yXf</Vertex>
+						<Vertex>G1hWNH1w</Vertex>
+						<Vertex>mp2uF0Yj</Vertex>
+					</Edge>
+				</State>
+				<registerbattlegroups Name="registerbattlegroups" PositionY="850" PositionX="3160" Namespace="utils.battle">
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="makearray3.Array" To="groupcontrollers" />
+					<Edge From="registerAttackers.Active" To="isactive" />
+				</registerbattlegroups>
+				<registerbattlegroups Name="registerbattlegroups_1" PositionY="1390" PositionX="3180" Namespace="utils.battle">
+					<Asset Name="groupcontrollers" Alias="attackersAmbushPrepareGroup" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="registerAttackers_ambushPrepare.Active" To="isactive" />
+				</registerbattlegroups>
+				<registerbattlegroups Name="registerbattlegroups_1_1" PositionY="1790" PositionX="3180" Namespace="utils.battle">
+					<Asset Name="groupcontrollers" Alias="battleGroupOnGateOne" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="registerAttackers_GateOne.Active" To="isactive" />
+				</registerbattlegroups>
+				<registerbattlegroups Name="registerbattlegroups_1_1_1" PositionY="2180" PositionX="3180" Namespace="utils.battle">
+					<Constant Name="linktag" Value="battleEntity" />
+					<Edge From="registerAttackers_ambushPrepare_1_1.Active" To="isactive" />
+					<Edge From="makearray3_1.Array" To="groupcontrollers" />
+				</registerbattlegroups>
+				<State Name="rockArchersReady" PositionY="-190" PositionX="1290" TypeT="bool">
+					<Edge From="initializebattlegroup_6.finished" To="SetTrue" />
+					<Edge From="timer6.OnFinished" To="SetTrue" />
+				</State>
+				<State Name="rockPiratesReady" PositionY="2620" PositionX="1010" TypeT="bool">
+					<Edge From="initializebattlegroup_1_1.finished" To="SetTrue" />
+					<Edge From="timer4.OnFinished" To="SetTrue" />
+				</State>
+				<streamprofileshandling Name="streamprofileshandling" PositionY="0" PositionX="150" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="archersProfile" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="stream" To="streamprofiles" />
+					<Edge From="unstream_for_cs" To="unstreamprofiles" />
+				</streamprofileshandling>
+				<streamprofileshandling Name="streamprofileshandling_1" PositionY="740" PositionX="460" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="firstAttackOnWallProfile" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="unstream_for_cs" To="unstreamprofiles" />
+					<Edge From="unstream_attakconwalls" To="unstreamprofiles" />
+					<Edge From="laddersStreamed.OnDone" To="streamprofiles" />
+				</streamprofileshandling>
+				<streamprofileshandling Name="streamprofileshandling_1_2" PositionY="1980" PositionX="0" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="firstAttackOnGateProfile" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="stream" To="streamprofiles" />
+					<Edge From="unstream_for_cs" To="unstreamprofiles" />
+					<Edge From="unstream_attackongate" To="unstreamprofiles" />
+				</streamprofileshandling>
+				<streamprofileshandling Name="streamprofileshandling_1_2_1" PositionY="2250" PositionX="0" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="secondAttackOnGateProfile" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="stream" To="streamprofiles" />
+					<Edge From="unstream_for_cs" To="unstreamprofiles" />
+				</streamprofileshandling>
+				<streamprofileshandling Name="streamprofileshandling_2_1" PositionY="2570" PositionX="0" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="ambushReady" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="stream" To="streamprofiles" />
+					<Edge From="unstream_ambush_prepare" To="unstreamprofiles" />
+				</streamprofileshandling>
+				<Timer Name="timer4" PositionY="2750" PositionX="510">
+					<Constant Name="Duration" Value="10s" />
+					<Constant Name="TimeType" Value="GameTime" />
+					<Edge From="streamprofileshandling_2_1.onloaded" To="SetRunning">
+						<Vertex>vertex17</Vertex>
+					</Edge>
+				</Timer>
+				<Timer Name="timer6" PositionY="-370" PositionX="910">
+					<Constant Name="Duration" Value="10s" />
+					<Constant Name="TimeType" Value="GameTime" />
+					<Edge From="streamprofileshandling.onloaded" To="SetRunning">
+						<Vertex>vertex5</Vertex>
+					</Edge>
+				</Timer>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="4dt2hcGA" PositionY="3110" PositionX="520" />
+				<EdgeVertex Name="7VFsfYV2" PositionY="2260" PositionX="400" />
+				<EdgeVertex Name="8Cv5Uj2G" PositionY="1950" PositionX="2510" />
+				<EdgeVertex Name="A7DoqeXs" PositionY="320" PositionX="210" />
+				<EdgeVertex Name="cIQ0d51E" PositionY="560" PositionX="0" />
+				<EdgeVertex Name="epaPUkNT" PositionY="1950" PositionX="880" />
+				<EdgeVertex Name="G1hWNH1w" PositionY="-410" PositionX="2640" />
+				<EdgeVertex Name="kxt1sQV7" PositionY="560" PositionX="650" />
+				<EdgeVertex Name="mp2uF0Yj" PositionY="2040" PositionX="2650" />
+				<EdgeVertex Name="P6R8dmpL" PositionY="2260" PositionX="2510" />
+				<EdgeVertex Name="PCaeXUTY" PositionY="3110" PositionX="2270" />
+				<EdgeVertex Name="TFml9yXf" PositionY="-410" PositionX="50" />
+				<EdgeVertex Name="vertex1" PositionY="950" PositionX="1940" />
+				<EdgeVertex Name="vertex10" PositionY="980" PositionX="200" />
+				<EdgeVertex Name="vertex17" PositionY="2700" PositionX="410" />
+				<EdgeVertex Name="vertex18" PositionY="-390" PositionX="70" />
+				<EdgeVertex Name="vertex19" PositionY="-390" PositionX="2620" />
+				<EdgeVertex Name="vertex5" PositionY="220" PositionX="660" />
+				<EdgeVertex Name="vertex9" PositionY="980" PositionX="10" />
+			</EdgeVertices>
+			<Assets>
+				<SoulAsset Name="attackersRanged" SharedSoulGuids="c7db63ad-d3d4-46a5-b05d-ddb1ffdf4585 2acb7e04-643c-4300-9fc2-55593ededdb0 3e4bfd3b-d57e-468b-b1f3-85732402318b c12fa624-2b9e-4e61-a416-9c1d685c29de 7a7cae99-7fc3-484e-84d2-be685f40f41e e5a5a66d-563a-48f8-a1a2-dfe1266edb2c 0d01c41b-0bb9-49bb-b981-50820235d3cf 941ea65b-a5f2-4da0-83ee-734a79f3de0f b27e40a3-ff55-4945-9eeb-5769ca22b9c4 6a52935e-be1a-4310-ba89-4edda8914ead 71babcf1-a626-442c-85d1-48dc83705ce2 7713259e-5308-4da8-bd89-7deb5324104e 7c76b172-2b12-4d6e-b60b-174886f676aa ad0aefc2-518b-4329-8848-615eea6c8afc e8b7726f-58f0-4540-a5c7-e9e8d53601bc 945f83be-da35-4205-83ab-66fe45a8a294 5dadffdf-cb11-4442-be0f-8b11cdc7a488 438cee8c-cfa5-442b-b5c9-75c0331ce016 c784343b-5845-4953-a49b-ba5bfe3bb417 919b4a1d-7055-416f-9c44-051095a82736 fa4bea2d-54a0-4721-a0fa-fb3d3cd312a4 0f67a4e6-aae7-4172-99f7-df61b5be60c5 fbb7db73-398e-42f4-9979-40a73c9a18f1 cf2de7c3-19af-4ce3-af20-a64e7dd72866 ee324acb-2415-4b66-9ad4-076f23a7116d 6a8be360-9608-4f84-a10e-1b8a7a5d27e0 b6773525-7636-4725-a77b-5d5cc4b7ddf7 5ac4205a-a62e-4159-bf77-191950fa5b1f 011235b9-2322-4884-b690-bbc6c1701c5e bbde1e99-323e-44de-8d40-4e3e17d88d31 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="attackersGate1" SharedSoulGuids="262744df-10fa-42a0-85e1-49172df01f99 b770d6b0-5e63-45ad-abcc-359445656a26 b276068f-7653-47f1-93ed-3e33dac25ebc 3a56fc39-68fc-475d-8e3b-1708dc9d7fd0 4f4a77f4-67a2-4594-a174-56d586e06e78 f8101921-9044-4ea0-b995-395fa5b1a12a 791ea023-6513-4740-bc06-30d4819a1dee bc6a1891-4d9d-4a6d-91c7-f6049552a86e d2879a80-742b-406c-acb2-8194f5d04ffb d653cee4-56e9-40bb-b165-784991d6e869 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="attackersGate2" SharedSoulGuids="b4c32e73-94a3-4d18-8916-2cc9c04b3650 e738ed01-d020-424b-9f4d-e1b9f071b05b d1ff03ef-d1eb-4974-a649-329819d2e2d6 57590793-0cd4-49de-a214-38094989e1d2 765514a4-7f04-4bcb-948e-c79a93e6a446 56ecd982-af34-4c59-9615-5085f16c25c4 277bb2f9-903b-4800-a74d-7d7b03d6e247 5e494e44-a46a-430d-937e-4a94ecff3f9f c1b75d08-6c70-432c-973e-8b8ca337ae19 7388c8fe-840d-477d-bba4-aa91d08239db 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="attackersWall" SharedSoulGuids="78c1dd59-85fb-4591-9a1d-1394e54687fe f4b6abbf-998f-40e0-a950-6909097698e8 79276700-fbfa-4462-b896-e48c07a3318e a7eaee56-f21f-491d-b903-885fdbd79ee2 11f16099-86f8-4692-9bdc-c6332ce6b894 2601e6c2-c4b8-4544-90a9-08fe23511aae 59b83d36-7419-4f45-9a65-e9508837b573 4e04b5e7-f5fa-4fa8-b6ea-33e5bb6c3388 5a8b8dce-67ae-4591-b28d-011c5b4492c8 34cc8a9a-37d6-4059-8e3e-89cd2ff6a625 1371487c-b59d-4bb6-bfe3-891caf90538b f3631969-940c-473a-8b3d-c1be9c2ee00f 842e2b99-2ecc-4657-9312-5ab9deb35447 31a04726-7cae-4993-84ce-159672f9da43 2cd2b3d3-f38a-4de1-97ea-fe58c896b2e7 6b51bb39-446f-47c2-abf3-eee453e4a41b 8795aba0-7b80-4a77-a0cd-1093996006ab d86d4998-2479-4bbb-a45b-c09b44ed76f7 6cfc30cf-02c7-4f09-a91f-84722e7dfc2f 0e9b3cda-a3dc-4136-a780-cb511c337aa3 9ca21c48-3e80-4529-9db8-bc86907aa9d0 1044a0c7-0303-4c7e-a026-2086fb44a397 9e3966b2-6a7e-41e6-94e4-261747b20ab4 88e0c291-4110-48e9-bf78-0cacace2e3b0 fda55be2-7a5b-47be-87f0-34516da1fb99 9cc801b2-dbbb-44c7-be5e-675711043dea 002b2536-d9d2-47f9-af50-5bbfd6489d8f 1c4edf97-139f-4839-8853-3afbc0aac570 861fe004-a3d2-4d01-9a07-dbb5e7d12c47 8ef2d763-61e7-4a94-9ec4-51743ef51db0 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="ambushers" SharedSoulGuids="983e1252-b7f1-4fd0-9825-14481d88ec68 793c4092-a40a-4683-bbb7-ca5b5e42b8fe 3a05aca2-39ee-4c58-a1db-b1d31a4e037c eb19fffa-be6f-477e-97ad-f6cb79f92570 9b5b2f5d-62bb-41f3-a94c-7b9b1c5ecda1 702e2d0d-cb9a-4f49-9db3-2d51100b6600 6ed619a1-8b7b-4024-945c-c60b48b294d3 21802628-fcb0-45ef-9717-f7ec3a0afab2 118d63f8-f7f0-42e4-af32-7c7a0301716e 7ab80351-3ef9-48af-a3df-6398a53dda00 c8ff82c5-b679-42bd-8f47-af4fa6e29ef1 bfa37a7d-b812-4421-b0e1-bf471fe60738 641c3635-2e8a-4504-b840-c567807adc29 3bf2580b-e989-452a-bca4-246ee78b5042 a340198d-bb62-4cd2-afc0-ba41426e53a1 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SmartObjectAsset Name="attackersAmbushPrepareGroup" />
+			</Assets>
+			<Text StringName="utocnici_rat5" Text="Útočníci" />
+		</Module>
+	</Skald>
+</Database>

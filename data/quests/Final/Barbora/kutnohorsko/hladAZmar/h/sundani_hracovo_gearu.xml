@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="sundani_hracovo_gearu">
+			<Ports>
+				<Port Name="sundani_helmy" Direction="In" Type="trigger">
+					<DesignName StringName="sundani_h_sundani_helmy_W3lI" Text="sundání " />
+				</Port>
+				<Port Name="nasazeni_zpet" Direction="In" Type="trigger">
+					<DesignName StringName="sundani_h_nasazeni_zpet_0kWk" Text="nasazení zpět" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<Function Name="createitemcategorydescriptor113488" PositionY="1620" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="13" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_1" PositionY="2290" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="14" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_1_1" PositionY="3630" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="16" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_1_1_1" PositionY="6310" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="20" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_1_1_2" PositionY="8990" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="24" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_1_2" PositionY="4970" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="18" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_1_3" PositionY="7650" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="22" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_2" PositionY="2960" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="15" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_2_1" PositionY="5640" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="19" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_2_2" PositionY="8320" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="23" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_3" PositionY="4300" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="17" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor113488_4" PositionY="6980" PositionX="-1790" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="Armor" />
+					<Constant Name="Type" Value="21" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor16" PositionY="130" PositionX="-1780" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="MeleeWeapon" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createitemcategorydescriptor16_1" PositionY="860" PositionX="-1780" MethodName="wh::entitymodule::CreateItemCategoryDescriptor" DeclaringType="wh::entitymodule">
+					<Constant Name="Category" Value="MissileWeapon" />
+					<Constant Name="EquippedFilter" Value="Pass" />
+				</Function>
+				<Function Name="createunionitemdescriptor113489" PositionY="130" PositionX="-1310" MethodName="wh::entitymodule::CreateUnionItemDescriptor" DeclaringType="wh::entitymodule">
+					<Edge From="createitemcategorydescriptor16.ItemDescriptor" To="A" />
+					<Edge From="createitemcategorydescriptor16_1.ItemDescriptor" To="B" />
+					<Edge From="createitemcategorydescriptor113488.ItemDescriptor" To="C" />
+					<Edge From="createitemcategorydescriptor113488_1.ItemDescriptor" To="D" />
+					<Edge From="createitemcategorydescriptor113488_2.ItemDescriptor" To="E" />
+					<Edge From="createitemcategorydescriptor113488_1_1.ItemDescriptor" To="F" />
+					<Edge From="createitemcategorydescriptor113488_3.ItemDescriptor" To="G" />
+					<Edge From="createitemcategorydescriptor113488_1_2.ItemDescriptor" To="H" />
+					<Edge From="createitemcategorydescriptor113488_2_1.ItemDescriptor" To="I" />
+					<Edge From="createitemcategorydescriptor113488_1_1_1.ItemDescriptor" To="J" />
+					<Edge From="createitemcategorydescriptor113488_4.ItemDescriptor" To="K" />
+					<Edge From="createitemcategorydescriptor113488_1_3.ItemDescriptor" To="L" />
+					<Edge From="createitemcategorydescriptor113488_2_2.ItemDescriptor" To="M" />
+					<Edge From="createitemcategorydescriptor113488_1_1_2.ItemDescriptor" To="N" />
+				</Function>
+				<PlayerOutfitOverride Name="playeroutfitoverride113486" PositionY="-130" PositionX="-950">
+					<Asset Name="ConfiscationTarget" Alias="player_stash" />
+					<Asset Name="PlayerSouls" Alias="player" />
+					<Edge From="createunionitemdescriptor113489.ItemDescriptor" To="ItemsToConfiscate" />
+					<Edge From="unequipSomePlayersGear.State" To="IsActive" />
+				</PlayerOutfitOverride>
+				<State Name="unequipSomePlayersGear" PositionY="-130" PositionX="-1310" TypeT="bool">
+					<Edge From="sundani_helmy" To="SetTrue" />
+					<Edge From="nasazeni_zpet" To="SetFalse" />
+				</State>
+			</Nodes>
+			<Text StringName="sundani_hracovo_gearu_cv2s" Text="Sundání hráčovo gearu" />
+		</Module>
+	</Skald>
+</Database>

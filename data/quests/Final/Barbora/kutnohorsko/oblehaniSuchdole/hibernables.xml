@@ -1,0 +1,653 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="hibernables" HibernateMode="Script">
+			<Ports>
+				<Port Name="stream_janka_a_jaroslava" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_stream_janka_a__wXEx" Text="Stream Janka a Jaroslava" />
+				</Port>
+				<Port Name="nocni_utok__utocnici_odhaleni" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_nocni_utok__uto_9wXt" Text="Noční útok - útočníci odhaleni" />
+				</Port>
+				<Port Name="nocni_utok__neco_je_spatne" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_nocni_utok__nec_JJl1" Text="Noční útok - něco je špatně" />
+				</Port>
+				<Port Name="hrac_naprasil_certa" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_hrac_naprasil_c_HbTj" Text="Jindra naprášil Čerta" />
+				</Port>
+				<Port Name="konecquestu" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_konecquestu_p3Gp" Text="konecQuestu" />
+				</Port>
+				<Port Name="konec_questu" Direction="In" Type="bool">
+					<DesignName StringName="hibernabl_konec_questu_jZx9" Text="konec questu" />
+				</Port>
+				<Port Name="mikes_je_clenem_jednotky" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_mikes_je_clenem_81uG" Text="Mikeš je členem jednotky" />
+				</Port>
+				<Port Name="kozlik_je_clenem_jednotky" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_kozlik_je_clene_xINQ" Text="Kozlík je členem jednotky" />
+				</Port>
+				<Port Name="dobros_je_clenem_jednotky" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_dobros_je_clene_pixK" Text="Dobroš je členem jednotky" />
+				</Port>
+				<Port Name="wolfram_je_clenem_jednotky" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_wolfram_je_clen_1Gkt" Text="Wolfram je členem jednotky" />
+				</Port>
+				<Port Name="musa_vedel_z_tabora_ze_jindra_je_zizkovec" Direction="In" Type="bool">
+					<DesignName StringName="hibernabl_musa_vedel_z_ta_jAK3" Text="Musa věděl z tábora, že jindra je žižkovec" />
+				</Port>
+				<Port Name="haste_nocni_utok" Direction="In" Type="bool">
+					<DesignName StringName="hibernabl_haste_nocni_utok_RZ8P" Text="haste nocni utok" />
+				</Port>
+				<Port Name="verbovani_ukonceno" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_verbovani_ukonc_xcDz" Text="verbování ukončeno" />
+				</Port>
+				<Port Name="stream_vrstev_pro_nocni_utok" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_stream_vrstev_p_VXzt" Text="Stream vrstev pro noční útok" />
+				</Port>
+				<Port Name="stream__m48a_oblehani_suchdole__open_world_verbovani" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_stream__m48a_ob_xyl5" Text="Stream layer prohlídky" />
+				</Port>
+				<Port Name="unstream__m48a_oblehani_suchdole__nocni_hlidka_a_utok" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_unstream__m48a__grMQ" Text="Unstream Petr - noční hlídka a útok" />
+				</Port>
+				<Port Name="next_layer_phase" Direction="Out" Type="trigger">
+					<DesignName StringName="hibernabl_next_layer_phase_9Z1M" Text="Stream next night attack phase" />
+				</Port>
+				<Port Name="prohlidka_aktivni_a_verbovani_nezacalo" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_prohlidka_aktiv_iz4d" Text="prohlídka aktivní a verbování nezačalo" />
+				</Port>
+				<Port Name="po_dialogu_s_bohutou" Direction="Out" Type="bool">
+					<DesignName StringName="hibernabl_po_dialogu_s_bo_PTYj" Text="Po dialogu s Bohutou" />
+				</Port>
+				<Port Name="mikes_streamed" Direction="In" Type="bool">
+					<DesignName StringName="hibernabl_mikes_streamed_abwv" Text="Mikes streamed" />
+				</Port>
+				<Port Name="kozlik_streamed" Direction="In" Type="bool">
+					<DesignName StringName="hibernabl_kozlik_streamed_zKH2" Text="Kozlik streamed" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="hibernables/cin_m4820k_oblehanisuchdol__siege_begins.xml" />
+				<Definition File="hibernables/bohuta_zadava_prohlidku_hradu.xml" />
+				<Definition File="hibernables/prohlidka_hradu.xml" />
+				<Definition File="hibernables/nocni_hlidka.xml" />
+				<Definition File="hibernables/nocni_utok.xml" />
+				<Definition File="hibernables/osazeni.xml" />
+				<Definition File="hibernables/quest_npc_immortality.xml" />
+				<Definition File="hibernables/ledge_a_battlement.xml" />
+				<Definition File="hibernables/contexty_npc.xml" />
+				<Definition File="hibernables/night_attack_unlock_doors.xml" />
+			</Definitions>
+			<Nodes>
+				<AddInterruptConceptNode Name="addinterruptteleport27" PositionY="-1600" PositionX="1460" Signature="teleport">
+					<Asset Name="NPC" Alias="player" />
+					<Constant Name="Behavior" Value="teleport" />
+					<Asset Name="SmartEntity" Alias="land" />
+					<Constant Name="Priority" Value="150" />
+					<Constant Name="Urgency" Value="Instant" />
+					<Asset Name="destination" Alias="nightAttack_playerTeleport" />
+					<Edge From="ifareacheck24.True" To="Activate">
+						<Vertex>o5cAEsek</Vertex>
+						<Vertex>QafQ8mua</Vertex>
+						<Vertex>TahCvHfo</Vertex>
+						<Vertex>Gwmxva5K</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24_1.True" To="Activate">
+						<Vertex>QafQ8mua</Vertex>
+						<Vertex>TahCvHfo</Vertex>
+						<Vertex>Gwmxva5K</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24_2.True" To="Activate">
+						<Vertex>TahCvHfo</Vertex>
+						<Vertex>Gwmxva5K</Vertex>
+					</Edge>
+				</AddInterruptConceptNode>
+				<Function Name="and23" PositionY="-260" PositionX="720" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="streamprofileshandling.profileactive" To="B">
+						<Vertex>8R6Yqk2M</Vertex>
+						<Vertex>7o4x1yWK</Vertex>
+					</Edge>
+					<Edge From="nocni_utok.boj_probiha_nebo_skoncil" To="A">
+						<Vertex>Wl88CQVo</Vertex>
+						<Vertex>4RBEubRF</Vertex>
+					</Edge>
+				</Function>
+				<bohuta_zadava_prohlidku_hradu Name="bohuta_zadava_prohlidku_hradu" PositionY="510" PositionX="400">
+					<Edge From="cin_m4820k_oblehanisuchdol__siege_begins.cutscena_nas_posunula_na_dalsi_den" To="cutscena_nas_posunula_na_dalsi_den" />
+				</bohuta_zadava_prohlidku_hradu>
+				<cin_m4820k_oblehanisuchdol__siege_begins Name="cin_m4820k_oblehanisuchdol__siege_begins" PositionY="500" PositionX="10">
+					<Edge From="timePauseState.OnPausedQuestRunning" To="utok_prazanu_z_pochodu_byl_odrazen" />
+					<Edge From="timePauseState.OnUnpausedBeforeCutscene" To="unstrem_profilu_prohlidky" />
+				</cin_m4820k_oblehanisuchdol__siege_begins>
+				<Function Name="closedoor31" PositionY="-1180" PositionX="1820" MethodName="wh::entitymodule::CloseDoor" DeclaringType="wh::entitymodule">
+					<Asset Name="Door" Alias="doorToClose1" />
+					<Edge From="disableDoors.OnActive" To="Exec" />
+				</Function>
+				<Function Name="closedoor31_1" PositionY="-800" PositionX="1820" MethodName="wh::entitymodule::CloseDoor" DeclaringType="wh::entitymodule">
+					<Asset Name="Door" Alias="doorToClose3" />
+					<Edge From="disableDoors.OnActive" To="Exec" />
+				</Function>
+				<Function Name="closedoor31_2" PositionY="-990" PositionX="1820" MethodName="wh::entitymodule::CloseDoor" DeclaringType="wh::entitymodule">
+					<Asset Name="Door" Alias="doorToClose2" />
+					<Edge From="disableDoors.OnActive" To="Exec" />
+				</Function>
+				<contexty_npc Name="contexty_npc" PositionY="-90" PositionX="720">
+					<Edge From="Awake" To="quest_aktivni">
+						<Vertex>vertex79</Vertex>
+						<Vertex>vertex80</Vertex>
+					</Edge>
+				</contexty_npc>
+				<DisableDoorInteractivity Name="disabledoorinteractivity29" PositionY="-610" PositionX="1820">
+					<Edge From="disableDoors.Active" To="IsActive" />
+					<Edge From="makearray33.Array" To="Doors" />
+				</DisableDoorInteractivity>
+				<State Name="disableDoors" PositionY="-1180" PositionX="1460" TypeT="Progress">
+					<Edge From="nocni_utok.zizka_zpraven_o_vysledku_bitvy" To="SetDone">
+						<Vertex>vertex42</Vertex>
+						<Vertex>vertex64</Vertex>
+						<Vertex>jCfafNAw</Vertex>
+						<Vertex>wAqk7Twp</Vertex>
+						<Vertex>5yPocvQp</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24_2.False" To="SetActive" />
+					<Edge From="ifareacheck24.True" To="SetActive">
+						<Vertex>o5cAEsek</Vertex>
+						<Vertex>QafQ8mua</Vertex>
+						<Vertex>TahCvHfo</Vertex>
+						<Vertex>Gwmxva5K</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24_1.True" To="SetActive">
+						<Vertex>QafQ8mua</Vertex>
+						<Vertex>TahCvHfo</Vertex>
+						<Vertex>Gwmxva5K</Vertex>
+					</Edge>
+					<Edge From="ifareacheck24_2.True" To="SetActive">
+						<Vertex>TahCvHfo</Vertex>
+						<Vertex>Gwmxva5K</Vertex>
+					</Edge>
+					<Edge From="timePauseState.OnPausedAfterCutscene" To="SetActive">
+						<Vertex>VKNeEuJL</Vertex>
+						<Vertex>uERQkt4b</Vertex>
+						<Vertex>IWhjmRwc</Vertex>
+						<Vertex>KcREkKY9</Vertex>
+					</Edge>
+				</State>
+				<doorhandling Name="doorhandling" PositionY="-470" PositionX="1820" Namespace="oblehaniSuchdole_utils">
+					<Asset Name="door" Alias="nightAttack_door1" />
+					<Edge From="timePauseState.OnUnpausedBeforeCutscene" To="close_and_lock">
+						<Vertex>vertex48</Vertex>
+						<Vertex>vertex49</Vertex>
+						<Vertex>vertex63</Vertex>
+					</Edge>
+					<Edge From="nocni_utok.zizka_zpraven_o_vysledku_bitvy" To="unlock">
+						<Vertex>vertex42</Vertex>
+						<Vertex>vertex64</Vertex>
+					</Edge>
+				</doorhandling>
+				<doorhandling Name="doorhandling_1" PositionY="-290" PositionX="1820" Namespace="oblehaniSuchdole_utils">
+					<Asset Name="door" Alias="nightAttack_door2" />
+					<Edge From="timePauseState.OnUnpausedBeforeCutscene" To="close_and_lock">
+						<Vertex>vertex48</Vertex>
+						<Vertex>vertex49</Vertex>
+						<Vertex>vertex63</Vertex>
+					</Edge>
+					<Edge From="nocni_utok.zizka_zpraven_o_vysledku_bitvy" To="unlock">
+						<Vertex>vertex42</Vertex>
+						<Vertex>vertex64</Vertex>
+					</Edge>
+				</doorhandling>
+				<IfFunction Name="ifand18" PositionY="-310" PositionX="-1020" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="OnWake" To="Exec" />
+					<Edge From="haste_nocni_utok" To="A" />
+				</IfFunction>
+				<IfFunction Name="ifand21" PositionY="-320" PositionX="-740" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="ifand18.False" To="Exec" />
+					<Edge From="timePauseState.UnpausedInitial" To="A">
+						<Vertex>7Ld28s0G</Vertex>
+						<Vertex>NSaflMKX</Vertex>
+					</Edge>
+				</IfFunction>
+				<IfFunction Name="ifand34" PositionY="-1180" PositionX="200" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="patchDisappearingNPCsSuchdolNightAttack.OnPatch" To="Exec" />
+					<Edge From="timePauseState.PausedAfterCutscene" To="A" />
+					<Edge From="test_patchDisappearingNPCsSuchdolNightAttack.OnTrigger" To="Exec" />
+				</IfFunction>
+				<IfFunction Name="ifareacheck24" PositionY="-1180" PositionX="450" MethodName="wh::rpgmodule::AreaCheck" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="player" />
+					<Asset Name="Areas" Alias="areaToGetPlayerOut1" />
+					<Edge From="ifand34.True" To="Exec" />
+				</IfFunction>
+				<IfFunction Name="ifareacheck24_1" PositionY="-1180" PositionX="760" MethodName="wh::rpgmodule::AreaCheck" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="player" />
+					<Asset Name="Areas" Alias="areaToGetPlayerOut2" />
+					<Edge From="ifareacheck24.False" To="Exec" />
+				</IfFunction>
+				<IfFunction Name="ifareacheck24_2" PositionY="-1180" PositionX="1070" MethodName="wh::rpgmodule::AreaCheck" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="player" />
+					<Asset Name="Areas" Alias="areaToGetPlayerOut3" />
+					<Edge From="ifareacheck24_1.False" To="Exec" />
+				</IfFunction>
+				<IfFunction Name="ifareacheck35" PositionY="-600" PositionX="-1020" MethodName="wh::rpgmodule::AreaCheck" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="sam" />
+					<Asset Name="Areas" Alias="areaToGetPlayerOut2" />
+					<Edge From="OnWake" To="Exec" />
+				</IfFunction>
+				<IntermissionTriggerByDistance Name="IntermissionTriggerByDistance" PositionY="-290" PositionX="1060" Namespace="utils.general">
+					<Asset Name="origin" Alias="nepritelSMozkem6" />
+					<Asset Name="target" Alias="player" />
+					<Constant Name="minimaldistance" Value="15" />
+					<Edge From="and23.bool" To="waitforintermission" />
+				</IntermissionTriggerByDistance>
+				<ledge_a_battlement Name="ledge_a_battlement" PositionY="1350" PositionX="1820">
+					<Edge From="nocni_hlidka.pause_time" To="stream_ledgi" />
+				</ledge_a_battlement>
+				<MakeArray Name="makearray33" PositionY="-610" PositionX="1460" TypeT="wh::entitymodule::AnimDoors">
+					<Asset Name="A" Alias="doorToClose1" />
+					<Asset Name="B" Alias="doorToClose2" />
+					<Asset Name="C" Alias="doorToClose3" />
+				</MakeArray>
+				<night_attack_unlock_doors Name="night_attack_unlock_doors" PositionY="1510" PositionX="1820">
+					<Edge From="nocni_hlidka.hrac_jde_na_hlidku" To="start_nocni_faze" />
+					<Edge From="nocni_utok.zizka_zpraven_o_vysledku_bitvy" To="konec_questu">
+						<Vertex>AD3FqgA5</Vertex>
+						<Vertex>7uY5YyKP</Vertex>
+					</Edge>
+				</night_attack_unlock_doors>
+				<nocni_hlidka Name="nocni_hlidka" PositionY="490" PositionX="1400" RequiredForOutput="kutnohorsko">
+					<Edge From="prohlidka_hradu.mikes_je_clenem_jednotky" To="mikes_je_clenem_jednotky" />
+					<Edge From="prohlidka_hradu.kozlik_je_clenem_jednotky" To="kozlik_je_clenem_jednotky" />
+					<Edge From="prohlidka_hradu.dobros_je_clenem_jednotky" To="dobros_je_clenem_jednotky" />
+					<Edge From="prohlidka_hradu.wolfram_je_clenem_jednotky" To="wolfram_je_clenem_jednotky" />
+					<Edge From="timePauseState.OnUnpausedBeforeCutscene" To="hrac_si_lehnul_do_svoji_postele">
+						<Vertex>vertex48</Vertex>
+						<Vertex>vertex49</Vertex>
+					</Edge>
+					<Edge From="timePauseState.OnUnpausedQuestEnded" To="konec_questu">
+						<Vertex>vertex40</Vertex>
+						<Vertex>vertex50</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.hrac_dal_muze_odpocivat" To="hrac_dal_muze_odpocivat" />
+					<Edge From="or20.bool" To="hrac_dal_muze_na_nocni_hlidku" />
+				</nocni_hlidka>
+				<nocni_utok Name="nocni_utok" PositionY="490" PositionX="1820" RequiredForOutput="kutnohorsko">
+					<Edge From="nocni_hlidka.utok_startuje" To="utok_startuje" />
+					<Edge From="nocni_hlidka.jindra_odhalil_utocniky" To="jindra_odhalil_utocniky" />
+					<Edge From="nocni_hlidka.init_utoku" To="init_utoku" />
+					<Edge From="or20.bool" To="hrac_nechal_odpocinout_svoje_muze">
+						<Vertex>rX4gpHJ7</Vertex>
+						<Vertex>vertex83</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.mikes_je_clenem_jednotky" To="mikes_je_clenem_jednotky">
+						<Vertex>vertex21</Vertex>
+						<Vertex>jsz0YAAB</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.kozlik_je_clenem_jednotky" To="kozlik_je_clenem_jednotky">
+						<Vertex>vertex22</Vertex>
+						<Vertex>BhzwXnNl</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.dobros_je_clenem_jednotky" To="dobros_je_clenem_jednotky">
+						<Vertex>vertex23</Vertex>
+						<Vertex>qGhwAmvB</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.wolfram_je_clenem_jednotky" To="wolfram_je_clenem_jednotky">
+						<Vertex>vertex24</Vertex>
+						<Vertex>B6xCIwDV</Vertex>
+					</Edge>
+				</nocni_utok>
+				<Function Name="not22" PositionY="30" PositionX="1460" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+					<Edge From="prohlidka_hradu.hrac_uz_dostal_rozkazy_od_zizky" To="Value" />
+				</Function>
+				<NPCs_TeleportIngame Name="NPCs_TeleportIngame" PositionY="-630" PositionX="-700" Namespace="utils.general">
+					<Asset Name="npcs" Alias="sam" />
+					<Asset Name="destinations" Alias="patch_teleportSam" />
+					<Edge From="ifareacheck35.False" To="teleport" />
+				</NPCs_TeleportIngame>
+				<Function Name="or20" PositionY="30" PositionX="1190" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="prohlidka_hradu.hrac_dal_muze_na_nocni_hlidku" To="A" />
+					<Edge From="haste_nocni_utok" To="B">
+						<Vertex>vertex73</Vertex>
+						<Vertex>vertex74</Vertex>
+					</Edge>
+				</Function>
+				<Function Name="or3" PositionY="-320" PositionX="80" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="timePauseState.PausedQuestRunning" To="A" />
+					<Edge From="timePauseState.PausedAfterCutscene" To="B" />
+				</Function>
+				<osazeni Name="osazeni" PositionY="-120" PositionX="1820">
+					<Edge From="nocni_hlidka.utok_startuje" To="nocni_utok" />
+					<Edge From="timePauseState.OnUnpausedBeforeCutscene" To="nocni_rezim">
+						<Vertex>vertex48</Vertex>
+						<Vertex>vertex49</Vertex>
+						<Vertex>vertex63</Vertex>
+					</Edge>
+					<Edge From="nocni_utok.zizka_zpraven_o_vysledku_bitvy" To="zizka_zpraven_o_vysledku_bitvy">
+						<Vertex>vertex42</Vertex>
+						<Vertex>vertex64</Vertex>
+					</Edge>
+					<Edge From="nocni_utok.nightmode" To="nocni_rezim">
+						<Vertex>vertex86</Vertex>
+						<Vertex>vertex87</Vertex>
+					</Edge>
+					<Edge From="cin_m4820k_oblehanisuchdol__siege_begins.stream__m48a_oblehani_suchdole__open_world_verbovani" To="verbovani_">
+						<Vertex>vertex70</Vertex>
+						<Vertex>uQ6EpwLU</Vertex>
+						<Vertex>MIfLU8cp</Vertex>
+					</Edge>
+				</osazeni>
+				<Output Name="Output">
+					<Edge From="nocni_hlidka.hrac_odhaluje_nepritele" To="nocni_utok__utocnici_odhaleni">
+						<Vertex>vertex16</Vertex>
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="nocni_hlidka.neco_je_spatne" To="nocni_utok__neco_je_spatne">
+						<Vertex>vertex17</Vertex>
+						<Vertex>vertex18</Vertex>
+					</Edge>
+					<Edge From="nocni_utok.hrac_naprasil_certa" To="hrac_naprasil_certa" />
+					<Edge From="prohlidka_hradu.mikes_je_clenem_jednotky" To="mikes_je_clenem_jednotky">
+						<Vertex>vertex21</Vertex>
+						<Vertex>jsz0YAAB</Vertex>
+						<Vertex>vertex14</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.kozlik_je_clenem_jednotky" To="kozlik_je_clenem_jednotky">
+						<Vertex>vertex22</Vertex>
+						<Vertex>BhzwXnNl</Vertex>
+						<Vertex>vertex13</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.dobros_je_clenem_jednotky" To="dobros_je_clenem_jednotky">
+						<Vertex>vertex23</Vertex>
+						<Vertex>qGhwAmvB</Vertex>
+						<Vertex>vertex12</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.wolfram_je_clenem_jednotky" To="wolfram_je_clenem_jednotky">
+						<Vertex>vertex24</Vertex>
+						<Vertex>B6xCIwDV</Vertex>
+						<Vertex>vertex11</Vertex>
+					</Edge>
+					<Edge From="timePauseState.OnUnpausedQuestEnded" To="konecquestu">
+						<Vertex>vertex40</Vertex>
+						<Vertex>vertex50</Vertex>
+						<Vertex>vertex41</Vertex>
+					</Edge>
+					<Edge From="timePauseState.OnPausedQuestRunning" To="stream_janka_a_jaroslava">
+						<Vertex>vertex51</Vertex>
+						<Vertex>rrSyWVq3</Vertex>
+						<Vertex>vertex52</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.verbovani_ukonceno" To="verbovani_ukonceno">
+						<Vertex>vertex57</Vertex>
+						<Vertex>vertex58</Vertex>
+					</Edge>
+					<Edge From="cin_m4820k_oblehanisuchdol__siege_begins.stream__m48a_oblehani_suchdole__open_world_verbovani" To="stream__m48a_oblehani_suchdole__open_world_verbovani">
+						<Vertex>vertex70</Vertex>
+						<Vertex>uQ6EpwLU</Vertex>
+						<Vertex>MIfLU8cp</Vertex>
+						<Vertex>vertex69</Vertex>
+					</Edge>
+					<Edge From="nocni_hlidka.unstream__m48a_oblehani_suchdole__nocni_hlidka_a_utok" To="unstream__m48a_oblehani_suchdole__nocni_hlidka_a_utok">
+						<Vertex>vertex71</Vertex>
+						<Vertex>vertex72</Vertex>
+					</Edge>
+					<Edge From="ledge_a_battlement.next_layer_phase" To="next_layer_phase">
+						<Vertex>vertex89</Vertex>
+					</Edge>
+					<Edge From="not22.bool" To="prohlidka_aktivni_a_verbovani_nezacalo">
+						<Vertex>eBnVd34B</Vertex>
+						<Vertex>1brpbKTs</Vertex>
+					</Edge>
+					<Edge From="ifand18.True" To="stream_vrstev_pro_nocni_utok">
+						<Vertex>vertex55</Vertex>
+						<Vertex>vertex56</Vertex>
+						<Vertex>BQykozBM</Vertex>
+						<Vertex>uc40MNvN</Vertex>
+						<Vertex>TShzNy0D</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.hrac_si_lehnul_do_svoji_postele" To="stream_vrstev_pro_nocni_utok">
+						<Vertex>BQykozBM</Vertex>
+						<Vertex>uc40MNvN</Vertex>
+						<Vertex>TShzNy0D</Vertex>
+					</Edge>
+					<Edge From="ifand18.True" To="stream_janka_a_jaroslava">
+						<Vertex>eG5JFxBI</Vertex>
+						<Vertex>vertex51</Vertex>
+						<Vertex>rrSyWVq3</Vertex>
+						<Vertex>vertex52</Vertex>
+					</Edge>
+					<Edge From="ifand34.True" To="unstream__m48a_oblehani_suchdole__nocni_hlidka_a_utok">
+						<Vertex>xpIflz7j</Vertex>
+						<Vertex>oAbkk50Y</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.po_dialogu_s_bohutou" To="po_dialogu_s_bohutou">
+						<Vertex>SKBwdCvT</Vertex>
+						<Vertex>ylMNLC18</Vertex>
+					</Edge>
+				</Output>
+				<PatchTrigger Name="patchDisappearingNPCsSuchdolNightAttack" PositionY="-1180" PositionX="-170">
+					<Constant Name="TransitionToVersion" Value="ver_01_03" />
+				</PatchTrigger>
+				<PauseWorldTime Name="pauseworldtime2" PositionY="-320" PositionX="330">
+					<Edge From="or3.bool" To="IsActive" />
+				</PauseWorldTime>
+				<prohlidka_hradu Name="prohlidka_hradu" PositionY="490" PositionX="840" RequiredForOutput="kutnohorsko">
+					<Edge From="musa_vedel_z_tabora_ze_jindra_je_zizkovec" To="musa_vedel_z_tabora_ze_jindra_je_zizkovec">
+						<Vertex>vertex25</Vertex>
+						<Vertex>vertex26</Vertex>
+					</Edge>
+					<Edge From="ifand18.True" To="haste_mikes_a_kozlik_v_hracove_jednotce">
+						<Vertex>vertex55</Vertex>
+						<Vertex>vertex56</Vertex>
+					</Edge>
+					<Edge From="bohuta_zadava_prohlidku_hradu.bohuta_hrace_nabere_na_prohlidku_hradu" To="bohuta_hrace_nabere_na_prohlidku_hradu" />
+					<Edge From="timePauseState.OnPausedQuestRunning" To="konfiskace_jidla">
+						<Vertex>vertex51</Vertex>
+						<Vertex>rrSyWVq3</Vertex>
+					</Edge>
+					<Edge From="ifand18.True" To="konfiskace_jidla">
+						<Vertex>eG5JFxBI</Vertex>
+						<Vertex>vertex51</Vertex>
+						<Vertex>rrSyWVq3</Vertex>
+					</Edge>
+					<Edge From="cin_m4820k_oblehanisuchdol__siege_begins.stream__m48a_oblehani_suchdole__open_world_verbovani" To="stream__m48a_oblehani_suchdole__open_world_verbovani">
+						<Vertex>vertex70</Vertex>
+						<Vertex>uQ6EpwLU</Vertex>
+					</Edge>
+					<Edge From="cin_m4820k_oblehanisuchdol__siege_begins.cutscena_nas_posunula_na_dalsi_den" To="cutscena_nas_posunula_na_dalsi_den">
+						<Vertex>xDUTPJUv</Vertex>
+						<Vertex>Swa3oA4m</Vertex>
+					</Edge>
+					<Edge From="mikes_streamed" To="mikes_streamed">
+						<Vertex>yeYrxTUm</Vertex>
+						<Vertex>dcdlGFkY</Vertex>
+					</Edge>
+					<Edge From="kozlik_streamed" To="kozlik_streamed">
+						<Vertex>5V1Phkfq</Vertex>
+						<Vertex>EWDjRTxR</Vertex>
+					</Edge>
+				</prohlidka_hradu>
+				<quest_npc_immortality Name="quest_npc_immortality" PositionY="30" PositionX="720">
+					<Edge From="Awake" To="questova_cast">
+						<Vertex>vertex79</Vertex>
+						<Vertex>vertex80</Vertex>
+					</Edge>
+					<Edge From="nocni_utok.boj_probiha" To="boj_probiha">
+						<Vertex>vertex81</Vertex>
+						<Vertex>vertex82</Vertex>
+					</Edge>
+				</quest_npc_immortality>
+				<streamprofileshandling Name="streamprofileshandling" PositionY="-290" PositionX="1460" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="victim_profile" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="prohlidka_hradu.hrac_si_lehnul_do_svoji_postele" To="streamprofiles">
+						<Vertex>BQykozBM</Vertex>
+						<Vertex>uc40MNvN</Vertex>
+					</Edge>
+					<Edge From="ifand18.True" To="streamprofiles">
+						<Vertex>vertex55</Vertex>
+						<Vertex>vertex56</Vertex>
+						<Vertex>BQykozBM</Vertex>
+						<Vertex>uc40MNvN</Vertex>
+					</Edge>
+					<Edge From="IntermissionTriggerByDistance.onintermission" To="unstreamprofiles" />
+				</streamprofileshandling>
+				<HasteTrigger Name="test_patchDisappearingNPCsSuchdolNightAttack" PositionY="-1380" PositionX="-170" />
+				<State Name="timePauseState" PositionY="-320" PositionX="-480" TypeT="TimePauseState">
+					<Constant Name="DefaultValue" Value="UnpausedInitial" />
+					<Edge From="nocni_utok.zizka_zpraven_o_vysledku_bitvy" To="SetUnpausedQuestEnded">
+						<Vertex>vertex42</Vertex>
+						<Vertex>vertex64</Vertex>
+						<Vertex>jCfafNAw</Vertex>
+						<Vertex>vertex43</Vertex>
+					</Edge>
+					<Edge From="nocni_hlidka.pause_time" To="SetPausedAfterCutscene">
+						<Vertex>vertex44</Vertex>
+						<Vertex>vertex45</Vertex>
+					</Edge>
+					<Edge From="prohlidka_hradu.hrac_si_lehnul_do_svoji_postele" To="SetUnpausedBeforeCutscene">
+						<Vertex>vertex46</Vertex>
+						<Vertex>vertex47</Vertex>
+					</Edge>
+					<Edge From="ifand18.True" To="SetUnpausedBeforeCutscene" />
+					<Edge From="ifand21.True" To="SetPausedQuestRunning" />
+				</State>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="1brpbKTs" PositionY="240" PositionX="2110" />
+				<EdgeVertex Name="4RBEubRF" PositionY="220" PositionX="670" />
+				<EdgeVertex Name="5V1Phkfq" PositionY="480" PositionX="-1020" />
+				<EdgeVertex Name="5yPocvQp" PositionY="-930" PositionX="1400" />
+				<EdgeVertex Name="7Ld28s0G" PositionY="-350" PositionX="-50" />
+				<EdgeVertex Name="7o4x1yWK" PositionY="200" PositionX="670" />
+				<EdgeVertex Name="7uY5YyKP" PositionY="1200" PositionX="1830" />
+				<EdgeVertex Name="8R6Yqk2M" PositionY="202" PositionX="1688" />
+				<EdgeVertex Name="AD3FqgA5" PositionY="1200" PositionX="2110" />
+				<EdgeVertex Name="B6xCIwDV" PositionY="1300" PositionX="1760" />
+				<EdgeVertex Name="BhzwXnNl" PositionY="1260" PositionX="1760" />
+				<EdgeVertex Name="BQykozBM" PositionY="420" PositionX="1290" />
+				<EdgeVertex Name="dcdlGFkY" PositionY="460" PositionX="740" />
+				<EdgeVertex Name="eBnVd34B" PositionY="240" PositionX="1760" />
+				<EdgeVertex Name="eG5JFxBI" PositionY="380" PositionX="-690" />
+				<EdgeVertex Name="EWDjRTxR" PositionY="499" PositionX="699" />
+				<EdgeVertex Name="Gwmxva5K" PositionY="-970" PositionX="1400" />
+				<EdgeVertex Name="IWhjmRwc" PositionY="-950" PositionX="680" />
+				<EdgeVertex Name="jCfafNAw" PositionY="360" PositionX="660" />
+				<EdgeVertex Name="jsz0YAAB" PositionY="1240" PositionX="1760" />
+				<EdgeVertex Name="KcREkKY9" PositionY="-950" PositionX="1400" />
+				<EdgeVertex Name="MIfLU8cp" PositionY="258" PositionX="1688" />
+				<EdgeVertex Name="NSaflMKX" PositionY="-350" PositionX="-730" />
+				<EdgeVertex Name="o5cAEsek" PositionY="-970" PositionX="780" />
+				<EdgeVertex Name="oAbkk50Y" PositionY="-1220" PositionX="2040" />
+				<EdgeVertex Name="QafQ8mua" PositionY="-970" PositionX="1100" />
+				<EdgeVertex Name="qGhwAmvB" PositionY="1280" PositionX="1760" />
+				<EdgeVertex Name="rrSyWVq3" PositionY="380" PositionX="740" />
+				<EdgeVertex Name="rX4gpHJ7" PositionY="240" PositionX="1420" />
+				<EdgeVertex Name="SKBwdCvT" PositionY="1340" PositionX="1400" />
+				<EdgeVertex Name="Swa3oA4m" PositionY="500" PositionX="740" />
+				<EdgeVertex Name="TahCvHfo" PositionY="-970" PositionX="1380" />
+				<EdgeVertex Name="TShzNy0D" PositionY="420" PositionX="2110" />
+				<EdgeVertex Name="uc40MNvN" PositionY="420" PositionX="1370" />
+				<EdgeVertex Name="uERQkt4b" PositionY="320" PositionX="600" />
+				<EdgeVertex Name="uQ6EpwLU" PositionY="260" PositionX="760" />
+				<EdgeVertex Name="vertex11" PositionY="1300" PositionX="2110" />
+				<EdgeVertex Name="vertex12" PositionY="1280" PositionX="2110" />
+				<EdgeVertex Name="vertex13" PositionY="1260" PositionX="2110" />
+				<EdgeVertex Name="vertex14" PositionY="1240" PositionX="2110" />
+				<EdgeVertex Name="vertex16" PositionY="440" PositionX="1810" />
+				<EdgeVertex Name="vertex17" PositionY="460" PositionX="1810" />
+				<EdgeVertex Name="vertex18" PositionY="460" PositionX="2110" />
+				<EdgeVertex Name="vertex19" PositionY="440" PositionX="2110" />
+				<EdgeVertex Name="vertex21" PositionY="1240" PositionX="1400" />
+				<EdgeVertex Name="vertex22" PositionY="1260" PositionX="1400" />
+				<EdgeVertex Name="vertex23" PositionY="1280" PositionX="1400" />
+				<EdgeVertex Name="vertex24" PositionY="1300" PositionX="1400" />
+				<EdgeVertex Name="vertex25" PositionY="440" PositionX="-1020" />
+				<EdgeVertex Name="vertex26" PositionY="440" PositionX="740" />
+				<EdgeVertex Name="vertex40" PositionY="400" PositionX="50" />
+				<EdgeVertex Name="vertex41" PositionY="400" PositionX="2110" />
+				<EdgeVertex Name="vertex42" PositionY="360" PositionX="2110" />
+				<EdgeVertex Name="vertex43" PositionY="360" PositionX="-470" />
+				<EdgeVertex Name="vertex44" PositionY="340" PositionX="1670" />
+				<EdgeVertex Name="vertex45" PositionY="340" PositionX="-470" />
+				<EdgeVertex Name="vertex46" PositionY="280" PositionX="1110" />
+				<EdgeVertex Name="vertex47" PositionY="280" PositionX="-470" />
+				<EdgeVertex Name="vertex48" PositionY="301" PositionX="49" />
+				<EdgeVertex Name="vertex49" PositionY="300" PositionX="1290" />
+				<EdgeVertex Name="vertex50" PositionY="400" PositionX="1290" />
+				<EdgeVertex Name="vertex51" PositionY="380" PositionX="50" />
+				<EdgeVertex Name="vertex52" PositionY="380" PositionX="2110" />
+				<EdgeVertex Name="vertex55" PositionY="420" PositionX="-690" />
+				<EdgeVertex Name="vertex56" PositionY="420" PositionX="740" />
+				<EdgeVertex Name="vertex57" PositionY="1320" PositionX="1400" />
+				<EdgeVertex Name="vertex58" PositionY="1320" PositionX="2110" />
+				<EdgeVertex Name="vertex63" PositionY="300" PositionX="1690" />
+				<EdgeVertex Name="vertex64" PositionY="360" PositionX="1808" />
+				<EdgeVertex Name="vertex69" PositionY="260" PositionX="2110" />
+				<EdgeVertex Name="vertex70" PositionY="260" PositionX="430" />
+				<EdgeVertex Name="vertex71" PositionY="1220" PositionX="1760" />
+				<EdgeVertex Name="vertex72" PositionY="1220" PositionX="2110" />
+				<EdgeVertex Name="vertex73" PositionY="240" PositionX="-1020" />
+				<EdgeVertex Name="vertex74" PositionY="240" PositionX="1130" />
+				<EdgeVertex Name="vertex79" PositionY="220" PositionX="-1020" />
+				<EdgeVertex Name="vertex80" PositionY="220" PositionX="640" />
+				<EdgeVertex Name="vertex81" PositionY="320" PositionX="2110" />
+				<EdgeVertex Name="vertex82" PositionY="320" PositionX="750" />
+				<EdgeVertex Name="vertex83" PositionY="240" PositionX="1690" />
+				<EdgeVertex Name="vertex86" PositionY="340" PositionX="2110" />
+				<EdgeVertex Name="vertex87" PositionY="340" PositionX="1810" />
+				<EdgeVertex Name="vertex89" PositionY="1360" PositionX="2110" />
+				<EdgeVertex Name="VKNeEuJL" PositionY="320" PositionX="50" />
+				<EdgeVertex Name="wAqk7Twp" PositionY="-930" PositionX="680" />
+				<EdgeVertex Name="Wl88CQVo" PositionY="220" PositionX="2110" />
+				<EdgeVertex Name="xDUTPJUv" PositionY="500" PositionX="400" />
+				<EdgeVertex Name="xpIflz7j" PositionY="-1220" PositionX="480" />
+				<EdgeVertex Name="yeYrxTUm" PositionY="460" PositionX="-1020" />
+				<EdgeVertex Name="ylMNLC18" PositionY="1340" PositionX="2110" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="TimePauseState">
+					<StateTypeEnumeration Name="UnpausedInitial" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="PausedQuestRunning" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="UnpausedBeforeCutscene" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="PausedAfterCutscene" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="UnpausedQuestEnded" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Assets>
+				<SoulAsset Name="nocniUtok_skakaci" SharedSoulGuids="ee06d119-4e93-4c57-9292-09bf1487ace2 60eb68c2-9ccc-4996-a174-811d316567bd 08b8e6f8-b417-42d8-aad4-8f7a08517762 0360e812-f325-4d23-b708-90f226950493 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<TriggerAreaAsset Name="jumpOffArea" />
+				<DialogueHolderAsset Name="mikesKozlikRecruitment_trialogue" />
+				<DialogueHolderAsset Name="janekJaroslavVerbovani_trialogue" />
+				<AnimDoorAsset Name="nightAttack_door1" />
+				<AnimDoorAsset Name="nightAttack_door2" />
+				<SoulAsset Name="nocniUtok_nepratele" SharedSoulGuids="826010fb-d770-49be-8c8e-82ca38114a40 db5839b2-34b9-460a-b709-0ac0cd8cf2bd 381f5edd-0710-438a-821e-8f90cf649dab 0b37ddb7-8c8a-4fd7-a4f7-4bf6113891c9 49d1ecf8-11a1-4e38-be17-19ae8c414b5f 05355f03-0852-4ea9-b7d1-094b71f538c3 bac28a62-a032-453b-9cae-60d5148c58c0 937ba1cc-581e-4f6d-b8d0-cd3c467e844c 4aec2383-94f2-475b-b8e6-fb5b217d4c3f 2f4f34a8-0054-4e62-8129-7a8537005b76 b3654c44-c500-467d-b6c7-94a128b163e9 cc40c501-bf6d-482d-a26b-3af8795a3839 720e1c73-147b-4623-ab8a-3247a141b946 2cd082f7-6e3e-4e83-9337-9841a7e8ea15 85d42d6b-69d3-441f-8db0-c119d8463b9a d9f3c2fd-c057-424f-b7be-da4ac66cf8c8 ee06d119-4e93-4c57-9292-09bf1487ace2 60eb68c2-9ccc-4996-a174-811d316567bd 08b8e6f8-b417-42d8-aad4-8f7a08517762 0360e812-f325-4d23-b708-90f226950493 7e93ebf1-b948-4539-b990-61686a293d51 8ffe9e13-71cb-420f-a310-fb0fb86d57e6 438bcce5-45b7-43d4-863d-60716afd8ec1 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="nepritelSMozkem6" SharedSoulGuids="438bcce5-45b7-43d4-863d-60716afd8ec1 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<ProfileAsset Name="victim_profile" AssetProfiles="oblehaniSuchdole_nocniUtok_victim" />
+				<AnimDoorAsset Name="doorToClose1" />
+				<AnimDoorAsset Name="doorToClose2" />
+				<AnimDoorAsset Name="doorToClose3" />
+				<TriggerAreaAsset Name="areaToGetPlayerOut3" />
+				<TriggerAreaAsset Name="areaToGetPlayerOut1" />
+				<TagPointAsset Name="nightAttack_playerTeleport" />
+				<AnimDoorAsset Name="nightAttack_unlockDoor3" />
+			</Assets>
+			<Notes>
+				<Note Name="note1_1" PositionY="850" PositionX="400">
+					<Text StringName="oblehanis_note1_1_EoUJ" Text="Writing note: Zdůraznit v dialozích Brabanta a jeho zradu - že mu na to skočili. Musíme se mu pomstít, hlavně Čert na něj má spadeno, nevěřil mu totiž už předtím." />
+				</Note>
+				<Note Name="note16" PositionY="1490" PositionX="840">
+					<Text StringName="oblehanis_note16_lwhi" Text="Podoba hradu - stav 1&#xD;&#xA;&#xD;&#xA;Základní podoba hradu pro obléhání.&#xD;&#xA;- Už funguje kuchyně a skladiště jídla – skladiště je plné&#xD;&#xA;- Na palisádě je připravená střelnice&#xD;&#xA;- Mlýn má spuštěné stavidlo a okolo mlýna jsou postavené tarasy a barikády útočníků – plánují je začít přesouvat blíže a zakopávat příkop.&#xD;&#xA;- Obléhací tábory jsou přítomné.&#xD;&#xA;- Obléhací tábor s trebuchety má zatím jen stany a palisádu. Trebuchety jsou na cestě.&#xD;&#xA;" />
+				</Note>
+				<Note Name="note16_1" PositionY="1180" PositionX="840">
+					<Text StringName="oblehanis_note16_1_rJq3" Text="Osazení hradu - stav 1&#xD;&#xA;&#xD;&#xA;Základní podoba hradu pro open world části obléhání. Padací most je spuštěný. Brána předhradí je zavřená, takže hráč uzavřený na hradě.&#xD;&#xA;Na hradě:&#xD;&#xA;- Objevuje se lazaret&#xD;&#xA;- Objevuje se skladiště jídla - je plné&#xD;&#xA;- Na palisádě je připravená střelnice – jen dva pověšené slaměné terče. Vojáci z hradby trénují střelbu dolů.&#xD;&#xA;- Venku je postavené hrací stanoviště na kostky&#xD;&#xA;V okolí hradu:&#xD;&#xA;- Vesnice se mění na vypálenou a s postaveným táborem&#xD;&#xA;- Obléhací tábory jsou přítomné – tábor s trebuchety je zatím bez trebuchetů&#xD;&#xA;" />
+				</Note>
+				<Note Name="note19" PositionY="-410" PositionX="-480">
+					<Text StringName="hibernabl_note19_FZVG" Text="time skip zrusen?" />
+				</Note>
+				<Note Name="note1" PositionY="700" PositionX="400">
+					<Text StringName="hibernabl_note1_E5Nq" Text="Hráč jde ihned po CS do dialogu s Bohutou. Bohuta mu řekne, co se děje. Taky mu pak sdělí, že ho provede po hradě. Jakmile je dialog u konce, Bohuta startuje tour. Bohuta zmíní, že se probral Musa a hráč na to dostává optional objective, aby za ním zašel.&#xD;&#xA;Po CS došlo k posunu času na ráno (9:00) a svět se upravil do stavu 1." />
+				</Note>
+			</Notes>
+			<Text StringName="hibernables_kUj0" Text="Hibernables" />
+		</Module>
+	</Skald>
+</Database>

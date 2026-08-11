@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="beh_k_brane">
+			<Ports>
+				<Port Name="start" Direction="In" Type="trigger">
+					<DesignName StringName="beh_k_bra_hotovo_Z4eR" Text="Start" />
+				</Port>
+				<Port Name="nahravani_sekerniku" Direction="In" Type="bool">
+					<DesignName StringName="beh_k_bra_nahravani_seker_2R7s" Text="Nahrávání sekerníků" />
+				</Port>
+				<Port Name="hotovo" Direction="Out" Type="trigger">
+					<DesignName StringName="beh_k_bra_jsou_u_brany_j2am" Text="Hotovo" />
+				</Port>
+				<Port Name="jsou_u_brany" Direction="Out" Type="bool">
+					<DesignName StringName="beh_k_bra_jsou_u_brany_Zepc" Text="Jsou u brány" />
+				</Port>
+				<Port Name="nahravani_velitele" Direction="In" Type="bool">
+					<DesignName StringName="beh_k_bra_nahravani_velit_4WE5" Text="Nahrávání velitele" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<Function Name="and22" PositionY="420" PositionX="40" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="nahravani_sekerniku" To="B">
+						<Vertex>vertex2</Vertex>
+					</Edge>
+					<Edge From="axeAttackersMoveToGateBehaviorRecording.Updated" To="A" />
+				</Function>
+				<State Name="axeAttackersMoveToGateBehaviorRecording" PositionY="0" PositionX="-280" TypeT="ProgressUpdated">
+					<Edge From="start" To="SetActive" />
+					<Edge From="move_npctotagpoint_2.movefinished" To="SetDone">
+						<Vertex>vertex4</Vertex>
+						<Vertex>vertex5</Vertex>
+					</Edge>
+					<Edge From="distancetrigger23.OnMatch" To="SetUpdated">
+						<Vertex>6SPy4FAm</Vertex>
+						<Vertex>BUuvbkWx</Vertex>
+					</Edge>
+				</State>
+				<Timer Name="commanderToGateBehaviorRecording" PositionY="830" PositionX="-260">
+					<Constant Name="Duration" Value="5s" />
+					<Constant Name="TimeType" Value="GameTime" />
+					<Edge From="start" To="SetRunning" />
+					<Edge From="move_npctotagpoint_1.movefinished" To="SetStopped">
+						<Vertex>jntNFMRn</Vertex>
+						<Vertex>fwvs28vk</Vertex>
+					</Edge>
+				</Timer>
+				<DistanceTrigger Name="distancetrigger23" PositionY="-150" PositionX="310">
+					<Asset Name="Origin" Alias="frontWallAxeAttackersGateMoveTarget" />
+					<Asset Name="Target" Alias="assaultShooter_1" />
+					<Constant Name="Operator" Value="LessEquals" />
+					<Constant Name="Distance" Value="19.5" />
+					<Edge From="axeAttackersMoveToGateBehaviorRecording.Active" To="IsActive" />
+				</DistanceTrigger>
+				<move_npctotagpoint Name="move_npctotagpoint_1" PositionY="840" PositionX="180" Namespace="utils.battle">
+					<Constant Name="sessionname" Value="zoufalaObranaZaBohutu_commanderMoveToGate" />
+					<Asset Name="groupcontroller" Alias="frontWallAttackersCommanderGroupController" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="tagpointlinktag" Value="gateSpot" />
+					<Edge From="commanderToGateBehaviorRecording.Finished" To="isactive" />
+					<Edge From="nahravani_velitele" To="isrecordingsession">
+						<Vertex>zqQ5fBr6</Vertex>
+						<Vertex>7mS45UIF</Vertex>
+					</Edge>
+				</move_npctotagpoint>
+				<move_npctotagpoint Name="move_npctotagpoint_2" PositionY="90" PositionX="340" Namespace="utils.battle">
+					<Constant Name="sessionname" Value="zoufalaObranaZaBohutu_axeAttackersMoveToGate" />
+					<Asset Name="groupcontroller" Alias="frontWallAxeAttackersGroupController" />
+					<Constant Name="linktag" Value="battleEntity" />
+					<Constant Name="tagpointlinktag" Value="finalTp" />
+					<Edge From="and22.bool" To="isrecordingsession" />
+					<Edge From="axeAttackersMoveToGateBehaviorRecording.Updated" To="isactive" />
+				</move_npctotagpoint>
+				<Output Name="Output">
+					<Edge From="axeAttackersMoveToGateBehaviorRecording.Done" To="jsou_u_brany">
+						<Vertex>vertex18</Vertex>
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="axeAttackersMoveToGateBehaviorRecording.OnDone" To="hotovo">
+						<Vertex>vertex16</Vertex>
+						<Vertex>vertex17</Vertex>
+					</Edge>
+				</Output>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="6SPy4FAm" PositionY="-190" PositionX="690" />
+				<EdgeVertex Name="7mS45UIF" PositionY="668" PositionX="67" />
+				<EdgeVertex Name="BUuvbkWx" PositionY="-194" PositionX="-280" />
+				<EdgeVertex Name="fwvs28vk" PositionY="1313" PositionX="-214" />
+				<EdgeVertex Name="jntNFMRn" PositionY="1303" PositionX="524" />
+				<EdgeVertex Name="vertex16" PositionY="612" PositionX="76" />
+				<EdgeVertex Name="vertex17" PositionY="610" PositionX="900" />
+				<EdgeVertex Name="vertex18" PositionY="622" PositionX="78" />
+				<EdgeVertex Name="vertex19" PositionY="620" PositionX="900" />
+				<EdgeVertex Name="vertex2" PositionY="530" PositionX="-260" />
+				<EdgeVertex Name="vertex4" PositionY="600" PositionX="680" />
+				<EdgeVertex Name="vertex5" PositionY="600" PositionX="-260" />
+				<EdgeVertex Name="zqQ5fBr6" PositionY="671" PositionX="-307" />
+			</EdgeVertices>
+			<Assets>
+				<TagPointAsset Name="frontWallAxeAttackersGateMoveTarget" />
+				<SoulAsset Name="axeMan_1" SharedSoulGuids="02b8075e-5343-46c4-a32b-e71d45740d94 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="assaultShooter_1" SharedSoulGuids="0d82da9f-56d1-47c8-a533-c0121d77edd6 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+			</Assets>
+			<Text StringName="beh_k_brane_HjpJ" Text="Běh k bráně" />
+		</Module>
+	</Skald>
+</Database>

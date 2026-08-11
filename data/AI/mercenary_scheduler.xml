@@ -49,7 +49,6 @@
             <Variable name="candidateTarget"     type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="foundTarget"         type="_bool"                values="false"                             isPersistent="0" form="single" />
 
-            <Variable name="stanceMode"          type="_int"                 values="1"                                 isPersistent="0" form="single" />
             <Variable name="playerCombatTarget"  type="_wuid"                values=""                                  isPersistent="0" form="single" />
 
             <Variable name="dialogRequest"       type="dialogModule:onDialogRequest" values=""                          isPersistent="0" form="single" />
@@ -72,6 +71,14 @@
 
             <Variable name="mercIsDead" type="_bool" values="false" isPersistent="0" form="single" />
 
+        <!-- wbLocked: forming up for a walled battle - do not start fights. -->
+
+        <Variable name="wbLocked" type="_bool" values="false" isPersistent="0" form="single" />
+
+        <Variable name="wbStageGo" type="_bool" values="false" isPersistent="0" form="single" />
+
+        <Variable name="wbMrkev" type="_wuid" values="" isPersistent="0" form="single" />
+
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">
@@ -83,62 +90,59 @@
                         <Loop count="-1">
                             <Sequence>
 
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'150ms'" />
+                                <!-- 300ms: this is the squad's reaction time to a new threat. idleTicks
+                                     thresholds below are scaled to it (55 ticks ~ 16s). -->
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
 
                                 <AtomicDecorator>
                                     <Sequence>
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                         <ExecuteLua code="data.isIdle = _G.MercIdle or false" />
                                         <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
-                                        <ExecuteLua code="data.stanceMode = mercenaries:GetStanceCode()" />
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
+                                        <!-- Target acquisition is always on. See docs/combat-target-selection.md. -->
                                         <SuppressFailure>
-                                            <IfCondition failOnCondition="false" condition="~$inCombat &amp; $stanceMode ~= 3">
+                                            <IfCondition failOnCondition="false" condition="~$inCombat">
                                                 <Sequence>
-                                                    <!-- Fetched unconditionally: both the "everyone" and "player_target" pickers use it. See docs/combat-target-selection.md. -->
                                                     <Expression expressions="$playerCombatTarget = $__null" />
                                                     <SuppressFailure>
                                                         <GetTarget ReferenceNPC="$playerWUID" TargetVarOut="$playerCombatTarget" />
                                                     </SuppressFailure>
 
-                                                    <IfCondition failOnCondition="false" condition="$stanceMode == 0">
-                                                        <ExecuteLua code="mercenaries:PickNearestValidTarget(data, entity.this.id)" />
-                                                    </IfCondition>
+                                                    <!-- Pass 1: whoever has locked onto the player or onto this merc. -->
+                                                    <ExecuteLua code="mercenaries:ScanForEnemies(data, entity.this.id)" />
 
-                                                    <IfCondition failOnCondition="false" condition="$stanceMode == 1">
-                                                        <ExecuteLua code="mercenaries:PickPlayersTarget(data, entity.this.id)" />
-                                                    </IfCondition>
-
-                                                    <IfCondition failOnCondition="false" condition="$stanceMode == 2">
+                                                    <For startIndex="0" endIndex="-1" step="1" array="$enemiesArray" iterator="" value="$candidate" break="$foundTarget">
                                                         <Sequence>
-                                                            <ExecuteLua code="mercenaries:ScanForEnemies(data, entity.this.id)" />
+                                                            <Expression expressions="$candidateTarget = $__null" />
+                                                            <SuppressFailure>
+                                                                <GetTarget ReferenceNPC="$candidate" TargetVarOut="$candidateTarget" />
+                                                            </SuppressFailure>
 
-                                                            <For startIndex="0" endIndex="-1" step="1" array="$enemiesArray" iterator="" value="$candidate" break="$foundTarget">
-                                                                <Sequence>
-                                                                    <Expression expressions="$candidateTarget = $__null" />
-                                                                    <SuppressFailure>
-                                                                        <GetTarget ReferenceNPC="$candidate" TargetVarOut="$candidateTarget" />
-                                                                    </SuppressFailure>
-
-                                                                    <ExecuteLua code="mercenaries:EvaluateCombatTarget(data, entity.this.id)" />
-                                                                </Sequence>
-                                                            </For>
+                                                            <ExecuteLua code="mercenaries:EvaluateCombatTarget(data, entity.this.id)" />
                                                         </Sequence>
-                                                    </IfCondition>
+                                                    </For>
+
+                                                    <!-- Pass 2: the player's own target, else the nearest armed hostile. -->
+                                                    <ExecuteLua code="mercenaries:PickCombatTarget(data, entity.this.id)" />
                                                 </Sequence>
                                             </IfCondition>
                                         </SuppressFailure>
 
                                         <SuppressFailure><GetTarget ReferenceNPC="$this.id" TargetVarOut="$mercTarget" /></SuppressFailure>
                                         
-                                        <IfElseCondition failOnCondition="false" condition="$playerTarget == $__null" saveVersion="2">
+                                        <!-- idleTicks = "how long have I had nothing to do". It must NOT tick
+                                             while in combat: acquisition is gated on ~inCombat, so playerTarget
+                                             is null every tick of a fight, and a fight lasting past the
+                                             threshold below would sheathe the merc's weapon mid-swing. -->
+                                        <IfElseCondition failOnCondition="false" condition="$playerTarget == $__null &amp; ~$inCombat" saveVersion="2">
                                             <Then canSkip="1"><Expression expressions="$idleTicks = $idleTicks + 1" /></Then>
                                             <Else canSkip="1"><Expression expressions="$idleTicks = 0" /></Else>
                                         </IfElseCondition>
-                                        <IfCondition failOnCondition="false" condition="$idleTicks &gt; 40">
-                                            <Expression expressions="$idleTicks = 40" />
+                                        <IfCondition failOnCondition="false" condition="$idleTicks &gt; 66">
+                                            <Expression expressions="$idleTicks = 66" />
                                         </IfCondition>
                                     </Sequence>
                                 </AtomicDecorator>
@@ -147,7 +151,11 @@
                                     <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
                                         <Then canSkip="1">
                                             <Sequence>
-                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 20.0 | $idleTicks &gt; 33 | $stanceMode == 3">
+                                                <!-- 35m for the same reason as the follow-retry below: rear ranks of a
+                                                     deep formation are legitimately far back, and at 20 this was
+                                                     de-targeting and sheathing the last rank on a loop. idleTicks is an
+                                                     independent trigger and stays as it is. -->
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 35.0 | $idleTicks &gt; 55">
                                                     <Sequence>
                                                         <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
                                                         <Expression expressions="$currentTarget = $__null" />
@@ -174,12 +182,20 @@
                                                             </LockDynamicInformationValues>
                                                             <SuppressFailure><Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898990" /></SuppressFailure>
                                                             <Expression expressions="$attackData.target = $playerTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
-                                                            <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                            <IfCondition failOnCondition="false" condition="~$wbLocked"><!-- wbLockedWrapped -->
+                                                                <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                            </IfCondition>
+                                                            <!-- Optimistic: the tracker loop below needs a tick to see the
+                                                                 crime context, and until it does this branch would re-fire
+                                                                 and IgnorePriorityOnPreviousInterrupt would replace the
+                                                                 combat we just started (its OnFail sheathes + drops the
+                                                                 target, leaving the merc stood there disarmed). -->
+                                                            <Expression expressions="$inCombat = true" />
                                                         </Sequence>
                                                     </Then>
                                                     <Else canSkip="1">
                                                         <AtomicDecorator>
-                                                            <IfCondition failOnCondition="false" condition="$idleTicks &gt; 33">
+                                                            <IfCondition failOnCondition="false" condition="$idleTicks &gt; 55">
                                                                 <Sequence>
                                                                     <Expression expressions="$currentTarget = $__null" />
                                                                     <ExecuteLua code="
@@ -211,10 +227,12 @@
                                         <Expression expressions="$inCombat = false" />
                                     </Else>
                                 </EntityContextCheck>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <!-- Matches the acquisition loop: inCombat gates it, so a stale value
+                                     costs reaction time. -->
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                             </Sequence>
                         </Loop>
-                        
+
                         <Loop count="-1">
                             <Sequence>
                                 
@@ -291,7 +309,6 @@
                                             <IfCondition failOnCondition="false" condition="~$isFollowingActive">
                                                 <Sequence>
 
-                                                    <ExecuteLua code="System.LogAlways('[MERC JEFF] issuing follow order')"/>
                                                     <SuppressFailure>
                                                         <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1234" />
                                                         <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$__player" Information="$crimeInformation" />
@@ -306,13 +323,17 @@
                                                     <IfElseCondition failOnCondition="false" condition="$isCampActor" saveVersion="2">
                                                         <Then canSkip="1">
                                                             <Sequence>
-                                                                <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'camp_actor'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                                <IfCondition failOnCondition="false" condition="~$wbLocked"><!-- wbLockedWrapped -->
+                                                                    <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'camp_actor'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                                </IfCondition>
                                                                 <Expression expressions="$firedCampActor = true" />
                                                             </Sequence>
                                                         </Then>
                                                         <Else canSkip="1">
                                                             <Sequence>
-                                                                <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'follow'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                                <IfCondition failOnCondition="false" condition="~$wbLocked"><!-- wbLockedWrapped -->
+                                                                    <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'follow'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                                                </IfCondition>
                                                                 <Expression expressions="$firedCampActor = false" />
                                                             </Sequence>
                                                         </Else>
@@ -336,9 +357,16 @@
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />
                                 <!-- Never force a follow-retry while mounted: re-firing the interrupt restarts
-                                     the follow module and throws the merc off the horse (the "random dismount"). -->
+                                     the follow module and throws the merc off the horse (the "random dismount").
+                                     The SAME restart is why this threshold is 35 and not 15: a formation is
+                                     measured from the LEADER, who is himself standing off the player, so a
+                                     rear-rank merc in a deep preset is legitimately 20m+ back. At 15 the
+                                     column-20 preset put 8 of 19 followers permanently over the line - each
+                                     restart drops them out of FormationFollower, which IS their only
+                                     locomotion, so they coast further back and re-trip it 8s later. That was
+                                     the whole "fine at 10 mercs, bad at 20" cliff. -->
                                 <ExecuteLua code="data.playerMounted = _G.PlayerMounted or false" />
-                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
+                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 35.0">
                                     <Expression expressions="$isFollowingActive = false" />
                                 </IfCondition>
                             </Sequence>
@@ -652,6 +680,24 @@
 
                                     </Sequence>
                                 </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Staged walled battle: walk to the muster point at the gap. Only a tree can
+                             fire the interrupt that actually moves him, and this fires only while he
+                             has a staging assignment, so it cannot compete with anything else. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:WBCombatPoll(data, entity); mercenaries:WBStagePoll(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$wbStageGo">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$wbMrkev" nodeLabel="1243" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$wbMrkev" Behavior="'nav_goto'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                             </Sequence>
                         </Loop>
 

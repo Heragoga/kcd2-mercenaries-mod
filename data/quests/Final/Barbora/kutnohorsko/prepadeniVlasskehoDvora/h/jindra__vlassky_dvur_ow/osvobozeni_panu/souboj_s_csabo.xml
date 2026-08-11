@@ -1,0 +1,205 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="souboj_s_csabo">
+			<Ports>
+				<Port Name="start_fight" Direction="In" Type="trigger">
+					<DesignName StringName="souboj_s__fight_Ib5J" Text="start fight" />
+				</Port>
+				<Port Name="fight_started" Direction="Out" Type="trigger">
+					<DesignName StringName="souboj_s__nf85ac5773c2742_mkdF" Text="fight started" />
+				</Port>
+				<Port Name="force_dialog" Direction="Out" Type="trigger">
+					<DesignName StringName="souboj_s__force_dialog_3Njj" Text="force dialog s csabou" />
+				</Port>
+				<Port Name="hans_a_komar_resi_csabu" Direction="In" Type="bool">
+					<DesignName StringName="souboj_s__hans_a_komar_re_ngss" Text="Hans a Komar resi Csabu" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="souboj_s_csabo/csabovy_bojove_barky.xml" />
+				<Definition File="souboj_s_csabo/csaba_surrender_chat.xml" />
+			</Definitions>
+			<Nodes>
+				<action_prompt Name="action_prompt" PositionY="-1490" PositionX="760" Namespace="utils.commonstrings" />
+				<AddFactionRelationBetweenArrays Name="addfactionrelationbetweenarrays28" PositionY="300" PositionX="510">
+					<Constant Name="RelationValue" Value="-1" />
+					<Asset Name="SoulArray0" Alias="csaba" />
+					<Asset Name="SoulArray1" Alias="vlasakCombatFriendlies_openWorld" />
+					<Edge From="csabaFight.Fight" To="IsActive">
+						<Vertex>vertex7</Vertex>
+					</Edge>
+				</AddFactionRelationBetweenArrays>
+				<alldeathorunconscioustrigger Name="alldeathorunconscioustrigger" PositionY="70" PositionX="920" Namespace="utils.general">
+					<Asset Name="souls" Alias="csaba" />
+					<Constant Name="infinite_unconsciousness" Value="true" />
+					<Edge From="or31.bool" To="isactive" />
+				</alldeathorunconscioustrigger>
+				<BuffEffect Name="buff29" PositionY="80" PositionX="510">
+					<Asset Name="Souls" Alias="vlasakCombatFriendlies_openWorld" />
+					<Constant Name="BuffGUID" Value="74cf0c29-d03e-4233-9352-b91ca5ea69ea" />
+					<Edge From="csabaFight.Fight" To="IsActive">
+						<Vertex>vertex15</Vertex>
+					</Edge>
+				</BuffEffect>
+				<BuffEffect Name="buff29_1" PositionY="560" PositionX="480">
+					<Asset Name="Souls" Alias="vlasakCombatFriendlies_openWorld" />
+					<Constant Name="BuffGUID" Value="8e9cb93a-eb5f-4846-be2c-2c7010872704" />
+					<Edge From="csabaFight.Fight" To="IsActive">
+						<Vertex>vertex15</Vertex>
+					</Edge>
+				</BuffEffect>
+				<BuffEffect Name="buff29_1_1" PositionY="750" PositionX="480">
+					<Asset Name="Souls" Alias="vlasakCombatFriendlies_openWorld" />
+					<Constant Name="BuffGUID" Value="ac6db9f1-254e-488a-9e45-759fd8cc7088" />
+					<Edge From="csabaFight.Fight" To="IsActive">
+						<Vertex>vertex15</Vertex>
+					</Edge>
+				</BuffEffect>
+				<CombatHistoryTrigger Name="combathistorytrigger10" PositionY="-580" PositionX="590">
+					<Asset Name="Soul1" Alias="player" />
+					<Asset Name="Soul2" Alias="csaba" />
+					<Constant Name="MaxTime" Value="2" />
+					<Edge From="csabaFight.WaitingForFight" To="IsActive">
+						<Vertex>XVrYJkcE</Vertex>
+					</Edge>
+				</CombatHistoryTrigger>
+				<CombatHistoryTrigger Name="combathistorytrigger10_1" PositionY="-830" PositionX="590">
+					<Asset Name="Soul1" Alias="hans" />
+					<Asset Name="Soul2" Alias="csaba" />
+					<Constant Name="MaxTime" Value="2" />
+					<Edge From="csabaFight.WaitingForFight" To="IsActive">
+						<Vertex>XVrYJkcE</Vertex>
+					</Edge>
+				</CombatHistoryTrigger>
+				<CombatHistoryTrigger Name="combathistorytrigger10_2" PositionY="-1090" PositionX="590">
+					<Asset Name="Soul1" Alias="komar" />
+					<Asset Name="Soul2" Alias="csaba" />
+					<Constant Name="MaxTime" Value="2" />
+					<Edge From="csabaFight.WaitingForFight" To="IsActive">
+						<Vertex>XVrYJkcE</Vertex>
+					</Edge>
+				</CombatHistoryTrigger>
+				<csaba_surrender_chat Name="csaba_surrender_chat" PositionY="-360" PositionX="1350">
+					<Edge From="hans_a_komar_resi_csabu" To="Awake">
+						<Vertex>vertex19</Vertex>
+						<Vertex>KGHEqefD</Vertex>
+					</Edge>
+				</csaba_surrender_chat>
+				<State Name="csabaFight" PositionY="-270" PositionX="90" TypeT="CsabaFight">
+					<Edge From="csaba_surrender_chat.force_dialog" To="SetWaitingForFight">
+						<Vertex>vertex8</Vertex>
+						<Vertex>vertex9</Vertex>
+						<Vertex>vertex10</Vertex>
+					</Edge>
+					<Edge From="alldeathorunconscioustrigger.onalldeadorunconscious" To="SetDone">
+						<Vertex>1g84hofh</Vertex>
+						<Vertex>xxXXpCoa</Vertex>
+					</Edge>
+					<Edge From="ifnot39.True" To="SetFight" />
+				</State>
+				<csabovy_bojove_barky Name="csabovy_bojove_barky" PositionY="160" PositionX="1320" />
+				<fightconfiguration_surrendering Name="fightconfiguration_surrendering" PositionY="-670" PositionX="1040" Namespace="utils.combat">
+					<Asset Name="souls" Alias="csaba" />
+					<Constant Name="neversurrenderorflee" Value="true" />
+					<Constant Name="neveracceptsurrender" Value="true" />
+					<Constant Name="preventkillingunconscioushostileplayer" Value="false" />
+					<Constant Name="decentmercy" Value="false" />
+					<Constant Name="alwaysmercy" Value="false" />
+					<Edge From="or31.bool" To="isactive" />
+				</fightconfiguration_surrendering>
+				<fightstart Name="fightstart" PositionY="-280" PositionX="520" Namespace="utils.combat">
+					<Asset Name="attacker" Alias="csaba" />
+					<Asset Name="target" Alias="komar" />
+					<Constant Name="prioritytarget" Value="true" />
+					<Edge From="csabaFight.OnFight" To="startfight" />
+				</fightstart>
+				<fightstart Name="fightstart_1" PositionY="935" PositionX="471" Namespace="utils.combat">
+					<Asset Name="attacker" Alias="komar" />
+					<Asset Name="target" Alias="csaba" />
+					<Constant Name="prioritytarget" Value="false" />
+					<Edge From="csabaFight.OnFight" To="startfight" />
+				</fightstart>
+				<fightstart Name="fightstart_2" PositionY="1164" PositionX="462" Namespace="utils.combat">
+					<Asset Name="attacker" Alias="hans" />
+					<Asset Name="target" Alias="csaba" />
+					<Constant Name="prioritytarget" Value="false" />
+					<Edge From="csabaFight.OnFight" To="startfight" />
+				</fightstart>
+				<IfFunction Name="ifnot39" PositionY="-80" PositionX="-200" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+					<Edge From="csabaFight.Done" To="Value">
+						<Vertex>KnoQkd4n</Vertex>
+						<Vertex>wauqdcKl</Vertex>
+					</Edge>
+					<Edge From="combathistorytrigger10.OnCombatHistoryBegins" To="Exec">
+						<Vertex>vertex2</Vertex>
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="combathistorytrigger10_1.OnCombatHistoryBegins" To="Exec">
+						<Vertex>vertex2</Vertex>
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="combathistorytrigger10_2.OnCombatHistoryBegins" To="Exec">
+						<Vertex>vertex2</Vertex>
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="start_fight" To="Exec" />
+				</IfFunction>
+				<InteractorOverride Name="interactoroverride33" PositionY="-1190" PositionX="1040">
+					<Asset Name="Object" Alias="door_prison" />
+					<Constant Name="Type" Value="Hold" />
+					<Constant Name="DisableReason" Value="osvobozen_nejprve_zneskod_jmcO" />
+					<Edge From="or31.bool" To="IsActive" />
+					<Edge From="action_prompt.odemknout" To="ActionPrompt" />
+				</InteractorOverride>
+				<InteractorOverride Name="interactoroverride33_1" PositionY="-1515" PositionX="1042">
+					<Asset Name="Object" Alias="door_prison" />
+					<Constant Name="Type" Value="Press" />
+					<Constant Name="DisableReason" Value="osvobozen_nejprve_zneskod_jmcO" />
+					<Edge From="or31.bool" To="IsActive" />
+					<Edge From="action_prompt.odemknout" To="ActionPrompt" />
+				</InteractorOverride>
+				<Function Name="or31" PositionY="-270" PositionX="750" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="csabaFight.WaitingForFight" To="A" />
+					<Edge From="csabaFight.Fight" To="B">
+						<Vertex>vertex7</Vertex>
+					</Edge>
+					<Edge From="csabaFight.BeforeFight" To="C" />
+				</Function>
+				<Output Name="Output">
+					<Edge From="csabaFight.OnFight" To="fight_started" />
+					<Edge From="csaba_surrender_chat.force_dialog" To="force_dialog">
+						<Vertex>vertex8</Vertex>
+					</Edge>
+				</Output>
+				<SetEntityContext Name="setentitycontext32" PositionY="-870" PositionX="1040">
+					<Constant Name="Context" Value="combat_forceArmed" />
+					<Asset Name="Souls" Alias="csaba" />
+					<Edge From="or31.bool" To="IsActive" />
+				</SetEntityContext>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="1g84hofh" PositionY="-280" PositionX="1220" />
+				<EdgeVertex Name="KGHEqefD" PositionY="-330" PositionX="950" />
+				<EdgeVertex Name="KnoQkd4n" PositionY="221" PositionX="318" />
+				<EdgeVertex Name="vertex1" PositionY="-300" PositionX="40" />
+				<EdgeVertex Name="vertex10" PositionY="-360" PositionX="50" />
+				<EdgeVertex Name="vertex15" PositionY="140" PositionX="450" />
+				<EdgeVertex Name="vertex19" PositionY="-330" PositionX="58" />
+				<EdgeVertex Name="vertex2" PositionY="-300" PositionX="870" />
+				<EdgeVertex Name="vertex7" PositionY="40" PositionX="450" />
+				<EdgeVertex Name="vertex8" PositionY="-210" PositionX="1700" />
+				<EdgeVertex Name="vertex9" PositionY="-380" PositionX="1650" />
+				<EdgeVertex Name="wauqdcKl" PositionY="220" PositionX="-130" />
+				<EdgeVertex Name="XVrYJkcE" PositionY="-1000" PositionX="460" />
+				<EdgeVertex Name="xxXXpCoa" PositionY="-279" PositionX="101" />
+			</EdgeVertices>
+			<Assets>
+				<SmartObjectAsset Name="so_chairKitchen_giuseppe" />
+				<SoulAsset Name="vlasakCombatFriendlies_openWorld" SharedSoulGuids="4c2dcffb-dea1-6263-72d7-b39f4db2d8b5 bd672e35-7841-4e0f-be10-4cbaccf16cda 6cc3bb5a-8427-4a49-8ed9-ea9dcdbd3ab7 ea74dd3c-1cf3-472f-b36b-9aa3dafbc2c3 46bb1e4d-31b1-7d13-d768-d7e0886a2199 4a705738-fd86-23bd-5eb9-ee16d727038a 4361beac-9622-8880-2415-63a87e8d2d8f 08df910a-a0a0-4ca6-a4fd-dd52cc3eb89a 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="jan" />
+			</Assets>
+			<Text StringName="souboj_s_csabo_4eMK" Text="Souboj s Csabou" />
+		</Gameplay>
+	</Skald>
+</Database>

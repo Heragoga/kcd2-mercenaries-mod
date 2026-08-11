@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- TEST NPC retreat, as a SEPARATE interrupt rather than a branch inside combat.
+         Failing a branch of the combat tree did not release movement - the NPC kept
+         attacking - which is what the game itself implies: sa_deterrentArea does not
+         touch a running fight either, it fires interrupt_beDeterred at priority 200
+         over combat's 160 and lets the interrupt system evict the fight. This tree is
+         the same idea: it owns the NPC for as long as it runs, moves him, and ends,
+         after which the scheduler re-fires combat.
+
+         Destination is computed here (Lua -> $retreatPos vec3) exactly as
+         interrupt_beDeterred computes its own, so nothing has to be passed in. -->
+    <BehaviorTree name="testnpc_retreat" is_function="0">
+        <Variables>
+            <Variable name="retreatPos" type="vec3" values="" isPersistent="0" form="single" />
+        </Variables>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                  <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                    <Child canSkip="1">
+                        <Sequence>
+                            <!-- Weapon stays drawn: he is running to a new spot, not standing
+                                 down. An explicit draw here also covers the case where the
+                                 evicted combat tree got a sheathe in first. -->
+                            <SuppressFailure>
+                                <DrawAction WeaponSet="Primary" fullBody="false" tags="" />
+                            </SuppressFailure>
+
+                            <ExecuteLua code="mercenaries:TestNpcPickRetreat(data, entity)" />
+                            <SuppressFailure>
+                                <Move stopWithinDistance="1.000000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$retreatPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                            </SuppressFailure>
+
+                            <!-- stand still a moment at the far spot, so the run is obvious
+                                 and the scheduler has a clear gap in which to re-aggro -->
+                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            <ExecuteLua code="System.LogAlways('[TestNpc] retreat interrupt finished'); mercenaries:TestNpcSetRetreating(entity, false)" />
+                        </Sequence>
+                    </Child>
+
+                    <!-- Release the claim however this ends - if the tree is evicted or the
+                         Move fails, a stuck flag would leave him permanently passive. -->
+                    <OnFail canSkip="1">
+                        <ExecuteLua code="System.LogAlways('[TestNpc] retreat interrupt FAILED/evicted'); mercenaries:TestNpcSetRetreating(entity, false)" />
+                    </OnFail>
+                  </FuseBox>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

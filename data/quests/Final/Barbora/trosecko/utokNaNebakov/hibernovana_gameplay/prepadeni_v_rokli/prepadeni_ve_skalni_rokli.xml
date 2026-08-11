@@ -1,0 +1,302 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="prepadeni_ve_skalni_rokli">
+			<Ports>
+				<Port Name="obj_zachran_se_s_ptackem__aktivni" Direction="Out" Type="bool">
+					<DesignName StringName="prepadeni_obj_zachran_se__PmFy" Text="obj Zachraň se s Ptáčkem - aktivní" />
+				</Port>
+				<Port Name="hrac_je_troskach" Direction="Out" Type="bool">
+					<DesignName StringName="prepadeni_hrac_je_mimo_tr_3EXC" Text="hráč je Troskách" />
+				</Port>
+				<Port Name="po_nastreamovani" Direction="In" Type="bool">
+					<DesignName StringName="prepadeni_po_nastreamovani_BfWC" Text="po nastreamování" />
+				</Port>
+				<Port Name="jindra_zpatky_na_nohach" Direction="In" Type="trigger">
+					<DesignName StringName="prepadeni_jindra_zpatky_n_3M7W" Text="Jindra zpátky na nohách" />
+				</Port>
+				<Port Name="jindra_s_ptackem_v_ta" Direction="In" Type="trigger">
+					<DesignName StringName="prepadeni_jindra_s_ptacke_vNSM" Text="splnění obj Zachraň s Ptáček " />
+				</Port>
+				<Port Name="obj__najdi_cestu_pryc" Direction="Out" Type="trigger">
+					<DesignName StringName="prepadeni_jindro_najdi_ce_8pJj" Text="obj - Najdi cestu pryč" />
+				</Port>
+				<Port Name="stream_trackview_2_1" Direction="Out" Type="trigger">
+					<DesignName StringName="prepadeni_stream_trackvie_oZVs" Text="hráč je mezi komořím a druhým padlý, stromem" />
+				</Port>
+				<Port Name="cutscena__beforeplay" Direction="In" Type="trigger">
+					<DesignName StringName="prepadeni_po_skonceni_cut_QIYO" Text="cutscéna - beforePlay" />
+				</Port>
+				<Port Name="spusteni_divadla_za_prvni_zatackou" Direction="Out" Type="trigger">
+					<DesignName StringName="prepadeni_spusteni_divadl_qedN" Text="spuštění divadla za první zatáčkou" />
+				</Port>
+				<Port Name="probiha_boj_u_prvniho_padleho_stromu" Direction="In" Type="trigger">
+					<DesignName StringName="prepadeni_probiha_boj_u_p_r6ZK" Text="probíhá boj u prvního padlého stromu" />
+				</Port>
+				<Port Name="onwake" Direction="In" Type="trigger">
+					<DesignName StringName="prepadeni_onwake_vCQx" Text="OnWake" />
+				</Port>
+				<Port Name="komori_umrel" Direction="Out" Type="bool">
+					<DesignName StringName="prepadeni_komori_umrel_1bpE" Text="komoří umřel" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="prepadeni_ve_skalni_rokli/ptacek_na_zacatku_barkne_na_jindru.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/ptacek_barkuje_o_komorim.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/ptacek_zachranuje_komoriho_start.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/hej_jindro_vezmi_komoriho.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/komori_barkuje_pod_konem.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/ptacek_barkuje_po_uvodnim_stretu.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/komori_barkuje_na_zemi.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/jindra_barkne_na_komoriho.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/objective__zachran_komoriho.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/animace__bojujici_dvojice_za_prvni_zatackou.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/bojujici_skupiny_npc.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/umirajici_npc_na_skalach.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/bark__je_hrac_v_blizkosti_komoriho.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/je_u_zatarasu_mene_jak_3_nepratele.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/najdi_cestu_jindro.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/hrac_podlezl_padly_strom.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/za_komorim_area.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/ptacek_s_hracem_jsou_u_prvni_zatacky__bark.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/handle_nesmrtelnosti_a_wait_chovani.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/animace__spojenci_dostanou_hit_pistalou.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/ptacek_reaguje_na_umrti_komoriho.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/kill_area_u_komoriho.xml" />
+				<Definition File="prepadeni_ve_skalni_rokli/smrtelny_vykrik_komoriho.xml" />
+			</Definitions>
+			<Nodes>
+				<animace__bojujici_dvojice_za_prvni_zatackou Name="animace__bojujici_dvojice_za_prvni_zatackou" PositionY="1250" PositionX="-2630">
+					<Edge From="po_nastreamovani" To="po_cutscene">
+						<Vertex>vertex34</Vertex>
+						<Vertex>vertex43</Vertex>
+						<Vertex>vertex44</Vertex>
+					</Edge>
+					<Edge From="cutscena__beforeplay" To="inicializace_animacnich_chovani">
+						<Vertex>vertex45</Vertex>
+						<Vertex>vertex46</Vertex>
+					</Edge>
+				</animace__bojujici_dvojice_za_prvni_zatackou>
+				<animace__spojenci_dostanou_hit_pistalou Name="animace__spojenci_dostanou_hit_pistalou" PositionY="1090" PositionX="-2630">
+					<Edge From="saveWithCapon.Active" To="po_cutscene" />
+					<Edge From="cutscena__beforeplay" To="cutscena__beforeplay">
+						<Vertex>vertex47</Vertex>
+					</Edge>
+				</animace__spojenci_dostanou_hit_pistalou>
+				<bark__je_hrac_v_blizkosti_komoriho Name="bark__je_hrac_v_blizkosti_komoriho" PositionY="600" PositionX="420">
+					<Edge From="hej_jindro_vezmi_komoriho.konec_chatu" To="konec_chatu" />
+				</bark__je_hrac_v_blizkosti_komoriho>
+				<battlecontexts Name="battlecontexts" PositionY="780" PositionX="-2630" Namespace="utoknanebakov">
+					<Asset Name="souls" Alias="ptacek" />
+					<Edge From="saveWithCapon.Active" To="isactive" />
+				</battlecontexts>
+				<bojujici_skupiny_npc Name="bojujici_skupiny_npc" PositionY="920" PositionX="-2630">
+					<Edge From="po_nastreamovani" To="po_cutscene">
+						<Vertex>vertex34</Vertex>
+						<Vertex>vertex43</Vertex>
+					</Edge>
+				</bojujici_skupiny_npc>
+				<DeadBodyRegistration Name="deadbodyregistration11" PositionY="-590" PositionX="-2630">
+					<Asset Name="SmartObjects" Alias="valley_playersHorseLoop" />
+					<Edge From="saveWithCapon.Active" To="IsActive" />
+				</DeadBodyRegistration>
+				<handle_nesmrtelnosti_a_wait_chovani Name="handle_nesmrtelnosti_a_wait_chovani" PositionY="370" PositionX="-2630">
+					<Edge From="cutscena__beforeplay" To="cutscena__beforeplay">
+						<Vertex>vertex47</Vertex>
+					</Edge>
+					<Edge From="animace__bojujici_dvojice_za_prvni_zatackou.spusteni_divadla_za_prvni_zatackou" To="spusteni_divadla_za_prvni_zatackou">
+						<Vertex>vertex49</Vertex>
+						<Vertex>vertex50</Vertex>
+					</Edge>
+					<Edge From="jindra_zpatky_na_nohach" To="jindra_zpatky_na_nohach">
+						<Vertex>vertex41</Vertex>
+					</Edge>
+					<Edge From="za_komorim_area.stream_trackview_2_1" To="jindra_je_za_komorim">
+						<Vertex>vertex55</Vertex>
+						<Vertex>vertex56</Vertex>
+					</Edge>
+				</handle_nesmrtelnosti_a_wait_chovani>
+				<hej_jindro_vezmi_komoriho Name="hej_jindro_vezmi_komoriho" PositionY="600" PositionX="-30" />
+				<hrac_podlezl_padly_strom Name="hrac_podlezl_padly_strom" PositionY="280" PositionX="690">
+					<Edge From="saveWithCapon.Active" To="obj__zachran_se_s_ptackem">
+						<Vertex>vertex9</Vertex>
+						<Vertex>BQEISDs4</Vertex>
+						<Vertex>vertex21</Vertex>
+					</Edge>
+				</hrac_podlezl_padly_strom>
+				<If Name="if12" PositionY="1920" PositionX="-2910">
+					<Edge From="onwake" To="Exec" />
+					<Edge From="saveWithCapon.Active" To="Condition" />
+				</If>
+				<je_u_zatarasu_mene_jak_3_nepratele Name="je_u_zatarasu_mene_jak_3_nepratele" PositionY="50" PositionX="690">
+					<Edge From="jindra_zpatky_na_nohach" To="jindra_zpatky_na_nohach">
+						<Vertex>vertex41</Vertex>
+						<Vertex>vertex53</Vertex>
+						<Vertex>vertex54</Vertex>
+					</Edge>
+				</je_u_zatarasu_mene_jak_3_nepratele>
+				<jindra_barkne_na_komoriho Name="jindra_barkne_na_komoriho" PositionY="1290" PositionX="-580" />
+				<kill_area_u_komoriho Name="kill_area_u_komoriho" PositionY="240" PositionX="-1100">
+					<Edge From="saveWithCapon.Active" To="obj_zachran_se_s_ptackem__aktivni">
+						<Vertex>vertex9</Vertex>
+						<Vertex>BQEISDs4</Vertex>
+					</Edge>
+				</kill_area_u_komoriho>
+				<komori_barkuje_na_zemi Name="komori_barkuje_na_zemi" PositionY="1140" PositionX="-580" />
+				<komori_barkuje_pod_konem Name="komori_barkuje_pod_konem" PositionY="340" PositionX="-580" />
+				<najdi_cestu_jindro Name="najdi_cestu_jindro" PositionY="220" PositionX="1280">
+					<Edge From="je_u_zatarasu_mene_jak_3_nepratele.spusteni_ptackovo_barky" To="spusteni_barku_a_stream_nepratelskych_posil">
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="hrac_podlezl_padly_strom.stream_nepratelskych_posil_deaktivace_barku" To="deaktivace_barku" />
+				</najdi_cestu_jindro>
+				<objective__zachran_komoriho Name="objective__zachran_komoriho" PositionY="160" PositionX="-580" RequiredForOutput="trosecko">
+					<Edge From="cutscena__beforeplay" To="po_skonceni_cutsceny__afterplay">
+						<Vertex>bSHR2qjM</Vertex>
+						<Vertex>pFgpBVfe</Vertex>
+					</Edge>
+				</objective__zachran_komoriho>
+				<jdi_s_ptackem_dolu_k_mlynu Name="objectiveVisual2" PositionY="230" PositionX="-2630" RequiredForOutput="trosecko">
+					<Edge From="saveWithCapon.State" To="Progress" />
+				</jdi_s_ptackem_dolu_k_mlynu>
+				<Output Name="Output">
+					<Edge From="saveWithCapon.None" To="hrac_je_troskach">
+						<Vertex>vertex6</Vertex>
+						<Vertex>vertex24</Vertex>
+					</Edge>
+					<Edge From="saveWithCapon.Active" To="obj_zachran_se_s_ptackem__aktivni">
+						<Vertex>vertex9</Vertex>
+						<Vertex>BQEISDs4</Vertex>
+						<Vertex>vertex21</Vertex>
+						<Vertex>vertex23</Vertex>
+					</Edge>
+					<Edge From="je_u_zatarasu_mene_jak_3_nepratele.spusteni_ptackovo_barky" To="obj__najdi_cestu_pryc">
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="za_komorim_area.stream_trackview_2_1" To="stream_trackview_2_1">
+						<Vertex>vertex33</Vertex>
+					</Edge>
+					<Edge From="animace__bojujici_dvojice_za_prvni_zatackou.spusteni_divadla_za_prvni_zatackou" To="spusteni_divadla_za_prvni_zatackou">
+						<Vertex>vertex49</Vertex>
+						<Vertex>vertex57</Vertex>
+						<Vertex>vertex58</Vertex>
+					</Edge>
+					<Edge From="objective__zachran_komoriho.komori_umrel" To="komori_umrel">
+						<Vertex>bvdnUksP</Vertex>
+					</Edge>
+				</Output>
+				<PlayerAction_DrawWeapon Name="PlayerAction_DrawWeapon" PositionY="1890" PositionX="-2630" Namespace="utils.player">
+					<Constant Name="loadsecondaryweapon" Value="false" />
+					<Constant Name="useselectedweaponset" Value="true" />
+					<Constant Name="weaponset" Value="primary" />
+					<Constant Name="allowdifferentweaponset" Value="false" />
+					<Constant Name="urgency" Value="Slow" />
+					<Edge From="saveWithCapon.OnActive" To="drawweapon" />
+					<Edge From="if12.True" To="drawweapon" />
+				</PlayerAction_DrawWeapon>
+				<ptacek_barkuje_o_komorim Name="ptacek_barkuje_o_komorim_1" PositionY="470" PositionX="-580" />
+				<ptacek_zachranuje_komoriho_start Name="ptacek_barkuje_o_pomoci_komorimu_1_1" PositionY="740" PositionX="-580" />
+				<ptacek_barkuje_po_uvodnim_stretu Name="ptacek_barkuje_po_uvodnim_stretu" PositionY="410" PositionX="-1650" />
+				<ptacek_na_zacatku_barkne_na_jindru Name="ptacek_na_zacatku_barkne_na_jindru" PositionY="630" PositionX="-2630">
+					<Edge From="saveWithCapon.OnActive" To="ptacek_dochatoval" />
+				</ptacek_na_zacatku_barkne_na_jindru>
+				<ptacek_reaguje_na_umrti_komoriho Name="ptacek_reaguje_na_umrti_komoriho" PositionY="400" PositionX="-30">
+					<Edge From="objective__zachran_komoriho.komori_zemrel" To="komori_zemrel" />
+				</ptacek_reaguje_na_umrti_komoriho>
+				<ptacek_s_hracem_jsou_u_prvni_zatacky__bark Name="ptacek_s_hracem_jsou_u_prvni_zatacky__bark" PositionY="250" PositionX="-1650">
+					<Edge From="probiha_boj_u_prvniho_padleho_stromu" To="probiha_boj_u_prvniho_padleho_stromu">
+						<Vertex>vertex59</Vertex>
+						<Vertex>vertex60</Vertex>
+					</Edge>
+				</ptacek_s_hracem_jsou_u_prvni_zatacky__bark>
+				<SaveGame Name="savegame8" PositionY="1680" PositionX="-2630">
+					<Constant Name="Objective" Value="jdi_s_ptackem_dolu_k_mlynu" />
+					<Edge From="saveWithCapon.OnActive" To="EnqueueSave" />
+				</SaveGame>
+				<State Name="saveWithCapon" PositionY="230" PositionX="-3070" RequiredForOutput="trosecko" TypeT="ProgressFailable">
+					<Edge From="jindra_zpatky_na_nohach" To="SetActive" />
+					<Edge From="jindra_s_ptackem_v_ta" To="SetDone" />
+				</State>
+				<SchedulerLinkActivation Name="schedule10" PositionY="-420" PositionX="-2630">
+					<Constant Name="LinkTag" Value="utokNaNebakov_battleIsActive" />
+					<Edge From="saveWithCapon.Active" To="IsActive" />
+				</SchedulerLinkActivation>
+				<SetEntityContext Name="setentitycontext9" PositionY="-270" PositionX="-2630">
+					<Constant Name="Context" Value="speech_greyOutE" />
+					<Asset Name="Souls" Alias="ptacek" />
+					<Edge From="saveWithCapon.Active" To="IsActive" />
+				</SetEntityContext>
+				<smrtelny_vykrik_komoriho Name="smrtelny_vykrik_komoriho" PositionY="950" PositionX="-170" />
+				<umirajici_npc_na_skalach Name="umirajici_npc_na_skalach" PositionY="1460" PositionX="-2630">
+					<Edge From="po_nastreamovani" To="po_cutscene">
+						<Vertex>vertex34</Vertex>
+						<Vertex>vertex43</Vertex>
+						<Vertex>vertex44</Vertex>
+					</Edge>
+					<Edge From="cutscena__beforeplay" To="inicializace_animacnich_chovani">
+						<Vertex>vertex45</Vertex>
+						<Vertex>vertex46</Vertex>
+					</Edge>
+				</umirajici_npc_na_skalach>
+				<za_komorim_area Name="za_komorim_area" PositionY="100" PositionX="250">
+					<Edge From="po_nastreamovani" To="hrac_je_na_nohou">
+						<Vertex>vertex34</Vertex>
+						<Vertex>vertex31</Vertex>
+					</Edge>
+				</za_komorim_area>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="BQEISDs4" PositionY="-20" PositionX="-1280" />
+				<EdgeVertex Name="bSHR2qjM" PositionY="170" PositionX="-2751" />
+				<EdgeVertex Name="bvdnUksP" PositionY="292" PositionX="1003" />
+				<EdgeVertex Name="pFgpBVfe" PositionY="170" PositionX="-740" />
+				<EdgeVertex Name="vertex19" PositionY="260" PositionX="1150" />
+				<EdgeVertex Name="vertex21" PositionY="-30" PositionX="530" />
+				<EdgeVertex Name="vertex23" PositionY="-30" PositionX="1120" />
+				<EdgeVertex Name="vertex24" PositionY="-60" PositionX="1120" />
+				<EdgeVertex Name="vertex31" PositionY="90" PositionX="150" />
+				<EdgeVertex Name="vertex33" PositionY="270" PositionX="1010" />
+				<EdgeVertex Name="vertex34" PositionY="90" PositionX="-2750" />
+				<EdgeVertex Name="vertex41" PositionY="120" PositionX="-2750" />
+				<EdgeVertex Name="vertex43" PositionY="950" PositionX="-2690" />
+				<EdgeVertex Name="vertex44" PositionY="1280" PositionX="-2680" />
+				<EdgeVertex Name="vertex45" PositionY="1310" PositionX="-3060" />
+				<EdgeVertex Name="vertex46" PositionY="1310" PositionX="-2770" />
+				<EdgeVertex Name="vertex47" PositionY="150" PositionX="-2750" />
+				<EdgeVertex Name="vertex49" PositionY="590" PositionX="-2280" />
+				<EdgeVertex Name="vertex50" PositionY="590" PositionX="-2620" />
+				<EdgeVertex Name="vertex53" PositionY="120" PositionX="150" />
+				<EdgeVertex Name="vertex54" PositionY="90" PositionX="260" />
+				<EdgeVertex Name="vertex55" PositionY="60" PositionX="530" />
+				<EdgeVertex Name="vertex56" PositionY="60" PositionX="-2600" />
+				<EdgeVertex Name="vertex57" PositionY="10" PositionX="-1990" />
+				<EdgeVertex Name="vertex58" PositionY="0" PositionX="1120" />
+				<EdgeVertex Name="vertex59" PositionY="190" PositionX="-2750" />
+				<EdgeVertex Name="vertex6" PositionY="-40" PositionX="-2600" />
+				<EdgeVertex Name="vertex60" PositionY="190" PositionX="-1750" />
+				<EdgeVertex Name="vertex9" PositionY="-20" PositionX="-2600" />
+			</EdgeVertices>
+			<Assets>
+				<SoulAsset Name="soldiersBehindSecondTree" SharedSoulGuids="8dfe96f5-c761-4992-916e-5d5307026038 1410a3e5-1a48-4dfe-b2ab-7a8d02ac0bc8 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="halbertSoldiers" SharedSoulGuids="17e4f4d8-6a9c-4a2a-af6b-8181f00bb1ef 7177794d-25fa-4cb5-bb0f-eaa6e131d420 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SmartObjectAsset Name="valley_playersHorseLoop" />
+			</Assets>
+			<Text StringName="prepadeni_ve_skalni_rokli_jHf0" Text="Přepadení ve skalní rokli" />
+			<Elements>
+				<GameplayActionElement>
+					<Text StringName="prepadeni_nasleduje_po_ct_9296" Text="Následuje po CT Odjezd z Trosek." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="prepadeni_jindra_zacina_s_1jPE" Text="Jindra začíná s buffem opilosti a snížení speed move. Chci aby se trochu motal, byl ohlušen výstřely, měl rozmazané věci dál od sebe, blíž viděl animace vraždění. Toto trvá cca 10 vteřin." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="prepadeni_ptacek_ma_nasta_5SIs" Text="Ptáček má nastavenou immortalitu, pokud je Jindra v jeho perimetru. Pokud Jindra odejde z perimetru, tak Ptáček ztrácí immortalitu a může být zabit. Pokud se Jindra vrátí do perimetru, Ptáček je znovu nesmrtelný." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="prepadeni_ptacek_ma_nasta_wwvW" Text="Ptáček má nastavenou nízkou hodnotu zdraví a staminy, takže pokud z něj je sejmuta nesrmtelnost, tak rychle dostává čočku." />
+				</GameplayActionElement>
+			</Elements>
+			<MapVizLocation MapName="trosecko" PositionX="2154" PositionY="1514" />
+		</Gameplay>
+	</Skald>
+</Database>

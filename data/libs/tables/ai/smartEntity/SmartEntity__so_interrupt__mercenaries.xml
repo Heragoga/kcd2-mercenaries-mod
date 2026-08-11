@@ -38,6 +38,58 @@
 					</Inboxes>
 				</SmartBehaviorTemplate>
 
+				<!-- Wall-aware approach: walks around camp walls to a (possibly moving) target. See mercenaries_navmesh.lua. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="nav_goto" PreventsMonsterLod="true">
+					<TreeLocation FileName="nav_goto.xml" TreeName="nav_goto" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- TEST NPC waypoint walk: Lua supplies the route, this executes the legs. Temporary, groundwork for the custom navmesh. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="testnpc_walk" PreventsMonsterLod="true">
+					<TreeLocation FileName="testnpc_walk.xml" TreeName="testnpc_walk" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- TEST NPC retreat: fired at a HIGHER priority than combat so the interrupt system evicts the fight, then moves him. Temporary. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="testnpc_retreat" PreventsMonsterLod="true">
+					<TreeLocation FileName="testnpc_retreat.xml" TreeName="testnpc_retreat" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- TEST NPC combat: copy of combat_melee that runs away when the player closes to 1m. Temporary, for the movement-control experiment. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="testnpc_combat" PreventsMonsterLod="true">
+					<TreeLocation FileName="testnpc_combat.xml" TreeName="testnpc_combat" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
 				<!-- Dynamic archer module: shoot while keeping distance (retreat step in the 4.5-9m band), melee fallback when cornered or out of arrows. -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="combat_archer_dynamic" PreventsMonsterLod="true">
 					<TreeLocation FileName="combat_archer_dynamic.xml" TreeName="combat_archer_dynamic" />

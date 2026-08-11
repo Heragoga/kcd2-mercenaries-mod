@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<DialogWrapper Name="osina__vzdavaci_dialog">
+			<Ports>
+				<Port Name="jindra_dostal_vyzbroj" Direction="Out" Type="trigger">
+					<DesignName StringName="osina__vz_jindra_dostal_v_Xvol" Text="Jindra dostal výzbroj" />
+				</Port>
+				<Port Name="jindra_vyhral_fistfight" Direction="In" Type="bool">
+					<DesignName StringName="osina__vz_jindra_vyhral_f_djUR" Text="Osina se vzdává" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="osina__vzdavaci_dialog/osina__vzdavaci_dialog.xml" />
+			</Definitions>
+			<Nodes>
+				<EventFunction Name="createplayerreward10" PositionY="980" PositionX="910" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+					<Constant Name="ItemClass" Value="9e31a288-7de0-4c0d-81cd-5cf00548d2d5" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.8" />
+					<Edge From="scenefinishedwaiter6.OnFinished" To="Exec">
+						<Vertex>ocTGJNe0</Vertex>
+					</Edge>
+				</EventFunction>
+				<EventFunction Name="createplayerreward11" PositionY="1320" PositionX="910" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+					<Constant Name="ItemClass" Value="663d6ec1-c5b9-406e-9017-04f1688331ea" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.72" />
+					<Edge From="scenefinishedwaiter6.OnFinished" To="Exec">
+						<Vertex>ocTGJNe0</Vertex>
+					</Edge>
+				</EventFunction>
+				<EventFunction Name="createplayerreward12" PositionY="1670" PositionX="920" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+					<Constant Name="ItemClass" Value="3d03fd46-32cb-4a9c-a7a1-f159a5f926d0" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.75" />
+					<Edge From="scenefinishedwaiter6.OnFinished" To="Exec">
+						<Vertex>ocTGJNe0</Vertex>
+					</Edge>
+				</EventFunction>
+				<EventFunction Name="createplayerreward13" PositionY="2020" PositionX="920" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+					<Constant Name="ItemClass" Value="b0b3babe-9c0a-4cb4-9f50-f4447a835ffa" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.72" />
+					<Edge From="scenefinishedwaiter6.OnFinished" To="Exec">
+						<Vertex>ocTGJNe0</Vertex>
+					</Edge>
+				</EventFunction>
+				<EventFunction Name="createplayerreward9" PositionY="630" PositionX="910" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+					<Constant Name="ItemClass" Value="85bf9cdb-d3ad-4ff3-b77e-a01319ed87d3" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.75" />
+					<Edge From="scenefinishedwaiter6.OnFinished" To="Exec">
+						<Vertex>ocTGJNe0</Vertex>
+					</Edge>
+				</EventFunction>
+				<healing Name="healing" PositionY="-350" PositionX="380" Namespace="utils.general">
+					<Asset Name="souls" Alias="osina" />
+					<Edge From="osina__vzdavaci_dialog.predat_zbroj" To="removeinjuries" />
+					<Edge From="osina__vzdavaci_dialog.predat_zbroj" To="healimmortalnpcafterfight" />
+				</healing>
+				<LinkEffectNoData Name="linkeffectnodata5" PositionY="130" PositionX="1060">
+					<Asset Name="From" Alias="osinaAfterDuelDH" />
+					<Asset Name="To" Alias="osinaAfterDuel_blacksmith" />
+					<Constant Name="Tag" Value="teleportBefore" />
+					<Edge From="teleportPlayerBlacksmith.State" To="IsActive" />
+				</LinkEffectNoData>
+				<LinkEffectNoData Name="linkeffectnodata5_1" PositionY="350" PositionX="1060">
+					<Asset Name="From" Alias="osinaAfterDuelDH" />
+					<Asset Name="To" Alias="osinaAfterDuel_player" />
+					<Constant Name="Tag" Value="teleportBefore" />
+					<Edge From="teleportPlayerBlacksmith.State" To="IsActive" />
+				</LinkEffectNoData>
+				<osina__vzdavaci_dialog Name="osina__vzdavaci_dialog" PositionY="-110" PositionX="-40">
+					<Asset Name="DialogueHolder" Alias="osinaAfterDuelDH" />
+					<Edge From="jindra_vyhral_fistfight" To="jindra_vyhral_fistfight" />
+				</osina__vzdavaci_dialog>
+				<Output Name="Output">
+					<Edge From="teleportPlayerBlacksmith.OnFalse" To="jindra_dostal_vyzbroj" />
+				</Output>
+				<SceneFinishedWaiter Name="scenefinishedwaiter6" PositionY="267" PositionX="291">
+					<Edge From="osina__vzdavaci_dialog.predat_zbroj" To="Enqueue" />
+				</SceneFinishedWaiter>
+				<State Name="teleportPlayerBlacksmith" PositionY="-80" PositionX="690" TypeT="bool">
+					<Constant Name="DefaultValue" Value="true" />
+					<Edge From="scenefinishedwaiter6.OnFinished" To="SetFalse" />
+				</State>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="ocTGJNe0" PositionY="390" PositionX="630" />
+			</EdgeVertices>
+		</DialogWrapper>
+	</Skald>
+</Database>

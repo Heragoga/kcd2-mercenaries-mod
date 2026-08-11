@@ -31,7 +31,8 @@ mercenaries.StaticArcherSoulIndex = 1
 -- first; add each new mod enemy's spawn-name prefix here and both modes pick it
 -- up with no other change.
 mercenaries.ModEnemyPrefixes = {
-    "SpawnedRenegade_",
+    "SpawnedRenegade_",   -- legacy spawner
+    "SpawnedEnemy_",      -- the enemy-groups spawner (SpawnEnemyAt) - what actually spawns now
 }
 
 mercenaries.StaticArcherModes = { defend = true, hostile = true, mod_enemies = true }
@@ -382,8 +383,8 @@ end
 -- a tower sees further than a footman. That means the squad's definition of an
 -- enemy (IsValidEnemy: hostile at the -1 faction floor, weapon drawn, not
 -- fleeing/surrendering, never one of our own souls), and the player's current
--- combat target taken first, same as the mercs' "everyone" stance
--- (PickNearestValidTarget). The only change is the range: IsValidEnemy measures
+-- combat target taken first, same as the mercs' fallback pass
+-- (PickCombatTarget). The only change is the range: IsValidEnemy measures
 -- against TargetDetectionRadius, so it is raised to StaticArcherRange for the
 -- scan and put straight back.
 --

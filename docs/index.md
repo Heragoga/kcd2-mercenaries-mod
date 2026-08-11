@@ -30,12 +30,18 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 ### Skald
 * [How to add a top level quest](skald/add-top-level-quest.md) (Basic management quest, adds dialog and may create new quests)
 * [How to add dialog](skald/add-dialog.md) (Creating dialog, both ingame chatter and player to NPC conversation)
+* [The silent order wheel](order-wheel.md) (Mutt-style chat menus: `Type="chat"` dialogues that open with no camera and no spoken line, the four-slot `ChatPosition` limit, and how the squad-order wheel reuses the E-dialog's tokens)
 * [Cutscenes: why a mod can't play one](cutscenes.md) (How the cutscene tables, CutsceneHolder entities and quest assets fit together, and the postmortem of why no cutscene of any type can be played without shipping level data - read before attempting it)
 
 ### Combat & AI
 * [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)
 * [AI modules](ai-modules.md) (The five reusable behaviour modules - combat_melee, combat_archer_dynamic/static, follow, camp_actor - the schedulers that fire them, and the Lua control points for encounters)
-* [Combat target selection](combat-target-selection.md) (How mercs, archers and enemies pick who to fight: the one-scan-per-second cache, anti-swarm cap, the -1 relationship rule, and the stance pickers)
+* [Combat target selection](combat-target-selection.md) (How mercs, archers and enemies pick who to fight: the shared enemy cache, the lock-on aggro rule, anti-swarm cap and the -1 relationship rule)
+* [Vanilla formations](formations.md) (The engine's real formation system - FormationDefinitions presets, the MakeFormation/FormationFollower node contract, the leader+follower recipe - and why it can't anchor on the player, so the mod rolls its own follow chain)
+* [NPC LOD and invisible mercenaries](npc-lod.md) (The four systems that can stop an NPC rendering while it keeps fighting: AI LOD tiers and count budgets, the runtime clothing/attachment pipeline, quest-driven hides, and the per-battle cvar overrides — plus diagnostics)
+* [utokNaMalesov structure](malesov-structure.md) (What actually enrols an NPC in a scripted battle: `AddFactionRelationBetweenArrays` SoulArray0→SoulArray1, why nothing in the quest hides anyone, and why hibernation is a red herring)
+* [Main-quest battle overrides](quest-override-battles.md) (**The shipping fix for invisible mercenaries**: all 12 main-quest battles overridden with the merc souls listed in their SoulAssets — what the tool does, the scopes, and the maintenance burden)
+* [Quest-override experiment](quest-override-test.md) (The single-quest Malesov prototype that proved soul membership is the render gate — `merc_testmerc`, the bisects, and how to revert)
 * [Enemy groups](enemies.md) (The six hostile groups that replaced the renegades — looters, bandits, Sigismund's soldiers, Prague regiment, Cumans, Sigismund's knights — their souls/faction/brains/gear and the spawn commands)
 
 ### Camp
@@ -44,6 +50,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Quartermaster logistics](quartermaster-logistics.md) (The camp-management systems he fronts: tiredness, food, drink and wages, with combat buffs and save-persistent state)
 * [The camp forge and its smith](camp-forge.md) (The borrowed-Smithery forge, and the full postmortem of ~10 failed NPC-smith approaches plus the one that works - read before making any NPC "work" at a built structure)
 * [The camp alchemy bench](camp-alchemy.md) (The Alchemy Bench upgrade: borrowing and relocating a village AlchemyTable, and why it needs its own spawned mesh)
+* [Walls, pathfinding and staged battles](walls-and-sieges.md) (The palisade upgrade, the custom navmesh mod NPCs use to route around it - and every engine blocker that does NOT work - and the three-phase staged battle that forms both sides into lines at the gaps before combat opens)
 
 ### Behaviour Trees
 * [Basic structure](behaviour-trees/basic-structure.md) (Covers the basic structure of the Behaviour Tree and some basic logical components)

@@ -1,0 +1,419 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="bohuta__cirkevni_rada" VoiceNamespace="true">
+			<Ports>
+				<Port Name="jdeme_na_cirkevni_radu" Direction="In" Type="trigger">
+					<DesignName StringName="bohuta__c_legat_vstupuje__Gsfn" Text="Jdeme na církevní radu" />
+				</Port>
+				<Port Name="bohuta_se_neprozradil" Direction="Out" Type="trigger">
+					<DesignName StringName="bohuta__c_bohuta_se_nepro_RpbS" Text="Bohuta se neprozradil" />
+				</Port>
+				<Port Name="min_strazi_pro_jindru" Direction="Out" Type="trigger">
+					<DesignName StringName="bohuta__c_min_strazi_pro__dmuj" Text="Míň stráží pro Jindru" />
+				</Port>
+				<Port Name="vic_strazi_pro_jindru" Direction="Out" Type="trigger">
+					<DesignName StringName="bohuta__c_vic_strazi_pro__4Tic" Text="Víc stráží pro Jindru" />
+				</Port>
+				<Port Name="straze_jdou_pro_vino" Direction="Out" Type="bool">
+					<DesignName StringName="bohuta__c_straze_jdou_pro_VbWh" Text="Stráže jdou pro víno" />
+				</Port>
+				<Port Name="game_over" Direction="Out" Type="trigger">
+					<DesignName StringName="bohuta__c_game_over_H2on" Text="Streamovani hostiny" />
+				</Port>
+				<Port Name="zikmunduv_tabor_vybuchl_municak" Direction="In" Type="bool">
+					<DesignName StringName="bohuta__c_m44_vybuchl_mun_QVzd" Text="Zikmunduv tabor: vybuchl muničák" />
+				</Port>
+				<Port Name="zikmunduv_tabor_vrazda" Direction="In" Type="bool">
+					<DesignName StringName="bohuta__c_m44_vrazda_WeTi" Text="Zikmunduv tabor: vražda" />
+				</Port>
+				<Port Name="zikmunduv_tabor_usvedcen_grozav" Direction="In" Type="bool">
+					<DesignName StringName="bohuta__c_m44_usvedcen_gr_9JwW" Text="Zikmunduv tabor: usvědčen grozav" />
+				</Port>
+				<Port Name="kuchar_je_na_rade" Direction="Out" Type="bool">
+					<DesignName StringName="bohuta__c_kuchar_je_na_ra_dRr2" Text="Kuchař je na radě" />
+				</Port>
+				<Port Name="zikmunduv_tabor_usvedcen_desatnik" Direction="In" Type="bool">
+					<DesignName StringName="bohuta__c_m44_usvedcen_de_Gc4p" Text="Zikmunduv tabor: usvědčen desátník" />
+				</Port>
+				<Port Name="cirkevni_rada_je_aktivni" Direction="Out" Type="bool">
+					<DesignName StringName="bohuta__c_bohuta_je_na_ci_ug2K" Text="Cirkevni rada je aktivni" />
+				</Port>
+				<Port Name="legat_zvolil_smir" Direction="Out" Type="bool">
+					<DesignName StringName="bohuta__c_legat_zvolil_sm_tUDt" Text="legát zvolil smír" />
+				</Port>
+				<Port Name="legat_zvolil_sedlec" Direction="Out" Type="bool">
+					<DesignName StringName="bohuta__c_legat_zvolil_se_xSSP" Text="legát zvolil sedlec" />
+				</Port>
+				<Port Name="legat_zvolil_bratrstvo" Direction="Out" Type="bool">
+					<DesignName StringName="bohuta__c_legat_zvolil_br_TM9G" Text="legát zvolil bratrstvo" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="bohuta__cirkevni_rada/cin_m4610k_prepadenidvora__court_hall.xml" />
+				<Definition File="bohuta__cirkevni_rada/cp_uvodni_slovo_legata.xml" />
+				<Definition File="bohuta__cirkevni_rada/kuloary_cirkevni_rady.xml" />
+				<Definition File="bohuta__cirkevni_rada/cp_zaverecne_slovo.xml" />
+				<Definition File="bohuta__cirkevni_rada/chovani_behem_polylogu.xml" />
+				<Definition File="bohuta__cirkevni_rada/stream_hostiny.xml" />
+				<Definition File="bohuta__cirkevni_rada/objective_pjindrovi.xml" />
+				<Definition File="bohuta__cirkevni_rada/prozkoumani_situaci_s_teamy.xml" />
+				<Definition File="bohuta__cirkevni_rada/hans_uher_chovani.xml" />
+			</Definitions>
+			<Nodes>
+				<Function Name="addbuff13" PositionY="-430" PositionX="410" MethodName="wh::rpgmodule::AddBuff" DeclaringType="wh::rpgmodule">
+					<Asset Name="Souls" Alias="player_bohuta" />
+					<Constant Name="Buff" Value="e928b585-1391-4cbd-84b2-4ed573263efa" />
+					<Edge From="cin_m4610k_prepadenidvora__court_hall.uvitani_legata_cs__before_play" To="Exec">
+						<Vertex>vertex27</Vertex>
+					</Edge>
+				</Function>
+				<chovani_behem_polylogu Name="chovani_behem_polylogu" PositionY="-530" PositionX="810">
+					<Edge From="cp_uvodni_slovo_legata.debata_je_otevrena" To="debata_je_otevrena" />
+					<Edge From="cin_m4610k_prepadenidvora__court_hall.uvitani_legata_cs__before_play" To="legat_ma_slovo">
+						<Vertex>vertex27</Vertex>
+					</Edge>
+				</chovani_behem_polylogu>
+				<cin_m4610k_prepadenidvora__court_hall Name="cin_m4610k_prepadenidvora__court_hall" PositionY="-80" PositionX="-130">
+					<Edge From="jdeme_na_cirkevni_radu" To="legat_vstupuje_na_cirkevni_radu" />
+					<Edge From="courtHall_cutscene.OnTrigger" To="legat_vstupuje_na_cirkevni_radu" />
+				</cin_m4610k_prepadenidvora__court_hall>
+				<HasteTrigger Name="courtHall_cutscene" PositionY="-280" PositionX="-580" />
+				<HasteTrigger Name="courtHall_finalVerdict" PositionY="900" PositionX="2100" />
+				<cp_uvodni_slovo_legata Name="cp_uvodni_slovo_legata" PositionY="160" PositionX="340">
+					<Edge From="cin_m4610k_prepadenidvora__court_hall.legat_ma_slovo" To="legat_ma_slovo" />
+				</cp_uvodni_slovo_legata>
+				<cp_zaverecne_slovo Name="cp_zaverecne_slovo" PositionY="320" PositionX="3140" RequiredForOutput="kutnohorsko">
+					<Edge From="kuloary_cirkevni_rady.lehke_podezreni" To="lehke_podezreni" />
+					<Edge From="kuloary_cirkevni_rady.vazne_podezreni" To="vazne_podezreni" />
+					<Edge From="kuloary_cirkevni_rady.barbora_used" To="barbora_used" />
+					<Edge From="kuloary_cirkevni_rady.musa_opinion" To="musa_opinion" />
+					<Edge From="kuloary_cirkevni_rady.albik_opinion" To="albik_opinion" />
+					<Edge From="kuloary_cirkevni_rady.burghers_opinion" To="burghers_opinion" />
+					<Edge From="kuloary_cirkevni_rady.hint_barbora" To="hint_barbora" />
+					<Edge From="kuloary_cirkevni_rady.drunk" To="drunk" />
+					<Edge From="kuloary_cirkevni_rady.sober" To="sober" />
+					<Edge From="kuloary_cirkevni_rady.bohuta_zacal_zaverecne_slovo" To="bohuta_zacal_zaverecne_slovo" />
+				</cp_zaverecne_slovo>
+				<Function Name="gameover1" PositionY="1340" PositionX="3880" MethodName="wh::playermodule::GameOver" DeclaringType="wh::playermodule">
+					<Constant Name="Reason" Value="68" />
+					<Edge From="musicevent4.OnExec" To="Exec" />
+				</Function>
+				<Function Name="gameover20" PositionY="1530" PositionX="3890" MethodName="wh::playermodule::GameOver" DeclaringType="wh::playermodule">
+					<Constant Name="Reason" Value="74" />
+					<Edge From="musicevent62.OnExec" To="Exec" />
+				</Function>
+				<hans_uher_chovani Name="hans_uher_chovani" PositionY="-320" PositionX="820">
+					<Edge From="cp_uvodni_slovo_legata.debata_je_otevrena" To="chat_s_bohutou" />
+				</hans_uher_chovani>
+				<IfFunction Name="ifcompare8" PositionY="-420" PositionX="2100" TypeT="int" MethodName="Control::Compare" DeclaringType="Control">
+					<Constant Name="Op" Value="Equals" />
+					<Constant Name="ValueB" Value="0" />
+					<Edge From="objective_pjindrovi.konec_cirkevni_rady" To="Exec">
+						<Vertex>vertex30</Vertex>
+						<Vertex>vertex61</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.pocet_podezreni" To="ValueA" />
+				</IfFunction>
+				<kuloary_cirkevni_rady Name="kuloary_cirkevni_rady" PositionY="20" PositionX="1680" RequiredForOutput="kutnohorsko">
+					<Edge From="zikmunduv_tabor_vybuchl_municak" To="m44_vybuchl_municak">
+						<Vertex>vertex8</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="zikmunduv_tabor_vrazda" To="m44_vrazda">
+						<Vertex>vertex11</Vertex>
+						<Vertex>vertex10</Vertex>
+					</Edge>
+					<Edge From="zikmunduv_tabor_usvedcen_grozav" To="m44_usvedcen_grozav">
+						<Vertex>vertex13</Vertex>
+						<Vertex>vertex12</Vertex>
+					</Edge>
+					<Edge From="zikmunduv_tabor_usvedcen_desatnik" To="m44_usvedcen_desatnik">
+						<Vertex>vertex15</Vertex>
+						<Vertex>vertex14</Vertex>
+					</Edge>
+					<Edge From="PronesRec.Active" To="zaverecne_slovo_available">
+						<Vertex>vertex59</Vertex>
+						<Vertex>vertex60</Vertex>
+					</Edge>
+					<Edge From="hans_uher_chovani.chat_s_bohutou_skoncil" To="chat_s_bohutou_skoncil">
+						<Vertex>vertex76</Vertex>
+					</Edge>
+					<Edge From="objective_pjindrovi.bohuta_je_na_cirkevni_rade" To="Awake" />
+				</kuloary_cirkevni_rady>
+				<Function Name="musicevent4" PositionY="1400" PositionX="3550" MethodName="wh::musicmodule::MusicEvent" DeclaringType="wh::musicmodule">
+					<Constant Name="Toggle" Value="EVENT_GAME_OVER" />
+					<Edge From="kuloary_cirkevni_rady.game_over" To="Exec">
+						<Vertex>vertex22</Vertex>
+					</Edge>
+					<Edge From="cp_uvodni_slovo_legata.game_over" To="Exec">
+						<Vertex>vertex23</Vertex>
+						<Vertex>vertex22</Vertex>
+					</Edge>
+					<Edge From="cp_zaverecne_slovo.game_over" To="Exec" />
+				</Function>
+				<Function Name="musicevent62" PositionY="1570" PositionX="3550" MethodName="wh::musicmodule::MusicEvent" DeclaringType="wh::musicmodule">
+					<Constant Name="Toggle" Value="EVENT_GAME_OVER" />
+					<Edge From="cp_uvodni_slovo_legata.game_over_exposed" To="Exec">
+						<Vertex>6c5wQf4x</Vertex>
+					</Edge>
+				</Function>
+				<SkaldBoxProbe Name="musicstate6" PositionY="1040" PositionX="2720">
+					<Constant Name="Toggle" Value="STORY_M46_GODWIN_DELIBERATES" />
+					<Edge From="PronesRec.Active" To="IsActive" />
+				</SkaldBoxProbe>
+				<objective_pjindrovi Name="objective_pjindrovi" PositionY="-40" PositionX="830" RequiredForOutput="kutnohorsko">
+					<Edge From="cp_uvodni_slovo_legata.debata_je_otevrena" To="debata_je_otevrena" />
+					<Edge From="cp_zaverecne_slovo.bohuta_se_neprozradil" To="bohuta_se_neprozradil">
+						<Vertex>vertex28</Vertex>
+						<Vertex>vertex29</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.min_strazi_pro_jindru" To="privolal_straze_na_radu">
+						<Vertex>vertex31</Vertex>
+						<Vertex>vertex32</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.straze_jdou_pro_vino_1" To="pozadal_o_vino">
+						<Vertex>vertex35</Vertex>
+						<Vertex>vertex36</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.objective_pozadej_o_vino" To="hint_na_vino">
+						<Vertex>vertex37</Vertex>
+						<Vertex>vertex38</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.objective_zavolej_si_kuchare" To="hint_na_kuchare">
+						<Vertex>vertex39</Vertex>
+						<Vertex>vertex40</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.objective_privolej_straze" To="hint_na_straze">
+						<Vertex>vertex41</Vertex>
+						<Vertex>vertex42</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.kuchar_se_vraci" To="kuchar_se_vraci">
+						<Vertex>vertex49</Vertex>
+						<Vertex>vertex50</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.kuchar_zustava_na_rade" To="privolal_kuchare">
+						<Vertex>vertex33</Vertex>
+						<Vertex>vertex34</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.trialog_je_aktivni" To="trialog_je_aktivni">
+						<Vertex>vertex52</Vertex>
+						<Vertex>vertex53</Vertex>
+					</Edge>
+					<Edge From="prozkoumani_situaci_s_teamy.zkoumani_situaci_s_teamy_je_aktivni" To="zkoumani_situaci_s_teamy_je_aktivni">
+						<Vertex>IPDk7PSo</Vertex>
+						<Vertex>yz8DdDlQ</Vertex>
+					</Edge>
+					<Edge From="PronesRec.Active" To="zaverecne_slovo_available">
+						<Vertex>vertex59</Vertex>
+						<Vertex>vertex60</Vertex>
+						<Vertex>u80EIopN</Vertex>
+					</Edge>
+				</objective_pjindrovi>
+				<prones_zaverecnou_rec Name="objectiveVisual8" PositionY="750" PositionX="2740" RequiredForOutput="kutnohorsko">
+					<Edge From="PronesRec.State" To="Progress" />
+				</prones_zaverecnou_rec>
+				<Function Name="or14" PositionY="-350" PositionX="1280" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="chovani_behem_polylogu.chovani_behem_dialogu" To="A" />
+					<Edge From="stream_hostiny.cirkevni_rada_je_aktivni" To="B">
+						<Vertex>vertex58</Vertex>
+						<Vertex>vertex78</Vertex>
+					</Edge>
+				</Function>
+				<Output Name="Output">
+					<Edge From="kuloary_cirkevni_rady.min_strazi_pro_jindru" To="min_strazi_pro_jindru" />
+					<Edge From="kuloary_cirkevni_rady.vic_strazi_pro_jindru" To="vic_strazi_pro_jindru" />
+					<Edge From="kuloary_cirkevni_rady.straze_jdou_pro_vino" To="straze_jdou_pro_vino" />
+					<Edge From="objective_pjindrovi.konec_cirkevni_rady" To="bohuta_se_neprozradil">
+						<Vertex>vertex30</Vertex>
+						<Vertex>vertex61</Vertex>
+					</Edge>
+					<Edge From="objective_pjindrovi.kuchar_je_na_rade" To="kuchar_je_na_rade">
+						<Vertex>vertex51</Vertex>
+					</Edge>
+					<Edge From="cin_m4610k_prepadenidvora__court_hall.uvitani_legata_cs__before_play" To="game_over">
+						<Vertex>vertex21</Vertex>
+					</Edge>
+					<Edge From="or14.bool" To="cirkevni_rada_je_aktivni">
+						<Vertex>t5F81d0R</Vertex>
+					</Edge>
+					<Edge From="cp_zaverecne_slovo.legat_zvolil_smir" To="legat_zvolil_smir" />
+					<Edge From="cp_zaverecne_slovo.legat_zvolil_sedlec" To="legat_zvolil_sedlec" />
+					<Edge From="cp_zaverecne_slovo.legat_zvolil_bratrstvo" To="legat_zvolil_bratrstvo" />
+				</Output>
+				<State Name="PronesRec" PositionY="900" PositionX="2450" RequiredForOutput="kutnohorsko" TypeT="Progress">
+					<Edge From="cp_zaverecne_slovo.bohuta_se_neprozradil" To="SetDone">
+						<Vertex>vertex2</Vertex>
+						<Vertex>vertex3</Vertex>
+					</Edge>
+					<Edge From="prozkoumani_situaci_s_teamy.jdeme_vynest_verdikt" To="SetActive">
+						<Vertex>vertex62</Vertex>
+					</Edge>
+					<Edge From="courtHall_finalVerdict.OnTrigger" To="SetActive" />
+				</State>
+				<prozkoumani_situaci_s_teamy Name="prozkoumani_situaci_s_teamy" PositionY="440" PositionX="830" RequiredForOutput="kutnohorsko">
+					<Edge From="cp_zaverecne_slovo.bohuta_se_neprozradil" To="bohuta_se_neprozradil">
+						<Vertex>vertex28</Vertex>
+						<Vertex>vertex29</Vertex>
+					</Edge>
+					<Edge From="cp_uvodni_slovo_legata.debata_je_otevrena" To="debata_je_otevrena" />
+					<Edge From="kuloary_cirkevni_rady.musa_opinion" To="promluvil_s_musou">
+						<Vertex>vertex63</Vertex>
+						<Vertex>vertex64</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.albik_opinion" To="promluvil_s_albikem">
+						<Vertex>vertex65</Vertex>
+						<Vertex>vertex66</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.burghers_opinion" To="promluvil_s_mestany">
+						<Vertex>vertex67</Vertex>
+						<Vertex>vertex68</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.legat_probral_situaci_s_teamem_barbora" To="legat_probral_situaci_s_teamem_barbora">
+						<Vertex>vertex69</Vertex>
+						<Vertex>vertex70</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.legat_probral_situaci_s_teamem_sedlec" To="legat_probral_situaci_s_teamem_sedlec">
+						<Vertex>vertex71</Vertex>
+						<Vertex>vertex72</Vertex>
+					</Edge>
+					<Edge From="kuloary_cirkevni_rady.bohuta_promluvil_s_ucastnikem_sporu" To="bohuta_promluvil_s_ucastnikem_sporu">
+						<Vertex>vertex74</Vertex>
+						<Vertex>vertex73</Vertex>
+					</Edge>
+				</prozkoumani_situaci_s_teamy>
+				<AddReward Name="reward9" PositionY="-420" PositionX="2400">
+					<Edge From="ifcompare8.True" To="AddReward" />
+					<Rewards>
+						<AchievementReward Achievement="TrueCardinal" />
+					</Rewards>
+				</AddReward>
+				<stream_hostiny Name="stream_hostiny" PositionY="390" PositionX="380">
+					<Edge From="objective_pjindrovi.konec_cirkevni_rady" To="odstreamovani">
+						<Vertex>vertex56</Vertex>
+						<Vertex>vertex57</Vertex>
+					</Edge>
+					<Edge From="cin_m4610k_prepadenidvora__court_hall.legat_ma_slovo" To="streamovani" />
+				</stream_hostiny>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="6c5wQf4x" PositionY="1660" PositionX="710" />
+				<EdgeVertex Name="IPDk7PSo" PositionY="829" PositionX="1117" />
+				<EdgeVertex Name="t5F81d0R" PositionY="20" PositionX="1520" />
+				<EdgeVertex Name="u80EIopN" PositionY="1512" PositionX="800" />
+				<EdgeVertex Name="vertex10" PositionY="1030" PositionX="1510" />
+				<EdgeVertex Name="vertex11" PositionY="1030" PositionX="-430" />
+				<EdgeVertex Name="vertex12" PositionY="1060" PositionX="1530" />
+				<EdgeVertex Name="vertex13" PositionY="1060" PositionX="-450" />
+				<EdgeVertex Name="vertex14" PositionY="1090" PositionX="1550" />
+				<EdgeVertex Name="vertex15" PositionY="1090" PositionX="-470" />
+				<EdgeVertex Name="vertex2" PositionY="1450" PositionX="3360" />
+				<EdgeVertex Name="vertex21" PositionY="-30" PositionX="340" />
+				<EdgeVertex Name="vertex22" PositionY="1490" PositionX="2050" />
+				<EdgeVertex Name="vertex23" PositionY="1490" PositionX="720" />
+				<EdgeVertex Name="vertex27" PositionY="-500" PositionX="290" />
+				<EdgeVertex Name="vertex28" PositionY="1470" PositionX="3380" />
+				<EdgeVertex Name="vertex29" PositionY="1470" PositionX="830" />
+				<EdgeVertex Name="vertex3" PositionY="1450" PositionX="2460" />
+				<EdgeVertex Name="vertex30" PositionY="-130" PositionX="1190" />
+				<EdgeVertex Name="vertex31" PositionY="1450" PositionX="1980" />
+				<EdgeVertex Name="vertex32" PositionY="1450" PositionX="840" />
+				<EdgeVertex Name="vertex33" PositionY="1430" PositionX="1970" />
+				<EdgeVertex Name="vertex34" PositionY="1430" PositionX="850" />
+				<EdgeVertex Name="vertex35" PositionY="1410" PositionX="1960" />
+				<EdgeVertex Name="vertex36" PositionY="1410" PositionX="860" />
+				<EdgeVertex Name="vertex37" PositionY="1390" PositionX="1950" />
+				<EdgeVertex Name="vertex38" PositionY="1390" PositionX="870" />
+				<EdgeVertex Name="vertex39" PositionY="1370" PositionX="1940" />
+				<EdgeVertex Name="vertex40" PositionY="1370" PositionX="880" />
+				<EdgeVertex Name="vertex41" PositionY="1350" PositionX="1930" />
+				<EdgeVertex Name="vertex42" PositionY="1350" PositionX="890" />
+				<EdgeVertex Name="vertex49" PositionY="1230" PositionX="1870" />
+				<EdgeVertex Name="vertex50" PositionY="1230" PositionX="960" />
+				<EdgeVertex Name="vertex51" PositionY="0" PositionX="1200" />
+				<EdgeVertex Name="vertex52" PositionY="1210" PositionX="1860" />
+				<EdgeVertex Name="vertex53" PositionY="1210" PositionX="970" />
+				<EdgeVertex Name="vertex56" PositionY="970" PositionX="1080" />
+				<EdgeVertex Name="vertex57" PositionY="970" PositionX="410" />
+				<EdgeVertex Name="vertex58" PositionY="-70" PositionX="830" />
+				<EdgeVertex Name="vertex59" PositionY="1510" PositionX="2610" />
+				<EdgeVertex Name="vertex60" PositionY="1510" PositionX="1670" />
+				<EdgeVertex Name="vertex61" PositionY="-130" PositionX="1990" />
+				<EdgeVertex Name="vertex62" PositionY="1120" PositionX="1210" />
+				<EdgeVertex Name="vertex63" PositionY="1330" PositionX="1920" />
+				<EdgeVertex Name="vertex64" PositionY="1330" PositionX="900" />
+				<EdgeVertex Name="vertex65" PositionY="1310" PositionX="1910" />
+				<EdgeVertex Name="vertex66" PositionY="1310" PositionX="910" />
+				<EdgeVertex Name="vertex67" PositionY="1290" PositionX="1900" />
+				<EdgeVertex Name="vertex68" PositionY="1290" PositionX="930" />
+				<EdgeVertex Name="vertex69" PositionY="1270" PositionX="1890" />
+				<EdgeVertex Name="vertex70" PositionY="1270" PositionX="940" />
+				<EdgeVertex Name="vertex71" PositionY="1250" PositionX="1880" />
+				<EdgeVertex Name="vertex72" PositionY="1250" PositionX="950" />
+				<EdgeVertex Name="vertex73" PositionY="1190" PositionX="980" />
+				<EdgeVertex Name="vertex74" PositionY="1190" PositionX="1850" />
+				<EdgeVertex Name="vertex76" PositionY="-180" PositionX="1610" />
+				<EdgeVertex Name="vertex78" PositionY="-70" PositionX="1200" />
+				<EdgeVertex Name="vertex8" PositionY="1000" PositionX="-410" />
+				<EdgeVertex Name="vertex9" PositionY="1000" PositionX="1490" />
+				<EdgeVertex Name="yz8DdDlQ" PositionY="829" PositionX="835" />
+			</EdgeVertices>
+			<Assets>
+				<SoulAsset Name="petrMalin" SharedSoulGuids="aa61fe0a-f1c4-4913-9a04-5f59d0bc4edb" />
+				<SoulAsset Name="albik" SharedSoulGuids="53a13a43-abb3-449a-9121-69c6406f7a46" />
+				<SoulAsset Name="kristianZPisku" SharedSoulGuids="ea641403-2420-4bd9-a33f-7c94a7b9a9a7 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="antoninVysoka" SharedSoulGuids="90d9e811-bfcc-4b01-b864-34cbfeff2102" />
+				<SoulAsset Name="vorsucher" SharedSoulGuids="e621b569-1d08-459d-8821-aa9d13d74bcd 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="franz" SharedSoulGuids="3934eeb9-f55c-4836-8765-240995418168" />
+				<SoulAsset Name="polner" SharedSoulGuids="db92a492-61f7-46a5-b9ca-26656db6a3b1 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="straz1" SharedSoulGuids="e0c1d90d-d0dc-4f08-8b23-bede8dd9828d 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="straz3" SharedSoulGuids="75fbd896-0c73-4796-9c1a-b3173c8fff34 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="straz6" SharedSoulGuids="77b87a9c-b8bb-47a8-9e7e-9d2cbc08aa78 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="straz7" SharedSoulGuids="7e2a2c33-4d82-4e4f-8bf6-36e963798639 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="straz4" SharedSoulGuids="f1193764-0471-4c42-9ebc-7758f39743a3 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="straz2" SharedSoulGuids="d2d1f323-79a6-489f-8f0a-a379fe931fc6 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="straz5" SharedSoulGuids="de59f698-b187-41e4-bfec-00ac4e8aa9e9 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<ProfileAsset Name="profile_feast" AssetProfiles="prepadeniVlasskehoDvora_courtHallFeast prepadeniVlasskehoDvora_guards_courtHall" />
+				<SmartObjectAsset Name="zidleNaCirkevniRade" />
+				<CameraAsset Name="m46_BC_customCamera_01" />
+				<CameraAsset Name="m46_BC_customCamera_02" />
+				<CameraAsset Name="m46_BC_customCamera_03" />
+				<CameraAsset Name="m46_BC_customCamera_04" />
+				<CameraAsset Name="m46_BC_customCamera_05" />
+				<CameraAsset Name="m46_BC_customCamera_06" />
+				<CameraAsset Name="m46_BC_customCamera_07" />
+				<CameraAsset Name="m46_BC_customCamera_08" />
+				<CameraAsset Name="m46_BC_customCamera_09" />
+				<CameraAsset Name="m46_BC_customCamera_10" />
+				<CameraAsset Name="m46_BC_customCamera_11" />
+				<CameraAsset Name="m46_BC_customCamera_12" />
+				<CameraAsset Name="m46_BC_customCamera_13" />
+				<CameraAsset Name="m46_BC_customCamera_14" />
+				<CameraAsset Name="m46_BC_customCamera_15" />
+				<CameraAsset Name="m46_BC_customCamera_16" />
+				<CameraAsset Name="m46_BC_customCamera_17" />
+				<CameraAsset Name="m46_BC_customCamera_18" />
+				<CameraAsset Name="m46_BC_customCamera_19" />
+				<CameraAsset Name="m46_BC_customCamera_20" />
+				<CameraAsset Name="m46_BC_customCamera_21" />
+				<CameraAsset Name="m46_BC_customCamera_22" />
+				<CameraAsset Name="m46_BC_customCamera_23" />
+				<CameraAsset Name="m46_BC_customCamera_24" />
+				<CameraAsset Name="m46_BC_customCamera_25" />
+				<CameraAsset Name="m46_BC_customCamera_26" />
+				<CameraAsset Name="m46_BC_customCamera_27" />
+				<CameraAsset Name="m46_BC_customCamera_28" />
+				<CameraAsset Name="m46_BC_customCamera_29" />
+				<CameraAsset Name="m46_BC_customCamera_30" />
+				<CameraAsset Name="m46_BC_customCamera_31" />
+				<CameraAsset Name="m46_BC_customCamera_32" />
+				<CameraAsset Name="m46_BC_customCamera_33" />
+				<CameraAsset Name="m46_BC_customCamera_34" />
+				<CameraAsset Name="m46_BC_customCamera_35" />
+				<CameraAsset Name="m46_BC_customCamera_36" />
+			</Assets>
+			<Text StringName="bohuta__cirkevni_rada_HnrJ" Text="M46 - Bohuta - Církevní rada" />
+			<MapVizLocation MapName="kutnohorsko" PositionX="3123" PositionY="590" />
+		</Gameplay>
+	</Skald>
+</Database>

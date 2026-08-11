@@ -148,6 +148,54 @@ function mercenaries:TowerRailsClear()
     self.TowerRailEnts = {}
 end
 
+-- ==== Gallery 3: barricades / obstacles ====
+-- Candidates for a defensive barricade upgrade. The pick of the crop is
+-- objects/manmade/task_specific_props/combat/: TARASES are the Hussite war-wagon
+-- barricade (plank shield-walls used to close the gaps of a wagon fort) and PAVISES
+-- are the big standing shields crossbowmen sheltered behind - both are purpose-built
+-- field obstacles rather than repurposed fencing. The palisade pieces (especially
+-- the single_sharp stakes) are the closest thing to a spiked barricade; the fences
+-- are the rougher, camp-made alternatives.
+mercenaries.BarricadeProps = {
+    -- purpose-built field defences
+    { n = "taras_a",           m = "objects/manmade/task_specific_props/combat/tarases/taras_a.cgf" },
+    { n = "taras_c",           m = "objects/manmade/task_specific_props/combat/tarases/taras_c.cgf" },
+    { n = "taras_d_part",      m = "objects/manmade/task_specific_props/combat/tarases/taras_d_part.cgf" },
+    { n = "pavise_a",          m = "objects/manmade/task_specific_props/combat/pavises/pavise_a.cgf" },
+    { n = "pavise_b",          m = "objects/manmade/task_specific_props/combat/pavises/pavise_b.cgf" },
+
+    -- sharpened stakes / palisade
+    { n = "palisade_sharp",    m = "objects/manmade/structures/defensive/walls/palisade/palisade_wall_single_sharp.cgf" },
+    { n = "palisade_a_v3",     m = "objects/manmade/structures/defensive/walls/palisade/palisade_wall_a_v3.cgf" },
+    { n = "palisade_b_beam",   m = "objects/manmade/structures/defensive/walls/palisade/palisade_wall_b_beam.cgf" },
+    { n = "palisade_b_v4",     m = "objects/manmade/structures/defensive/walls/palisade/palisade_wall_b_v4_trosky.cgf" },
+
+    -- road barrier / gates
+    { n = "barrier_road",      m = "objects/manmade/structures/logistical/barriers/barrier_road_natural_closed.cgf" },
+    { n = "fence_sticks_gate", m = "objects/manmade/structures/logistical/fences/fence_sticks_c_gate.cgf" },
+    { n = "fence_crisscross",  m = "objects/manmade/structures/logistical/fences/fence_crisscross_end.cgf" },
+
+    -- heavier / emplacement
+    { n = "cannon",            m = "objects/manmade/task_specific_props/combat/cannon.cgf" },
+    { n = "cannon_ammo",       m = "objects/manmade/task_specific_props/combat/cannon_ammo.cgf" },
+    { n = "wall_ruined_a",     m = "objects/manmade/structures/defensive/walls/wall_ruined/wall_ruined_piece_a.cgf" },
+    { n = "stone_fence_5m",    m = "objects/manmade/structures/logistical/fences/stone_fence_5m_noterrain.cgf" },
+}
+mercenaries.BarricadePropEnts = {}
+
+function mercenaries:BarricadePropsSpawn(spacing)
+    self:BarricadePropsClear()
+    self:TowerGallery(self.BarricadeProps, "Barricade", spacing or 4.0, 0.0, self.BarricadePropEnts)
+    System.LogAlways("[Barricade] merc_barricade_clear to remove")
+end
+function mercenaries:BarricadePropsClear()
+    for _, id in ipairs(self.BarricadePropEnts or {}) do pcall(function() System.RemoveEntity(id) end) end
+    self.BarricadePropEnts = {}
+end
+
+System.AddCCommand("merc_barricade",       "mercenaries:BarricadePropsSpawn(%line)", "Row of barricade/obstacle candidates: merc_barricade [spacing]")
+System.AddCCommand("merc_barricade_clear", "mercenaries:BarricadePropsClear()",      "Remove the barricade row")
+
 System.AddCCommand("merc_tower_props",       "mercenaries:TowerPropsSpawn(%1)", "Row of archer-tower structure props, 1m up: merc_tower_props [spacing]")
 System.AddCCommand("merc_tower_props_clear", "mercenaries:TowerPropsClear()",   "Remove the structure prop row")
 System.AddCCommand("merc_tower_rails",       "mercenaries:TowerRailsSpawn(%1)", "Row of railing/fence/ladder candidates, 1m up: merc_tower_rails [spacing]")
@@ -352,6 +400,7 @@ function mercenaries:TowerBuildStation(ground, yaw)
 
     System.LogAlways(string.format("[Tower] built #%d: %d parts, %d/%d ladders, %d colliders, sunk %.2fm - archer in %dms",
         #self.TowerStations, #self.TowerParts, nl, #self.TowerLadders, #self.TowerColliders, self.TowerSink, self.TowerArcherDelay))
+    pcall(function() if self.DefSave then self:DefSave() end end)
     return st
 end
 
@@ -544,12 +593,34 @@ function mercenaries:TowerSpotIsValid(pos)
 end
 
 -- Recolour the ghost only when validity actually flips, not every tick.
+--
+-- SUBMATERIAL GOTCHA: a real .mtl with a single submaterial only maps onto slot 0,
+-- so on a mesh with several submaterial slots (wagon_b.cgf) every submesh bound to
+-- another slot simply stops drawing - that is why the white wagon showed only wheels
+-- and axle. The PINK placeholder does not have this problem: the engine substitutes
+-- it for every slot, so invalid always renders the complete mesh. A spec whose mesh
+-- is multi-submaterial therefore sets validMaterial = nil and keeps its own
+-- materials while valid (ResetMaterial), taking pink only when blocked.
 function mercenaries:GhostSetValid(valid)
     if valid == self._ghostValid then return end
+    local prev = self._ghostValid
     self._ghostValid = valid
-    local m = valid and self.TowerGhostMaterial or self.TowerGhostBadMaterial
+    local spec = self.ActivePlacement
+    local m = spec and spec.validMaterial
     for _, g in ipairs(self.GhostParts) do
-        if g.ent then pcall(function() g.ent:SetMaterial(m) end) end
+        if g.ent then
+            pcall(function()
+                if not valid then
+                    g.ent:SetMaterial(self.TowerGhostBadMaterial)   -- pink: draws every slot
+                elseif m then
+                    g.ent:SetMaterial(m)                            -- white (single-material meshes only)
+                elseif prev == false then
+                    g.ent:ResetMaterial(0)                          -- coming back from pink: restore own materials
+                end
+                -- valid + own-materials + not returning from pink: leave the mesh exactly
+                -- as spawned (its own materials, full mesh) - never force white on it
+            end)
+        end
     end
 end
 
@@ -564,7 +635,9 @@ end
 -- frame. Spawned once as white BasicEntities, then slid to the aim point each tick.
 mercenaries.GhostParts = {}   -- { { ent =, x,y,z, rx,ry,rz } }
 
-function mercenaries:GhostBuild(parts)
+-- `material` nil = leave each mesh its own materials (see the submaterial note on
+-- GhostSetValid); otherwise every ghost part is forced to it.
+function mercenaries:GhostBuild(parts, material)
     self:GhostClear()
     if not player then return end
     local o = player:GetWorldPos()
@@ -582,7 +655,7 @@ function mercenaries:GhostBuild(parts)
             })
         end)
         if e then
-            pcall(function() e:SetMaterial(self.TowerGhostMaterial) end)
+            if material then pcall(function() e:SetMaterial(material) end) end
             pcall(function() e:SetViewDistUnlimited() end)
             g.ent = e
             table.insert(self.GhostParts, g)
@@ -699,7 +772,7 @@ function mercenaries:StartPlacement(spec)
     -- Mouse-driven (LMB place / RMB cancel) via the Player.OnAction hook - no key binds.
     self:TowerCacheCampBlockers()
     self._ghostValid = nil          -- force the first recolour
-    self:GhostBuild(spec.parts)
+    self:GhostBuild(spec.parts, spec.validMaterial)
     Game.SendInfoText(spec.info.placing, false, 0, 5)
     Script.SetTimerForFunction(100, "mercenaries.PlaceTick")
 end
@@ -720,9 +793,13 @@ function mercenaries:ConfirmPlacement()
     Game.SendInfoText(spec.info.raised, false, 0, 3)
 end
 
+-- onCancel (optional) lets a spec undo what it placed this session - the ambush
+-- marker tools use it so right-click discards every marker. Specs without it
+-- (tower, cart) just leave placement mode and keep what they built.
 function mercenaries:CancelPlacement()
     local spec = self.ActivePlacement
     if not spec then return end
+    if spec.onCancel then pcall(function() spec.onCancel(self) end) end
     self:EndPlacement()
     Game.SendInfoText(spec.info.cancelled, false, 0, 3)
 end
@@ -740,6 +817,8 @@ function mercenaries:TowerPlaceSpec()
     end
     return {
         parts = parts,
+        -- scaffolding pieces are single-material, so the white takes cleanly here
+        validMaterial = self.TowerGhostMaterial,
         sink = self.TowerSink,
         isValid = function(s, pos) return s:TowerSpotIsValid(pos) end,
         atMax   = function(s) return #s.TowerStations >= s.TowerMaxCount end,
@@ -783,18 +862,29 @@ mercenaries.TowerSwallowActions = { attack_primary_mouse = true, block = true, a
 mercenaries._swallowInput = false
 function mercenaries.TowerClearInputSwallow() mercenaries._swallowInput = false end
 
--- Returns true if the action was consumed by tower placement.
+-- Returns true if the action was consumed by a placement or wall-build mode.
 function mercenaries:HandlePlacementAction(action, activation)
     if not self.TowerSwallowActions[action] then return false end
-    if not (self.ActivePlacement or self._swallowInput) then return false end
+    local wall = self.WallBuildActive
+    if not (self.ActivePlacement or wall or self._swallowInput) then return false end
 
-    if self.ActivePlacement and activation == "press" then
-        if self.TowerPlaceActions[action] then
-            self:ConfirmPlacement()               -- stays in placement mode for the next one
-        elseif self.TowerCancelActions[action] then
-            self:CancelPlacement()
-            self._swallowInput = true
-            Script.SetTimerForFunction(400, "mercenaries.TowerClearInputSwallow")
+    if activation == "press" then
+        if self.ActivePlacement then
+            if self.TowerPlaceActions[action] then
+                self:ConfirmPlacement()           -- stays in placement mode for the next one
+            elseif self.TowerCancelActions[action] then
+                self:CancelPlacement()
+                self._swallowInput = true
+                Script.SetTimerForFunction(400, "mercenaries.TowerClearInputSwallow")
+            end
+        elseif wall then
+            if self.TowerPlaceActions[action] then
+                self:WallMark()                   -- drop a corner, keep building
+            elseif self.TowerCancelActions[action] then
+                self:EndWallBuild()
+                self._swallowInput = true
+                Script.SetTimerForFunction(400, "mercenaries.TowerClearInputSwallow")
+            end
         end
     end
     return true

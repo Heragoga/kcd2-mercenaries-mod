@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="prunik_do_kutne_hory" HibernateMode="Script">
+			<Ports>
+				<Port Name="sam_a_jindra_jdou_za_matkou" Direction="Out" Type="trigger">
+					<DesignName StringName="prunik_do_sam_a_jindra_jd_cDnU" Text="Sam a Jindra jdou za matkou" />
+				</Port>
+				<Port Name="jindra_jde_prozkoumat_hospodu" Direction="Out" Type="bool">
+					<DesignName StringName="prunik_do_jindra_jde_proz_Zyny" Text="Jindra je na dvorku u hospody" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="prunik_do_kutne_hory/prunik_do_mesta.xml" />
+				<Definition File="prunik_do_kutne_hory/pruchod_a_polylog_v_tunelu.xml" />
+				<Definition File="prunik_do_kutne_hory/sam_barkuje_ze_neco_slysel.xml" />
+				<Definition File="prunik_do_kutne_hory/dialog_o_tom_ze_sam_neco_slysel.xml" />
+				<Definition File="prunik_do_kutne_hory/polylog_na_rozcesti_.xml" />
+				<Definition File="prunik_do_kutne_hory/licht__chovani_v_tunelu_a_hospode.xml" />
+				<Definition File="prunik_do_kutne_hory/cisteni_salamouna.xml" />
+				<Definition File="prunik_do_kutne_hory/hrac_se_pokousi_odejit_z_hospody.xml" />
+				<Definition File="prunik_do_kutne_hory/licht_refusal__v_dome_jsou_porad_nepratele.xml" />
+				<Definition File="prunik_do_kutne_hory/contexty.xml" />
+				<Definition File="prunik_do_kutne_hory/dvere.xml" />
+				<Definition File="prunik_do_kutne_hory/licht_refusal__hleda_papiry.xml" />
+			</Definitions>
+			<Nodes>
+				<HasteTrigger Name="02c_killPublooters" PositionY="-850" PositionX="570" />
+				<cisteni_salamouna Name="cisteni_salamouna" PositionY="-150" PositionX="530" RequiredForOutput="kutnohorsko">
+					<Edge From="prunik_do_mesta.jindra_jde_s_lichtem" To="jindra_jde_s_lichtem" />
+					<Edge From="licht__chovani_v_tunelu_a_hospode.licht_uspesne_dochatoval" To="jindra_musi_prozkoumat_hospodu">
+						<Vertex>vertex15</Vertex>
+						<Vertex>vertex16</Vertex>
+					</Edge>
+					<Edge From="OnWake" To="jindra_vesel_do_hospody">
+						<Vertex>vertex21</Vertex>
+						<Vertex>vertex26</Vertex>
+					</Edge>
+					<Edge From="OnWake" To="onwake_hibernace">
+						<Vertex>d50FsCKq</Vertex>
+						<Vertex>Dpg1PRWB</Vertex>
+					</Edge>
+				</cisteni_salamouna>
+				<contexty Name="contexty" PositionY="420" PositionX="-140">
+					<Edge From="Awake" To="jsou_aktivni" />
+				</contexty>
+				<dialog_o_tom_ze_sam_neco_slysel Name="dialog_o_tom_ze_sam_neco_slysel" PositionY="-350" PositionX="100" />
+				<dvere Name="dvere" PositionY="540" PositionX="-140">
+					<Edge From="Awake" To="interaktor_je_aktivni" />
+					<Edge From="OnWake" To="zavrit_dvere" />
+				</dvere>
+				<EnableBehavior Name="enablebehavior13" PositionY="720" PositionX="-140" Signature="" EventSet="">
+					<Constant Name="Behavior" Value="wait" />
+					<Asset Name="SmartEntity" Alias="qSO" />
+					<Asset Name="NPC" Alias="matka" />
+					<Edge From="Awake" To="IsActive" />
+				</EnableBehavior>
+				<hrac_se_pokousi_odejit_z_hospody Name="hrac_se_pokousi_odejit_z_hospody" PositionY="630" PositionX="120" />
+				<KillNpc Name="KillNpc" PositionY="-890" PositionX="1010" Namespace="utils.general">
+					<Asset Name="attacker" Alias="player" />
+					<Constant Name="suppresshitreaction" Value="false" />
+					<Edge From="makearray12.Array" To="victims" />
+					<Edge From="02c_killPublooters.OnTrigger" To="exec" />
+				</KillNpc>
+				<licht__chovani_v_tunelu_a_hospode Name="licht__chovani_v_tunelu_a_hospode" PositionY="-190" PositionX="980">
+					<Edge From="pruchod_a_polylog_v_tunelu.konec_polylogu" To="licht_bezi_tunelem_po_polylogu" />
+					<Edge From="cisteni_salamouna.jindra_jde_prozkoumat_hospodu" To="jindra_jde_prozkoumat_hospodu_1" />
+					<Edge From="cisteni_salamouna.jindra_jde_zabit_vsech_v_hospode" To="jindra_jde_zabit_vsech_v_hospode" />
+				</licht__chovani_v_tunelu_a_hospode>
+				<licht_refusal__hleda_papiry Name="licht_refusal__hleda_papiry" PositionY="-520" PositionX="1000">
+					<Edge From="cisteni_salamouna.licht_hleda_papiry_po_combatu_o" To="licht_hleda_papiry" />
+				</licht_refusal__hleda_papiry>
+				<licht_refusal__v_dome_jsou_porad_nepratele Name="licht_refusal__v_dome_jsou_porad_nepratele" PositionY="-350" PositionX="1000">
+					<Edge From="cisteni_salamouna.jindra_jde_prozkoumat_hospodu" To="jindra_jde_prozkoumat_hospodu" />
+				</licht_refusal__v_dome_jsou_porad_nepratele>
+				<MakeArray Name="makearray12" PositionY="-1090" PositionX="640" TypeT="wh::rpgmodule::Souls">
+					<Asset Name="A" Alias="pubLooter1" />
+					<Asset Name="B" Alias="pubLooter2" />
+					<Asset Name="C" Alias="pubLooter3" />
+				</MakeArray>
+				<Output Name="Output">
+					<Edge From="cisteni_salamouna.jindra_jde_prozkoumat_hospodu_1" To="jindra_jde_prozkoumat_hospodu">
+						<Vertex>vertex28</Vertex>
+					</Edge>
+					<Edge From="streamprofileshandling_1.onunloaded" To="sam_a_jindra_jdou_za_matkou" />
+				</Output>
+				<polylog_na_rozcesti_ Name="polylog_na_rozcesti_" PositionY="-600" PositionX="100" />
+				<pruchod_a_polylog_v_tunelu Name="pruchod_a_polylog_v_tunelu" PositionY="-290" PositionX="-270">
+					<Edge From="OnWake" To="pruchod_pres_tunel_se_zapocal" />
+				</pruchod_a_polylog_v_tunelu>
+				<prunik_do_mesta Name="prunik_do_mesta" PositionY="-20" PositionX="80" RequiredForOutput="kutnohorsko">
+					<Edge From="cisteni_salamouna.jindra_jde_zabit_vsech_v_hospode" To="jindra_musi_prozkoumat_hospodu">
+						<Vertex>vertex2</Vertex>
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="OnWake" To="nasleduj_lichta" />
+					<Edge From="licht__chovani_v_tunelu_a_hospode.licht_uspesne_dochatoval" To="jindra_musi_prozkoumat_hospodu">
+						<Vertex>vertex15</Vertex>
+						<Vertex>vertex16</Vertex>
+						<Vertex>vertex17</Vertex>
+					</Edge>
+					<Edge From="pruchod_a_polylog_v_tunelu.konec_polylogu" To="licht_jde_do_kanclu" />
+				</prunik_do_mesta>
+				<sam_barkuje_ze_neco_slysel Name="sam_barkuje_ze_neco_slysel" PositionY="-470" PositionX="100" />
+				<streamprofileshandling Name="streamprofileshandling" PositionY="360" PositionX="1040" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="barExclusionArea" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="cisteni_salamouna.sam_a_jindra_jdou_za_matkou" To="unstreamprofiles" />
+					<Edge From="OnWake" To="streamprofiles">
+						<Vertex>vertex21</Vertex>
+						<Vertex>vertex26</Vertex>
+					</Edge>
+				</streamprofileshandling>
+				<streamprofileshandling Name="streamprofileshandling_1" PositionY="680" PositionX="1040" Namespace="utils.streaming">
+					<Asset Name="profiles" Alias="barrierInBarProfile" />
+					<Constant Name="autodeactivatenotificationafterstream" Value="false" />
+					<Edge From="cisteni_salamouna.jindra_jde_zabit_vsech_v_hospode" To="streamprofiles" />
+					<Edge From="streamprofileshandling.onunloaded" To="unstreamprofiles">
+						<Vertex>NAcIjzTs</Vertex>
+						<Vertex>aUV1yXIm</Vertex>
+					</Edge>
+				</streamprofileshandling>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="aUV1yXIm" PositionY="670" PositionX="1050" />
+				<EdgeVertex Name="d50FsCKq" PositionY="-90" PositionX="-184" />
+				<EdgeVertex Name="Dpg1PRWB" PositionY="-91" PositionX="408" />
+				<EdgeVertex Name="NAcIjzTs" PositionY="670" PositionX="1280" />
+				<EdgeVertex Name="vertex1" PositionY="340" PositionX="90" />
+				<EdgeVertex Name="vertex15" PositionY="360" PositionX="1270" />
+				<EdgeVertex Name="vertex16" PositionY="360" PositionX="530" />
+				<EdgeVertex Name="vertex17" PositionY="360" PositionX="90" />
+				<EdgeVertex Name="vertex2" PositionY="340" PositionX="820" />
+				<EdgeVertex Name="vertex21" PositionY="390" PositionX="40" />
+				<EdgeVertex Name="vertex26" PositionY="391" PositionX="460" />
+				<EdgeVertex Name="vertex28" PositionY="300" PositionX="1270" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="SneakThroughtTunnels">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="GoToTunnels" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Animation" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="PolylogInTunnel" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="GoToCrossRoad" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="PolylogOnCrossRoad" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Finished" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Assets>
+				<TriggerAreaAsset Name="kancelarArea" />
+				<ProfileAsset Name="barExclusionArea" AssetProfiles="pogrom_barExclusionArea" />
+				<ProfileAsset Name="barrierInBarProfile" AssetProfiles="pogrom_kutnahoraBarrierInBar" />
+				<SmartAreaAsset Name="barTrespassArea" />
+				<TagPointAsset Name="insideOfficePoint" />
+				<SoulAsset Name="pubLooter4" SharedSoulGuids="02cd596b-8f6c-4e7a-be0c-a5a5cabf1eb2 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="pubLooteri" SharedSoulGuids="b0e1f291-8c16-4911-a826-28acedff3056 e7280ec9-38b1-457a-be5a-6bb39bafc5b5 fe79050b-39f6-44b6-bb45-68005e6b8849 02cd596b-8f6c-4e7a-be0c-a5a5cabf1eb2 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+			</Assets>
+			<Text StringName="prunik_do_mesta_a_cisteni_0ysR" Text="Průnik do Kutne Hory" />
+			<Elements>
+				<GameplayActionElement>
+					<Text StringName="prunik_do_cesta_do_mesta__mCQV" Text="Licht jde do šalamouna, potřebuje najít papíry a Henry jde s ním, kdežto Rabín, Sam a Kuběnka míří do Synagogy, kde budou organizovat evakuaci." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="prunik_do_nutne_pro_dalsi_kTfJ" Text="Nutné pro další postup je vyčištění hospody U Šalamouna, kde se už před tím dostalo několik ozbrojenců ve službách Erika. Jakmile je o ně postaráno, otevře se možnost rozhovoru s Lichtem či kliknutí na dveře ven - obojí nastartuje trialog s LIchtem, do kterého pak skrze nyní už odemčené dveře vejde Sam a odvádí Henryho za Matkou." />
+				</GameplayActionElement>
+			</Elements>
+			<MapVizLocation MapName="kutnohorsko" PositionX="3306" PositionY="911" />
+		</Gameplay>
+	</Skald>
+</Database>

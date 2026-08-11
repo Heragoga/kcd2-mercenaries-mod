@@ -13,6 +13,28 @@
 				<Relation target="kutnohorsko_enemies" reputation="-1" />
 				<Relation target="kutnohorsko_enemies_oblehaniSuchdoleEnemyArmy" reputation="-1" />
 				<Relation target="enemiesFaction" reputation="-1" />
+				<!-- Malesov fortress garrison. Our side of the pair; the garrison's own side is
+				     declared below - vanilla never declares anything toward mercenariesFaction,
+				     which is the measured root cause (0 attacks on mercs vs 40 by them). -->
+				<Relation target="kutnohorsko_settlements_malesov_soldiers_utokNaMalesov" reputation="-1" />
+			</Relations>
+		</Faction>
+
+		<!-- REVERSE RELATION TEST.
+		     Rendering in a scripted battle requires something to be hostile TOWARD the merc -
+		     the merc must actually be fought, not merely be hostile (proven: an inert NPC with
+		     merc faction and quest-array membership stayed invisible; a merc that the player's
+		     side attacked rendered immediately).
+		     Faction relations are one-directional and NO vanilla faction declares anything toward
+		     mercenariesFaction, so mercs attack a garrison that never attacks back.
+		     This declares the missing direction. Redeclaring this faction is safe: in vanilla
+		     FactionTree.xml:1211 it is a LEAF - self-closing, no <Children>, no <Relations> - so
+		     there is nothing to clobber. Labels is repeated in case the merge replaces rather
+		     than merges the node.
+		     Narrow on purpose: this faction is used by exactly 52 souls, all Malesov garrison. -->
+		<Faction Name="kutnohorsko_settlements_malesov_soldiers_utokNaMalesov" Labels="publicEnemy">
+			<Relations>
+				<Relation target="mercenariesFaction" reputation="-1" />
 			</Relations>
 		</Faction>
 		<Faction Name="enemiesFaction">
@@ -28,5 +50,14 @@
 				<Relation target="kutnohorsko_enemies_oblehaniSuchdoleEnemyArmy" reputation="1" />
             </Relations>
         </Faction>
+		<!-- Test-only faction: friendly to the player and to our mercs, so the test NPC
+		     can be walked around the camp without anyone drawing on him. -->
+		<Faction Name="testFaction">
+			<Relations>
+				<Relation target="player" reputation="1" />
+				<Relation target="mercenariesFaction" reputation="1" />
+				<Relation target="players_friends" reputation="1" />
+			</Relations>
+		</Faction>
     </FactionTree>
 </database>

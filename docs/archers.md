@@ -71,7 +71,7 @@ Stance changes apply **mid-fight**: every combat tree watches the stance each ~7
 
 ## Target selection
 
-Archers pick targets exactly the same way regular mercs do: `archer_scheduler.xml` reads the same player-set squad stance (`_G.MercStance` / `GetStanceCode` — everyone / player_target / defend / passive) and calls the shared `PickNearestValidTarget` / `PickPlayersTarget` / `EvaluateCombatTarget` functions from `mercenaries_target_selection.lua`, instead of auto-aggroing anything within range. This was previously a separate always-aggressive `PickArcherTarget` function that ignored the squad's targeting stance; it's been removed in favor of the shared logic.
+Archers pick targets exactly the same way regular mercs do: `archer_scheduler.xml` runs the same always-on two-pass acquisition (`EvaluateCombatTarget` then `PickCombatTarget`) from `mercenaries_target_selection.lua`. See [combat-target-selection.md](combat-target-selection.md). The archer stance (skirmish / melee / hold) only chooses which combat behaviour the interrupt fires — it has no say in *who* gets targeted.
 
 ---
 

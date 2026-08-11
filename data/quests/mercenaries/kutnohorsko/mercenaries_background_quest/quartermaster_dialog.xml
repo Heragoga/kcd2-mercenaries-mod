@@ -26,6 +26,8 @@
                 <Port Name="quartermaster_house"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_tower"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_archercart" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_removeupg" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_wall" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
@@ -562,6 +564,30 @@
                                         <UiPrompt StringName="ui_qm_archercart" />
                                         <Triggers><Port Name="quartermaster_archercart" /></Triggers>
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_archercart" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_archercart" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_wall">
+                                        <UiPrompt StringName="ui_qm_wall" />
+                                        <Triggers><Port Name="quartermaster_wall" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_wall" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_wall" /></Response></Elements>
+                                    </Sequence>
+                                    <!-- Two-step: choosing this only ASKS. The port (and so the
+                                         teardown) fires from the confirm branch, never from here. -->
+                                    <Sequence EndType="Decision" Name="seq_qm_removeupg">
+                                        <UiPrompt StringName="ui_qm_removeupg" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_removeupg" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_removeupg" /></Response></Elements>
+                                        <Decision Name="dec_qm_removeupg">
+                                            <Sequences>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_removeupg_yes">
+                                                    <UiPrompt StringName="ui_qm_removeupg_yes" />
+                                                    <Triggers><Port Name="quartermaster_removeupg" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_removeupg_yes" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_removeupg_yes" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="GoTo" GoToDecision="dec_qm_upgrades" Name="seq_qm_removeupg_no">
+                                                    <UiPrompt StringName="ui_qm_removeupg_no" />
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_removeupg_no" /></Response></Elements>
+                                                </Sequence>
+                                            </Sequences>
+                                        </Decision>
                                     </Sequence>
                                     <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_upg_back">
                                         <UiPrompt StringName="ui_qm_back" />

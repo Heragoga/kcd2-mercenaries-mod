@@ -64,35 +64,28 @@ mercenaries.TokenIDQMPractice        = "679a655e-189d-4519-b437-ccc4b92be75d"
 mercenaries.TokenIDQMHouse           = "679a655e-189d-4519-b437-ccc4b92be7cd"
 mercenaries.TokenIDQMTower           = "679a655e-189d-4519-b437-ccc4b92be7dd"
 mercenaries.TokenIDQMArcherCart      = "679a655e-189d-4519-b437-ccc4b92be7ed"
+mercenaries.TokenIDQMRemoveUpg       = "679a655e-189d-4519-b437-ccc4b92be7fd"
+mercenaries.TokenIDQMWall            = "679a655e-189d-4519-b437-ccc4b92be80d"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
 mercenaries.TokenIDQMTakeHalf        = "679a655e-189d-4519-b437-ccc4b92be79d"
 mercenaries.TokenIDQMTakeThird       = "679a655e-189d-4519-b437-ccc4b92be7ad"
 mercenaries.TokenIDQMTakeQuarter     = "679a655e-189d-4519-b437-ccc4b92be7bd"
 
--- Combat stance tokens (set via dialogue with a mercenary)
-mercenaries.TokenIDStanceEveryone = "679a655e-189d-4519-b437-ccc4b92be51d"
-mercenaries.TokenIDStancePlayerTarget = "679a655e-189d-4519-b437-ccc4b92be52d"
-mercenaries.TokenIDStanceDefend = "679a655e-189d-4519-b437-ccc4b92be53d"
-mercenaries.TokenIDStancePassive = "679a655e-189d-4519-b437-ccc4b92be54d"
-
--- Combat stance codes, cheap to check from the behavior tree (int compare
--- instead of string compare on every merc, every tick).
-mercenaries.StanceCode = { everyone = 0, player_target = 1, defend = 2, passive = 3 }
-
--- Default is "everyone" (aggressive - attack any hostile nearby), not
--- "player_target", so a freshly hired/loaded squad of infantry wades in
--- on its own instead of waiting for the player to pick the fight first.
-function mercenaries:GetStanceCode()
-    return self.StanceCode[_G.MercStance or "everyone"] or 0
-end
-
-mercenaries.MaxCompanions = 999
+-- Hard squad cap. The formation presets are generated up to this size, so raising
+-- it means regenerating data/AI/FormationDefinitions.xml with a matching ladder.
+mercenaries.MaxCompanions = 50
 
 -- Flat fee to heal & wash the whole squad in one go, regardless of size.
 mercenaries.HealCost = 20
 
 mercenaries.TargetDetectionRadius = 50
+
+-- Half-extent of the box query UpdateEnemyCache runs around the player. This is
+-- the effective aggro radius - TargetDetectionRadius above is only a far gate.
+-- Keep it under the 20m disengage leash in mercenary_scheduler.xml, or a merc
+-- charging an edge-of-range enemy trips the leash and gets pulled back.
+mercenaries.EnemyScanRadius = 18
 
 -- Max number of mercs allowed to already be closer to a given enemy before
 -- another merc will look for a different target instead of piling on.
@@ -570,23 +563,6 @@ function mercenaries:SetSortieWait(wait)
     end
 end
 
--- Combat stance, set through dialogue with a mercenary. Applies whether the
--- squad is following or waiting.
---   everyone      - attack any hostile, drawn-weapon NPC nearby (default,
---                   aggressive - infantry wade into a fight on their own)
---   player_target - only join whatever fight the player is currently in
---   defend        - only fight back if personally attacked
---   passive       - never engage, even if attacked
-function mercenaries:SetStance(stance)
-    if self.StanceCode[stance] == nil then stance = "everyone" end
-    _G.MercStance = stance
-    self:SaveString("MercStancePersistent", stance)
-    Game.SendInfoText('merc_info_stance_' .. stance, false, 0, 3)
-end
-
-
-
-
 -- inventory monitoring
 function mercenaries:MonitorInventory()
     local p = player.inventory
@@ -612,11 +588,6 @@ function mercenaries:MonitorInventory()
     local countCampMake = p:GetCountOfClass(self.TokenIDCampMake)
     local countCampBreak = p:GetCountOfClass(self.TokenIDCampBreak)
     local countQuartermasterTest = p:GetCountOfClass(self.TokenIDQuartermasterTest)
-
-    local countStanceEveryone = p:GetCountOfClass(self.TokenIDStanceEveryone)
-    local countStancePlayerTarget = p:GetCountOfClass(self.TokenIDStancePlayerTarget)
-    local countStanceDefend = p:GetCountOfClass(self.TokenIDStanceDefend)
-    local countStancePassive = p:GetCountOfClass(self.TokenIDStancePassive)
 
     local countSpawnRenegadeWeak = p:GetCountOfClass(self.TokenIDSpawnRenegadeWeak)
     local countSpawnRenegadeMedium = p:GetCountOfClass(self.TokenIDSpawnRenegadeMedium)
@@ -741,6 +712,8 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMHouse,         function() self:LogiBuyHouse() end)
     tok(self.TokenIDQMTower,         function() self:LogiBuyTower() end)
     tok(self.TokenIDQMArcherCart,    function() self:LogiBuyArcherCart() end)
+    tok(self.TokenIDQMRemoveUpg,     function() self:LogiRemoveAllUpgrades() end)
+    tok(self.TokenIDQMWall,          function() self:LogiBuyWall() end)
     tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
     tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
     tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
@@ -758,27 +731,6 @@ function mercenaries:MonitorInventory()
     if cDrinkPanel and cDrinkPanel > 0 then
         p:DeleteItemOfClass(self.TokenIDQMDrinkPanel, cDrinkPanel)
         self:LogiPanelDrink(cDrinkPanel)
-    end
-
-    -- Combat stance chosen via dialogue
-    if countStanceEveryone and countStanceEveryone > 0 then
-        p:DeleteItemOfClass(self.TokenIDStanceEveryone, countStanceEveryone)
-        self:SetStance("everyone")
-    end
-
-    if countStancePlayerTarget and countStancePlayerTarget > 0 then
-        p:DeleteItemOfClass(self.TokenIDStancePlayerTarget, countStancePlayerTarget)
-        self:SetStance("player_target")
-    end
-
-    if countStanceDefend and countStanceDefend > 0 then
-        p:DeleteItemOfClass(self.TokenIDStanceDefend, countStanceDefend)
-        self:SetStance("defend")
-    end
-
-    if countStancePassive and countStancePassive > 0 then
-        p:DeleteItemOfClass(self.TokenIDStancePassive, countStancePassive)
-        self:SetStance("passive")
     end
 
     -- Renegade spawn requests chosen via dialogue. Count on the token is
@@ -802,6 +754,9 @@ function mercenaries:MonitorInventory()
     -- Archer (ranged merc) hire / stance / AI-variant tokens
     self:MonitorArcherTokens(p)
 
+    -- Formation shape chosen from dialogue or the order wheel
+    self:MonitorFormationTokens(p)
+
 end
 
 -- The looping function
@@ -812,21 +767,13 @@ function mercenaries.MonitorLoop()
     end
     mercenaries:MonitorMainQuestLoop()
 
-    -- PERFORMANCE: skip the enemy sphere-query entirely when there's no
-    -- squad to act on it — nothing reads CachedEnemies if ActiveMercs is empty.
     if next(mercenaries.ActiveMercs) then
-        -- Combat stance applies whether the squad is following or waiting,
-        -- so the enemy cache is kept fresh regardless of idle state.
-        mercenaries:UpdateEnemyCache()
-
         -- One shared "fell too far behind" pass over the whole squad instead
         -- of every merc's behavior tree running its own raycast sweep.
         mercenaries:MonitorDistanceAndTeleport()
 
         -- Delayed "return to camp" teleports (mercs bark + jog first).
         mercenaries:ProcessReturnPending()
-    else
-        mercenaries.CachedEnemies = {}
     end
 
     -- Tower archers stand off the navmesh, and the AI ground-snaps its actors, so
@@ -834,12 +781,35 @@ function mercenaries.MonitorLoop()
     -- ActiveMercs - static archers are not squad members. See KeepStaticArchersUp.
     pcall(function() mercenaries:KeepStaticArchersUp() end)
 
+    -- Ambush trigger boxes. Independent of ActiveMercs - an ambush can catch a
+    -- player travelling alone. See docs/encounters.md.
+    pcall(function() mercenaries:AmbushMonitor() end)
+
+    -- Sleeping in the camp bed saves the game (see docs/camp.md "The player tent").
+    pcall(function() mercenaries:CampBedSleepWatch() end)
+
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
+end
+
+-- Enemy detection runs on its own faster tick: it is the squad's reaction time
+-- to a threat, and the merc behaviour trees only see what this leaves behind in
+-- CachedEnemies. Aggro applies whether the squad is following, waiting or
+-- camped, so the cache is kept fresh regardless of idle state.
+-- PERFORMANCE: skipped entirely when there's no squad to act on it - nothing
+-- reads CachedEnemies if ActiveMercs is empty.
+function mercenaries.CombatScanLoop()
+    if next(mercenaries.ActiveMercs) then
+        mercenaries:UpdateEnemyCache()
+    else
+        mercenaries.CachedEnemies = {}
+    end
+
+    Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
 end
 
 function mercenaries.LowPriorityMonitorLoop()
     if next(mercenaries.ActiveMercs) then
-        -- Pruning matters even while idle now that combat stances apply at rest.
+        -- Pruning matters even while idle now that aggro applies at rest.
         mercenaries:PruneMercCache()
 
         if not _G.MercIdle then
@@ -911,10 +881,6 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
         _G.MercCurrentWeapon = 1
     end
 
-    -- Load combat stance (default "everyone" - aggressive - not "player_target")
-    local savedStance = mercenaries:LoadString("MercStancePersistent")
-    _G.MercStance = (savedStance and self.StanceCode[savedStance] ~= nil) and savedStance or "everyone"
-
     -- Load archer stance + skirmish AI variant
     self:LoadArcherState()
 
@@ -943,7 +909,18 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- from ActiveMercs (see RestoreCampDelayed).
     Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
+    Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
+    -- One shared formation frame (player position + damped heading) for the whole
+    -- squad. Global rather than per-merc because the heading damping is stateful:
+    -- run once per merc it would apply the slew limit N times and cancel itself.
+    mercenaries.SlotAssign = {}
+    mercenaries.SlotHeading = nil
+    mercenaries.SlotLastPos = nil
+    Script.SetTimerForFunction(mercenaries.SlotTickMs, "mercenaries.SlotFrameLoop")
+    -- Scheduled raids on the camp. Safe to arm with no camp: the tick does nothing
+    -- until one is pitched and the player is standing in it.
+    pcall(function() mercenaries:RaidStart() end)
 
 
 end
@@ -957,6 +934,7 @@ Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")
 Script.LoadScript("Scripts/mods/mercenaries_teleport.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation_handler.lua")
+Script.LoadScript("Scripts/mods/mercenaries_slots.lua")
 Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
@@ -971,6 +949,14 @@ Script.LoadScript("Scripts/mods/mercenaries_house.lua")
 Script.LoadScript("Scripts/mods/mercenaries_tower.lua")
 Script.LoadScript("Scripts/mods/mercenaries_static_archer.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archer_cart.lua")
+Script.LoadScript("Scripts/mods/mercenaries_wall.lua")
+Script.LoadScript("Scripts/mods/mercenaries_navmesh.lua")
+Script.LoadScript("Scripts/mods/mercenaries_defences.lua")
+Script.LoadScript("Scripts/mods/mercenaries_wallbattle.lua")
+Script.LoadScript("Scripts/mods/mercenaries_raids.lua")
+Script.LoadScript("Scripts/mods/mercenaries_testnpc.lua")
+Script.LoadScript("Scripts/mods/mercenaries_ambush.lua")
+Script.LoadScript("Scripts/mods/mercenaries_ambush_scenes.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
@@ -981,13 +967,14 @@ Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
 function mercenaries:PrintHelp()
     local lines = {
         "===== Mercenaries mod commands =====",
-        "merc_status                          one-line squad report (count, health, orders, stances)",
+        "merc_status                          one-line squad report (count, health, orders, archer stance)",
         "merc_heal                            heal & wash the squad (flat " .. tostring(self.HealCost) .. " groschen)",
         "merc_wait / merc_follow / merc_dismiss   squad orders",
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
         "merc_camp_recall (F4)                bring the whole squad to you from anywhere (doesn't break camp)",
         "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
-        "merc_stance_everyone|player_target|defend|passive   squad targeting stance (default: everyone)",
+        "merc_formation_column|line|square|wedge|circle|escort   marching shape (see docs/slot-formation.md)",
+        "merc_slot_status / merc_slot_probe / merc_slot_state     slot formation diagnostics",
         "merc_hire_w1/w2/w3, d1/d2/d3, p1/p2/p3   hire weak/medium/strong mercs (debug, free)",
         "merc_weapon_random|swordshield|axeshield|longsword|maceshield|shortsword|mace|axe|polearm   melee loadout",
         "archer_hire_1/3                     hire archers (debug, free)",
@@ -1009,17 +996,44 @@ end
 System.AddCCommand("merc_lua", "mercenaries:ExecString(%line)", "")
 
 System.AddCCommand("merc_help", "mercenaries:PrintHelp()", "Lists all mercenaries mod console commands")
-System.AddCCommand("merc_status", "mercenaries:ShowSquadStatus()", "One-line squad report: count, health, orders, stances")
+System.AddCCommand("merc_status", "mercenaries:ShowSquadStatus()", "One-line squad report: count, health, orders, archer stance")
 System.AddCCommand("merc_heal", "mercenaries:HealMercsForFlatFee()", "Heal & wash the squad for a flat fee")
 
+System.AddCCommand("merc_testmerc", "mercenaries:SpawnTestMerc()", "Control test: spawn ONE merc on the fixed test soul guid (free, no cap). See docs/quest-override-test.md")
+System.AddCCommand("merc_isotest", "mercenaries:SpawnIsolationTestNpc()", "Isolation test: spawn a soul with ZERO AI (no vanilla subbrains, no-op scheduler, neutral faction). See docs/malesov-structure.md")
 System.AddCCommand("merc_recount", "mercenaries:Recount()", "")
 System.AddCCommand("merc_dismiss", "mercenaries:SetState('dismiss')", "")
 System.AddCCommand("merc_wait", "mercenaries:SetState('wait')", "")
 System.AddCCommand("merc_follow", "mercenaries:SetState('follow')", "")
-System.AddCCommand("merc_stance_everyone", "mercenaries:SetStance('everyone')", "")
-System.AddCCommand("merc_stance_player_target", "mercenaries:SetStance('player_target')", "")
-System.AddCCommand("merc_stance_defend", "mercenaries:SetStance('defend')", "")
-System.AddCCommand("merc_stance_passive", "mercenaries:SetStance('passive')", "")
+
+-- Slot formation. Shapes are pure Lua offsets around the PLAYER; see docs/slot-formation.md.
+System.AddCCommand("merc_formation_column", "mercenaries:SetSlotShape('column')", "Formation: column of twos")
+System.AddCCommand("merc_formation_line", "mercenaries:SetSlotShape('line')", "Formation: double line abreast")
+System.AddCCommand("merc_formation_square", "mercenaries:SetSlotShape('square')", "Formation: block")
+System.AddCCommand("merc_formation_wedge", "mercenaries:SetSlotShape('wedge')", "Formation: cone")
+System.AddCCommand("merc_formation_circle", "mercenaries:SetSlotShape('circle')", "Formation: ring around the player")
+System.AddCCommand("merc_formation_escort", "mercenaries:SetSlotShape('escort')", "Formation: flanking files")
+
+-- Which system drives the squad on foot.
+System.AddCCommand("merc_form_engine", "mercenaries:SetFormationSystem(true)", "Use the engine formation (default)")
+System.AddCCommand("merc_form_slots", "mercenaries:SetFormationSystem(false)", "Use the Lua slot formation (anchors on the player)")
+
+-- Engine formation variants, all live.
+System.AddCCommand("merc_form_relaxed", "mercenaries:SetFormationMode(0)", "Mode: loose escort")
+System.AddCCommand("merc_form_keepshape", "mercenaries:SetFormationMode(1)", "Mode: rigid geometry (default)")
+System.AddCCommand("merc_form_movehistory", "mercenaries:SetFormationMode(2)", "Mode: replay the leader's path")
+System.AddCCommand("merc_form_relocate_on", "mercenaries:SetFormationRelocate(true)", "Let followers swap spots to resolve crowding")
+System.AddCCommand("merc_form_relocate_off", "mercenaries:SetFormationRelocate(false)", "Pin each follower to its spot (default)")
+
+-- A/B test for whether our FormationDefinitions.xml override is loaded at all.
+System.AddCCommand("merc_formation_vanilla", "mercenaries:SetSlotShape('vanilla')", "Use a stock vanilla preset (followNPC / infantryMen20)")
+
+System.AddCCommand("merc_slot_status", "mercenaries:SlotStatus()", "Log system, shape, mode, relocation, leader, epoch")
+-- Probe: send EVERY merc to one fixed point 3m behind the player. Answers "does a
+-- live-rewritten vec3 retarget a running Move (glide) or re-issue it (stutter)"
+-- with no formation logic in the way.
+System.AddCCommand("merc_slot_probe", "mercenaries.SlotProbe = not mercenaries.SlotProbe; System.LogAlways('[MercSlots] probe = ' .. tostring(mercenaries.SlotProbe))", "Toggle the single-point Move probe")
+System.AddCCommand("merc_slot_state", "mercenaries.SlotChangeState = not mercenaries.SlotChangeState; System.LogAlways('[MercSlots] changeNPCState = ' .. tostring(mercenaries.SlotChangeState))", "Toggle changeNPCState on the slot Move")
 
 System.AddCCommand("merc_weapon_random", "mercenaries:ChangeMercWeapon(1)", "")
 System.AddCCommand("merc_weapon_swordshield", "mercenaries:ChangeMercWeapon(2)", "")

@@ -21,5 +21,16 @@
 		<!-- Hostile ranged enemy: same design as renegade_brain, but its scheduler fires
 		     combat_archer_dynamic instead of combat_melee. -->
 		<brain brain_id="a7c3e1d9-4b2f-4a68-9c50-1e3d7f8a2b60" brain_name="enemy_archer_brain" />
+			<!-- TEST NPC: minimal brain, only attacks the player (testnpc_scheduler.xml). -->
+		<brain brain_id="f1e2d3c4-0001-4a00-8b00-000000000001" brain_name="testnpc_brain" />
+
+		<!-- ISOLATION TEST: wired to ONE subbrain only (isolation_test_scheduler, a pure idle
+		     loop). Deliberately carries NEITHER vanilla npc_basic_scheduler (4eaa0620-...ec80)
+		     NOR npc_basic_switch (...ec81) - see brain2subbrain__mercenaries.xml. If a soul on
+		     this brain still gets engaged/attacks anything once injected into a quest's hostile
+		     SoulArray, that engagement cannot come from anything in our own AI stack; it has to
+		     be the vanilla engine/quest system acting on the soul directly. See
+		     docs/npc-lod.md and docs/malesov-structure.md. -->
+		<brain brain_id="f1e2d3c4-0010-4a00-8b00-000000000010" brain_name="isolation_test_brain" />
 	</brains>
 </database>

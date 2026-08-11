@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="pridani_vyzbroje_do_osinovo_truhly">
+			<Ports>
+				<Port Name="konec_porady" Direction="In" Type="bool">
+					<DesignName StringName="pridani_v_konec_porady_MHEm" Text="výzbroj v bedně v kovárně" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<AddStashDefaultItem Name="addstashdefaultitem6" PositionY="-50" PositionX="-560">
+					<Constant Name="DisableRestock" Value="true" />
+					<Asset Name="Stashes" Alias="osina_stash" />
+					<Constant Name="Quality" Value="1" />
+					<Constant Name="Condition" Value="0.75" />
+					<Edge From="konec_porady" To="IsActive">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="equipmentinosinastash.item1" To="ItemClass" />
+				</AddStashDefaultItem>
+				<AddStashDefaultItem Name="addstashdefaultitem6_1" PositionY="320" PositionX="-560">
+					<Constant Name="DisableRestock" Value="true" />
+					<Asset Name="Stashes" Alias="osina_stash" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.65" />
+					<Edge From="konec_porady" To="IsActive">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="equipmentinosinastash.item2" To="ItemClass" />
+				</AddStashDefaultItem>
+				<AddStashDefaultItem Name="addstashdefaultitem6_1_1" PositionY="690" PositionX="-560">
+					<Constant Name="DisableRestock" Value="true" />
+					<Asset Name="Stashes" Alias="osina_stash" />
+					<Constant Name="Quality" Value="1" />
+					<Constant Name="Condition" Value="0.75" />
+					<Edge From="konec_porady" To="IsActive">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="equipmentinosinastash.item3" To="ItemClass" />
+				</AddStashDefaultItem>
+				<AddStashDefaultItem Name="addstashdefaultitem6_1_2" PositionY="1060" PositionX="-560">
+					<Constant Name="DisableRestock" Value="true" />
+					<Asset Name="Stashes" Alias="osina_stash" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.65" />
+					<Edge From="konec_porady" To="IsActive">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="equipmentinosinastash.item4" To="ItemClass" />
+				</AddStashDefaultItem>
+				<AddStashDefaultItem Name="addstashdefaultitem6_1_3" PositionY="1430" PositionX="-560">
+					<Constant Name="DisableRestock" Value="true" />
+					<Asset Name="Stashes" Alias="osina_stash" />
+					<Constant Name="Quality" Value="2" />
+					<Constant Name="Condition" Value="0.55" />
+					<Edge From="konec_porady" To="IsActive">
+						<Vertex>vertex1</Vertex>
+					</Edge>
+					<Edge From="equipmentinosinastash.item5" To="ItemClass" />
+				</AddStashDefaultItem>
+				<equipmentinosinastash Name="equipmentinosinastash" PositionY="90" PositionX="-940" Namespace="utoknanebakov" />
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="vertex1" PositionY="40" PositionX="-660" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="GearItemHolder">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Stash" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Player" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Capon" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Text StringName="pridani_vyzbroje_do_osino_INLO" Text="Přidání výzbroje do Osinovo truhly" />
+		</Module>
+	</Skald>
+</Database>

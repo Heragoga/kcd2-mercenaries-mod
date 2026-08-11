@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Module Name="zabit_spratelene_vojaky_bezici_ke_mlynu">
+			<Ports>
+				<Port Name="spojenci_beri_za_mlyn" Direction="In" Type="bool">
+					<DesignName StringName="zabit_spr_hrac_s_ptackem__7H9o" Text="spojenci běří za mlýn" />
+				</Port>
+			</Ports>
+			<Nodes>
+				<AreaTrigger Name="areatrigger1" PositionY="820" PositionX="170">
+					<Asset Name="Souls" Alias="friendlySoldiers" />
+					<Asset Name="Areas" Alias="friendlySoldiers_killArea_3" />
+					<Edge From="spojenci_beri_za_mlyn" To="IsActive">
+						<Vertex>vertex12</Vertex>
+					</Edge>
+				</AreaTrigger>
+				<AreaTrigger Name="areatrigger1_1" PositionY="400" PositionX="170">
+					<Asset Name="Souls" Alias="friendlySoldiers" />
+					<Asset Name="Areas" Alias="friendlySoldiers_killArea_2" />
+					<Edge From="spojenci_beri_za_mlyn" To="IsActive">
+						<Vertex>vertex12</Vertex>
+					</Edge>
+				</AreaTrigger>
+				<AreaTrigger Name="areatrigger1_1_1" PositionY="-50" PositionX="170">
+					<Asset Name="Souls" Alias="friendlySoldiers" />
+					<Asset Name="Areas" Alias="friendlySoldiers_killArea_1" />
+					<Edge From="spojenci_beri_za_mlyn" To="IsActive">
+						<Vertex>vertex12</Vertex>
+					</Edge>
+				</AreaTrigger>
+				<Function Name="audiooneshot15" PositionY="210" PositionX="1820" MethodName="wh::soundmodule::AudioOneShot" DeclaringType="wh::soundmodule">
+					<Constant Name="AtlTriggerName" Value="q_M09_pistala_shot" />
+					<Asset Name="LinkableObject" Alias="killArea_soundPos_1" />
+					<Edge From="KillNpc_1_1.onexec" To="Exec" />
+				</Function>
+				<Function Name="audiooneshot15_1" PositionY="680" PositionX="1800" MethodName="wh::soundmodule::AudioOneShot" DeclaringType="wh::soundmodule">
+					<Constant Name="AtlTriggerName" Value="q_M09_pistala_shot" />
+					<Asset Name="LinkableObject" Alias="killArea_soundPos_2" />
+					<Edge From="KillNpc_1.onexec" To="Exec" />
+				</Function>
+				<Function Name="audiooneshot15_2" PositionY="970" PositionX="1210" MethodName="wh::soundmodule::AudioOneShot" DeclaringType="wh::soundmodule">
+					<Constant Name="AtlTriggerName" Value="q_M09_pistala_shot" />
+					<Asset Name="LinkableObject" Alias="killArea_soundPos_3" />
+					<Edge From="KillNpc.onexec" To="Exec" />
+				</Function>
+				<IfFunction Name="ifcompare13" PositionY="390" PositionX="1200" TypeT="int" MethodName="Control::Compare" DeclaringType="Control">
+					<Constant Name="Op" Value="NotEquals" />
+					<Constant Name="ValueB" Value="0" />
+					<Edge From="areatrigger1_1.OnEnter" To="Exec">
+						<Vertex>vertex5</Vertex>
+					</Edge>
+					<Edge From="randominteger11.int" To="ValueA" />
+				</IfFunction>
+				<IfFunction Name="ifcompare13_1" PositionY="-50" PositionX="1200" TypeT="int" MethodName="Control::Compare" DeclaringType="Control">
+					<Constant Name="Op" Value="Equals" />
+					<Constant Name="ValueB" Value="1" />
+					<Edge From="randominteger11_1.int" To="ValueA" />
+					<Edge From="areatrigger1_1_1.OnEnter" To="Exec">
+						<Vertex>vertex7</Vertex>
+					</Edge>
+				</IfFunction>
+				<KillNpc Name="KillNpc" PositionY="910" PositionX="870" Namespace="utils.general">
+					<Constant Name="suppresshitreaction" Value="false" />
+					<Edge From="areatrigger1.Soul" To="attacker">
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="makearray2.Array" To="victims" />
+					<Edge From="areatrigger1.OnEnter" To="exec" />
+				</KillNpc>
+				<KillNpc Name="KillNpc_1" PositionY="620" PositionX="1490" Namespace="utils.general">
+					<Constant Name="suppresshitreaction" Value="false" />
+					<Edge From="areatrigger1_1.Soul" To="attacker">
+						<Vertex>vertex6</Vertex>
+					</Edge>
+					<Edge From="makearray9.Array" To="victims">
+						<Vertex>vertex10</Vertex>
+					</Edge>
+					<Edge From="ifcompare13.True" To="exec" />
+				</KillNpc>
+				<KillNpc Name="KillNpc_1_1" PositionY="160" PositionX="1490" Namespace="utils.general">
+					<Constant Name="suppresshitreaction" Value="false" />
+					<Edge From="makearray10.Array" To="victims">
+						<Vertex>vertex11</Vertex>
+					</Edge>
+					<Edge From="areatrigger1_1_1.Soul" To="attacker">
+						<Vertex>vertex8</Vertex>
+					</Edge>
+					<Edge From="ifcompare13_1.True" To="exec" />
+				</KillNpc>
+				<MakeArray Name="makearray10" PositionY="80" PositionX="590" TypeT="wh::rpgmodule::Souls">
+					<Edge From="areatrigger1_1_1.Soul" To="A" />
+				</MakeArray>
+				<MakeArray Name="makearray2" PositionY="1060" PositionX="580" TypeT="wh::rpgmodule::Souls">
+					<Edge From="areatrigger1.Soul" To="A" />
+				</MakeArray>
+				<MakeArray Name="makearray9" PositionY="530" PositionX="590" TypeT="wh::rpgmodule::Souls">
+					<Edge From="areatrigger1_1.Soul" To="A" />
+				</MakeArray>
+				<Function Name="randominteger11" PositionY="530" PositionX="870" MethodName="math::random::RandomInteger" DeclaringType="math::random">
+					<Constant Name="Max" Value="2" />
+				</Function>
+				<Function Name="randominteger11_1" PositionY="80" PositionX="880" MethodName="math::random::RandomInteger" DeclaringType="math::random">
+					<Constant Name="Max" Value="1" />
+				</Function>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="vertex10" PositionY="680" PositionX="880" />
+				<EdgeVertex Name="vertex11" PositionY="220" PositionX="890" />
+				<EdgeVertex Name="vertex12" PositionY="40" PositionX="60" />
+				<EdgeVertex Name="vertex5" PositionY="480" PositionX="600" />
+				<EdgeVertex Name="vertex6" PositionY="710" PositionX="600" />
+				<EdgeVertex Name="vertex7" PositionY="40" PositionX="600" />
+				<EdgeVertex Name="vertex8" PositionY="250" PositionX="600" />
+				<EdgeVertex Name="vertex9" PositionY="1000" PositionX="590" />
+			</EdgeVertices>
+			<Assets>
+				<TriggerAreaAsset Name="friendlySoldiers_killArea_3" />
+				<SoulAsset Name="friendlySoldiers" SharedSoulGuids="77b31a3c-34fe-465c-9d55-4b856295e392 6d2180f5-49c1-4569-80ff-c236b6a2d81c aa859d0d-ecca-4afa-afee-85e4e50571a4 d73dc266-ec25-4c38-9e02-ada79588127b 19c69e97-d4e0-445c-8b0a-cd597eb696a7 1bb5e68f-d3d1-47ab-9330-06620eee80ae e12fe615-ddff-4bce-ac23-ea31d9d571c1 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<TriggerAreaAsset Name="friendlySoldiers_killArea_2" />
+				<TagPointAsset Name="killArea_soundPos_1" />
+				<TagPointAsset Name="killArea_soundPos_2" />
+				<TagPointAsset Name="killArea_soundPos_3" />
+			</Assets>
+			<Notes>
+				<Note Name="note16" PositionY="-160" PositionX="190">
+					<Text StringName="zabit_spr_note16_BUxb" Text="dát damage hráčovi pokud tam stojí moc dlouho&#xD;&#xA;Založen feeback KCD2-107961" />
+				</Note>
+			</Notes>
+			<Text StringName="zabit_spratelene_vojaky_b_qXvY" Text="Zabít spřátelené vojáky běžící ke mlýnu" />
+		</Module>
+	</Skald>
+</Database>

@@ -105,6 +105,13 @@ mercenaries.CampPlayerBedOffset = { right = 0, forward = 1, z = 0, rotationDeg =
 mercenaries.CampPlayerBedTriggerOffset = { right = 0, forward = 0, z = 0.4 }
 mercenaries.CampPlayerBedTriggerScale = { 0.7, 0.7, 0.7 }
 
+-- The camp bed is the player's own, so it sleeps AND saves. Bed ownership (what
+-- the engine's own sleep-and-save keys off) can only be granted by a quest, never
+-- from Lua, so the save is made here instead - see CampBedSleepWatch and
+-- docs/camp.md "The player tent".
+mercenaries.CampBedSleepRadius     = 3.5   -- metres from the bed to count as sleeping in it
+mercenaries.CampBedSleepMinSeconds = 600   -- in-game seconds that must pass to count as a sleep
+
 -- Spawns the player's own tent + usable bed once, at `centerPos` - the
 -- camp grid's own center (see SpawnMercCamp; the whole cluster grid is laid
 -- out around this same point now, with the tile directly in front of it
@@ -205,7 +212,7 @@ function mercenaries:SpawnCampBedTrigger(bedEnt, bedPos, bedAngle)
                 Click = {
                     bIsActive = true,
                     bedEntity = bedEnt,
-                    UseMessage = "@ui_hud_sleep",
+                    UseMessage = "@ui_hud_sleep_and_save",
                     bAllowNoOwner = 0,
                     bCheckOwner = 0,
                     esActionType = "Stance",
@@ -220,11 +227,65 @@ function mercenaries:SpawnCampBedTrigger(bedEnt, bedPos, bedAngle)
             -- finds; the "mTrigger" back-link mirrors the camping mod.
             pcall(function() trigger:CreateLink("", bedEnt.id) end)
             pcall(function() bedEnt:CreateLink("mTrigger", trigger.id) end)
+
+            -- Remember the bed so CampBedSleepWatch can spot the player sleeping
+            -- in it. engineSaves is normally false (a spawned bed has no owner),
+            -- and is only checked so we never double up on an engine autosave.
+            local engineSaves = false
+            pcall(function() engineSaves = EntityModule.WillSleepingOnThisBedSave(bedEnt.id) and true or false end)
+            self.CampPlayerBed = { id = bedEnt.id, pos = bedPos, engineSaves = engineSaves }
+            self.CampBedSleepState = nil
         end
     end)
     if not ok then
         System.LogAlways('[Mercenaries] SpawnCampBedTrigger error: ' .. tostring(err))
     end
+end
+
+-- Creates the "slept in your own bed" save. Game.SaveGameViaResting is the
+-- engine's own resting autosave; QuickSave is the fallback if it ever goes away.
+function mercenaries:CampBedSave()
+    local bed = self.CampPlayerBed
+    if bed and bed.engineSaves then return end   -- the engine already saves on this bed
+
+    local ok = pcall(function() Game.SaveGameViaResting() end)
+    if not ok then
+        ok = pcall(function() Game.QuickSave() end)
+    end
+    System.LogAlways("[Camp] sleep-and-save: " .. (ok and "save created" or "FAILED - no save binding"))
+end
+
+function mercenaries.CampBedSaveDelayed()
+    mercenaries:CampBedSave()
+end
+
+-- Watches the player lying in the camp bed and saves once they get up, provided
+-- game time actually moved (so lying down and standing straight back up doesn't
+-- save). Called each second from MonitorLoop.
+function mercenaries:CampBedSleepWatch()
+    local bed = self.CampPlayerBed
+    if not bed or not player then return end
+
+    local w = self.CampBedSleepState
+    if not w then w = { laying = false, armed = false }; self.CampBedSleepState = w end
+
+    local laying = false
+    pcall(function() laying = player.player:IsLaying() and true or false end)
+
+    if laying and not w.laying then
+        -- Just lay down: arm only if it's our bed they're on.
+        local p = player:GetWorldPos()
+        local dx, dy, dz = p.x - bed.pos.x, p.y - bed.pos.y, p.z - bed.pos.z
+        w.armed = (dx * dx + dy * dy + dz * dz) <= (self.CampBedSleepRadius * self.CampBedSleepRadius)
+        w.startTime = self:LogiNow()
+    elseif w.laying and not laying then
+        if w.armed and (self:LogiNow() - (w.startTime or 0)) >= self.CampBedSleepMinSeconds then
+            -- Let the wake-up animation finish before the game freezes to save.
+            Script.SetTimerForFunction(2000, "mercenaries.CampBedSaveDelayed")
+        end
+        w.armed = false
+    end
+    w.laying = laying
 end
 
 -- Property sets for the StanceSmartObject entities that let a merc actually
@@ -1606,10 +1667,40 @@ end
 -- camp_actor.xml each patrol step to pick the next Move destination
 -- (which is a vec3, not an entity - see the guard-assignment loop in
 -- SpawnMercCamp for why).
+-- Returns where the guard should walk NEXT, which is not always the waypoint itself:
+-- when a camp wall stands between him and it, this hands back the next corner of a
+-- route around instead, and AdvancePatrolWaypoint holds the ring index until the real
+-- waypoint is reached. A waypoint that is walled off with no route at all is skipped,
+-- so a wall drawn across the patrol ring cannot park a guard forever.
 function mercenaries:GetPatrolWaypoint(mercWuid)
     if self:IsCampOut(mercWuid) then return nil end
     local rec = self.CampPatrollers and self.CampPatrollers[tostring(mercWuid)]
     if not rec or not rec.waypoints or #rec.waypoints == 0 then return nil end
+
+    local wp = rec.waypoints[rec.index]
+    rec.onDetour = false
+    if not (wp and self.NavSteerPoint and self.WallMarks and #self.WallMarks >= 2) then return wp end
+
+    local ent, me
+    pcall(function() ent = XGenAIModule.GetEntityByWUID(mercWuid) end)
+    if ent then pcall(function() me = ent:GetWorldPos() end) end
+    if not me then return wp end
+
+    if not self:NavIsBlocked(me, wp) then
+        rec.nav = nil
+        return wp
+    end
+
+    rec.nav = rec.nav or {}
+    local p = self:NavSteerPoint(rec.nav, me, wp)
+    if p and (p.x ~= wp.x or p.y ~= wp.y) then
+        rec.onDetour = true
+        return p
+    end
+
+    -- Blocked with no way round: drop this waypoint and try the next one.
+    rec.index = (rec.index % #rec.waypoints) + 1
+    rec.nav = nil
     return rec.waypoints[rec.index]
 end
 
@@ -1618,6 +1709,9 @@ end
 function mercenaries:AdvancePatrolWaypoint(mercWuid)
     local rec = self.CampPatrollers and self.CampPatrollers[tostring(mercWuid)]
     if not rec or not rec.waypoints or #rec.waypoints == 0 then return end
+    -- Mid-detour the guard has only finished a LEG, not the waypoint - advancing here
+    -- would walk him one corner round the wall and then skip the point entirely.
+    if rec.onDetour then return end
     rec.index = (rec.index % #rec.waypoints) + 1
 end
 
@@ -2442,6 +2536,9 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- wait order, which only affects sortie mercs.
         _G.MercInCamp = true
 
+        -- Starting stores on the very first camp (no-op afterwards).
+        pcall(function() self:LogiGrantStartingSupplies() end)
+
         -- Camp forge: with the Portable Smithy upgrade, build a usable forge on
         -- the flattest patch near camp (needs a village Smithery loaded nearby
         -- to borrow; silently skips if there's none).
@@ -2467,6 +2564,13 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
 
         -- Persist the camp (anchor + "a camp is standing") so it survives a save.
         pcall(function() self:SaveCampState() end)
+
+        -- Defences (wall/towers/carts) belong to a PITCH, not to the company: put them
+        -- back if this is the same spot they were built at, otherwise leave them behind
+        -- and start bare. Deferred so the camp props are all down first.
+        pcall(function()
+            if self.DefRestore then Script.SetTimerForFunction(1500, "mercenaries.DefRestoreDelayed") end
+        end)
 
         if not silent then Game.SendInfoText('merc_info_camp_made', false, 0, 4) end
     end)
@@ -2518,6 +2622,8 @@ function mercenaries:BreakMercCamp(silent)
     self.CampNextRotate = {}
     self.CampSeats = {}
     self.CampBeds = {}
+    self.CampPlayerBed = nil
+    self.CampBedSleepState = nil
     self.CampTicks = 0
     self.CampCommunalChairs = {}
     self.CampOutParty = {}
@@ -2532,6 +2638,11 @@ function mercenaries:BreakMercCamp(silent)
     -- LogiRebuildCampForUpgrade.)
     self.CampBuildOrigin = nil
     pcall(function() self:SaveCampState() end)
+    -- Take the defences down with the camp, but do NOT forget them: pitching again on
+    -- the same spot puts them back, pitching elsewhere is what discards them
+    -- (DefRestore checks the anchor). The upgrade rebuild passes through here too, so
+    -- they come straight back up with the new layout.
+    pcall(function() if self.DefClearWorld then self:DefClearWorld() end end)
     _G.MercCampMode = false
     _G.MercInCamp = false
     _G.MercCampChats = {}
@@ -2706,6 +2817,8 @@ function mercenaries:ClearAnyLeftoverCamp()
     self.CampNextRotate = {}
     self.CampSeats = {}
     self.CampBeds = {}
+    self.CampPlayerBed = nil
+    self.CampBedSleepState = nil
     self.CampTicks = 0
     self.CampCommunalChairs = {}
     self.CampOutParty = {}

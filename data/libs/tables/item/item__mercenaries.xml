@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="us-ascii"?>
+﻿<?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="item.xsd">
     <ItemClasses version="8">
         <!-- Items used to communicate between skald dialog and the lua script -->
@@ -19,10 +19,6 @@
         <!-- ITem to handle healing, number of this item corresponds to number of mercs healed -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be50d" Name="loot_sackOfNails" />
         <!-- Items to set combat stance via dialogue: everyone, whom the player attacks, defend self, passive -->
-        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be51d" Name="loot_sackOfNails" />
-        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be52d" Name="loot_sackOfNails" />
-        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be53d" Name="loot_sackOfNails" />
-        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be54d" Name="loot_sackOfNails" />
         <!-- Item to select weapon loadout via dialogue; count = loadout index (1 Random ... 12 Handcannon) -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be55d" Name="loot_sackOfNails" />
         <!-- Items to spawn renegades via dialogue, one per tier; count = how many to spawn -->
@@ -33,6 +29,7 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be60d" Name="loot_sackOfNails" />
         <!-- Archer stance token; count = stance (1 skirmish, 2 guard, 3 melee, 4 hold) -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be62d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be51d" Name="loot_sackOfNails" />
         <!-- Archer ranged weapon type token; count = weapon type (1 bow, 2 crossbow, 3 handcannon) -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be63d" Name="loot_sackOfNails" />
         <!-- Squad status report token -->
@@ -62,6 +59,11 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be7cd" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be7dd" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be7ed" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be7fd" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be80d" Name="loot_sackOfNails" />
+        <!-- Battle-music flag: while the player holds one, the quest turns the
+             battle music state on. Given/taken by the wall-battle phase machine. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be81d" Name="loot_sackOfNails" />
         <!-- Camp deploy (take-N) tokens -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be79d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be7ad" Name="loot_sackOfNails" />

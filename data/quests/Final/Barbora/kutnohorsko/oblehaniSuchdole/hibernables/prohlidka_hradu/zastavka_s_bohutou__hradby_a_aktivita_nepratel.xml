@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="zastavka_s_bohutou__hradby_a_aktivita_nepratel">
+			<Ports>
+				<Port Name="rozhovor_na_hradbach_absolvovan" Direction="Out" Type="trigger">
+					<DesignName StringName="zastavka__rozhovor_na_hra_lwIE" Text="rozhovor na hradbách absolvován" />
+				</Port>
+				<Port Name="hrac_a_bohuta_jsou_na_hradbach" Direction="In" Type="trigger">
+					<DesignName StringName="zastavka__rozhovor_u_stre_gTWH" Text="Hrac a Bohuta jsou na hradbach" />
+				</Port>
+				<Port Name="deaktivace_refusal_dialogu" Direction="In" Type="trigger">
+					<DesignName StringName="zastavka__deaktivace_refu_sdg8" Text="Deaktivace refusal dialogu" />
+				</Port>
+				<Port Name="bohuta_hrace_nabere_na_prohlidku_hradu" Direction="In" Type="trigger">
+					<DesignName StringName="zastavka__bohuta_hrace_na_vS6P" Text="Bohuta hráče nabere na prohlídku hradu" />
+				</Port>
+				<Port Name="hrac_uz_dostal_rozkazy_od_zizky" Direction="Out" Type="bool">
+					<DesignName StringName="zastavka__hrac_uz_dostal__N2OP" Text="hráč už dostal rozkazy od Žižky" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="zastavka_s_bohutou__hradby_a_aktivita_nepratel/zizka_opakuje_vyzvu_k_rozhovoru.xml" />
+				<Definition File="zastavka_s_bohutou__hradby_a_aktivita_nepratel/polylog_na_hradbach.xml" />
+				<Definition File="zastavka_s_bohutou__hradby_a_aktivita_nepratel/bohuta_se_louci_po_dialogu.xml" />
+				<Definition File="zastavka_s_bohutou__hradby_a_aktivita_nepratel/trialog_neni_dostupny.xml" />
+				<Definition File="zastavka_s_bohutou__hradby_a_aktivita_nepratel/rozhovor_hotov.xml" />
+				<Definition File="zastavka_s_bohutou__hradby_a_aktivita_nepratel/chovani_zizka_a_petr.xml" />
+			</Definitions>
+			<Nodes>
+				<bohuta_se_louci_po_dialogu Name="bohuta_se_louci_po_dialogu" PositionY="-250" PositionX="-600" />
+				<State Name="bohutaBarks" PositionY="70" PositionX="-980" TypeT="Progress">
+					<Edge From="poslechni_si_zizkovi_rozkazy.OnDone" To="SetActive">
+						<Vertex>vertex19</Vertex>
+						<Vertex>vertex20</Vertex>
+					</Edge>
+					<Edge From="npcMonolog_watchAndTurnToTarget.onfinished" To="SetDone">
+						<Vertex>W2vkUuR0</Vertex>
+						<Vertex>PApgA3MC</Vertex>
+					</Edge>
+				</State>
+				<chovani_zizka_a_petr Name="chovani_zizka_a_petr" PositionY="-550" PositionX="-970">
+					<Edge From="or9.bool" To="Awake" />
+				</chovani_zizka_a_petr>
+				<npcMonolog_watchAndTurnToTarget Name="npcMonolog_watchAndTurnToTarget" PositionY="50" PositionX="-620" Namespace="utils.speech">
+					<Constant Name="behavior" Value="npcMonolog_watchAndTurnToTarget" />
+					<Asset Name="smartentity" Alias="qso" />
+					<Asset Name="npc" Alias="bohuta" />
+					<Constant Name="forcekick" Value="false" />
+					<Constant Name="alias" Value="oblehaniSuchdole_bohutaSeLouciPoDialogu" />
+					<Constant Name="disablevariations" Value="true" />
+					<Constant Name="forceturning" Value="true" />
+					<Asset Name="watchtarget" Alias="player" />
+					<Edge From="bohutaBarks.Active" To="isactive" />
+				</npcMonolog_watchAndTurnToTarget>
+				<Function Name="or9" PositionY="-530" PositionX="-1380" MethodName="math::boolean::Or" DeclaringType="math::boolean">
+					<Edge From="poslechni_si_zizkovi_rozkazy.None" To="A" />
+					<Edge From="poslechni_si_zizkovi_rozkazy.Active" To="B" />
+				</Function>
+				<Output Name="Output">
+					<Edge From="poslechni_si_zizkovi_rozkazy.OnDone" To="rozhovor_na_hradbach_absolvovan">
+						<Vertex>vertex19</Vertex>
+						<Vertex>vertex20</Vertex>
+						<Vertex>vertex24</Vertex>
+					</Edge>
+					<Edge From="poslechni_si_zizkovi_rozkazy.Done" To="hrac_uz_dostal_rozkazy_od_zizky">
+						<Vertex>vertex25</Vertex>
+						<Vertex>vertex26</Vertex>
+					</Edge>
+				</Output>
+				<polylog_na_hradbach Name="polylog_na_hradbach" PositionY="-250" PositionX="-980">
+					<Edge From="poslechni_si_zizkovi_rozkazy.Active" To="Awake">
+						<Vertex>owbrHYyw</Vertex>
+						<Vertex>Q91lxPyE</Vertex>
+					</Edge>
+				</polylog_na_hradbach>
+				<State Name="poslechni_si_zizkovi_rozkazy" PositionY="-380" PositionX="-1670" RequiredForOutput="kutnohorsko" TypeT="Progress">
+					<Edge From="hrac_a_bohuta_jsou_na_hradbach" To="SetActive" />
+					<Edge From="polylog_na_hradbach.rozhovor_na_hradbach_absolvovan" To="SetDone">
+						<Vertex>vertex9</Vertex>
+						<Vertex>vertex10</Vertex>
+					</Edge>
+				</State>
+				<poslechni_si_zizkovy_rozkazy Name="poslechni_si_zizkovi_rozkazy_visual" PositionY="-380" PositionX="-1380" RequiredForOutput="kutnohorsko">
+					<Edge From="poslechni_si_zizkovi_rozkazy.State" To="Progress" />
+				</poslechni_si_zizkovy_rozkazy>
+				<State Name="refusal" PositionY="80" PositionX="-1670" TypeT="RefusalZizkaPetr">
+					<Edge From="bohuta_hrace_nabere_na_prohlidku_hradu" To="SetBeforePolylog" />
+					<Edge From="deaktivace_refusal_dialogu" To="SetDone" />
+					<Edge From="polylog_na_hradbach.rozhovor_na_hradbach_absolvovan" To="SetAfterPolylog">
+						<Vertex>vertex9</Vertex>
+						<Vertex>vertex10</Vertex>
+					</Edge>
+					<Edge From="hrac_a_bohuta_jsou_na_hradbach" To="SetDone" />
+				</State>
+				<rozhovor_hotov Name="rozhovor_hotov" PositionY="260" PositionX="-1330">
+					<Edge From="refusal.AfterPolylog" To="Awake" />
+				</rozhovor_hotov>
+				<SaveGame Name="savegame7" PositionY="-230" PositionX="-1380">
+					<Constant Name="Objective" Value="naverbuj_sama_a_kubenku" />
+					<Edge From="poslechni_si_zizkovi_rozkazy.OnDone" To="EnqueueSave" />
+				</SaveGame>
+				<trialog_neni_dostupny Name="trialog_neni_dostupny" PositionY="130" PositionX="-1330">
+					<Edge From="refusal.BeforePolylog" To="Awake" />
+				</trialog_neni_dostupny>
+				<zizka_opakuje_vyzvu_k_rozhovoru Name="zizka_opakuje_vyzvu_k_rozhovoru" PositionY="-400" PositionX="-980" />
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="owbrHYyw" PositionY="-10" PositionX="-1360" />
+				<EdgeVertex Name="PApgA3MC" PositionY="460" PositionX="-960" />
+				<EdgeVertex Name="Q91lxPyE" PositionY="-10" PositionX="-1070" />
+				<EdgeVertex Name="vertex10" PositionY="30" PositionX="-1670" />
+				<EdgeVertex Name="vertex19" PositionY="10" PositionX="-1360" />
+				<EdgeVertex Name="vertex20" PositionY="10" PositionX="-1070" />
+				<EdgeVertex Name="vertex24" PositionY="10" PositionX="-170" />
+				<EdgeVertex Name="vertex25" PositionY="50" PositionX="-1360" />
+				<EdgeVertex Name="vertex26" PositionY="50" PositionX="-170" />
+				<EdgeVertex Name="vertex9" PositionY="30" PositionX="-750" />
+				<EdgeVertex Name="W2vkUuR0" PositionY="460" PositionX="-270" />
+			</EdgeVertices>
+			<Types>
+				<Type TypeName="RefusalZizkaPetr">
+					<StateTypeEnumeration Name="None" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="BeforePolylog" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="AfterPolylog" ObjectiveValueType="None" />
+					<StateTypeEnumeration Name="Done" ObjectiveValueType="None" />
+				</Type>
+			</Types>
+			<Text StringName="zastavka_3__hradby_a_akti_ib9N" Text="Zastávka s Bohutou - hradby a aktivita nepřátel" />
+			<Elements>
+				<GameplayActionElement>
+					<Text StringName="zastavka__na_hradbach_sto_mslw" Text="Na hradbách stojí Žižkou a Petr z Písku. Když k nim hráč s Bohutou dojde, je tam custom polylog, kde vidíme záběry na nepřátelský tábor a je zde nějaký popis situace a našich plánů. Žižka se zmíní, že hráč dostane na starost svojí jednotku." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="zastavka__petr_z_pisku_a__7yUo" Text="Petr z Písku a Žižka si mezi sebou povídají pořád dokola, než hráč přijde. Spuštění polylogu jejich rozhovor přeruší." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="zastavka__pokud_hrac_dora_xgrP" Text="Pokud hráč dorazí k Žižkovi a Petrovi před Bohutou, dialog se nespustí. Pokud hráč zkouší s oběma mluvit, ty mu odsekávají barkem. Dialog se pouští, až jakmile tam jsou všichni." />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="zastavka__pokud_se_hrac_n_6IkY" Text="Pokud se hráč někde zdržuje, jakmile Bohuta dojde na hradby, hráč dostává objective, aby si tam šel hovořit." />
+				</GameplayActionElement>
+			</Elements>
+		</Gameplay>
+	</Skald>
+</Database>

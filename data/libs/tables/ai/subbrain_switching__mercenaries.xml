@@ -7,5 +7,7 @@
 		<subbrain_switching file_name="quartermaster_scheduler.xml" subbrain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a22" tree_name="onUpdate" />
 		<subbrain_switching file_name="enemy_melee_scheduler.xml" subbrain_id="1a9c3e7f-2b8d-4c60-9e5a-3f7b1d8c6a92" tree_name="onUpdate" />
 		<subbrain_switching file_name="enemy_archer_scheduler.xml" subbrain_id="b8d4f2ea-5c3a-4b79-ad61-2f4e8a9b3c71" tree_name="onUpdate" />
+			<subbrain_switching file_name="testnpc_scheduler.xml" subbrain_id="f1e2d3c4-0002-4a00-8b00-000000000002" tree_name="onUpdate" />
+		<subbrain_switching file_name="isolation_test_scheduler.xml" subbrain_id="f1e2d3c4-0011-4a00-8b00-000000000011" tree_name="onUpdate" />
 	</subbrain_switchings>
 </database>

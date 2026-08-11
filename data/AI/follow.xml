@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <BehaviorTrees>
-    <!-- Follow module: formation-follow a leader. The leader comes from Lua
-         (CalculateFormationTarget): NPC-led formations (NpcFormations, e.g. a
-         patrol behind a knight) win, then the player-squad chain
-         (FormationSlots), then the player. Also owns the horse lifecycle for
-         mounted following and the order-bark consumer. Camp roles moved to
-         camp_actor.xml. See docs/ai-modules.md. -->
+    <!-- Follow module. Two ways to follow, chosen per merc by Lua:
+           * SLOT FORMATION (on foot, the default). Lua gives each merc a world
+             position from the PLAYER's position and heading, and the merc runs one
+             continuous Move at it. See docs/slot-formation.md.
+           * FOLLOW CHAIN (mounted, waiting, NPC-led patrols, and any merc with no
+             slot). Target comes from CalculateFormationTarget: NpcFormations first,
+             then the player-squad FormationSlots chain, then the player.
+         The chain is the slot system's fallback - every path that leaves a merc
+         without a slot drops through to it rather than standing still.
+         Also owns the horse lifecycle for mounted following and the order-bark
+         consumer. Camp roles moved to camp_actor.xml. See docs/ai-modules.md. -->
     <BehaviorTree name="follow" is_function="0">
         <Variables>
             <Variable name="followTarget" type="_wuid" values="" isPersistent="0" form="single" />
@@ -20,6 +25,34 @@
             <Variable name="despawnCountdown" type="_int" values="3" isPersistent="0" form="single" />
             <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms')" isPersistent="0" form="single" />
             <Variable name="mountedDistToTarget" type="_float" values="0" isPersistent="0" form="single" />
+            <!-- Slot formation (docs/slot-formation.md). Lua rewrites slotPos IN PLACE
+                 every ~150ms; destChangedThreshold retargets the running Move rather
+                 than re-issuing it, so the merc corners smoothly and never stops
+                 between legs. Same mechanism as nav_goto.xml. -->
+            <Variable name="slotPos" type="vec3" values="" isPersistent="0" form="single" />
+            <Variable name="hasSlot" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="slotIndex" type="_int" values="-1" isPersistent="0" form="single" />
+            <Variable name="slotChangeState" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="MoveParams_slot" type="additionalMoveParams" values="destChangedThreshold('150ms')" isPersistent="0" form="single" />
+            <!-- Engine formation (docs/formations.md). One merc is elected to run
+                 MakeFormation and follow the player; the rest FormationFollower off
+                 him. Kept deliberately dumb: the leader is latched and the preset is
+                 latched, because anything that changes here rebuilds the formation and
+                 makes every follower re-join into a newly assigned spot. -->
+            <Variable name="useFormation" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="isFormationLeader" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="formationLeader" type="_wuid" values="" isPersistent="0" form="single" />
+            <!-- Must be a preset that actually exists (see FormationDefinitions.xml).
+                 Lua overwrites it within 150ms, but this is what a merc uses before the
+                 first tick, and a name with no matching Formation resolves to a null
+                 handle and drops the whole squad to the follow chain. -->
+            <Variable name="formationName" type="_string" values="merc_column6" isPersistent="0" form="single" />
+            <Variable name="formationWUID" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="formationEpoch" type="_int" values="0" isPersistent="0" form="single" />
+            <Variable name="joinedEpoch" type="_int" values="-1" isPersistent="0" form="single" />
+            <!-- Variant switches, all live. 0 Relaxed, 1 KeepShape, 2 MoveHistory. -->
+            <Variable name="formationModeCode" type="_int" values="1" isPersistent="0" form="single" />
+            <Variable name="formationRelocate" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Order bark: RequestBark queues an alias in _G.MercBarkReq[wuid]; the bark loop below plays it once. -->
             <Variable name="barkReqAlias" type="_string" values="" isPersistent="0" form="single" />
             <Variable name="hasBarkReq" type="_bool" values="false" isPersistent="0" form="single" />
@@ -40,6 +73,75 @@
                                 <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
+                        <!-- FORMATION OWNER. Holds the formation open for as long as this merc is
+                             the leader, and deliberately has NO locomotion of its own - vanilla's
+                             moveUtils formation_lead and the bailiff walkaround are both
+                             MakeFormation + Wait with the walking in a sibling branch. Keeping it
+                             separate is what lets the formation survive the leader switching
+                             between walking and riding: while it lived inside the on-foot branch,
+                             mounting preempted that branch, ran Cleanup and destroyed it. -->
+                        <Loop count="-1">
+                            <IfElseCondition failOnCondition="false" condition="$useFormation &amp; $isFormationLeader &amp; ~$goFlee" saveVersion="2">
+                                <Then canSkip="1">
+                                    <SuppressFailure>
+                                        <SubtreeDecorator saveVersion="2">
+                                            <Init canSkip="1">
+                                                <Sequence>
+                                                    <MakeFormation FormationName="$formationName" HandleVariable="$formationWUID" />
+                                                    <Expression expressions="$joinedEpoch = $formationEpoch" />
+                                                    <ExecuteLua code="mercenaries:FormationMade(data)" />
+                                                </Sequence>
+                                            </Init>
+                                            <Subtree canSkip="1">
+                                                <Loop count="-1">
+                                                    <Sequence>
+                                                        <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                        <IfCondition failOnCondition="false" condition="$formationEpoch ~= $joinedEpoch | ~$useFormation | ~$isFormationLeader">
+                                                            <Fail />
+                                                        </IfCondition>
+                                                    </Sequence>
+                                                </Loop>
+                                            </Subtree>
+                                            <Cleanup canSkip="1">
+                                                <EndFormation FormationHandle="$formationWUID" />
+                                            </Cleanup>
+                                        </SubtreeDecorator>
+                                    </SuppressFailure>
+                                </Then>
+                                <Else canSkip="1">
+                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                </Else>
+                            </IfElseCondition>
+                        </Loop>
+
+                        <!-- Mounted formation handle refresh. The mounted branch reads
+                             $formationWUID from inside a riding Loop that never returns, so a
+                             one-shot lookup on entry would strand a rider on a stale or null
+                             handle forever. Gated on being mounted so it can never race the
+                             on-foot follower branch, which owns the variable there. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <IfCondition failOnCondition="false" condition="$horseSpawned &amp; ~$mountAbandoned &amp; $useFormation &amp; ~$isFormationLeader &amp; $formationLeader ~= $__null">
+                                    <SuppressFailure>
+                                        <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
+                                    </SuppressFailure>
+                                </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Slot updater. Rewrites $slotPos in place; the Move retargets rather
+                             than restarting. Driven from the tree, not a global timer, so it
+                             lives and dies with the follow behaviour and de-phases per merc. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <Wait duration="'150ms'" timeType="GameTime" doFail="false" variation="'50ms'" />
+                                <ExecuteLua code="mercenaries:UpdateSlotTarget(data, entity.this.id, entity)" />
+                                <ExecuteLua code="mercenaries:UpdateFormationRole(data, entity.this.id)" />
+                                <ExecuteLua code="data.slotChangeState = mercenaries.SlotChangeState or false" />
+                            </Sequence>
+                        </Loop>
+
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'1s'" />
@@ -162,22 +264,145 @@
                         <Loop count="-1">
                             <ContinuousSwitch>
 
-                                <IfCondition failOnCondition="false" condition="$followTarget ~= $previousTarget">
+                                <!-- Debounce for the follow CHAIN only. Its job is to interrupt a running
+                                     CrimeFollower whose cached target changed; ungated it fires on every slot
+                                     reshuffle and preempts the formation branches below, which rebuilds the
+                                     formation and drops every follower. -->
+                                <IfCondition failOnCondition="false" condition="~$hasSlot &amp; ~$useFormation &amp; $followTarget ~= $previousTarget">
                                     <Sequence>
                                         <Expression expressions="$previousTarget = $followTarget" />
                                         <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                     </Sequence>
                                 </IfCondition>
-                                <IfCondition failOnCondition="false" condition="(~$horseSpawned | $mountAbandoned) &amp; ~$goFlee &amp; $followTarget == $previousTarget">
+
+                                <!-- ENGINE FORMATION - leader: locomotion only. The formation itself is
+                                     owned by the dedicated loop above, so this branch may be preempted
+                                     (mounting, combat) without destroying it. -->
+                                <IfCondition failOnCondition="false" condition="$useFormation &amp; $isFormationLeader &amp; ~$goFlee &amp; (~$horseSpawned | $mountAbandoned)">
+                                    <Parallel successMode="Any" failureMode="Any">
+                                        <SuppressFailure>
+                                            <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <CrimeFollower Target="$playerWUID" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                            </MoveParamsDecorator>
+                                        </SuppressFailure>
+                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                    </Parallel>
+                                </IfCondition>
+
+                                <!-- ENGINE FORMATION - follower. FormationFollower IS the locomotion, so
+                                     the Selector's fallback arm must follow normally rather than wait:
+                                     anything that leaves the handle null (leader in combat, mid-handoff,
+                                     startup race) would otherwise park the merc on the spot.
+                                     FormationMode and AllowRelocation are node ATTRIBUTES and cannot be
+                                     variables, so every combination is its own node behind a switch. -->
+                                <IfCondition failOnCondition="false" condition="$useFormation &amp; ~$isFormationLeader &amp; ~$goFlee &amp; (~$horseSpawned | $mountAbandoned) &amp; $formationLeader ~= $__null">
                                     <Sequence>
-                                        <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
-                                            <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
-                                        </MoveParamsDecorator>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$formationWUID = $__null &#10; $joinedEpoch = $formationEpoch" />
+                                        <SuppressFailure>
+                                            <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
+                                        </SuppressFailure>
+                                        <Selector>
+                                            <IfCondition failOnCondition="true" condition="$formationWUID ~= $__null">
+                                                <Parallel successMode="Any" failureMode="Any">
+                                                    <ContinuousSwitch>
+                                                        <IfCondition failOnCondition="false" condition="$formationModeCode == 0 &amp; $formationRelocate">
+                                                            <FormationFollower FormationHandle="$formationWUID" PreferredPositions="" FormationMode="Relaxed" AllowRelocation="true" />
+                                                        </IfCondition>
+                                                        <IfCondition failOnCondition="false" condition="$formationModeCode == 0 &amp; ~$formationRelocate">
+                                                            <FormationFollower FormationHandle="$formationWUID" PreferredPositions="" FormationMode="Relaxed" AllowRelocation="false" />
+                                                        </IfCondition>
+                                                        <IfCondition failOnCondition="false" condition="$formationModeCode == 1 &amp; $formationRelocate">
+                                                            <FormationFollower FormationHandle="$formationWUID" PreferredPositions="" FormationMode="KeepShape" AllowRelocation="true" />
+                                                        </IfCondition>
+                                                        <IfCondition failOnCondition="false" condition="$formationModeCode == 1 &amp; ~$formationRelocate">
+                                                            <FormationFollower FormationHandle="$formationWUID" PreferredPositions="" FormationMode="KeepShape" AllowRelocation="false" />
+                                                        </IfCondition>
+                                                        <IfCondition failOnCondition="false" condition="$formationModeCode == 2 &amp; $formationRelocate">
+                                                            <FormationFollower FormationHandle="$formationWUID" PreferredPositions="" FormationMode="MoveHistory" AllowRelocation="true" />
+                                                        </IfCondition>
+                                                        <IfCondition failOnCondition="false" condition="$formationModeCode == 2 &amp; ~$formationRelocate">
+                                                            <FormationFollower FormationHandle="$formationWUID" PreferredPositions="" FormationMode="MoveHistory" AllowRelocation="false" />
+                                                        </IfCondition>
+                                                    </ContinuousSwitch>
+                                                    <Loop count="-1">
+                                                        <Sequence>
+                                                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                            <IfCondition failOnCondition="false" condition="$formationEpoch ~= $joinedEpoch | ~$useFormation">
+                                                                <Fail />
+                                                            </IfCondition>
+                                                        </Sequence>
+                                                    </Loop>
+                                                </Parallel>
+                                            </IfCondition>
+                                            <!-- TIME-BOXED. CrimeFollower never returns on its own, so running it
+                                                 bare here means the Selector never re-evaluates and the merc can
+                                                 never retry GetMemberFormation - one epoch bump would strand the
+                                                 whole squad in chain-follow permanently. The Parallel ends when
+                                                 the Wait does (successMode="Any"), so he keeps moving but
+                                                 re-attempts the formation every ~1.5s. Same idiom as the mount
+                                                 branch below. -->
+                                            <Parallel successMode="Any" failureMode="Any">
+                                                <SuppressFailure>
+                                                    <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                        <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                                    </MoveParamsDecorator>
+                                                </SuppressFailure>
+                                                <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                            </Parallel>
+                                        </Selector>
                                     </Sequence>
+                                </IfCondition>
+
+                                <!-- Slot formation. ONE continuous Move at a vec3 the slot loop above
+                                     rewrites in place. This is the mod's own formation: the engine's
+                                     anchors on whoever ran MakeFormation, and the player has no tree,
+                                     so it could never centre on him. See docs/slot-formation.md.
+
+                                     changeNPCState ships both ways because the sources disagree -
+                                     camp_actor.xml calls true "required for move-to-a-point",
+                                     nav_goto.xml uses false, and movement.md claims true crashes in a
+                                     switch tree. merc_slot_state picks one live; delete the loser. -->
+                                <IfCondition failOnCondition="false" condition="$hasSlot &amp; ~$useFormation &amp; (~$horseSpawned | $mountAbandoned) &amp; ~$goFlee">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <ContinuousSwitch>
+                                                    <IfCondition failOnCondition="false" condition="$slotChangeState">
+                                                        <Move stopWithinDistance="1.200000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$slotPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="$MoveParams_slot" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                    </IfCondition>
+                                                    <IfCondition failOnCondition="false" condition="true">
+                                                        <Move stopWithinDistance="1.200000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="false" destinationSpecification="$slotPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="$MoveParams_slot" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                    </IfCondition>
+                                                </ContinuousSwitch>
+                                            </MoveParamsDecorator>
+                                        </SuppressFailure>
+                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    </Sequence>
+                                </IfCondition>
+
+
+                                <!-- Follow chain. Time-boxed for the same reason as the formation fallback
+                                     above: CrimeFollower never returns, so a bare one here would pin the merc
+                                     in chain-follow and he could never be reclaimed into a formation. -->
+                                <IfCondition failOnCondition="false" condition="~$hasSlot &amp; ~$useFormation &amp; (~$horseSpawned | $mountAbandoned) &amp; ~$goFlee &amp; $followTarget == $previousTarget">
+                                    <Parallel successMode="Any" failureMode="Any">
+                                        <SuppressFailure>
+                                            <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
+                                            </MoveParamsDecorator>
+                                        </SuppressFailure>
+                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                    </Parallel>
                                 </IfCondition>
                                 <IfCondition failOnCondition="false" condition="$horseSpawned &amp; ~$goFlee &amp; ~$mountAbandoned">
                                     <Sequence>
+                                        <!-- Refresh the handle for the mounted FormationFollower arm below; on
+                                             foot the follower branch does this itself. -->
+                                        <SuppressFailure>
+                                            <IfCondition failOnCondition="false" condition="$useFormation &amp; ~$isFormationLeader &amp; $formationLeader ~= $__null">
+                                                <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
+                                            </IfCondition>
+                                        </SuppressFailure>
                                         <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: Attempting StanceElement with 10s timeout.')" />
 
                                         <SuppressFailure>
@@ -197,6 +422,27 @@
                                                         <SuppressFailure>
                                                             <StanceElement smartObject="$horse" stance="horse" allowAny="false" enabled="true">
                                                                 <ContinuousSwitch>
+
+                                                                    <!-- Mounted formation. Vanilla's mounted idiom is exactly this:
+                                                                         FormationFollower inside the horse StanceElement we are
+                                                                         already running in (erik_armyMovement, prijezdnasuchdol,
+                                                                         moveInFormation_simple all do it). The leader keeps the
+                                                                         Move-follow arms below. -->
+                                                                    <IfCondition failOnCondition="false" condition="$useFormation &amp; ~$isFormationLeader &amp; $formationWUID ~= $__null">
+                                                                        <Sequence>
+                                                                            <!-- WaitAction before the follower is part of the shipped mounted
+                                                                                 idiom (prijezdnasuchdol) - it lets the mount settle before the
+                                                                                 formation takes the reins. -->
+                                                                            <WaitAction />
+                                                                            <!-- MoveHistory, NOT KeepShape. Every mounted FormationFollower in
+                                                                                 vanilla is MoveHistory or Relaxed; not one is KeepShape, and
+                                                                                 rigid geometry is not something a horse can hold anyway - it
+                                                                                 corners wide and cannot sidestep. MoveHistory makes each rider
+                                                                                 replay the leader's actual path, which is what a column of
+                                                                                 cavalry does (erik_armyMovement cavalry_move). -->
+                                                                            <FormationFollower FormationHandle="$formationWUID" PreferredPositions="" FormationMode="MoveHistory" AllowRelocation="false" />
+                                                                        </Sequence>
+                                                                    </IfCondition>
 
                                                                     <IfCondition failOnCondition="false" condition="$mountedDistToTarget &gt; 10.0">
                                                                         <Move stopWithinDistance="6.0"

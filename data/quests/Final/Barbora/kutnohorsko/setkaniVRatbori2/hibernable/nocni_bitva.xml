@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+	<Skald>
+		<Gameplay Name="nocni_bitva">
+			<Ports>
+				<Port Name="attack_afterplay" Direction="In" Type="trigger">
+					<DesignName StringName="nocni_bit_attack_afterplay_OjXs" Text="Attack AfterPlay" />
+				</Port>
+				<Port Name="hrac_porazil_polovinu_nepratel" Direction="Out" Type="trigger">
+					<DesignName StringName="nocni_bit_nepratelske_pos_TZej" Text="hrac porazil polovinu nepratel" />
+				</Port>
+				<Port Name="attack_onfinished" Direction="In" Type="trigger">
+					<DesignName StringName="nocni_bit_attack_onfinish_1wFS" Text="Attack OnFinished" />
+				</Port>
+				<Port Name="krystof_prezil" Direction="Out" Type="bool">
+					<DesignName StringName="nocni_bit_krystof_prezil_aygH" Text="Kryštof přežil" />
+				</Port>
+				<Port Name="krystof_zemrel" Direction="Out" Type="bool">
+					<DesignName StringName="nocni_bit_krystof_zemrel_DSmO" Text="Kryštof zemřel" />
+				</Port>
+				<Port Name="skirmish_active" Direction="Out" Type="bool">
+					<DesignName StringName="nocni_bit_skirmish_active_ne5g" Text="skirmish &lt;active&gt;" />
+				</Port>
+				<Port Name="helponcourt_none" Direction="Out" Type="bool">
+					<DesignName StringName="nocni_bit_helponcourt_none_06cr" Text="helpOnCourt &lt;none&gt;" />
+				</Port>
+				<Port Name="enemies_streamed" Direction="Out" Type="trigger">
+					<DesignName StringName="nocni_bit_enemies_streamed_tBD7" Text="enemies streamed" />
+				</Port>
+				<Port Name="second_skirmish_active" Direction="In" Type="bool">
+					<DesignName StringName="nocni_bit_second_skirmish_8r7n" Text="second skirmish &lt;active&gt;" />
+				</Port>
+				<Port Name="ondeath_enemy" Direction="Out" Type="trigger">
+					<DesignName StringName="nocni_bit_ondeath_enemy_R7O8" Text="OnDeath enemy" />
+				</Port>
+				<Port Name="helponcourt_done" Direction="Out" Type="bool">
+					<DesignName StringName="nocni_bit_helponcourt_done_ndbR" Text="helpOnCourt &lt;done&gt;" />
+				</Port>
+				<Port Name="court_enemies_streamed" Direction="In" Type="bool">
+					<DesignName StringName="nocni_bit_court_enemies_s_f6Ph" Text="court enemies streamed" />
+				</Port>
+			</Ports>
+			<Definitions>
+				<Definition File="nocni_bitva/skirmish_na_nadvori.xml" />
+				<Definition File="nocni_bitva/haste.xml" />
+				<Definition File="nocni_bitva/drawing_weapon.xml" />
+			</Definitions>
+			<Nodes>
+				<SoulDeathTrigger Name="deathtrigger1" PositionY="-420" PositionX="-810">
+					<Asset Name="Souls" Alias="oderinKrystof" />
+					<Edge From="saveBrother.Active" To="IsActive" />
+				</SoulDeathTrigger>
+				<drawing_weapon Name="drawing_weapon" PositionY="250" PositionX="-260">
+					<Edge From="helpOnCourt.OnActive" To="help_on_court_onactive">
+						<Vertex>vertex24</Vertex>
+						<Vertex>vertex25</Vertex>
+					</Edge>
+				</drawing_weapon>
+				<haste Name="haste" PositionY="-575" PositionX="-1875" />
+				<State Name="helpOnCourt" PositionY="-80" PositionX="-1310" RequiredForOutput="kutnohorsko" TypeT="ProgressFailable">
+					<Edge From="skirmish_na_nadvori.hrac_porazil_polovinu_nepratel" To="SetDone">
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+					<Edge From="attack_afterplay" To="SetActive" />
+				</State>
+				<IfFunction Name="ifand2" PositionY="-340" PositionX="-1660" MethodName="math::boolean::And" DeclaringType="math::boolean">
+					<Edge From="skirmish_na_nadvori.hrac_porazil_polovinu_nepratel" To="Exec">
+						<Vertex>vertex1</Vertex>
+						<Vertex>vertex2</Vertex>
+					</Edge>
+					<Edge From="saveBrother.Active" To="A">
+						<Vertex>vertex16</Vertex>
+						<Vertex>vertex18</Vertex>
+					</Edge>
+				</IfFunction>
+				<zachran_bratra Name="objectiveVisual2" PositionY="-580" PositionX="-1020" RequiredForOutput="kutnohorsko">
+					<Edge From="saveBrother.State" To="Progress" />
+				</zachran_bratra>
+				<bran_ratbor Name="objectiveVisual4" PositionY="-80" PositionX="-1020" RequiredForOutput="kutnohorsko">
+					<Edge From="helpOnCourt.State" To="Progress" />
+				</bran_ratbor>
+				<Output Name="Output">
+					<Edge From="helpOnCourt.OnDone" To="hrac_porazil_polovinu_nepratel">
+						<Vertex>vertex12</Vertex>
+						<Vertex>vertex11</Vertex>
+					</Edge>
+					<Edge From="saveBrother.Canceled" To="krystof_zemrel">
+						<Vertex>vertex13</Vertex>
+					</Edge>
+					<Edge From="helpOnCourt.None" To="helponcourt_none">
+						<Vertex>vertex20</Vertex>
+					</Edge>
+					<Edge From="helpOnCourt.Active" To="skirmish_active">
+						<Vertex>vertex23</Vertex>
+					</Edge>
+					<Edge From="saveBrother.Done" To="krystof_prezil">
+						<Vertex>vertex27</Vertex>
+						<Vertex>vertex28</Vertex>
+					</Edge>
+					<Edge From="skirmish_na_nadvori.ondeath_enemy" To="ondeath_enemy">
+						<Vertex>9vFHE9FI</Vertex>
+					</Edge>
+					<Edge From="helpOnCourt.Done" To="helponcourt_done">
+						<Vertex>8BJnUymE</Vertex>
+					</Edge>
+				</Output>
+				<State Name="saveBrother" PositionY="-580" PositionX="-1310" RequiredForOutput="kutnohorsko" TypeT="ProgressFailable">
+					<Edge From="attack_afterplay" To="SetActive">
+						<Vertex>vertex15</Vertex>
+					</Edge>
+					<Edge From="deathtrigger1.OnDeath" To="SetCanceled">
+						<Vertex>vertex8</Vertex>
+						<Vertex>vertex9</Vertex>
+					</Edge>
+					<Edge From="ifand2.True" To="SetDone" />
+				</State>
+				<SaveGame Name="savegame4" PositionY="690" PositionX="-1180">
+					<Constant Name="Objective" Value="zachran_bratra" />
+					<Edge From="triggersequence3.B" To="EnqueueSave" />
+				</SaveGame>
+				<skirmish_na_nadvori Name="skirmish_na_nadvori" PositionY="250" PositionX="-620">
+					<Edge From="triggersequence3.A" To="attack_onfinished">
+						<Vertex>vertex19</Vertex>
+					</Edge>
+					<Edge From="helpOnCourt.Active" To="help_on_court_active">
+						<Vertex>vertex23</Vertex>
+					</Edge>
+					<Edge From="helpOnCourt.OnDone" To="help_on_court_onfinished">
+						<Vertex>vertex12</Vertex>
+					</Edge>
+					<Edge From="helpOnCourt.OnActive" To="attackcs_onafterplay">
+						<Vertex>vertex24</Vertex>
+					</Edge>
+					<Edge From="second_skirmish_active" To="second_skirmish_active">
+						<Vertex>vertex26</Vertex>
+					</Edge>
+					<Edge From="saveBrother.OnCanceled" To="krystof_zemrel">
+						<Vertex>cBa7lgK4</Vertex>
+					</Edge>
+					<Edge From="court_enemies_streamed" To="court_enemies_streamed">
+						<Vertex>gyRI5gEP</Vertex>
+					</Edge>
+				</skirmish_na_nadvori>
+				<TriggerSequence Name="triggersequence3" PositionY="660" PositionX="-1490">
+					<Edge From="attack_onfinished" To="Exec">
+						<Vertex>vertex14</Vertex>
+					</Edge>
+				</TriggerSequence>
+			</Nodes>
+			<EdgeVertices>
+				<EdgeVertex Name="8BJnUymE" PositionY="241" PositionX="189" />
+				<EdgeVertex Name="9vFHE9FI" PositionY="532" PositionX="169" />
+				<EdgeVertex Name="cBa7lgK4" PositionY="410" PositionX="-1010" />
+				<EdgeVertex Name="gyRI5gEP" PositionY="410" PositionX="-1858" />
+				<EdgeVertex Name="vertex1" PositionY="610" PositionX="-420" />
+				<EdgeVertex Name="vertex11" PositionY="210" PositionX="40" />
+				<EdgeVertex Name="vertex12" PositionY="210" PositionX="-720" />
+				<EdgeVertex Name="vertex13" PositionY="-192" PositionX="78" />
+				<EdgeVertex Name="vertex14" PositionY="750" PositionX="-1730" />
+				<EdgeVertex Name="vertex15" PositionY="-360" PositionX="-1760" />
+				<EdgeVertex Name="vertex16" PositionY="-100" PositionX="-1130" />
+				<EdgeVertex Name="vertex18" PositionY="-100" PositionX="-1620" />
+				<EdgeVertex Name="vertex19" PositionY="360" PositionX="-1200" />
+				<EdgeVertex Name="vertex2" PositionY="610" PositionX="-1330" />
+				<EdgeVertex Name="vertex20" PositionY="109" PositionX="117" />
+				<EdgeVertex Name="vertex23" PositionY="173" PositionX="-747" />
+				<EdgeVertex Name="vertex24" PositionY="140" PositionX="-660" />
+				<EdgeVertex Name="vertex25" PositionY="142" PositionX="-363" />
+				<EdgeVertex Name="vertex26" PositionY="380" PositionX="-1850" />
+				<EdgeVertex Name="vertex27" PositionY="-221" PositionX="-920" />
+				<EdgeVertex Name="vertex28" PositionY="-221" PositionX="144" />
+				<EdgeVertex Name="vertex8" PositionY="-144" PositionX="-574" />
+				<EdgeVertex Name="vertex9" PositionY="-140" PositionX="-1190" />
+			</EdgeVertices>
+			<Assets>
+				<TagPointAsset Name="ochozDestination" />
+				<SmartObjectAsset Name="ochozGC" />
+				<CutsceneHolderAsset Name="ochozTrackview" />
+				<SoulAsset Name="hallEnemyCicmundove" SharedSoulGuids="9c222156-cf3a-46d8-88db-db3370b966bf 4e96133e-9e18-4641-a7cb-1b7d1d581bab b83ec733-fc9f-45e4-9689-34039fbadaa4 5060d2f8-3d48-45e0-9a35-6ea16e4ea9d3 68776066-40b1-41e7-97d9-56f6ea8d54cf a01e4208-b479-4e7e-86ca-de03b687f716 dedc8818-5698-40cb-8194-bb0242d3f253 66b8516a-9675-49cb-9422-1c07109dba07 98115005-99e1-4dba-8d5d-3ed969d101d6 177b0dbd-954f-4bf4-b914-d01b9a43dd44 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="hallEnemyLeader" SharedSoulGuids="9c222156-cf3a-46d8-88db-db3370b966bf 96371224-86de-4c6f-b0c8-e9567f5ca3e1 59feed61-def1-4a19-bf0a-6a56b21f78b6 9361e95c-5ad3-4146-a1d3-cd3ff556c425 1f760b45-5ff3-48b1-9714-1bf3895c9769 a1b2c3d4-1234-4abc-8def-123456789012 b2c3d4e5-2345-4bcd-9ef0-234567890123 c3d4e5f6-3456-4cde-a012-345678901234 d4e5f6a7-4567-4def-b123-456789012345 e5f6a7b8-5678-4efa-c234-567890123456 f6a7b8c9-6789-4fab-d345-678901234567 a7b8c9d0-7890-4abc-e456-789012345678 b8c9d0e1-8901-4bcd-f567-890123456789 c9d0e1f2-9012-4cde-a678-901234567890 d0e1f2a3-0123-4def-b789-012345678901 e1f2a3b4-1234-4efa-c890-123456789012 f2a3b4c5-2345-4fab-d901-234567890123 a3b4c5d6-3456-4abc-e012-345678901234 b4c5d6e7-4567-4bcd-f123-456789012345 c5d6e7f8-5678-4cde-a234-567890123456 4c8d59ed-f203-4e49-9217-104440b45a51 d619884a-8969-429a-b47b-2fe407dacd7d f0c56057-0fc9-49a6-94f1-a48b4e966185 9bdecddd-5ed4-4e0a-b092-7a7c71b4f037 61ae064f-997d-490a-a391-c67150afaf24 cf3146a1-0690-4c47-b778-7d099794490c e1a181c8-82b7-471c-b7fa-a87f33c92ae2 9dd1c7c7-21a0-43fa-ac10-49dfb24842c3 38a95e49-dc1e-4e76-87b7-7e40c7e1e546 9ee391c6-9a08-463e-9e7e-b73383f05b19 5a51c02e-1b4d-4627-9d14-2c12a2951b4a e99dd9dc-b2c4-43b8-951d-ee7bb62297a1 725183ee-670a-4c45-837e-f487e864acc6 3642ce84-c6d4-43a2-9ca2-1f0a911ebd9f 3ac796a9-9aee-4155-843e-2f5b0fed4ee6 908d1e8c-ea09-4c6e-8f08-8d56a87b7778 f9948fb0-58ee-49bf-b24b-ebc652c3658a 14bdb3fd-1965-4118-b725-a59ed3a248de 01df2788-7c3a-41af-a125-54f2c506e64c bca70ad5-b4a1-434d-9064-553becb1a56d c2b686a6-40fc-4df4-af23-85c7779ef81b a69740bc-9ab7-4c8e-a862-58c0ce9b983c 225f6d3c-2b36-435c-be2d-aba2e721a71b 7420ece1-4bd5-41ca-b180-df017d21da3a 66ba3d6d-84e3-4e4d-a6f3-4d9c286ed37c e22a11d1-4330-4df1-8965-03aea16fc773 7b40916c-f3a2-4931-8875-a9844abb57b4 a3e275ff-18b2-4662-9981-8938e95b8528 4832970f-6894-4063-8ece-4a049539f4fd 7c14e246-3adc-4c53-8fae-b3550dfb6a62 c934ed82-d767-4525-aa59-7512a1c308f1 9ffca017-d072-4286-a2fe-ef639ac874f5 7c1af7f9-af2c-45da-b181-545441ae2012 000af03d-249f-41ff-969a-d8941c792094 4dbeadb9-3019-4ca8-a18a-2509a4bab08b 74db1d52-7360-4ed3-b716-f6a53f47f2f9 c2a51ce4-449f-4a2e-83b9-c098c5b11801 c2a51ce4-449f-4a2e-83b9-c098c5b11802 c2a51ce4-449f-4a2e-83b9-c098c5b11803 c2a51ce4-449f-4a2e-83b9-c098c5b11804 c2a51ce4-449f-4a2e-83b9-c098c5b11805 c2a51ce4-449f-4a2e-83b9-c098c5b11806 c2a51ce4-449f-4a2e-83b9-c098c5b11807 c2a51ce4-449f-4a2e-83b9-c098c5b11808 c2a51ce4-449f-4a2e-83b9-c098c5b11809 c2a51ce4-449f-4a2e-83b9-c098c5b11810 c2a51ce4-449f-4a2e-83b9-c098c5b11811 c2a51ce4-449f-4a2e-83b9-c098c5b11812 c2a51ce4-449f-4a2e-83b9-c098c5b11813 c2a51ce4-449f-4a2e-83b9-c098c5b11814 c2a51ce4-449f-4a2e-83b9-c098c5b11815 c2a51ce4-449f-4a2e-83b9-c098c5b11816 c2a51ce4-449f-4a2e-83b9-c098c5b11817 187fbe3b-8dea-4f81-a933-6416a2bb8eab a1794fdd-66bb-4908-a834-6900a453007d 6b7f50e2-4cee-4627-a417-2d57491bc8df ca41e429-90f5-4893-b1d8-ca6c1d480652 7f0016fb-e8ee-48f2-aa81-c6fb8fd8cede 1f7cbc4b-d665-4b2d-baf3-7cb129c2642e 10870a67-df3f-4ce7-b34b-efe6470d892c 3af05aa1-4613-4e48-85d6-7ad783c7938c b474ff9a-1e4a-4fcf-a2e9-d0df5cfbac53 209eccf1-69e3-4f04-8384-b710dc6f2208 7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+				<SoulAsset Name="ochozLeader" />
+				<TagPointAsset Name="focusCameraSpot" />
+				<CutsceneHolderAsset Name="hallToCourtFader" />
+			</Assets>
+			<Text StringName="nocni_bitva_n79t" Text="noční bitva" />
+			<Elements>
+				<GameplayActionElement>
+					<Text StringName="nocni_bit_na_nadvori_zuri_CzzN" Text="Na nádvoří zuří boj nepřátel proti trojici Žižka, Čert, bratr a pár přátelských NPC vojáků. " />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="nocni_bit_po_ochozu_jdou__UPQc" Text="Po ochozu jdou vojáci (animchaři) k poradní místnosti, ještě je čas varovat ostatní. " />
+				</GameplayActionElement>
+				<GameplayActionElement>
+					<Text StringName="nocni_bit_hrac_ma_objecti_JenT" Text="Hráč má objectivena záchrnau pánů na dvoře, ale může ho to lákat jít spíš řešit to dole. (obojí je validní, jen s odlišnými následky) . Pokud se vykašle na obojí, je do dvou minut GO. " />
+				</GameplayActionElement>
+				<ActionPromptElement>
+					<Text StringName="nocni_bit_pohlednout_na_o_Nv1C" Text="Pohlédnout na Kryštofa" />
+				</ActionPromptElement>
+				<ActionPromptElement>
+					<Text StringName="nocni_bit_vtrhnout_do_salu_6epi" Text="Vyrazit dveře" />
+				</ActionPromptElement>
+				<NotificationElement>
+					<Text StringName="nocni_bit_dvere_jsou_zabl_0mQs" Text="Dveře jsou zablokované" />
+				</NotificationElement>
+				<GameplayActionElement>
+					<Text Text="" />
+				</GameplayActionElement>
+			</Elements>
+			<MapVizLocation MapName="kutnohorsko" PositionX="1425" PositionY="3845" />
+		</Gameplay>
+	</Skald>
+</Database>

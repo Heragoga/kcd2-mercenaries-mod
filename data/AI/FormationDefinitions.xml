@@ -1,0 +1,2193 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FormationDefinitions version="1">
+
+    <Formation name="dogCompanion_followHeel">
+        <Spot name="leftHeel" radius="1" x="-1.2" y="0.2" />
+    </Formation>
+
+    <Formation name="dogCompanion_followHeel_horse">
+        <Spot name="leftHeel" radius="3" x="-2" y="3" />
+    </Formation>
+
+    <Formation name="block6wide">
+        <Spot name="front" x="-1.2" y="0" radius="0.5" />
+        <Spot name="front" x="1.2" y="0" radius="0.5" />
+        <Spot name="back" x="0" y="1.2" radius="0.5" />
+        <Spot name="back" x="-1.2" y="1.2" radius="0.5" />
+        <Spot name="back" x="1.2" y="1.2" radius="0.5" />
+    </Formation>
+
+    <Formation name="nextToLeader">
+        <Spot name="left" x="-1.2" y="0" radius="0.5" />
+        <Spot name="right" x="1.2" y="0" radius="0.5" />
+    </Formation>
+
+    <Formation name="block6veryWide">
+        <Spot name="front" x="-2" y="2" radius="1" />
+        <Spot name="front" x="2" y="2" radius="1" />
+        <Spot name="back" x="0" y="4" radius="1" />
+        <Spot name="back" x="-2" y="4" radius="1" />
+        <Spot name="back" x="4" y="4" radius="1" />
+    </Formation>
+
+    <Formation name="prepadeniVlasskehoDvora_jeronym">
+        <Spot name="front" x="-2" y="4" radius="1" />
+        <Spot name="front" x="2" y="4" radius="1" />
+        <Spot name="back" x="0" y="6" radius="1" />
+        <Spot name="back" x="-2" y="6" radius="1" />
+        <Spot name="back" x="4" y="6" radius="1" />
+    </Formation>
+
+    <Formation name="wideLine">
+        <Spot name="front" x="-1.5" y="0" radius="0.5" />
+        <Spot name="front" x="1.5" y="0" radius="0.5" />
+    </Formation>
+
+    <Formation name="longLine">
+        <Spot name="first" x="0" y="0.1" radius="1.5" />
+        <Spot name="second" x="0" y="1" radius="1.5" />
+        <Spot name="third" x="0" y="2" radius="1.5" />
+        <Spot name="fourth" x="0" y="3" radius="1.5" />
+    </Formation>
+
+    <Formation name="bailiffAndScribe_walkAround">
+        <Spot name="left" radius="1" x="1" y="0" />
+    </Formation>
+
+    <!-- default for followNpc_inFormation bahavior-->
+    <Formation name="followNPC">
+        <Spot name="left" radius="0.5" x="-0.7" y="1.7" />
+        <Spot name="right" radius="0.5" x="0.7" y="1.7" />
+        <Spot name="left" radius="0.5" x="-0.7" y="3.5" />
+        <Spot name="right" radius="0.5" x="0.7" y="3.5" />
+        <Spot name="left" radius="0.5" x="-0.7" y="5.2" />
+        <Spot name="right" radius="0.5" x="0.7" y="5.2" />
+        <Spot name="left" radius="0.5" x="-0.7" y="6.9" />
+        <Spot name="right" radius="0.5" x="0.7" y="6.9" />
+    </Formation>
+
+    <Formation name="prototypeFollowPlayer">
+        <Spot name="front" x="2" y="0" radius="0.5" />
+        <Spot name="front" x="3" y="1" radius="0.5" />
+        <Spot name="front" x="-8" y="0" radius="0.5" />
+        <Spot name="front" x="-5" y="-1" radius="0.5" />
+        <Spot name="front" x="2" y="0" radius="0.5" />
+        <Spot name="front" x="3" y="1" radius="0.5" />
+        <Spot name="front" x="-8" y="0" radius="0.5" />
+        <Spot name="front" x="-5" y="-1" radius="0.5" />
+    </Formation>
+
+    <Formation name="cart_Teamster">
+        <Spot name="left" radius="0.3" x="-1.20" y="-0.85" />
+    </Formation>
+
+    <Formation name="test_polylogChat">
+        <Spot name="left" radius="0.5" x="1" y="0" />
+    </Formation>
+
+    <!-- ********** QUEST FORMATIONS ********** -->
+
+    <Formation name="finale_hanusLeavingWithSoldiers">
+        <Spot name="row1" radius="0.7" x="-1" y="5" />
+        <Spot name="row1" radius="0.7" x="1" y="5" />
+    </Formation>
+
+    <Formation name="sermiri_arneHorse">
+        <Spot name="row1" radius="0.5" x="0" y="0" />
+        <Spot name="row2" radius="0.5" x="0" y="3" />
+    </Formation>
+
+    <Formation name="finale_jostSoldiersLeaving">
+        <Spot name="row1" radius="0.7" x="-1" y="2" />
+        <Spot name="row1" radius="0.7" x="1" y="2" />
+        <Spot name="row2" radius="0.7" x="-1" y="4" />
+        <Spot name="row2" radius="0.7" x="1" y="4" />
+        <Spot name="row3" radius="0.7" x="-1" y="6" />
+        <Spot name="row3" radius="0.7" x="1" y="6" />
+    </Formation>
+
+    <Formation name="finale_battle_riders">
+        <Spot name="frontright" radius="0.5" x="3" y="0" />
+        <Spot name="frontleft" radius="0.5" x="-3" y="0" />
+        <Spot name="right" radius="0.5" x="6" y="3" />
+        <Spot name="left" radius="0.5" x="-6" y="3" />
+        <Spot name="rightright" radius="0.5" x="9" y="6" />
+        <Spot name="leftleft" radius="0.5" x="-9" y="6" />
+        <Spot name="back" radius="0.5" x="0" y="3" />
+        <Spot name="backright" radius="0.5" x="3" y="6" />
+        <Spot name="backleft" radius="0.5" x="-3" y="6" />
+        <Spot name="backrightright" radius="0.5" x="6" y="6" />
+        <Spot name="backleftleft" radius="0.5" x="-6" y="6" />
+        <Spot name="backbackright" radius="0.5" x="3" y="9" />
+        <Spot name="backbackleft" radius="0.5" x="-3" y="9" />
+        <Spot name="backbackrightright" radius="0.5" x="4" y="9" />
+        <Spot name="backbackleftleft" radius="0.5" x="-4" y="9" />
+        <Spot name="backyback" radius="0.5" x="0" y="12" />
+        <Spot name="baggityback" radius="0.5" x="9" y="12" />
+        <Spot name="blackback" radius="0.5" x="-9" y="12" />
+        <Spot name="rightback" radius="0.5" x="12" y="15" />
+        <Spot name="leftback" radius="0.5" x="-12" y="15" />
+        <Spot name="andyback" radius="0.5" x="9" y="16" />
+        <Spot name="lukasback" radius="0.5" x="-9" y="16" />
+        <Spot name="samback" radius="0.5" x="6" y="18" />
+        <Spot name="frodoback" radius="0.5" x="-6" y="18" />
+    </Formation>
+    <!--
+        <Spot name="right" radius="0.5" x="1.0" y="-0.1" />
+        <Spot name="left" radius="0.5" x="-1.0" y="0.3" />
+        <Spot name="front" radius="0.5" x="0.3" y="-1.7" />
+        <Spot name="frontright" radius="0.5" x="0.8" y="-1.6" />
+        <Spot name="frontleft" radius="0.5" x="-1.2" y="-1.7" />
+        <Spot name="backright" radius="0.5" x="0.8" y="1.6" />
+        <Spot name="backleft" radius="0.5" x="-1.1" y="1.5" />
+        <Spot name="backbackright" radius="0.5" x="0.9" y="3.4" />
+        <Spot name="backbackleft" radius="0.5" x="-0.7" y="3.1" />
+    -->
+    <Formation name="kralovskeStribro_buresAndGorila">
+        <Spot name="left" radius="0.5" x="-1" y="1" />
+    </Formation>
+
+    <Formation name="kumaniNaTrosecku_cumansGoHome">
+        <Spot name="row1" radius="0.5" x="-0.7" y="1.7" />
+        <Spot name="row1" radius="0.5" x="0.7" y="1.7" />
+        <Spot name="row2" radius="0.5" x="-0.7" y="3.5" />
+        <Spot name="row2" radius="0.5" x="0.7" y="3.5" />
+    </Formation>
+
+    <Formation name="mucirna_vypaleniSemina_rideToSemin">
+        <Spot name="ptacek" radius="0.7" x="-1.1" y="5.5" />
+        <Spot name="row1" radius="0.7" x="1.1" y="5.5" />
+        <Spot name="row2" radius="0.7" x="-1.1" y="10" />
+        <Spot name="row2" radius="0.7" x="1.1" y="10" />
+        <Spot name="row3" radius="0.7" x="-1.1" y="14.5" />
+        <Spot name="row3" radius="0.7" x="1.1" y="14.5" />
+        <Spot name="row4" radius="0.7" x="-1.1" y="19" />
+        <Spot name="row4" radius="0.7" x="1.1" y="19" />
+        <Spot name="row5" radius="0.7" x="-1.1" y="23.5" />
+        <Spot name="row5" radius="0.7" x="1.1" y="23.5" />
+        <Spot name="row6" radius="0.7" x="-1.1" y="28" />
+        <Spot name="row6" radius="0.7" x="1.1" y="28" />
+        <Spot name="row7" radius="0.7" x="-1.1" y="32.5" />
+        <Spot name="row7" radius="0.7" x="1.1" y="32.5" />
+    </Formation>
+
+    <Formation name="mucirna_vypaleniSemina_waitForOrders">
+        <Spot name="row1" radius="1.0" x="-1.5" y="2.0" />
+        <Spot name="row1" radius="1.0" x="1.5" y="2.0" />
+        <Spot name="row2" radius="1.0" x="-1.5" y="4.0" />
+        <Spot name="row2" radius="1.0" x="1.5" y="4.0" />
+        <Spot name="row3" radius="1.0" x="-1.5" y="6.0" />
+        <Spot name="row3" radius="1.0" x="1.5" y="6.0" />
+        <Spot name="row4" radius="1.0" x="-1.5" y="8.0" />
+        <Spot name="row4" radius="1.0" x="1.5" y="8.0" />
+        <Spot name="row5" radius="1.0" x="-1.5" y="10.0" />
+        <Spot name="row5" radius="1.0" x="1.5" y="10.0" />
+        <Spot name="row6" radius="1.0" x="-1.5" y="12.0" />
+        <Spot name="row6" radius="1.0" x="1.5" y="12.0" />
+        <Spot name="row7" radius="1.0" x="-1.5" y="14.0" />
+        <Spot name="row7" radius="1.0" x="1.5" y="14.0" />
+    </Formation>
+
+    <Formation name="nebakovObrana_attackOnWall_5">
+        <Spot name="right" radius="0.5" x="1.6" y="-1.2" />
+        <Spot name="left" radius="0.5" x="-1.4" y="-1.0" />
+        <Spot name="frontright" radius="0.5" x="1.2" y="-2.5" />
+        <Spot name="frontleft" radius="0.5" x="-1.0" y="-2.7" />
+        <Spot name="back" radius="0.5" x="0.3" y="1.8" />
+    </Formation>
+
+    <Formation name="nebakovObrana_attackOnGate_10">
+        <Spot name="right" radius="0.5" x="1.0" y="-0.1" />
+        <Spot name="left" radius="0.5" x="-1.0" y="0.3" />
+        <Spot name="front" radius="0.5" x="0.3" y="-1.7" />
+        <Spot name="frontright" radius="0.5" x="0.8" y="-1.6" />
+        <Spot name="frontleft" radius="0.5" x="-1.2" y="-1.7" />
+        <Spot name="backright" radius="0.5" x="0.8" y="1.6" />
+        <Spot name="backleft" radius="0.5" x="-1.1" y="1.5" />
+        <Spot name="backbackright" radius="0.5" x="0.9" y="3.4" />
+        <Spot name="backbackleft" radius="0.5" x="-0.7" y="3.1" />
+    </Formation>
+
+    <Formation name="nebakovObrana_move_pavise_5">
+        <Spot name="front" radius="0.5" x="0.2" y="0.8" />
+        <Spot name="right" radius="0.5" x="0.6" y="1.9" />
+        <Spot name="left" radius="0.5" x="-0.4" y="2.7" />
+        <Spot name="back" radius="0.5" x="0.3" y="3.5" />
+    </Formation>
+
+    <Formation name="oblehaniSuchdole_trackview_horsemen_10">
+        <Spot name="front" radius="1" x="0.5" y="0.5" />
+        <Spot name="backright" radius="1" x="2" y="4" />
+        <Spot name="backleft" radius="1" x="-2" y="4" />
+        <Spot name="2backright" radius="1" x="2" y="8" />
+        <Spot name="2backleft" radius="1" x="-2" y="8" />
+        <Spot name="3backright" radius="1" x="2" y="12" />
+        <Spot name="3backleft" radius="1" x="-2" y="12" />
+        <Spot name="4backright" radius="1" x="2" y="16" />
+        <Spot name="4backleft" radius="1" x="-2" y="16" />
+        <Spot name="back" radius="1" x="0" y="20" />
+    </Formation>
+
+    <Formation name="pogrom_runToKutnaHora">
+        <Spot name="first" radius="1.5" x="0" y="0.1" />
+        <Spot name="second" radius="1.5" x="0" y="1" />
+        <Spot name="third" radius="1.5" x="0" y="2" />
+        <Spot name="last" radius="1.5" x="0" y="3" />
+    </Formation>
+
+    <Formation name="prepadeni_ptaceksGroup">
+        <Spot name="prepadeni_horseKonrad" radius="0.5" x="-0.9" y="5" />
+        <Spot name="prepadeni_horseMikulas" radius="0.5" x="0.9" y="10.3" />
+        <Spot name="prepadeni_horsePivec" radius="0.5" x="-0.6" y="12.5" />
+        <Spot name="prepadeni_horsePtacek" radius="0.5" x="0.9" y="18" />
+        <Spot name="prepadeni_horseJindrich" radius="0.5" x="-1.2" y="19" />
+    </Formation>
+
+    <Formation name="prepadeniVlasskehoDvora_attackOnWall_6">
+        <Spot name="right" radius="0.5" x="1.5" y="-1.0" />
+        <Spot name="left" radius="0.5" x="-1.5" y="-1.0" />
+        <Spot name="frontright" radius="0.5" x="1.0" y="-2.5" />
+        <Spot name="frontleft" radius="0.5" x="-1.0" y="-2.5" />
+        <Spot name="back" radius="0.5" x="0" y="1" />
+    </Formation>
+
+    <Formation name="prepadeniVlasskehoDvora_block6">
+        <Spot name="front" x="-1.1" y="0.5" radius="0.5" />
+        <Spot name="front" x="1.1" y="0.5" radius="0.5" />
+        <Spot name="back" x="0" y="3" radius="0.5" />
+        <Spot name="back" x="-1.5" y="2.2" radius="0.5" />
+        <Spot name="back" x="1.5" y="2.2" radius="0.5" />
+    </Formation>
+
+    <Formation name="pytlakPtacek_guards">
+        <Spot name="1" radius="0.5" x="-0.7" y="0.0" />
+    </Formation>
+
+    <Formation name="rutinaAVypad_gatheringEnemies_30">
+        <Spot name="front" radius="0.5" x="-1" y="0.5" />
+        <Spot name="front" radius="0.5" x="-2.5" y="1" />
+        <Spot name="front" radius="0.5" x="-1.5" y="1.5" />
+        <Spot name="front" radius="0.5" x="0" y="1.5" />
+        <Spot name="front" radius="0.5" x="-3" y="2" />
+        <Spot name="front" radius="0.5" x="-4" y="3" />
+        <Spot name="front" radius="0.5" x="-2" y="3" />
+        <Spot name="front" radius="0.5" x="0" y="3" />
+        <Spot name="front" radius="0.5" x="-3" y="4.5" />
+        <Spot name="back" radius="0.5" x="-1.5" y="5" />
+        <Spot name="back" radius="0.5" x="-4" y="6" />
+        <Spot name="back" radius="0.5" x="-1.5" y="6" />
+        <Spot name="back" radius="0.5" x="0" y="4.5" />
+        <Spot name="back" radius="0.5" x="-3" y="7" />
+        <Spot name="back" radius="0.5" x="-1.5" y="8" />
+        <Spot name="back" radius="0.5" x="0" y="6" />
+        <Spot name="back" radius="0.5" x="0" y="7.5" />
+        <Spot name="back" radius="0.5" x="2" y="1" />
+        <Spot name="back" radius="0.5" x="3" y="0.5" />
+        <Spot name="back" radius="0.5" x="1.5" y="2" />
+        <Spot name="back" radius="0.5" x="4" y="2" />
+        <Spot name="back" radius="0.5" x="2" y="3" />
+        <Spot name="back" radius="0.5" x="3" y="3.5" />
+        <Spot name="back" radius="0.5" x="1.5" y="4.5" />
+        <Spot name="back" radius="0.5" x="4" y="5" />
+        <Spot name="back" radius="0.5" x="1.5" y="6" />
+        <Spot name="back" radius="0.5" x="3" y="6" />
+        <Spot name="back" radius="0.5" x="2" y="8" />
+        <Spot name="back" radius="0.5" x="4" y="7.5" />
+    </Formation>
+
+    <Formation name="rutinaAVypad_halberdPatrol_16">
+        <Spot name="front" radius="0.5" x="0.5" y="0.5" />
+        <Spot name="front" radius="0.5" x="-0.5" y="0.5" />
+        <Spot name="front" radius="0.5" x="1.5" y="1.5" />
+        <Spot name="front" radius="0.5" x="-1.5" y="1.5" />
+        <Spot name="front" radius="0.5" x="0" y="3" />
+        <Spot name="front" radius="0.5" x="1.5" y="3" />
+        <Spot name="front" radius="0.5" x="-1.5" y="3" />
+        <Spot name="back" radius="0.5" x="0" y="4.5" />
+        <Spot name="back" radius="0.5" x="1.5" y="4.5" />
+        <Spot name="back" radius="0.5" x="-1.5" y="4.5" />
+        <Spot name="back" radius="0.5" x="0" y="6" />
+        <Spot name="back" radius="0.5" x="1.5" y="6" />
+        <Spot name="back" radius="0.5" x="-1.5" y="6" />
+        <Spot name="back" radius="0.5" x="0" y="7.5" />
+        <Spot name="back" radius="0.5" x="1.5" y="7.5" />
+        <Spot name="back" radius="0.5" x="-1.5" y="7.5" />
+    </Formation>
+
+    <Formation name="rutinaAVypad_move_enemyArchers">
+        <Spot name="front" radius="0.5" x="-1.5" y="2.0" />
+        <Spot name="back" radius="0.5" x="-1.5" y="4.0" />
+        <Spot name="back" radius="0.5" x="-1.5" y="6.0" />
+        <Spot name="back" radius="0.5" x="-1.5" y="8.0" />
+        <Spot name="back" radius="0.5" x="-1.5" y="10.0" />
+    </Formation>
+
+    <Formation name="rutinaAVypad_trackview_mountedPatrol">
+        <Spot name="front" radius="1" x="1" y="4.5" />
+        <Spot name="backright" radius="1" x="1" y="8.5" />
+        <Spot name="backleft" radius="1" x="1" y="12.5" />
+        <Spot name="2backright" radius="1" x="1" y="20" />
+    </Formation>
+
+    <Formation name="sesivaniTonici_antonFrancek_right">
+        <Spot name="1" radius="1.0" x="0.5" y="0.0" />
+    </Formation>
+    <Formation name="sesivaniTonici_antonFrancek_left">
+        <Spot name="1" radius="1.0" x="-0.5" y="0.0" />
+    </Formation>
+    <Formation name="sesivaniTonici_antonFrancek_history">
+        <Spot name="1" radius="1.0" x="0" y="-1.0" />
+    </Formation>
+
+    <Formation name="setkaniVRatbori2_ochoz">
+        <Spot name="leftQueue1" radius="0.3" x="-0.4" y="1.0" />
+        <Spot name="leftQueue2" radius="0.3" x="-0.4" y="2.0" />
+        <Spot name="leftQueue3" radius="0.3" x="-0.4" y="3.0" />
+        <Spot name="leftQueue4" radius="0.3" x="-0.4" y="4.0" />
+        <Spot name="rightQueue1" radius="0.3" x="0.4" y="1.5" />
+        <Spot name="rightQueue2" radius="0.3" x="0.4" y="2.5" />
+        <Spot name="rightQueue3" radius="0.3" x="0.4" y="3.5" />
+        <Spot name="rightQueue4" radius="0.3" x="0.4" y="4.5" />
+        <Spot name="rightQueue5" radius="0.3" x="0.4" y="5.5" />
+    </Formation>
+
+    <Formation name="vezniNaTroskach_fleeThroughPassage">
+        <Spot name="npc1" radius="0.5" x="0" y="1.3" />
+        <Spot name="npc2" radius="0.5" x="0" y="2.6" />
+    </Formation>
+
+    <Formation name="vezniNaTroskach_patrolOnHorse">
+        <Spot name="front" radius="0.5" x="1" y="0" />
+    </Formation>
+
+    <Formation name="zbranePanaSemina_seminSuk">
+        <Spot name="left" radius="0.5" x="0" y="1" />
+    </Formation>
+
+    <Formation name="zbranePanaSemina_seminSukAZajatci">
+        <Spot name="front" x="1.7" y="0.2" radius="0.7" />
+        <Spot name="back" x="0" y="2.5" radius="1" />
+        <Spot name="back" x="0" y="4" radius="1" />
+        <Spot name="back" x="0" y="6" radius="1" />
+    </Formation>
+
+    <Formation name="zbranePanaSemina_seminSukTour">
+        <Spot name="front" x="-1.7" y="0.7" radius="0.7" />
+        <Spot name="back" x="2" y="3" radius="0.5" />
+    </Formation>
+
+    <Formation name="zbranePanaSemina_seminSukTour2">
+        <Spot name="front" x="-1" y="0.2" radius="0.7" />
+    </Formation>
+
+    <Formation name="zbranePanaSemina_seminSukTourZaSebou">
+        <Spot name="front" x="0" y="4" radius="0.3" />
+        <Spot name="back" x="2" y="8" radius="0.3" />
+    </Formation>
+
+    
+
+    <!-- battle formations -->
+    <Formation name="animcharsMove_20">
+        <Spot name="front" radius="0.5" x="7.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="1.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="-1.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="-3" y="0.0" />
+        <Spot name="front" radius="0.5" x="3" y="0.0" />
+        <Spot name="front" radius="0.5" x="4.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="-4.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="6" y="0.0" />
+        <Spot name="front" radius="0.5" x="-6" y="0.0" />
+        <Spot name="back" radius="0.5" x="0" y="1.5" />
+        <Spot name="back" radius="0.5" x="1.5" y="1.5" />
+        <Spot name="back" radius="0.5" x="-1.5" y="1.5" />
+        <Spot name="back" radius="0.5" x="3" y="1.5" />
+        <Spot name="back" radius="0.5" x="-3" y="1.5" />
+        <Spot name="back" radius="0.5" x="4.5" y="1.5" />
+        <Spot name="back" radius="0.5" x="-4.5" y="1.5" />
+        <Spot name="back" radius="0.5" x="6" y="1.5" />
+        <Spot name="back" radius="0.5" x="-6" y="1.5" />
+        <Spot name="back" radius="0.5" x="7.5" y="1.5" />
+    </Formation>
+
+    <Formation name="battleFormation_basic25">
+        <Spot name="front" radius="0.5" x="1.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="-1.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="-3" y="0.0" />
+        <Spot name="front" radius="0.5" x="3" y="0.0" />
+        <Spot name="front" radius="0.5" x="0" y="1.5" />
+        <Spot name="front" radius="0.5" x="1.5" y="1.5" />
+        <Spot name="front" radius="0.5" x="-1.5" y="1.5" />
+        <Spot name="front" radius="0.5" x="3" y="1.5" />
+        <Spot name="front" radius="0.5" x="-3" y="1.5" />
+        <Spot name="back" radius="0.5" x="0" y="3" />
+        <Spot name="back" radius="0.5" x="1.5" y="3" />
+        <Spot name="back" radius="0.5" x="-1.5" y="3" />
+        <Spot name="back" radius="0.5" x="3" y="3" />
+        <Spot name="back" radius="0.5" x="-3" y="3" />
+        <Spot name="back" radius="0.5" x="0" y="4.5" />
+        <Spot name="back" radius="0.5" x="1.5" y="4.5" />
+        <Spot name="back" radius="0.5" x="-1.5" y="4.5" />
+        <Spot name="back" radius="0.5" x="3" y="4.5" />
+        <Spot name="back" radius="0.5" x="-3" y="4.5" />
+        <Spot name="back" radius="0.5" x="0" y="6" />
+        <Spot name="back" radius="0.5" x="1.5" y="6" />
+        <Spot name="back" radius="0.5" x="-1.5" y="6" />
+        <Spot name="back" radius="0.5" x="3" y="6" />
+        <Spot name="back" radius="0.5" x="-3" y="6" />
+    </Formation>
+
+    <Formation name="battleFormation_messy25">
+        <Spot name="front" radius="0.5" x="1" y="0.0" />
+        <Spot name="front" radius="0.5" x="-1" y="0.0" />
+        <Spot name="front" radius="0.5" x="-2" y="0.0" />
+        <Spot name="front" radius="0.5" x="2" y="0.0" />
+        <Spot name="front" radius="0.5" x="0" y="1" />
+        <Spot name="front" radius="0.5" x="1" y="1" />
+        <Spot name="front" radius="0.5" x="-1" y="1" />
+        <Spot name="front" radius="0.5" x="3" y="2" />
+        <Spot name="front" radius="0.5" x="-3" y="2" />
+        <Spot name="back" radius="0.5" x="0" y="2" />
+        <Spot name="back" radius="0.5" x="1" y="2" />
+        <Spot name="back" radius="0.5" x="-1" y="2" />
+        <Spot name="back" radius="0.5" x="2" y="2" />
+        <Spot name="back" radius="0.5" x="-2" y="2" />
+        <Spot name="back" radius="0.5" x="0" y="3" />
+        <Spot name="back" radius="0.5" x="1" y="3" />
+        <Spot name="back" radius="0.5" x="-1" y="3" />
+        <Spot name="back" radius="0.5" x="2" y="3" />
+        <Spot name="back" radius="0.5" x="-2" y="3" />
+        <Spot name="back" radius="0.5" x="0" y="4" />
+        <Spot name="back" radius="0.5" x="1" y="4" />
+        <Spot name="back" radius="0.5" x="-1" y="4" />
+        <Spot name="back" radius="0.5" x="2" y="4" />
+        <Spot name="back" radius="0.5" x="-2" y="4" />
+    </Formation>
+
+    <Formation name="battleFormation_messy6">
+        <Spot name="right" radius="0.5" x="1" y="0.0" />
+        <Spot name="left" radius="0.5" x="-1" y="0.0" />
+        <Spot name="back" radius="0.5" x="0" y="1" />
+        <Spot name="backright" radius="0.5" x="0.7" y="1" />
+        <Spot name="backleft" radius="0.5" x="-0.7" y="1" />
+    </Formation>
+
+    <Formation name="guard_pairs">
+        <Spot name="right" radius="0.5" x="1.5" y="1.2" />
+    </Formation>
+
+    <Formation name="utokNaMalesov_attackOnInnerCourtyard">
+        <Spot name="secondLineLeft" x="-0.6" y="0.8" radius="0.5" />
+        <Spot name="secondLineRight" x="0.6" y="0.8" radius="0.5" />
+        <Spot name="thirdLineLeft" x="-0.6" y="1.6" radius="0.5" />
+        <Spot name="thirdLineRight" x="0.6" y="1.6" radius="0.5" />
+        <Spot name="fourthLineLeft" x="-0.6" y="2.4" radius="0.5" />
+        <Spot name="fourthLineRight" x="0.6" y="2.4" radius="0.5" />
+        <Spot name="fifthLineLeft" x="-0.6" y="3.2" radius="0.5" />
+        <Spot name="fifthLineRight" x="0.6" y="3.2" radius="0.5" />
+        <Spot name="sixthLineLeft" x="-0.6" y="4" radius="0.5" />
+        <Spot name="sixthLineRight" x="0.6" y="4" radius="0.5" />
+        <Spot name="seventhLineLeft" x="-0.6" y="4.8" radius="0.5" />
+        <Spot name="seventhLineRight" x="0.6" y="4.8" radius="0.5" />
+        <Spot name="eighthLineLeft" x="-0.6" y="5.6" radius="0.5" />
+        <Spot name="eighthLineRight" x="0.6" y="5.6" radius="0.5" />
+    </Formation>
+
+    <Formation name="utokNaMalesov_moveToBurningMalesovVillage">
+        <Spot name="frontLine" x="1.2" y="0" radius="0.5" />
+        <Spot name="secondLineLeft" x="-1.2" y="1.2" radius="0.5" />
+        <Spot name="secondLineRight" x="2.4" y="1.2" radius="0.5" />
+        <Spot name="thirdLineLeft" x="-2.4" y="2.4" radius="0.5" />
+        <Spot name="thirdLineRight" x="1.2" y="2.4" radius="0.5" />
+        <Spot name="fourthLine" x="-1.2" y="3.6" radius="0.5" />
+        <Spot name="fifthLine" x="0" y="4.8" radius="0.5" />
+        <Spot name="sixthLineLeft" x="-1.2" y="6.0" radius="0.5" />
+        <Spot name="sixthLineRight" x="1.2" y="6.0" radius="0.5" />
+        <Spot name="seventhLine" x="-2.4" y="7.2" radius="0.5" />
+        <Spot name="eighthLine" x="-2.4" y="8.4" radius="0.5" />
+    </Formation>
+
+    <Formation name="utokNaMalesov_stealthMission">
+        <Spot name="frontLeft" x="-1.2" y="1" radius="0.5" />
+        <Spot name="frontRight" x="1.2" y="1.5" radius="0.5" />
+        <Spot name="back" x="-0.2" y="2" radius="0.5" />
+    </Formation>
+
+    <Formation name="zachranaPtacka_rideToRatborSnake">
+        <Spot name="brabant" radius="0.5" x="0" y="4" />
+    </Formation>
+
+    <Formation name="zachranaPtacka_rideToRatborWide">
+        <Spot name="brabant" radius="0.5" x="1.5" y="3" />
+    </Formation>
+
+    <Formation name="zachranaPtacka_malesovEscape">
+        <Spot name="brabant" radius="0.5" x="0" y="1.2" />
+    </Formation>
+
+    <Formation name="zoufalaObranaZaBohutu_frontWallAssaultShootersMoveToGate">
+        <Spot name="frontLeft" x="-1.2" y="0" radius="0.5" />
+        <Spot name="frontRight" x="1.2" y="0" radius="0.5" />
+    </Formation>
+
+    <Formation name="zoufalaObranaZaBohutu_frontWallAxeAttackersMoveToGate">
+        <Spot name="firstLineLeft" x="-1.2" y="1.2" radius="0.5" />
+        <Spot name="firstLineCenter" x="0" y="1.2" radius="0.5" />
+        <Spot name="firstLineRight" x="1.2" y="1.2" radius="0.5" />
+        <Spot name="secondLineLeft" x="-1.2" y="2.4" radius="0.5" />
+        <Spot name="secondLineCenter" x="0" y="2.4" radius="0.5" />
+        <Spot name="secondLineRight" x="1.2" y="2.4" radius="0.5" />
+        <Spot name="thirdLineLeft" x="-1.2" y="3.6" radius="0.5" />
+        <Spot name="thirdLineCenter" x="0" y="3.6" radius="0.5" />
+        <Spot name="thirdLineRight" x="1.2" y="3.6" radius="0.5" />
+        <Spot name="fourthLineLeft" x="-1.2" y="4.8" radius="0.5" />
+        <Spot name="fourthLineCenter" x="0" y="4.8" radius="0.5" />
+        <Spot name="fourthLineRight" x="1.2" y="4.8" radius="0.5" />
+        <Spot name="fifthLineLeft" x="-1.2" y="6" radius="0.5" />
+        <Spot name="fifthLineCenter" x="0" y="6" radius="0.5" />
+        <Spot name="fifthLineRight" x="1.2" y="6" radius="0.5" />
+    </Formation>
+
+    <Formation name="zoufalaObranaZaBohutu_horseRiders">
+        <Spot name="firstLineRight" x="2" y="0.6" radius="1" />
+        <Spot name="secondLineLeft" x="0" y="3.6" radius="1" />
+        <Spot name="secondLineRight" x="2" y="4.2" radius="1" />
+    </Formation>
+
+    <!-- army movement in cutscene -->
+    <Formation name="cavalryRiders6">
+        <Spot name="front" radius="0.5" x="2.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="-2" y="0.0" />
+        <Spot name="front" radius="0.5" x="0.5" y="2.5" />
+        <Spot name="front" radius="0.5" x="2.5" y="2.5" />
+        <Spot name="front" radius="0.5" x="-3.5" y="3" />
+    </Formation>
+
+    <Formation name="infantryMen20">
+        <Spot name="front" radius="0.5" x="-3" y="0.5" />
+        <Spot name="front" radius="0.5" x="-1.5" y="0.5" />
+        <Spot name="front" radius="0.5" x="1.5" y="0.0" />
+        <Spot name="front" radius="0.5" x="3" y="0.5" />
+
+        <Spot name="front" radius="0.5" x="-3" y="2" />
+        <Spot name="front" radius="0.5" x="-1.5" y="1.5" />
+        <Spot name="front" radius="0.5" x="0.5" y="1.5" />
+        <Spot name="front" radius="0.5" x="1" y="2" />
+        <Spot name="front" radius="0.5" x="2.5" y="2" />
+
+        <Spot name="front" radius="0.5" x="-3.5" y="4" />
+        <Spot name="front" radius="0.5" x="-1.5" y="3" />
+        <Spot name="front" radius="0.5" x="0.5" y="3" />
+        <Spot name="front" radius="0.5" x="1" y="3.5" />
+        <Spot name="front" radius="0.5" x="3" y="3.5" />
+
+        <Spot name="front" radius="0.5" x="-3" y="6" />
+        <Spot name="front" radius="0.5" x="-1.5" y="5" />
+        <Spot name="front" radius="0.5" x="0.5" y="5" />
+        <Spot name="front" radius="0.5" x="1" y="5" />
+        <Spot name="front" radius="0.5" x="3.5" y="5.5" />
+    </Formation>
+
+    <Formation name="followCart">
+        <Spot name="leftClosest" radius="0.5" x="-1.0" y="2.7" />
+        <Spot name="rightClosest" radius="0.5" x="1.0" y="2.7" />
+        <Spot name="leftClose" radius="0.5" x="-1.0" y="4.5" />
+        <Spot name="rightClose" radius="0.5" x="1.0" y="4.5" />
+        <Spot name="leftFar" radius="0.5" x="-1.0" y="6.2" />
+        <Spot name="rightFar" radius="0.5" x="1.0" y="6.2" />
+        <Spot name="leftFurthest" radius="0.5" x="-1.0" y="7.9" />
+        <Spot name="rightFurthest" radius="0.5" x="1.0" y="7.9" />
+    </Formation>
+
+    <Formation name="returnStartledHorse">
+        <Spot name="npc" radius="0.5" x="0.0" y="-3.0" />
+    </Formation>
+
+    <!-- ================================================================
+         MERCENARIES MOD - custom formations.
+
+         Everything ABOVE this banner is vanilla, copied verbatim. It has to
+         be: FormationDefinitions.xml is not a patchable database table, so a
+         mod can only replace the whole file. Any vanilla formation dropped
+         from this list stops existing game-wide and breaks the quests that
+         name it. When the game updates, re-copy the vanilla file and
+         re-append this block.
+
+         Convention: +x is the leader's RIGHT, +y is BEHIND him, metres.
+         The leader stands at the origin and gets no spot.
+
+         Each shape ships at 6/10/14/18/24/30/40/50 spots (mercenaries.FormationSizes,
+         topping out at MaxCompanions) and Lua picks the smallest that fits the
+         squad. Handing a 50-slot template to a 6-merc squad lets the engine pick
+         any 6 of 50 free spots, which strings them out across the whole shape.
+         ================================================================ -->
+
+    <!-- column of twos - narrow, for roads and tracks (6) -->
+    <Formation name="merc_column6">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="1.2" y="5.4" />
+    </Formation>
+
+    <!-- column of twos - narrow, for roads and tracks (10) -->
+    <Formation name="merc_column10">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="5.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="5.4" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="7.2" />
+        <Spot name="back" radius="0.9" x="1.2" y="9" />
+    </Formation>
+
+    <!-- column of twos - narrow, for roads and tracks (14) -->
+    <Formation name="merc_column14">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="5.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="5.4" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="9" />
+        <Spot name="back" radius="0.9" x="2.4" y="9" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="10.8" />
+        <Spot name="back" radius="0.9" x="1.2" y="12.6" />
+    </Formation>
+
+    <!-- column of twos - narrow, for roads and tracks (18) -->
+    <Formation name="merc_column18">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="5.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="5.4" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="9" />
+        <Spot name="back" radius="0.9" x="2.4" y="9" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="12.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="12.6" />
+        <Spot name="back" radius="0.9" x="0" y="14.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="14.4" />
+        <Spot name="back" radius="0.9" x="1.2" y="16.2" />
+    </Formation>
+
+    <!-- column of twos - narrow, for roads and tracks (24) -->
+    <Formation name="merc_column24">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="5.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="5.4" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="9" />
+        <Spot name="back" radius="0.9" x="2.4" y="9" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="12.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="12.6" />
+        <Spot name="back" radius="0.9" x="0" y="14.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="14.4" />
+        <Spot name="back" radius="0.9" x="0" y="16.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="16.2" />
+        <Spot name="back" radius="0.9" x="0" y="18" />
+        <Spot name="back" radius="0.9" x="2.4" y="18" />
+        <Spot name="back" radius="0.9" x="0" y="19.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="19.8" />
+        <Spot name="back" radius="0.9" x="1.2" y="21.6" />
+    </Formation>
+
+    <!-- column of twos - narrow, for roads and tracks (30) -->
+    <Formation name="merc_column30">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="5.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="5.4" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="9" />
+        <Spot name="back" radius="0.9" x="2.4" y="9" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="12.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="12.6" />
+        <Spot name="back" radius="0.9" x="0" y="14.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="14.4" />
+        <Spot name="back" radius="0.9" x="0" y="16.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="16.2" />
+        <Spot name="back" radius="0.9" x="0" y="18" />
+        <Spot name="back" radius="0.9" x="2.4" y="18" />
+        <Spot name="back" radius="0.9" x="0" y="19.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="19.8" />
+        <Spot name="back" radius="0.9" x="0" y="21.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="21.6" />
+        <Spot name="back" radius="0.9" x="0" y="23.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="23.4" />
+        <Spot name="back" radius="0.9" x="0" y="25.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="25.2" />
+        <Spot name="back" radius="0.9" x="1.2" y="27" />
+    </Formation>
+
+    <!-- column of twos - narrow, for roads and tracks (40) -->
+    <Formation name="merc_column40">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="5.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="5.4" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="9" />
+        <Spot name="back" radius="0.9" x="2.4" y="9" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="12.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="12.6" />
+        <Spot name="back" radius="0.9" x="0" y="14.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="14.4" />
+        <Spot name="back" radius="0.9" x="0" y="16.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="16.2" />
+        <Spot name="back" radius="0.9" x="0" y="18" />
+        <Spot name="back" radius="0.9" x="2.4" y="18" />
+        <Spot name="back" radius="0.9" x="0" y="19.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="19.8" />
+        <Spot name="back" radius="0.9" x="0" y="21.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="21.6" />
+        <Spot name="back" radius="0.9" x="0" y="23.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="23.4" />
+        <Spot name="back" radius="0.9" x="0" y="25.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="25.2" />
+        <Spot name="back" radius="0.9" x="0" y="27" />
+        <Spot name="back" radius="0.9" x="2.4" y="27" />
+        <Spot name="back" radius="0.9" x="0" y="28.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="28.8" />
+        <Spot name="back" radius="0.9" x="0" y="30.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="30.6" />
+        <Spot name="back" radius="0.9" x="0" y="32.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="32.4" />
+        <Spot name="back" radius="0.9" x="0" y="34.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="34.2" />
+        <Spot name="back" radius="0.9" x="1.2" y="36" />
+    </Formation>
+
+    <!-- column of twos - narrow, for roads and tracks (50) -->
+    <Formation name="merc_column50">
+        <Spot name="front" radius="0.9" x="2.4" y="0" />
+        <Spot name="front" radius="0.9" x="0" y="1.8" />
+        <Spot name="front" radius="0.9" x="2.4" y="1.8" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="5.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="5.4" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="9" />
+        <Spot name="back" radius="0.9" x="2.4" y="9" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="12.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="12.6" />
+        <Spot name="back" radius="0.9" x="0" y="14.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="14.4" />
+        <Spot name="back" radius="0.9" x="0" y="16.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="16.2" />
+        <Spot name="back" radius="0.9" x="0" y="18" />
+        <Spot name="back" radius="0.9" x="2.4" y="18" />
+        <Spot name="back" radius="0.9" x="0" y="19.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="19.8" />
+        <Spot name="back" radius="0.9" x="0" y="21.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="21.6" />
+        <Spot name="back" radius="0.9" x="0" y="23.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="23.4" />
+        <Spot name="back" radius="0.9" x="0" y="25.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="25.2" />
+        <Spot name="back" radius="0.9" x="0" y="27" />
+        <Spot name="back" radius="0.9" x="2.4" y="27" />
+        <Spot name="back" radius="0.9" x="0" y="28.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="28.8" />
+        <Spot name="back" radius="0.9" x="0" y="30.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="30.6" />
+        <Spot name="back" radius="0.9" x="0" y="32.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="32.4" />
+        <Spot name="back" radius="0.9" x="0" y="34.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="34.2" />
+        <Spot name="back" radius="0.9" x="0" y="36" />
+        <Spot name="back" radius="0.9" x="2.4" y="36" />
+        <Spot name="back" radius="0.9" x="0" y="37.8" />
+        <Spot name="back" radius="0.9" x="2.4" y="37.8" />
+        <Spot name="back" radius="0.9" x="0" y="39.6" />
+        <Spot name="back" radius="0.9" x="2.4" y="39.6" />
+        <Spot name="back" radius="0.9" x="0" y="41.4" />
+        <Spot name="back" radius="0.9" x="2.4" y="41.4" />
+        <Spot name="back" radius="0.9" x="0" y="43.2" />
+        <Spot name="back" radius="0.9" x="2.4" y="43.2" />
+        <Spot name="back" radius="0.9" x="1.2" y="45" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (6) -->
+    <Formation name="merc_line6">
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (10) -->
+    <Formation name="merc_line10">
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="-3" y="2" />
+        <Spot name="front" radius="0.9" x="-1" y="2" />
+        <Spot name="front" radius="0.9" x="1" y="2" />
+        <Spot name="front" radius="0.9" x="3" y="2" />
+        <Spot name="front" radius="0.9" x="5" y="2" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (14) -->
+    <Formation name="merc_line14">
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="-5" y="2" />
+        <Spot name="front" radius="0.9" x="-3" y="2" />
+        <Spot name="front" radius="0.9" x="-1" y="2" />
+        <Spot name="front" radius="0.9" x="1" y="2" />
+        <Spot name="front" radius="0.9" x="3" y="2" />
+        <Spot name="front" radius="0.9" x="5" y="2" />
+        <Spot name="front" radius="0.9" x="7" y="2" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (18) -->
+    <Formation name="merc_line18">
+        <Spot name="front" radius="0.9" x="-8" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="10" y="0" />
+        <Spot name="front" radius="0.9" x="-7" y="2" />
+        <Spot name="front" radius="0.9" x="-5" y="2" />
+        <Spot name="front" radius="0.9" x="-3" y="2" />
+        <Spot name="front" radius="0.9" x="-1" y="2" />
+        <Spot name="front" radius="0.9" x="1" y="2" />
+        <Spot name="front" radius="0.9" x="3" y="2" />
+        <Spot name="front" radius="0.9" x="5" y="2" />
+        <Spot name="front" radius="0.9" x="7" y="2" />
+        <Spot name="front" radius="0.9" x="9" y="2" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (24) -->
+    <Formation name="merc_line24">
+        <Spot name="front" radius="0.9" x="-8" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="-8" y="2" />
+        <Spot name="front" radius="0.9" x="-6" y="2" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="front" radius="0.9" x="8" y="2" />
+        <Spot name="back" radius="0.9" x="-6" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="6" y="4" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (30) -->
+    <Formation name="merc_line30">
+        <Spot name="front" radius="0.9" x="-10" y="0" />
+        <Spot name="front" radius="0.9" x="-8" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="10" y="0" />
+        <Spot name="front" radius="0.9" x="-10" y="2" />
+        <Spot name="front" radius="0.9" x="-8" y="2" />
+        <Spot name="front" radius="0.9" x="-6" y="2" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="front" radius="0.9" x="8" y="2" />
+        <Spot name="front" radius="0.9" x="10" y="2" />
+        <Spot name="back" radius="0.9" x="-8" y="4" />
+        <Spot name="back" radius="0.9" x="-6" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="6" y="4" />
+        <Spot name="back" radius="0.9" x="8" y="4" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (40) -->
+    <Formation name="merc_line40">
+        <Spot name="front" radius="0.9" x="-12" y="0" />
+        <Spot name="front" radius="0.9" x="-10" y="0" />
+        <Spot name="front" radius="0.9" x="-8" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="10" y="0" />
+        <Spot name="front" radius="0.9" x="12" y="0" />
+        <Spot name="front" radius="0.9" x="14" y="0" />
+        <Spot name="front" radius="0.9" x="-12" y="2" />
+        <Spot name="front" radius="0.9" x="-10" y="2" />
+        <Spot name="front" radius="0.9" x="-8" y="2" />
+        <Spot name="front" radius="0.9" x="-6" y="2" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="front" radius="0.9" x="8" y="2" />
+        <Spot name="front" radius="0.9" x="10" y="2" />
+        <Spot name="front" radius="0.9" x="12" y="2" />
+        <Spot name="front" radius="0.9" x="14" y="2" />
+        <Spot name="back" radius="0.9" x="-11" y="4" />
+        <Spot name="back" radius="0.9" x="-9" y="4" />
+        <Spot name="back" radius="0.9" x="-7" y="4" />
+        <Spot name="back" radius="0.9" x="-5" y="4" />
+        <Spot name="back" radius="0.9" x="-3" y="4" />
+        <Spot name="back" radius="0.9" x="-1" y="4" />
+        <Spot name="back" radius="0.9" x="1" y="4" />
+        <Spot name="back" radius="0.9" x="3" y="4" />
+        <Spot name="back" radius="0.9" x="5" y="4" />
+        <Spot name="back" radius="0.9" x="7" y="4" />
+        <Spot name="back" radius="0.9" x="9" y="4" />
+        <Spot name="back" radius="0.9" x="11" y="4" />
+        <Spot name="back" radius="0.9" x="13" y="4" />
+    </Formation>
+
+    <!-- ranks abreast, max 8 wide - a battle line (50) -->
+    <Formation name="merc_line50">
+        <Spot name="front" radius="0.9" x="-16" y="0" />
+        <Spot name="front" radius="0.9" x="-14" y="0" />
+        <Spot name="front" radius="0.9" x="-12" y="0" />
+        <Spot name="front" radius="0.9" x="-10" y="0" />
+        <Spot name="front" radius="0.9" x="-8" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="10" y="0" />
+        <Spot name="front" radius="0.9" x="12" y="0" />
+        <Spot name="front" radius="0.9" x="14" y="0" />
+        <Spot name="front" radius="0.9" x="16" y="0" />
+        <Spot name="front" radius="0.9" x="-16" y="2" />
+        <Spot name="front" radius="0.9" x="-14" y="2" />
+        <Spot name="front" radius="0.9" x="-12" y="2" />
+        <Spot name="front" radius="0.9" x="-10" y="2" />
+        <Spot name="front" radius="0.9" x="-8" y="2" />
+        <Spot name="front" radius="0.9" x="-6" y="2" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="front" radius="0.9" x="8" y="2" />
+        <Spot name="front" radius="0.9" x="10" y="2" />
+        <Spot name="front" radius="0.9" x="12" y="2" />
+        <Spot name="front" radius="0.9" x="14" y="2" />
+        <Spot name="front" radius="0.9" x="16" y="2" />
+        <Spot name="back" radius="0.9" x="-16" y="4" />
+        <Spot name="back" radius="0.9" x="-14" y="4" />
+        <Spot name="back" radius="0.9" x="-12" y="4" />
+        <Spot name="back" radius="0.9" x="-10" y="4" />
+        <Spot name="back" radius="0.9" x="-8" y="4" />
+        <Spot name="back" radius="0.9" x="-6" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="6" y="4" />
+        <Spot name="back" radius="0.9" x="8" y="4" />
+        <Spot name="back" radius="0.9" x="10" y="4" />
+        <Spot name="back" radius="0.9" x="12" y="4" />
+        <Spot name="back" radius="0.9" x="14" y="4" />
+        <Spot name="back" radius="0.9" x="16" y="4" />
+    </Formation>
+
+    <!-- square block (6) -->
+    <Formation name="merc_square6">
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+    </Formation>
+
+    <!-- square block (10) -->
+    <Formation name="merc_square10">
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="back" radius="0.9" x="-1" y="4" />
+        <Spot name="back" radius="0.9" x="1" y="4" />
+        <Spot name="back" radius="0.9" x="3" y="4" />
+    </Formation>
+
+    <!-- square block (14) -->
+    <Formation name="merc_square14">
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="-1" y="6" />
+        <Spot name="back" radius="0.9" x="1" y="6" />
+        <Spot name="back" radius="0.9" x="3" y="6" />
+    </Formation>
+
+    <!-- square block (18) -->
+    <Formation name="merc_square18">
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="-3" y="6" />
+        <Spot name="back" radius="0.9" x="-1" y="6" />
+        <Spot name="back" radius="0.9" x="1" y="6" />
+        <Spot name="back" radius="0.9" x="3" y="6" />
+    </Formation>
+
+    <!-- square block (24) -->
+    <Formation name="merc_square24">
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="6" />
+        <Spot name="back" radius="0.9" x="-2" y="6" />
+        <Spot name="back" radius="0.9" x="0" y="6" />
+        <Spot name="back" radius="0.9" x="2" y="6" />
+        <Spot name="back" radius="0.9" x="4" y="6" />
+        <Spot name="back" radius="0.9" x="-4" y="8" />
+        <Spot name="back" radius="0.9" x="-2" y="8" />
+        <Spot name="back" radius="0.9" x="0" y="8" />
+        <Spot name="back" radius="0.9" x="2" y="8" />
+        <Spot name="back" radius="0.9" x="4" y="8" />
+    </Formation>
+
+    <!-- square block (30) -->
+    <Formation name="merc_square30">
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="6" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="6" />
+        <Spot name="back" radius="0.9" x="-2" y="6" />
+        <Spot name="back" radius="0.9" x="0" y="6" />
+        <Spot name="back" radius="0.9" x="2" y="6" />
+        <Spot name="back" radius="0.9" x="4" y="6" />
+        <Spot name="back" radius="0.9" x="6" y="6" />
+        <Spot name="back" radius="0.9" x="-4" y="8" />
+        <Spot name="back" radius="0.9" x="-2" y="8" />
+        <Spot name="back" radius="0.9" x="0" y="8" />
+        <Spot name="back" radius="0.9" x="2" y="8" />
+        <Spot name="back" radius="0.9" x="4" y="8" />
+        <Spot name="back" radius="0.9" x="6" y="8" />
+        <Spot name="back" radius="0.9" x="1" y="10" />
+    </Formation>
+
+    <!-- square block (40) -->
+    <Formation name="merc_square40">
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="2" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="back" radius="0.9" x="-6" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="6" y="4" />
+        <Spot name="back" radius="0.9" x="-6" y="6" />
+        <Spot name="back" radius="0.9" x="-4" y="6" />
+        <Spot name="back" radius="0.9" x="-2" y="6" />
+        <Spot name="back" radius="0.9" x="0" y="6" />
+        <Spot name="back" radius="0.9" x="2" y="6" />
+        <Spot name="back" radius="0.9" x="4" y="6" />
+        <Spot name="back" radius="0.9" x="6" y="6" />
+        <Spot name="back" radius="0.9" x="-6" y="8" />
+        <Spot name="back" radius="0.9" x="-4" y="8" />
+        <Spot name="back" radius="0.9" x="-2" y="8" />
+        <Spot name="back" radius="0.9" x="0" y="8" />
+        <Spot name="back" radius="0.9" x="2" y="8" />
+        <Spot name="back" radius="0.9" x="4" y="8" />
+        <Spot name="back" radius="0.9" x="6" y="8" />
+        <Spot name="back" radius="0.9" x="-5" y="10" />
+        <Spot name="back" radius="0.9" x="-3" y="10" />
+        <Spot name="back" radius="0.9" x="-1" y="10" />
+        <Spot name="back" radius="0.9" x="1" y="10" />
+        <Spot name="back" radius="0.9" x="3" y="10" />
+        <Spot name="back" radius="0.9" x="5" y="10" />
+    </Formation>
+
+    <!-- square block (50) -->
+    <Formation name="merc_square50">
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="2" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="front" radius="0.9" x="8" y="2" />
+        <Spot name="back" radius="0.9" x="-6" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="6" y="4" />
+        <Spot name="back" radius="0.9" x="8" y="4" />
+        <Spot name="back" radius="0.9" x="-6" y="6" />
+        <Spot name="back" radius="0.9" x="-4" y="6" />
+        <Spot name="back" radius="0.9" x="-2" y="6" />
+        <Spot name="back" radius="0.9" x="0" y="6" />
+        <Spot name="back" radius="0.9" x="2" y="6" />
+        <Spot name="back" radius="0.9" x="4" y="6" />
+        <Spot name="back" radius="0.9" x="6" y="6" />
+        <Spot name="back" radius="0.9" x="8" y="6" />
+        <Spot name="back" radius="0.9" x="-6" y="8" />
+        <Spot name="back" radius="0.9" x="-4" y="8" />
+        <Spot name="back" radius="0.9" x="-2" y="8" />
+        <Spot name="back" radius="0.9" x="0" y="8" />
+        <Spot name="back" radius="0.9" x="2" y="8" />
+        <Spot name="back" radius="0.9" x="4" y="8" />
+        <Spot name="back" radius="0.9" x="6" y="8" />
+        <Spot name="back" radius="0.9" x="8" y="8" />
+        <Spot name="back" radius="0.9" x="-6" y="10" />
+        <Spot name="back" radius="0.9" x="-4" y="10" />
+        <Spot name="back" radius="0.9" x="-2" y="10" />
+        <Spot name="back" radius="0.9" x="0" y="10" />
+        <Spot name="back" radius="0.9" x="2" y="10" />
+        <Spot name="back" radius="0.9" x="4" y="10" />
+        <Spot name="back" radius="0.9" x="6" y="10" />
+        <Spot name="back" radius="0.9" x="8" y="10" />
+        <Spot name="back" radius="0.9" x="-1" y="12" />
+        <Spot name="back" radius="0.9" x="1" y="12" />
+        <Spot name="back" radius="0.9" x="3" y="12" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (6) -->
+    <Formation name="merc_wedge6">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (10) -->
+    <Formation name="merc_wedge10">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2" y="3.6" />
+        <Spot name="back" radius="0.9" x="4" y="3.6" />
+        <Spot name="back" radius="0.9" x="-3" y="5.4" />
+        <Spot name="back" radius="0.9" x="-1" y="5.4" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (14) -->
+    <Formation name="merc_wedge14">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2" y="3.6" />
+        <Spot name="back" radius="0.9" x="4" y="3.6" />
+        <Spot name="back" radius="0.9" x="-3" y="5.4" />
+        <Spot name="back" radius="0.9" x="-1" y="5.4" />
+        <Spot name="back" radius="0.9" x="1" y="5.4" />
+        <Spot name="back" radius="0.9" x="3" y="5.4" />
+        <Spot name="back" radius="0.9" x="5" y="5.4" />
+        <Spot name="back" radius="0.9" x="-4" y="7.2" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (18) -->
+    <Formation name="merc_wedge18">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2" y="3.6" />
+        <Spot name="back" radius="0.9" x="4" y="3.6" />
+        <Spot name="back" radius="0.9" x="-3" y="5.4" />
+        <Spot name="back" radius="0.9" x="-1" y="5.4" />
+        <Spot name="back" radius="0.9" x="1" y="5.4" />
+        <Spot name="back" radius="0.9" x="3" y="5.4" />
+        <Spot name="back" radius="0.9" x="5" y="5.4" />
+        <Spot name="back" radius="0.9" x="-4" y="7.2" />
+        <Spot name="back" radius="0.9" x="-2" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2" y="7.2" />
+        <Spot name="back" radius="0.9" x="4" y="7.2" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (24) -->
+    <Formation name="merc_wedge24">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2" y="3.6" />
+        <Spot name="back" radius="0.9" x="4" y="3.6" />
+        <Spot name="back" radius="0.9" x="-3" y="5.4" />
+        <Spot name="back" radius="0.9" x="-1" y="5.4" />
+        <Spot name="back" radius="0.9" x="1" y="5.4" />
+        <Spot name="back" radius="0.9" x="3" y="5.4" />
+        <Spot name="back" radius="0.9" x="5" y="5.4" />
+        <Spot name="back" radius="0.9" x="-4" y="7.2" />
+        <Spot name="back" radius="0.9" x="-2" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2" y="7.2" />
+        <Spot name="back" radius="0.9" x="4" y="7.2" />
+        <Spot name="back" radius="0.9" x="6" y="7.2" />
+        <Spot name="back" radius="0.9" x="-5" y="9" />
+        <Spot name="back" radius="0.9" x="-3" y="9" />
+        <Spot name="back" radius="0.9" x="-1" y="9" />
+        <Spot name="back" radius="0.9" x="1" y="9" />
+        <Spot name="back" radius="0.9" x="3" y="9" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (30) -->
+    <Formation name="merc_wedge30">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2" y="3.6" />
+        <Spot name="back" radius="0.9" x="4" y="3.6" />
+        <Spot name="back" radius="0.9" x="-3" y="5.4" />
+        <Spot name="back" radius="0.9" x="-1" y="5.4" />
+        <Spot name="back" radius="0.9" x="1" y="5.4" />
+        <Spot name="back" radius="0.9" x="3" y="5.4" />
+        <Spot name="back" radius="0.9" x="5" y="5.4" />
+        <Spot name="back" radius="0.9" x="-4" y="7.2" />
+        <Spot name="back" radius="0.9" x="-2" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2" y="7.2" />
+        <Spot name="back" radius="0.9" x="4" y="7.2" />
+        <Spot name="back" radius="0.9" x="6" y="7.2" />
+        <Spot name="back" radius="0.9" x="-5" y="9" />
+        <Spot name="back" radius="0.9" x="-3" y="9" />
+        <Spot name="back" radius="0.9" x="-1" y="9" />
+        <Spot name="back" radius="0.9" x="1" y="9" />
+        <Spot name="back" radius="0.9" x="3" y="9" />
+        <Spot name="back" radius="0.9" x="5" y="9" />
+        <Spot name="back" radius="0.9" x="7" y="9" />
+        <Spot name="back" radius="0.9" x="-6" y="10.8" />
+        <Spot name="back" radius="0.9" x="-4" y="10.8" />
+        <Spot name="back" radius="0.9" x="-2" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (40) -->
+    <Formation name="merc_wedge40">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2" y="3.6" />
+        <Spot name="back" radius="0.9" x="4" y="3.6" />
+        <Spot name="back" radius="0.9" x="-3" y="5.4" />
+        <Spot name="back" radius="0.9" x="-1" y="5.4" />
+        <Spot name="back" radius="0.9" x="1" y="5.4" />
+        <Spot name="back" radius="0.9" x="3" y="5.4" />
+        <Spot name="back" radius="0.9" x="5" y="5.4" />
+        <Spot name="back" radius="0.9" x="-4" y="7.2" />
+        <Spot name="back" radius="0.9" x="-2" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2" y="7.2" />
+        <Spot name="back" radius="0.9" x="4" y="7.2" />
+        <Spot name="back" radius="0.9" x="6" y="7.2" />
+        <Spot name="back" radius="0.9" x="-5" y="9" />
+        <Spot name="back" radius="0.9" x="-3" y="9" />
+        <Spot name="back" radius="0.9" x="-1" y="9" />
+        <Spot name="back" radius="0.9" x="1" y="9" />
+        <Spot name="back" radius="0.9" x="3" y="9" />
+        <Spot name="back" radius="0.9" x="5" y="9" />
+        <Spot name="back" radius="0.9" x="7" y="9" />
+        <Spot name="back" radius="0.9" x="-6" y="10.8" />
+        <Spot name="back" radius="0.9" x="-4" y="10.8" />
+        <Spot name="back" radius="0.9" x="-2" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2" y="10.8" />
+        <Spot name="back" radius="0.9" x="4" y="10.8" />
+        <Spot name="back" radius="0.9" x="6" y="10.8" />
+        <Spot name="back" radius="0.9" x="8" y="10.8" />
+        <Spot name="back" radius="0.9" x="-7" y="12.6" />
+        <Spot name="back" radius="0.9" x="-5" y="12.6" />
+        <Spot name="back" radius="0.9" x="-3" y="12.6" />
+        <Spot name="back" radius="0.9" x="-1" y="12.6" />
+        <Spot name="back" radius="0.9" x="1" y="12.6" />
+        <Spot name="back" radius="0.9" x="3" y="12.6" />
+    </Formation>
+
+    <!-- filled arrowhead, leader at the tip (50) -->
+    <Formation name="merc_wedge50">
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="-1" y="1.8" />
+        <Spot name="front" radius="0.9" x="1" y="1.8" />
+        <Spot name="front" radius="0.9" x="3" y="1.8" />
+        <Spot name="back" radius="0.9" x="-2" y="3.6" />
+        <Spot name="back" radius="0.9" x="0" y="3.6" />
+        <Spot name="back" radius="0.9" x="2" y="3.6" />
+        <Spot name="back" radius="0.9" x="4" y="3.6" />
+        <Spot name="back" radius="0.9" x="-3" y="5.4" />
+        <Spot name="back" radius="0.9" x="-1" y="5.4" />
+        <Spot name="back" radius="0.9" x="1" y="5.4" />
+        <Spot name="back" radius="0.9" x="3" y="5.4" />
+        <Spot name="back" radius="0.9" x="5" y="5.4" />
+        <Spot name="back" radius="0.9" x="-4" y="7.2" />
+        <Spot name="back" radius="0.9" x="-2" y="7.2" />
+        <Spot name="back" radius="0.9" x="0" y="7.2" />
+        <Spot name="back" radius="0.9" x="2" y="7.2" />
+        <Spot name="back" radius="0.9" x="4" y="7.2" />
+        <Spot name="back" radius="0.9" x="6" y="7.2" />
+        <Spot name="back" radius="0.9" x="-5" y="9" />
+        <Spot name="back" radius="0.9" x="-3" y="9" />
+        <Spot name="back" radius="0.9" x="-1" y="9" />
+        <Spot name="back" radius="0.9" x="1" y="9" />
+        <Spot name="back" radius="0.9" x="3" y="9" />
+        <Spot name="back" radius="0.9" x="5" y="9" />
+        <Spot name="back" radius="0.9" x="7" y="9" />
+        <Spot name="back" radius="0.9" x="-6" y="10.8" />
+        <Spot name="back" radius="0.9" x="-4" y="10.8" />
+        <Spot name="back" radius="0.9" x="-2" y="10.8" />
+        <Spot name="back" radius="0.9" x="0" y="10.8" />
+        <Spot name="back" radius="0.9" x="2" y="10.8" />
+        <Spot name="back" radius="0.9" x="4" y="10.8" />
+        <Spot name="back" radius="0.9" x="6" y="10.8" />
+        <Spot name="back" radius="0.9" x="8" y="10.8" />
+        <Spot name="back" radius="0.9" x="-7" y="12.6" />
+        <Spot name="back" radius="0.9" x="-5" y="12.6" />
+        <Spot name="back" radius="0.9" x="-3" y="12.6" />
+        <Spot name="back" radius="0.9" x="-1" y="12.6" />
+        <Spot name="back" radius="0.9" x="1" y="12.6" />
+        <Spot name="back" radius="0.9" x="3" y="12.6" />
+        <Spot name="back" radius="0.9" x="5" y="12.6" />
+        <Spot name="back" radius="0.9" x="7" y="12.6" />
+        <Spot name="back" radius="0.9" x="9" y="12.6" />
+        <Spot name="back" radius="0.9" x="-8" y="14.4" />
+        <Spot name="back" radius="0.9" x="-6" y="14.4" />
+        <Spot name="back" radius="0.9" x="-4" y="14.4" />
+        <Spot name="back" radius="0.9" x="-2" y="14.4" />
+        <Spot name="back" radius="0.9" x="0" y="14.4" />
+        <Spot name="back" radius="0.9" x="2" y="14.4" />
+        <Spot name="back" radius="0.9" x="4" y="14.4" />
+    </Formation>
+
+    <!-- ring around the leader (6) -->
+    <Formation name="merc_circle6">
+        <Spot name="inner" radius="1.3" x="0" y="8.6" />
+        <Spot name="inner" radius="1.3" x="3.03" y="6.85" />
+        <Spot name="inner" radius="1.3" x="3.03" y="3.35" />
+        <Spot name="inner" radius="1.3" x="0" y="1.6" />
+        <Spot name="inner" radius="1.3" x="-3.03" y="3.35" />
+        <Spot name="inner" radius="1.3" x="-3.03" y="6.85" />
+    </Formation>
+
+    <!-- ring around the leader (10) -->
+    <Formation name="merc_circle10">
+        <Spot name="inner" radius="1.3" x="0" y="8.6" />
+        <Spot name="inner" radius="1.3" x="2.06" y="7.93" />
+        <Spot name="inner" radius="1.3" x="3.33" y="6.18" />
+        <Spot name="inner" radius="1.3" x="3.33" y="4.02" />
+        <Spot name="inner" radius="1.3" x="2.06" y="2.27" />
+        <Spot name="inner" radius="1.3" x="0" y="1.6" />
+        <Spot name="inner" radius="1.3" x="-2.06" y="2.27" />
+        <Spot name="inner" radius="1.3" x="-3.33" y="4.02" />
+        <Spot name="inner" radius="1.3" x="-3.33" y="6.18" />
+        <Spot name="inner" radius="1.3" x="-2.06" y="7.93" />
+    </Formation>
+
+    <!-- ring around the leader (14) -->
+    <Formation name="merc_circle14">
+        <Spot name="inner" radius="1.3" x="0" y="12.8" />
+        <Spot name="inner" radius="1.3" x="2.1" y="12.24" />
+        <Spot name="inner" radius="1.3" x="3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="0" y="4.4" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="-4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="12.24" />
+        <Spot name="outer" radius="1.3" x="0" y="15.6" />
+        <Spot name="outer" radius="1.3" x="0" y="1.6" />
+    </Formation>
+
+    <!-- ring around the leader (18) -->
+    <Formation name="merc_circle18">
+        <Spot name="inner" radius="1.3" x="0" y="12.8" />
+        <Spot name="inner" radius="1.3" x="2.1" y="12.24" />
+        <Spot name="inner" radius="1.3" x="3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="0" y="4.4" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="-4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="12.24" />
+        <Spot name="outer" radius="1.3" x="0" y="15.6" />
+        <Spot name="outer" radius="1.3" x="6.06" y="12.1" />
+        <Spot name="outer" radius="1.3" x="6.06" y="5.1" />
+        <Spot name="outer" radius="1.3" x="0" y="1.6" />
+        <Spot name="outer" radius="1.3" x="-6.06" y="5.1" />
+        <Spot name="outer" radius="1.3" x="-6.06" y="12.1" />
+    </Formation>
+
+    <!-- ring around the leader (24) -->
+    <Formation name="merc_circle24">
+        <Spot name="inner" radius="1.3" x="0" y="12.8" />
+        <Spot name="inner" radius="1.3" x="2.1" y="12.24" />
+        <Spot name="inner" radius="1.3" x="3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="0" y="4.4" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="-4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="12.24" />
+        <Spot name="outer" radius="1.3" x="0" y="15.6" />
+        <Spot name="outer" radius="1.3" x="3.5" y="14.66" />
+        <Spot name="outer" radius="1.3" x="6.06" y="12.1" />
+        <Spot name="outer" radius="1.3" x="7" y="8.6" />
+        <Spot name="outer" radius="1.3" x="6.06" y="5.1" />
+        <Spot name="outer" radius="1.3" x="3.5" y="2.54" />
+        <Spot name="outer" radius="1.3" x="0" y="1.6" />
+        <Spot name="outer" radius="1.3" x="-3.5" y="2.54" />
+        <Spot name="outer" radius="1.3" x="-6.06" y="5.1" />
+        <Spot name="outer" radius="1.3" x="-7" y="8.6" />
+        <Spot name="outer" radius="1.3" x="-6.06" y="12.1" />
+        <Spot name="outer" radius="1.3" x="-3.5" y="14.66" />
+    </Formation>
+
+    <!-- ring around the leader (30) -->
+    <Formation name="merc_circle30">
+        <Spot name="inner" radius="1.3" x="0" y="12.8" />
+        <Spot name="inner" radius="1.3" x="2.1" y="12.24" />
+        <Spot name="inner" radius="1.3" x="3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="0" y="4.4" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="-4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="12.24" />
+        <Spot name="outer" radius="1.3" x="0" y="15.6" />
+        <Spot name="outer" radius="1.3" x="2.39" y="15.18" />
+        <Spot name="outer" radius="1.3" x="4.5" y="13.96" />
+        <Spot name="outer" radius="1.3" x="6.06" y="12.1" />
+        <Spot name="outer" radius="1.3" x="6.89" y="9.82" />
+        <Spot name="outer" radius="1.3" x="6.89" y="7.38" />
+        <Spot name="outer" radius="1.3" x="6.06" y="5.1" />
+        <Spot name="outer" radius="1.3" x="4.5" y="3.24" />
+        <Spot name="outer" radius="1.3" x="2.39" y="2.02" />
+        <Spot name="outer" radius="1.3" x="0" y="1.6" />
+        <Spot name="outer" radius="1.3" x="-2.39" y="2.02" />
+        <Spot name="outer" radius="1.3" x="-4.5" y="3.24" />
+        <Spot name="outer" radius="1.3" x="-6.06" y="5.1" />
+        <Spot name="outer" radius="1.3" x="-6.89" y="7.38" />
+        <Spot name="outer" radius="1.3" x="-6.89" y="9.82" />
+        <Spot name="outer" radius="1.3" x="-6.06" y="12.1" />
+        <Spot name="outer" radius="1.3" x="-4.5" y="13.96" />
+        <Spot name="outer" radius="1.3" x="-2.39" y="15.18" />
+    </Formation>
+
+    <!-- ring around the leader (40) -->
+    <Formation name="merc_circle40">
+        <Spot name="inner" radius="1.3" x="0" y="12.8" />
+        <Spot name="inner" radius="1.3" x="2.1" y="12.24" />
+        <Spot name="inner" radius="1.3" x="3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="0" y="4.4" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="-4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="12.24" />
+        <Spot name="outer" radius="1.3" x="0" y="15.6" />
+        <Spot name="outer" radius="1.3" x="1.56" y="15.42" />
+        <Spot name="outer" radius="1.3" x="3.04" y="14.91" />
+        <Spot name="outer" radius="1.3" x="4.36" y="14.07" />
+        <Spot name="outer" radius="1.3" x="5.47" y="12.96" />
+        <Spot name="outer" radius="1.3" x="6.31" y="11.64" />
+        <Spot name="outer" radius="1.3" x="6.82" y="10.16" />
+        <Spot name="outer" radius="1.3" x="7" y="8.6" />
+        <Spot name="outer" radius="1.3" x="6.82" y="7.04" />
+        <Spot name="outer" radius="1.3" x="6.31" y="5.56" />
+        <Spot name="outer" radius="1.3" x="5.47" y="4.24" />
+        <Spot name="outer" radius="1.3" x="4.36" y="3.13" />
+        <Spot name="outer" radius="1.3" x="3.04" y="2.29" />
+        <Spot name="outer" radius="1.3" x="1.56" y="1.78" />
+        <Spot name="outer" radius="1.3" x="0" y="1.6" />
+        <Spot name="outer" radius="1.3" x="-1.56" y="1.78" />
+        <Spot name="outer" radius="1.3" x="-3.04" y="2.29" />
+        <Spot name="outer" radius="1.3" x="-4.36" y="3.13" />
+        <Spot name="outer" radius="1.3" x="-5.47" y="4.24" />
+        <Spot name="outer" radius="1.3" x="-6.31" y="5.56" />
+        <Spot name="outer" radius="1.3" x="-6.82" y="7.04" />
+        <Spot name="outer" radius="1.3" x="-7" y="8.6" />
+        <Spot name="outer" radius="1.3" x="-6.82" y="10.16" />
+        <Spot name="outer" radius="1.3" x="-6.31" y="11.64" />
+        <Spot name="outer" radius="1.3" x="-5.47" y="12.96" />
+        <Spot name="outer" radius="1.3" x="-4.36" y="14.07" />
+        <Spot name="outer" radius="1.3" x="-3.04" y="14.91" />
+        <Spot name="outer" radius="1.3" x="-1.56" y="15.42" />
+    </Formation>
+
+    <!-- ring around the leader (50) -->
+    <Formation name="merc_circle50">
+        <Spot name="inner" radius="1.3" x="0" y="12.8" />
+        <Spot name="inner" radius="1.3" x="2.1" y="12.24" />
+        <Spot name="inner" radius="1.3" x="3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="0" y="4.4" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="4.96" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="6.5" />
+        <Spot name="inner" radius="1.3" x="-4.2" y="8.6" />
+        <Spot name="inner" radius="1.3" x="-3.64" y="10.7" />
+        <Spot name="inner" radius="1.3" x="-2.1" y="12.24" />
+        <Spot name="outer" radius="1.3" x="0" y="15.6" />
+        <Spot name="outer" radius="1.3" x="1.15" y="15.5" />
+        <Spot name="outer" radius="1.3" x="2.27" y="15.22" />
+        <Spot name="outer" radius="1.3" x="3.33" y="14.76" />
+        <Spot name="outer" radius="1.3" x="4.3" y="14.12" />
+        <Spot name="outer" radius="1.3" x="5.15" y="13.34" />
+        <Spot name="outer" radius="1.3" x="5.86" y="12.43" />
+        <Spot name="outer" radius="1.3" x="6.41" y="11.41" />
+        <Spot name="outer" radius="1.3" x="6.79" y="10.32" />
+        <Spot name="outer" radius="1.3" x="6.98" y="9.18" />
+        <Spot name="outer" radius="1.3" x="6.98" y="8.02" />
+        <Spot name="outer" radius="1.3" x="6.79" y="6.88" />
+        <Spot name="outer" radius="1.3" x="6.41" y="5.79" />
+        <Spot name="outer" radius="1.3" x="5.86" y="4.77" />
+        <Spot name="outer" radius="1.3" x="5.15" y="3.86" />
+        <Spot name="outer" radius="1.3" x="4.3" y="3.08" />
+        <Spot name="outer" radius="1.3" x="3.33" y="2.44" />
+        <Spot name="outer" radius="1.3" x="2.27" y="1.98" />
+        <Spot name="outer" radius="1.3" x="1.15" y="1.7" />
+        <Spot name="outer" radius="1.3" x="0" y="1.6" />
+        <Spot name="outer" radius="1.3" x="-1.15" y="1.7" />
+        <Spot name="outer" radius="1.3" x="-2.27" y="1.98" />
+        <Spot name="outer" radius="1.3" x="-3.33" y="2.44" />
+        <Spot name="outer" radius="1.3" x="-4.3" y="3.08" />
+        <Spot name="outer" radius="1.3" x="-5.15" y="3.86" />
+        <Spot name="outer" radius="1.3" x="-5.86" y="4.77" />
+        <Spot name="outer" radius="1.3" x="-6.41" y="5.79" />
+        <Spot name="outer" radius="1.3" x="-6.79" y="6.88" />
+        <Spot name="outer" radius="1.3" x="-6.98" y="8.02" />
+        <Spot name="outer" radius="1.3" x="-6.98" y="9.18" />
+        <Spot name="outer" radius="1.3" x="-6.79" y="10.32" />
+        <Spot name="outer" radius="1.3" x="-6.41" y="11.41" />
+        <Spot name="outer" radius="1.3" x="-5.86" y="12.43" />
+        <Spot name="outer" radius="1.3" x="-5.15" y="13.34" />
+        <Spot name="outer" radius="1.3" x="-4.3" y="14.12" />
+        <Spot name="outer" radius="1.3" x="-3.33" y="14.76" />
+        <Spot name="outer" radius="1.3" x="-2.27" y="15.22" />
+        <Spot name="outer" radius="1.3" x="-1.15" y="15.5" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (6) -->
+    <Formation name="merc_escort6">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (10) -->
+    <Formation name="merc_escort10">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+        <Spot name="left" radius="1.3" x="-4" y="7.6" />
+        <Spot name="right" radius="1.3" x="4" y="7.6" />
+        <Spot name="left" radius="1.3" x="-4" y="9.6" />
+        <Spot name="right" radius="1.3" x="4" y="9.6" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (14) -->
+    <Formation name="merc_escort14">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+        <Spot name="left" radius="1.3" x="-4" y="7.6" />
+        <Spot name="right" radius="1.3" x="4" y="7.6" />
+        <Spot name="left" radius="1.3" x="-4" y="9.6" />
+        <Spot name="right" radius="1.3" x="4" y="9.6" />
+        <Spot name="left" radius="1.3" x="-4" y="11.6" />
+        <Spot name="right" radius="1.3" x="4" y="11.6" />
+        <Spot name="left" radius="1.3" x="-4" y="13.6" />
+        <Spot name="right" radius="1.3" x="4" y="13.6" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (18) -->
+    <Formation name="merc_escort18">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+        <Spot name="left" radius="1.3" x="-4" y="7.6" />
+        <Spot name="right" radius="1.3" x="4" y="7.6" />
+        <Spot name="left" radius="1.3" x="-4" y="9.6" />
+        <Spot name="right" radius="1.3" x="4" y="9.6" />
+        <Spot name="left" radius="1.3" x="-4" y="11.6" />
+        <Spot name="right" radius="1.3" x="4" y="11.6" />
+        <Spot name="left" radius="1.3" x="-4" y="13.6" />
+        <Spot name="right" radius="1.3" x="4" y="13.6" />
+        <Spot name="left" radius="1.3" x="-4" y="15.6" />
+        <Spot name="right" radius="1.3" x="4" y="15.6" />
+        <Spot name="left" radius="1.3" x="-4" y="17.6" />
+        <Spot name="right" radius="1.3" x="4" y="17.6" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (24) -->
+    <Formation name="merc_escort24">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+        <Spot name="left" radius="1.3" x="-4" y="7.6" />
+        <Spot name="right" radius="1.3" x="4" y="7.6" />
+        <Spot name="left" radius="1.3" x="-4" y="9.6" />
+        <Spot name="right" radius="1.3" x="4" y="9.6" />
+        <Spot name="left" radius="1.3" x="-4" y="11.6" />
+        <Spot name="right" radius="1.3" x="4" y="11.6" />
+        <Spot name="left" radius="1.3" x="-4" y="13.6" />
+        <Spot name="right" radius="1.3" x="4" y="13.6" />
+        <Spot name="left" radius="1.3" x="-4" y="15.6" />
+        <Spot name="right" radius="1.3" x="4" y="15.6" />
+        <Spot name="left" radius="1.3" x="-4" y="17.6" />
+        <Spot name="right" radius="1.3" x="4" y="17.6" />
+        <Spot name="left" radius="1.3" x="-4" y="19.6" />
+        <Spot name="right" radius="1.3" x="4" y="19.6" />
+        <Spot name="left" radius="1.3" x="-4" y="21.6" />
+        <Spot name="right" radius="1.3" x="4" y="21.6" />
+        <Spot name="left" radius="1.3" x="-4" y="23.6" />
+        <Spot name="right" radius="1.3" x="4" y="23.6" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (30) -->
+    <Formation name="merc_escort30">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+        <Spot name="left" radius="1.3" x="-4" y="7.6" />
+        <Spot name="right" radius="1.3" x="4" y="7.6" />
+        <Spot name="left" radius="1.3" x="-4" y="9.6" />
+        <Spot name="right" radius="1.3" x="4" y="9.6" />
+        <Spot name="left" radius="1.3" x="-4" y="11.6" />
+        <Spot name="right" radius="1.3" x="4" y="11.6" />
+        <Spot name="left" radius="1.3" x="-4" y="13.6" />
+        <Spot name="right" radius="1.3" x="4" y="13.6" />
+        <Spot name="left" radius="1.3" x="-4" y="15.6" />
+        <Spot name="right" radius="1.3" x="4" y="15.6" />
+        <Spot name="left" radius="1.3" x="-4" y="17.6" />
+        <Spot name="right" radius="1.3" x="4" y="17.6" />
+        <Spot name="left" radius="1.3" x="-4" y="19.6" />
+        <Spot name="right" radius="1.3" x="4" y="19.6" />
+        <Spot name="left" radius="1.3" x="-4" y="21.6" />
+        <Spot name="right" radius="1.3" x="4" y="21.6" />
+        <Spot name="left" radius="1.3" x="-4" y="23.6" />
+        <Spot name="right" radius="1.3" x="4" y="23.6" />
+        <Spot name="left" radius="1.3" x="-4" y="25.6" />
+        <Spot name="right" radius="1.3" x="4" y="25.6" />
+        <Spot name="left" radius="1.3" x="-4" y="27.6" />
+        <Spot name="right" radius="1.3" x="4" y="27.6" />
+        <Spot name="left" radius="1.3" x="-4" y="29.6" />
+        <Spot name="right" radius="1.3" x="4" y="29.6" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (40) -->
+    <Formation name="merc_escort40">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+        <Spot name="left" radius="1.3" x="-4" y="7.6" />
+        <Spot name="right" radius="1.3" x="4" y="7.6" />
+        <Spot name="left" radius="1.3" x="-4" y="9.6" />
+        <Spot name="right" radius="1.3" x="4" y="9.6" />
+        <Spot name="left" radius="1.3" x="-4" y="11.6" />
+        <Spot name="right" radius="1.3" x="4" y="11.6" />
+        <Spot name="left" radius="1.3" x="-4" y="13.6" />
+        <Spot name="right" radius="1.3" x="4" y="13.6" />
+        <Spot name="left" radius="1.3" x="-4" y="15.6" />
+        <Spot name="right" radius="1.3" x="4" y="15.6" />
+        <Spot name="left" radius="1.3" x="-4" y="17.6" />
+        <Spot name="right" radius="1.3" x="4" y="17.6" />
+        <Spot name="left" radius="1.3" x="-4" y="19.6" />
+        <Spot name="right" radius="1.3" x="4" y="19.6" />
+        <Spot name="left" radius="1.3" x="-4" y="21.6" />
+        <Spot name="right" radius="1.3" x="4" y="21.6" />
+        <Spot name="left" radius="1.3" x="-4" y="23.6" />
+        <Spot name="right" radius="1.3" x="4" y="23.6" />
+        <Spot name="left" radius="1.3" x="-4" y="25.6" />
+        <Spot name="right" radius="1.3" x="4" y="25.6" />
+        <Spot name="left" radius="1.3" x="-4" y="27.6" />
+        <Spot name="right" radius="1.3" x="4" y="27.6" />
+        <Spot name="left" radius="1.3" x="-4" y="29.6" />
+        <Spot name="right" radius="1.3" x="4" y="29.6" />
+        <Spot name="left" radius="1.3" x="-4" y="31.6" />
+        <Spot name="right" radius="1.3" x="4" y="31.6" />
+        <Spot name="left" radius="1.3" x="-4" y="33.6" />
+        <Spot name="right" radius="1.3" x="4" y="33.6" />
+        <Spot name="left" radius="1.3" x="-4" y="35.6" />
+        <Spot name="right" radius="1.3" x="4" y="35.6" />
+        <Spot name="left" radius="1.3" x="-4" y="37.6" />
+        <Spot name="right" radius="1.3" x="4" y="37.6" />
+        <Spot name="left" radius="1.3" x="-4" y="39.6" />
+        <Spot name="right" radius="1.3" x="4" y="39.6" />
+    </Formation>
+
+    <!-- two flanking files, middle left open (50) -->
+    <Formation name="merc_escort50">
+        <Spot name="left" radius="1.3" x="-4" y="1.6" />
+        <Spot name="right" radius="1.3" x="4" y="1.6" />
+        <Spot name="left" radius="1.3" x="-4" y="3.6" />
+        <Spot name="right" radius="1.3" x="4" y="3.6" />
+        <Spot name="left" radius="1.3" x="-4" y="5.6" />
+        <Spot name="right" radius="1.3" x="4" y="5.6" />
+        <Spot name="left" radius="1.3" x="-4" y="7.6" />
+        <Spot name="right" radius="1.3" x="4" y="7.6" />
+        <Spot name="left" radius="1.3" x="-4" y="9.6" />
+        <Spot name="right" radius="1.3" x="4" y="9.6" />
+        <Spot name="left" radius="1.3" x="-4" y="11.6" />
+        <Spot name="right" radius="1.3" x="4" y="11.6" />
+        <Spot name="left" radius="1.3" x="-4" y="13.6" />
+        <Spot name="right" radius="1.3" x="4" y="13.6" />
+        <Spot name="left" radius="1.3" x="-4" y="15.6" />
+        <Spot name="right" radius="1.3" x="4" y="15.6" />
+        <Spot name="left" radius="1.3" x="-4" y="17.6" />
+        <Spot name="right" radius="1.3" x="4" y="17.6" />
+        <Spot name="left" radius="1.3" x="-4" y="19.6" />
+        <Spot name="right" radius="1.3" x="4" y="19.6" />
+        <Spot name="left" radius="1.3" x="-4" y="21.6" />
+        <Spot name="right" radius="1.3" x="4" y="21.6" />
+        <Spot name="left" radius="1.3" x="-4" y="23.6" />
+        <Spot name="right" radius="1.3" x="4" y="23.6" />
+        <Spot name="left" radius="1.3" x="-4" y="25.6" />
+        <Spot name="right" radius="1.3" x="4" y="25.6" />
+        <Spot name="left" radius="1.3" x="-4" y="27.6" />
+        <Spot name="right" radius="1.3" x="4" y="27.6" />
+        <Spot name="left" radius="1.3" x="-4" y="29.6" />
+        <Spot name="right" radius="1.3" x="4" y="29.6" />
+        <Spot name="left" radius="1.3" x="-4" y="31.6" />
+        <Spot name="right" radius="1.3" x="4" y="31.6" />
+        <Spot name="left" radius="1.3" x="-4" y="33.6" />
+        <Spot name="right" radius="1.3" x="4" y="33.6" />
+        <Spot name="left" radius="1.3" x="-4" y="35.6" />
+        <Spot name="right" radius="1.3" x="4" y="35.6" />
+        <Spot name="left" radius="1.3" x="-4" y="37.6" />
+        <Spot name="right" radius="1.3" x="4" y="37.6" />
+        <Spot name="left" radius="1.3" x="-4" y="39.6" />
+        <Spot name="right" radius="1.3" x="4" y="39.6" />
+        <Spot name="left" radius="1.3" x="-4" y="41.6" />
+        <Spot name="right" radius="1.3" x="4" y="41.6" />
+        <Spot name="left" radius="1.3" x="-4" y="43.6" />
+        <Spot name="right" radius="1.3" x="4" y="43.6" />
+        <Spot name="left" radius="1.3" x="-4" y="45.6" />
+        <Spot name="right" radius="1.3" x="4" y="45.6" />
+        <Spot name="left" radius="1.3" x="-4" y="47.6" />
+        <Spot name="right" radius="1.3" x="4" y="47.6" />
+        <Spot name="left" radius="1.3" x="-4" y="49.6" />
+        <Spot name="right" radius="1.3" x="4" y="49.6" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (6) -->
+    <Formation name="merc_mounted6">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (10) -->
+    <Formation name="merc_mounted10">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+        <Spot name="rank3" radius="1.8" x="0" y="8" />
+        <Spot name="rank3" radius="1.8" x="3.5" y="8" />
+        <Spot name="rank4" radius="1.8" x="-3.5" y="12" />
+        <Spot name="rank4" radius="1.8" x="0" y="12" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (14) -->
+    <Formation name="merc_mounted14">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+        <Spot name="rank3" radius="1.8" x="0" y="8" />
+        <Spot name="rank3" radius="1.8" x="3.5" y="8" />
+        <Spot name="rank4" radius="1.8" x="-3.5" y="12" />
+        <Spot name="rank4" radius="1.8" x="0" y="12" />
+        <Spot name="rank4" radius="1.8" x="3.5" y="12" />
+        <Spot name="rank5" radius="1.8" x="-3.5" y="16" />
+        <Spot name="rank5" radius="1.8" x="0" y="16" />
+        <Spot name="rank5" radius="1.8" x="3.5" y="16" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (18) -->
+    <Formation name="merc_mounted18">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+        <Spot name="rank3" radius="1.8" x="0" y="8" />
+        <Spot name="rank3" radius="1.8" x="3.5" y="8" />
+        <Spot name="rank4" radius="1.8" x="-3.5" y="12" />
+        <Spot name="rank4" radius="1.8" x="0" y="12" />
+        <Spot name="rank4" radius="1.8" x="3.5" y="12" />
+        <Spot name="rank5" radius="1.8" x="-3.5" y="16" />
+        <Spot name="rank5" radius="1.8" x="0" y="16" />
+        <Spot name="rank5" radius="1.8" x="3.5" y="16" />
+        <Spot name="rank6" radius="1.8" x="-3.5" y="20" />
+        <Spot name="rank6" radius="1.8" x="0" y="20" />
+        <Spot name="rank6" radius="1.8" x="3.5" y="20" />
+        <Spot name="rank7" radius="1.8" x="-3.5" y="24" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (24) -->
+    <Formation name="merc_mounted24">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+        <Spot name="rank3" radius="1.8" x="0" y="8" />
+        <Spot name="rank3" radius="1.8" x="3.5" y="8" />
+        <Spot name="rank4" radius="1.8" x="-3.5" y="12" />
+        <Spot name="rank4" radius="1.8" x="0" y="12" />
+        <Spot name="rank4" radius="1.8" x="3.5" y="12" />
+        <Spot name="rank5" radius="1.8" x="-3.5" y="16" />
+        <Spot name="rank5" radius="1.8" x="0" y="16" />
+        <Spot name="rank5" radius="1.8" x="3.5" y="16" />
+        <Spot name="rank6" radius="1.8" x="-3.5" y="20" />
+        <Spot name="rank6" radius="1.8" x="0" y="20" />
+        <Spot name="rank6" radius="1.8" x="3.5" y="20" />
+        <Spot name="rank7" radius="1.8" x="-3.5" y="24" />
+        <Spot name="rank7" radius="1.8" x="0" y="24" />
+        <Spot name="rank7" radius="1.8" x="3.5" y="24" />
+        <Spot name="rank8" radius="1.8" x="-3.5" y="28" />
+        <Spot name="rank8" radius="1.8" x="0" y="28" />
+        <Spot name="rank8" radius="1.8" x="3.5" y="28" />
+        <Spot name="rank9" radius="1.8" x="-3.5" y="32" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (30) -->
+    <Formation name="merc_mounted30">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+        <Spot name="rank3" radius="1.8" x="0" y="8" />
+        <Spot name="rank3" radius="1.8" x="3.5" y="8" />
+        <Spot name="rank4" radius="1.8" x="-3.5" y="12" />
+        <Spot name="rank4" radius="1.8" x="0" y="12" />
+        <Spot name="rank4" radius="1.8" x="3.5" y="12" />
+        <Spot name="rank5" radius="1.8" x="-3.5" y="16" />
+        <Spot name="rank5" radius="1.8" x="0" y="16" />
+        <Spot name="rank5" radius="1.8" x="3.5" y="16" />
+        <Spot name="rank6" radius="1.8" x="-3.5" y="20" />
+        <Spot name="rank6" radius="1.8" x="0" y="20" />
+        <Spot name="rank6" radius="1.8" x="3.5" y="20" />
+        <Spot name="rank7" radius="1.8" x="-3.5" y="24" />
+        <Spot name="rank7" radius="1.8" x="0" y="24" />
+        <Spot name="rank7" radius="1.8" x="3.5" y="24" />
+        <Spot name="rank8" radius="1.8" x="-3.5" y="28" />
+        <Spot name="rank8" radius="1.8" x="0" y="28" />
+        <Spot name="rank8" radius="1.8" x="3.5" y="28" />
+        <Spot name="rank9" radius="1.8" x="-3.5" y="32" />
+        <Spot name="rank9" radius="1.8" x="0" y="32" />
+        <Spot name="rank9" radius="1.8" x="3.5" y="32" />
+        <Spot name="rank10" radius="1.8" x="-3.5" y="36" />
+        <Spot name="rank10" radius="1.8" x="0" y="36" />
+        <Spot name="rank10" radius="1.8" x="3.5" y="36" />
+        <Spot name="rank11" radius="1.8" x="-3.5" y="40" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (40) -->
+    <Formation name="merc_mounted40">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+        <Spot name="rank3" radius="1.8" x="0" y="8" />
+        <Spot name="rank3" radius="1.8" x="3.5" y="8" />
+        <Spot name="rank4" radius="1.8" x="-3.5" y="12" />
+        <Spot name="rank4" radius="1.8" x="0" y="12" />
+        <Spot name="rank4" radius="1.8" x="3.5" y="12" />
+        <Spot name="rank5" radius="1.8" x="-3.5" y="16" />
+        <Spot name="rank5" radius="1.8" x="0" y="16" />
+        <Spot name="rank5" radius="1.8" x="3.5" y="16" />
+        <Spot name="rank6" radius="1.8" x="-3.5" y="20" />
+        <Spot name="rank6" radius="1.8" x="0" y="20" />
+        <Spot name="rank6" radius="1.8" x="3.5" y="20" />
+        <Spot name="rank7" radius="1.8" x="-3.5" y="24" />
+        <Spot name="rank7" radius="1.8" x="0" y="24" />
+        <Spot name="rank7" radius="1.8" x="3.5" y="24" />
+        <Spot name="rank8" radius="1.8" x="-3.5" y="28" />
+        <Spot name="rank8" radius="1.8" x="0" y="28" />
+        <Spot name="rank8" radius="1.8" x="3.5" y="28" />
+        <Spot name="rank9" radius="1.8" x="-3.5" y="32" />
+        <Spot name="rank9" radius="1.8" x="0" y="32" />
+        <Spot name="rank9" radius="1.8" x="3.5" y="32" />
+        <Spot name="rank10" radius="1.8" x="-3.5" y="36" />
+        <Spot name="rank10" radius="1.8" x="0" y="36" />
+        <Spot name="rank10" radius="1.8" x="3.5" y="36" />
+        <Spot name="rank11" radius="1.8" x="-3.5" y="40" />
+        <Spot name="rank11" radius="1.8" x="0" y="40" />
+        <Spot name="rank11" radius="1.8" x="3.5" y="40" />
+        <Spot name="rank12" radius="1.8" x="-3.5" y="44" />
+        <Spot name="rank12" radius="1.8" x="0" y="44" />
+        <Spot name="rank12" radius="1.8" x="3.5" y="44" />
+        <Spot name="rank13" radius="1.8" x="-3.5" y="48" />
+        <Spot name="rank13" radius="1.8" x="0" y="48" />
+        <Spot name="rank13" radius="1.8" x="3.5" y="48" />
+        <Spot name="rank14" radius="1.8" x="-3.5" y="52" />
+        <Spot name="rank14" radius="1.8" x="0" y="52" />
+    </Formation>
+
+    <!-- triple column at horse spacing - the one mounted shape (50) -->
+    <Formation name="merc_mounted50">
+        <Spot name="rank1" radius="1.8" x="-3.5" y="0" />
+        <Spot name="rank1" radius="1.8" x="3.5" y="0" />
+        <Spot name="rank2" radius="1.8" x="-3.5" y="4" />
+        <Spot name="rank2" radius="1.8" x="0" y="4" />
+        <Spot name="rank2" radius="1.8" x="3.5" y="4" />
+        <Spot name="rank3" radius="1.8" x="-3.5" y="8" />
+        <Spot name="rank3" radius="1.8" x="0" y="8" />
+        <Spot name="rank3" radius="1.8" x="3.5" y="8" />
+        <Spot name="rank4" radius="1.8" x="-3.5" y="12" />
+        <Spot name="rank4" radius="1.8" x="0" y="12" />
+        <Spot name="rank4" radius="1.8" x="3.5" y="12" />
+        <Spot name="rank5" radius="1.8" x="-3.5" y="16" />
+        <Spot name="rank5" radius="1.8" x="0" y="16" />
+        <Spot name="rank5" radius="1.8" x="3.5" y="16" />
+        <Spot name="rank6" radius="1.8" x="-3.5" y="20" />
+        <Spot name="rank6" radius="1.8" x="0" y="20" />
+        <Spot name="rank6" radius="1.8" x="3.5" y="20" />
+        <Spot name="rank7" radius="1.8" x="-3.5" y="24" />
+        <Spot name="rank7" radius="1.8" x="0" y="24" />
+        <Spot name="rank7" radius="1.8" x="3.5" y="24" />
+        <Spot name="rank8" radius="1.8" x="-3.5" y="28" />
+        <Spot name="rank8" radius="1.8" x="0" y="28" />
+        <Spot name="rank8" radius="1.8" x="3.5" y="28" />
+        <Spot name="rank9" radius="1.8" x="-3.5" y="32" />
+        <Spot name="rank9" radius="1.8" x="0" y="32" />
+        <Spot name="rank9" radius="1.8" x="3.5" y="32" />
+        <Spot name="rank10" radius="1.8" x="-3.5" y="36" />
+        <Spot name="rank10" radius="1.8" x="0" y="36" />
+        <Spot name="rank10" radius="1.8" x="3.5" y="36" />
+        <Spot name="rank11" radius="1.8" x="-3.5" y="40" />
+        <Spot name="rank11" radius="1.8" x="0" y="40" />
+        <Spot name="rank11" radius="1.8" x="3.5" y="40" />
+        <Spot name="rank12" radius="1.8" x="-3.5" y="44" />
+        <Spot name="rank12" radius="1.8" x="0" y="44" />
+        <Spot name="rank12" radius="1.8" x="3.5" y="44" />
+        <Spot name="rank13" radius="1.8" x="-3.5" y="48" />
+        <Spot name="rank13" radius="1.8" x="0" y="48" />
+        <Spot name="rank13" radius="1.8" x="3.5" y="48" />
+        <Spot name="rank14" radius="1.8" x="-3.5" y="52" />
+        <Spot name="rank14" radius="1.8" x="0" y="52" />
+        <Spot name="rank14" radius="1.8" x="3.5" y="52" />
+        <Spot name="rank15" radius="1.8" x="-3.5" y="56" />
+        <Spot name="rank15" radius="1.8" x="0" y="56" />
+        <Spot name="rank15" radius="1.8" x="3.5" y="56" />
+        <Spot name="rank16" radius="1.8" x="-3.5" y="60" />
+        <Spot name="rank16" radius="1.8" x="0" y="60" />
+        <Spot name="rank16" radius="1.8" x="3.5" y="60" />
+        <Spot name="rank17" radius="1.8" x="-3.5" y="64" />
+        <Spot name="rank17" radius="1.8" x="0" y="64" />
+        <Spot name="rank17" radius="1.8" x="3.5" y="64" />
+    </Formation>
+
+</FormationDefinitions>

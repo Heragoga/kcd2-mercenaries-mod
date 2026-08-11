@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Isolation test. This tree does NOTHING except log a heartbeat every 5s - no
+         ScanForEnemies, no combat_melee, no follow, no crime/interrupt calls of any kind.
+         Combined with brain2subbrain__mercenaries.xml wiring THIS as the only subbrain
+         (no vanilla npc_basic_scheduler/npc_basic_switch), a soul on isolation_test_brain
+         has zero AI of its own, from us or from vanilla. If it still gets engaged or attacks
+         anything once injected into a quest's hostile SoulArray, that behaviour is coming
+         from outside the brain system entirely. See docs/malesov-structure.md. -->
+    <BehaviorTree name="onUpdate" is_function="0">
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <SuppressFailure>
+                    <Loop count="-1">
+                        <Sequence>
+                            <ExecuteLua code="System.LogAlways('[IsolationTest] heartbeat, no AI of any kind is running')" />
+                            <Wait duration="'5s'" timeType="GameTime" doFail="false" variation="'0s'" />
+                        </Sequence>
+                    </Loop>
+                </SuppressFailure>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

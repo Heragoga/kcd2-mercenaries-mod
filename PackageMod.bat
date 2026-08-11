@@ -36,6 +36,7 @@ echo       Done.
 :: ------------------------------------------------------------
 echo [2/5] Copying mod.manifest...
 copy /y "%REPO_ROOT%\mod.manifest" "%OUT_DIR%\mod.manifest" >nul
+copy /y "%REPO_ROOT%\mod.cfg" "%OUT_DIR%\mod.cfg" >nul
 echo       Done.
 
 :: ------------------------------------------------------------
