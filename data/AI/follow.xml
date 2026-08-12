@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <BehaviorTrees>
     <!-- Follow module. Two ways to follow, chosen per merc by Lua:
-           * SLOT FORMATION (on foot, the default). Lua gives each merc a world
-             position from the PLAYER's position and heading, and the merc runs one
-             continuous Move at it. See docs/slot-formation.md.
-           * FOLLOW CHAIN (mounted, waiting, NPC-led patrols, and any merc with no
-             slot). Target comes from CalculateFormationTarget: NpcFormations first,
-             then the player-squad FormationSlots chain, then the player.
-         The chain is the slot system's fallback - every path that leaves a merc
-         without a slot drops through to it rather than standing still.
+           * FORMATION (the default, on foot and mounted). One merc is elected
+             leader: a sibling loop below holds the formation open while he leads,
+             he follows the player, and everyone else FormationFollowers off him.
+             See docs/formations.md.
+           * FOLLOW CHAIN (waiting, NPC-led patrols, near a walled camp, and any
+             merc the formation cannot seat). Target comes from
+             CalculateFormationTarget: NpcFormations first, then the player-squad
+             FormationSlots chain, then the player.
+         The chain is the formation's fallback - every path that leaves a merc
+         without a formation handle drops through to it rather than standing still,
+         and every CrimeFollower here is time-boxed so a merc can always be
+         reclaimed into the formation.
          Also owns the horse lifecycle for mounted following and the order-bark
          consumer. Camp roles moved to camp_actor.xml. See docs/ai-modules.md. -->
     <BehaviorTree name="follow" is_function="0">
@@ -25,15 +29,6 @@
             <Variable name="despawnCountdown" type="_int" values="3" isPersistent="0" form="single" />
             <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms')" isPersistent="0" form="single" />
             <Variable name="mountedDistToTarget" type="_float" values="0" isPersistent="0" form="single" />
-            <!-- Slot formation (docs/slot-formation.md). Lua rewrites slotPos IN PLACE
-                 every ~150ms; destChangedThreshold retargets the running Move rather
-                 than re-issuing it, so the merc corners smoothly and never stops
-                 between legs. Same mechanism as nav_goto.xml. -->
-            <Variable name="slotPos" type="vec3" values="" isPersistent="0" form="single" />
-            <Variable name="hasSlot" type="_bool" values="false" isPersistent="0" form="single" />
-            <Variable name="slotIndex" type="_int" values="-1" isPersistent="0" form="single" />
-            <Variable name="slotChangeState" type="_bool" values="false" isPersistent="0" form="single" />
-            <Variable name="MoveParams_slot" type="additionalMoveParams" values="destChangedThreshold('150ms')" isPersistent="0" form="single" />
             <!-- Engine formation (docs/formations.md). One merc is elected to run
                  MakeFormation and follow the player; the rest FormationFollower off
                  him. Kept deliberately dumb: the leader is latched and the preset is
@@ -70,6 +65,7 @@
                             <Sequence>
                                 <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                 <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
+                                <ExecuteLua code="mercenaries:UpdateFormationRole(data, entity.this.id)" />
                                 <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
@@ -127,18 +123,6 @@
                                         <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
                                     </SuppressFailure>
                                 </IfCondition>
-                            </Sequence>
-                        </Loop>
-
-                        <!-- Slot updater. Rewrites $slotPos in place; the Move retargets rather
-                             than restarting. Driven from the tree, not a global timer, so it
-                             lives and dies with the follow behaviour and de-phases per merc. -->
-                        <Loop count="-1">
-                            <Sequence>
-                                <Wait duration="'150ms'" timeType="GameTime" doFail="false" variation="'50ms'" />
-                                <ExecuteLua code="mercenaries:UpdateSlotTarget(data, entity.this.id, entity)" />
-                                <ExecuteLua code="mercenaries:UpdateFormationRole(data, entity.this.id)" />
-                                <ExecuteLua code="data.slotChangeState = mercenaries.SlotChangeState or false" />
                             </Sequence>
                         </Loop>
 
@@ -268,7 +252,7 @@
                                      CrimeFollower whose cached target changed; ungated it fires on every slot
                                      reshuffle and preempts the formation branches below, which rebuilds the
                                      formation and drops every follower. -->
-                                <IfCondition failOnCondition="false" condition="~$hasSlot &amp; ~$useFormation &amp; $followTarget ~= $previousTarget">
+                                <IfCondition failOnCondition="false" condition="~$useFormation &amp; $followTarget ~= $previousTarget">
                                     <Sequence>
                                         <Expression expressions="$previousTarget = $followTarget" />
                                         <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
@@ -353,38 +337,11 @@
                                     </Sequence>
                                 </IfCondition>
 
-                                <!-- Slot formation. ONE continuous Move at a vec3 the slot loop above
-                                     rewrites in place. This is the mod's own formation: the engine's
-                                     anchors on whoever ran MakeFormation, and the player has no tree,
-                                     so it could never centre on him. See docs/slot-formation.md.
-
-                                     changeNPCState ships both ways because the sources disagree -
-                                     camp_actor.xml calls true "required for move-to-a-point",
-                                     nav_goto.xml uses false, and movement.md claims true crashes in a
-                                     switch tree. merc_slot_state picks one live; delete the loser. -->
-                                <IfCondition failOnCondition="false" condition="$hasSlot &amp; ~$useFormation &amp; (~$horseSpawned | $mountAbandoned) &amp; ~$goFlee">
-                                    <Sequence>
-                                        <SuppressFailure>
-                                            <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">
-                                                <ContinuousSwitch>
-                                                    <IfCondition failOnCondition="false" condition="$slotChangeState">
-                                                        <Move stopWithinDistance="1.200000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$slotPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="$MoveParams_slot" pathFindingParams="" staminaPolicy="" pathInfo="" />
-                                                    </IfCondition>
-                                                    <IfCondition failOnCondition="false" condition="true">
-                                                        <Move stopWithinDistance="1.200000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="false" destinationSpecification="$slotPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="$MoveParams_slot" pathFindingParams="" staminaPolicy="" pathInfo="" />
-                                                    </IfCondition>
-                                                </ContinuousSwitch>
-                                            </MoveParamsDecorator>
-                                        </SuppressFailure>
-                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
-                                    </Sequence>
-                                </IfCondition>
-
 
                                 <!-- Follow chain. Time-boxed for the same reason as the formation fallback
                                      above: CrimeFollower never returns, so a bare one here would pin the merc
                                      in chain-follow and he could never be reclaimed into a formation. -->
-                                <IfCondition failOnCondition="false" condition="~$hasSlot &amp; ~$useFormation &amp; (~$horseSpawned | $mountAbandoned) &amp; ~$goFlee &amp; $followTarget == $previousTarget">
+                                <IfCondition failOnCondition="false" condition="~$useFormation &amp; (~$horseSpawned | $mountAbandoned) &amp; ~$goFlee &amp; $followTarget == $previousTarget">
                                     <Parallel successMode="Any" failureMode="Any">
                                         <SuppressFailure>
                                             <MoveParamsDecorator speed="Any" pathFindingParams="" doorClosingPolicy="LeaveOpened">

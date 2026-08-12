@@ -40,8 +40,16 @@ MANAGED = DST_ROOT / "Final"
 
 
 def assert_not_ours(path):
-    """Refuse to touch anything under data/quests/mercenaries*."""
-    parts = [p.lower() for p in path.parts]
+    """Refuse to touch anything under data/quests/mercenaries*.
+
+    Must inspect the path RELATIVE to the repo: the absolute path contains
+    'mercenaries' from the checkout's own folder names, which made an earlier
+    version of this guard refuse every delete including legitimate ones.
+    """
+    try:
+        parts = [p.lower() for p in path.resolve().relative_to(REPO).parts]
+    except ValueError:
+        raise SystemExit("REFUSING to touch a path outside the repo: %s" % path)
     if "mercenaries" in parts or any(p.startswith("mercenaries.") for p in parts):
         raise SystemExit("REFUSING to touch mod-owned quest path: %s" % path)
 

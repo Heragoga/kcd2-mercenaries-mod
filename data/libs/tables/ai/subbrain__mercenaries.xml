@@ -8,6 +8,5 @@
 		<subbrain always_active="true" subbrain_id="1a9c3e7f-2b8d-4c60-9e5a-3f7b1d8c6a92" subbrain_name="enemy_melee_scheduler" subbrain_type="6" timeout="0" />
 		<subbrain always_active="true" subbrain_id="b8d4f2ea-5c3a-4b79-ad61-2f4e8a9b3c71" subbrain_name="enemy_archer_scheduler" subbrain_type="6" timeout="0" />
 			<subbrain always_active="true" subbrain_id="f1e2d3c4-0002-4a00-8b00-000000000002" subbrain_name="testnpc_scheduler" subbrain_type="6" timeout="0" />
-		<subbrain always_active="true" subbrain_id="f1e2d3c4-0011-4a00-8b00-000000000011" subbrain_name="isolation_test_scheduler" subbrain_type="6" timeout="0" />
 	</subbrains>
 </database>

@@ -9,7 +9,6 @@
                 <Definition File="mercenaries_background_quest/hire_dialog.xml" />
                 <Definition File="mercenaries_background_quest/dismissal_dialog.xml" />
                 <Definition File="mercenaries_background_quest/quartermaster_dialog.xml" />
-                <Definition File="mercenaries_background_quest/battle_music.xml" />
                 <Definition File="mercenaries_background_quest/order_wheel_chat.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story1_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story2_monolog.xml" />
@@ -88,7 +87,6 @@
                 <hire_dialog Name="hire_dialog" PositionY="360" PositionX="300"/>
                 <dismissal_dialog Name="dismissal_dialog" PositionY="150" PositionX="300" />
                 <quartermaster_dialog Name="quartermaster_dialog" PositionY="550" PositionX="300" />
-                <battle_music Name="battle_music" PositionY="950" PositionX="300" />
                 <!-- Silent order wheel; reuses the E-dialog's tokens, so it only
                      needs extra Edges on the execute_* nodes below. -->
                 <order_wheel_chat Name="order_wheel_chat" PositionY="750" PositionX="300" />

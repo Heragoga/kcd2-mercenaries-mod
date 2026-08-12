@@ -34,18 +34,5 @@
 			<!-- Test NPC -->
 		<brain2subbrain brain_id="f1e2d3c4-0001-4a00-8b00-000000000001" priority="0" subbrain_id="f1e2d3c4-0002-4a00-8b00-000000000002" />
 		<brain2subbrain brain_id="f1e2d3c4-0001-4a00-8b00-000000000001" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
-
-		<!-- Isolation test. First attempt wired ONLY the custom switch (type 6) and the NPC
-		     never showed up: a type-6 switch needs a main-ish subbrain under it (vanilla
-		     npc_default uses a type-1 main; our merc brains use npc_basic_scheduler, type 9).
-		     So "all custom, zero vanilla" is not a reachable configuration - the vanilla
-		     scheduler is what makes the NPC live.
-		     What this brain now isolates instead: vanilla scheduler PRESENT, custom combat AI
-		     entirely ABSENT (isolation_test_scheduler is a no-op heartbeat loop). If a soul on
-		     this brain renders and gets engaged once injected into a quest's hostile SoulArray,
-		     then vanilla AI + the quest relation is the whole story and none of our combat code
-		     is involved. -->
-		<brain2subbrain brain_id="f1e2d3c4-0010-4a00-8b00-000000000010" priority="0" subbrain_id="f1e2d3c4-0011-4a00-8b00-000000000011" />
-		<brain2subbrain brain_id="f1e2d3c4-0010-4a00-8b00-000000000010" priority="0" subbrain_id="4eaa0620-d090-e268-c244-cba09ad5ec80" />
 	</brain2subbrains>
 </database>

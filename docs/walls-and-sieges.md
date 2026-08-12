@@ -246,38 +246,61 @@ Rules for the long approach:
 - the quorum is measured **per side**: the defenders are already standing in camp while the
   raiders are half a field away, and a pooled count would open the fight on their behalf
 
-## Battle music
+## Battle music — not possible from a mod quest
 
 KCD2 drives music from named **states**, switched by a `SkaldBoxProbe` whose `IsActive` is
 a Skald bool. The main-quest battles do exactly this — `utokNaMalesov/.../tvrz/hudba.xml`
 toggles `STORY_M44B_ATTACK_PHASE_1` and `_2`; the courtyard finale uses
 `STORY_M51_BATTLE_6_COURTYARD`. Generic ones exist too, e.g. `SKIRMISH_FRIENDLY`.
 
-Lua cannot set a Skald bool, so the bridge is an **item**. `WBMusic` puts one token
-(`…be81d`) in the player's pocket when the battle phase opens and takes it back when it
-ends; `battle_music.xml` watches for it with `utils.item.itemclasstrigger_playerinventory`,
-holds the result in a Tribool, and feeds `.True` to the probe.
+Lua cannot set a Skald bool, so the bridge has to be something Skald can observe. The
+obvious one is the player's inventory, via the vanilla `utils.item.itemclasstrigger_playerinventory`
+module. **That does not work, and it takes the whole mod's quest graph down with it:**
 
-`GetCountOfClass`, `CreateItem` and `DeleteItemOfClass` all live on **`player.inventory`**,
-not on `player`. Calling them on the entity throws, and inside a `pcall` that looks exactly
-like the feature silently doing nothing — so `WBMusic` reports its failures rather than
-swallowing them. The module is a sub-module of
-the background quest in **both** `kutnohorsko` and `trosecko`, like every other quest piece.
+```
+[Error] Concept xml file contains undefined rttr type 'itemclasstrigger_playerinventory'
+[Error] Object factory was not able to create new '...battle_music::itemclasstrigger_playerinventory'
+DeserializeObject returned invalid object for node 'battle_music' of type 'Module'
+...
+[Error] Unable to load concept graph xml Quests/mercenaries.xml
+```
 
-Test it without a fight: `merc_music 1` / `merc_music 0`. To try a different track, change
-the `Toggle` constant in `battle_music.xml` to another state name — the vanilla quests are
-the catalogue.
+**A mod quest can only use primitive Skald node types.** Vanilla *sub-modules* — anything
+defined as its own `<Module>` in the base game's quest tree, referenced by `Namespace=` —
+are not registered types for a mod's concept graph. Referencing one fails deserialization
+of that node, which fails its module, its quest, its level, and finally the entire
+`Quests/mercenaries.xml`. Every dialog in the mod goes dead, not just the new feature.
 
-**Not yet confirmed in play.** The token bridge works (the log shows it arriving), but no
-music has been heard, so the unknown is whether a mod-supplied quest's `SkaldBoxProbe` can
-raise a music toggle at all. The module currently raises three states at once as a shotgun;
-cut it to one as soon as one is confirmed.
+So: **never reference a vanilla sub-module by namespace from the mod's quests.** If a Skald
+node type is not a primitive (`State`, `Switch`, `Function`, `SkaldBoxProbe`, `Timer`,
+`PlayerItem`, …), it cannot be used. Any new quest work should be smoke-tested by checking
+the log for `Unable to load concept graph xml Quests/mercenaries.xml`.
 
-The level data was searched for a simpler route and does **not** have one. `objects_mission0.xml`
-has 408 `AudioAreaAmbience`, 32 `AudioTriggerSpot`, 16 `AudioAreaRandom` and 9 `AudioAreaEntity`
-entities, but every one of their 74 distinct `audioTriggerPlayTrigger` values is an ambience
-loop (`a_l_forest02`, `a_l_army_camp01`, …). There is no music trigger among them, so
-spawning an audio entity is not a way in — music really does go through the Skald toggle.
+The level data was searched for a route that avoids Skald entirely, and does not have one.
+`objects_mission0.xml` has 408 `AudioAreaAmbience`, 32 `AudioTriggerSpot`, 16
+`AudioAreaRandom` and 9 `AudioAreaEntity` entities — all spawnable classes — but every one
+of their 74 distinct `audioTriggerPlayTrigger` values is an ambience loop (`a_l_forest02`,
+`a_l_army_camp01`, …). There is no music trigger among them.
+
+The feature was removed. What is left to try, if it is ever picked up again: a probe built
+only from primitives that can observe some Lua-settable state, driving `SkaldBoxProbe`.
+
+<details>
+<summary>Superseded design (kept for the reasoning only)</summary>
+
+The bridge was an item: `WBMusic` put a token in the player's pocket when the battle phase
+opened and took it back when it ended, and a `battle_music` sub-module of the background
+quest watched for it, held the result in a Tribool, and fed `.True` to a `SkaldBoxProbe`.
+
+Two things learned along the way that still apply elsewhere:
+
+- `GetCountOfClass`, `CreateItem` and `DeleteItemOfClass` live on **`player.inventory`**,
+  not on `player`. Calling them on the entity throws, and inside a `pcall` that looks
+  exactly like a feature silently doing nothing.
+- a Tribool `State` does expose `.True` as a bool, and `ontargetamountacquire` / `onlose`
+  are real output ports — the design was sound; only the module reference was not.
+
+</details>
 
 ## Commands
 
@@ -288,7 +311,6 @@ spawning an audio entity is not a way in — music really does go through the Sk
 | `merc_raid_now` | launch the scheduled raid immediately |
 | `merc_raid_status` | when the next raid is due, and what it will be |
 | `merc_raid_arm 0|1` | turn scheduled raids off or on |
-| `merc_music 0\|1` | battle music by hand, without a fight |
 | `merc_wb_status` | phase, gap count, staged N/total, and every man's distance to his slot |
 | `merc_wb_gaps [menPerSide]` | mark the battle lines with barrels; logs each gate radius |
 | `merc_wb_line [spacing] [perRank] [rankDepth] [outOffset] [inOffset]` | line shape |

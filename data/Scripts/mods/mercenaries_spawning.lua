@@ -812,12 +812,6 @@ end
 -- state changes. See docs/quest-override-test.md.
 mercenaries.TestSoulGuid = "e1f2a3b4-1234-4efa-c890-123456789012"
 
--- Isolation test soul: isolation_test_brain, wired to ZERO vanilla subbrains (no
--- npc_basic_scheduler, no npc_basic_switch) and a scheduler that does nothing but log a
--- heartbeat. testFaction, so no inherited hostility either. If this soul gets engaged or
--- attacks anything once injected into a quest's hostile SoulArray, that cannot come from
--- our own AI or from static faction relations - see docs/malesov-structure.md.
-mercenaries.IsolationTestSoulGuid = "f1e2d3c4-0012-4a00-8b00-000000000012"
 
 function mercenaries:SpawnTestMerc()
     local soulGuid = self.TestSoulGuid
@@ -866,49 +860,3 @@ function mercenaries:SpawnTestMerc()
     end
 end
 
--- Spawns the isolation-test soul (isolation_test_brain: zero vanilla subbrains, a
--- do-nothing scheduler). Deliberately NOT added to ActiveMercs/InjectInteraction/follow -
--- this NPC should do nothing on its own. Its only job is to sit wherever the quest's
--- SoulArray injection puts it and be watched.
-function mercenaries:SpawnIsolationTestNpc()
-    local soulGuid = self.IsolationTestSoulGuid
-
-    local ok, err = pcall(function()
-        local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
-        if not spawnPos then
-            System.LogAlways('[IsoTest] no safe spawn position found')
-            return
-        end
-
-        local entityName = "IsolationTest_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
-
-        System.SpawnEntity({
-            class = "NPC",
-            name = entityName,
-            position = self:FindValidGround(spawnPos, spawnPos.z),
-            orientation = {x = 0, y = 0, z = playerRot.z},
-            properties = {guidSharedSoulId = soulGuid}
-        })
-
-        local ent = System.GetEntityByName(entityName)
-        if not ent then
-            System.LogAlways('[IsoTest] SpawnEntity produced no entity: ' .. entityName)
-            return
-        end
-
-        -- MUST equip: KCD2 characters have no .cdf/.chr, the body is assembled at runtime by
-        -- the clothing system. An unequipped NPC is alive and ticking but has NO MESH, which
-        -- reads exactly like the invisibility bug and is not it. The first version of this
-        -- function skipped equipping and produced a false "doesn't render" result.
-        -- Weapon deliberately omitted: nothing to swing == no combat initiative of its own.
-        if self.EquipEnemy then self:EquipEnemy(ent, "looter", false) end
-
-        System.LogAlways('[IsoTest] spawned ' .. entityName)
-        System.LogAlways('[IsoTest] soul guid: ' .. soulGuid)
-        System.LogAlways('[IsoTest] watch for "[IsolationTest] heartbeat" every 5s in this log - that confirms it is alive with no AI running.')
-    end)
-
-    if not ok then
-        System.LogAlways('[IsoTest] spawn error: ' .. tostring(err))
-    end
-end

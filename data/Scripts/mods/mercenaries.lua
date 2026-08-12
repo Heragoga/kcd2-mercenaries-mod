@@ -911,13 +911,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
     Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
-    -- One shared formation frame (player position + damped heading) for the whole
-    -- squad. Global rather than per-merc because the heading damping is stateful:
-    -- run once per merc it would apply the slew limit N times and cancel itself.
-    mercenaries.SlotAssign = {}
-    mercenaries.SlotHeading = nil
-    mercenaries.SlotLastPos = nil
-    Script.SetTimerForFunction(mercenaries.SlotTickMs, "mercenaries.SlotFrameLoop")
+    Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
     -- Scheduled raids on the camp. Safe to arm with no camp: the tick does nothing
     -- until one is pitched and the player is standing in it.
     pcall(function() mercenaries:RaidStart() end)
@@ -934,7 +928,7 @@ Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")
 Script.LoadScript("Scripts/mods/mercenaries_teleport.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation_handler.lua")
-Script.LoadScript("Scripts/mods/mercenaries_slots.lua")
+Script.LoadScript("Scripts/mods/mercenaries_formation.lua")
 Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
@@ -973,8 +967,9 @@ function mercenaries:PrintHelp()
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
         "merc_camp_recall (F4)                bring the whole squad to you from anywhere (doesn't break camp)",
         "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
-        "merc_formation_column|line|square|wedge|circle|escort   marching shape (see docs/slot-formation.md)",
-        "merc_slot_status / merc_slot_probe / merc_slot_state     slot formation diagnostics",
+        "merc_formation_column|line|square|wedge|circle|escort|vanilla   marching shape (see docs/formations.md)",
+        "merc_formation_relaxed|keepshape|movehistory              how followers hold the shape",
+        "merc_formation_relocate_on|off / merc_formation_status    crowding + diagnostics",
         "merc_hire_w1/w2/w3, d1/d2/d3, p1/p2/p3   hire weak/medium/strong mercs (debug, free)",
         "merc_weapon_random|swordshield|axeshield|longsword|maceshield|shortsword|mace|axe|polearm   melee loadout",
         "archer_hire_1/3                     hire archers (debug, free)",
@@ -1000,40 +995,29 @@ System.AddCCommand("merc_status", "mercenaries:ShowSquadStatus()", "One-line squ
 System.AddCCommand("merc_heal", "mercenaries:HealMercsForFlatFee()", "Heal & wash the squad for a flat fee")
 
 System.AddCCommand("merc_testmerc", "mercenaries:SpawnTestMerc()", "Control test: spawn ONE merc on the fixed test soul guid (free, no cap). See docs/quest-override-test.md")
-System.AddCCommand("merc_isotest", "mercenaries:SpawnIsolationTestNpc()", "Isolation test: spawn a soul with ZERO AI (no vanilla subbrains, no-op scheduler, neutral faction). See docs/malesov-structure.md")
 System.AddCCommand("merc_recount", "mercenaries:Recount()", "")
 System.AddCCommand("merc_dismiss", "mercenaries:SetState('dismiss')", "")
 System.AddCCommand("merc_wait", "mercenaries:SetState('wait')", "")
 System.AddCCommand("merc_follow", "mercenaries:SetState('follow')", "")
 
--- Slot formation. Shapes are pure Lua offsets around the PLAYER; see docs/slot-formation.md.
-System.AddCCommand("merc_formation_column", "mercenaries:SetSlotShape('column')", "Formation: column of twos")
-System.AddCCommand("merc_formation_line", "mercenaries:SetSlotShape('line')", "Formation: double line abreast")
-System.AddCCommand("merc_formation_square", "mercenaries:SetSlotShape('square')", "Formation: block")
-System.AddCCommand("merc_formation_wedge", "mercenaries:SetSlotShape('wedge')", "Formation: cone")
-System.AddCCommand("merc_formation_circle", "mercenaries:SetSlotShape('circle')", "Formation: ring around the player")
-System.AddCCommand("merc_formation_escort", "mercenaries:SetSlotShape('escort')", "Formation: flanking files")
+-- Formation. Shapes are defined in data/AI/FormationDefinitions.xml; see docs/formations.md.
+System.AddCCommand("merc_formation_column", "mercenaries:SetFormationShape('column')", "Formation: column of twos")
+System.AddCCommand("merc_formation_line", "mercenaries:SetFormationShape('line')", "Formation: ranks abreast")
+System.AddCCommand("merc_formation_square", "mercenaries:SetFormationShape('square')", "Formation: square block")
+System.AddCCommand("merc_formation_wedge", "mercenaries:SetFormationShape('wedge')", "Formation: arrowhead")
+System.AddCCommand("merc_formation_circle", "mercenaries:SetFormationShape('circle')", "Formation: ring")
+System.AddCCommand("merc_formation_escort", "mercenaries:SetFormationShape('escort')", "Formation: flanking files")
+-- Falls back to a stock vanilla preset. Also the A/B test for whether our
+-- whole-file override of FormationDefinitions.xml is being loaded at all.
+System.AddCCommand("merc_formation_vanilla", "mercenaries:SetFormationShape('vanilla')", "Formation: stock vanilla preset")
 
--- Which system drives the squad on foot.
-System.AddCCommand("merc_form_engine", "mercenaries:SetFormationSystem(true)", "Use the engine formation (default)")
-System.AddCCommand("merc_form_slots", "mercenaries:SetFormationSystem(false)", "Use the Lua slot formation (anchors on the player)")
+System.AddCCommand("merc_formation_relaxed", "mercenaries:SetFormationMode(0)", "Mode: loose escort")
+System.AddCCommand("merc_formation_keepshape", "mercenaries:SetFormationMode(1)", "Mode: rigid geometry (default)")
+System.AddCCommand("merc_formation_movehistory", "mercenaries:SetFormationMode(2)", "Mode: replay the leader's path")
+System.AddCCommand("merc_formation_relocate_on", "mercenaries:SetFormationRelocate(true)", "Let followers swap spots to resolve crowding")
+System.AddCCommand("merc_formation_relocate_off", "mercenaries:SetFormationRelocate(false)", "Pin each follower to its spot (default)")
 
--- Engine formation variants, all live.
-System.AddCCommand("merc_form_relaxed", "mercenaries:SetFormationMode(0)", "Mode: loose escort")
-System.AddCCommand("merc_form_keepshape", "mercenaries:SetFormationMode(1)", "Mode: rigid geometry (default)")
-System.AddCCommand("merc_form_movehistory", "mercenaries:SetFormationMode(2)", "Mode: replay the leader's path")
-System.AddCCommand("merc_form_relocate_on", "mercenaries:SetFormationRelocate(true)", "Let followers swap spots to resolve crowding")
-System.AddCCommand("merc_form_relocate_off", "mercenaries:SetFormationRelocate(false)", "Pin each follower to its spot (default)")
-
--- A/B test for whether our FormationDefinitions.xml override is loaded at all.
-System.AddCCommand("merc_formation_vanilla", "mercenaries:SetSlotShape('vanilla')", "Use a stock vanilla preset (followNPC / infantryMen20)")
-
-System.AddCCommand("merc_slot_status", "mercenaries:SlotStatus()", "Log system, shape, mode, relocation, leader, epoch")
--- Probe: send EVERY merc to one fixed point 3m behind the player. Answers "does a
--- live-rewritten vec3 retarget a running Move (glide) or re-issue it (stutter)"
--- with no formation logic in the way.
-System.AddCCommand("merc_slot_probe", "mercenaries.SlotProbe = not mercenaries.SlotProbe; System.LogAlways('[MercSlots] probe = ' .. tostring(mercenaries.SlotProbe))", "Toggle the single-point Move probe")
-System.AddCCommand("merc_slot_state", "mercenaries.SlotChangeState = not mercenaries.SlotChangeState; System.LogAlways('[MercSlots] changeNPCState = ' .. tostring(mercenaries.SlotChangeState))", "Toggle changeNPCState on the slot Move")
+System.AddCCommand("merc_formation_status", "mercenaries:FormationStatus()", "Log shape, preset, mode, leader, epoch, squad size")
 
 System.AddCCommand("merc_weapon_random", "mercenaries:ChangeMercWeapon(1)", "")
 System.AddCCommand("merc_weapon_swordshield", "mercenaries:ChangeMercWeapon(2)", "")

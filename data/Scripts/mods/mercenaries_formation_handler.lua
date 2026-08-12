@@ -1,13 +1,13 @@
--- Follow chain: the fallback locomotion for any merc without a formation slot
--- (mounted, waiting, NPC-led patrols). Each merc follows either the player or
--- another merc a couple of places ahead, so the squad trails in a rough line.
+-- Follow chain: the fallback locomotion for any merc with no formation handle.
+-- Each merc follows either the player or another merc a couple of places ahead,
+-- so the squad trails in a rough line.
 --
--- The squad's real formation is docs/slot-formation.md (mercenaries_slots.lua).
--- An earlier attempt drove it from the ENGINE formation system, which anchors on
--- whoever ran MakeFormation - and the player has no behaviour tree, so it had to
--- elect a merc to stand in for him. That is removed; docs/formations.md keeps the
--- postmortem. FormationRank and IsFormationEligible survive because both systems
--- share them.
+-- The squad's real formation is mercenaries_formation.lua (docs/formations.md):
+-- one merc is elected to anchor an engine formation and everyone else joins it.
+-- This chain is what a merc falls back to when that is unavailable - leader in
+-- combat, mid-handoff, startup race, or a walled camp where the formation cannot
+-- be steered around the wall - so it must never be removed.
+-- FormationRank and IsFormationEligible live here because both systems use them.
 
 -- Formation rank: heroes lead, melee regulars next, archers at the back.
 function mercenaries:FormationRank(mercType)

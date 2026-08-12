@@ -622,86 +622,109 @@ What *is* true is that the engine path is not horse-gated. [moveInFormation_simp
 
 So: the player can be a *passenger* in someone else's formation, on a horse, and vanilla has no pattern at all for "NPCs form up on the player".
 
-### Contrast with what the mod does today
+### What shipped
 
-The mod uses none of the vanilla machinery — grepping `data/` for any of the formation nodes or the `AI.*Formation*` binds returns nothing.
+The elected-leader build below is what the mod runs now, on foot and mounted. Lua lives in
+[mercenaries_formation.lua](../data/Scripts/mods/mercenaries_formation.lua); the tree half is three blocks in
+[follow.xml](../data/AI/follow.xml).
 
-[mercenaries_formation_handler.lua](../data/Scripts/mods/mercenaries_formation_handler.lua) rebuilds `FormationSlots` from scratch each low-priority tick: filter to living non-camp mercs, split mounted/unmounted, sort by `formationRank` (hero 0 / regular 1 / archer 2) with unmounted regulars tie-broken on descending health, then build a **follow chain** — each merc at index `i` follows the merc `width` places ahead (`width = 3` at 15+ mercs, else 2). The first `width` mercs get no target and fall through to the player. [follow.xml](../data/AI/follow.xml) polls `CalculateFormationTarget` once a second and drives locomotion with `CrimeFollower Target="$followTarget"`, not with any formation node.
+**The formation owner is a branch with no locomotion.** `MakeFormation` in `SubtreeDecorator/Init`,
+`EndFormation` in `Cleanup`, and a `Subtree` that does nothing but watch for the rebuild signal. This is
+vanilla's own shape — `moveUtils` `formation_lead` and the bailiff `walkaround` are both `MakeFormation` +
+`Wait` with the walking in a sibling branch. It matters for a concrete reason: while `MakeFormation` lived
+inside the leader's *locomotion* branch, mounting preempted that branch, ran `Cleanup`, and destroyed the
+formation — which is why mounted could never hold one.
+
+**Everything is latched.** The leader is kept while he stays eligible; the preset grows immediately but
+shrinks only with hysteresis. Every earlier version churned — re-electing each tick, re-resolving the preset
+from a live headcount, or gating on a heartbeat — and a rebuild makes every follower re-join into a newly
+assigned spot, which reads as the whole squad milling about on the spot. `FormationEpoch` is the one rebuild
+signal and nothing bumps it without a reason it prints:
+
+```
+[MercForm] rebuild #4 (mounted) preset=merc_mounted14 leader=<wuid>
+```
+
+**The follow chain survives as the fallback**, in `mercenaries_formation_handler.lua`. Anything that leaves a
+merc without a handle — leader in combat, mid-handoff, startup race, a walled camp where the formation cannot
+be steered around the wall — drops him onto `CrimeFollower` instead of leaving him standing.
+
+Three bugs from building this are worth not repeating:
+
+- **`CrimeFollower` never returns.** Running one bare as the follower's fallback meant the `Selector` never
+  re-evaluated and nobody ever retried `GetMemberFormation` — one epoch bump stranded the whole squad in
+  chain-follow permanently. Every `CrimeFollower` in `follow.xml` is now time-boxed inside a
+  `Parallel successMode="Any"` with a `Wait`, except the leader's, whose watchdog is a sibling.
+- **Never hardcode a preset name.** The size ladder changed several times; a name carrying a size that is no
+  longer generated resolves to nothing, `MakeFormation` returns a null handle, and the squad silently drops to
+  the chain — which looks exactly like a column and is indistinguishable from the system being broken.
+  `FormationPresetName` derives every name from the live ladder.
+- **Never leave `FormationName` nil for a tick.** The per-merc updater runs on its own loop; if it sees nil
+  and the leader's branch re-enters in that window, `MakeFormation` gets the fallback rather than the shape
+  just chosen. That is why only the first shape command used to work.
 
 | | Vanilla | This mod |
 |---|---|---|
-| Shape source | authored `<Spot x y radius>` in a global file | emergent from a Lua follow chain |
-| Owner | the entity that ran `MakeFormation`; followers resolve via `GetMemberFormation` | nobody — each NPC independently follows one WUID |
-| Cohesion | `FormationMode`, engine-side | emergent from `CrimeFollower` + distance bands |
-| Player as anchor | impossible | trivial, it's the default |
-| Re-targeting | `EndFormation` + `MakeFormation` | rebuild the Lua table; picked up within 1 s |
-| Spacing/facing | authored | not controllable |
-
-The chain-follow design is the correct response to the constraint, not ignorance of the alternative — the third-party bodyguards mod reached the same conclusion independently (`references/bodyguards/data/AI/companion_follow.xml` sets `$followTarget = $__player` and uses `CrimeFollower`, zero formation nodes). Its real costs are that spacing and facing are emergent rather than authored, and that the whole chain is rebuilt every tick.
-
-### The elected-leader workaround
-
-If authored spacing is worth the cost, the shape vanilla actually supports is: **one merc leads, and it is the leader that follows the player.**
-
-**This is not speculative — vanilla ships the existence proof.** The [ambient startle pair](#the-ambient-startle-pair-a-formation-with-no-quest-and-no-level-data) is exactly this problem solved with exactly these constraints: no quest, no `EnableBehavior`, no smart object, no level-baked link, two ordinary entities negotiating a formation at runtime. It is the closest thing in the game to what the mod would be doing, and everything it uses (`MakeFormation` on the anchor, `GetMemberFormation` from the anchor's WUID on the follower, globally-named locks templated on the anchor, an `autoInverse` link for exclusivity) is reachable from mod-shipped `data/AI/*.xml` plus WUIDs the mod already tracks in Lua.
-
-The build:
-
-- Elect a leader in Lua (the existing sort already produces a deterministic ordering — take index 1). Or elect it in pure BT: the battle controller's `Semaphore` + `GraphSearch` + `AddLink` latch quoted above is nine generic lines with no battle dependency.
-- The leader runs a tree that does `MakeFormation FormationName="'followNPC'"` in `OnInit` — or in `SubtreeDecorator/Init` with `EndFormation` in `Cleanup`, so an interrupt cannot leak the handle — and then the mod's existing `CrimeFollower` on `$__player` as its locomotion. This is exactly the `followNPC_leader` shape: create the formation, then delegate movement.
-- Every other merc runs the `so_guardPair` slave shape against the leader's WUID (handed over from Lua rather than `GetBehaviorHolders`), with the `Selector` + `Wait '1s'` retry as the gate, wrapped in the `Loop` + `SuppressFailure` idiom from [walkaround.xml:319-332](../references/AI/profession/bailiff/walkaround.xml) so a transient `FormationFollower` failure retries instead of ending the behaviour. `MoveHistory` for marching.
-- If several squads or camps can ever be live at once, key every lock name on the anchor's WUID the way the startle pair does. Global locks are one flat string namespace; a fixed name deadlocks the second squad.
-
-Costs, ranked by how real they are:
-
-- **The formation is one merc behind where you want it.** The shape trails the *leader*, so the whole squad sits one follow-distance further back than today, and the leader's own jitter propagates into every slot. No way around this — it is the headline constraint restated.
-- **Leader death needs rebuilding in Lua.** Election exists in vanilla and is copyable; **re-election does not exist anywhere** — the battle controller's `'leader'` link is never removed (`RemoveLink` on that tag has zero hits in the file), and `moveinformation_simple`'s `OnLeaderDeath` is a plain `SoulDeathTrigger` the designer wires by hand. You would detect the death in Lua, `EndFormation`, re-elect, restart every follower's behaviour, and every follower re-acquires from scratch. That is a common event for this mod, so this is the cost that decides it.
-- **Slot count is capped by the preset.** `followNPC` holds 8; beyond that you need a bigger preset, which means shipping the file (below). No overflow rule was found in any BT.
-- **Combat interaction: partly evidenced, partly unknown.** Fighting *inside* a formation is shipped and needs no battle infrastructure — [battlegroupcontroller.xml:1755-1768](../references/AI/battles/battlegroupcontroller.xml) composes the full melee stack in `Parallel` with `FormationFollower`. What is unknown is teardown and re-entry: the mod's schedulers replace `follow` with a combat module at equal priority, and whether spot assignment survives that cycle cleanly is untested.
-- **The mounted branch is a three-line idiom, not a rewrite.** `StanceElement stance="horse"` wrapping `WaitAction` + the follow node ships three times (`prijezdnasuchdol.xml:873`, `moveInFormation_simple.xml:43`, `erik_armyMovement.xml` `cavalry_move`). What you would lose is `follow.xml`'s 10 m/4 m distance-band `Move` logic, since `FormationFollower` owns locomotion entirely.
-
-Given the leader-death cost alone, this is still not obviously an improvement for a squad that takes casualties. It is worth prototyping if authored spacing is a goal in itself — and the startle pair means the prototype is a known-good shape rather than a research project.
-
-### Untested, and worth one experiment each
-
-- **Can the player's own tree run `MakeFormation`?** The player has a brain and always-active subbrains, and a mod can add `brain2subbrain` rows. If a mod tree attached to the vanilla `player` brain can run `MakeFormation` + `Wait '-1'`, the entire hand-rolled slot system collapses into one `FormationFollower` per merc, with no elected leader and no leader-death problem. Nothing in vanilla tries it; the player entity is not an `NHNPC` and has no navmesh agent, so it may simply be rejected. **This is the single highest-value test.**
-- **A spawned holder.** Spawn a `SmartObjectHolder` with a mod `guidSmartObjectType` whose subbrain is a clone of `formationholder.xml`, and keep it on the player. Two unknowns: whether a runtime-spawned holder gets its `on_update_tree` ticked at all (every existing spawn in this mod is an SO that NPCs *enter*, never one with its own always-active brain), and whether a per-tick `SetPos` breaks it — [ai-modules.md](ai-modules.md) records that periodic `SetPos` resets an NPC's AI, though a holder that only waits may be immune.
-- **There is no Lua route.** The 14 `AI.*Formation*` binds (`CreateFormation`, `CreateGroupFormation`, `AddFormationPoint`, `AddFormationPointFixed`, `ChangeFormation`, `ScaleFormation`, `SetFormationPosition`, `GetFormationPosition`, `GetFormationPointPosition`, `SetFormationLookingPoint`, `GetFormationLookingPoint`, `SetFormationAngleThreshold`, `SetFormationUpdate`, `SetFormationUpdateSight`) are CryEngine-2 legacy on a completely different data model — sight angles, `eSoldierClass`, 3D offsets, scale, none of which exists in `FormationDefinitions.xml`. Nothing in the shipped game calls them. `XGenAIModule`, `soul`, `human` and `entity` have no formation functions at all. Anything formation-shaped must be driven from a behaviour tree.
+| Shape source | authored `<Spot x y radius>` | same, generated by `tools/gen_formations.py` |
+| Owner | the entity that ran `MakeFormation` | an elected merc, in a locomotion-free branch |
+| Player as anchor | impossible | still impossible — the leader stands in for him |
+| Re-targeting | `EndFormation` + `MakeFormation` | epoch bump, logged with a reason |
+| Spacing/facing | authored | authored |
 
 ## This mod's own shapes
 
-[data/AI/FormationDefinitions.xml](../data/AI/FormationDefinitions.xml) is a **whole-file override** of the vanilla catalogue: all 63 vanilla formations copied verbatim, then six of ours appended below a banner. It has to be a full copy — see the section below for why there is no merge. **Drop a vanilla formation from that file and it stops existing game-wide**, breaking every quest that names it.
+[data/AI/FormationDefinitions.xml](../data/AI/FormationDefinitions.xml) is **generated** — do not hand-edit it:
 
-> **On a game update:** re-copy `references/AI/FormationDefinitions.xml` over ours and re-append the `merc_*` block. The generator that built it is throwaway; the file is the artefact.
+```bash
+python tools/gen_formations.py
+```
 
-Six shapes, each at **four sizes** (6 / 12 / 20 / 30 spots), switched live:
+It emits the vanilla catalogue copied verbatim plus 56 `merc_*` presets, and asserts that no vanilla formation
+was dropped. **Re-run it after every game update** so it re-copies the current vanilla file.
 
-| Command | Formation | Shape | Footprint at 6 → 30 |
-|---|---|---|---|
-| `merc_formation_column` | `merc_column*` | column of twos | 2.4 m wide, 4 → 28 m deep |
-| `merc_formation_line` | `merc_doubleLine*` | two ranks abreast | 4 → 28 m wide, 2 m deep |
-| `merc_formation_square` | `merc_square*` | block, square at every size | 4 → 10 m wide |
-| `merc_formation_wedge` | `merc_wedge*` | cone, leader at the tip | 7 → 34 m wide |
-| `merc_formation_circle` | `merc_circle*` | ring (two rings past 12) | 8 → 14 m across |
-| `merc_formation_escort` | `merc_escort*` | two flanking files | 8 m wide, 4 → 28 m deep |
-| `merc_formation_auto` | *(vanilla)* | the vanilla size ladder — fallback if the override isn't honoured | |
+Seven shapes × eight sizes (6/10/14/18/24/30/40/50). Lua picks the smallest that seats the squad — handing a
+50-slot template to six mercs lets the engine drop them in any six of fifty spots and strings them out over
+the whole thing.
 
-**Size the formation to the squad.** `PreferredPositions=""` means the engine drops a follower in *any* free spot, so a 30-slot template handed to six mercs scatters them across 30 m and keeps them walking to reach it. `ResolveFormationPreset` picks the smallest size that seats everyone.
+| Command | Shape | At 14 mercs |
+|---|---|---|
+| `merc_formation_column` | column of twos | 2.4 m wide, 12.6 m deep |
+| `merc_formation_line` | ranks abreast | 14 m wide, 2 m deep |
+| `merc_formation_square` | square block | 8 × 6 m |
+| `merc_formation_wedge` | filled arrowhead | 9 × 7 m |
+| `merc_formation_circle` | ring | nearest merc 1.6 m |
+| `merc_formation_escort` | flanking files, middle open | 8 m wide |
+| *(automatic)* | `mounted` — triple column at horse spacing | 7 m wide, files 3.5 m, ranks 4 m |
+
+`merc_formation_vanilla` falls back to a stock preset, and doubles as the A/B test for whether the whole-file
+override is being loaded at all.
+
+**Nothing is ever placed ahead of the anchor** — the generator asserts it. The player walks at the head with
+the leader just behind him, so a spot forward of the leader ends up level with or past the *player*, which
+reads as him being swallowed by his own squad. Ranked shapes fold the leader into the front rank; `circle` and
+`escort` keep him off-lattice in the gap and slide the shape `LEAD_GAP` behind him. The consequence is that
+`circle` is a horseshoe trailing behind rather than a true surround — "player always at front" and "ring
+around the player" cannot both hold when the anchor is a merc who follows him.
+
+**Mounted is its own shape and its own mode.** `_G.PlayerMounted` swaps the preset to `merc_mounted*`
+(defeating the grow-only latch, since it is a real state change), and the mounted `FormationFollower` uses
+`MoveHistory`, not `KeepShape`. No vanilla mounted formation uses `KeepShape`, and rigid geometry is not
+something a horse can hold — it corners wide and cannot sidestep. Getting that wrong produced riders who sat
+completely still, because `FormationFollower` is their only locomotion.
 
 ### The three numbers that stop the squad milling about
 
 | | Value | Why |
 |---|---|---|
-| `radius` | 1.2 (1.6 loose) | Arrival tolerance. A follower inside it is "in place" and stops correcting. At vanilla's 0.5 with a big squad **nobody is ever in place**, so everyone re-paths every tick. Vanilla only uses 0.5 for formations of 5–8; its loose and mounted presets run 1–3. |
-| pitch | 2.0 m | Neighbour spacing. Must clear an NPC's footprint plus pathing slack or followers shoulder each other out of position. |
-| standoff | 3.4 m | Clear gap in front of the first rank. **This is the feedback loop**: the leader is a solid body, the rank behind shoves him, the anchor moves, and every follower chases it. |
+| `radius` | 0.9 (1.3 loose) | Arrival tolerance. A follower inside it is "in place" and stops correcting. Must stay **strictly under half the pitch** or two neighbours' discs overlap and ranks interleave. Vanilla uses 0.5 only for formations of 5–8. |
+| pitch | 2.0 m | Neighbour spacing; must clear an NPC footprint plus pathing slack. |
+| standoff | 3.4 m | Gap in front of the first rank before the leader is folded in. Without it the rank behind shoves him, the anchor moves, and every follower chases it. |
 
-Two things worth knowing about these:
-
-- **The ring is centred on the leader, not the player** — nothing can centre on the player, because he is never the anchor. `merc_circle30` is shifted 1.5 m forward so the ring brackets the player rather than trailing behind him, but it is still the leader's ring.
-- **They only read as designed shapes under `KeepShape`.** `Relaxed` drifts and `MoveHistory` replays the leader's recorded path, so both blur the geometry. `KeepShape` is the default for exactly this reason.
-
-`auto` exists because the override is the one part of this that is **unverified**: nothing in vanilla or any third-party mod overrides `FormationDefinitions.xml`, and unlike a behaviour tree it is loaded once at AI-system init rather than lazily on resolution, so mod-pak mount timing is untested. If the custom shapes do nothing, `merc_formation_auto` puts the squad back on vanilla presets without a rebuild.
+One more that is not geometry: the scheduler's stuck-follower self-heal (`mercenary_scheduler.xml`) restarts
+any merc more than **35 m** from the player, and that restart drops him out of `FormationFollower`. At 15 m it
+fired on eight of nineteen followers in a deep column, each restart leaving them without locomotion so they
+drifted further back and re-tripped it — the whole "fine at 10 mercs, bad at 20" cliff. Keep the deepest spot
+of any preset well inside that threshold.
 
 ## Moddability: shipping your own presets
 

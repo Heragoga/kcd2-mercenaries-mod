@@ -41,13 +41,20 @@ Our layout (top level fits exactly in the four slots):
 ```
 Squad orders   (First)   -> Follow me    (First)
                              Wait here    (Second)
+                             Report       (Third)
 Camp           (Second)  -> Make camp    (First)
                              Break camp   (Second)
-Report         (Third)
+Formation      (Third)   -> column / line / square      (First..Third)
+                             More options...  (Fourth)  -> wedge / circle / escort
 Equipment      (Fourth)  -> Change equipment (First) -> 6 outfits, paginated 3+3
                              Change gear      (Second) -> 9 loadouts, paginated 3+3+3
                              Archer weapon    (Third)  -> 3 options, fits directly
 ```
+
+Formation earned a top-level slot, so Report moved down into Squad orders. Its six shapes exceed the four-slot
+limit and split 3 + "More options..." + 3, the same way the equipment lists do. Every shape fires one
+count-encoded token (count 1..6 indexes `FormationShapeOrder`), shared with the E-dialog - six shapes on one
+item class rather than six. See [formations.md](formations.md).
 
 Equipment and weapon loadouts have more than four choices, so each list is split across pages behind a "More options..." leaf rather than crammed onto one screen — the same trick vanilla uses anywhere a chat menu needs to expose more than four things.
 

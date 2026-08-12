@@ -189,15 +189,5 @@
 		<soul brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_static_archer_5" social_class_id="3" soul_archetype_id="0" soul_id="c16d8ea5-bf37-4049-d25c-7ea18d6fb085" soul_name="soul_static_archer_5" soul_vip_class_id="16" xp_multiplier="0" />
        		<!-- TEST NPC: testnpc_brain; borrows the looter skald character. -->
 		<soul brain_id="f1e2d3c4-0001-4a00-8b00-000000000001" combat_level="0.5" digestion_multiplier="0" factionName="testFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_looter_1" social_class_id="3" soul_archetype_id="0" soul_id="f1e2d3c4-0003-4a00-8b00-000000000003" soul_name="soul_testnpc" soul_vip_class_id="0" xp_multiplier="1" />
-       		<!-- ISOLATION TEST: isolation_test_brain runs a no-op heartbeat scheduler, so this
-		     soul has NO combat AI of ours at all. It renders in the open world but vanishes in
-		     the Malesov battle even with its guid injected into the garrison SoulAssets - which
-		     reproduces the invisibility bug with none of our AI involved.
-		     factionName is now mercenariesFaction (was testFaction, neutral to everyone): the
-		     ONLY remaining difference from a real merc is the combat AI. If it now renders in
-		     the battle, hostility/faction relation is the gate and active fighting is not
-		     required. If it still vanishes, the NPC has to actually FIGHT to be rendered.
-		     See docs/malesov-structure.md. -->
-		<soul brain_id="f1e2d3c4-0010-4a00-8b00-000000000010" combat_level="0.5" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_looter_1" social_class_id="3" soul_archetype_id="0" soul_id="f1e2d3c4-0012-4a00-8b00-000000000012" soul_name="soul_isolationtest" soul_vip_class_id="0" xp_multiplier="1" />
 	</souls>
 </database>

@@ -511,44 +511,6 @@ function mercenaries:WBStageAllowance()
     return self.WBStageTimeout + far / (self.WBMarchSpeed or 2.5)
 end
 
--- ==== music ====
--- The battle music state lives in Skald, and Lua cannot set a Skald bool. So the flag is
--- an item: while the player carries one, battle_music.xml holds the music state on. See
--- data/quests/mercenaries/*/mercenaries_background_quest/battle_music.xml.
-mercenaries.MusicBattleToken = "679a655e-189d-4519-b437-ccc4b92be81d"
-
--- Errors are reported, not swallowed: a silent pcall here is why the first version of
--- this looked like "nothing happens at all" instead of naming what failed.
-function mercenaries:WBMusic(on)
-    -- GetCountOfClass / DeleteItemOfClass live on player.INVENTORY, not on player - the
-    -- first version called them on the entity and every call threw inside a silent pcall,
-    -- which is why it looked like nothing happened at all.
-    local inv = player and player.inventory
-    if not inv then wbLog("music: no player inventory"); return end
-
-    local have = 0
-    local ok, err = pcall(function() have = inv:GetCountOfClass(self.MusicBattleToken) or 0 end)
-    if not ok then wbLog("music: cannot read the token count - " .. tostring(err)); return end
-
-    if on and have == 0 then
-        ok, err = pcall(function() inv:CreateItem(self.MusicBattleToken, 1, 1) end)
-        if not ok then wbLog("music: CreateItem failed - " .. tostring(err)); return end
-        local now = 0
-        pcall(function() now = inv:GetCountOfClass(self.MusicBattleToken) or 0 end)
-        if now > 0 then
-            wbLog("battle music on (token held: " .. now .. ")")
-        else
-            wbLog("music: the token did not arrive - is item id " .. self.MusicBattleToken ..
-                  " in libs/tables/item/item__mercenaries.xml, and is the mod repacked?")
-        end
-    elseif (not on) and have > 0 then
-        ok, err = pcall(function() inv:DeleteItemOfClass(self.MusicBattleToken, have) end)
-        wbLog(ok and "battle music off" or ("music: DeleteItemOfClass failed - " .. tostring(err)))
-    else
-        wbLog("music: already " .. (on and "on" or "off") .. " (token held: " .. have .. ")")
-    end
-end
-
 -- ==== phase machine ====
 function mercenaries:WBSetPhase(p)
     if self.WBPhase == p then return end
@@ -564,7 +526,6 @@ function mercenaries:WBSetPhase(p)
         self.WBAssign = {}
         self.WBHold = {}
     end
-    self:WBMusic(p == "battle")
 end
 
 -- True while the wall must be respected. Battle turns everything off deliberately.
@@ -919,7 +880,6 @@ function mercenaries:WBSetLine(line)
         self.WBOutsideOffset, self.WBInsideOffset, self.WBColumnSpacing))
 end
 
-System.AddCCommand("merc_music",     "mercenaries:WBMusic(tonumber('%line') ~= 0)", "Battle music on/off by hand: merc_music 1 | 0")
 System.AddCCommand("merc_wb_status", "mercenaries:WBStatus()",   "Wall-battle phase, gaps and staging progress")
 System.AddCCommand("merc_wb_gaps",   "mercenaries:WBShowGaps('%line')", "Mark the battle lines at each gap: merc_wb_gaps [menPerSide]")
 System.AddCCommand("merc_wb_line",   "mercenaries:WBSetLine('%line')",  "Line shape: merc_wb_line [spacing] [maxPerRank] [rankDepth] [outOffset] [inOffset] [columnFile]")
