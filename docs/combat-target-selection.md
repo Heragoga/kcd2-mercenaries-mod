@@ -13,7 +13,13 @@ Reaction time end to end is one cache tick (≤300 ms) plus one scheduler tick (
 
 ## Anti-swarm cap
 
-Every merc's current target is recorded in `MercTargetOf`. Once per second `UpdateEnemyCache` rebuilds `TargetLoad` (a target-WUID → count map) from it, so each merc's per-tick swarm check is a plain O(1) lookup instead of a position scan. `TryClaimTarget` refuses a target already at `SwarmCap` attackers, spreading the squad across enemies instead of dogpiling one.
+Every merc's current target is recorded in `MercTargetOf`. Once per second `UpdateEnemyCache` rebuilds `TargetLoad` (a target-WUID → count map) from it, so each merc's per-tick swarm check is a plain O(1) lookup instead of a position scan. `TryClaimTarget` refuses a target already at the cap, spreading the squad across enemies instead of dogpiling one.
+
+**The cap is elastic, and `SwarmCap` (2) is only its floor.** As a hard limit it produced "there's always one just standing there": `PickCombatTarget` has no at-cap fallback (unlike the enemy side's `FindEnemyTarget`, which falls back to `candidates[1]`), so any merc past the *2 × enemies* mark found every candidate full and never engaged for the whole fight. `UpdateEnemyCache` now recomputes `EffectiveSwarmCap = clamp(ceil(MercCount / #CachedEnemies), SwarmCap, SwarmCapMax)` each pass — 5 mercs vs 2 enemies gives 3 and everyone fights; 20 vs 1 gives 4 and sixteen stay in formation.
+
+**Self-defence bypasses the cap entirely.** In `EvaluateCombatTarget`, a candidate whose target is *this merc* is claimed with `force`, because refusing it leaves a merc standing still while someone swings at him. Defending the *player* still respects the cap — spreading out makes sense there.
+
+**Ghost claims are pruned.** The claim tables are released by the combat modules' `OnFail`, which does not run when an NPC simply dies or streams out. Since the load maps are rebuilt from the claim tables every pass, a dead claimer's entry permanently ate a cap slot until the cap quietly stopped binding. `PruneCombatClaims` (from `LowPriorityMonitorLoop`, deliberately *outside* the `ActiveMercs` gate so ambushes and patrols are covered) sweeps `EnemyTargetOf`/`ForcedTargetOf` using `EnemyClaimWuid`, which exists solely to keep the **raw** WUID — the table's string key cannot be handed back to `GetEntityByWUID`. On the merc side `PruneMercCache` releases a knocked-out merc's claim while keeping his roster slot.
 
 ## What counts as a valid enemy (`IsValidEnemy`)
 
@@ -28,7 +34,7 @@ Two gates can be waived individually:
 
 ## Acquisition: always on, two passes
 
-There is no combat stance. Every merc and archer runs the same rule every scheduler tick, whenever it isn't already in combat. Both passes bail only if the merc already has a target, and both go through `TryClaimTarget`, so the anti-swarm cap still applies. **Health is not a factor** — see "Fighting to the death" below.
+There is no combat stance. Every merc and archer runs the same rule every scheduler tick, whenever it isn't already in combat. Both passes bail only if the merc already has a target, and both go through `TryClaimTarget` — the anti-swarm cap applies to everything *except* the self-defence claim described above. **Health is not a factor** — see "Fighting to the death" below.
 
 1. **`EvaluateCombatTarget`** — the lock-on pass. The BT walks `enemiesArray` (nearest first, breaking as soon as one is claimed), asks the engine `GetTarget` for each candidate, and claims anyone whose target is **the player or this merc**. This is what makes the squad move the instant an enemy picks its victim, rather than when the first blow lands.
 2. **`PickCombatTarget`** — the fallback. Takes whoever the player is fighting (`playerCombatTarget`), else the nearest cached hostile.

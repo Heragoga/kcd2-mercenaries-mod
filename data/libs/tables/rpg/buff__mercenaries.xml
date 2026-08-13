@@ -60,6 +60,17 @@
              is not confirmable from the reference data, so marksmanship+agility is
              the working proxy - swap in the real reload code here if found.
              Applied on spawn by mercenaries_static_archer.lua. -->
+        <!-- Keep-up: every merc carries this permanently. Dash is the highest RelativeSpeedLimit
+             the engine has, so the ONLY way to make a follower faster is to raise his actual
+             movement speed. A fully levelled Henry is a little quicker than a base NPC, which is
+             why the squad strings out when the player sprints. rms is the movement multiplier
+             (the mod's own buffs already use it); mst raises max stamina so a long run does not
+             leave them winded. Deliberately modest - this closes a small gap, it does not make
+             mercs outrun the player. -->
+        <buff buff_class_id="15" buff_exclusivity_id="11" buff_id="e5a10011-2c4b-4e6a-9f01-000000000011" buff_lifetime_id="1" buff_name="merc_keepup_buff"
+              buff_params="rms*1.3,mst*1.5"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+
         <buff buff_class_id="15" buff_exclusivity_id="6" buff_id="e5a10008-2c4b-4e6a-9f01-000000000008" buff_lifetime_id="1" buff_name="merc_static_archer_buff"
               buff_params="marksmanship+40,agility+30,rms*2.0"
               duration="-1" implementation="Cpp:Constant" is_persistent="false" />

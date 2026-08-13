@@ -7,7 +7,7 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     if ent.id == player.id then return false end
     if ent:GetName() == "companion_dog" then return false end
 
-    if not self:IsAliveAndWell(ent, true) then return false end
+    if not self:IsCombatViable(ent) then return false end
     if not skipWeaponCheck and ent.human and not ent.human:IsWeaponDrawn() then return false end
     if distanceRefEnt then
         local tp = ent:GetPos()
@@ -100,7 +100,10 @@ function mercenaries:UpdateEnemyCache()
 
         local playerWuid = player.this and player.this.id or player.id
 
-        local radius = self.EnemyScanRadius
+        -- Alerted: look as far as EnemyAlertRadius. The alert is raised below the moment an
+        -- ARMED hostile is in the cache (a fight, not a passer-by) and held for a few seconds
+        -- after the last one, so a squad standing in a market is not sweeping 60m of NPCs.
+        local radius = self.EnemyAlerted and self.EnemyAlertRadius or self.EnemyScanRadius
 
         local ents = System.GetPhysicalEntitiesInBoxByClass(playerPos, radius, "NPC")
         if ents then
@@ -114,6 +117,63 @@ function mercenaries:UpdateEnemyCache()
                 end
             end
         end
+
+        -- Raise / hold / drop the alert from what this pass just found. Armed only: an
+        -- unarmed hostile is an aggro source, not a fight, and widening the sweep for one
+        -- would keep the squad permanently alert in any town with a grumpy NPC in it.
+        local armedNear = false
+        for _, e in ipairs(self.CachedEnemies) do
+            if e.armed then armedNear = true break end
+        end
+
+        -- The PLAYER's own combat state is the other trigger, and it is the important one:
+        -- the cache above only reaches EnemyScanRadius while unalerted, so an alert raised
+        -- purely from its contents can never fire for something far away - the very case this
+        -- exists for. Whether the player is fighting is knowable at any distance.
+        if not armedNear then
+            pcall(function()
+                if player and player.soul and player.soul:HasScriptContext("crime_interruptAttack") then
+                    armedNear = true
+                end
+            end)
+        end
+        -- ...and so is "one of ours is already committed to someone".
+        if not armedNear and next(self.MercTargetOf or {}) ~= nil then armedNear = true end
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        if armedNear then
+            self._alertAt = now
+            if not self.EnemyAlerted then
+                self.EnemyAlerted = true
+                System.LogAlways('[Mercenary Jeff] squad alert: scanning to ' ..
+                                 tostring(self.EnemyAlertRadius) .. 'm')
+            end
+        elseif self.EnemyAlerted then
+            if not self._alertAt or (now - self._alertAt) >= self.EnemyAlertHoldSecs then
+                self.EnemyAlerted = false
+                System.LogAlways('[Mercenary Jeff] squad alert over')
+            end
+        end
+
+        -- Open the anti-swarm cap up when the squad outnumbers the enemy. A hard cap
+        -- of 2 with no at-cap fallback in PickCombatTarget meant surplus mercs found
+        -- every candidate full and never engaged at all.
+        --
+        -- The CEILING has to scale too. At a fixed SwarmCapMax of 4, a 50-man squad against
+        -- a handful of bandits could only ever commit 4 men per enemy - everyone past that
+        -- found every candidate full, kept no target, and held formation. That is the
+        -- "half of them engage, half straggle at the back" report: they were not stuck,
+        -- they had simply been refused a target. The ceiling now rises with how badly the
+        -- enemy is outnumbered, so a big squad commits properly, and it is still a ceiling
+        -- so a lone bandit does not get all fifty at once.
+        local n    = #self.CachedEnemies
+        local mercs = _G.MercCount or 0
+        local want  = (n > 0) and math.ceil(mercs / n) or self.SwarmCap
+        local ceil_ = (n > 0)
+            and math.max(self.SwarmCapMax or 4, math.ceil(mercs / (n * 2)))
+            or  (self.SwarmCapMax or 4)
+        if ceil_ > (self.SwarmCapHard or 10) then ceil_ = (self.SwarmCapHard or 10) end
+        self.EffectiveSwarmCap = math.max(self.SwarmCap, math.min(ceil_, want))
 
         -- Animals run every 3rd tick (~0.9s), horse cleanup every 9th (~2.7s) -
         -- neither needs the combat cadence, and the horse sweep is a 100m query.
@@ -231,16 +291,22 @@ function mercenaries:IsWithinAggroRange(ent)
     local ok, result = pcall(function()
         local ep, pp = ent:GetPos(), player and player:GetPos()
         if not ep or not pp then return false end
+        -- Same reach the cache is currently using, or the player's own target would be
+        -- refused at exactly the distances the alert exists to cover.
+        local r = self.EnemyAlerted and self.EnemyAlertRadius or self.EnemyScanRadius
         local dx, dy, dz = ep.x - pp.x, ep.y - pp.y, ep.z - pp.z
-        return (dx*dx + dy*dy + dz*dz) <= (self.EnemyScanRadius * self.EnemyScanRadius)
+        return (dx*dx + dy*dy + dz*dz) <= (r * r)
     end)
     return ok and result or false
 end
 
--- Claim a target for a merc if it's below SwarmCap; records it in MercTargetOf.
-function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid)
+-- Claim a target for a merc if it's below the cap; records it in MercTargetOf.
+-- force bypasses the cap - used only for genuine self-defence, where refusing the
+-- claim would leave a merc standing still while someone swings at him.
+function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid, force)
     local targetWuidStr = tostring(targetWuid)
-    if (self.TargetLoad[targetWuidStr] or 0) >= self.SwarmCap then return false end
+    local cap = self.EffectiveSwarmCap or self.SwarmCap
+    if not force and (self.TargetLoad[targetWuidStr] or 0) >= cap then return false end
 
     bt_data.playerTarget = targetWuid
     bt_data.isFriendly = false
@@ -262,7 +328,11 @@ function mercenaries:EvaluateCombatTarget(bt_data, myWuid)
         local aggroOn = tostring(bt_data.candidateTarget)
         if aggroOn ~= tostring(myWuid) and aggroOn ~= tostring(bt_data.playerWUID) then return end
 
-        self:TryClaimTarget(bt_data, myWuid, bt_data.candidate)
+        -- Someone swinging at ME overrides the swarm cap: refusing that claim leaves
+        -- a merc standing still while he is being hit. Defending the PLAYER keeps the
+        -- cap - spreading out still makes sense there.
+        local selfDefence = (aggroOn == tostring(myWuid))
+        self:TryClaimTarget(bt_data, myWuid, bt_data.candidate, selfDefence)
     end)
 
     if not ok then
@@ -307,7 +377,7 @@ function mercenaries:PickCombatTarget(bt_data, myWuid)
         local best, bestDist = nil, nil
         for _, entry in ipairs(self.CachedEnemies or {}) do
             local ep = entry.entity and entry.entity:GetPos()
-            if ep and (self.TargetLoad[tostring(entry.wuid)] or 0) < self.SwarmCap then
+            if ep and (self.TargetLoad[tostring(entry.wuid)] or 0) < (self.EffectiveSwarmCap or self.SwarmCap) then
                 local dx, dy, dz = ep.x - myPos.x, ep.y - myPos.y, ep.z - myPos.z
                 local d = dx*dx + dy*dy + dz*dz
                 if not bestDist or d < bestDist then
@@ -322,4 +392,38 @@ function mercenaries:PickCombatTarget(bt_data, myWuid)
     if not ok then
         System.LogAlways('[Mercenary Jeff] PickCombatTarget Error: ' .. tostring(err))
     end
+end
+
+-- ==== squad threat ====
+-- True while a live hostile is close enough to the player to be worth dismounting for.
+-- Set once per CombatScanLoop pass from the cache it just refreshed, and read by the
+-- mounted arm of follow.xml, which otherwise sits in a 10s StanceElement block and only
+-- notices the fight when that block expires - the "mounted mercs take ages to engage" lag.
+mercenaries.SquadThreatRange = 35.0
+
+function mercenaries:UpdateSquadThreat()
+    local near = false
+    pcall(function()
+        if not player then return end
+        local pp = player:GetWorldPos()
+        if not pp then return end
+        local r2 = self.SquadThreatRange * self.SquadThreatRange
+        -- CachedEnemies holds { entity=, wuid=, armed= } wrappers, not entities.
+        for _, e in pairs(self.CachedEnemies or {}) do
+            local ent = e and e.entity
+            if ent and self:IsCombatViable(ent) then
+                local q = ent:GetWorldPos()
+                if q then
+                    local dx, dy = q.x - pp.x, q.y - pp.y
+                    if (dx * dx + dy * dy) <= r2 then near = true; break end
+                end
+            end
+        end
+    end)
+    _G.MercSquadThreat = near
+end
+
+-- BT hook for the mounted arm: should this rider break off and get down?
+function mercenaries:MercShouldDismount(bt_data)
+    bt_data.squadThreat = (_G.MercSquadThreat == true)
 end

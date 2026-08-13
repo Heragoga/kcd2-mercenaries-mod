@@ -527,6 +527,11 @@ end
 mercenaries.EnemySwarmCap = 2
 mercenaries.EnemyTargetOf = {}   -- [enemyWuidStr] = targetWuidStr
 mercenaries.EnemyTargetLoad = {} -- [targetWuidStr] = enemies currently on it
+-- The RAW wuid behind each EnemyTargetOf key. The key is a string and cannot be
+-- handed back to GetEntityByWUID, so without this there is no way to ask "is the
+-- claimer still alive" - and a dead claimer's entry inflated EnemyTargetLoad
+-- forever, until EnemySwarmCap silently stopped binding. See PruneCombatClaims.
+mercenaries.EnemyClaimWuid = {}  -- [enemyWuidStr] = raw wuid of the claimer
 
 -- Dress a freshly spawned enemy: clothing from the group's pool, weapon via the
 -- shared merc weapon path (which parses the tier out of the entity name, and
@@ -713,6 +718,7 @@ function mercenaries:FindEnemyTarget(data, myWuid)
             if fe and self:IsAliveAndWell(fe, true) then
                 data.currentTarget = forced
                 self.EnemyTargetOf[tostring(myWuid)] = tostring(forced)
+                self.EnemyClaimWuid[tostring(myWuid)] = myWuid
                 return
             end
             self.ForcedTargetOf[tostring(myWuid)] = nil
@@ -720,7 +726,7 @@ function mercenaries:FindEnemyTarget(data, myWuid)
 
         if data.currentTarget then
             local curEnt = XGenAIModule.GetEntityByWUID(data.currentTarget)
-            if curEnt and self:IsAliveAndWell(curEnt, true) then
+            if curEnt and self:IsCombatViable(curEnt) then
                 local cp = curEnt:GetPos()
                 if cp then
                     local dx, dy, dz = cp.x - mp.x, cp.y - mp.y, cp.z - mp.z
@@ -732,6 +738,7 @@ function mercenaries:FindEnemyTarget(data, myWuid)
                     if walled then
                         data.currentTarget = nil
                         self.EnemyTargetOf[tostring(myWuid)] = nil
+                        self.EnemyClaimWuid[tostring(myWuid)] = nil
                     end
                 end
             end
@@ -761,7 +768,7 @@ function mercenaries:FindEnemyTarget(data, myWuid)
         if ents then
             for _, ent in pairs(ents) do
                 if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id then
-                    if tostring(ent.this.id) ~= myWuidStr and self:IsEnemyTargetable(ent) and self:IsAliveAndWell(ent, true)
+                    if tostring(ent.this.id) ~= myWuidStr and self:IsEnemyTargetable(ent) and self:IsCombatViable(ent)
                        and not (self.NavTargetBlocked and self:NavTargetBlocked(me, ent)) then
                         local ep = ent:GetPos()
                         if ep then
@@ -777,6 +784,7 @@ function mercenaries:FindEnemyTarget(data, myWuid)
         if #candidates == 0 then
             data.currentTarget = nil
             self.EnemyTargetOf[myWuidStr] = nil
+            self.EnemyClaimWuid[myWuidStr] = nil
             return
         end
 
@@ -792,6 +800,7 @@ function mercenaries:FindEnemyTarget(data, myWuid)
 
         data.currentTarget = chosen
         self.EnemyTargetOf[myWuidStr] = tostring(chosen)
+        self.EnemyClaimWuid[myWuidStr] = myWuid
     end)
 
     if not ok then System.LogAlways('[Enemies] FindEnemyTarget error: ' .. tostring(err)) end

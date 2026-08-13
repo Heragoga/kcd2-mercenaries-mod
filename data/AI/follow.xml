@@ -26,9 +26,18 @@
             <Variable name="horse" type="_wuid" values="" isPersistent="0" form="single" />
             <Variable name="horseSpawned" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="mountAbandoned" type="_bool" values="false" isPersistent="0" form="single" />
-            <Variable name="despawnCountdown" type="_int" values="3" isPersistent="0" form="single" />
+            <!-- Consecutive "player is not mounted" polls before the horse is destroyed.
+                 8 at 500ms/poll = 4s of agreement. At 3 a single StanceCheck blip killed
+                 a horse the merc was still walking to, and because the counter is never
+                 reset on the mounted path the blips accumulated over a whole ride. -->
+            <Variable name="despawnCountdown" type="_int" values="8" isPersistent="0" form="single" />
+            <!-- Mount attempts before giving up. The horse is spawned on a random 5m
+                 bearing, which can land across a fence; a fresh angle usually works. -->
+            <Variable name="mountTries" type="_int" values="0" isPersistent="0" form="single" />
             <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms')" isPersistent="0" form="single" />
-            <Variable name="mountedDistToTarget" type="_float" values="0" isPersistent="0" form="single" />
+            <!-- Mounted gait: 3 Sprint, 2 Dash, 1 Run, 0 Walk, -1 hold. Set by
+                 MountedLeaderGait from the player's measured speed. -->
+            <Variable name="mountGait" type="_int" values="0" isPersistent="0" form="single" />
             <!-- Engine formation (docs/formations.md). One merc is elected to run
                  MakeFormation and follow the player; the rest FormationFollower off
                  him. Kept deliberately dumb: the leader is latched and the preset is
@@ -57,6 +66,15 @@
         </Parameters>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">
+                <!-- Do NOT add a FuseBox/OnFail here that re-arms the scheduler's
+                     $isFollowingActive. It was tried and it feeds back: this tree is
+                     ENDED every time it is deliberately replaced (combat, or the
+                     scheduler's own re-fire), so the OnFail re-arms the very re-fire
+                     that ended it, and follow restarts once a second for ever. Every
+                     restart re-runs GetMemberFormation, so the whole formation churns.
+                     An OnFail here cannot tell "died unexpectedly" from "we replaced
+                     it on purpose". Stalls are caught by external signals instead -
+                     see FollowStuck in mercenaries_formation_handler.lua. -->
                 <Sequence>
                     <Expression expressions="$playerWUID = $__player &#10; $followTarget = $__player &#10; $previousTarget = $__player" />
                     <Parallel successMode="Any" failureMode="Any">
@@ -119,19 +137,40 @@
                             <Sequence>
                                 <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                 <IfCondition failOnCondition="false" condition="$horseSpawned &amp; ~$mountAbandoned &amp; $useFormation &amp; ~$isFormationLeader &amp; $formationLeader ~= $__null">
-                                    <SuppressFailure>
-                                        <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
-                                    </SuppressFailure>
+                                    <Sequence>
+                                        <!-- Null it FIRST, like the on-foot follower branch does. Re-binding
+                                             without clearing leaves a stale non-null handle alive across a
+                                             formation rebuild, and the rider then holds a dead handle for
+                                             good instead of dropping to the Move arms. -->
+                                        <Expression expressions="$formationWUID = $__null" />
+                                        <SuppressFailure>
+                                            <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
+                                        </SuppressFailure>
+                                    </Sequence>
                                 </IfCondition>
                             </Sequence>
                         </Loop>
 
                         <Loop count="-1">
                             <Sequence>
-                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'1s'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <!-- Mounting is instant, dismounting is debounced: a single missed
+                                     StanceCheck flips this global false for the WHOLE squad, which
+                                     dismounts everyone and starts every horse's despawn countdown.
+                                     Poll and debounce are a PAIR. 1.2s of disagreement at a ~500ms
+                                     poll is two consecutive failed reads - still enough to absorb a
+                                     blip, but the squad now reacts to a real dismount in about a
+                                     second instead of three. The horse has its own, much longer
+                                     guard (despawnCountdown), so this only has to cover the
+                                     dismount decision. See docs/formations.md. -->
                                 <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
-                                    <Then canSkip="1"><ExecuteLua code="if not _G.PlayerMounted then _G.PlayerMounted = true end" /></Then>
-                                    <Else canSkip="1"><ExecuteLua code="if _G.PlayerMounted then _G.PlayerMounted = false end" /></Else>
+                                    <Then canSkip="1"><ExecuteLua code="_G.PlayerMountedSeenAt = System.GetCurrTime(); if not _G.PlayerMounted then _G.PlayerMounted = true end" /></Then>
+                                    <Else canSkip="1"><ExecuteLua code="
+                                        if _G.PlayerMounted then
+                                            local t = _G.PlayerMountedSeenAt
+                                            if not t or (System.GetCurrTime() - t) &gt; 1.2 then _G.PlayerMounted = false end
+                                        end
+                                    " /></Else>
                                 </StanceCheck>
                             </Sequence>
                         </Loop>
@@ -142,12 +181,20 @@
                                 <!-- Only sortie mercs mount up to follow a mounted player; camped mercs stay on foot. -->
                                 <ExecuteLua code="data.playerIsMounted = (_G.PlayerMounted and mercenaries:IsMercInSortie(entity.this.id)) or false" />
 
+                                <!-- Horse lifecycle. despawnCountdown is re-armed on every mounted poll
+                                     and after a spawn: it only ever decremented before, so blips spread
+                                     over a long ride still added up to a kill. bSaved_by_game=false keeps
+                                     a transient mount out of the save.
+                                     NO LUA LINE COMMENTS INSIDE THIS code ATTRIBUTE: XML collapses the
+                                     newlines to spaces, so the whole script is one line at runtime and a
+                                     line comment swallows everything after it. -->
                                 <ExecuteLua code="
                                     local ok, err = pcall(function()
                                         local horseName = 'MercenaryHorse_' .. tostring(entity:GetName())
                                         local existingHorse = System.GetEntityByName(horseName)
 
                                         if data.playerIsMounted then
+                                            data.despawnCountdown = 8
                                             if existingHorse then
                                                 data.horse = existingHorse.this.id
                                                 data.horseSpawned = true
@@ -188,25 +235,28 @@
                                             local soulId = horseSouls[horseNumber]
                                             System.SpawnEntity({
                                                 class = 'Horse', name = horseName, position = horsePos,
-                                                orientation = {x = 0, y = 0, z = 0}, properties = {guidSharedSoulId = soulId}
+                                                orientation = {x = 0, y = 0, z = 0},
+                                                properties = {guidSharedSoulId = soulId, bSaved_by_game = false}
                                             })
                                             local horseEnt = System.GetEntityByName(horseName)
                                             if horseEnt then
                                                 data.horse = horseEnt.this.id
                                                 data.horseSpawned = true
+                                                data.despawnCountdown = 8
                                             end
                                             System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] spawned fresh horse, exists=' .. tostring(horseEnt ~= nil))
                                         else
                                             data.horseSpawned = false
                                             data.mountAbandoned = false
+                                            data.mountTries = 0
                                             if existingHorse then
-                                                data.despawnCountdown = (data.despawnCountdown or 3) - 1
+                                                data.despawnCountdown = (data.despawnCountdown or 8) - 1
                                                 if data.despawnCountdown &lt; 1 then
                                                     System.RemoveEntity(existingHorse.id)
-                                                    data.despawnCountdown = 3
+                                                    data.despawnCountdown = 8
                                                 end
                                             else
-                                                data.despawnCountdown = 3
+                                                data.despawnCountdown = 8
                                             end
                                         end
                                     end)
@@ -214,10 +264,18 @@
                                 " />
                             </Sequence>
                         </Loop>
+                        <!-- Drives the mounted gait. 300ms, not the 1s the old MeasureDistance
+                             ran at: a gait chosen from second-old data is what made the ride surge.
+                             This replaces a bare MeasureDistance node that had to be wrapped in
+                             SuppressFailure because it could fail on a followTarget pointing at a
+                             merc who died or was mid-rebuild - and this Parallel is
+                             failureMode="Any", so that took the WHOLE follow behaviour down and
+                             froze the merc. The Lua does its own distance maths inside a pcall,
+                             so that failure mode is gone rather than suppressed. -->
                         <Loop count="-1">
                             <Sequence>
-                                <MeasureDistance position1="$this.id" position2="$followTarget" mode="TwoDimensions" result="$mountedDistToTarget" />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <ExecuteLua code="mercenaries:MountedLeaderGait(data, entity)" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                             </Sequence>
                         </Loop>
                         <!-- Order-bark consumer: poll _G.MercBarkReq for this merc, play the alias once, clear it. -->
@@ -355,11 +413,14 @@
                                     <Sequence>
                                         <!-- Refresh the handle for the mounted FormationFollower arm below; on
                                              foot the follower branch does this itself. -->
-                                        <SuppressFailure>
-                                            <IfCondition failOnCondition="false" condition="$useFormation &amp; ~$isFormationLeader &amp; $formationLeader ~= $__null">
-                                                <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
-                                            </IfCondition>
-                                        </SuppressFailure>
+                                        <IfCondition failOnCondition="false" condition="$useFormation &amp; ~$isFormationLeader &amp; $formationLeader ~= $__null">
+                                            <Sequence>
+                                                <Expression expressions="$formationWUID = $__null" />
+                                                <SuppressFailure>
+                                                    <GetMemberFormation MemberWUID="$formationLeader" FormationHandleOut="$formationWUID" />
+                                                </SuppressFailure>
+                                            </Sequence>
+                                        </IfCondition>
                                         <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: Attempting StanceElement with 10s timeout.')" />
 
                                         <SuppressFailure>
@@ -367,6 +428,16 @@
                                                 <StanceElement smartObject="$horse" stance="horse" allowAny="false" enabled="true">
                                                     <CrimeFollower Target="$followTarget" Mode="Default" Role="Assist" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                                 </StanceElement>
+                                                <!-- MOUNT-ACQUISITION deadline, not a ride commit box. The merc
+                                                     is still on foot here: StanceElement is what walks him to a
+                                                     horse spawned 5m away and plays the mount transition, and on
+                                                     expiry the StanceCheck below DESTROYS the horse. A confirmed
+                                                     rider enters the untimed Loop below and never returns here,
+                                                     so shortening this does nothing for engagement lag - it only
+                                                     cuts the mount short. At 2s the horse was deleted out from
+                                                     under a merc still walking to it.
+                                                     Do NOT instead add a failing arm to this Parallel: it is
+                                                     failureMode="Any", so that ends the ride entirely. -->
                                                 <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                             </Parallel>
                                         </SuppressFailure>
@@ -374,6 +445,7 @@
                                         <StanceCheck soul="$this.id" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
                                             <Then canSkip="1">
                                                 <Sequence>
+                                                    <Expression expressions="$mountTries = 0" />
                                                     <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: Mount confirmed, riding.')" />
                                                     <Loop count="-1">
                                                         <SuppressFailure>
@@ -401,38 +473,48 @@
                                                                         </Sequence>
                                                                     </IfCondition>
 
-                                                                    <IfCondition failOnCondition="false" condition="$mountedDistToTarget &gt; 10.0">
-                                                                        <Move stopWithinDistance="6.0"
-                                                                            stopDistanceVariation="2.0"
-                                                                            rayCasteFlee="false"
-                                                                            successDistance="0.0"
-                                                                            changeNPCState="false"
-                                                                            fastForwardIncludesMove="false"
-                                                                            destinationSpecification="$followTarget"
-                                                                            destinationSpecification2="8.0"
-                                                                            destinationSpecification3="2.0"
-                                                                            speed="Dash"
-                                                                            additionalParams="$MoveParams_follow"
-                                                                            pathFindingParams=""
-                                                                            staminaPolicy=""
-                                                                            pathInfo="" />
+                                                                    <!-- destinationSpecification2/3 MUST BE EMPTY here. Wherever they
+                                                                         are populated in shipped data they are the FLEE band - "stay
+                                                                         outside these two distances from the target" (companionmerchant,
+                                                                         and this mod's own goFlee branch in mercenary_scheduler.xml,
+                                                                         both $distanceToFlee/$keepMinimalDistance). Filling them with
+                                                                         stand-off distances turned this into a flee node pointed at the
+                                                                         player: a leader already 10-25m away satisfied the band, so he
+                                                                         measured EXACTLY 0.00m of movement for as long as he was mounted
+                                                                         while the squad trailed his parked anchor. Empty spec2/3 against
+                                                                         a live WUID is the chase idiom (references _vachek
+                                                                         zakladni_chovani), and a bare Move under a horse StanceElement
+                                                                         is proven by moveOnHorse / menhart / cavalry_move / hunter_rideHome.
+                                                                         changeNPCState is true to match every vanilla chase/travel Move;
+                                                                         false is the flee-specific setting. -->
+                                                                    <!-- LEADER GAIT, matched to the player's measured speed by
+                                                                         MountedLeaderGait: 3 Sprint, 2 Dash, 1 Run, 0 Walk, -1 hold.
+                                                                         speed is an enum ATTRIBUTE and cannot be a variable, so each
+                                                                         gait is its own node - same reason follow.xml spells out every
+                                                                         FormationMode. Distance is only a trim (one gait up if he has
+                                                                         dropped back, one down if he has closed in); matching the speed
+                                                                         rather than chasing the gap is what keeps it constant, because
+                                                                         at a true match the gap simply holds. -->
+                                                                    <IfCondition failOnCondition="false" condition="$mountGait == 3">
+                                                                        <Move stopWithinDistance="3.0" stopDistanceVariation="1.0" rayCasteFlee="false" successDistance="0.0" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$followTarget" destinationSpecification2="" destinationSpecification3="" speed="Sprint" additionalParams="$MoveParams_follow" pathFindingParams="" staminaPolicy="" pathInfo="" />
                                                                     </IfCondition>
 
-                                                                    <IfCondition failOnCondition="false" condition="$mountedDistToTarget &lt;= 10.0">
-                                                                        <Move stopWithinDistance="4.0"
-                                                                            stopDistanceVariation="1.0"
-                                                                            rayCasteFlee="false"
-                                                                            successDistance="0.0"
-                                                                            changeNPCState="false"
-                                                                            fastForwardIncludesMove="false"
-                                                                            destinationSpecification="$followTarget"
-                                                                            destinationSpecification2="4.0"
-                                                                            destinationSpecification3="1.0"
-                                                                            speed="Walk"
-                                                                            additionalParams="$MoveParams_follow"
-                                                                            pathFindingParams=""
-                                                                            staminaPolicy=""
-                                                                            pathInfo="" />
+                                                                    <IfCondition failOnCondition="false" condition="$mountGait == 2">
+                                                                        <Move stopWithinDistance="3.0" stopDistanceVariation="1.0" rayCasteFlee="false" successDistance="0.0" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$followTarget" destinationSpecification2="" destinationSpecification3="" speed="Dash" additionalParams="$MoveParams_follow" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                                    </IfCondition>
+
+                                                                    <IfCondition failOnCondition="false" condition="$mountGait == 1">
+                                                                        <Move stopWithinDistance="3.0" stopDistanceVariation="1.0" rayCasteFlee="false" successDistance="0.0" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$followTarget" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="$MoveParams_follow" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                                    </IfCondition>
+
+                                                                    <IfCondition failOnCondition="false" condition="$mountGait == 0">
+                                                                        <Move stopWithinDistance="3.0" stopDistanceVariation="1.0" rayCasteFlee="false" successDistance="0.0" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$followTarget" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="$MoveParams_follow" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                                    </IfCondition>
+
+                                                                    <!-- gait -1: the player has stopped and the leader is already at
+                                                                         station. Hold rather than creep the last few metres onto him. -->
+                                                                    <IfCondition failOnCondition="false" condition="true">
+                                                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                                                     </IfCondition>
 
                                                                 </ContinuousSwitch>
@@ -442,7 +524,13 @@
                                                 </Sequence>
                                             </Then>
                                             <Else canSkip="1">
-                                                
+                                                <!-- Mount failed. Delete the horse and let the lifecycle loop
+                                                     respawn one on a fresh random bearing: the 5m offset can
+                                                     land across a fence, and retrying the SAME horse fails
+                                                     identically. Only give up after mountTries attempts, so a
+                                                     single bad angle no longer strands a merc on foot for the
+                                                     rest of the ride (mountAbandoned is cleared only when the
+                                                     player dismounts). -->
                                                 <Sequence>
                                                     <ExecuteLua code="
                                                         local ok, err = pcall(function()
@@ -451,12 +539,19 @@
                                                         end)
                                                         if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION in abandon-despawn: ' .. tostring(err)) end
                                                     " />
-                                                    <Expression expressions="$horseSpawned = false &#10; $horse = $__null &#10; $mountAbandoned = true" />
+                                                    <Expression expressions="$horseSpawned = false &#10; $horse = $__null &#10; $mountTries = $mountTries + 1" />
+                                                    <IfCondition failOnCondition="false" condition="$mountTries &gt;= 3">
+                                                        <Expression expressions="$mountAbandoned = true" />
+                                                    </IfCondition>
+                                                    <ExecuteLua code="System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] MOUNT_BRANCH: mount failed, try ' .. tostring(data.mountTries) .. '/3, abandoned=' .. tostring(data.mountAbandoned))" />
                                                 </Sequence>
                                             </Else>
                                         </StanceCheck>
                                     </Sequence>
                                 </IfCondition>
+                                <!-- Fallthrough: no locomotion, just a wait. A merc parked here is
+                                     standing still by construction, so if one ever does, the question
+                                     is which arm above he is failing the condition for. -->
                                 <IfCondition failOnCondition="false" condition="true">
                                     <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                                 </IfCondition>

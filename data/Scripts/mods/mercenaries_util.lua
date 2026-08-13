@@ -1,10 +1,119 @@
 -- Merc cache: RebuildMercCache does the only full NPC scan (on load);
 -- PruneMercCache drops dead refs each second. Hot paths iterate ActiveMercs.
 
-function mercenaries:EnsureMercIsAlwaysRendered(ent)
-    -- No-op: forcing RenderAlways/view-dist on mercs caused more trouble than
-    -- it solved. Kept as a hook in case always-render is needed later.
+-- Pin a merc's RENDERER view distance, so he is never culled by distance.
+--
+-- This is separate from the AI LOD tiers (mercenaries_lodboost.lua): that decides how much
+-- an NPC is SIMULATED, this decides whether he is DRAWN. Same three calls that already fixed
+-- wall segments, towers and camp props dropping out at distance (mercenaries_wall.lua).
+--
+-- It was previously a no-op, on the strength of "forcing RenderAlways caused more trouble
+-- than it solved". That verdict came from a broken test - the original body was, verbatim:
+--
+--     ent:SetViewDistRatio(254)
+--     ent:SetViewDistRatio(0)
+--
+-- i.e. it set the maximum and then immediately the MINIMUM on the next line, so the function
+-- named "always rendered" was culling mercs as hard as the engine allows. docs/npc-lod.md
+-- records the gap this leaves: a clean retry with no follow-up zeroing was never attempted.
+--
+-- Separate pcalls on purpose: these are entity-class methods and a missing one on the NPC
+-- class must not skip the others. No RenderShadow here - fifty extra shadow casters is a real
+-- cost and shadows are not the reported symptom.
+--
+-- View distance decides WHETHER a merc is drawn; the LOD ratio decides WHICH MESH LOD. They
+-- are separate knobs and only the first was ever needed for "they do not render at all".
+--
+-- The LOD ratio SCALES WITH THE CROWD, because the whole reason to give up detail is that
+-- there are a lot of NPCs to draw. With a handful of mercs there is nothing to save and they
+-- should look their best; with fifty, a little fidelity buys headroom.
+--
+-- Calibration, from what has actually been seen in game: 255 (copied from the wall-segment
+-- code) made mercs low-detail puppets at arm's length - KCD2 assembles characters from
+-- clothing skins and swaps in a merged "uberlod" from a configurable LOD number, so
+-- distorting LOD selection on a character is nothing like doing it on a wall. Unset looked
+-- right but is more than a big squad needs. 140 was "just about bearable", so that is the
+-- WORST this is now allowed to get, and only at full crowd; small squads sit at the engine
+-- default. The scale runs "higher = drops detail sooner".
+mercenaries.RenderPin       = true
+mercenaries.RenderLodBest   = 100    -- engine default: small squads, full detail
+mercenaries.RenderLodWorst  = 130    -- big crowd; below the 140 that was merely "bearable"
+mercenaries.RenderLodCrowdLo = 10    -- at or under this many mod NPCs, best detail
+mercenaries.RenderLodCrowdHi = 45    -- at or over this, worst
+mercenaries.RenderLodRatio  = nil    -- computed; nil = leave the engine alone
+
+function mercenaries:UpdateRenderLod()
+    local crowd = (_G.MercCount or 0) + #(self.CachedEnemies or {})
+    local lo, hi = self.RenderLodCrowdLo, self.RenderLodCrowdHi
+    local t = 0.0
+    if hi > lo then t = (crowd - lo) / (hi - lo) end
+    if t < 0 then t = 0 elseif t > 1 then t = 1 end
+    local r = math.floor(self.RenderLodBest + (self.RenderLodWorst - self.RenderLodBest) * t + 0.5)
+    self.RenderLodRatio = r
+    return r
 end
+
+function mercenaries:EnsureMercIsAlwaysRendered(ent)
+    if not (ent and self.RenderPin) then return end
+    pcall(function() ent:SetViewDistUnlimited() end)
+    pcall(function() ent:SetViewDistRatio(255) end)
+    if self.RenderLodRatio then
+        pcall(function() ent:SetLodRatio(self.RenderLodRatio) end)
+    end
+end
+
+-- Set the WORST the scaling is allowed to get (the value used at full crowd). Small squads
+-- keep RenderLodBest regardless, so this is the one number worth tuning by eye.
+function mercenaries:RenderLodSet(v)
+    local n = tonumber(tostring(v or ''):match('%d+'))
+    if n then self.RenderLodWorst = n end
+    local now = self:UpdateRenderLod()
+    System.LogAlways('[Mercenary Jeff] merc LOD: best=' .. tostring(self.RenderLodBest) ..
+                     ' worst=' .. tostring(self.RenderLodWorst) ..
+                     ' currently=' .. tostring(now) ..
+                     ' (higher drops detail sooner; 255 was puppet-grade, 100 is engine default)')
+    self:RefreshRenderPins()
+end
+
+System.AddCCommand("merc_render_lod", "mercenaries:RenderLodSet('%line')",
+                   "Worst-case merc mesh detail at full crowd, e.g. merc_render_lod 130")
+
+-- Movement speed + stamina, so the squad can stay with a sprinting player. Dash is the
+-- highest RelativeSpeedLimit the engine has, so raising actual movement speed is the only
+-- lever left. Applied once per merc and tracked here: AddBuff would otherwise stack a fresh
+-- instance every refresh.
+mercenaries.KeepUpBuff = "e5a10011-2c4b-4e6a-9f01-000000000011"
+mercenaries.KeepUpBuffOn = true
+mercenaries._keepUpDone = {}
+
+function mercenaries:ApplyKeepUpBuff(ent)
+    if not (ent and ent.soul and self.KeepUpBuffOn) then return end
+    local k = tostring((ent.this and ent.this.id) or ent.id)
+    if self._keepUpDone[k] then return end
+    local ok = pcall(function() ent.soul:AddBuff(self.KeepUpBuff) end)
+    if ok then self._keepUpDone[k] = true end
+end
+
+-- Re-applied on a slow tick as well as at spawn: equipping clothing, a save/load, or anything
+-- that rebuilds the entity can drop these, and the whole symptom is something undoing render
+-- state behind us. The keep-up buff rides along on the same sweep so newly hired mercs and
+-- reloaded saves pick it up without another loop.
+function mercenaries:RefreshRenderPins()
+    if self.RenderPin then self:UpdateRenderLod() end
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if self.RenderPin then self:EnsureMercIsAlwaysRendered(ent) end
+        self:ApplyKeepUpBuff(ent)
+    end
+end
+
+function mercenaries:RenderPinSet(v)
+    self.RenderPin = (tostring(v or ''):match('1') ~= nil)
+    System.LogAlways('[Mercenary Jeff] render pin ' .. (self.RenderPin and 'ON' or 'OFF (restart to fully clear)'))
+    if self.RenderPin then self:RefreshRenderPins() end
+end
+
+System.AddCCommand("merc_render_pin", "mercenaries:RenderPinSet('%line')",
+                   "Pin merc renderer view distance so they are never distance-culled: merc_render_pin 1 | 0")
 function mercenaries:RebuildMercCache()
     self.ActiveMercs = {}
      if _G.MercenariesDismissed then
@@ -47,6 +156,31 @@ function mercenaries:PruneMercCache()
             local wuid = ent.this and ent.this.id or ent.id
             self.MercTargetOf[tostring(wuid)] = nil
             Script.SetTimerForFunction(10000, "mercenaries.DespawnMerc", ent.id)
+        elseif not self:IsCombatViable(ent) then
+            -- Knocked out: keeps his roster slot (a false answer above schedules a
+            -- despawn), but he is not fighting and must not hold a swarm-cap slot.
+            local wuid = ent.this and ent.this.id or ent.id
+            self.MercTargetOf[tostring(wuid)] = nil
+        end
+    end
+end
+
+-- Combat claims are released by the combat modules' OnFail, which does not run
+-- when an NPC simply dies or is streamed out. The load tables are rebuilt from
+-- these every pass, so a ghost claim permanently eats a swarm-cap slot and the
+-- caps quietly stop binding - one of the ways a fighter ends up with no target
+-- and stands there. Swept from LowPriorityMonitorLoop.
+function mercenaries:PruneCombatClaims()
+    for k, w in pairs(self.EnemyClaimWuid or {}) do
+        local live = false
+        pcall(function()
+            local e = XGenAIModule.GetEntityByWUID(w)
+            live = (e ~= nil) and self:IsAliveAndWell(e, true)
+        end)
+        if not live then
+            self.EnemyTargetOf[k] = nil
+            self.EnemyClaimWuid[k] = nil
+            if self.ForcedTargetOf then self.ForcedTargetOf[k] = nil end
         end
     end
 end
@@ -234,8 +368,17 @@ function mercenaries:IsAliveAndWell(ent, allowUnconscious)
 
     local ok, hp = pcall(function() return ent.soul:GetState('health') end)
     if not ok or hp == nil or hp <= 0 then return false end
-    
+
     return true
+end
+
+-- A downed man is not an opponent. Every COMBAT path asks this; roster and
+-- bookkeeping paths keep IsAliveAndWell(ent, true), because "is he still on the
+-- books" is a different question - PruneMercCache schedules a despawn on a false
+-- answer, so a knocked-out merc must still read as alive there.
+-- See docs/combat-target-selection.md.
+function mercenaries:IsCombatViable(ent)
+    return self:IsAliveAndWell(ent, false)
 end
 
 -- Identify whether an entity is a mercenary, returning its type or nil.

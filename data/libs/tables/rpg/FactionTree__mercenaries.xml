@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="FactionTree.xsd">
 	<FactionTree version="1">
 
@@ -35,6 +35,17 @@
 				<Relation target="player" reputation="1" />
 				<Relation target="mercenariesFaction" reputation="1" />
 				<Relation target="players_friends" reputation="1" />
+			</Relations>
+		</Faction>
+		<!-- Roaming patrols. Hostile to the player, to his mercenaries and to the mod's
+		     bandit groups - and deliberately silent about every other faction, so
+		     civilians and quest NPCs fall through to the default neutral relation
+		     rather than being dragged into a war they have nothing to do with. -->
+		<Faction Name="patrolFaction">
+			<Relations>
+				<Relation target="player" reputation="-1" />
+				<Relation target="mercenariesFaction" reputation="-1" />
+				<Relation target="enemiesFaction" reputation="-1" />
 			</Relations>
 		</Faction>
     </FactionTree>

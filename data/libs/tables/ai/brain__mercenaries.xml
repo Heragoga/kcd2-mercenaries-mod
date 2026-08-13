@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="us-ascii"?>
+﻿<?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<brains version="1">
 		<brain brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" brain_name="mercenary_brain" />
@@ -23,5 +23,9 @@
 		<brain brain_id="a7c3e1d9-4b2f-4a68-9c50-1e3d7f8a2b60" brain_name="enemy_archer_brain" />
 			<!-- TEST NPC: minimal brain, only attacks the player (testnpc_scheduler.xml). -->
 		<brain brain_id="f1e2d3c4-0001-4a00-8b00-000000000001" brain_name="testnpc_brain" />
+		<!-- Patrol tester: walks, and cannot fight. See docs/patrols.md. -->
+		<brain brain_id="d4c8b1a6-7e29-4f30-b5c1-90a3d6e2f487" brain_name="patrol_brain" />
+		<!-- Roaming patrol: walks a route AND fights. See docs/patrols.md. -->
+		<brain brain_id="a71f4e93-2c85-4d16-8f3a-b62e94c17d08" brain_name="patrolguard_brain" />
 	</brains>
 </database>

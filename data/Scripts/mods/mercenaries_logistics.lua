@@ -20,8 +20,21 @@ mercenaries.MoraleStarveDrain    = 5           -- /day while starving
 mercenaries.MoraleDrinkGain      = 10          -- /day while drink available
 mercenaries.MoraleInnGain        = 10          -- /day while the inn stands
 mercenaries.MoraleWageDrain      = 10          -- /day while unpaid
-mercenaries.MoraleKillCapPerFight= 20          -- max morale from one fight's kills
 mercenaries.MoralePerKill        = 5
+-- Morale GAIN from kills is uncapped: winning a big battle should feel like winning a big
+-- battle, and the squad is already paying for it in the losses below.
+-- Morale LOSS from deaths IS capped, per fight. Without a cap a disaster is unbounded - ten
+-- dead is -50, twenty is -100, i.e. straight from any starting morale to mutiny in one
+-- engagement, with no way back. The cap makes a massacre severe but survivable.
+mercenaries.MoraleDeathCapPerFight = 50
+
+-- Battlefield spoils, per confirmed kill: what you strip off the body.
+-- Food is in the same units as everything else here - one unit feeds FeedRatio (8) mercs for
+-- a day, so 3 units is a day's food for 24 men. Wages are groschen into the war chest, priced
+-- as merc-days at the medium tier, so "2 wages" is two men paid for a day.
+mercenaries.LootPerKillFood  = 3
+mercenaries.LootPerKillDrink = 1
+mercenaries.LootPerKillWages = 2               -- merc-days, converted at WagePerTier.medium
 mercenaries.MoraleDeathPenalty   = 5           -- per merc that dies
 mercenaries.TirednessGraceDays   = 3           -- days out of camp before tiredness bites (kept in step with ExhaustedBuffDays so the icon and the morale penalty line up)
 mercenaries.StartingSupplyDays   = 3           -- days of food and drink handed out when the first camp goes up
@@ -156,7 +169,7 @@ function mercenaries:LogiState()
             lastUpkeepDay = nil, lastTick = nil,
             -- runtime combat tracking
             lastAliveCount = nil, selfRemoved = 0, desertProgress = 0,
-            engaged = {}, fightKillMorale = 0, wasInFight = false,
+            engaged = {}, fightDeathMorale = 0, fightLootKills = 0, wasInFight = false,
             buffApplied = {}, warnLevel = 0,
         }
     end
@@ -317,7 +330,7 @@ function mercenaries:LogiLoad()
     L.innActive       = L.innDays > 0
     L.lastTick = self:LogiNow()          -- not persisted (see comment in LogiTick)
     L.lastAliveCount = self:LogiAliveCount()
-    L.selfRemoved = 0; L.desertProgress = 0; L.engaged = {}; L.fightKillMorale = 0; L.wasInFight = false
+    L.selfRemoved = 0; L.desertProgress = 0; L.engaged = {}; L.fightDeathMorale = 0; L.fightLootKills = 0; L.wasInFight = false
     L.buffApplied = {}
     self.LogiLastSaved = {}
     self:LogiApplyBuffs()
@@ -347,29 +360,41 @@ end
 function mercenaries:LogiTrackCombat()
     local L = self:LogiState()
 
-    -- Deaths: a drop in the live count that we didn't cause ourselves.
-    local alive = self:LogiAliveCount()
-    if L.lastAliveCount == nil then L.lastAliveCount = alive end
-    if not _G.MercenariesDismissed then
-        local drop = L.lastAliveCount - alive - (L.selfRemoved or 0)
-        if drop > 0 then
-            self:LogiAddMorale(-self.MoraleDeathPenalty * drop, drop .. " merc death(s)")
-        end
-    end
-    L.selfRemoved = 0
-    L.lastAliveCount = alive
-
-    -- Kills: enemies we were engaged with that are now confirmed dead.
-    -- armed only: CachedEnemies also holds hostiles who haven't drawn yet (they
-    -- are aggro sources, not a fight in progress).
+    -- Who we are engaged with is worked out FIRST, so the fight-start reset happens before
+    -- this tick's deaths are counted. With the reset further down, a merc who died in the
+    -- opening tick of a battle was charged against the PREVIOUS fight's cap - which, if that
+    -- fight had already maxed out, meant his death cost nothing at all.
+    -- armed only: CachedEnemies also holds hostiles who haven't drawn yet (they are aggro
+    -- sources, not a fight in progress).
     local nowEngaged = {}
     for _, entry in ipairs(self.CachedEnemies or {}) do
         if entry.wuid and entry.armed then nowEngaged[tostring(entry.wuid)] = entry.wuid end
     end
     local anyLive = next(nowEngaged) ~= nil
     if anyLive and not L.wasInFight then
-        L.fightKillMorale = 0            -- new fight - reset the per-fight cap
+        L.fightDeathMorale = 0           -- new fight - reset the per-fight loss cap
+        L.fightLootKills   = 0           -- ...and the spoils tally the after-action report reads
     end
+
+    -- Deaths: a drop in the live count that we didn't cause ourselves. Capped per fight.
+    local alive = self:LogiAliveCount()
+    if L.lastAliveCount == nil then L.lastAliveCount = alive end
+    if not _G.MercenariesDismissed then
+        local drop = L.lastAliveCount - alive - (L.selfRemoved or 0)
+        if drop > 0 then
+            local want = self.MoraleDeathPenalty * drop
+            local room = self.MoraleDeathCapPerFight - (L.fightDeathMorale or 0)
+            local loss = math.min(want, math.max(0, room))
+            if loss > 0 then
+                self:LogiAddMorale(-loss, drop .. " merc death(s)")
+                L.fightDeathMorale = (L.fightDeathMorale or 0) + loss
+            end
+        end
+    end
+    L.selfRemoved = 0
+    L.lastAliveCount = alive
+
+    -- Kills: enemies we were engaged with that are now confirmed dead.
     -- Confirm deaths among previously-engaged enemies.
     for wstr, wuid in pairs(L.engaged or {}) do
         if not nowEngaged[wstr] then
@@ -379,16 +404,62 @@ function mercenaries:LogiTrackCombat()
                 if e and e.actor and e.actor.IsDead and e.actor:IsDead() then dead = true end
             end)
             if dead then
-                local gain = math.min(self.MoralePerKill, self.MoraleKillCapPerFight - (L.fightKillMorale or 0))
-                if gain > 0 then
-                    self:LogiAddMorale(gain, "enemy killed")
-                    L.fightKillMorale = (L.fightKillMorale or 0) + gain
-                end
+                -- Uncapped: MoraleMax already bounds the total, so a big win simply pushes
+                -- toward it instead of stopping dead after four kills.
+                self:LogiAddMorale(self.MoralePerKill, "enemy killed")
+                self:LogiLootKill()
             end
         end
     end
     L.engaged = nowEngaged
+
+    -- Falling edge: the last man we were engaged with is down. Report the spoils and, more
+    -- to the point, what they bought - supplies only mean anything as DAYS.
+    if L.wasInFight and not anyLive and (L.fightLootKills or 0) > 0 then
+        self:LogiAfterActionReport()
+    end
     L.wasInFight = anyLive
+end
+
+-- Strip a body. Deliberately NOT capped like the morale gain: morale is capped so one big
+-- battle cannot bank a fortnight of goodwill, whereas supplies scale with bodies because
+-- that is the point - a long fight should keep the squad fed.
+function mercenaries:LogiLootKill()
+    local L = self:LogiState()
+    L.fightLootKills = (L.fightLootKills or 0) + 1
+
+    if self.LootPerKillFood  > 0 then self:LogiAdjust("food",  self.LootPerKillFood,  "battlefield spoils") end
+    if self.LootPerKillDrink > 0 then self:LogiAdjust("drink", self.LootPerKillDrink, "battlefield spoils") end
+
+    local coin = self.LootPerKillWages * (self.WagePerTier.medium or 10)
+    if coin > 0 then self:LogiAdjust("coffer", coin, "battlefield spoils") end
+
+    -- Fresh supplies clear the starving / no-drink flags the same way a delivery does.
+    self:Recount()
+    local need = math.max(1, math.ceil((_G.MercCount or 0) / self.FeedRatio))
+    if L.starving and L.food >= need then L.starving = false end
+    if not L.drinkAvailable and L.drink >= need then L.drinkAvailable = true end
+    self:LogiSave()
+end
+
+-- After-action report: how long the squad is now provisioned for. Wage runway counts the war
+-- chest plus the player's purse, exactly as LogiAskStats does, because both get spent on payday.
+function mercenaries:LogiAfterActionReport()
+    local L = self:LogiState()
+    local wageDay = self:LogiWageTotal()
+    local money = 0; pcall(function() money = player.inventory:GetMoney() end)
+    local runway = (wageDay > 0) and math.floor(((L.coffer or 0) + money) / wageDay) or 999
+
+    self:LogiInfo("@merc_n_spoils " .. (L.fightLootKills or 0)
+        .. " @merc_n_food "  .. L.food  .. " @merc_n_days " .. self:LogiSupplyDays(L.food)
+        .. " @merc_n_drink " .. L.drink .. " @merc_n_days " .. self:LogiSupplyDays(L.drink)
+        .. " @merc_n_cnow "  .. (L.coffer or 0) .. " @merc_n_wdays " .. runway)
+
+    System.LogAlways(string.format(
+        "[Logistics] after-action: %d kill(s) looted; food %d (%dd), drink %d (%dd), chest %d (%dd of wages)",
+        L.fightLootKills or 0, L.food, self:LogiSupplyDays(L.food),
+        L.drink, self:LogiSupplyDays(L.drink), L.coffer or 0, runway))
+    L.fightLootKills = 0
 end
 
 -- ==== Continuous morale rates ====

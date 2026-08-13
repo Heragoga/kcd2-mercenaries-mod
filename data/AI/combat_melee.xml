@@ -86,13 +86,28 @@
                                             </Loop>
 
                                             <!-- Watchdog: disengage covers the per-side leash / stance /
-                                                 critical-health rules (Lua decides; enemies never leash). -->
+                                                 critical-health rules (Lua decides; enemies never leash).
+                                                 ~isTargetAlive is here too, and that is the only TIMED exit
+                                                 on target death: the arm above only samples it when
+                                                 CombatAction happens to return, so a fighter whose target
+                                                 went down could circle the body indefinitely. Enemies have
+                                                 no leash at all, so for them this is the ONLY exit.
+                                                 Confirmed on a second read 400ms later - UpdateMeleeCombatData
+                                                 defaults isTargetAlive to false and only sets it after a
+                                                 successful WUID lookup inside a pcall, so one hiccup reads as
+                                                 death. Two reads cap the exit at ~1.7s with no false trip. -->
                                             <Loop count="-1">
                                                 <Sequence>
                                                     <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
                                                     <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
-                                                    <IfCondition failOnCondition="false" condition="$disengage">
-                                                        <Fail />
+                                                    <IfCondition failOnCondition="false" condition="$disengage | ~$isTargetAlive">
+                                                        <Sequence>
+                                                            <Wait duration="'400ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                            <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
+                                                            <IfCondition failOnCondition="false" condition="$disengage | ~$isTargetAlive">
+                                                                <Fail />
+                                                            </IfCondition>
+                                                        </Sequence>
                                                     </IfCondition>
                                                 </Sequence>
                                             </Loop>
@@ -104,7 +119,14 @@
                                 <OnFail canSkip="1">
                                     <Sequence>
                                         <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
-                                        <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                        <!-- This Wait sits INSIDE the crime_interruptAttack context opened at
+                                             the top of this tree, which every scheduler reads as $inCombat -
+                                             so it is added directly to the dead time before locomotion can
+                                             re-fire. 300ms matches the 300ms CombatScanLoop, so a corpse still
+                                             leaves CachedEnemies before re-acquisition can see it. Do NOT drop
+                                             the cleanup Lua above with it: without it mercs stand around with
+                                             their sword out, and ClearCombatClaim is what frees the swarm cap. -->
+                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="" />
                                     </Sequence>
                                 </OnFail>
                             </FuseBox>

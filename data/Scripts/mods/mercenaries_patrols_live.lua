@@ -1,0 +1,949 @@
+-- Roaming patrols.
+--
+-- One or two gangs per recorded route (long ones carry two), walking it back and forth. They are hostile to the
+-- player, to his mercenaries and to the mod's bandit groups, and neutral to everyone else -
+-- that is all decided by patrolFaction in FactionTree__mercenaries.xml, not here.
+--
+-- Only patrols near the player exist as NPCs. Routes are 1-2 km long and there are 26 of
+-- them, so spawning every gang would put hundreds of NPCs in the world; instead each patrol
+-- keeps a notional POSITION that advances on a timer whether or not it is spawned, and the
+-- men are created when the player comes within PatrolSpawnRange and removed when he leaves.
+-- A patrol therefore appears roughly where it should be rather than where it was left.
+--
+-- Movement and formation are the tester's (patrol_scheduler.xml + patrol_follow.xml). The
+-- difference is the soul: patrolguard_* carries patrolFaction and a combat-capable brain,
+-- while the tester's patrol_* souls sit on testFaction and never find a target.
+
+mercenaries.LivePatrolsEnabled = true
+mercenaries.PatrolSpawnRange   = 140.0   -- spawn the gang when the player is this close
+mercenaries.PatrolDespawnRange = 220.0   -- ...and take it away again out here (hysteresis)
+mercenaries.PatrolMinMen       = 5
+mercenaries.PatrolMaxMen       = 50
+mercenaries.PatrolPartyMin     = 0.5     -- size as a multiple of the player's fighting strength
+mercenaries.PatrolPartyMax     = 3.0
+mercenaries.PatrolRespawnDays  = 1.0     -- a wiped patrol is back after this long
+mercenaries.PatrolCorpseSecs   = 600.0   -- bodies stay lootable this long if the player stays put
+mercenaries.PatrolGhostSpeed   = 1.4     -- m/s the unspawned patrol advances along its route
+mercenaries.PatrolLiveTickMs   = 3000
+-- How far a patrolman notices a target ON HIS OWN. It was 12, on the principle that a gang
+-- walking a road should have to come across you - but 12m is inside the distance you close in
+-- a couple of seconds, so they only ever reacted once you were on top of them, and a man
+-- hovering at the edge of that range flickered in and out of detection, stopping and
+-- restarting the column. The gang alert carries it from there, so this only has to be far
+-- enough that the FIRST man reacts while there is still a fight to have.
+mercenaries.PatrolDetectRange  = 25.0
+mercenaries.PatrolAlertSecs    = 45.0    -- ...once one of them makes contact, the gang joins in for this long
+mercenaries.PatrolTwoAtPoints  = 150     -- routes at least this long carry two gangs
+mercenaries.PatrolPairSpacing  = 0.4     -- ...started this far apart along the route (fraction)
+-- Route sets, keyed by LEVEL. Each entry lists the level-name substrings that select it and
+-- the table holding its routes. The two maps' coordinates OVERLAP, so a merged list would
+-- put Trosky's gangs on Kuttenberg roads - the set has to be chosen, not filtered.
+-- Add a map by recording routes, dumping them into their own file, and adding a row here.
+-- `locations` are RPG location names that exist ONLY on that map. RPG.GetLocations() returns a
+-- different list per level (measured: 45 entries on Kuttenberg, 33 on Trosky), which makes it
+-- an authoritative level test - unlike road proximity, it does not care where the player is
+-- standing. Add more names per map as they are confirmed; any one match is enough.
+mercenaries.PatrolRouteSets = {
+    { levels = { "kutnohorsko", "kuttenberg" }, key = "PatrolRoutesKuttenberg",
+      locations = { "location_pritoky" } },
+    { levels = { "trosecko", "trosky" },        key = "PatrolRoutesTrosky",
+      locations = { "location_cikanskyTabor" } },
+}
+
+-- Kept for anything that still reads the old name; PatrolRouteData is now whatever set the
+-- current level selected (see PatrolRoutesForLevel).
+mercenaries.PatrolLevels = { "kutnohorsko", "kuttenberg", "trosecko", "trosky" }
+
+-- Which gangs walk the roads. Weighted by how ordinary they should feel.
+-- Only groups that have their own souls above; adding one here without souls to
+-- match would silently fall back to the wrong name.
+mercenaries.PatrolGroupPool = { "bandit", "bandit", "looter", "looter", "sigi", "prague" }
+
+mercenaries.LivePatrols = {}   -- ["route:slot"] = { see PatrolMakeRecord }
+
+-- How many gangs walk this route. A 2km road with one patrol on it feels empty, and the
+-- two start half a route apart so they are not shadowing each other.
+function mercenaries:PatrolCountFor(i)
+    local r = self.PatrolRouteData and self.PatrolRouteData[i]
+    if not r then return 0 end
+    return (#r.pts >= self.PatrolTwoAtPoints) and 2 or 1
+end
+
+local function lLog(s) System.LogAlways("[Patrols] " .. s) end
+local function lKey(ent) return ent and tostring((ent.this and ent.this.id) or ent.id) or nil end
+local function nowT() local t = 0; pcall(function() t = System.GetCurrTime() or 0 end); return t end
+-- Kuttenberg is its own LEVEL, not an area of one, so this is a level test rather than a
+-- coordinate box - Trosky's coordinates overlap Kuttenberg's and a box would fire there.
+--
+-- No level API is exposed to Lua, so this is best-effort, exactly as mercenaries_ambush.lua
+-- does it. "unknown" is treated as "allow": better a patrol on the wrong map than none on
+-- the right one, and the routes still have to be within PatrolSpawnRange to appear at all.
+local function levelName()
+    for _, get in ipairs({
+        function() return System.GetCurrLevelName() end,
+        function() return Game.GetLevelName() end,
+        function() return System.GetCurrAsyncLevelName() end,
+    }) do
+        local ok, v = pcall(get)
+        if ok and v and v ~= "" then return tostring(v) end
+    end
+    return "unknown"
+end
+
+-- Which recorded road network is the player actually standing in? Used when the level name is
+-- unavailable, which in practice is always.
+--
+-- Throttled and short-circuited: while the live set still has road within reach there is
+-- nothing to decide, so the full scan only runs when the current choice looks wrong (or when
+-- there is no choice yet). That keeps a ~5000-point sweep off the 3s tick.
+mercenaries.PatrolSetProbeSecs = 5.0
+mercenaries.PatrolSetNearEnough = 400.0   -- road this close means we are on that map
+mercenaries.PatrolSetSwitchMargin = 300.0 -- ...and a rival must beat it by this much to take over
+
+-- The names of the RPG locations on the CURRENT level. The Location objects do not expose a
+-- name field, but their tostring is "Location[name=location_pritoky]", so the name is parsed
+-- out of that. Cached briefly: the list only changes on a level load, and this is called from
+-- a 3s tick.
+mercenaries.PatrolLocProbeSecs = 10.0
+
+function mercenaries:PatrolLevelLocations()
+    local now = nowT()
+    if self._locNames and self._locAt and (now - self._locAt) < self.PatrolLocProbeSecs then
+        return self._locNames
+    end
+
+    local names = nil
+    pcall(function()
+        local locs = RPG.GetLocations()
+        if type(locs) ~= "table" then return end
+        names = {}
+        for _, v in pairs(locs) do
+            local n = tostring(v):match("name=([%w_]+)")
+            if n then names[n] = true end
+        end
+    end)
+
+    self._locNames, self._locAt = names, now
+    return names
+end
+
+-- Which route set does this level's location list identify? nil if it cannot tell.
+function mercenaries:PatrolLocationRouteSet()
+    local names = self:PatrolLevelLocations()
+    if not names then return nil end
+    for _, set in ipairs(self.PatrolRouteSets or {}) do
+        for _, want in ipairs(set.locations or {}) do
+            if names[want] then return set end
+        end
+    end
+    return nil
+end
+
+function mercenaries:PatrolNearestRouteSet()
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
+    if not pp then return nil end
+
+    local now = nowT()
+    if self._setProbeAt and (now - self._setProbeAt) < self.PatrolSetProbeSecs then
+        return self._setProbeChoice
+    end
+    self._setProbeAt = now
+
+    local function nearest(data)
+        local best = nil
+        for _, r in ipairs(data or {}) do
+            for _, p in ipairs(r.pts or {}) do
+                local dx, dy = p.x - pp.x, p.y - pp.y
+                local d2 = dx * dx + dy * dy
+                if not best or d2 < best then best = d2 end
+            end
+        end
+        return best and math.sqrt(best) or nil
+    end
+
+    -- Still near the live set's roads: nothing has changed, do not rescan.
+    if self._patrolRouteKey then
+        local cur = nearest(self[self._patrolRouteKey])
+        if cur and cur <= self.PatrolSetNearEnough then
+            self._setProbeChoice = nil
+            for _, s in ipairs(self.PatrolRouteSets or {}) do
+                if s.key == self._patrolRouteKey then self._setProbeChoice = s end
+            end
+            return self._setProbeChoice
+        end
+    end
+
+    local bestSet, bestD = nil, nil
+    for _, set in ipairs(self.PatrolRouteSets or {}) do
+        local d = nearest(self[set.key])
+        if d and (not bestD or d < bestD) then bestSet, bestD = set, d end
+    end
+
+    -- Switching sets wipes every live patrol, so an incumbent is not given up lightly: the
+    -- challenger has to be clearly closer, not merely closer. Without this, wandering well
+    -- off-road on the right map could hand over to the other map's network on a tie.
+    if bestSet and self._patrolRouteKey and bestSet.key ~= self._patrolRouteKey then
+        local cur = nearest(self[self._patrolRouteKey])
+        if cur and (cur - bestD) < self.PatrolSetSwitchMargin then
+            for _, s in ipairs(self.PatrolRouteSets or {}) do
+                if s.key == self._patrolRouteKey then bestSet, bestD = s, cur end
+            end
+        end
+    end
+
+    self._setProbeChoice = bestSet
+    if bestSet then
+        lLog(string.format("no level name; nearest recorded road is %s at %.0fm - using it",
+                           bestSet.key, bestD or -1))
+    end
+    return bestSet
+end
+
+-- Pick the route set for the level we are on, and make it live. Returns false when this map
+-- has no routes at all, which is the "do nothing here" answer.
+--
+-- Switching sets CLEARS LivePatrols: records are keyed "route:slot" and a route index means a
+-- different road on each map, so carrying them across a level change would march Trosky's
+-- gangs along Kuttenberg indices.
+function mercenaries:PatrolRoutesForLevel()
+    local n = string.lower(levelName())
+
+    local chosen = nil
+    for _, set in ipairs(self.PatrolRouteSets or {}) do
+        for _, want in ipairs(set.levels) do
+            if string.find(n, want, 1, true) then chosen = set break end
+        end
+        if chosen then break end
+    end
+
+    -- The level NAME is always "unknown": every candidate API errors (confirmed in game), and
+    -- CurrentLevelIsTrosecko is a Skald node, not a Lua binding. The ladder stays only in case
+    -- a working API ever appears.
+    --
+    -- Second: the RPG LOCATION LIST. RPG.GetLocations() returns a different list per level, so
+    -- the presence of a map-exclusive location name identifies the map outright - and unlike
+    -- proximity it does not care where the player is standing, which matters in wilderness far
+    -- from any recorded road.
+    if not chosen then
+        chosen = self:PatrolLocationRouteSet()
+        if chosen and self._patrolRouteKey ~= chosen.key then
+            lLog("level identified by RPG locations -> " .. chosen.key)
+        end
+    end
+
+    -- Last: ask the ROUTES where we are. Self-validating in the way that matters, since
+    -- patrols only ever spawn within PatrolSpawnRange of the player - the set worth using is
+    -- the one with road near him. Bounding boxes overlap between maps, whole road networks do
+    -- not. Measured 4m vs 266m on Trosky, 52m vs 1322m on Kuttenberg: decisive either way.
+    if not chosen then chosen = self:PatrolNearestRouteSet() end
+    if not chosen then return false end
+
+    local data = self[chosen.key]
+    if not (data and #data > 0) then return false end
+
+    if self._patrolRouteKey ~= chosen.key then
+        if self._patrolRouteKey then
+            for _, rec in pairs(self.LivePatrols or {}) do
+                if rec.spawned then self:PatrolDespawnGang(rec, "level changed") else self:PatrolClearCorpses(rec) end
+            end
+            self.LivePatrols = {}
+        end
+        self._patrolRouteKey = chosen.key
+        self.PatrolRouteData = data
+        lLog("route set = " .. chosen.key .. " (" .. tostring(#data) .. " routes) for level '" .. n .. "'")
+    end
+    return true
+end
+
+function mercenaries:PatrolLevelAllowed()
+    return self:PatrolRoutesForLevel()
+end
+
+-- merc_level_probe: dump what every candidate level API actually returns, plus how far the
+-- player is from each recorded road network. The name ladder returns nothing on either map,
+-- so the route sets are selected by proximity instead; if a working API ever turns up here,
+-- add it to levelName() and the guessing stops.
+function mercenaries:PatrolLevelProbe()
+    -- Resolve the set as part of probing, so the answer is never "nil" merely because the
+    -- 3s tick has not come round yet - and so running the probe is itself a repair.
+    pcall(function() self:PatrolRoutesForLevel() end)
+
+    -- Declared up here so everything below can use it; a `local` used above its declaration
+    -- silently reads a nil global instead (the exact trap that made route-set selection fail).
+    local pp; pcall(function() pp = player and player:GetWorldPos() end)
+
+    local cands = {
+        { "System.GetCurrLevelName",      function() return System.GetCurrLevelName() end },
+        { "Game.GetLevelName",            function() return Game.GetLevelName() end },
+        { "System.GetCurrAsyncLevelName", function() return System.GetCurrAsyncLevelName() end },
+        { "System.GetLevelPath",          function() return System.GetLevelPath() end },
+        { "Game.GetLevelPath",            function() return Game.GetLevelPath() end },
+        { "System.GetCurrentLevelName",   function() return System.GetCurrentLevelName() end },
+        { "Level.GetName",                function() return Level.GetName() end },
+    }
+    for _, c in ipairs(cands) do
+        local ok, v = pcall(c[2])
+        lLog(string.format("  %-30s ok=%s value=%s", c[1], tostring(ok), tostring(v)))
+    end
+
+    -- RPG LOCATIONS - the promising lead.
+    --
+    -- The engine binds C_ScriptBindRPGModule onto the Lua global `RPG` (confirmed by vanilla
+    -- usage: RPG.GetFactions, RPG.AddLocationPoint...) and GetLocations() returns a different
+    -- list per level, which is what level detection now keys off.
+    --
+    -- LocationPoint ENTITIES were tried first and are a dead end - 2 on Trosky with guid=nil,
+    -- 0 on Kuttenberg. The location LIST is the thing that works.
+    local ok, fns = pcall(function()
+        local names = {}
+        for k, v in pairs(RPG or {}) do
+            if type(v) == "function" then names[#names + 1] = k end
+        end
+        table.sort(names)
+        return table.concat(names, ", ")
+    end)
+    lLog("  _G.RPG functions: " .. (ok and tostring(fns) or "unavailable"))
+
+    -- Full name list, so map-exclusive names can be added to PatrolRouteSets[].locations.
+    local names = self:PatrolLevelLocations()
+    if names then
+        local sorted = {}
+        for n in pairs(names) do sorted[#sorted + 1] = n end
+        table.sort(sorted)
+        lLog("  RPG locations on this level: " .. #sorted)
+        -- Chunked: one line per 6 names keeps them readable in the log.
+        local line = {}
+        for i, n in ipairs(sorted) do
+            line[#line + 1] = n
+            if #line == 6 or i == #sorted then
+                lLog("    " .. table.concat(line, ", "))
+                line = {}
+            end
+        end
+        local hit = self:PatrolLocationRouteSet()
+        lLog("  location signature matches: " .. (hit and hit.key or "NONE - add a name to PatrolRouteSets"))
+    else
+        lLog("  RPG.GetLocations unavailable")
+    end
+
+    if pp then
+        for _, set in ipairs(self.PatrolRouteSets or {}) do
+            local best = nil
+            for _, r in ipairs(self[set.key] or {}) do
+                for _, p in ipairs(r.pts or {}) do
+                    local dx, dy = p.x - pp.x, p.y - pp.y
+                    local d2 = dx * dx + dy * dy
+                    if not best or d2 < best then best = d2 end
+                end
+            end
+            lLog(string.format("  nearest road in %-24s %s m",
+                set.key, best and string.format("%.0f", math.sqrt(best)) or "n/a"))
+        end
+    end
+    lLog("live set = " .. tostring(self._patrolRouteKey))
+end
+
+System.AddCCommand("merc_level_probe", "mercenaries:PatrolLevelProbe()",
+                   "Dump every level-name API's return plus distance to each recorded road network")
+
+
+-- ==== sizing ====
+-- Roughly 0.5x to 3x the player's fighting strength, clamped. "Strength" counts the player
+-- himself plus his living mercs, so a lone player still meets a five-man gang.
+function mercenaries:PatrolPartySize()
+    local n = 1
+    pcall(function() n = 1 + (self:LogiAliveCount() or 0) end)
+    return math.max(1, n)
+end
+
+function mercenaries:PatrolRollSize()
+    local party = self:PatrolPartySize()
+    local mult  = self.PatrolPartyMin + math.random() * (self.PatrolPartyMax - self.PatrolPartyMin)
+    local n     = math.floor(party * mult + 0.5)
+    if n < self.PatrolMinMen then n = self.PatrolMinMen end
+    if n > self.PatrolMaxMen then n = self.PatrolMaxMen end
+    return n
+end
+
+-- Strength varies per patrol: which tier (combat_level 0.4 .. 1.0) the whole gang uses.
+-- The soul must come from the gang's OWN group, or his name will not match his kit.
+function mercenaries:PatrolRollSoul(group)
+    local set = self.PatrolGuardSouls[group] or self.PatrolGuardSouls.bandit
+    return set[math.random(1, #set)]
+end
+
+-- Souls per GROUP per strength tier. The soul carries the skald character, which is what
+-- the game calls him on screen - one shared set of looter souls made every patrol read as
+-- "looter" no matter whose colours EquipEnemy dressed him in.
+mercenaries.PatrolGuardSouls = {
+    looter = {
+        "f1e2d3c4-0020-4a00-8b00-000000000021",   -- combat_level 0.4
+        "f1e2d3c4-0020-4a00-8b00-000000000022",   -- combat_level 0.7
+        "f1e2d3c4-0020-4a00-8b00-000000000023",   -- combat_level 0.9
+        "f1e2d3c4-0020-4a00-8b00-000000000024",   -- combat_level 1.0
+    },
+    bandit = {
+        "f1e2d3c4-0020-4a00-8b00-000000000025",   -- combat_level 0.4
+        "f1e2d3c4-0020-4a00-8b00-000000000026",   -- combat_level 0.7
+        "f1e2d3c4-0020-4a00-8b00-000000000027",   -- combat_level 0.9
+        "f1e2d3c4-0020-4a00-8b00-000000000028",   -- combat_level 1.0
+    },
+    sigi = {
+        "f1e2d3c4-0020-4a00-8b00-000000000029",   -- combat_level 0.4
+        "f1e2d3c4-0020-4a00-8b00-00000000002a",   -- combat_level 0.7
+        "f1e2d3c4-0020-4a00-8b00-00000000002b",   -- combat_level 0.9
+        "f1e2d3c4-0020-4a00-8b00-00000000002c",   -- combat_level 1.0
+    },
+    prague = {
+        "f1e2d3c4-0020-4a00-8b00-00000000002d",   -- combat_level 0.4
+        "f1e2d3c4-0020-4a00-8b00-00000000002e",   -- combat_level 0.7
+        "f1e2d3c4-0020-4a00-8b00-00000000002f",   -- combat_level 0.9
+        "f1e2d3c4-0020-4a00-8b00-000000000030",   -- combat_level 1.0
+    },
+}
+
+-- ==== records ====
+function mercenaries:PatrolMakeRecord(i, slot)
+    local route = self.PatrolRouteData and self.PatrolRouteData[i]
+    if not route then return nil end
+    slot = slot or 1
+    -- the second gang starts well down the route from the first
+    local start = math.random(1, #route.pts)
+    if slot > 1 then
+        start = 1 + ((start - 1 + math.floor(#route.pts * self.PatrolPairSpacing)) % #route.pts)
+    end
+    -- An unspawned patrol knows only WHERE it is. Group, strength and size are rolled at
+    -- spawn time (PatrolRollIdentity), so a patrol the player has never met scales with the
+    -- party he has NOW - hire five mercs and the gangs you meet next are sized for five.
+    -- A gang that is already standing keeps what it was given; it does not grow around him.
+    return {
+        route   = i,
+        slot    = slot,
+        key     = i .. ":" .. slot,
+        idx     = start,
+        dir     = (math.random(2) == 1) and 1 or -1,
+        group   = nil,         -- rolled on spawn
+        soul    = nil,
+        size    = nil,
+        men     = {},          -- spawned entities, leader first
+        spawned = false,
+        deadAt  = nil,         -- set when wiped; respawns PatrolRespawnDays later
+        moveAt  = nowT(),
+    }
+end
+
+function mercenaries:PatrolRouteOf(rec)
+    return self.PatrolRouteData and self.PatrolRouteData[rec.route]
+end
+
+function mercenaries:PatrolPointOf(rec)
+    local r = self:PatrolRouteOf(rec)
+    return r and r.pts[rec.idx]
+end
+
+-- Back and forth, not round and round: reverse at each end.
+function mercenaries:PatrolAdvance(rec, steps)
+    local r = self:PatrolRouteOf(rec)
+    if not r then return end
+    for _ = 1, math.max(1, steps or 1) do
+        local nxt = rec.idx + rec.dir
+        if nxt < 1 or nxt > #r.pts then
+            rec.dir = -rec.dir
+            nxt = rec.idx + rec.dir
+            if nxt < 1 or nxt > #r.pts then nxt = rec.idx end
+        end
+        rec.idx = nxt
+    end
+end
+
+-- Heading of the route at the gang's current point, in the direction it is travelling.
+-- Looks a few points ahead rather than at the very next one: the recorder drops a marker
+-- every ~10m but they are player-walked, so consecutive points can be almost coincident or
+-- jitter sideways, and a one-point heading would sometimes aim the column off the road
+-- anyway. Falls back to the point behind, then to a random bearing if the route is unusable.
+mercenaries.PatrolHeadingLook = 3   -- points to look ahead when taking the heading
+
+function mercenaries:PatrolHeading(rec)
+    local r = self:PatrolRouteOf(rec)
+    local a = r and r.pts[rec.idx]
+    if not (r and a) then return math.random() * 2 * math.pi end
+
+    local dir  = (rec.dir ~= nil and rec.dir ~= 0) and rec.dir or 1
+    local look = math.max(1, self.PatrolHeadingLook)
+
+    for step = look, 1, -1 do
+        -- Ahead first: heading is current -> ahead.
+        local b = r.pts[rec.idx + dir * step]
+        if b then
+            local dx, dy = b.x - a.x, b.y - a.y
+            if (dx * dx + dy * dy) > 1.0 then return math.atan2(dy, dx) end
+        end
+        -- Else behind: same line, so take behind -> current to keep the sense of travel.
+        local c = r.pts[rec.idx - dir * step]
+        if c then
+            local dx, dy = a.x - c.x, a.y - c.y
+            if (dx * dx + dy * dy) > 1.0 then return math.atan2(dy, dx) end
+        end
+    end
+    return math.random() * 2 * math.pi
+end
+
+-- ==== spawning ====
+-- Decide who this gang is, at the moment it becomes real.
+function mercenaries:PatrolRollIdentity(rec)
+    rec.group = self.PatrolGroupPool[math.random(1, #self.PatrolGroupPool)]
+    rec.soul  = self:PatrolRollSoul(rec.group)
+    rec.size  = self:PatrolRollSize()
+end
+
+function mercenaries:PatrolSpawnGang(rec)
+    local p = self:PatrolPointOf(rec)
+    if not p then return false end
+    self:PatrolRollIdentity(rec)
+
+    -- Face along the ROUTE, in the direction of travel. This used to be
+    -- `math.random() * 2 * math.pi` - a random bearing - so the column was laid out across
+    -- the road as often as along it and most of the gang spawned in the trees. The men are
+    -- placed BEHIND the lead man (back) and abreast of him (lat), so the bearing has to be
+    -- the heading he is about to walk, not an arbitrary one.
+    local yaw = self:PatrolHeading(rec)
+    local fx, fy = math.cos(yaw), math.sin(yaw)
+    local rx, ry = -fy, fx
+
+    rec.men = {}
+    local function one(pos, isLead)
+        local name = "SpawnedPatrolman_" .. tostring(math.random(10000, 99999)) .. "_" .. rec.soul
+        local e
+        local ok, err = pcall(function()
+            System.SpawnEntity({
+                class = "NPC", name = name, position = pos,
+                -- orientation is a DIRECTION VECTOR, not Euler angles. It was
+                -- { 0, 0, yaw }, which points straight up and gave every gang a default
+                -- facing regardless of the road. Hand it the heading as a vector so they
+                -- actually face the way they are about to walk.
+                orientation = { x = fx, y = fy, z = 0 },
+                properties = { guidSharedSoulId = rec.soul },
+            })
+            e = System.GetEntityByName(name)
+            if e and self.EquipEnemy then self:EquipEnemy(e, rec.group, false) end
+        end)
+        if not ok then lLog("spawn error: " .. tostring(err)) end
+        return e
+    end
+
+    local lead = { x = p.x, y = p.y, z = p.z }
+    if self.FindValidGround then lead = self:FindValidGround(lead, p.z) end
+    local L = one(lead, true)
+    if not L then return false end
+    table.insert(rec.men, L)
+
+    for i = 1, rec.size - 1 do
+        local back, lat = self:PatrolSlot(i, rec.size - 1)
+        local q = { x = lead.x - fx * back + rx * lat, y = lead.y - fy * back + ry * lat, z = lead.z }
+        if self.FindValidGround then q = self:FindValidGround(q, lead.z) end
+        local e = one(q, false)
+        if e then table.insert(rec.men, e) end
+    end
+
+    rec.spawned = true
+    lLog(string.format("route %d: %d %s spawned at point %d/%d",
+        rec.route, #rec.men, rec.group, rec.idx, #self:PatrolRouteOf(rec).pts))
+    return true
+end
+
+function mercenaries:PatrolDespawnGang(rec, why)
+    for _, e in ipairs(rec.men or {}) do
+        pcall(function() System.RemoveEntity(e.id) end)
+    end
+    rec.men = {}
+    rec.spawned = false
+    self:PatrolClearCorpses(rec)
+    if why then lLog("route " .. rec.route .. ": despawned (" .. why .. ")") end
+end
+
+-- Bodies left standing after a wipe. They are NOT removed with the record: killing
+-- the last man used to delete the whole gang inside one 3s tick, corpses included,
+-- so a patrol you had just fought could not be looted at all. They are cleared once
+-- the player has left the area, or after PatrolCorpseSecs if he stays.
+function mercenaries:PatrolClearCorpses(rec)
+    for _, e in ipairs((rec and rec.corpses) or {}) do
+        pcall(function() System.RemoveEntity(e.id) end)
+    end
+    if rec then rec.corpses = nil; rec.corpsesAt = nil end
+end
+
+function mercenaries:PatrolAliveCount(rec)
+    local n = 0
+    for _, e in ipairs(rec.men or {}) do
+        if e and self:IsAliveAndWell(e, true) then n = n + 1 end
+    end
+    return n
+end
+
+-- Living men, in marching order. A corpse must not lead or hold a link in the
+-- chain: the follow chain is only re-read when a man's TARGET changes, and a dead
+-- man's key never changes, so a corpse anchors the whole column where it fell.
+-- Only mattered once patrols could actually fight.
+function mercenaries:PatrolLivingMen(rec)
+    local out = {}
+    for _, e in ipairs((rec and rec.men) or {}) do
+        if e and self:IsAliveAndWell(e, true) then table.insert(out, e) end
+    end
+    return out
+end
+
+-- ==== the tick ====
+-- Each patrol advances along its route whether or not it is spawned, so it is always
+-- roughly where it ought to be. Spawned ones are steered by the patrol tester's own
+-- machinery (PatrolPoints/PatrolLeader) - see PatrolDrive.
+function mercenaries.LivePatrolTick()
+    local self = mercenaries
+    -- Stamped OUTSIDE the pcall and before any guard, so it means "the timer fired", not
+    -- "the tick did work". The watchdog is asking whether the timer is alive.
+    self._liveTickAt = nowT()
+    pcall(function()
+        -- PatrolRouteData is deliberately NOT part of this guard: it is set by the level check
+        -- below, so testing it here would mean the check never ran and no map ever had routes.
+        if not (self.LivePatrolsEnabled and player) then return end
+        local pp; pcall(function() pp = player:GetWorldPos() end)
+        if not pp then return end
+        local t = nowT()
+
+        -- Which map's routes apply is a LEVEL check, never a coordinate box: Kuttenberg and
+        -- Trosky coordinates overlap, so a box would spawn one map's gangs on the other.
+        if not (self:PatrolLevelAllowed() and self.PatrolRouteData) then
+            for _, rec in pairs(self.LivePatrols) do
+                if rec.spawned then
+                    self:PatrolDespawnGang(rec, "no routes on this level")
+                else
+                    self:PatrolClearCorpses(rec)   -- a wiped record is not "spawned"
+                end
+            end
+            return
+        end
+
+        for i = 1, #self.PatrolRouteData do
+            for slot = 1, self:PatrolCountFor(i) do
+                local key = i .. ":" .. slot
+                local rec = self.LivePatrols[key]
+                if not rec then
+                    rec = self:PatrolMakeRecord(i, slot)
+                    self.LivePatrols[key] = rec
+                end
+                if rec then self:PatrolTickOne(rec, pp, t) end
+            end
+        end
+    end)
+    Script.SetTimerForFunction(mercenaries.PatrolLiveTickMs, "mercenaries.LivePatrolTick")
+end
+
+function mercenaries:PatrolTickOne(rec, pp, t)
+    -- wiped: hold it dead until the respawn day comes round
+    if rec.deadAt then
+        -- Clear the bodies once the player has walked off, or after the linger time
+        -- if he camps on them. Must happen before the record is replaced below, or
+        -- the corpses lose their owner and stand for ever.
+        if rec.corpses then
+            local q = self:PatrolPointOf(rec)
+            local far = true
+            if q then
+                local cx, cy = pp.x - q.x, pp.y - q.y
+                far = math.sqrt(cx * cx + cy * cy) > self.PatrolDespawnRange
+            end
+            if far or (t - (rec.corpsesAt or t)) >= self.PatrolCorpseSecs then
+                self:PatrolClearCorpses(rec)
+            end
+        end
+
+        if (t - rec.deadAt) >= (self.PatrolRespawnDays * (self.SecondsPerDay or 86400)) then
+            self:PatrolClearCorpses(rec)
+            local fresh = self:PatrolMakeRecord(rec.route, rec.slot)
+            if fresh then
+                self.LivePatrols[rec.key] = fresh
+                lLog("route " .. rec.route .. ": a fresh patrol has taken the road")
+            end
+        end
+        return
+    end
+
+    local p = self:PatrolPointOf(rec)
+    if not p then return end
+    local dx, dy = pp.x - p.x, pp.y - p.y
+    local d = math.sqrt(dx * dx + dy * dy)
+
+    if rec.spawned then
+        -- Alert expiry: the target is gone, or it has run long enough.
+        if rec.alertAt then
+            local t2 = nil
+            pcall(function() t2 = XGenAIModule.GetEntityByWUID(rec.alertTarget) end)
+            if (t - rec.alertAt) >= self.PatrolAlertSecs
+               or not (t2 and self:IsCombatViable(t2)) then
+                self:PatrolAlertClear(rec)
+            end
+        end
+
+        local alive = self:PatrolAliveCount(rec)
+        if alive == 0 then
+            -- Hand the bodies to the corpse list instead of deleting them with the
+            -- record, so the fight you just won can be looted. Swept above.
+            rec.corpses  = rec.men
+            rec.corpsesAt = t
+            rec.men      = {}
+            rec.spawned  = false
+            rec.deadAt   = t
+            lLog("route " .. rec.route .. ": patrol wiped out - back in " ..
+                 self.PatrolRespawnDays .. " day(s)")
+            return
+        end
+        -- follow the living leader, so the notional position tracks where they really are
+        local L = self:PatrolLivingMen(rec)[1]
+        if L and self:IsAliveAndWell(L, true) then
+            local lp; pcall(function() lp = L:GetWorldPos() end)
+            if lp then self:PatrolSyncIndex(rec, lp) end
+        end
+        if d > self.PatrolDespawnRange then
+            self:PatrolDespawnGang(rec, "player left the area")
+        end
+    else
+        -- unspawned: creep along the route on the clock
+        local dt = t - (rec.moveAt or t)
+        rec.moveAt = t
+        local r = self:PatrolRouteOf(rec)
+        local stepM = 10.0            -- the recorder's spacing
+        local steps = math.floor((dt * self.PatrolGhostSpeed) / stepM)
+        if steps > 0 then self:PatrolAdvance(rec, steps) end
+
+        if d <= self.PatrolSpawnRange then self:PatrolSpawnGang(rec) end
+    end
+end
+
+-- Keep the notional index on the point nearest the real leader, so despawning and
+-- respawning does not teleport the patrol back down the road.
+function mercenaries:PatrolSyncIndex(rec, lp)
+    local r = self:PatrolRouteOf(rec)
+    if not r then return end
+    local best, bestD2 = rec.idx, nil
+    for i, q in ipairs(r.pts) do
+        local dx, dy = q.x - lp.x, q.y - lp.y
+        local d2 = dx * dx + dy * dy
+        if not bestD2 or d2 < bestD2 then best, bestD2 = i, d2 end
+    end
+    rec.idx = best
+end
+
+function mercenaries:LivePatrolStart()
+    if self.LivePatrolRunning then return end
+    self.LivePatrolRunning = true
+    Script.SetTimerForFunction(self.PatrolLiveTickMs, "mercenaries.LivePatrolTick")
+    lLog("roaming patrols armed (" .. #(self.PatrolRouteData or {}) .. " route(s))")
+end
+
+-- Watchdog. LivePatrolRunning is a latch, and a latch plus a timer that can die (level
+-- change, script reload) is a tick that never comes back: nothing would ever clear the flag,
+-- so LivePatrolStart would refuse to re-arm and the patrols would be silently gone for the
+-- rest of the session. LivePatrolTick stamps _liveTickAt every pass; if that stamp goes
+-- stale the timer is not running whatever the flag says, so clear it and start again.
+mercenaries.PatrolTickStaleSecs = 15.0
+
+function mercenaries:LivePatrolWatchdog()
+    local now = nowT()
+    local last = self._liveTickAt
+    if last and (now - last) < self.PatrolTickStaleSecs then return end
+    if last then lLog("tick stalled - re-arming") end
+    self.LivePatrolRunning = false
+    self:LivePatrolStart()
+end
+
+-- ==== controls ====
+function mercenaries:LivePatrolStatus()
+    lLog("enabled: " .. tostring(self.LivePatrolsEnabled) ..
+         ", party strength " .. self:PatrolPartySize())
+    lLog("level '" .. levelName() .. "' -> " ..
+         (self:PatrolLevelAllowed() and "patrols allowed" or "WRONG LEVEL, no patrols"))
+    for i, rec in pairs(self.LivePatrols) do
+        local r = self:PatrolRouteOf(rec)
+        lLog(string.format("  %s: %s x%d, point %d/%d dir %+d, %s%s",
+            tostring(rec.key), tostring(rec.group or "unrolled"), rec.size or 0,
+            rec.idx, r and #r.pts or 0, rec.dir,
+            rec.spawned and (self:PatrolAliveCount(rec) .. " alive") or "not spawned",
+            rec.deadAt and "  (wiped, respawning)" or ""))
+    end
+end
+
+function mercenaries:LivePatrolSetEnabled(v)
+    self.LivePatrolsEnabled = (tonumber(v) ~= 0)
+    if not self.LivePatrolsEnabled then
+        for _, rec in pairs(self.LivePatrols) do self:PatrolDespawnGang(rec) end
+    end
+    lLog("roaming patrols " .. (self.LivePatrolsEnabled and "on" or "off"))
+end
+
+-- Force the nearest patrol to spawn on top of you, for testing.
+function mercenaries:LivePatrolHere()
+    if not player then return end
+    local pp; pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return end
+    local best, bestD2
+    for i = 1, #(self.PatrolRouteData or {}) do
+      for slot = 1, self:PatrolCountFor(i) do
+        local key = i .. ":" .. slot
+        local rec = self.LivePatrols[key] or self:PatrolMakeRecord(i, slot)
+        self.LivePatrols[key] = rec
+        local p = rec and self:PatrolPointOf(rec)
+        if p then
+            local d2 = (p.x - pp.x) ^ 2 + (p.y - pp.y) ^ 2
+            if not bestD2 or d2 < bestD2 then best, bestD2 = rec, d2 end
+        end
+      end
+    end
+    if not best then lLog("no routes loaded"); return end
+    best.deadAt = nil
+    self:PatrolDespawnGang(best)
+    self:PatrolSyncIndex(best, pp)
+    self:PatrolSpawnGang(best)
+end
+
+function mercenaries:LivePatrolClear()
+    for _, rec in pairs(self.LivePatrols) do self:PatrolDespawnGang(rec) end
+    self.LivePatrols = {}
+    lLog("all patrols cleared and re-rolled")
+end
+
+-- ==== detection ====
+-- BT hook: FindEnemyTarget with a short leash. The mod's enemies notice the player from a
+-- long way off, which is right for an ambush and wrong for men walking a road - a patrol
+-- should have to come across you. Anything further than PatrolDetectRange is dropped.
+--
+-- ...but that range is PER MAN, and a gang can be fifty strong strung out along a road, so
+-- only the few at the point were ever inside it: the front rank fought and the rest walked
+-- on past. Once ANY man makes contact the whole gang is ALERTED - the target is pushed to
+-- every living member through ForcedTargetOf, which FindEnemyTarget honours ahead of its own
+-- scan and without any distance limit, so the tail turns round and comes too.
+function mercenaries:PatrolAlert(rec, targetWuid)
+    if not (rec and targetWuid) then return end
+    local now   = nowT()
+    local first = (rec.alertAt == nil)
+
+    -- Contact is reported every tick by every man in range. Refresh the clock cheaply and
+    -- only rewrite the whole gang's forced targets when the target actually changes, or
+    -- occasionally to cover men who have joined since - fifty men re-tagging fifty entries
+    -- every second is thousands of pointless writes.
+    if not first and rec.alertTarget == targetWuid and (now - (rec.alertSyncAt or 0)) < 3.0 then
+        rec.alertAt = now
+        return
+    end
+
+    rec.alertAt     = now
+    rec.alertSyncAt = now
+    rec.alertTarget = targetWuid
+    for _, e in ipairs(self:PatrolLivingMen(rec)) do
+        local k = lKey(e)
+        if k then self.ForcedTargetOf[k] = targetWuid end
+    end
+    if first then
+        lLog("route " .. tostring(rec.route) .. ": gang alerted, " ..
+             tostring(#self:PatrolLivingMen(rec)) .. " man(men) closing")
+    end
+end
+
+-- Drop the alert: the fight is over, or it has run its course. Only clears the entries this
+-- gang owns, so a man who has since picked his own target keeps it.
+function mercenaries:PatrolAlertClear(rec)
+    if not (rec and rec.alertAt) then return end
+    for _, e in ipairs(self:PatrolLivingMen(rec)) do
+        local k = lKey(e)
+        if k and self.ForcedTargetOf[k] == rec.alertTarget then self.ForcedTargetOf[k] = nil end
+    end
+    rec.alertAt, rec.alertTarget, rec.alertSyncAt = nil, nil, nil
+end
+
+function mercenaries:PatrolFindTarget(bt_data, myWuid)
+    self:FindEnemyTarget(bt_data, myWuid)
+    if bt_data.currentTarget == nil then return end
+
+    local me, tgt
+    pcall(function() me = XGenAIModule.GetEntityByWUID(myWuid) end)
+    pcall(function() tgt = XGenAIModule.GetEntityByWUID(bt_data.currentTarget) end)
+    if not (me and tgt) then return end
+
+    local rec
+    pcall(function() local _, _, _, _, r = self:PatrolCtx(me); rec = r end)
+
+    -- An alerted gang keeps whatever the alert handed it, however far off it is - that is
+    -- the whole point of the alert, and ForcedTargetOf is what got him this target.
+    if rec and rec.alertAt and self.ForcedTargetOf[lKey(me) or ''] ~= nil then
+        if (nowT() - rec.alertAt) < self.PatrolAlertSecs then return end
+        self:PatrolAlertClear(rec)
+    end
+
+    local a, b
+    pcall(function() a = me:GetWorldPos(); b = tgt:GetWorldPos() end)
+    if not (a and b) then return end
+    local dx, dy, dz = a.x - b.x, a.y - b.y, a.z - b.z
+    if (dx * dx + dy * dy + dz * dz) > (self.PatrolDetectRange * self.PatrolDetectRange) then
+        bt_data.currentTarget = nil
+    elseif rec then
+        self:PatrolAlert(rec, bt_data.currentTarget)   -- contact: bring the rest of them
+    end
+end
+
+-- ==== the bridge to the tester's movement hooks ====
+-- patrol_scheduler.xml and patrol_follow.xml call one set of Lua hooks. Those hooks used
+-- the tester's single PatrolLeader/PatrolMembers/PatrolPoints, which cannot serve eight
+-- gangs at once - so they now ask this for the context the man in front of them belongs to.
+--
+-- Returns: leader entity, member list (followers only), route points, current index, and
+-- the record (nil for the tester, which has no ping-pong state).
+function mercenaries:PatrolCtx(ent)
+    local k = lKey(ent)
+    if not k then return nil end
+
+    -- the hand-placed tester patrol
+    if self.PatrolLeader and lKey(self.PatrolLeader) == k then
+        return self.PatrolLeader, self.PatrolMembers, self.PatrolPoints, self.PatrolIndex, nil
+    end
+    for _, e in ipairs(self.PatrolMembers or {}) do
+        if lKey(e) == k then
+            return self.PatrolLeader, self.PatrolMembers, self.PatrolPoints, self.PatrolIndex, nil
+        end
+    end
+
+    -- a roaming patrol. Membership is checked against the FULL list (so a downed man
+    -- is still recognised as one of ours), but the leader and the chain are built
+    -- from the living only - see PatrolLivingMen. Deliberately no PatrolEpoch bump:
+    -- that counter is global across every gang and the tester, so bumping it would
+    -- restart every CrimeFollower on the map at once.
+    for _, rec in pairs(self.LivePatrols or {}) do
+        local men = rec.men or {}
+        for _, e in ipairs(men) do
+            if lKey(e) == k then
+                local living = self:PatrolLivingMen(rec)
+                if #living == 0 then return nil end
+                local followers = {}
+                for j = 2, #living do table.insert(followers, living[j]) end
+                local r = self:PatrolRouteOf(rec)
+                return living[1], followers, (r and r.pts or {}), rec.idx, rec
+            end
+        end
+    end
+    return nil
+end
+
+-- A roaming patrol walks its route back and forth; the tester loops. Called by
+-- PatrolWalkTick once the leader is within the switch radius of his point.
+function mercenaries:PatrolStepIndex(rec, ptsCount, idx)
+    if rec then
+        self:PatrolAdvance(rec, 1)
+        return rec.idx
+    end
+    if idx >= ptsCount then
+        return self.PatrolLoop and 1 or idx
+    end
+    return idx + 1
+end
+
+System.AddCCommand("merc_patrols_status", "mercenaries:LivePatrolStatus()",        "Where every roaming patrol is and what it is")
+System.AddCCommand("merc_patrols_arm",    "mercenaries:LivePatrolSetEnabled(%line)", "Roaming patrols on or off: merc_patrols_arm 0 | 1")
+System.AddCCommand("merc_patrols_here",   "mercenaries:LivePatrolHere()",          "Spawn the nearest patrol on top of you")
+System.AddCCommand("merc_patrols_clear",  "mercenaries:LivePatrolClear()",         "Remove every patrol and re-roll them")

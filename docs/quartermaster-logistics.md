@@ -15,8 +15,8 @@ desertion and mutiny all read off it.
 
 | Input | Effect |
 |---|---|
-| Kills (mercs or player) | up to **+20 per fight** (`MoralePerKill` each, capped) |
-| Merc deaths | **−5** each |
+| Kills (mercs or player) | **+5** each (`MoralePerKill`), **uncapped** — `MoraleMax` is the only ceiling |
+| Merc deaths | **−5** each, capped at **−50 per fight** (`MoraleDeathCapPerFight`) |
 | Tiredness (>3 days out of camp) | **−10/day** |
 | Starving | **−5/day** |
 | Drink available | **+10/day** |
@@ -62,6 +62,33 @@ first, then your purse. Via the quartermaster: **withhold** (→ unpaid morale
 drain), **deposit** 500 gr into the war chest, or **withdraw** it. (Selling
 arbitrary *loot* into the coffer isn't implemented — the engine gives no way to
 enumerate inventory loot to sell — so the coffer is funded by deposit instead.)
+
+## Battlefield spoils & the after-action report
+
+Every **confirmed kill** strips supplies off the body, straight into the same pools the
+quartermaster spends:
+
+| Per kill | Amount | In plain terms |
+| --- | --- | --- |
+| Food | `LootPerKillFood` = 3 units | a unit feeds `FeedRatio` (8) mercs for a day, so 3 units ≈ a day for 24 men |
+| Drink | `LootPerKillDrink` = 1 unit | same units as food |
+| Wages | `LootPerKillWages` = 2 merc-days | priced at `WagePerTier.medium`, so 20 gr into the war chest |
+
+It reuses the kill detection the morale system already runs (an enemy we were *engaged* with,
+now confirmed dead) rather than adding a second one, so the two can never disagree about what
+counted as a kill.
+
+Spoils are **not capped per fight**, and neither is the morale gain — both scale with bodies,
+because a long fight should both feed the squad and feel like a win. Fresh supplies also clear
+the `starving` / no-drink flags immediately, exactly as a delivery does.
+
+When the last engaged enemy goes down, `LogiAfterActionReport` reports what the fight bought —
+**in days, not units**, since units mean nothing on their own. Food and drink use
+`LogiSupplyDays` (scaled by current squad size); the wage runway counts the war chest **plus
+your purse**, matching `LogiAskStats`, because payday spends both.
+
+Note this is not the "sell loot into the coffer" feature described below as unimplemented — no
+inventory enumeration is involved. The supplies are credited directly.
 
 ## Combat effectiveness
 

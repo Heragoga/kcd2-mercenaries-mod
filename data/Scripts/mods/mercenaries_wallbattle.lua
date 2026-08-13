@@ -542,6 +542,8 @@ end
 -- reaction still starts a fight, so a man being cut down while marching does defend
 -- himself; he simply will not go looking.
 function mercenaries:WBCombatLocked(ent)
+    -- patrol testers never start anything, whatever phase we are in
+    if self.PatrolIsMember and self:PatrolIsMember(ent) then return true end
     if self.WBPhase ~= "staging" then return false end
     if not ent then return false end
     return self.WBAssign[wbKey(ent)] ~= nil

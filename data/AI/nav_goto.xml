@@ -13,6 +13,9 @@
         <Variables>
             <Variable name="wpPos" type="vec3" values="" isPersistent="0" form="single" />
             <Variable name="gotoDone" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- Walk instead of run. Two Move nodes rather than a variable speed: speed is
+                 an enum attribute, and follow.xml already picks between two Moves this way. -->
+            <Variable name="navWalk" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="MoveParams_nav" type="additionalMoveParams" values="destChangedThreshold('150ms')" isPersistent="0" form="single" />
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
@@ -35,7 +38,14 @@
                                          Waypoint smoothing is done in Lua instead, in
                                          NavAimAhead. -->
                                     <Loop count="-1">
-                                        <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="false" destinationSpecification="$wpPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="$MoveParams_nav" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                        <ContinuousSwitch>
+                                            <IfCondition failOnCondition="false" condition="$navWalk">
+                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="false" destinationSpecification="$wpPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="$MoveParams_nav" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                            </IfCondition>
+                                            <IfCondition failOnCondition="false" condition="true">
+                                                <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="false" destinationSpecification="$wpPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="$MoveParams_nav" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                            </IfCondition>
+                                        </ContinuousSwitch>
                                     </Loop>
 
                                     <Loop count="-1">

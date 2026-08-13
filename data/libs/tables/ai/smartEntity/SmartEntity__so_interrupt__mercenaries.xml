@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="us-ascii"?>
+﻿<?xml version="1.0" encoding="us-ascii"?>
 <database name="barbora" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../database.xsd">
 	<SmartEntitys version="1">
 		<SmartEntityTemplate BrainId="ea3ff907-6743-4ad4-8723-2c14ac2a01f0" DatabaseId="43c857b4-032b-844f-3d1b-3cc90d5a2382" Name="so_interrupt" UpdatePriority="false">
@@ -41,6 +41,35 @@
 				<!-- Wall-aware approach: walks around camp walls to a (possibly moving) target. See mercenaries_navmesh.lua. -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="nav_goto" PreventsMonsterLod="true">
 					<TreeLocation FileName="nav_goto.xml" TreeName="nav_goto" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- Patrol follower. Must be a BEHAVIOUR, not a scheduler arm: follower nodes
+				     refuse to run outside a SchedulerSubbrain. See docs/patrols.md. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="patrol_follow" PreventsMonsterLod="true">
+					<TreeLocation FileName="patrol_follow.xml" TreeName="patrol_follow" />
+					<Inboxes>
+						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
+						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />
+						<InboxTemplate InboxId="5450a641-8c06-4839-a5d8-dd750a977c19" Priority="0" />
+						<InboxTemplate InboxId="b4c700f0-eb28-4605-a0dd-a7188900f83a" Priority="0" />
+						<InboxTemplate InboxId="c1221861-49ff-4dbc-bc94-de1bd2601a1a" Priority="0" />
+						<InboxTemplate InboxId="42b04ead-5936-2286-c9c3-85769ff854b2" Priority="0" />
+					</Inboxes>
+				</SmartBehaviorTemplate>
+
+				<!-- Patrol leader's route walk. A BEHAVIOUR so combat can replace it;
+				     as a scheduler arm its Move held movement and the leader never
+				     entered a fight. See docs/patrols.md. -->
+				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="patrol_walk" PreventsMonsterLod="true">
+					<TreeLocation FileName="patrol_walk.xml" TreeName="patrol_walk" />
 					<Inboxes>
 						<InboxTemplate InboxId="80cbc23c-5752-43e3-9405-38355ad8d617" Priority="0" />
 						<InboxTemplate InboxId="5201b5fc-b24b-49ab-b409-23c13ae08e4e" Priority="0" />

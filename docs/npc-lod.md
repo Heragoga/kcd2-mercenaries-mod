@@ -4,6 +4,63 @@ Research notes for the two long-standing bugs: **mercs popping in and out at dis
 there are many of them**, and **mercs going fully invisible (but still fighting) during
 scripted main-quest battles**.
 
+> ## Shipped: the renderer view-distance pin — and a retracted result
+>
+> **`EnsureMercIsAlwaysRendered` never did what its name said.** For most of this
+> research it was, verbatim:
+>
+> ```lua
+> ent:SetViewDistRatio(254)
+> ent:SetViewDistRatio(0)
+> ```
+>
+> Maximum, then **minimum** on the very next line. The function called at every merc
+> spawn site was culling mercs as hard as the engine allows. It was later replaced by an
+> explicit no-op on the grounds that "forcing RenderAlways caused more trouble than it
+> solved" — a verdict drawn entirely from that broken body. **Retract it.** This doc's own
+> note that "a genuinely clean retry with no follow-up zeroing has never been attempted"
+> is the accurate statement.
+>
+> It now applies the same three calls that already fixed wall segments, towers and camp
+> props dropping out at distance (`mercenaries_wall.lua`): `SetViewDistUnlimited()`,
+> `SetViewDistRatio(255)`, `SetLodRatio(255)` — separate `pcall`s, since a method missing
+> on the NPC class must not skip the others. No `RenderShadow`: fifty extra shadow casters
+> is a real cost and shadows are not the symptom. Re-applied on the slow tick as well as at
+> spawn, because anything that rebuilds an entity can drop it. `merc_render_pin 0|1` to A/B it.
+>
+> **This is the renderer, not the AI tier.** The LOD budget below decides how much an NPC is
+> *simulated*; this decides whether he is *drawn*. They are independent, which is why run 13
+> ruling out the AI tier never ruled this out.
+>
+> ## Shipped: the crowd LOD budget boost (`mercenaries_lodboost.lua`)
+>
+> One thing from this research **is** in the mod, and it is not a fix for either bug above.
+>
+> The Detail/LOD/MonsterLOD split is a **budget** — `WH_AI_LOD_MaxCountDetail` is 70 — and an
+> NPC that loses its Detail slot moves in fake jumps (`wh_ai_Lod_MoveIntervalLOD`) and is
+> coarsely simulated. The mod can now field a squad, an enemy group, a wall battle and a
+> roaming patrol at once, comfortably past 100 NPCs, so in a real fight that budget is
+> oversubscribed and the losers are chosen by distance with hysteresis.
+>
+> `LodBoostTick` (from `CombatScanLoop`) raises the budget while the **crowd**
+> (`MercCount + nearby hostiles`) is at least `LodBoostMinCrowd`, and puts it back
+> `LodBoostHoldSecs` after it drops. It triggers on **headcount, not combat**: the first
+> version fired only on ≥3 live hostiles, and a log with ~50 mercs and no enemies showed it
+> never engaging — yet that is exactly the case that oversubscribes the budget, because the
+> budget is a count and the mod's own mercs consume it.
+> It **saves whatever is live when the fight starts** rather than a hardcoded stock table,
+> because the game loads different overrides per context (`Battle.cfg`,
+> `performanceDemandingArea.cfg`). Values are below the 300/400 the research bundle used —
+> every Detail slot is full AI simulation, and the goal is to cover ~150 NPCs around a fight,
+> not to disable the system. `merc_lod_boost 0|1` and `merc_lod_status` to control and inspect.
+>
+> `wh_ai_LOD_Hide` is deliberately **not** in the set: run 13 showed it is unreachable through
+> `GetCVar`/`SetCVar` (`nil -> nil <-- DID NOT TAKE`).
+>
+> **Do not read this as a fix for merc invisibility.** Run 13 applied this exact tier and ruled
+> it out: mercs standing at 3 m cannot be evicted from a 400 m / 300-slot Detail budget, and
+> they were demoted anyway. This is only about keeping a big battle properly simulated.
+
 There is no single "NPC LOD". KCD2 has **four** independent systems that can each make an
 NPC stop rendering while it keeps existing and fighting. They are listed below with the
 evidence for each, then applied to the two bugs.

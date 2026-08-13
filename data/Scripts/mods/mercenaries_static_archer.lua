@@ -423,7 +423,7 @@ function mercenaries:FindStaticArcherDefendTarget(data, myWuid, me, mp)
         if not ents then return end
         for _, ent in pairs(ents) do
             if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id
-               and tostring(ent.this.id) ~= tostring(myWuid) and self:IsAliveAndWell(ent, true) then
+               and tostring(ent.this.id) ~= tostring(myWuid) and self:IsCombatViable(ent) then
                 local isModEnemy = self:IsModEnemyName(ent:GetName() or "")
                 if isModEnemy or self:IsValidEnemy(ent, me, playerWuid, false) then
                     local ep = ent:GetPos()
@@ -470,7 +470,7 @@ function mercenaries:FindStaticArcherTarget(data, myWuid)
         -- Keep the current target while it is alive and in range.
         if data.currentTarget then
             local cur = XGenAIModule.GetEntityByWUID(data.currentTarget)
-            if cur and self:IsAliveAndWell(cur, true) then
+            if cur and self:IsCombatViable(cur) then
                 local cp = cur:GetPos()
                 if cp then
                     local dx, dy, dz = cp.x - mp.x, cp.y - mp.y, cp.z - mp.z
@@ -500,14 +500,14 @@ function mercenaries:FindStaticArcherTarget(data, myWuid)
 
             if player and self:StaticArcherWantsTarget(mode, player, true) then
                 local pp = player:GetPos()
-                if pp and self:IsAliveAndWell(player, true) then consider(player.this.id, pp) end
+                if pp and self:IsCombatViable(player) then consider(player.this.id, pp) end
             end
 
             local ents = System.GetPhysicalEntitiesInBoxByClass(mp, radius, "NPC")
             if ents then
                 for _, ent in pairs(ents) do
                     if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id then
-                        if tostring(ent.this.id) ~= myWuidStr and self:IsAliveAndWell(ent, true)
+                        if tostring(ent.this.id) ~= myWuidStr and self:IsCombatViable(ent)
                            and self:StaticArcherWantsTarget(mode, ent, false) then
                             local ep = ent:GetPos()
                             if ep then consider(ent.this.id, ep) end
@@ -535,7 +535,7 @@ function mercenaries:UpdateStaticArcherCombatData(data, myWuid)
 
         if data.attackData and data.attackData.target then
             local t = XGenAIModule.GetEntityByWUID(data.attackData.target)
-            if t and self:IsAliveAndWell(t, true) then
+            if t and self:IsCombatViable(t) then
                 data.isTargetAlive = true
                 local tp = t:GetPos()
                 if tp and myPos then

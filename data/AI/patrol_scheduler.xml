@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Patrol tester brain. Two proven pieces, nothing invented.
+
+         NOTHING MOVES HERE. This scheduler only fires behaviours: patrol_walk.xml for the
+         leader, patrol_follow.xml for the rest. Movement in a scheduler arm holds the NPC
+         and stops a combat interrupt taking him over, and follower nodes refuse to run
+         outside a SchedulerSubbrain at all. Schedulers fire; behaviours act.
+
+         COMBAT is present but gated on $patrolFights (set by PatrolRole: true only for a
+         man in a live roaming record). It is NOT gated by faction - FindEnemyTarget has no
+         relationship check anywhere in it and returns the player unconditionally, so the
+         tester used to acquire targets exactly like the roaming gangs.
+
+         The route yields to combat from the INSIDE rather than by being evicted: the
+         moment a man holds a claim, PatrolWalkTick / PatrolFollowRole end their own
+         behaviour, which frees the interrupt slot whatever the priority rules turn out to
+         be. Walking and following also stand down while inCombat, so combat movement never
+         fights the route Move. -->
+
+    <BehaviorTree name="onUpdate" is_function="0">
+        <Variables>
+            <Variable name="isPatrol"          type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="isPatrolLeader"    type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="patrolWalking"     type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- May this man fight? True only for a roaming gang member. The tester
+                 shares this tree and must stay harmless. Set by PatrolRole. -->
+            <Variable name="patrolFights"      type="_bool" values="false" isPersistent="0" form="single" />
+
+
+            <Variable name="walkFired"         type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="followFired"       type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="followEpoch"       type="_int"  values="-1" isPersistent="0" form="single" />
+            <Variable name="patrolMrkev"       type="_wuid" values="" isPersistent="0" form="single" />
+
+            <!-- Combat, for the roaming patrols. The tester souls use the same tree but
+                 never acquire a target, so these arms simply never fire for them. -->
+            <Variable name="currentTarget"     type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="inCombat"          type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="attackData"        type="switch:interruptData:attack" values="" isPersistent="0" form="single" />
+            <Variable name="crimeInformation"  type="information" values="" isPersistent="0" form="single" />
+            <Variable name="mrkev"             type="_wuid" values="" isPersistent="0" form="single" />
+        </Variables>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <SuppressFailure>
+                    <Parallel successMode="Any" failureMode="Any">
+
+                        <!-- roles, refreshed from Lua -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:PatrolRole(data, entity)" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- THE WALK - leader only, fired as a behaviour. It used to run
+                             its Move right here, which meant the scheduler held the
+                             leader's movement and combat_melee could never take it over:
+                             the leader never entered a fight. Schedulers fire; behaviours
+                             act. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <!-- Self-heal, same as enemy_melee_scheduler's campFired reset. The
+                                     only other re-arm is the behaviour's own OnFail (PatrolWalkEnd),
+                                     which does not run if a fire is refused outright - so without
+                                     this the latch could stick true with nothing walking. Safe: the
+                                     fire below still requires ~$inCombat. -->
+                                <IfCondition failOnCondition="false" condition="$inCombat">
+                                    <Expression expressions="$walkFired = false" />
+                                </IfCondition>
+                                <IfCondition failOnCondition="false" condition="$isPatrolLeader &amp; $patrolWalking &amp; ~$walkFired &amp; ~$inCombat &amp; $currentTarget == $__null">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$patrolMrkev" nodeLabel="1247" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$patrolMrkev" Behavior="'patrol_walk'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                        <Expression expressions="$walkFired = true" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Followers. The follower nodes themselves live in
+                             patrol_follow.xml because the engine refuses to run them
+                             outside a SchedulerSubbrain ("[FollowerBase]: This node can
+                             run only in SchedulerSubbrain"), which is why running them
+                             here left the whole patrol standing still. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <IfCondition failOnCondition="false" condition="$inCombat">
+                                    <Expression expressions="$followFired = false" />
+                                </IfCondition>
+                                <IfCondition failOnCondition="false" condition="$isPatrol &amp; ~$isPatrolLeader &amp; ~$followFired &amp; ~$inCombat &amp; $currentTarget == $__null">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$patrolMrkev" nodeLabel="1245" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$patrolMrkev" Behavior="'patrol_follow'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                        <Expression expressions="$followFired = true" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- in-combat tracker -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
+                                    <Then canSkip="1">
+                                        <Expression expressions="$inCombat = true" />
+                                    </Then>
+                                    <Else canSkip="1">
+                                        <Expression expressions="$inCombat = false" />
+                                    </Else>
+                                </EntityContextCheck>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Target acquisition, gated on $patrolFights. FindEnemyTarget has NO
+                             faction check of any kind - it returns the player unconditionally -
+                             so the old claim that faction keeps the tester harmless here was
+                             simply false, and the tester acquired targets like everyone else.
+                             Faction only decides how third parties react. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <IfCondition failOnCondition="false" condition="$patrolFights">
+                                    <ExecuteLua code="mercenaries:PatrolFindTarget(data, entity.this.id)" />
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <Loop count="-1">
+                            <Sequence>
+                                <IfCondition failOnCondition="false" condition="$patrolFights &amp; ~$inCombat &amp; $currentTarget ~= $__null">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1246" />
+                                            <CreateInformationWrapper Label="'assault'" PerceivedWuid="$this.id" PositionType="positionWuid" PositionVec3="" PositionWuid="$currentTarget" Information="$crimeInformation" />
+                                            <LockDynamicInformationValues Information="$crimeInformation">
+                                                <SetDynamicInformationValue Information="$crimeInformation" Tag="'stimulusKind'" Variable="$enum:crime_stimulusKind.combat" Type="" Value="" />
+                                            </LockDynamicInformationValues>
+                                            <Function_crime_limits_reserveReactionLink ffCrimeIcon="false" information="$crimeInformation" priority="160" reactionKind="$enum:crime_reactionKind.attack" nodeLabel="898993" />
+                                        </SuppressFailure>
+                                        <Expression expressions="$attackData.target = $currentTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
+                                        <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                        <Expression expressions="$inCombat = true" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+
+                    </Parallel>
+                </SuppressFailure>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

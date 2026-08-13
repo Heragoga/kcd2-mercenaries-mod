@@ -565,6 +565,7 @@
   <Row><Cell>merc_n_wshort</Cell><Cell>Wages short (gr), men unpaid:</Cell><Cell>Wages short (gr), men unpaid:</Cell></Row>
   <Row><Cell>merc_n_fdeliv</Cell><Cell>Food delivered:</Cell><Cell>Food delivered:</Cell></Row>
   <Row><Cell>merc_n_stock</Cell><Cell>| in stock:</Cell><Cell>| in stock:</Cell></Row>
+  <Row><Cell>merc_n_spoils</Cell><Cell>Espólios, corpos saqueados:</Cell><Cell>Espólios, corpos saqueados:</Cell></Row>
   <Row><Cell>merc_n_days</Cell><Cell>| days left:</Cell><Cell>| days left:</Cell></Row>
   <Row><Cell>merc_n_ftook</Cell><Cell>Quartermaster took food:</Cell><Cell>Quartermaster took food:</Cell></Row>
   <Row><Cell>merc_n_ddeliv</Cell><Cell>Drink delivered:</Cell><Cell>Drink delivered:</Cell></Row>

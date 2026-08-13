@@ -4,6 +4,10 @@
         <Variables>
             <Variable name="testBarkIndex"       type="_int"                 values="1"                                 isPersistent="0" form="single" />
             <Variable name="distanceToPlayer"    type="_float"               values="0"                                 isPersistent="0" form="single" />
+            <!-- Distance past which this merc drops his target and sheathes. Scales with
+                 squad size (MercLeashes) - a flat value sheathes the rear of a long column
+                 on a loop. -->
+            <Variable name="deTargetDist"        type="_float"               values="35.0"                              isPersistent="0" form="single" />
             <Variable name="followStopDistance"  type="_float"               values="2.0"                               isPersistent="0" form="single" />
             <Variable name="followRunThresh"     type="_float"               values="4.5"                               isPersistent="0" form="single" />
             <Variable name="followSprintThresh"  type="_float"               values="8.0"                               isPersistent="0" form="single" />
@@ -22,6 +26,8 @@
             <Variable name="firedCampActor"     type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Mirror of _G.PlayerMounted; stops the stuck-follower self-heal from restarting a mounted merc's follow tree. -->
             <Variable name="playerMounted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <!-- The follow tree is running but going nowhere: evict it, then re-fire. -->
+            <Variable name="followStuck"         type="_bool"                values="false"                             isPersistent="0" form="single" />
 
             <!-- campActive/campFurniture/campStanceCode: only used by the disabled camp sit/sleep block below. -->
             <Variable name="campActive"          type="_bool"                values="false"                             isPersistent="0" form="single" />
@@ -99,6 +105,7 @@
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                         <ExecuteLua code="data.isIdle = _G.MercIdle or false" />
                                         <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
+                                        <ExecuteLua code="mercenaries:MercLeashes(data)" />
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
@@ -151,11 +158,14 @@
                                     <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
                                         <Then canSkip="1">
                                             <Sequence>
-                                                <!-- 35m for the same reason as the follow-retry below: rear ranks of a
-                                                     deep formation are legitimately far back, and at 20 this was
-                                                     de-targeting and sheathing the last rank on a loop. idleTicks is an
-                                                     independent trigger and stays as it is. -->
-                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 35.0 | $idleTicks &gt; 55">
+                                                <!-- Rear ranks of a deep formation are legitimately far back, and at a
+                                                     flat 20 this was de-targeting and sheathing the last rank on a
+                                                     loop. It was then a flat 35, which merely moved the wall further
+                                                     out - a fifty-man column still reaches past it. $deTargetDist is
+                                                     set by MercLeashes and SCALES WITH SQUAD SIZE, matching the melee
+                                                     module's player leash so the two cannot disagree and fight each
+                                                     other. idleTicks is an independent trigger and stays as it is. -->
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; $deTargetDist | $idleTicks &gt; 55">
                                                     <Sequence>
                                                         <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
                                                         <Expression expressions="$currentTarget = $__null" />
@@ -353,6 +363,30 @@
                              but is idle/not-fighting and far (>15m) from the player, its follow
                              interrupt silently failed - clear $isFollowingActive to force a retry
                              (the switch above only re-attempts when it's false). -->
+                        <!-- Direct re-arm: the follow behaviour told us it ended. This is the
+                             precise signal the distance self-heal below can only guess at, and
+                             it catches the case that one cannot - a merc who stops WHERE HE
+                             STANDS, next to the player, with the latch still set. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:PollFollowRefire(data, entity.this.id)" />
+                                <IfCondition failOnCondition="false" condition="$followStuck &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee">
+                                    <Sequence>
+                                        <!-- Consume FIRST, so this can only ever run once per raised
+                                             flag. Re-firing 'follow' over a running 'follow' does not
+                                             reliably displace it, so fire 'teleport' (destination =
+                                             self, nothing visibly moves) purely to evict it - which is
+                                             why toggling idle cures a stuck merc by hand, the idle arm
+                                             doing exactly this. Arm 4 then starts follow fresh. -->
+                                        <ExecuteLua code="mercenaries:ConsumeFollowRefire(entity.this.id)" />
+                                        <Expression expressions="$isFollowingActive = false" />
+                                        <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />

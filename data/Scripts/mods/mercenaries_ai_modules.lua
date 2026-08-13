@@ -5,14 +5,56 @@
 -- See docs/ai-modules.md.
 
 -- Which side an AI-module NPC is on, from its spawn-name prefix.
--- 'friend' = the player's people, 'enemy' = the hostile groups.
+-- 'friend' = the player's people, 'enemy' = the hostile groups,
+-- 'patrol'  = the roaming road gangs.
 mercenaries.FriendPrefixes = { "SpawnedFriend_", "MercenaryCustomCompanion", "MercQuartermaster" }
 mercenaries.EnemyPrefixes  = { "SpawnedEnemy_", "SpawnedRenegade_" }
+
+-- Patrols are a THIRD side, not a flavour of the other two. They are hostile, but
+-- they belong to a ROUTE, not to the player's squad:
+--   * as "friend" (which is what the fall-through below used to give them) they
+--     inherited the merc leash to the PLAYER, so a gang fighting 30m up the road
+--     failed its combat on the first tick, every tick - the start-stop loop.
+--   * as "enemy" they would get no leash at all and chase the player across
+--     Kuttenberg, and PatrolSyncIndex would then rewrite the gang's notional route
+--     index to wherever the chase ended, with PatrolDespawnRange deleting them
+--     mid-fight on screen.
+-- They leash to their own TARGET instead, like the enemy archer does.
+-- Deliberately NOT added to ModEnemyPrefixes: loot sweep, wall battle and tower
+-- archers are all documented as ignoring patrols (docs/patrols.md).
+mercenaries.PatrolPrefixes = { "SpawnedPatrolman_", "SpawnedPatrol_" }
+-- How far a patrolman may chase his own target before breaking off.
+mercenaries.PatrolCombatLeash = 120.0
+
+-- Merc melee leashes. Target leash is what actually matters in a fight; the player leash is a
+-- backstop, and it MUST scale with squad size - the rear of a fifty-man column is legitimately
+-- far from the player and a flat limit makes those men draw and sheathe on a loop.
+-- Must be at least EnemyAlertRadius: once alerted the squad acquires targets up to 60m out,
+-- and a leash shorter than the acquisition range disengages a merc on the first tick of the
+-- charge - he would be told to fight something he is not allowed to walk to.
+mercenaries.MeleeTargetLeash      = 70.0
+mercenaries.MeleePlayerLeashBase  = 25.0
+mercenaries.MeleePlayerLeashPerMerc = 0.7
+mercenaries.MeleePlayerLeashMax   = 70.0
+
+-- The scheduler's de-target/sheathe threshold, kept in step with the melee module's player
+-- leash so the two cannot disagree - one sheathing him while the other still wants him
+-- fighting is exactly the draw/sheathe loop. A little wider, so combat ends before the
+-- target is dropped rather than the other way round.
+function mercenaries:MercLeashes(bt_data)
+    local squad = self.SquadSize or 0
+    local d = self.MeleePlayerLeashBase + squad * self.MeleePlayerLeashPerMerc
+    if d > self.MeleePlayerLeashMax then d = self.MeleePlayerLeashMax end
+    bt_data.deTargetDist = d + 8.0
+end
 
 function mercenaries:SideOf(name)
     name = name or ''
     for _, p in ipairs(self.EnemyPrefixes) do
         if string.find(name, p, 1, true) then return "enemy" end
+    end
+    for _, p in ipairs(self.PatrolPrefixes) do
+        if string.find(name, p, 1, true) then return "patrol" end
     end
     for _, p in ipairs(self.FriendPrefixes) do
         if string.find(name, p, 1, true) then return "friend" end
@@ -31,7 +73,11 @@ function mercenaries:ClearCombatClaim(wuid)
     local k = tostring(wuid)
     if self.MercTargetOf then self.MercTargetOf[k] = nil end
     if self.EnemyTargetOf then self.EnemyTargetOf[k] = nil end
+    if self.EnemyClaimWuid then self.EnemyClaimWuid[k] = nil end
     if self.StaticArcherTargetOf then self.StaticArcherTargetOf[k] = nil end
+    -- ForcedTargetOf is otherwise only cleared when the TARGET dies, so an
+    -- encounter override outlived the NPC that held it.
+    if self.ForcedTargetOf then self.ForcedTargetOf[k] = nil end
 end
 
 -- ---------------------------------------------------------------------------
@@ -42,6 +88,7 @@ end
 -- better-looking and no worse for survival.
 --   friend melee:  >20m from player
 --   friend archer (melee stance): >25m from player, or archer stance left melee
+--   patrol:        >60m from its own TARGET (never from the player)
 --   enemy:         never (target death ends the burst)
 -- ---------------------------------------------------------------------------
 function mercenaries:UpdateMeleeCombatData(data, myWuid)
@@ -51,30 +98,77 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
 
         local me = XGenAIModule.GetEntityByWUID(myWuid)
         local name = (me and me:GetName()) or ''
+        local side = self:SideOf(name)
         data.isArcher = (string.find(name, '_archer_', 1, true) ~= nil)
-        data.isEnemy = (self:SideOf(name) == "enemy")
+        -- Anything that is not the player's own man draws its weapon explicitly
+        -- before the approach (combat_melee.xml) - patrols included.
+        data.isEnemy = (side ~= "friend")
 
+        local mp = me and me:GetPos()
+        local tp = nil
         if data.attackData and data.attackData.target then
             local t = XGenAIModule.GetEntityByWUID(data.attackData.target)
-            if t and self:IsAliveAndWell(t, true) then data.isTargetAlive = true end
+            if t and self:IsCombatViable(t) then
+                data.isTargetAlive = true
+                tp = t:GetPos()
+            end
         end
 
-        if data.isEnemy then return end
+        if side == "enemy" then return end
+
+        if side == "patrol" then
+            -- Leash to the TARGET, not the player: a road gang has no business
+            -- measuring anything against where the player happens to be standing.
+            -- Generous, because a gang-wide alert hands the tail of a long column a
+            -- target well beyond their own detect range and they have to be allowed
+            -- to close on it; still far inside PatrolDespawnRange, so it cannot turn
+            -- into a cross-map chase.
+            if tp and mp then
+                local dx, dy, dz = tp.x - mp.x, tp.y - mp.y, tp.z - mp.z
+                if math.sqrt(dx * dx + dy * dy + dz * dz) > (self.PatrolCombatLeash or 120.0) then
+                    data.disengage = true
+                end
+            end
+            return
+        end
 
         local distToPlayer = 0
-        if player and me then
-            local pp, mp = player:GetPos(), me:GetPos()
-            if pp and mp then
+        if player and mp then
+            local pp = player:GetPos()
+            if pp then
                 local dx, dy, dz = pp.x - mp.x, pp.y - mp.y, pp.z - mp.z
                 distToPlayer = math.sqrt(dx * dx + dy * dy + dz * dz)
             end
         end
 
+        -- Leash to the TARGET first, and to the player only as a far backstop that SCALES
+        -- WITH SQUAD SIZE.
+        --
+        -- A flat 20m-from-the-player leash is fine for six mercs and catastrophic for fifty:
+        -- the rear of a long column is legitimately 30m+ back, so those men acquired a target,
+        -- fired combat_melee, were told they were out of leash on the very first watchdog
+        -- tick, sheathed, re-acquired, and drew again - the "half of them just stand there
+        -- drawing and sheathing" report. They were never refused a target; they were refused
+        -- the RIGHT to keep it. The scheduler's own de-target threshold hit the same wall and
+        -- was raised from 20 to 35 for exactly this reason; this is the same fix for the
+        -- combat module, done properly rather than as another magic number.
+        local squad  = self.SquadSize or 0
+        local pLeash = self.MeleePlayerLeashBase + squad * self.MeleePlayerLeashPerMerc
+        if pLeash > self.MeleePlayerLeashMax then pLeash = self.MeleePlayerLeashMax end
+
+        local distToTarget = nil
+        if tp and mp then
+            local dx, dy, dz = tp.x - mp.x, tp.y - mp.y, tp.z - mp.z
+            distToTarget = math.sqrt(dx * dx + dy * dy + dz * dz)
+        end
+
         if data.isArcher then
-            if distToPlayer > 25.0 then data.disengage = true end
             if (_G.ArcherStance or "skirmish") ~= "melee" then data.disengage = true end
+            if distToTarget and distToTarget > (self.MeleeTargetLeash + 5.0) then data.disengage = true end
+            if distToPlayer > (pLeash + 5.0) then data.disengage = true end
         else
-            if distToPlayer > 20.0 then data.disengage = true end
+            if distToTarget and distToTarget > self.MeleeTargetLeash then data.disengage = true end
+            if distToPlayer > pLeash then data.disengage = true end
         end
     end)
     if not ok then System.LogAlways('[AI] UpdateMeleeCombatData error: ' .. tostring(err)) end
@@ -107,7 +201,7 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
         local tp = nil
         if data.attackData and data.attackData.target then
             local t = XGenAIModule.GetEntityByWUID(data.attackData.target)
-            if t and self:IsAliveAndWell(t, true) then
+            if t and self:IsCombatViable(t) then
                 data.isTargetAlive = true
                 tp = t:GetPos()
                 if tp and myPos then

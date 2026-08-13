@@ -83,13 +83,40 @@ mercenaries.TargetDetectionRadius = 50
 
 -- Half-extent of the box query UpdateEnemyCache runs around the player. This is
 -- the effective aggro radius - TargetDetectionRadius above is only a far gate.
--- Keep it under the 20m disengage leash in mercenary_scheduler.xml, or a merc
--- charging an edge-of-range enemy trips the leash and gets pulled back.
+--
+-- The old warning here ("keep it under the 20m disengage leash or a merc charging an
+-- edge-of-range enemy trips the leash and gets pulled back") no longer applies: the melee
+-- leash is measured against the merc's own TARGET and scales with squad size, so closing a
+-- long distance is allowed. See MeleeTargetLeash in mercenaries_ai_modules.lua.
 mercenaries.EnemyScanRadius = 18
+
+-- ...and once a fight is actually on, the squad looks much further. Mercs could only see
+-- hostiles within EnemyScanRadius of the PLAYER, so a patrol column 40m up the road simply
+-- did not exist to them: nobody moved until it closed to 18m, which reads as the squad
+-- taking ages to react. This is the squad's version of the patrols' gang-wide alert - one
+-- contact and everyone widens their eyes - and it decays after the fight so a peaceful
+-- squad is not running a 60m query forever.
+mercenaries.EnemyAlertRadius   = 60
+mercenaries.EnemyAlertHoldSecs = 20.0
+mercenaries.EnemyAlerted       = false
 
 -- Max number of mercs allowed to already be closer to a given enemy before
 -- another merc will look for a different target instead of piling on.
+--
+-- This is the FLOOR, not the value actually used. With a hard cap of 2, any merc
+-- past the (2 x enemies) mark found every candidate full, PickCombatTarget has no
+-- at-cap fallback, and he simply stood there through the whole fight - the "one
+-- who never joins in". EffectiveSwarmCap (recomputed each UpdateEnemyCache pass)
+-- opens the cap up to SwarmCapMax when the squad outnumbers the enemy, so everyone
+-- has somewhere to go, and stays at SwarmCap when there is plenty to fight.
 mercenaries.SwarmCap = 2
+-- Ceiling when the squad only modestly outnumbers the enemy...
+mercenaries.SwarmCapMax = 4
+-- ...and the hard stop when it massively does. A 50-man squad against three bandits will
+-- commit up to this many per enemy; the rest hold formation. Without a rising ceiling a big
+-- squad simply refused most of its own mercs a target and they stood at the back.
+mercenaries.SwarmCapHard = 10
+mercenaries.EffectiveSwarmCap = 2
 
 mercenaries.IsHiddenForCutscene = false
 
@@ -798,11 +825,27 @@ end
 -- PERFORMANCE: skipped entirely when there's no squad to act on it - nothing
 -- reads CachedEnemies if ActiveMercs is empty.
 function mercenaries.CombatScanLoop()
+    -- Outside the ActiveMercs gate: it only reads a global and a clock, and it
+    -- must see the dismount edge even on a tick where the roster is momentarily
+    -- empty. See DismountWatch.
+    pcall(function() mercenaries:DismountWatch() end)
+    -- Player speed, smoothed. Read by the mounted leader so he can match it.
+    pcall(function() mercenaries:UpdatePlayerSpeed() end)
+
     if next(mercenaries.ActiveMercs) then
         mercenaries:UpdateEnemyCache()
+        -- One squad-wide "is there a fight" flag, off the cache this pass just built.
+        -- Mounted mercs poll it to break out of their riding block early; doing that
+        -- per merc would be a target scan each, several times a second, per rider.
+        pcall(function() mercenaries:UpdateSquadThreat() end)
     else
         mercenaries.CachedEnemies = {}
+        _G.MercSquadThreat = false
     end
+
+    -- Outside the ActiveMercs gate: a battle can be under way with the squad wiped or in
+    -- camp, and the boost must still come back down afterwards.
+    pcall(function() mercenaries:LodBoostTick() end)
 
     Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
 end
@@ -823,6 +866,16 @@ function mercenaries.LowPriorityMonitorLoop()
     -- Static (tower) archers are not in ActiveMercs, so they resupply outside the
     -- block above - they never walk anywhere to restock.
     pcall(function() mercenaries:ResupplyStaticArchers() end)
+
+    -- Outside the ActiveMercs gate on purpose: ambushes and roaming patrols hold
+    -- combat claims with no merc anywhere near.
+    pcall(function() mercenaries:PruneCombatClaims() end)
+
+    -- Re-pin renderer view distance; anything that rebuilds an entity can drop it.
+    pcall(function() mercenaries:RefreshRenderPins() end)
+
+    -- Roaming patrols run on their own timer; re-arm it if it has died (level change).
+    pcall(function() mercenaries:LivePatrolWatchdog() end)
 
     -- Camp patrol tick runs regardless of ActiveMercs being empty, since a
     -- camp can (briefly) outlive its squad's cache entry.
@@ -899,6 +952,16 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     end)
     System.LogAlways("[Mercenaries] Recall keybind F4: " .. (okBind and "OK" or "FAILED - use merc_camp_recall console command"))
 
+    -- Patrol route recorder: F5 new, F6 save, F7 cancel, F8 dump. See docs/patrols.md.
+    pcall(function()
+        System.ExecuteCommand("bind f5 merc_route_new")
+        System.ExecuteCommand("bind f6 merc_route_save")
+        System.ExecuteCommand("bind f7 merc_route_cancel")
+        System.ExecuteCommand("bind f8 merc_route_dump")
+    end)
+    pcall(function() mercenaries:RouteLoad() end)
+    pcall(function() mercenaries:LivePatrolStart() end)
+
     self:ReleaseSpeakingLock()
 
     _G.PlayerMounted = false
@@ -912,6 +975,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
     Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
+    -- Post-battle loot sweep. Own tick: it must keep watching CachedEnemies drain
+    -- even with no squad orders pending. See docs/loot-sweep.md.
+    Script.SetTimerForFunction(1000, "mercenaries.LootSweepLoop")
     -- Scheduled raids on the camp. Safe to arm with no camp: the tick does nothing
     -- until one is pitched and the player is standing in it.
     pcall(function() mercenaries:RaidStart() end)
@@ -948,6 +1014,11 @@ Script.LoadScript("Scripts/mods/mercenaries_navmesh.lua")
 Script.LoadScript("Scripts/mods/mercenaries_defences.lua")
 Script.LoadScript("Scripts/mods/mercenaries_wallbattle.lua")
 Script.LoadScript("Scripts/mods/mercenaries_raids.lua")
+Script.LoadScript("Scripts/mods/mercenaries_patrol.lua")
+Script.LoadScript("Scripts/mods/mercenaries_routes.lua")
+Script.LoadScript("Scripts/mods/mercenaries_patrol_routes.lua")
+Script.LoadScript("Scripts/mods/mercenaries_patrol_routes_trosky.lua")
+Script.LoadScript("Scripts/mods/mercenaries_patrols_live.lua")
 Script.LoadScript("Scripts/mods/mercenaries_testnpc.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush_scenes.lua")
@@ -955,6 +1026,9 @@ Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
 Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
+Script.LoadScript("Scripts/mods/mercenaries_lootsweep.lua")
+Script.LoadScript("Scripts/mods/mercenaries_hide_others.lua")
+Script.LoadScript("Scripts/mods/mercenaries_lodboost.lua")
 
 
 -- Prints every merc console command with a one-line description.
@@ -993,6 +1067,11 @@ System.AddCCommand("merc_lua", "mercenaries:ExecString(%line)", "")
 System.AddCCommand("merc_help", "mercenaries:PrintHelp()", "Lists all mercenaries mod console commands")
 System.AddCCommand("merc_status", "mercenaries:ShowSquadStatus()", "One-line squad report: count, health, orders, archer stance")
 System.AddCCommand("merc_heal", "mercenaries:HealMercsForFlatFee()", "Heal & wash the squad for a flat fee")
+
+-- Post-battle loot sweep (docs/loot-sweep.md). Normally automatic; these force it.
+System.AddCCommand("merc_loot_force", "mercenaries:LootSweepForce()", "Open a loot sweep on the bodies around you right now")
+System.AddCCommand("merc_loot_stop", "mercenaries:LootSweepStop()", "Cancel the running loot sweep and recall the mercs")
+System.AddCCommand("merc_loot_status", "mercenaries:LootSweepStatus()", "Report the loot sweep state")
 
 System.AddCCommand("merc_testmerc", "mercenaries:SpawnTestMerc()", "Control test: spawn ONE merc on the fixed test soul guid (free, no cap). See docs/quest-override-test.md")
 System.AddCCommand("merc_recount", "mercenaries:Recount()", "")

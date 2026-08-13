@@ -1188,6 +1188,11 @@ end
 -- first in the ContinuousSwitch, so it preempts patrol/sit/sleep/follow.
 function mercenaries:GetCampActivity(mercWuid)
     if _G.MercenariesDismissed then return nil end
+    -- A post-battle loot task outranks camp life and ignores the camp-out gate:
+    -- the bodies are wherever the fight was, and the mercs working them are
+    -- usually the sortie party. See mercenaries_lootsweep.lua.
+    local loot = self.LootActivities and self.LootActivities[tostring(mercWuid)]
+    if loot then return loot end
     if self:IsCampOut(mercWuid) then return nil end
     return self.CampActivities and self.CampActivities[tostring(mercWuid)]
 end

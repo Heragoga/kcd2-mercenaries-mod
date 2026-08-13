@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="us-ascii"?>
+﻿<?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<subbrain_switchings version="1">
 		<subbrain_switching file_name="mercenary_scheduler.xml" subbrain_id="26e83d2a-964c-4fd3-b077-6de567b0d081" tree_name="onUpdate" />
@@ -8,5 +8,6 @@
 		<subbrain_switching file_name="enemy_melee_scheduler.xml" subbrain_id="1a9c3e7f-2b8d-4c60-9e5a-3f7b1d8c6a92" tree_name="onUpdate" />
 		<subbrain_switching file_name="enemy_archer_scheduler.xml" subbrain_id="b8d4f2ea-5c3a-4b79-ad61-2f4e8a9b3c71" tree_name="onUpdate" />
 			<subbrain_switching file_name="testnpc_scheduler.xml" subbrain_id="f1e2d3c4-0002-4a00-8b00-000000000002" tree_name="onUpdate" />
+		<subbrain_switching file_name="patrol_scheduler.xml" subbrain_id="5f3a2c81-6d47-4e92-a03b-7c1e9d5b4a26" tree_name="onUpdate" />
 	</subbrain_switchings>
 </database>

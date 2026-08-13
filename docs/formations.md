@@ -739,3 +739,306 @@ Same-path override of an AI XML is empirically honoured — `zdjbcamping_mod` sh
 If it works, the cost is real: you must copy all 63 vanilla formations into your file or you delete the missing ones game-wide, you hard-conflict with any other mod that ships the file, and a game patch that edits it silently reverts you.
 
 **The conflict-free alternative is reusing an existing preset name.** `MakeFormation` takes only a name string, so any preset in the loaded catalogue is available to a mod's own tree with no level data and no file collision. `followNPC` (8 spots, ±0.7 m, ranks every 1.7 m) is close to what `UpdateFormationSlots` already builds by hand; `infantryMen20` and `cavalryRiders6` cover larger bodies; `longLine` and `nextToLeader` cover small escorts.
+
+
+## Mounted mercs engaging late
+
+**First, a correction that cost real time: that 10 s `Wait` is not a ride block.** It is the
+**mount-acquisition deadline**. The merc is still *on foot* inside it — `StanceElement` is
+what walks him to a horse spawned 5 m away and plays the mount transition — and when it
+expires the `StanceCheck` below it **destroys the horse** and latches `mountAbandoned`. A
+merc who mounts successfully falls through into an *untimed* `Loop count="-1"` and never
+returns to this node at all.
+
+So shortening it does nothing whatsoever for engagement lag, and at 2 s it produced a
+different bug outright: the horse was deleted out from under a merc who was still walking to
+it. That reads as **"horses spawn but despawn before they can mount up"**. It is back to 10 s.
+
+**A third arm that fails on threat does NOT work — it was tried and reverted.** Adding a
+watcher `Loop` to that `Parallel` which `Fail`s when a threat is near stopped mounted mercs
+following at all. The `Parallel` is `failureMode="Any"`, so that arm ends the whole block —
+and with roaming patrols about, `MercSquadThreat` is true often enough that it ended more or
+less continuously. Anything added to that `Parallel` must be incapable of failing while the
+merc is meant to keep riding.
+
+`_G.MercSquadThreat` is maintained by `UpdateSquadThreat` (once per `CombatScanLoop` pass, a
+live hostile within `SquadThreatRange` of the player) and `MercShouldDismount` exposes it to
+a tree. **It is still unused by any tree**, and until recently it was also broken: the loop
+iterated `CachedEnemies` as if the entries were entities, when they are
+`{entity=, wuid=, armed=}` wrappers, so the flag could never go true at all. That is fixed;
+the signal is sound, it is the consumer that has never been written.
+
+## Mounted mercs not following
+
+Every mounted node — the distance gate, the mount `CrimeFollower`, and both mounted `Move`s —
+reads `$followTarget`. The on-foot leader arm does not: it hardcodes `$playerWUID`. That
+difference hid a real bug, because `CalculateFormationTarget` builds `followTarget` from the
+follow **chain**, whose ordering (mounted-first / rank / hp / name) has nothing to do with who
+**leads** (nearest to the player). The leader's own slot is usually past the formation width,
+so his chain target was one of his own followers: mounted, the formation anchor rode at a
+squadmate three metres away, his `Move` succeeded the moment it was issued, and the entire
+`MoveHistory` column parked with him. `CalculateFormationTarget` now returns the player as the
+leader's `followTarget` unconditionally.
+
+Second, both mounted `GetMemberFormation` calls re-bound `$formationWUID` without nulling it
+first (the on-foot follower branch does null it). A stale non-null handle therefore survived a
+formation rebuild for good, instead of the rider dropping to the `Move` arms until a valid
+handle came back. Both sites now clear it first.
+
+### Leader churn is what makes mounted following slow
+
+Every leader change runs `EndFormation` + `MakeFormation` and forces **every** follower to
+re-acquire a slot, so a swap is expensive and must be rare. `UpdateFormationLeader` runs every
+150 ms and elects whoever is nearest the player, and a plain 8 m distance margin was nowhere near
+enough: in one short ride, **6 of 11 rebuilds were `leader displaced`**, with leadership bouncing
+between the same few mercs. The squad never stayed still long enough to form up — that is what
+"mounted mercs take ages to start following" actually was, rather than anything in the mount path.
+
+Hysteresis is therefore in three parts:
+
+| Part | Setting | Why |
+| --- | --- | --- |
+| margin | `FormationLeaderSwapMargin` 8 m on foot, `…Mounted` 30 m | the mounted preset is ~64 m deep, so being 20 m ahead of the leader is normal, not exceptional |
+| duration | `FormationLeaderSwapSecs` 3 s | the challenger must *hold* the lead, so one overtake on a corner is not a handover |
+| cooldown | `FormationLeaderSwapCooldown` 6 s | a rebuild always gets time to settle before another can start |
+
+A leader who is dead or no longer eligible is replaced **immediately** — none of the three apply
+to that, because it is not churn.
+
+### `destinationSpecification2`/`3` are the FLEE band — leave them empty to chase
+
+This one cost two wrong diagnoses, so it is worth stating precisely.
+
+The mounted formation **leader** measured *exactly* 0.00 m of movement for as long as he was
+mounted, drifting 10 m → 25 m behind the player and recovering the instant he dismounted. He is
+the only NPC who shows it because he **is** the formation anchor: every other rider uses
+`FormationFollower` (which works mounted), and he is the one who falls through to the `Move` arms.
+
+The cause is not that `Move` cannot drive a rider — `moveOnHorse`, `menhart`, `cavalry_move` and
+`hunter_rideHome` all put a bare `Move` directly under a horse `StanceElement`. The cause is that
+**wherever `destinationSpecification2`/`3` are populated in shipped data they are the flee band**:
+"stay outside these two distances from the target". The only live-WUID examples anywhere are
+`companionmerchant.xml` and this mod's own `$goFlee` branch in `mercenary_scheduler.xml`, both
+`$distanceToFlee` / `$keepMinimalDistance`. Filling them with stand-off distances turned the
+leader's `Move` into a **flee node aimed at the player** — and a leader already 10–25 m away
+satisfies the band, hence exactly zero movement rather than merely sluggish movement.
+
+> Two earlier readings of this were wrong and are recorded so they are not repeated. It is **not**
+> "the literals should have been variables" — making them variables just produces a correctly
+> configured flee node, which is why that change fixed nothing visible. It is **not** "`Move`
+> doesn't work while mounted" either.
+
+Empty `spec2`/`spec3` against a live WUID is the chase idiom (`references/AI/_vachek/zakladni_chovani.xml`),
+and `changeNPCState="true"` matches every vanilla chase/travel `Move`; `false` is flee-specific.
+The distance bands now gate **speed only** (Dash beyond 10 m, Walk inside), never the destination
+parameters.
+
+### The mounted leader matches the player's speed
+
+He is the one rider who cannot use `FormationFollower` (he *is* the anchor), so he drives himself
+with a `Move` — and `speed` is an enum **attribute**, not a variable, so each gait has to be its
+own node behind a switch, the same reason this file spells out every `FormationMode`.
+
+He used to pick between exactly two: Dash beyond 10 m, Walk inside, sampled once a second. That
+cannot help but surge — dash until inside 10 m, drop to a walk, fall behind, dash again — and
+because every follower replays his path through `MoveHistory`, the whole column concertinas
+behind him.
+
+Now `UpdatePlayerSpeed` measures the player's actual speed (smoothed; a raw per-tick delta
+jitters enough to flip a gait band on its own) and `MountedLeaderGait` picks the matching gait at
+300 ms. **Distance is only a trim** — one gait up if he has dropped back past
+`MountStandoff + MountTrimBack`, one down if he has closed inside `MountStandoff - MountTrimNear`.
+Matching the speed rather than chasing the gap is what makes it constant: at a true match the gap
+simply holds and the trim does almost nothing. Gait `-1` holds station when the player has stopped
+and the leader is already at standoff, so he does not creep the last few metres onto him.
+
+Tuning lives in `MountGaitBands` (the m/s cuts between Walk/Run/Dash/Sprint) and `MountStandoff`.
+
+The hook runs for **every** merc, not just the leader: a mounted follower whose formation handle
+is momentarily null falls through to these same gait arms, and leaving him on a default Walk
+would drop him out of the column.
+
+**Rejected alternative:** anchoring the formation on the player so the leader could use
+`FormationFollower` too. `MakeFormation` takes only `FormationName` and `HandleVariable` in every
+shipped occurrence — there is no owner/WUID parameter that would let the player be an anchor, and
+`GetMemberFormation` only retrieves a handle for an entity some other `MakeFormation` already
+made a member. That would be an unproven architectural change for a bug with a mundane cause.
+
+### Keeping up with a sprinting player
+
+**There is no faster gear to give them.** `Dash` is the highest `RelativeSpeedLimit` that
+exists — vanilla uses only `Walk`, `AlertedWalk`, `Run`, `Dash` — so the followers are already
+flat out and "make them run faster" via the tree is not available.
+
+The fix is therefore to make the *NPC* faster, not the node: **`merc_keepup_buff`**
+(`rms*1.3, mst*1.5`), applied to every merc and refreshed on the slow tick. `rms` is the
+movement multiplier the mod's own buffs already use; the stamina half matters because a long
+run otherwise leaves them winded and slowing.
+
+> **Do NOT switch `FormationMode` automatically to give them "slack".** This was tried —
+> `KeepShape` while walking, `MoveHistory` while sprinting — and it is a trap in a deep
+> formation. `merc_column50` is **45 m** from front spot to back. `KeepShape` places the back
+> spot as a rigid offset behind the leader's *facing*; `MoveHistory` places it 45 m back along
+> the path he actually *walked*. After any turn those are two different points tens of metres
+> apart, so every switch teleported each follower's **target** and the man ran off to it: the
+> "everyone except the leader runs 20 m away and then comes back" bug. It fired exactly when
+> the player's speed crossed the threshold, i.e. whenever he got a little ahead. Make the
+> followers faster; do not move the goalposts.
+
+### The circle presets are offset forward on purpose
+
+Every formation is anchored on the **leader**, not the player — `MakeFormation` takes only a
+name and a handle, with no owner parameter, so there is no way to make the player the anchor
+(see the rejected alternative above). A circle drawn around the origin therefore rings the
+*leader*, who stands behind the player, and the ring ends up sitting behind him rather than
+around him.
+
+So the `merc_circle*` spots are shifted forward: each preset's centre is moved to
+`y = -3.0`, i.e. roughly where the player stands relative to a leader following him. `+y` is
+behind the leader (the columns run 0 → 45), so negative y is toward the player. `merc_circle6`
+now runs y −6.5 → +0.5 around a centre at −3.0, instead of +1.6 → +8.6 around +5.1.
+
+The leader himself is not one of the ring spots — he is the anchor — so he ends up just behind
+the ring, which is where a man following the player should be anyway.
+
+**If the ring reads as off-centre again, the number to change is that 3.0 offset**, which is the
+assumed leader-to-player standoff; the spot geometry itself is fine. Only `merc_circle*` presets
+were touched — column, line, square, wedge and escort are unchanged.
+
+### Teleport leashes: two different numbers
+
+Stragglers are dragged back at `TeleportDistBase + 1.4 m per merc` (capped at 130 m). It **must**
+scale: a fifty-man line is enormous and the outer files are legitimately far from the player, and
+a flat 50 m gate had them teleporting continuously — and every teleport is a hard `SetPos` that
+resets the merc mid-path, so continuous teleporting is continuous churn.
+
+The **leader** is on a short, flat `TeleportLeaderDist` (20 m) instead. He is the anchor: the
+whole shape hangs off him, so a leader who has dropped back takes the squad with him, and the
+followers' generous gate only makes sense *because* it is measured from a leader who is near the
+player. He follows the player directly and normally sits a few metres away, so this fires only
+when something is genuinely wrong.
+
+Two things deliberately do **not** apply to him:
+
+- `TeleportKeepBehindLeader` (which keeps a teleported straggler from landing in front of the
+  leader and physically blocking the one NPC everything hangs off) — pushing him behind himself
+  is meaningless. It is also skipped in **circle** formation, where "behind the leader" has no
+  meaning at all.
+- The repeat-teleport stall counter. His follow tree is the one that owns `MakeFormation`, so
+  restarting it destroys the formation and drops every follower onto the chain. His short leash
+  means he teleports more often than the rest by design, so flagging him would churn the squad.
+
+`merc_follow_stats 1` logs player speed and the squad's distance spread (nearest / median /
+worst, plus how many are past the teleport gate) **alongside the formation epoch, mode and
+preset** — those three are the things that can move a follower's target rather than the
+follower, so a spread that jumps on the same tick as an epoch or mode change means the squad is
+chasing a moved goalpost, not failing to keep up.
+
+### A merc that freezes where he stands
+
+`follow.xml`'s top-level `Parallel` is `failureMode="Any"`, so **any one arm failing ends the
+whole follow behaviour** — and the tree had no failure containment at all, so the scheduler's
+`$isFollowingActive` stayed latched true with nothing running. The distance self-heal cannot
+rescue that: it is gated on `$distanceToPlayer > 35`, so a merc who stops *next to the player*
+is never touched. He stands there for ever.
+
+The arm that actually did it was the `MeasureDistance` loop feeding `$mountedDistToTarget`,
+which had no `SuppressFailure`. `$followTarget` is a squadmate for most of the squad, and a
+dismount churns the whole chain at once (shape flips mounted→foot, epoch bumps, `FormationSlots`
+rebuilds) — so a target that is momentarily unresolvable takes the tree down. That is why it hit
+**one or two** mercs and not all of them, and why it showed up on dismount specifically. It is
+now wrapped; treat any unprotected node in one of those arms as a squad-wide single point of
+failure.
+
+**The failure mode is not a tree that dies — it is a tree that is still running and going
+nowhere.** The tell is that toggling squad idle on and off fixes the merc by hand. One signal,
+`FollowStuck`, handles it: clear `$isFollowingActive` **and** fire `teleport` to evict the
+stalled tree, after which the normal arm starts `follow` fresh. The eviction is the essential
+part — re-firing `follow` over an already-running `follow` does not reliably displace it, and
+toggling idle works by hand precisely because the idle arm fires the **`teleport`** behaviour
+first, a *different* behaviour, which definitely evicts it.
+
+> **Never re-arm this from a `FuseBox`/`OnFail` on `follow.xml`.** It was tried and it feeds
+> back. The tree is "ended" every time it is *deliberately* replaced — by combat, or by the
+> scheduler's own re-fire — so the `OnFail` re-arms the very re-fire that ended it, and `follow`
+> restarts once a second for ever. Every restart re-runs `GetMemberFormation`, so the whole
+> formation churns visibly. An `OnFail` there cannot distinguish "died unexpectedly" from "we
+> replaced it on purpose", which is why `FollowStuck` is raised only by **external** triggers
+> (the teleporter, the dismount watch) and consumed before it acts, so it can fire at most once
+> per raise.
+
+**Dismount is watched, not blanket-reset.** While the mounted-leader bug was unknown, a dismount
+reset the whole squad unconditionally. That is gone: it cost exactly what it was meant to save,
+because forcing a `teleport` and a follow restart on mercs who were already following fine is
+itself a stall of a second or two, every single time. Now `DismountWatch` merely **opens a
+verification window**, and `DismountVerify` resets only a merc who demonstrably covers no ground
+**while the player clearly does**. In the normal case nothing happens at all.
+
+**Each merc carries an anchor**, not a previous-sample position: where he was when last seen to
+move, and where the player was at that moment. That matters — the first version compared against
+the previous sample and demanded the player cover 5 m *inside one 3 s sample*, so walking slowly,
+or **stopping to look at the merc who is not following**, meant it could never judge anyone. It
+logged zero hits in a session with a visibly stuck merc.
+
+A merc who has covered no ground since his anchor is judged stuck by either of two independent
+rules:
+
+- the **player** has covered ground since that anchor — he is being left behind; or
+- he is simply **far away and stationary** (`DismountVerifyFar`), which is wrong regardless of
+  what the player does. This is the case the player-movement rule structurally cannot see, and
+  it is the most likely one to be observed, because noticing a stranded merc usually means
+  standing still and looking at him.
+
+Still not the general movement/velocity stuck detector that was removed for causing twitching and
+horse churn, and it must not be widened into one: it only runs inside a post-dismount window, a
+merc who moves at all re-anchors and is never judged, it skips mercs in combat or on camp duty
+and the formation leader, one stall produces exactly one reset (he re-anchors either way), and it
+cannot spawn horses because it only runs while the player is on foot. Keep those bounds.
+
+**Dismount reaction time** is set by the `_G.PlayerMounted` debounce, not by anything downstream:
+the poll and the debounce are a pair (~500 ms poll, 1.2 s of disagreement = two consecutive
+failed reads). That absorbs a blip — one missed `StanceCheck` would otherwise dismount the whole
+squad and start every horse's despawn countdown — while still reacting to a real dismount in
+about a second. It was 3 s at a 1 s poll with a 2 s debounce. The horse has its own, much longer
+guard (`despawnCountdown`), so this value only has to cover the dismount decision.
+
+> **Never idle the squad to fix following.** Driving this through `_G.MercIdle` — the cure
+> players do by hand — looks obvious and is wrong. `UpdateFormationRole` returns early on
+> `_G.MercIdle`, so `useFormation` goes false for *everyone*, the leader's `SubtreeDecorator`
+> runs its `EndFormation` cleanup, and the whole squad drops to the `CrimeFollower` chain until
+> the formation is rebuilt from scratch. The per-merc path (clear the latch, fire `teleport`)
+> is the part of the idle cure that actually does the work, and it leaves `useFormation` alone.
+> If you ever *do* set `_G.MercIdle` transiently, never write `MercIdlePersistent` with it, or
+> a save landing inside the window reloads the squad permanently idled.
+
+**The formation leader is skipped** by the dismount reset. His tree is the one that owns
+`MakeFormation`, so restarting him destroys the handle and forces every follower onto the chain
+— the same regression by another route. Followers restart against a formation that is still
+standing and re-join it directly. Skipping him is safe because a stalled *leader* would anchor
+the formation and stop the entire squad, which is not the observed symptom (one merc).
+
+**Why the 35 m self-heal could never catch this on its own:** `MonitorDistanceAndTeleport` drags
+any merc past 50 m back to the player once a second. A stalled merc was therefore teleported back
+*before* he could stay beyond 35 m long enough to be noticed — the teleporter was **hiding** him,
+which is exactly why he reads as "standing around next to you as if idle" rather than as a
+straggler falling behind. Needing a teleport at all is itself the stuck signal, so that is where
+the flag is raised. It cannot cause the two regressions the old velocity-based stuck detector did:
+it fires only on a real >50 m teleport (not while everyone stands still), and the teleporter
+returns early when the player is mounted, so it can never churn horses.
+
+Two further details matter:
+
+- the poll is **read-only** and the flag is consumed only when the scheduler actually acts, so a
+  flag raised during a fight survives until the fight ends instead of being thrown away;
+- it never reports true while `IsNavGotoActive`, because walled-battle staging replaces `follow`
+  deliberately and re-arming there would fight the staging move.
+
+**Do not "fix" mounted problems by re-firing the follow interrupt.** Restarting the follow
+module while mounted throws the merc off his horse — the old "random dismount" — which is why
+the stuck-follower self-heal skips mounted mercs entirely.
+
+**Do not raise the mounted `Move` stop distances to the reference mod's values.** There the
+rider is a lone companion permanently following the player; here the same rider is the
+formation *anchor*, and nothing may sit ahead of him. Widening his standoff slides the whole
+authored column back — `merc_mounted50`'s deepest rank is already 64 m — and pushes more of it
+past the 35 m de-target in `mercenary_scheduler.xml`.

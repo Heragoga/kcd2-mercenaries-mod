@@ -39,6 +39,22 @@ mercenaries.FormationMounted  = nil
 mercenaries.SquadSize         = 0
 mercenaries.FormationTickMs   = 150
 
+-- How far behind the front-runner the sitting leader must fall before leadership
+-- is handed over. Distance ordering churns every step as the squad walks, and each
+-- handover rebuilds the formation, so this has to be a real gap and not a tie-break.
+-- Mounted needs far more room: the mounted preset is ~64m deep, riders overtake
+-- constantly, and at 8m the leader changed every few seconds - the formation was
+-- rebuilt so often it never settled, which is what read as "mounted mercs take
+-- ages to start following".
+mercenaries.FormationLeaderSwapMargin        = 8.0
+mercenaries.FormationLeaderSwapMarginMounted = 30.0
+-- ...and the challenger must HOLD that lead this long, so one overtake on a corner
+-- is not a handover.
+mercenaries.FormationLeaderSwapSecs     = 3.0
+-- ...and after any swap, no further displacement swap for this long, so a rebuild
+-- always gets time to settle.
+mercenaries.FormationLeaderSwapCooldown = 6.0
+
 -- KeepShape on foot: it is the only mode that holds an authored shape. Relaxed
 -- drifts and MoveHistory replays the leader's path, so both blur the geometry.
 -- Mounted overrides this to MoveHistory in follow.xml - no vanilla mounted
@@ -76,29 +92,96 @@ end
 -- Once per FormationTickMs. Picks the leader and the preset, and bumps the epoch
 -- only when something real changed.
 function mercenaries:UpdateFormationLeader()
-    local best, bestRank, bestName, count = nil, nil, nil, 0
-    local leaderStillOk = false
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
 
-    for name, ent in pairs(self.ActiveMercs) do
+    local best, bestD, count = nil, nil, 0
+    local leaderStillOk, leaderD = false, nil
+
+    for _, ent in pairs(self.ActiveMercs) do
         local wuid = ent and (ent.this and ent.this.id or ent.id)
         if self:IsFormationEligible(ent, wuid) and not self:IsCampActor(wuid) then
             count = count + 1
+
+            -- NEAREST to the player leads. The formation hangs off the leader, so
+            -- if he is buried inside the pack the whole shape is anchored in the
+            -- middle of a crowd he cannot walk out of - at 50 mercs that turns the
+            -- squad into a shapeless mass that stops tracking the player at all.
+            -- Whoever is closest to the player is by definition on the outside of
+            -- the mass, facing the way it needs to go.
+            local d = 0
+            if pp then
+                local mp = ent:GetPos()
+                if mp then
+                    local dx, dy = pp.x - mp.x, pp.y - mp.y
+                    d = math.sqrt(dx * dx + dy * dy)
+                end
+            end
+
             if self.FormationLeader and tostring(wuid) == tostring(self.FormationLeader) then
-                leaderStillOk = true
+                leaderStillOk, leaderD = true, d
             end
-            local rank = self:FormationRank(self:GetMercType(ent))
-            if not bestRank or rank < bestRank or (rank == bestRank and name < bestName) then
-                best, bestRank, bestName = wuid, rank, name
-            end
+            if not bestD or d < bestD then best, bestD = wuid, d end
         end
     end
 
     self.SquadSize = count
 
     local reason = nil
+
+    -- Hysteresis, in THREE parts. Every leader change runs EndFormation +
+    -- MakeFormation and forces every follower to re-acquire a slot, so a swap is
+    -- expensive and must be rare. Distance alone was not enough: this runs every
+    -- 150ms, and mounted riders overtake each other constantly, which produced
+    -- "leader displaced" rebuilds in a steady stream - the squad never settled
+    -- long enough to form up, which is what "mounted mercs take ages to follow"
+    -- actually was.
+    --   1. margin   - the challenger must be clearly ahead, and MUCH clearer when
+    --                 mounted, because the mounted preset is ~64m deep and being
+    --                 20m ahead of the leader is normal, not exceptional.
+    --   2. duration - he must hold that lead continuously, so a momentary overtake
+    --                 while cornering is ignored.
+    --   3. cooldown - no second swap straight after one, so a rebuild always gets
+    --                 time to actually settle before another can start.
+    -- A leader who is dead or no longer eligible is replaced IMMEDIATELY: that is
+    -- not churn, and none of the three apply to it.
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+
+    local mounted = _G.PlayerMounted and true or false
+    local margin  = mounted and self.FormationLeaderSwapMarginMounted
+                            or  self.FormationLeaderSwapMargin
+
+    local ahead = leaderStillOk and bestD and leaderD
+                  and (leaderD - bestD) > margin
+                  and tostring(best or '') ~= tostring(self.FormationLeader or '')
+
+    if ahead then
+        -- Restart the clock whenever the challenger changes, so the timer only ever
+        -- measures ONE man holding the lead.
+        if tostring(self._leadChallenger or '') ~= tostring(best or '') then
+            self._leadChallenger  = best
+            self._leadChallengeAt = now
+        end
+    else
+        self._leadChallenger, self._leadChallengeAt = nil, nil
+    end
+
+    local held    = ahead and self._leadChallengeAt
+                    and (now - self._leadChallengeAt) >= self.FormationLeaderSwapSecs
+    local cooling = self._leadSwapAt
+                    and (now - self._leadSwapAt) < self.FormationLeaderSwapCooldown
+
     if not leaderStillOk then
         if tostring(best or '') ~= tostring(self.FormationLeader or '') then reason = "leader" end
         self.FormationLeader = best
+        self._leadSwapAt = now
+        self._leadChallenger, self._leadChallengeAt = nil, nil
+    elseif held and not cooling then
+        reason = "leader displaced"
+        self.FormationLeader = best
+        self._leadSwapAt = now
+        self._leadChallenger, self._leadChallengeAt = nil, nil
     end
 
     local followers = math.max(count - 1, 0)
@@ -150,10 +233,80 @@ function mercenaries:UpdateFormationLeader()
     end
 end
 
+-- NO AUTOMATIC FORMATION-MODE SWITCHING. This was tried as "sprint relief" - KeepShape while
+-- walking, MoveHistory while the player sprints - and it is a trap in a DEEP formation.
+--
+-- merc_column50 is 45m from front spot to back spot. KeepShape places that back spot as a
+-- rigid offset behind the leader's facing; MoveHistory places it 45m back along the path he
+-- actually walked. After any turn those are two completely different points, tens of metres
+-- apart, so every mode switch teleported each follower's TARGET and the man ran off to it -
+-- the "everyone except the leader runs 20m away and then comes back" bug. It fired exactly
+-- when the player's speed crossed the threshold, i.e. whenever he got a little ahead.
+--
+-- The keep-up problem it was meant to solve is handled properly by the merc_keepup_buff
+-- (rms*1.3): make the followers faster, do not move the goalposts. Leave the mode alone.
+
+-- ---------------------------------------------------------------------------
+-- Follow spread diagnostic: merc_follow_stats 1
+--
+-- Answers "are they keeping up, and who is not" with numbers rather than impressions.
+-- Logs the player's measured speed, whether the formation is loosened, and the SPREAD of
+-- the squad's distance to the player (nearest / median / worst) plus how many are past the
+-- teleport line. A healthy column has a stable median and a worst that does not climb.
+-- ---------------------------------------------------------------------------
+mercenaries.FollowStats = false
+mercenaries.FollowStatsEvery = 2.0
+
+function mercenaries:FollowStatsSet(v)
+    self.FollowStats = (tostring(v or ''):match('1') ~= nil)
+    System.LogAlways('[MercSpread] logging ' .. (self.FollowStats and 'ON' or 'OFF'))
+end
+
+function mercenaries:FollowStatsTick()
+    if not self.FollowStats then return end
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if self._fsAt and (now - self._fsAt) < self.FollowStatsEvery then return end
+    self._fsAt = now
+
+    pcall(function()
+        local pp = player and player:GetWorldPos()
+        if not pp then return end
+        local gate = (self.TeleportDistance and self:TeleportDistance()) or 50.0
+        local d, far = {}, 0
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local mp = ent:GetWorldPos()
+            if mp then
+                local dx, dy = pp.x - mp.x, pp.y - mp.y
+                local v = math.sqrt(dx * dx + dy * dy)
+                table.insert(d, v)
+                if v > gate then far = far + 1 end
+            end
+        end
+        if #d == 0 then return end
+        table.sort(d)
+
+        -- Epoch, mode and leader are logged because they are the three things that can move a
+        -- follower's TARGET rather than the follower: a formation rebuild, a mode change, or a
+        -- new anchor. If the spread jumps on the same tick one of these changes, the squad is
+        -- chasing a moved goalpost, not failing to keep up.
+        System.LogAlways(string.format(
+            '[MercSpread] pSpeed=%.1f n=%d near=%.1f med=%.1f worst=%.1f beyondGate=%d | epoch=%d mode=%d preset=%s',
+            self.PlayerSpeed or 0, #d,
+            d[1], d[math.ceil(#d / 2)], d[#d], far,
+            self.FormationEpoch or 0, self.FormationModeCode or 1,
+            tostring(self.FormationName)))
+    end)
+end
+
+System.AddCCommand("merc_follow_stats", "mercenaries:FollowStatsSet('%line')",
+                   "Log squad spread and player speed: merc_follow_stats 1 | 0")
+
 function mercenaries.FormationLoop()
     local ok, err = pcall(function()
         if next(mercenaries.ActiveMercs) and player then
             mercenaries:UpdateFormationLeader()
+            mercenaries:FollowStatsTick()
         end
     end)
     if not ok then System.LogAlways('[MercForm] FormationLoop Error: ' .. tostring(err)) end
@@ -228,12 +381,16 @@ function mercenaries:SetFormationShape(key)
     System.LogAlways('[MercForm] shape = ' .. key .. ' preset=' .. tostring(self.FormationName))
 end
 
+-- Picking a mode by hand PINS it: the sprint-slack logic below would otherwise quietly
+-- overwrite the choice a second later, which would look like the command not working.
 function mercenaries:SetFormationMode(code)
     code = tonumber(code) or 1
     if not self.FormationModeNames[code] then code = 1 end
-    self.FormationModeCode = code
+    self.FormationModeCode   = code
+    self.FormationModePinned = true
     Game.SendInfoText("Mode: " .. self.FormationModeNames[code], false, 0, 3)
-    System.LogAlways('[MercForm] mode = ' .. self.FormationModeNames[code])
+    System.LogAlways('[MercForm] mode = ' .. self.FormationModeNames[code] ..
+                     ' (pinned; automatic sprint slack is now off)')
 end
 
 function mercenaries:SetFormationRelocate(on)

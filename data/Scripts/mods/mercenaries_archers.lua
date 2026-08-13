@@ -304,7 +304,7 @@ function mercenaries:UpdateArcherCombatData(data, myWuid, expectedStance)
 
         if data.attackData and data.attackData.target then
             local targetEnt = XGenAIModule.GetEntityByWUID(data.attackData.target)
-            if targetEnt and self:IsAliveAndWell(targetEnt, true) then
+            if targetEnt and self:IsCombatViable(targetEnt) then
                 data.isTargetAlive = true
                 local tp = targetEnt:GetPos()
                 if tp and myPos then

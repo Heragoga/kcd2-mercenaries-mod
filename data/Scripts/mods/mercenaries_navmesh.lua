@@ -386,6 +386,7 @@ function mercenaries:NavGotoRequest(ent, target, opts)
     if target and target.GetWorldPos then rec.target = target else rec.targetPos = target end
     if opts then
         if opts.endWhenClear then rec.endWhenClear = true end
+        rec.walk      = opts.walk
         rec.trailEnt  = opts.trailEnt
         rec.trailBack = opts.trailBack
         rec.trailLat  = opts.trailLat
@@ -427,6 +428,7 @@ function mercenaries:NavGotoStart(data, ent)
     local rec = self.NavGoto[k]; if not rec then data.gotoDone = true; return end
     rec.running = true
     data.gotoDone = false
+    data.navWalk = (rec.walk == true)
     self:NavGotoTick(data, ent)
 end
 
@@ -653,6 +655,7 @@ function mercenaries:NavGotoTick(data, ent)
         end
     end
 
+    data.navWalk = (rec.walk == true)      -- an order can change pace mid-walk
     local p = self:NavSteerPoint(rec, me, tp)
     p = self:NavAimAhead(rec, me, p)
     data.wpPos.x, data.wpPos.y, data.wpPos.z = p.x, p.y, p.z
@@ -834,7 +837,11 @@ function mercenaries:NavTargetBlocked(fromEnt, targetEnt)
     local c = self.CampCenter
     local dx, dy = a.x - c.x, a.y - c.y
     if (dx * dx + dy * dy) > (self.NavActiveRadius * self.NavActiveRadius) then return false end
-    return self:NavIsBlocked(a, b)
+    -- Margin 0: NavBlockMargin is ROUTE clearance (see :76-78), and the endpoint
+    -- clearance it adds tests the asker's OWN position - so a man standing within
+    -- 1.8m of his own palisade read as blocked from every opponent on the map and
+    -- his whole candidate list was blanked. Targeting wants the exact crossing test.
+    return self:NavIsBlocked(a, b, 0)
 end
 
 -- The push-back guard that used to shove NPCs back when they clipped a wall is
