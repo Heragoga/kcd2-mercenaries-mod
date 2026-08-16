@@ -9,11 +9,21 @@
          Extracted from the old composite follow tree. See docs/ai-modules.md. -->
     <BehaviorTree name="camp_actor" is_function="0">
         <Variables>
+            <!-- Marching column (bandit patrol contracts): follow the man ahead.
+                 CrimeFollower may only run inside a FIRED interrupt behaviour, which this tree
+                 is - the same constraint patrol_follow.xml documents. -->
+            <Variable name="columnTarget" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="followTarget" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="stillFollowing" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="inColumn" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Camp-guard patrol: Move to patrolWaypoint (a vec3 position) instead of following. -->
             <Variable name="isCampGuard" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="patrolWaypoint" type="vec3" values="" isPersistent="0" form="single" />
             <Variable name="patrolHasWaypoint" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="patrolLongPause" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="patrolNoPause" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- Set by CampActorYield: leave the camp behaviour so combat can have the slot. -->
+            <Variable name="campYield" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Camp sit/sleep: Move to campFurniturePos (StanceElement doesn't navigate),
                  then StanceElement against campFurniture (the seat/bed StanceSmartObject WUID). -->
             <Variable name="isCampSitter" type="_bool" values="false" isPersistent="0" form="single" />
@@ -63,7 +73,17 @@
                         <Loop count="-1">
                             <Sequence>
                                 <!-- Refresh camp role each cycle (guard/sitter/sleeper; only one true at a time). -->
+                                <!-- FIRST, every cycle: should this man still be a camp actor
+                                     at all? This tree is an infinite Loop and nothing else
+                                     ever ends it, so without this a besieger with a target
+                                     stands in the middle of a battle being hit. The patrol
+                                     trees do exactly this via PatrolYieldToCombat. -->
+                                <ExecuteLua code="mercenaries:CampActorYield(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$campYield">
+                                    <Fail />
+                                </IfCondition>
                                 <ExecuteLua code="data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)" />
+                                <ExecuteLua code="mercenaries:ColumnFollowRole(data, entity)" />
                                 <ExecuteLua code="
                                     data.isCampSitter = false
                                     data.isCampSleeper = false
@@ -152,6 +172,32 @@
 
                         <Loop count="-1">
                             <ContinuousSwitch>
+
+                                <!-- Marching in a column. FIRST case: a man on the march does
+                                     nothing else - no gossip, no sitting, no perimeter beat.
+                                     Ends on a CHANGE rather than a timer, exactly as
+                                     patrol_follow.xml does: CrimeFollower never returns on its
+                                     own, and restarting it makes the follower dash to
+                                     re-acquire his station, so a short time-box would produce
+                                     a catch-up sprint forever. -->
+                                <IfCondition failOnCondition="false" condition="$inColumn">
+                                    <Parallel successMode="Any" failureMode="Any">
+                                        <SuppressFailure>
+                                            <MoveParamsDecorator speed="Walk" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <CrimeFollower Target="$columnTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Walk" DisableGhosting="false" BlockWay="false"/>
+                                            </MoveParamsDecorator>
+                                        </SuppressFailure>
+                                        <Loop count="-1">
+                                            <Sequence>
+                                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                <ExecuteLua code="mercenaries:ColumnFollowRole(data, entity)" />
+                                                <IfCondition failOnCondition="false" condition="~$stillFollowing | $followTarget != $columnTarget">
+                                                    <Fail />
+                                                </IfCondition>
+                                            </Sequence>
+                                        </Loop>
+                                    </Parallel>
+                                </IfCondition>
 
                                 <!-- Camp conversations (first cases, so a paired merc turns and talks).
                                      The initiator (chatRole 1) drives a gossip polylog and ends the pair
@@ -377,13 +423,21 @@
                                                 <Sequence>
                                                     <Move stopWithinDistance="1.000000" stopDistanceVariation="0.500000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$patrolWaypoint" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
                                                     <ExecuteLua code="pcall(function() mercenaries:AdvancePatrolWaypoint(entity.this.id) end)" />
+                                                    <ExecuteLua code="data.patrolNoPause = mercenaries:IsPatrolNoPause(entity.this.id)" />
                                                     <ExecuteLua code="data.patrolLongPause = (math.random(1, 5) == 1)" />
+                                                    <IfElseCondition failOnCondition="false" condition="$patrolNoPause" saveVersion="2">
+                                                        <Then canSkip="1">
+                                                            <Wait duration="'200ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                        </Then>
+                                                        <Else canSkip="1">
                                                     <IfElseCondition failOnCondition="false" condition="$patrolLongPause" saveVersion="2">
                                                         <Then canSkip="1">
                                                             <Wait duration="'20s'" timeType="GameTime" doFail="false" variation="'8s'" />
                                                         </Then>
                                                         <Else canSkip="1">
                                                             <Wait duration="'6s'" timeType="GameTime" doFail="false" variation="'4s'" />
+                                                        </Else>
+                                                    </IfElseCondition>
                                                         </Else>
                                                     </IfElseCondition>
                                                 </Sequence>

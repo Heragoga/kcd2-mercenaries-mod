@@ -32,7 +32,9 @@ The merc/archer schedulers track which follow-family behavior is running (`fired
 ## The Lua contract (`mercenaries_ai_modules.lua`)
 
 - `SideOf(name)` — **three** sides: `'enemy'` for `SpawnedEnemy_`/`SpawnedRenegade_`, `'patrol'` for `SpawnedPatrolman_`/`SpawnedPatrol_`, else `'friend'`. Prefix lists (`FriendPrefixes`/`EnemyPrefixes`/`PatrolPrefixes`) are tables — extend them when adding new spawn types. **A new hostile spawn type that falls through to `'friend'` inherits the merc leash to the *player*, which fails its combat on the first tick it fights anywhere else** — that was the patrol start-stop bug.
-- `UpdateMeleeCombatData(data, wuid)` — target-alive + per-side disengage (friend: player leash 20 m; friend archer: 25 m / melee-stance check; patrol: own-target leash 60 m, never measured against the player; enemy: never). `isEnemy` (which gates the explicit pre-charge `DrawAction`) means "not the player's own man", so patrols get it too.
+- `UpdateMeleeCombatData(data, wuid)` — target-alive + per-side disengage (friend: player leash from `MeleePlayerLeash()`; friend archer: +5 m and a melee-stance check; patrol: own-target leash 120 m, never measured against the player; enemy: never). `isEnemy` (which gates the explicit pre-charge `DrawAction`) means "not the player's own man", so patrols get it too.
+- **`MeleePlayerLeash()` is the single source of the player leash**, read by both this module and the scheduler's `deTargetDist` (`MercLeashes`) — two copies of the formula is how they drift apart, and a scheduler that de-targets while the module still wants him fighting *is* the draw/sheathe loop.
+  It is **floored at `EnemyAlertRadius`**. That floor is a bug fix, not a tuning choice: targets are acquired out to 50 m **from the player** (`UpdateEnemyCache` scans around the player, `IsValidEnemy` gates on `TargetDetectionRadius`), but the leash formula `25 + 0.7/merc` does not reach 50 until ~36 mercs. Below that a merc could be handed a target 45 m out, charge it, cross his own 32 m leash on the way, be told to disengage, sheathe, re-acquire the same man — still the nearest — and draw again. The module's own comment had always *required* the leash to be at least the acquisition range; the constants simply never delivered it.
 - **The target-alive test is conscious-strict.** `IsCombatViable(ent)` = `IsAliveAndWell(ent, false)`; a knocked-out body is not a target. With `allowUnconscious = true` the fighter that downed someone had *no exit at all* (enemies have no leash, so `isTargetAlive` is their only one) and circled the body until something else moved him. Roster/bookkeeping paths deliberately keep `IsAliveAndWell(ent, true)` — `PruneMercCache` schedules a despawn on a false answer, so a KO'd merc must still read as alive there.
 - `UpdateRangedCombatData(data, wuid)` — target-alive, distance, out-of-ammo (all ammo classes), stance validity (friend archers only), leash (friend: player 40 m; enemy: own target 60 m), and the retreat point for the dynamic module.
 - `ClearCombatClaim(wuid)` — clears every anti-swarm claim table; the modules' `OnFail` calls it so one cleanup works for all sides.
@@ -42,6 +44,28 @@ The merc/archer schedulers track which follow-family behavior is running (`fired
 - **Who enemies attack**: `mercenaries.EnemyTargetPrefixes` (what `FindEnemyTarget` may target — extend to make enemies fight someone new) and `mercenaries.ForcedTargetOf[wuidStr] = targetWuid` (pin one NPC onto one target until it dies).
 - **NPC-led formations**: `mercenaries:AssignNpcFormation(leaderWuid, memberWuids, width)` builds a chain formation behind any leader in `NpcFormations` (checked before the player-squad `FormationSlots`); fire `follow` on the members and they march behind the leader like mercs behind the player. `ClearNpcFormation(memberWuids)` removes it.
 - **Enemy camps**: populate the same WUID-keyed camp tables (`IsCampActor` / `IsCampGuard` / `GetCampFurniture` / `GetCampActivity` / `_G.MercCampChats`) for bandit WUIDs; both enemy schedulers already fire `camp_actor` for role-holders and swap to combat when `FindEnemyTarget` finds someone.
+
+## Tower archers are archer-merc business
+
+A melee merc will not claim an enemy archer who is still up on a tower — he cannot reach him,
+so he walks to the foot of the tower and stands there while the distance leash flaps him
+between drawn and sheathed. Archer mercs may claim him freely.
+
+The gate sits in `TryClaimTarget` (`mercenaries_target_selection.lua`), the **single writer**
+of `bt_data.playerTarget` / `foundTarget` / `MercTargetOf` — all three claim paths (aggro
+lock, the player's target, nearest) funnel through it, so one check covers everything.
+`IsValidEnemy` looks like the natural place and is not: its merc callers pass the *player* as
+the reference entity, so it never knows which merc is asking, and `CachedEnemies` is one
+shared list for the whole squad — filtering there would hide the archer from archer mercs too.
+
+`SpawnStaticArcher` takes an `elevated` flag, recorded on the `StaticArchers` entry. Only the
+two real tower paths pass it; **cart archers do not** — they stand about a metre up on a wagon
+bed and are perfectly reachable. The gate needs no undoing when tower archers descend:
+`BanditCampBringArchersDown` calls `RemoveStaticArcher` and spawns a brand-new ground entity
+that was never in `StaticArchers`.
+
+Both sides key on `entity.this.id` — `CachedEnemies` stores it and `SpawnStaticArcher` records
+under it. If those keyspaces ever diverge, the lookup silently never matches.
 
 ## Rules learned the hard way
 

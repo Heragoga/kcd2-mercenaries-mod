@@ -71,6 +71,14 @@
               buff_params="rms*1.3,mst*1.5"
               duration="-1" implementation="Cpp:Constant" is_persistent="false" />
 
+        <!-- Raborsch garrison archer. They must survive a long assault and chip at it rather
+             than delete anyone: hlh*0.2 is a fifth of the damage taken (the 5x health), and
+             the marksmanship/rms terms take their output back below an ordinary archer's
+             instead of the +40/x2.0 the marksman buff grants. hlh is verified - it is the same
+             code the Heinrich buff below documents. -->
+        <buff buff_class_id="15" buff_exclusivity_id="6" buff_id="e5a10012-2c4b-4e6a-9f01-000000000012" buff_name="merc_raborsch_defender"
+              buff_params="hlh*0.1,slh*0.1,marksmanship-25,rms*0.5"
+              buff_lifetime_id="1" duration="-1" implementation="Cpp:Constant" is_persistent="false" />
         <buff buff_class_id="15" buff_exclusivity_id="6" buff_id="e5a10008-2c4b-4e6a-9f01-000000000008" buff_lifetime_id="1" buff_name="merc_static_archer_buff"
               buff_params="marksmanship+40,agility+30,rms*2.0"
               duration="-1" implementation="Cpp:Constant" is_persistent="false" />

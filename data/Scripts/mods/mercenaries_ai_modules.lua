@@ -37,15 +37,35 @@ mercenaries.MeleePlayerLeashBase  = 25.0
 mercenaries.MeleePlayerLeashPerMerc = 0.7
 mercenaries.MeleePlayerLeashMax   = 70.0
 
+-- THE player leash, in one place. Both the melee module's disengage test and the scheduler's
+-- de-target threshold read it, because two copies of the formula is how they drift apart.
+--
+-- The floor is the fix for a real bug: the comment above has always REQUIRED this to be at
+-- least the acquisition range, but the constants never delivered it. 25 + 0.7/merc does not
+-- reach 50 until about thirty-six mercs, while targets are acquired out to 50 m from the
+-- PLAYER (UpdateEnemyCache scans around the player; IsValidEnemy then gates on
+-- TargetDetectionRadius). So with any normal squad a merc could be handed a target 45 m out,
+-- charge it, cross his own 32 m leash on the way, be told to disengage, sheathe, re-acquire
+-- the same man - who is still the nearest - and draw again. That is the "they stand off and
+-- draw and sheathe on a loop" report, and it was never about squad size being wrong.
+--
+-- EnemyAlertRadius is the number the comment names, and it sits inside the existing Max, so
+-- the per-merc scaling still does its job for very large columns.
+function mercenaries:MeleePlayerLeash()
+    local squad = self.SquadSize or 0
+    local d = self.MeleePlayerLeashBase + squad * self.MeleePlayerLeashPerMerc
+    local floor = self.EnemyAlertRadius or 60.0
+    if d < floor then d = floor end
+    if d > self.MeleePlayerLeashMax then d = self.MeleePlayerLeashMax end
+    return d
+end
+
 -- The scheduler's de-target/sheathe threshold, kept in step with the melee module's player
 -- leash so the two cannot disagree - one sheathing him while the other still wants him
 -- fighting is exactly the draw/sheathe loop. A little wider, so combat ends before the
 -- target is dropped rather than the other way round.
 function mercenaries:MercLeashes(bt_data)
-    local squad = self.SquadSize or 0
-    local d = self.MeleePlayerLeashBase + squad * self.MeleePlayerLeashPerMerc
-    if d > self.MeleePlayerLeashMax then d = self.MeleePlayerLeashMax end
-    bt_data.deTargetDist = d + 8.0
+    bt_data.deTargetDist = self:MeleePlayerLeash() + 8.0
 end
 
 function mercenaries:SideOf(name)
@@ -141,20 +161,11 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
             end
         end
 
-        -- Leash to the TARGET first, and to the player only as a far backstop that SCALES
-        -- WITH SQUAD SIZE.
-        --
-        -- A flat 20m-from-the-player leash is fine for six mercs and catastrophic for fifty:
-        -- the rear of a long column is legitimately 30m+ back, so those men acquired a target,
-        -- fired combat_melee, were told they were out of leash on the very first watchdog
-        -- tick, sheathed, re-acquired, and drew again - the "half of them just stand there
-        -- drawing and sheathing" report. They were never refused a target; they were refused
-        -- the RIGHT to keep it. The scheduler's own de-target threshold hit the same wall and
-        -- was raised from 20 to 35 for exactly this reason; this is the same fix for the
-        -- combat module, done properly rather than as another magic number.
-        local squad  = self.SquadSize or 0
-        local pLeash = self.MeleePlayerLeashBase + squad * self.MeleePlayerLeashPerMerc
-        if pLeash > self.MeleePlayerLeashMax then pLeash = self.MeleePlayerLeashMax end
+        -- Leash to the TARGET first, and to the player only as a far backstop. Both the value
+        -- and the reasoning live in MeleePlayerLeash - it is shared with the scheduler's
+        -- de-target threshold so the two can never disagree, which is itself a way to produce
+        -- the draw/sheathe loop.
+        local pLeash = self:MeleePlayerLeash()
 
         local distToTarget = nil
         if tp and mp then

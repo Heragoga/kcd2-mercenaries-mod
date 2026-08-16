@@ -8,6 +8,36 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     if ent:GetName() == "companion_dog" then return false end
 
     if not self:IsCombatViable(ent) then return false end
+
+    -- A camp that has not alerted yet keeps its people out of the fight entirely, and
+    -- that gate was assumed to be enforced by the weapon-drawn check just below - see
+    -- the comment on BanditCampSuppressed in mercenaries_banditcamp_quest.lua. It is
+    -- not: UpdateEnemyCache calls this with skipWeaponCheck=true on purpose (so a
+    -- drawn-but-not-yet-swinging enemy is still cached), which let a merc claim a
+    -- still-sheathed, still-docile camp member as a target from as far as
+    -- EnemyScanRadius (18m) - well outside BanditCampAlertRange (10m), the range at
+    -- which the camp itself would notice and actually fight back. The merc then
+    -- chased a target that could neither be beaten into alerting nor killed, and the
+    -- distance leash flapped him between draw and sheathe indefinitely. Checked
+    -- unconditionally (not just when skipWeaponCheck) so no caller can reintroduce it.
+    -- Holding fire while a siege is being built (merc_siege_go releases them).
+    if self.SiegePeace then
+        local w = ent.this and ent.this.id or ent.id
+        local ok, sup = pcall(function() return self:SiegeSuppressed(tostring(w)) end)
+        if ok and sup then return false end
+    end
+
+    if self.BanditCampSuppressed then
+        -- entity.this.id, not XGenAIModule.GetMyWUID(ent): FindEnemyTarget (the
+        -- proven-working caller of BanditCampSuppressed) keys off entity.this.id, and
+        -- BanditCampActors/CachedEnemies elsewhere in this file follow the same rule.
+        local candWuid = ent.this and ent.this.id or ent.id
+        local ok, suppressed = pcall(function()
+            return self:BanditCampSuppressed(tostring(candWuid))
+        end)
+        if ok and suppressed then return false end
+    end
+
     if not skipWeaponCheck and ent.human and not ent.human:IsWeaponDrawn() then return false end
     if distanceRefEnt then
         local tp = ent:GetPos()
@@ -305,6 +335,28 @@ end
 -- claim would leave a merc standing still while someone swings at him.
 function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid, force)
     local targetWuidStr = tostring(targetWuid)
+
+    -- A static archer - on a watchtower OR on an archer cart - is not a melee merc's business.
+    -- He walks to the foot of the thing and stands there while the distance leash flaps him
+    -- between drawn and sheathed. Only an archer merc may claim him. This covers BOTH now:
+    -- gating on `elevated` alone still left melee mercs piling onto cart archers.
+    -- Nothing needs undoing when a tower archer comes down - BanditCampBringArchersDown calls
+    -- RemoveStaticArcher and replaces him with a new ground entity that was never in the table.
+    --
+    -- Keyed by entity.this.id, which is what CachedEnemies stores and what SpawnStaticArcher
+    -- records under - the two keyspaces have to agree or this silently never matches.
+    local rec = self.StaticArchers and self.StaticArchers[targetWuidStr]
+    if rec then
+        local myName
+        pcall(function()
+            local me = XGenAIModule.GetEntityByWUID(myWuid)
+            myName = me and me:GetName()
+        end)
+        -- Only ever a merc asks here (static archers pick targets in their own scheduler), so
+        -- '_archer_' in the name means an archer MERC and not the enemy on the platform.
+        if not (myName and self:IsArcherName(myName)) then return false end
+    end
+
     local cap = self.EffectiveSwarmCap or self.SwarmCap
     if not force and (self.TargetLoad[targetWuidStr] or 0) >= cap then return false end
 

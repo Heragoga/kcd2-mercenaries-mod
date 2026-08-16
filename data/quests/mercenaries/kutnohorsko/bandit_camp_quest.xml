@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <!-- The quartermaster's bandit-camp contract: the mod's first real journal quest.
+             Everything the camp itself does (props, bandits, kill tracking, despawn,
+             payout) is Lua in mercenaries_banditcamp_quest.lua; this graph exists only to
+             put an entry in the journal and a marker on the map.
+
+             Nothing here carries a Namespace attribute - see docs/bandit-camp-quest.md for
+             why that matters. TypeT="wh::questmodule::QuestProgress" is an engine type
+             string, not a namespace reference. -->
+        <Quest Name="bandit_camp_quest" Type="Side" Players="0" Repeatable="true">
+            <Ports>
+                <Port Name="run" Direction="In" Type="trigger" />
+            </Ports>
+            <Nodes>
+                <!-- The player's inventory, resolved straight off the soul asset. Read
+                     continuously, so it must NOT come from a ForEach: an effect node's data
+                     ports are only valid on the tick its trigger fires. -->
+                <ObjectProperties Name="bc_player_props" PositionY="0" PositionX="-900" DeclaringType="wh::rpgmodule::I_Soul">
+                    <Asset Name="I_Soul" Alias="player" />
+                </ObjectProperties>
+
+                <!-- IsActive takes a bool, never a raw trigger. This one is simply always on;
+                     `run` fires once at OnWake and the item triggers do the real gating. -->
+                <State Name="bc_awake" PositionY="-400" PositionX="-900" TypeT="bool">
+                    <Constant Name="DefaultValue" Value="true" />
+                </State>
+
+                <Function Name="bc_started_desc" PositionY="-200" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be83d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bc_started_trigger" PositionY="-200" PositionX="-600">
+                    <Edge From="bc_player_props.Inventory" To="Inventory" />
+                    <Edge From="bc_started_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bc_awake.State" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- Completion. Lua creates token be82d the moment the last bandit dies. -->
+                <Function Name="bc_cleared_desc" PositionY="200" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be82d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bc_cleared_trigger" PositionY="200" PositionX="-600">
+                    <Edge From="bc_player_props.Inventory" To="Inventory" />
+                    <Edge From="bc_cleared_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bc_objective_state.Active" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- No CreatePlayerReward for the letter here. It was a backstop while
+                     inventory:CreateItem was refusing the item; the cause turned out to be
+                     IsQuestItem on the Document (see item__mercenaries.xml), and with that gone
+                     the leader carries it. Granting here too would duplicate it. -->
+
+                <!-- Stage three: the letter reaches the quartermaster. -->
+                <Function Name="bc_paid_desc" PositionY="440" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be86d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bc_paid_trigger" PositionY="440" PositionX="-600">
+                    <Edge From="bc_player_props.Inventory" To="Inventory" />
+                    <Edge From="bc_paid_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bc_deliver_state.Active" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- Fires only when the LAST contract of the arc is paid (Lua decides). -->
+                <Function Name="bc_arcdone_desc" PositionY="-60" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be8ed" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bc_arcdone_trigger" PositionY="-60" PositionX="-600">
+                    <Edge From="bc_player_props.Inventory" To="Inventory" />
+                    <Edge From="bc_arcdone_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bc_quest_state.Active" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- Quest-level lifecycle. ONE CONTINUOUS QUEST: it opens on the first
+                     contract and stays open across the whole Kleinkrieg arc, closing only
+                     when the last one is paid. Wiring Done to the per-contract hand-in
+                     instead - which is what it used to do - made the journal entry close and
+                     reopen twelve times, so the arc read as twelve unrelated errands.
+                     Still Repeatable, so replaying a contract after the arc reopens it. -->
+                <State Name="bc_quest_state" PositionY="0" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="wh::questmodule::QuestProgress">
+                    <Edge From="bc_started_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bc_arcdone_trigger.OnAcquire" To="SetDone" />
+                </State>
+
+                <!-- One CONTRACT, start to hand-in. This is what the quest state used to
+                     track, and it is what the quartermaster's icon gates on: he has work
+                     going whenever a contract is not running. -->
+                <State Name="bc_contract_state" PositionY="-120" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="Progress">
+                    <Edge From="bc_started_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bc_paid_trigger.OnAcquire" To="SetDone" />
+                </State>
+
+                <!-- Objective 1: clear the camp. Built-in Progress type (None/Active/Done),
+                     so no local <Types> block is needed. -->
+                <State Name="bc_objective_state" PositionY="200" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="Progress">
+                    <Edge From="bc_started_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bc_cleared_trigger.OnAcquire" To="SetDone" />
+                </State>
+
+                <!-- "the letter is in hand", from Lua the moment it appears in the pack. -->
+                <Function Name="bc_taken_desc" PositionY="620" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be87d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bc_taken_trigger" PositionY="620" PositionX="-600">
+                    <Edge From="bc_player_props.Inventory" To="Inventory" />
+                    <Edge From="bc_taken_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bc_find_state.Active" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- Which leg follows the last kill: search his body, or report straight back.
+                     Only one of the two is ever fired (BanditCampComplete). -->
+                <Function Name="bc_search_desc" PositionY="700" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be9dd" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bc_search_trigger" PositionY="700" PositionX="-600">
+                    <Edge From="bc_player_props.Inventory" To="Inventory" />
+                    <Edge From="bc_search_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bc_awake.State" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <Function Name="bc_report_desc" PositionY="760" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be9ed" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bc_report_trigger" PositionY="760" PositionX="-600">
+                    <Edge From="bc_player_props.Inventory" To="Inventory" />
+                    <Edge From="bc_report_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bc_awake.State" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- Objective 2: take the letter off the leader. Its marker stays on him -
+                     by now a body - so the tracker points at the letter itself rather than
+                     back at the quartermaster. -->
+                <State Name="bc_find_state" PositionY="620" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="Progress">
+                    <Edge From="bc_search_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bc_taken_trigger.OnAcquire" To="SetDone" />
+                    <Edge From="bc_started_trigger.OnAcquire" To="SetNone" />
+                </State>
+
+                <!-- Objective 3: carry it home. Only now does the marker move to him. -->
+                <State Name="bc_deliver_state" PositionY="440" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="Progress">
+                    <Edge From="bc_taken_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bc_report_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bc_paid_trigger.OnAcquire" To="SetDone" />
+                    <Edge From="bc_started_trigger.OnAcquire" To="SetNone" />
+                </State>
+
+
+                <!-- Tag name == the Objective's Name below; this is the node that renders it. -->
+                <destroy_bandit_camp Name="bc_objective_visual" PositionY="200" PositionX="300" RequiredForOutput="kutnohorsko">
+                    <Edge From="bc_objective_state.State" To="Progress" />
+                </destroy_bandit_camp>
+                <find_the_letter Name="bc_find_visual" PositionY="620" PositionX="300" RequiredForOutput="kutnohorsko">
+                    <Edge From="bc_find_state.State" To="Progress" />
+                </find_the_letter>
+                <deliver_the_letter Name="bc_deliver_visual" PositionY="440" PositionX="300" RequiredForOutput="kutnohorsko">
+                    <Edge From="bc_deliver_state.State" To="Progress" />
+                </deliver_the_letter>
+
+                <!-- Quest-giver icon on the quartermaster, so the camp reads as a place with
+                     work going rather than one you have to go and ask at. Shown whenever a
+                     contract is NOT running - which covers both "never taken" and "finished",
+                     since the quest is repeatable - and hidden while one is in progress so it
+                     does not compete with the camp's own objective marker.
+                     He is Lua-spawned with the same guidSharedSoulId the SoulAsset lists, the
+                     same way the camp leader's marker resolves, so no level data is involved. -->
+                <Function Name="bc_no_contract" PositionY="-400" PositionX="150" MethodName="math::boolean::Not" DeclaringType="math::boolean">
+                    <Edge From="bc_contract_state.Active" To="Value" />
+                </Function>
+                <ShowMapMarker Name="bc_qm_marker" PositionY="-400" PositionX="400">
+                    <Asset Name="MarkerObject" Alias="quartermaster" />
+                    <Constant Name="MarkerType" Value="QuestGiver" />
+                    <Edge From="bc_no_contract.bool" To="IsActive" />
+                </ShowMapMarker>
+
+                <Output Name="Output">
+                    <Edge From="bc_quest_state.State" To="Progress" />
+                </Output>
+            </Nodes>
+
+            <Assets>
+                <SoulAsset Name="player" SharedSoulGuids="4c2dcffb-dea1-6263-72d7-b39f4db2d8b5" />
+                <!-- Same soul the background quest already resolves him by. -->
+                <SoulAsset Name="quartermaster" SharedSoulGuids="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+                <!-- The map marker. Resolves to whichever NPC Lua spawned with this soul,
+                     which is the one camp leader - so the marker sits on the camp. -->
+                <SoulAsset Name="banditcamp_leader" SharedSoulGuids="7a1c9e40-5d2b-4f83-9c16-8e5a3b7d0f21" />
+            </Assets>
+
+            <QuestName StringName="qname_merc_banditcamp" Text="Kleinkrieg" />
+            <QuestDescription StringName="qdesc_merc_banditcamp" Text="The quartermaster deals in small war: camps to burn, columns to break, pay on delivery. Whatever the dead were carrying is his business - and he pays extra not to be asked about it." />
+
+            <Objectives>
+                <Objective TypeT="Progress" Name="destroy_bandit_camp">
+                    <LocalizedName StringName="obj_merc_banditcamp" Text="Wipe them out." />
+                    <Logs>
+                        <EnumLog Type="None" Name="None" />
+                        <EnumLog Type="Started" Name="Active" Marker="banditcamp_leader">
+                            <Log StringName="log_merc_banditcamp_started" Text="The quartermaster's marked them for me. All of them, he said - leave one standing and the work's not done." />
+                        </EnumLog>
+                        <EnumLog Type="Completed" Name="Done">
+                            <Log StringName="log_merc_banditcamp_done" Text="Quiet now. Their leader might be carrying something worth the quartermaster's time." />
+                        </EnumLog>
+                    </Logs>
+                </Objective>
+                <!-- Marked on the camp leader, who is now a body beside the chest - so this
+                     leg points at the letter rather than back at the quartermaster. -->
+                <Objective TypeT="Progress" Name="find_the_letter">
+                    <LocalizedName StringName="obj_merc_banditcamp_find" Text="Search the leader's body." />
+                    <Logs>
+                        <EnumLog Type="None" Name="None" />
+                        <EnumLog Type="Started" Name="Active" Marker="banditcamp_leader">
+                            <Log StringName="log_merc_banditcamp_find_started" Text="Whatever their leader carried, it's still on him." />
+                        </EnumLog>
+                        <EnumLog Type="Completed" Name="Done">
+                            <Log StringName="log_merc_banditcamp_find_done" Text="Took what he had on him." />
+                        </EnumLog>
+                    </Logs>
+                </Objective>
+                <!-- Only once the letter is in hand does the tracker point home. -->
+                <Objective TypeT="Progress" Name="deliver_the_letter">
+                    <LocalizedName StringName="obj_merc_banditcamp_letter" Text="Report to the quartermaster." />
+                    <Logs>
+                        <EnumLog Type="None" Name="None" />
+                        <EnumLog Type="Started" Name="Active" Marker="quartermaster">
+                            <Log StringName="log_merc_banditcamp_letter_started" Text="The quartermaster pays on delivery - the job, and whatever I found." />
+                        </EnumLog>
+                        <EnumLog Type="Completed" Name="Done">
+                            <Log StringName="log_merc_banditcamp_letter_done" Text="Reported and paid. He keeps the papers." />
+                        </EnumLog>
+                    </Logs>
+                </Objective>
+            </Objectives>
+        </Quest>
+    </Skald>
+</Database>

@@ -536,6 +536,10 @@ mercenaries.EnemyClaimWuid = {}  -- [enemyWuidStr] = raw wuid of the claimer
 -- Dress a freshly spawned enemy: clothing from the group's pool, weapon via the
 -- shared merc weapon path (which parses the tier out of the entity name, and
 -- routes "_archer_" names to the bow set automatically).
+-- Explicit weapon-loadout indices to fall back on when the random category comes out empty.
+-- 2 is the first concrete melee set (1 is "random", which is what failed in the first place).
+mercenaries.EnemyWeaponFallbacks = { 2 }
+
 function mercenaries:EquipEnemy(ent, groupKey, isArcher)
     if not ent or not ent.actor then return end
     local grp = self.EnemyGroups[groupKey]
@@ -555,6 +559,23 @@ function mercenaries:EquipEnemy(ent, groupKey, isArcher)
             weaponIndex = grp.weapons[math.random(1, #grp.weapons)]
         end
         self:EquipMercenaryWeapon(ent, weaponIndex, nil)
+
+        -- BACKSTOP for the empty weapon set the log reports:
+        --   [DrawAction]: Can't execute explicit DrawAction for selected weapon set which
+        --   contains no weapons!
+        -- EquipMercenaryWeapon picks a weapon CATEGORY and lets the engine fill it; when the
+        -- category yields nothing for this character the set comes out empty, combat_melee
+        -- dies at the draw, and he stands in the open being hit. That was ~23 of 75 besiegers.
+        --
+        -- Retried with EXPLICIT categories rather than the random one, using the same proven
+        -- call. grp.melee is NOT usable here - despite the name it holds character SOUL guids
+        -- (see the spawn below: soulGuid, tierName = m.guid, m.tier), and feeding one to
+        -- EquipWeaponPreset leaves the man with nothing at all.
+        if not isArcher then
+            for _, idx in ipairs(self.EnemyWeaponFallbacks) do
+                pcall(function() self:EquipMercenaryWeapon(ent, idx, nil) end)
+            end
+        end
     end
 
     -- combat_level tops out at 1.0, so groups that want to hit harder than that
@@ -697,6 +718,10 @@ mercenaries.EnemyTargetPrefixes = { "SpawnedFriend_", "MercenaryCustomCompanion"
 function mercenaries:IsEnemyTargetable(ent)
     if ent == player then return true end
     local n = ent:GetName() or ''
+    -- Never a static archer. He is up a tower or on a wagon bed, so a footman walks to the
+    -- foot of it and stands there for the rest of the battle. This mirrors the rule already
+    -- applied to the mercs' own targeting (TryClaimTarget) - the same problem, both ways round.
+    if self:IsStaticArcherName(n) then return false end
     for _, p in ipairs(self.EnemyTargetPrefixes) do
         if string.find(n, p, 1, true) then return true end
     end
@@ -709,6 +734,17 @@ function mercenaries:FindEnemyTarget(data, myWuid)
         if not me then return end
         local mp = me:GetPos()
         if not mp then return end
+
+        -- A bandit camp that has not noticed anything yet takes no targets at all, which is
+        -- what lets the player scout or sneak past it. Cleared the moment the camp is
+        -- alerted (see BanditCampAlertTick in mercenaries_banditcamp_quest.lua).
+        if self.SiegePeace and self:SiegeSuppressed(tostring(myWuid)) then return nil end
+        if self.BanditCampSuppressed and self:BanditCampSuppressed(tostring(myWuid)) then
+            data.currentTarget = nil
+            self.EnemyTargetOf[tostring(myWuid)] = nil
+            self.EnemyClaimWuid[tostring(myWuid)] = nil
+            return
+        end
 
         -- Encounter override: a forced target (ForcedTargetOf, set from outside)
         -- wins over scanning for as long as it stays alive.

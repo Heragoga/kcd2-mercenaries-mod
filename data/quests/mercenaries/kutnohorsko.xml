@@ -4,11 +4,17 @@
 		<Level Name="kutnohorsko" HibernateMode="Auto" VoiceNamespace="false">
 			<Definitions>
 				<Definition File="kutnohorsko/mercenaries_background_quest.xml" />
+				<Definition File="kutnohorsko/bandit_camp_quest.xml" />
 			</Definitions>
 			<Nodes>
 				<mercenaries_background_quest Name="mercenaries_background_quest" RequiredForOutput="kutnohorsko">
 					<Edge From="OnWake" To="run" />
 				</mercenaries_background_quest>
+				<!-- Always awake, like the background quest: its own item triggers decide
+				     when the journal entry actually appears. -->
+				<bandit_camp_quest Name="bandit_camp_quest" RequiredForOutput="kutnohorsko">
+					<Edge From="OnWake" To="run" />
+				</bandit_camp_quest>
 			</Nodes>
 			<Text Text="kutnohorsko" />
 		</Level>

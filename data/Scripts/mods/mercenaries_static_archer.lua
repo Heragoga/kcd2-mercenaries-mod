@@ -26,6 +26,30 @@ mercenaries.StaticArcherSouls = {
 }
 mercenaries.StaticArcherSoulIndex = 1
 
+-- Tower archers for somebody ELSE's camp (the quartermaster's bandit-camp contract). Same
+-- static_archer_brain, but in enemiesFaction so the camp does not attack its own tower, and
+-- on a bandit skald character so they read as bandits instead of "mercenary archer". They
+-- are killable (soul_vip_class_id 0) - the contract needs them dead.
+mercenaries.StaticArcherEnemySouls = {
+    "d1e2f3a4-5b6c-4d7e-8f90-1a2b3c4d5e01",
+    "d1e2f3a4-5b6c-4d7e-8f90-1a2b3c4d5e02",
+    "d1e2f3a4-5b6c-4d7e-8f90-1a2b3c4d5e03",
+}
+mercenaries.StaticArcherEnemySoulIndex = 1
+
+-- What an enemy tower archer WEARS: a FIXED two-outfit set, not a roll from a group pool.
+-- A bowman perched on a platform should look like a lookout in rags rather than a
+-- man-at-arms, so both are light looter kit (docs/enemies.md) - but the reason they are
+-- pinned is the tower descent: when the camp's ground is cleared the static archer is
+-- swapped for an ordinary bandit archer, and a random outfit on either end would change his
+-- clothes mid-fight. The chosen preset is recorded on his StaticArchers record so the
+-- replacement can wear exactly the same thing. See docs/bandit-camp-quest.md.
+mercenaries.StaticArcherEnemyOutfits = {
+    "20aba0c4-1cfb-42de-97dd-939530d6240d",
+    "2285cbe9-3962-4093-94a9-86f556e5bf2f",
+}
+mercenaries.StaticArcherEnemyOutfitIndex = 1
+
 -- Every NPC name prefix this mod spawns as an ENEMY. The "mod_enemies" mode
 -- shoots only these, and "defend" treats them as valid targets. Renegades are the
 -- first; add each new mod enemy's spawn-name prefix here and both modes pick it
@@ -35,7 +59,11 @@ mercenaries.ModEnemyPrefixes = {
     "SpawnedEnemy_",      -- the enemy-groups spawner (SpawnEnemyAt) - what actually spawns now
 }
 
-mercenaries.StaticArcherModes = { defend = true, hostile = true, mod_enemies = true }
+-- "besieger" is the siege of Raborsch's attacker mode: he shoots the player, the player's
+-- mercs AND the garrison's own tower archers - everyone who is not on his side. "hostile"
+-- deliberately spares every static archer so two towers never trade shots, which is right for
+-- a bandit camp and wrong for a siege, where the two lines of archers are the whole picture.
+mercenaries.StaticArcherModes = { defend = true, hostile = true, mod_enemies = true, besieger = true }
 mercenaries.StaticArcherDefaultMode = "defend"
 -- Console commands pass the mode as an int (the KCD console mangles bare word
 -- args): 1 = defend, 2 = hostile, 3 = mod_enemies. ResolveStaticArcherMode also
@@ -58,6 +86,24 @@ mercenaries.StaticArcherBuff = "e5a10008-2c4b-4e6a-9f01-000000000008"
 -- A tower archer sees and shoots much further than a footman on the ground - his
 -- reach is deliberately well past the mercs' 50m TargetDetectionRadius.
 mercenaries.StaticArcherRange = 90.0        -- how far one will look for a target
+
+-- A bandit camp's own archers engage on THEIR terms, not the foot bandits'. The camp wakes at
+-- BanditCampAlertRange (10m), which is right for men standing round a fire and quite wrong for
+-- a lookout on a tower: he can see 90m and had to wait until the player was almost inside the
+-- camp before loosing. Anything inside this radius is fair game to him, and his first arrow
+-- wakes the camp - which is how a watchtower is supposed to work.
+mercenaries.BanditCampArcherAlertRange = 45.0
+
+-- Laying out a siege puts defenders and attackers within sight of each other, and they open
+-- fire the moment they are placed - which makes the place impossible to build in. While this
+-- is on, every static archer holds fire and is not a valid target for anyone. It is turned on
+-- by the siege builder and off by merc_siege_go.
+mercenaries.SiegePeace = false
+
+function mercenaries:SiegeSuppressed(wuidStr)
+    if not self.SiegePeace then return false end
+    return (self.StaticArchers ~= nil) and (self.StaticArchers[tostring(wuidStr)] ~= nil)
+end
 mercenaries.StaticArcherStickRange = 100.0  -- keep the current target while it is this close
 
 -- [wuidStr] = { mode =, ent = }
@@ -248,8 +294,15 @@ end
 
 mercenaries.StaticArcherNamePrefix = "SpawnedTower_archer_"
 
+-- Either the player's own tower archer (SpawnedTower_archer_ prefix) or an enemy camp's
+-- (tagged '_towerarcher_' inside a SpawnedEnemy_ name). Both must answer true: this gates
+-- the drop-to-spot keeper and the rule that towers never shoot each other.
+mercenaries.StaticArcherEnemyTag = "_towerarcher_"
+
 function mercenaries:IsStaticArcherName(name)
-    return name ~= nil and string.find(name, self.StaticArcherNamePrefix, 1, true) == 1
+    if name == nil then return false end
+    if string.find(name, self.StaticArcherNamePrefix, 1, true) == 1 then return true end
+    return string.find(name, self.StaticArcherEnemyTag, 1, true) ~= nil
 end
 
 function mercenaries:IsModEnemyName(name)
@@ -292,22 +345,44 @@ end
 
 -- Spawn one at `pos` (already ground/deck placed by the caller - a tower deck, so
 -- it is NOT snapped to terrain here). Deliberately not added to ActiveMercs.
-function mercenaries:SpawnStaticArcher(pos, mode, faceAngle)
+-- `enemyGroup` (optional) makes this somebody else's tower - a bandit-camp watchtower. It
+-- switches BOTH the soul (enemiesFaction + a bandit character, so the camp does not attack
+-- its own tower and it does not read as "mercenary archer") and the clothing. Who he shoots
+-- is still `mode`. See docs/bandit-camp-quest.md.
+function mercenaries:SpawnStaticArcher(pos, mode, faceAngle, enemyGroup, elevated)
     if not pos then return nil end
     mode = (mode and self.StaticArcherModes[mode]) and mode or self.StaticArcherDefaultMode
 
     local ent
     local ok, err = pcall(function()
-        local idx = self.StaticArcherSoulIndex
-        local soulGuid = self.StaticArcherSouls[idx]
-        self.StaticArcherSoulIndex = idx + 1
-        if self.StaticArcherSoulIndex > #self.StaticArcherSouls then self.StaticArcherSoulIndex = 1 end
+        local soulGuid
+        if enemyGroup then
+            local i = self.StaticArcherEnemySoulIndex
+            soulGuid = self.StaticArcherEnemySouls[i]
+            self.StaticArcherEnemySoulIndex = (i % #self.StaticArcherEnemySouls) + 1
+        else
+            local idx = self.StaticArcherSoulIndex
+            soulGuid = self.StaticArcherSouls[idx]
+            self.StaticArcherSoulIndex = idx + 1
+            if self.StaticArcherSoulIndex > #self.StaticArcherSouls then self.StaticArcherSoulIndex = 1 end
+        end
 
         -- '_archer_' in the name so the archer weapon/ammo helpers
         -- (IsArcherName, EquipArcherWeapon, GiveArcherAmmo) apply as-is; the
         -- SpawnedTower_ prefix is what keeps it out of everything else.
-        local entityName = self.StaticArcherNamePrefix .. self.ArcherTier .. "_" ..
-                           tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+        --
+        -- An enemy tower archer additionally carries 'SpawnedEnemy_' so the rest of the mod
+        -- reads him as a hostile: SideOf() gives him the enemy combat rules instead of the
+        -- merc leash to the player, and IsModEnemyName lets the squad and any friendly
+        -- tower shoot back at him. IsStaticArcherName matches on the '_towerarcher_' tag.
+        local entityName
+        if enemyGroup then
+            entityName = "SpawnedEnemy_towerarcher_archer_" .. self.ArcherTier .. "_" ..
+                         tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+        else
+            entityName = self.StaticArcherNamePrefix .. self.ArcherTier .. "_" ..
+                         tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+        end
 
         System.SpawnEntity({
             class = "NPC",
@@ -320,12 +395,33 @@ function mercenaries:SpawnStaticArcher(pos, mode, faceAngle)
         if not ent then return end
 
         self:EnsureMercIsAlwaysRendered(ent)
-        self:EquipMercenary(ent, _G.MercCurrentOutfit or 1)
-        self:EquipArcherWeapon(ent)   -- + 40 rounds of the current archer ammo type
+        -- An enemy tower archer takes one of the two pinned outfits directly rather than a
+        -- roll from a group pool, so his replacement on descent can match him exactly.
+        local outfit
+        if enemyGroup then
+            local i = self.StaticArcherEnemyOutfitIndex
+            outfit = self.StaticArcherEnemyOutfits[i]
+            self.StaticArcherEnemyOutfitIndex = (i % #self.StaticArcherEnemyOutfits) + 1
+            if outfit then pcall(function() ent.actor:EquipClothingPreset(outfit) end) end
+        else
+            self:EquipMercenary(ent, _G.MercCurrentOutfit or 1)
+        end
+        -- EquipArcherWeapon has to run either way: the bow and its 40 rounds are separate
+        -- from clothing, and an archer with no ammo looses once and then stands there.
+        self:EquipArcherWeapon(ent)
         pcall(function() ent.soul:AddBuff(self.StaticArcherBuff) end)   -- fast, deadly marksman
 
+        -- The probe caught these at vdr=100 while every merc read 1000: they are NPCs, and
+        -- nothing was pinning NPC view distance. Same call the mod already makes on props.
+        pcall(function() ent:SetViewDistUnlimited() end)
+
         local ws = tostring(ent.this and ent.this.id or ent.id)
-        self.StaticArchers[ws] = { mode = mode, ent = ent }
+        -- `outfit` is read back by BanditCampBringArchersDown so the man who walks down the
+        -- tower is wearing what the man on top of it was wearing.
+        -- `elevated` = he is stood on a tower platform, out of reach of anything without a
+        -- bow. Only the tower passes it; cart archers stand about a metre up on the wagon bed
+        -- and are perfectly reachable, so they stay fair game for everyone.
+        self.StaticArchers[ws] = { mode = mode, ent = ent, outfit = outfit, elevated = elevated }
         -- Put him where he was asked for and hold him there - a fresh NPC settles
         -- to the ground right after spawning, so one SetPos here is not enough.
         self:PlaceStaticArcher(ent, pos)
@@ -375,6 +471,13 @@ function mercenaries:StaticArcherWantsTarget(mode, ent, isPlayer)
         return self.ActiveMercs[name] ~= nil
     elseif mode == "mod_enemies" then
         return (not isPlayer) and self:IsModEnemyName(name)
+    elseif mode == "besieger" then
+        -- Everyone but his own side. His own are the mod-spawned enemies (SpawnedEnemy_,
+        -- which covers the other besiegers and their archers); everything else that can be
+        -- shot at is the player, their mercs, or a defender on a tower.
+        if isPlayer then return true end
+        if self:IsModEnemyName(name) then return false end
+        return (self.ActiveMercs[name] ~= nil) or self:IsStaticArcherName(name)
     end
     return false
 end
@@ -458,6 +561,37 @@ function mercenaries:FindStaticArcherTarget(data, myWuid)
         if self.StaticArcherPending[myWuidStr] then
             data.currentTarget = nil
             return
+        end
+
+        -- A watchtower over a camp that has not noticed anything holds its fire - but only
+        -- until someone is inside HIS range, not the camp's. He is posted up there to see
+        -- further than the men round the fire, so he is decoupled from their 10m rule and
+        -- opens at BanditCampArcherAlertRange. Suppression still applies past that, so the
+        -- camp is not shooting at the player from across the valley.
+        if self.SiegePeace and self:SiegeSuppressed(myWuidStr) then
+            data.currentTarget = nil
+            self.StaticArcherTargetOf[myWuidStr] = nil
+            return
+        end
+
+        if self.BanditCampSuppressed and self:BanditCampSuppressed(myWuidStr) then
+            local inReach = false
+            if player then
+                pcall(function()
+                    local me2 = XGenAIModule.GetEntityByWUID(myWuid)
+                    local ap, pp = me2 and me2:GetPos(), player:GetWorldPos()
+                    if ap and pp then
+                        local dx, dy, dz = pp.x - ap.x, pp.y - ap.y, pp.z - ap.z
+                        local r = self.BanditCampArcherAlertRange
+                        inReach = (dx * dx + dy * dy + dz * dz) <= (r * r)
+                    end
+                end)
+            end
+            if not inReach then
+                data.currentTarget = nil
+                self.StaticArcherTargetOf[myWuidStr] = nil
+                return
+            end
         end
 
         local mode = rec.mode or self.StaticArcherDefaultMode

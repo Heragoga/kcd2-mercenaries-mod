@@ -823,6 +823,13 @@ mercenaries.NavSeeOverHeight = 2.0
 
 function mercenaries:NavTargetBlocked(fromEnt, targetEnt)
     if not (fromEnt and targetEnt) then return false end
+
+    -- Never at a siege. This rule exists for ONE thing: stopping a merc locking onto someone
+    -- on the far side of the player's own camp palisade. At Raborsch every man is behind a
+    -- barricade or a wall by design, so the only thing it can do there is refuse targets that
+    -- ought to be fought. Checked before the wall test rather than relying on it.
+    if self.RBQ and self.RBQ.active then return false end
+
     if not (self.WallMarks and #self.WallMarks >= 2 and self.CampCenter) then return false end
     -- Once the battle is joined the wall stops mattering: both sides were marshalled to
     -- the gaps first, so anything they can see now they have a right to fight.
@@ -951,7 +958,13 @@ function mercenaries:NavRefreshPatrolRings()
     end
     local n, g = 0, 0
     local guards = {}
-    for k in pairs(self.CampPatrollers) do table.insert(guards, k) end
+    -- Only the PLAYER's guards. CampPatrollers is shared with the bandit-camp contract
+    -- (docs/bandit-camp-quest.md), and those records belong to a camp on the other side of
+    -- the map with no wall of its own - re-pointing them at this wall's gate posts would
+    -- march them off to it.
+    for k, rec in pairs(self.CampPatrollers) do
+        if not (rec and rec.foreign) then table.insert(guards, k) end
+    end
     table.sort(guards)
 
     local posts = self:NavGatePosts()

@@ -28,13 +28,15 @@ mercenaries.MoralePerKill        = 5
 -- engagement, with no way back. The cap makes a massacre severe but survivable.
 mercenaries.MoraleDeathCapPerFight = 50
 
--- Battlefield spoils, per confirmed kill: what you strip off the body.
--- Food is in the same units as everything else here - one unit feeds FeedRatio (8) mercs for
--- a day, so 3 units is a day's food for 24 men. Wages are groschen into the war chest, priced
--- as merc-days at the medium tier, so "2 wages" is two men paid for a day.
-mercenaries.LootPerKillFood  = 3
-mercenaries.LootPerKillDrink = 1
-mercenaries.LootPerKillWages = 2               -- merc-days, converted at WagePerTier.medium
+-- Battlefield spoils, per confirmed kill: what you strip off the body. Fractions of a unit -
+-- a body carries a bite and a swallow, not a day's rations for two dozen men - so they accrue
+-- in a carry and only whole units land in the pools (see accrue()).
+-- Food is in the same units as everything else here: one unit feeds FeedRatio (8) mercs for a
+-- day, so at 0.3 it takes ten bodies to buy a day's food for 24 men. Wages are groschen into
+-- the war chest, priced as merc-days at the medium tier.
+mercenaries.LootPerKillFood  = 0.3
+mercenaries.LootPerKillDrink = 0.1
+mercenaries.LootPerKillWages = 0.2             -- merc-days, converted at WagePerTier.medium
 mercenaries.MoraleDeathPenalty   = 5           -- per merc that dies
 mercenaries.TirednessGraceDays   = 3           -- days out of camp before tiredness bites (kept in step with ExhaustedBuffDays so the icon and the morale penalty line up)
 mercenaries.StartingSupplyDays   = 3           -- days of food and drink handed out when the first camp goes up
@@ -169,7 +171,9 @@ function mercenaries:LogiState()
             lastUpkeepDay = nil, lastTick = nil,
             -- runtime combat tracking
             lastAliveCount = nil, selfRemoved = 0, desertProgress = 0,
-            engaged = {}, fightDeathMorale = 0, fightLootKills = 0, wasInFight = false,
+            engaged = {}, fightDeathMorale = 0, wasInFight = false,
+            fightLootKills = 0, fightLootFood = 0, fightLootDrink = 0, fightLootCoin = 0,
+            lootCarryFood = 0, lootCarryDrink = 0, lootCarryCoin = 0,
             buffApplied = {}, warnLevel = 0,
         }
     end
@@ -330,7 +334,9 @@ function mercenaries:LogiLoad()
     L.innActive       = L.innDays > 0
     L.lastTick = self:LogiNow()          -- not persisted (see comment in LogiTick)
     L.lastAliveCount = self:LogiAliveCount()
-    L.selfRemoved = 0; L.desertProgress = 0; L.engaged = {}; L.fightDeathMorale = 0; L.fightLootKills = 0; L.wasInFight = false
+    L.selfRemoved = 0; L.desertProgress = 0; L.engaged = {}; L.fightDeathMorale = 0; L.wasInFight = false
+    L.fightLootKills = 0; L.fightLootFood = 0; L.fightLootDrink = 0; L.fightLootCoin = 0
+    L.lootCarryFood = 0; L.lootCarryDrink = 0; L.lootCarryCoin = 0
     L.buffApplied = {}
     self.LogiLastSaved = {}
     self:LogiApplyBuffs()
@@ -373,7 +379,8 @@ function mercenaries:LogiTrackCombat()
     local anyLive = next(nowEngaged) ~= nil
     if anyLive and not L.wasInFight then
         L.fightDeathMorale = 0           -- new fight - reset the per-fight loss cap
-        L.fightLootKills   = 0           -- ...and the spoils tally the after-action report reads
+        -- ...and the spoils tally the after-action report reads
+        L.fightLootKills, L.fightLootFood, L.fightLootDrink, L.fightLootCoin = 0, 0, 0, 0
     end
 
     -- Deaths: a drop in the live count that we didn't cause ourselves. Capped per fight.
@@ -421,6 +428,18 @@ function mercenaries:LogiTrackCombat()
     L.wasInFight = anyLive
 end
 
+-- One body's worth of a pool. The per-kill amounts are fractions of a unit, so they accrue in
+-- a carry and only whole units are ever credited - the pools (and every number the
+-- quartermaster prints off them) stay integers, and the remainder rides on to the next body.
+local function accrue(self, L, field, carryField, amount, reason)
+    if amount <= 0 then return 0 end
+    local carry = (L[carryField] or 0) + amount
+    local whole = math.floor(carry)
+    L[carryField] = carry - whole
+    if whole > 0 then self:LogiAdjust(field, whole, reason) end
+    return amount
+end
+
 -- Strip a body. Deliberately NOT capped like the morale gain: morale is capped so one big
 -- battle cannot bank a fortnight of goodwill, whereas supplies scale with bodies because
 -- that is the point - a long fight should keep the squad fed.
@@ -428,11 +447,10 @@ function mercenaries:LogiLootKill()
     local L = self:LogiState()
     L.fightLootKills = (L.fightLootKills or 0) + 1
 
-    if self.LootPerKillFood  > 0 then self:LogiAdjust("food",  self.LootPerKillFood,  "battlefield spoils") end
-    if self.LootPerKillDrink > 0 then self:LogiAdjust("drink", self.LootPerKillDrink, "battlefield spoils") end
-
     local coin = self.LootPerKillWages * (self.WagePerTier.medium or 10)
-    if coin > 0 then self:LogiAdjust("coffer", coin, "battlefield spoils") end
+    L.fightLootFood  = (L.fightLootFood  or 0) + accrue(self, L, "food",   "lootCarryFood",  self.LootPerKillFood,  "battlefield spoils")
+    L.fightLootDrink = (L.fightLootDrink or 0) + accrue(self, L, "drink",  "lootCarryDrink", self.LootPerKillDrink, "battlefield spoils")
+    L.fightLootCoin  = (L.fightLootCoin  or 0) + accrue(self, L, "coffer", "lootCarryCoin",  coin,                  "battlefield spoils")
 
     -- Fresh supplies clear the starving / no-drink flags the same way a delivery does.
     self:Recount()
@@ -442,24 +460,36 @@ function mercenaries:LogiLootKill()
     self:LogiSave()
 end
 
--- After-action report: how long the squad is now provisioned for. Wage runway counts the war
--- chest plus the player's purse, exactly as LogiAskStats does, because both get spent on payday.
+-- Days, one decimal below ten so a small haul doesn't read as "0" - which, with spoils priced
+-- in tenths of a unit, is most hauls.
+local function fmtDays(v)
+    v = v or 0
+    if v < 0.05 then return "0" end
+    if v >= 10 or v == math.floor(v) then return string.format("%d", v) end
+    return string.format("%.1f", v)
+end
+
+-- After-action report: what the spoils bought, and nothing else. Totals and stock levels are
+-- what the quartermaster is for - after a fight the only question is how much longer the men
+-- can march on it, so this is purely the DAYS the haul added at the squad's current burn rate.
 function mercenaries:LogiAfterActionReport()
     local L = self:LogiState()
+    self:Recount()
+    local perDay  = math.max(1, math.ceil((_G.MercCount or 0) / self.FeedRatio))
     local wageDay = self:LogiWageTotal()
-    local money = 0; pcall(function() money = player.inventory:GetMoney() end)
-    local runway = (wageDay > 0) and math.floor(((L.coffer or 0) + money) / wageDay) or 999
 
-    self:LogiInfo("@merc_n_spoils " .. (L.fightLootKills or 0)
-        .. " @merc_n_food "  .. L.food  .. " @merc_n_days " .. self:LogiSupplyDays(L.food)
-        .. " @merc_n_drink " .. L.drink .. " @merc_n_days " .. self:LogiSupplyDays(L.drink)
-        .. " @merc_n_cnow "  .. (L.coffer or 0) .. " @merc_n_wdays " .. runway)
+    local foodDays  = (L.fightLootFood  or 0) / perDay
+    local drinkDays = (L.fightLootDrink or 0) / perDay
+    local wageDays  = (wageDay > 0) and ((L.fightLootCoin or 0) / wageDay) or 0
+
+    self:LogiInfo("@merc_n_capfood " .. fmtDays(foodDays)
+        .. " @merc_n_capdrink " .. fmtDays(drinkDays)
+        .. " @merc_n_capwage "  .. fmtDays(wageDays))
 
     System.LogAlways(string.format(
-        "[Logistics] after-action: %d kill(s) looted; food %d (%dd), drink %d (%dd), chest %d (%dd of wages)",
-        L.fightLootKills or 0, L.food, self:LogiSupplyDays(L.food),
-        L.drink, self:LogiSupplyDays(L.drink), L.coffer or 0, runway))
-    L.fightLootKills = 0
+        "[Logistics] after-action: %d kill(s) looted; +%s d food, +%s d drink, +%s d wages",
+        L.fightLootKills or 0, fmtDays(foodDays), fmtDays(drinkDays), fmtDays(wageDays)))
+    L.fightLootKills, L.fightLootFood, L.fightLootDrink, L.fightLootCoin = 0, 0, 0, 0
 end
 
 -- ==== Continuous morale rates ====

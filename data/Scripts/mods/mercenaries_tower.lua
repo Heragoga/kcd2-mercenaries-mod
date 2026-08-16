@@ -279,7 +279,10 @@ mercenaries.TowerArcherDelay = 2000
 mercenaries.TowerStationDist = 10.0
 -- Any number of towers can be up at once (place as many as you like). Each station
 -- is { ids =, cols =, origin =, yaw =, placedGround =, archer =, archerPos =, dead = }.
-mercenaries.TowerMaxCount = 5    -- how many archer towers may stand at once
+-- Effectively no limit. A siege wants a wall's worth of them and the old cap of 5 was a
+-- camp-sized budget; the number is kept rather than deleted because two code paths still read
+-- it (the cap check and the placement engine's atMax).
+mercenaries.TowerMaxCount = 999  -- how many archer towers may stand at once
 mercenaries.TowerStations = {}   -- every live tower
 mercenaries.TowerStation = nil   -- the latest one - the subject of the tuning commands
 -- Deferred archer spawn/attach run off FIFO queues, not self.TowerStation: placing a
@@ -290,12 +293,15 @@ mercenaries.TowerArcherAttachQueue = {}
 
 -- One tower part, spawned STATIC (mercenaries_Prop) so anything whose mesh does
 -- carry a physics proxy collides.
-function mercenaries:TowerSpawnPart(p, origin, yaw, track)
+-- `namePrefix` keeps somebody else's tower out of the player camp's global name sweep:
+-- "MercTower*" is swept by ClearAnyLeftoverCamp and by the upgrade rebuild, anywhere on the
+-- map, so a bandit camp's watchtower named that way vanishes when the player rebuilds theirs.
+function mercenaries:TowerSpawnPart(p, origin, yaw, track, namePrefix)
     local wp = self:HouseLocalToWorld(origin, yaw, p.x, p.y, p.z)
     local rx, ry, rz = self:HouseQuatToEuler(p.qx or 0, p.qy or 0, p.qz or 0, p.qw or 1)
     rz = rz + yaw
     local params = {
-        name = "MercTowerPart_" .. tostring(math.random(100000, 999999)),
+        name = (namePrefix or "MercTowerPart_") .. tostring(math.random(100000, 999999)),
         position = wp,
         orientation = { x = rx, y = ry, z = rz },
         properties = { object_Model = p.model, bMissionCritical = false,
@@ -317,7 +323,7 @@ function mercenaries:TowerSpawnPart(p, origin, yaw, track)
     return ent
 end
 
-function mercenaries:TowerSpawnLadder(L, origin, yaw, track)
+function mercenaries:TowerSpawnLadder(L, origin, yaw, track, namePrefix)
     local wp = self:HouseLocalToWorld(origin, yaw, L.x, L.y, L.z)
     local rx, ry, rz = self:HouseQuatToEuler(L.qx, L.qy, L.qz, L.qw)
     rz = rz + yaw
@@ -325,7 +331,7 @@ function mercenaries:TowerSpawnLadder(L, origin, yaw, track)
     pcall(function()
         lad = System.SpawnEntity({
             class = "Ladder",
-            name = "MercTowerLadder_" .. tostring(math.random(100000, 999999)),
+            name = (namePrefix or "MercTowerLadder_") .. tostring(math.random(100000, 999999)),
             position = wp,
             orientation = { x = rx, y = ry, z = rz },
             properties = {
@@ -352,7 +358,7 @@ function mercenaries:TowerColApply(i)
     local wp = self:HouseLocalToWorld(st.origin, st.yaw, c.x, c.y, c.z)
     local params = {
         class = "mercenaries_Prop",
-        name = "MercTowerCol_" .. i .. "_" .. tostring(math.random(100000, 999999)),
+        name = (st.group and "BCampQTowerCol_" or "MercTowerCol_") .. i .. "_" .. tostring(math.random(100000, 999999)),
         position = wp,
         orientation = { x = math.cos(st.yaw), y = math.sin(st.yaw), z = 0 },
         scale = { x = c.sx, y = c.sy, z = c.sz },
@@ -374,21 +380,28 @@ end
 
 -- Build ONE tower at an already-decided ground spot (pre-sink) + yaw, and add it to
 -- the live list. Never clears anything - placing another just calls this again.
-function mercenaries:TowerBuildStation(ground, yaw)
+-- `opts` (optional) makes this tower somebody else's: { mode = "hostile", group = "bandit" }
+-- gives a bandit-camp watchtower whose archer shoots the player and the mercs. Omitted, it
+-- is the player's own tower exactly as before.
+function mercenaries:TowerBuildStation(ground, yaw, opts)
     if not player then return nil end
     local origin = { x = ground.x, y = ground.y, z = ground.z }
     if self.CampSnapToGround then origin = self:CampSnapToGround(origin) end
     origin.z = origin.z + self.TowerSink
 
     local st = { origin = origin, yaw = yaw, ids = {}, cols = {},
+                 mode = opts and opts.mode, group = opts and opts.group,
                  placedGround = { x = ground.x, y = ground.y, z = ground.z } }
     table.insert(self.TowerStations, st)
     self.TowerStation = st   -- newest becomes the tuning subject
 
-    for _, p in ipairs(self.TowerParts) do self:TowerSpawnPart(p, origin, yaw, st.ids) end
+    -- A foreign tower (bandit camp) names its parts differently so the player camp's global
+    -- "MercTower*" sweep cannot take it down. See TowerSpawnPart.
+    local partPrefix = st.group and "BCampQTowerPart_" or nil
+    for _, p in ipairs(self.TowerParts) do self:TowerSpawnPart(p, origin, yaw, st.ids, partPrefix) end
     local nl = 0
     for _, L in ipairs(self.TowerLadders) do
-        if self:TowerSpawnLadder(L, origin, yaw, st.ids) then nl = nl + 1 end
+        if self:TowerSpawnLadder(L, origin, yaw, st.ids, partPrefix) then nl = nl + 1 end
     end
     for i = 1, #self.TowerColliders do self:TowerColApply(i) end   -- acts on self.TowerStation = st
 
@@ -400,18 +413,31 @@ function mercenaries:TowerBuildStation(ground, yaw)
 
     System.LogAlways(string.format("[Tower] built #%d: %d parts, %d/%d ladders, %d colliders, sunk %.2fm - archer in %dms",
         #self.TowerStations, #self.TowerParts, nl, #self.TowerLadders, #self.TowerColliders, self.TowerSink, self.TowerArcherDelay))
-    pcall(function() if self.DefSave then self:DefSave() end end)
+    -- Somebody else's tower is not one of the player's defences and must not touch their
+    -- saved set. DefSave filters on st.group as well; this just avoids the pointless rewrite.
+    if not st.group then
+        pcall(function() if self.DefSave then self:DefSave() end end)
+    end
     return st
 end
 
 -- Place a NEW tower: from an aim spot (atPos/atYaw) or, with no args, a fixed offset
 -- ahead of the player. Additive - existing towers stay up.
-function mercenaries:SpawnTowerStation(atPos, atYaw)
+function mercenaries:SpawnTowerStation(atPos, atYaw, opts)
     if not player then return end
-    if #self.TowerStations >= self.TowerMaxCount then
-        System.LogAlways("[Tower] limit reached (" .. self.TowerMaxCount .. ") - merc_tower_clear first")
-        Game.SendInfoText('merc_info_tower_limit', false, 0, 4)
-        return
+    -- The cap is the PLAYER's defence budget. A foreign (bandit-camp) tower is authored in
+    -- a layout and trusted: it must neither be refused by the cap nor eat into it - the
+    -- roman fort's four towers could not build next to a single player tower otherwise.
+    if not (opts and opts.group) then
+        local own = 0
+        for _, st in ipairs(self.TowerStations) do
+            if not st.group then own = own + 1 end
+        end
+        if own >= self.TowerMaxCount then
+            System.LogAlways("[Tower] limit reached (" .. self.TowerMaxCount .. ") - merc_tower_clear first")
+            Game.SendInfoText('merc_info_tower_limit', false, 0, 4)
+            return
+        end
     end
     local yaw, ground
     if atPos then
@@ -429,7 +455,7 @@ function mercenaries:SpawnTowerStation(atPos, atYaw)
         ground = { x = o.x + math.cos(yaw) * self.TowerStationDist,
                    y = o.y + math.sin(yaw) * self.TowerStationDist, z = o.z }
     end
-    self:TowerBuildStation(ground, yaw)
+    return self:TowerBuildStation(ground, yaw, opts)
 end
 
 -- Tear down the current tower and rebuild it in place (for the sink/archer tuners).
@@ -446,7 +472,7 @@ function mercenaries.TowerSpawnArcherDelayed()
     local self = mercenaries
     local st = table.remove(self.TowerArcherSpawnQueue, 1)
     if not st or st.dead or st.archer then return end
-    st.archer = self:SpawnStaticArcher(st.archerPos, self.TowerArcherMode, st.yaw)
+    st.archer = self:SpawnStaticArcher(st.archerPos, st.mode or self.TowerArcherMode, st.yaw, st.group, true)
     System.LogAlways("[Tower] archer " .. (st.archer and ("manned the deck (" .. self.TowerArcherMode .. ")") or "FAILED"))
     -- Once he has settled onto the deck, pin him for good by attaching him to a
     -- static unscaled anchor (the winning merc_tower_hold #6 method) - that holds an
@@ -720,7 +746,7 @@ function mercenaries:TowerLookedAtPos()
         local hits = {}
         local n = Physics.RayWorldIntersection(camPos,
             { x = camDir.x * range, y = camDir.y * range, z = camDir.z * range },
-            2, ent_terrain + ent_static, player.id, nil, hits)
+            2, ent_terrain + ent_static, player, nil, hits)
         if n and n > 0 and hits[1] and hits[1].pos then
             result = { x = hits[1].pos.x, y = hits[1].pos.y, z = hits[1].pos.z }
         end
@@ -800,6 +826,11 @@ function mercenaries:CancelPlacement()
     local spec = self.ActivePlacement
     if not spec then return end
     if spec.onCancel then pcall(function() spec.onCancel(self) end) end
+    -- keepOnCancel: right-click is an UNDO, not an exit. The bandit camp builder is a
+    -- persistent editor - you place, take one back, place again - so leaving the mode on
+    -- every right-click would make it unusable. Specs without the flag (tower, cart, ambush
+    -- markers) behave exactly as before.
+    if spec.keepOnCancel then return end
     self:EndPlacement()
     Game.SendInfoText(spec.info.cancelled, false, 0, 3)
 end
@@ -1177,7 +1208,7 @@ function mercenaries:TowerArcherZ(z, drop)
     local a = self.TowerArcherLocal
     local ap = self:HouseLocalToWorld(st.origin, st.yaw, a.x, a.y, a.z)
     st.archerPos = ap
-    st.archer = self:SpawnStaticArcher(ap, self.TowerArcherMode, st.yaw)
+    st.archer = self:SpawnStaticArcher(ap, self.TowerArcherMode, st.yaw, nil, true)
     if st.archer then
         table.insert(self.TowerArcherAttachQueue, st)
         Script.SetTimerForFunction(2500, "mercenaries.TowerAttachArcherDelayed")

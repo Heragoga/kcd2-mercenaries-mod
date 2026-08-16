@@ -610,6 +610,20 @@ mercenaries.CampActive    = false
 mercenaries.CampEntities  = {}   -- list of spawned entity ids, for teardown
 mercenaries.CampSlots     = {}   -- [wuidStr] = {x,y,z} idle position per merc
 mercenaries.CampCenter    = nil  -- {x,y,z}, kept for reference/patrol waypoints
+-- A marching column: [followerWuidStr] = WUID of the man he walks behind. Bandit-only and
+-- deliberately NOT one of the shared camp tables - those get replaced wholesale whenever the
+-- player's own camp is broken or rebuilt, which is exactly how the bandit patrol records were
+-- trampled before (see BanditCampRepairRoles).
+mercenaries.BanditCampColumn = {}
+
+function mercenaries:IsColumnFollower(wuid)
+    return self.BanditCampColumn ~= nil and self.BanditCampColumn[tostring(wuid)] ~= nil
+end
+
+function mercenaries:GetColumnFollowTarget(wuid)
+    return self.BanditCampColumn and self.BanditCampColumn[tostring(wuid)]
+end
+
 mercenaries.CampPatrollers = {}  -- [mercWuidStr] = { waypoints={ {x,y,z}, ... }, index= } - perimeter positions, see SpawnMercCamp's guard-assignment loop
 mercenaries.CampFurniture  = {}  -- [mercWuidStr] = { wuid=furnitureSOWuid, kind="bed"/"chair" } - a non-guard merc's assigned sit/sleep smart object, see SpawnMercCamp + GetCampFurniture
 mercenaries.CampCommunalChairs = {} -- unused - kept declared for back-compat
@@ -620,7 +634,7 @@ function mercenaries:CampSnapToGround(pos)
         local hitTable = {}
         local start = { x = pos.x, y = pos.y, z = pos.z + 5.0 }
         local dir = { x = 0, y = 0, z = -100 }
-        local hits = Physics.RayWorldIntersection(start, dir, 2, ent_terrain + ent_static, 0, nil, hitTable)
+        local hits = Physics.RayWorldIntersection(start, dir, 2, ent_terrain + ent_static, nil, nil, hitTable)
         if hits > 0 and hitTable[1] and hitTable[1].pos then
             return { x = pos.x, y = pos.y, z = hitTable[1].pos.z }
         end
@@ -645,7 +659,7 @@ function mercenaries:CampValidateSpot(pos, refZ, footprint)
         local start = { x = px, y = py, z = refZ + self.CampProbeStartHeight }
         local dir   = { x = 0, y = 0, z = -(self.CampProbeStartHeight + self.CampProbeDepth) }
         local ok, hz, hn = pcall(function()
-            local hits = Physics.RayWorldIntersection(start, dir, 2, ent_terrain + ent_static, 0, nil, hitTable)
+            local hits = Physics.RayWorldIntersection(start, dir, 2, ent_terrain + ent_static, nil, nil, hitTable)
             if hits > 0 and hitTable[1] and hitTable[1].pos then
                 return hitTable[1].pos.z, hitTable[1].normal
             end
@@ -697,7 +711,7 @@ function mercenaries:CampSampleHeightmap(origin, radius, spacing, underRoof)
         local hitTable = {}
         local ok, hz = pcall(function()
             local hits = Physics.RayWorldIntersection({ x = wx, y = wy, z = fromZ },
-                { x = 0, y = 0, z = -(fromZ - bottomZ) }, 2, ent_terrain + ent_static, 0, nil, hitTable)
+                { x = 0, y = 0, z = -(fromZ - bottomZ) }, 2, ent_terrain + ent_static, nil, nil, hitTable)
             if hits > 0 and hitTable[1] and hitTable[1].pos then return hitTable[1].pos.z end
             return nil
         end)
@@ -845,7 +859,7 @@ function mercenaries:CampDetectRoof(playerPos)
         local hits = Physics.RayWorldIntersection(
             { x = playerPos.x, y = playerPos.y, z = refZ + self.CampProbeStartHeight },
             { x = 0, y = 0, z = -(self.CampProbeStartHeight + self.CampProbeDepth) },
-            2, ent_terrain + ent_static, 0, nil, hitTable)
+            2, ent_terrain + ent_static, nil, nil, hitTable)
         if hits > 0 and hitTable[1] and hitTable[1].pos then return hitTable[1].pos.z end
         return nil
     end)
@@ -1102,18 +1116,21 @@ end
 -- The prefab alone renders as a small smouldering ash heap, so
 -- CampFireOverlayModel is layered on top at the same position/facing for a
 -- fuller "wood pile" look on top of the embers.
-function mercenaries:SpawnCampFirePrefab(pos, angleZ, prefabId)
+-- `namePrefix` and `trackList` let a camp that is NOT the player's own borrow this. The name
+-- matters: ClearAnyLeftoverCamp and the upgrade rebuild sweep "MercCamp*" GLOBALLY by name,
+-- so a bandit camp's fire named that way is destroyed the moment the player rebuilds theirs.
+function mercenaries:SpawnCampFirePrefab(pos, angleZ, prefabId, namePrefix, trackList)
     local ok, err = pcall(function()
         local groundPos = self:CampSnapToGround(pos)
         local anchorEnt = System.SpawnEntity({
             class = "BasicEntity",
-            name = "MercCampProp_FireAnchor_" .. tostring(math.random(100000, 999999)),
+            name = (namePrefix or "MercCampProp_FireAnchor_") .. tostring(math.random(100000, 999999)),
             position = groundPos,
             properties = { object_Model = "", bMissionCritical = false }
         })
         if anchorEnt then
             pcall(function() anchorEnt:SetAngles({ x = 0, y = 0, z = angleZ or 0 }) end)
-            table.insert(self.CampEntities, anchorEnt.id)
+            table.insert(trackList or self.CampEntities, anchorEnt.id)
             Game.SpawnPrefab(anchorEnt.id, prefabId or self.CampFirePrefabId, 0)
         end
 
@@ -1145,6 +1162,62 @@ end
 -- the scheduler routes them to the follow branch, not idle-stand.
 mercenaries.CampOutParty = {}   -- [wuidStr] = true : mercs deployed out of camp
 
+-- Deploying a party has to survive a save. CampOutParty is keyed by WUID, and a WUID is not
+-- stable across a load - but the entity NAME is, which is exactly why RebuildMercCache
+-- re-finds the squad by scanning for names. So the out-party is persisted as a list of names
+-- and mapped back to WUIDs once that cache exists.
+--
+-- Restore must run AFTER the camp is rebuilt: SpawnMercCamp resets CampOutParty to empty
+-- ("fresh camp: everyone starts in it") and hands every merc a camp role, so restoring before
+-- it would simply be overwritten.
+function mercenaries:SaveCampOutParty()
+    local names = {}
+    for name, ent in pairs(self.ActiveMercs or {}) do
+        local w = ent and (ent.this and ent.this.id or ent.id)
+        if w and self.CampOutParty[tostring(w)] then names[#names + 1] = name end
+    end
+    pcall(function()
+        self:SaveString("MercOutParty", (#names > 0) and table.concat(names, ";") or "none")
+    end)
+end
+
+function mercenaries:LoadCampOutParty()
+    local blob
+    pcall(function() blob = self:LoadString("MercOutParty") end)
+    if not blob or blob == "none" then return end
+
+    local restored = 0
+    for name in string.gmatch(blob, "([^;]+)") do
+        local ent = self.ActiveMercs and self.ActiveMercs[name]
+        local w = ent and (ent.this and ent.this.id or ent.id)
+        if w then
+            local ws = tostring(w)
+            self.CampOutParty[ws] = true
+            -- A deployed merc holds no camp role; the camp rebuild just gave him one.
+            if self.CampFurniture then self.CampFurniture[ws] = nil end
+            if self.CampActivities then self.CampActivities[ws] = nil end
+            if self.CampPatrollers then self.CampPatrollers[ws] = nil end
+            self:ReleaseSpot(self.CampSeats or {}, ws)
+            self:ReleaseSpot(self.CampBeds or {}, ws)
+            restored = restored + 1
+        end
+    end
+    if restored > 0 then
+        -- The roster the formation is built from just changed underneath it: these men were
+        -- camp actors a moment ago (SpawnMercCamp put every merc in the camp and teleported
+        -- them there) and are now followers. UpdateFormationLeader only rebuilds when it
+        -- notices a size or leader change of its own accord, so the shape is stale until
+        -- something forces it - bump the epoch and drop the leader so the next tick re-elects
+        -- one and re-slots everybody.
+        self.FormationLeader = nil
+        self.FormationCap    = 0
+        self.FormationEpoch  = (self.FormationEpoch or 0) + 1
+        pcall(function() self:UpdateFormationLeader() end)
+        System.LogAlways("[Camp] restored " .. restored .. " merc(s) to the deployed party" ..
+                         " (formation rebuild #" .. tostring(self.FormationEpoch) .. ")")
+    end
+end
+
 function mercenaries:IsCampOut(mercWuid)
     return self.CampOutParty[tostring(mercWuid)] == true
 end
@@ -1163,10 +1236,20 @@ function mercenaries:IsMercInCampProper(mercWuid)
     return (_G.MercInCamp == true) and not self:IsCampOut(mercWuid)
 end
 
+-- True when this WUID belongs to a camp that is not the player's - a bandit camp from
+-- the quartermaster's contract. Those actors hold camp roles on their own terms: their
+-- camp exists whether or not the squad has pitched one, and they are never "camp out".
+function mercenaries:IsForeignCampActor(wuidStr)
+    return (self.BanditCampActors and self.BanditCampActors[wuidStr]) == true
+end
+
 function mercenaries:IsCampGuard(mercWuid)
-    if not _G.MercInCamp or _G.MercenariesDismissed then return false end
-    if self:IsCampOut(mercWuid) then return false end
-    local rec = self.CampPatrollers and self.CampPatrollers[tostring(mercWuid)]
+    local ws = tostring(mercWuid)
+    if not self:IsForeignCampActor(ws) then
+        if not _G.MercInCamp or _G.MercenariesDismissed then return false end
+        if self:IsCampOut(mercWuid) then return false end
+    end
+    local rec = self.CampPatrollers and self.CampPatrollers[ws]
     return (rec and rec.waypoints and #rec.waypoints > 0) == true
 end
 
@@ -1175,9 +1258,12 @@ end
 -- non-patrolling mercs (half sit, half sleep). camp_actor.xml reads this
 -- and drives a StanceElement against the furniture's smart object.
 function mercenaries:GetCampFurniture(mercWuid)
-    if not _G.MercInCamp or _G.MercenariesDismissed then return nil end
-    if self:IsCampOut(mercWuid) then return nil end
-    return self.CampFurniture and self.CampFurniture[tostring(mercWuid)]
+    local ws = tostring(mercWuid)
+    if not self:IsForeignCampActor(ws) then
+        if not _G.MercInCamp or _G.MercenariesDismissed then return nil end
+        if self:IsCampOut(mercWuid) then return nil end
+    end
+    return self.CampFurniture and self.CampFurniture[ws]
 end
 
 -- Returns a merc's assigned camp ACTIVITY record, or nil:
@@ -1187,13 +1273,14 @@ end
 -- an activity outside of camp; the activity case in camp_actor.xml is
 -- first in the ContinuousSwitch, so it preempts patrol/sit/sleep/follow.
 function mercenaries:GetCampActivity(mercWuid)
-    if _G.MercenariesDismissed then return nil end
+    -- Dismissing the squad ends MERC camp life; it says nothing about a bandit camp.
+    if _G.MercenariesDismissed and not self:IsForeignCampActor(tostring(mercWuid)) then return nil end
     -- A post-battle loot task outranks camp life and ignores the camp-out gate:
     -- the bodies are wherever the fight was, and the mercs working them are
     -- usually the sortie party. See mercenaries_lootsweep.lua.
     local loot = self.LootActivities and self.LootActivities[tostring(mercWuid)]
     if loot then return loot end
-    if self:IsCampOut(mercWuid) then return nil end
+    if not self:IsForeignCampActor(tostring(mercWuid)) and self:IsCampOut(mercWuid) then return nil end
     return self.CampActivities and self.CampActivities[tostring(mercWuid)]
 end
 
@@ -1206,9 +1293,47 @@ end
 -- given a wait order, and into the follow branch otherwise - i.e. sortie mercs
 -- respect global idle. (Camp no longer forces global idle on, so the in-camp
 -- mercs are held in place by their roles, not by the idle flag.)
+-- THE reason a camp actor stands in a battle being hit.
+--
+-- camp_actor is an infinite Loop with no way out: once it has the interrupt slot it keeps it
+-- for good. The patrol trees do not have this problem because PatrolYieldToCombat makes their
+-- walk node FAIL the moment the man has a target, which ends the behaviour and lets combat
+-- take the slot (mercenaries_patrol.lua). Camp actors had no equivalent, so clearing their
+-- camp role only stopped camp_actor being fired AGAIN - the instance already running carried
+-- on looping regardless.
+--
+-- Called every cycle from camp_actor.xml. True = drop out of the camp behaviour now.
+function mercenaries:CampActorYield(data, entity)
+    data.campYield = false
+    local w = entity and entity.this and entity.this.id
+    if not w then return end
+    local ws = tostring(w)
+
+    -- No longer a camp actor at all (his role was stripped, or a siege has started).
+    if not self:IsCampActor(ws) then data.campYield = true; return end
+
+    -- Or he has a fight on: a target of his own, one handed to him, or one he is claiming.
+    local hasTarget = false
+    pcall(function()
+        hasTarget = (self.EnemyTargetOf and self.EnemyTargetOf[ws] ~= nil)
+                 or (self.ForcedTargetOf and self.ForcedTargetOf[ws] ~= nil)
+                 or (self.MercTargetOf  and self.MercTargetOf[ws]  ~= nil)
+    end)
+    if hasTarget then data.campYield = true end
+end
+
 function mercenaries:IsCampActor(mercWuid)
+    -- A besieger in a live, alerted siege is NEVER a camp actor, whatever the camp tables
+    -- still say. Clearing all four of them left every man reading campActor=true, so one of
+    -- the checks below draws on something this override does not need to identify: once the
+    -- battle is on, camp_actor must not hold the interrupt slot, full stop.
+    if self.RaborschIsFighting and self:RaborschIsFighting(mercWuid) then return false end
+
     if self:GetCampActivity(mercWuid) ~= nil then return true end
     if self:IsCampGuard(mercWuid) then return true end
+    -- Men marching in a column count too: camp_actor is the behaviour that carries the follow
+    -- arm, and it only ever fires for those this returns true for.
+    if self:IsColumnFollower(mercWuid) then return true end
     return self:GetCampFurniture(mercWuid) ~= nil
 end
 
@@ -1396,6 +1521,7 @@ function mercenaries:CampTakeParty(fraction)
         pcall(function() self:ReleaseSpot(self.CampSeats, ws) end)
         pcall(function() self:ReleaseSpot(self.CampBeds, ws) end)
     end
+    self:SaveCampOutParty()
     Game.SendInfoText('merc_info_camp_deployed', false, 0, 4)
     System.LogAlways(string.format('[CampDeploy] deployed %d/%d mercs (best tier first)', takeN, total))
 end
@@ -1448,6 +1574,7 @@ function mercenaries:ProcessReturnPending()
         rec.ticks = (rec.ticks or 0) - 1
         if rec.ticks <= 0 then
             self.CampOutParty[ws] = nil
+            self:SaveCampOutParty()
             self:CampTeleportToCamp(rec.ent, ws)
             pend[ws] = nil
         end
@@ -1520,6 +1647,7 @@ function mercenaries:CampReturnMerc(mercWuid)
     local ws = tostring(mercWuid)
     if not self.CampOutParty[ws] then return end
     self.CampOutParty[ws] = nil
+    self:SaveCampOutParty()
     local target
     for name, ent in pairs(self.ActiveMercs) do
         local wuid = ent and XGenAIModule.GetMyWUID(ent)
@@ -1554,10 +1682,32 @@ function mercenaries:EndCampChat(mercWuid)
     self:ClearCampChatPair(mercWuid)
 end
 
+-- Drops the MERCS' conversations and nothing else. _G.MercCampChats is shared with the
+-- bandit-camp contract, whose entries carry `foreign` and belong to a camp that has nothing
+-- to do with the squad breaking or rebuilding theirs.
+function mercenaries:ClearMercCampChats()
+    local chats = _G.MercCampChats or {}
+    for w, c in pairs(chats) do
+        if not (c and c.foreign) then chats[w] = nil end
+    end
+    _G.MercCampChats = chats
+end
+
 -- Pairs up ALL eligible nearby mercs each 5s tick (concurrent conversations),
 -- seeds staggered per-merc cooldowns once per camp, and ages out stuck pairs.
 function mercenaries:CampChatTick()
-    if not self.CampActive then _G.MercCampChats = {} return end
+    -- No merc camp: drop the MERCS' conversations, but leave anything flagged `foreign`.
+    -- The bandit-camp contract publishes into this same table (its own pairing tick), and
+    -- its camp stands whether or not the squad has pitched one - a blanket wipe here would
+    -- have silenced it every tick.
+    if not self.CampActive then
+        local chats = _G.MercCampChats or {}
+        for w, c in pairs(chats) do
+            if not (c and c.foreign) then chats[w] = nil end
+        end
+        _G.MercCampChats = chats
+        return
+    end
     _G.MercCampChats = _G.MercCampChats or {}
     local chats = _G.MercCampChats
     local ok, err = pcall(function()
@@ -1582,9 +1732,12 @@ function mercenaries:CampChatTick()
 
         -- Age active pairs; force-clear any that overran the stuck-pair safety.
         -- Only role-1 entries carry the age, so each pair is counted once.
+        -- `foreign` entries belong to a bandit camp and are aged by its own tick, which runs
+        -- at a different rate; ageing them here too would expire them early and at the wrong
+        -- cadence.
         local expired = {}
         for w, c in pairs(chats) do
-            if c.role == 1 then
+            if c.role == 1 and not c.foreign then
                 c.age = (c.age or 0) + 1
                 if c.age >= self.CampChatHoldTicks then table.insert(expired, w) end
             end
@@ -1627,9 +1780,12 @@ function mercenaries:CampChatTick()
         end
 
         -- Count conversations already running (one role-1 entry per pair) so we
-        -- never exceed CampMaxConcurrentChats camp-wide.
+        -- never exceed CampMaxConcurrentChats camp-wide. A bandit camp's pairs live in this
+        -- same table but must not eat the squad's budget - they have their own cap.
         local activePairs = 0
-        for _, c in pairs(chats) do if c.role == 1 then activePairs = activePairs + 1 end end
+        for _, c in pairs(chats) do
+            if c.role == 1 and not c.foreign then activePairs = activePairs + 1 end
+        end
 
         -- Shuffle so pairings aren't biased by iteration order, then bring the
         -- tavern-seated mercs to the front so they pair first (conversations are
@@ -1677,6 +1833,13 @@ end
 -- route around instead, and AdvancePatrolWaypoint holds the ring index until the real
 -- waypoint is reached. A waypoint that is walled off with no route at all is skipped,
 -- so a wall drawn across the patrol ring cannot park a guard forever.
+-- True for a man who should walk his route without the sentry pause between waypoints -
+-- the lead of a marching column. A sentry pacing a beat pauses; a column does not.
+function mercenaries:IsPatrolNoPause(mercWuid)
+    local rec = self.CampPatrollers and self.CampPatrollers[tostring(mercWuid)]
+    return (rec ~= nil) and (rec.noPause == true)
+end
+
 function mercenaries:GetPatrolWaypoint(mercWuid)
     if self:IsCampOut(mercWuid) then return nil end
     local rec = self.CampPatrollers and self.CampPatrollers[tostring(mercWuid)]
@@ -1863,6 +2026,9 @@ function mercenaries.RestoreCampDelayed()
     local ok, err = pcall(function() self:SpawnMercCamp(o, true) end)
     if ok then System.LogAlways("[Camp] restored saved camp")
     else System.LogAlways("[Camp] restore failed: " .. tostring(err)) end
+    -- Strictly after the rebuild: SpawnMercCamp empties CampOutParty and gives everyone a
+    -- camp role, so the deployed party has to be put back on top of that, not before it.
+    pcall(function() self:LoadCampOutParty() end)
 end
 
 -- Build the physical camp layout and teleport the squad in. Tent recipients (up
@@ -2650,7 +2816,7 @@ function mercenaries:BreakMercCamp(silent)
     pcall(function() if self.DefClearWorld then self:DefClearWorld() end end)
     _G.MercCampMode = false
     _G.MercInCamp = false
-    _G.MercCampChats = {}
+    mercenaries:ClearMercCampChats()
     _G.MercReturnPending = {}
     self.CampChatMercCooldown = {}
     self.CampChatStaggered = false
@@ -2724,7 +2890,7 @@ function mercenaries:RecallMercs()
     self.CampSeats = {}
     self.CampBeds = {}
     _G.MercInCamp = false
-    _G.MercCampChats = {}
+    mercenaries:ClearMercCampChats()
     self.CampChatMercCooldown = {}
     self.CampChatStaggered = false
     _G.MercIdle = false
@@ -2833,7 +2999,7 @@ function mercenaries:ClearAnyLeftoverCamp()
     self.CampChatStaggered = false
     _G.MercCampMode = false
     _G.MercInCamp = false
-    _G.MercCampChats = {}
+    mercenaries:ClearMercCampChats()
 end
 
 System.AddCCommand("merc_camp_make", "mercenaries:SpawnMercCamp()", "Spawn a procedural camp and idle the squad in it")

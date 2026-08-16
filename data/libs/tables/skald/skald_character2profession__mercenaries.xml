@@ -41,6 +41,7 @@
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_bandit_1" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_bandit_2" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_bandit_3" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_banditcamp_leader" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_sigi_1" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_sigi_2" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_sigi_3" />

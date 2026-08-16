@@ -44,6 +44,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Quest-override experiment](quest-override-test.md) (The single-quest Malesov prototype that proved soul membership is the render gate — `merc_testmerc`, the bisects, and how to revert)
 * [Post-battle loot sweep](loot-sweep.md) (Mercs wander the corpses and rummage after a fight - animation only, no item transfer - plus the revive/knockout/mercy-kill act, and why it rides the camp activity pipeline instead of its own module)
 * [Enemy groups](enemies.md) (The six hostile groups that replaced the renegades — looters, bandits, Sigismund's soldiers, Prague regiment, Cumans, Sigismund's knights — their souls/faction/brains/gear and the spawn commands)
+* [The bandit-camp contract](bandit-camp-quest.md) (The mod's first real journal quest: how an Objective, its log entries and its map marker are built from Skald primitives only, why the marker has to ride a soul, and the Lua↔Skald token bridge in both directions)
 
 ### Camp
 * [Mercenary camp](camp.md) (Procedural camp spawn/despawn, how props render without a custom entity class, the smart-object sit/sleep integration, and deploying from camp)

@@ -22,61 +22,57 @@
 -- cost and shadows are not the reported symptom.
 --
 -- View distance decides WHETHER a merc is drawn; the LOD ratio decides WHICH MESH LOD. They
--- are separate knobs and only the first was ever needed for "they do not render at all".
+-- are separate knobs, and ONLY THE VIEW DISTANCE IS TOUCHED. That is the configuration that
+-- was measured good in game: everybody renders, detail is the engine's own choice.
 --
--- The LOD ratio SCALES WITH THE CROWD, because the whole reason to give up detail is that
--- there are a lot of NPCs to draw. With a handful of mercs there is nothing to save and they
--- should look their best; with fifty, a little fidelity buys headroom.
+-- DO NOT drive SetLodRatio from a crowd count. It was tried - a ratio interpolated 100..130
+-- from (mercs + nearby hostiles), re-applied to every merc on the 5s sweep - and it brought
+-- back the popping in and out that the view-distance pin had fixed. Two reasons, and both
+-- would apply to any variant of the idea:
+--   * the crowd count moves constantly, so the ratio moves with it, and every change makes
+--     every merc re-evaluate which mesh LOD to draw;
+--   * it was re-applied on a timer even when unchanged, so the churn had a floor.
+-- KCD2 assembles characters from clothing skins and swaps in a merged "uberlod" from a
+-- configurable LOD number, so nudging LOD selection on a character is nothing like doing it
+-- on a wall segment - which is where these calls were copied from. 255 made mercs low-detail
+-- puppets at arm's length; leaving it alone looks right.
 --
--- Calibration, from what has actually been seen in game: 255 (copied from the wall-segment
--- code) made mercs low-detail puppets at arm's length - KCD2 assembles characters from
--- clothing skins and swaps in a merged "uberlod" from a configurable LOD number, so
--- distorting LOD selection on a character is nothing like doing it on a wall. Unset looked
--- right but is more than a big squad needs. 140 was "just about bearable", so that is the
--- WORST this is now allowed to get, and only at full crowd; small squads sit at the engine
--- default. The scale runs "higher = drops detail sooner".
-mercenaries.RenderPin       = true
-mercenaries.RenderLodBest   = 100    -- engine default: small squads, full detail
-mercenaries.RenderLodWorst  = 130    -- big crowd; below the 140 that was merely "bearable"
-mercenaries.RenderLodCrowdLo = 10    -- at or under this many mod NPCs, best detail
-mercenaries.RenderLodCrowdHi = 45    -- at or over this, worst
-mercenaries.RenderLodRatio  = nil    -- computed; nil = leave the engine alone
-
-function mercenaries:UpdateRenderLod()
-    local crowd = (_G.MercCount or 0) + #(self.CachedEnemies or {})
-    local lo, hi = self.RenderLodCrowdLo, self.RenderLodCrowdHi
-    local t = 0.0
-    if hi > lo then t = (crowd - lo) / (hi - lo) end
-    if t < 0 then t = 0 elseif t > 1 then t = 1 end
-    local r = math.floor(self.RenderLodBest + (self.RenderLodWorst - self.RenderLodBest) * t + 0.5)
-    self.RenderLodRatio = r
-    return r
-end
+-- If mesh detail ever genuinely needs cutting for performance, do it with a FIXED value set
+-- once (merc_render_lod), never a value that tracks a live count.
+--
+-- Separate pcalls on purpose: these are entity-class methods and a missing one on the NPC
+-- class must not skip the others. No RenderShadow here - fifty extra shadow casters is a real
+-- cost and shadows are not the reported symptom.
+mercenaries.RenderPin      = true
+mercenaries.RenderLodRatio = nil     -- nil = leave mesh LOD to the engine (the good state)
 
 function mercenaries:EnsureMercIsAlwaysRendered(ent)
     if not (ent and self.RenderPin) then return end
     pcall(function() ent:SetViewDistUnlimited() end)
     pcall(function() ent:SetViewDistRatio(255) end)
+    -- Only ever a fixed, manually-set value, and only when one has been asked for.
     if self.RenderLodRatio then
         pcall(function() ent:SetLodRatio(self.RenderLodRatio) end)
     end
 end
 
--- Set the WORST the scaling is allowed to get (the value used at full crowd). Small squads
--- keep RenderLodBest regardless, so this is the one number worth tuning by eye.
+-- merc_render_lod <n>  - pin mesh detail to a fixed ratio (higher drops detail sooner).
+-- merc_render_lod      - or 0/off: hand mesh LOD back to the engine. This is the default and
+--                        the state that looked right in game.
 function mercenaries:RenderLodSet(v)
     local n = tonumber(tostring(v or ''):match('%d+'))
-    if n then self.RenderLodWorst = n end
-    local now = self:UpdateRenderLod()
-    System.LogAlways('[Mercenary Jeff] merc LOD: best=' .. tostring(self.RenderLodBest) ..
-                     ' worst=' .. tostring(self.RenderLodWorst) ..
-                     ' currently=' .. tostring(now) ..
-                     ' (higher drops detail sooner; 255 was puppet-grade, 100 is engine default)')
-    self:RefreshRenderPins()
+    if n == 0 then n = nil end
+    self.RenderLodRatio = n
+    System.LogAlways('[Mercenary Jeff] merc mesh LOD = ' ..
+        (n and tostring(n) or 'engine default') ..
+        ' (fixed; never scaled from a live count - that caused pop-in). ' ..
+        'Reference: 100 is default, 255 was puppet-grade.')
+    -- A cleared ratio cannot be un-applied on live entities; it takes effect on respawn.
+    if n then self:RefreshRenderPins() end
 end
 
 System.AddCCommand("merc_render_lod", "mercenaries:RenderLodSet('%line')",
-                   "Worst-case merc mesh detail at full crowd, e.g. merc_render_lod 130")
+                   "Fixed merc mesh detail, or 0 for engine default: merc_render_lod 130")
 
 -- Movement speed + stamina, so the squad can stay with a sprinting player. Dash is the
 -- highest RelativeSpeedLimit the engine has, so raising actual movement speed is the only
@@ -99,7 +95,6 @@ end
 -- state behind us. The keep-up buff rides along on the same sweep so newly hired mercs and
 -- reloaded saves pick it up without another loop.
 function mercenaries:RefreshRenderPins()
-    if self.RenderPin then self:UpdateRenderLod() end
     for _, ent in pairs(self.ActiveMercs or {}) do
         if self.RenderPin then self:EnsureMercIsAlwaysRendered(ent) end
         self:ApplyKeepUpBuff(ent)
@@ -267,7 +262,7 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
             local checkVec = VectorUtils.Scale(rotatedDir, rayDistance)
             -- Use ent_terrain + ent_static: ignore dynamic entities (NPCs, horses, etc.)
             local hits = Physics.RayWorldIntersection(eyePos, checkVec, 2,
-                ent_terrain + ent_static, pe.id, nil, hitTable)
+                ent_terrain + ent_static, pe, nil, hitTable)
 
             local clearDist = rayDistance
             if hits > 0 and hitTable[1] and hitTable[1].dist then
@@ -308,7 +303,7 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
     local groundCheckStart = { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z + 5.0 }
     local groundCheckDir  = { x = 0, y = 0, z = -100 }
     local groundHits = Physics.RayWorldIntersection(groundCheckStart, groundCheckDir, 2,
-        ent_terrain + ent_static, 0, nil, groundHitTable)
+        ent_terrain + ent_static, nil, nil, groundHitTable)
 
     if groundHits > 0 and groundHitTable[1] and groundHitTable[1].pos then
         spawnPos.z = groundHitTable[1].pos.z

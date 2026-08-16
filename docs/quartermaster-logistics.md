@@ -70,9 +70,15 @@ quartermaster spends:
 
 | Per kill | Amount | In plain terms |
 | --- | --- | --- |
-| Food | `LootPerKillFood` = 3 units | a unit feeds `FeedRatio` (8) mercs for a day, so 3 units ≈ a day for 24 men |
-| Drink | `LootPerKillDrink` = 1 unit | same units as food |
-| Wages | `LootPerKillWages` = 2 merc-days | priced at `WagePerTier.medium`, so 20 gr into the war chest |
+| Food | `LootPerKillFood` = 0.3 units | a unit feeds `FeedRatio` (8) mercs for a day, so ten bodies ≈ a day for 24 men |
+| Drink | `LootPerKillDrink` = 0.1 units | same units as food |
+| Wages | `LootPerKillWages` = 0.2 merc-days | priced at `WagePerTier.medium`, so 2 gr into the war chest |
+
+These are **fractions of a unit** — a body carries a bite and a swallow, not a day's rations
+for two dozen men. `accrue()` banks them in `L.lootCarryFood / lootCarryDrink / lootCarryCoin`
+and credits only whole units to the pools, so food/drink/coffer (and everything the
+quartermaster prints off them) stay integers and nothing is lost to rounding. The carry is
+runtime-only — a save loses at most a fraction of a unit.
 
 It reuses the kill detection the morale system already runs (an enemy we were *engaged* with,
 now confirmed dead) rather than adding a second one, so the two can never disagree about what
@@ -82,10 +88,15 @@ Spoils are **not capped per fight**, and neither is the morale gain — both sca
 because a long fight should both feed the squad and feel like a win. Fresh supplies also clear
 the `starving` / no-drink flags immediately, exactly as a delivery does.
 
-When the last engaged enemy goes down, `LogiAfterActionReport` reports what the fight bought —
-**in days, not units**, since units mean nothing on their own. Food and drink use
-`LogiSupplyDays` (scaled by current squad size); the wage runway counts the war chest **plus
-your purse**, matching `LogiAskStats`, because payday spends both.
+When the last engaged enemy goes down, `LogiAfterActionReport` prints **three numbers and
+nothing else**: the days of food, drink and wages *this fight* added, at the squad's current
+burn rate (`ceil(MercCount / FeedRatio)` per day for supplies, `LogiWageTotal` per day for
+coin). The per-fight haul is tallied in `L.fightLootFood / fightLootDrink / fightLootCoin`,
+reset on the rising edge of the fight alongside the morale cap.
+
+It used to also print kills, stock totals and the full wage runway; that is the
+quartermaster's job (`LogiAskStats`), and on-screen it was a wall of text. Anything under ten
+days shows one decimal, so a small haul doesn't read as "0".
 
 Note this is not the "sell loot into the coffer" feature described below as unimplemented — no
 inventory enumeration is involved. The supplies are credited directly.

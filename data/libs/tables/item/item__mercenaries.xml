@@ -70,6 +70,82 @@
         <!-- Food-delivery-panel result token: its COUNT = how many food items the player delivered -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be77d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be78d" Name="loot_sackOfNails" />
+        <!-- Bandit-camp contract. be81d goes Skald->Lua like every other token here
+             (dialog port -> CreatePlayerReward -> polled in mercenaries.lua).
+             be82d goes the OTHER way: Lua creates it when the last bandit falls and an
+             ItemDescriptorTrigger in bandit_camp_quest.xml watches for it, which is how
+             a Lua-computed condition closes a Skald objective. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be81d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be82d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be83d" Name="loot_sackOfNails" />
+        <!-- Handing the letter over (Skald->Lua) and the quest closing (Lua->Skald). -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be85d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be86d" Name="loot_sackOfNails" />
+        <!-- "the letter is in hand": moves the marker off the camp and onto the quartermaster. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be87d" Name="loot_sackOfNails" />
+
+        <!-- The bandit leader's letter, sitting in the camp's chest. A real readable
+             Document (Type 5 = letter), not a token: the player finds it, can read it, and
+             carries it back to the quartermaster. Modelled on vanilla's letter_huntsmanRenes.
+             IsQuestItem keeps it out of the merchants. Its body text is the localization keys
+             in DocumentContent/Parts. -->
+        <!-- NO IsQuestItem. That attribute is what stopped inventory:CreateItem making one:
+             the item loaded into the database fine (the DB reports all 53 entries) and the
+             call still produced nothing. The `cheat` mod in references/ hit the same wall and
+             works around it explicitly - "some quest item cannot be added while others can",
+             "some items are block by inventory:CreateItem" - and both vanilla letters that
+             look like this one (letter_huntsmanRenes, zikmunduv_dopis) omit it too.
+             Trade-off: without it the letter can be sold to a merchant. The contract checks
+             the pack at hand-in, so selling it strands that contract until it is re-taken. -->
+        <Document Type="5" IconId="letter_fancy" UIInfo="merc_banditcamp_letter_uiinfo" UIName="merc_banditcamp_letter_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be84d" Name="merc_banditcamp_letter">
+            <DocumentContent Parts="merc_banditcamp_letter_part1 merc_banditcamp_letter_part2 merc_banditcamp_letter_part3" />
+        </Document>
+        <!-- The quartermaster's two dialog gates: contract open/shut, hand-in ready. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be9fd" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bea0d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bea1d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bea2d" Name="loot_sackOfNails" />
+        <!-- After the last kill: search his body / report straight back. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be9dd" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be9ed" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bea3d" Name="loot_sackOfNails" />
+        <!-- Kleinkrieg phase markers: token N latches 'the run has reached contract N'. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be90d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be91d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be92d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be93d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be94d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be95d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be96d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be97d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be98d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be99d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be9ad" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be9bd" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be9cd" Name="loot_sackOfNails" />
+        <!-- Signals the END of the whole Kleinkrieg arc (last contract paid). -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be8ed" Name="loot_sackOfNails" />
+        <!-- The Kleinkrieg story letters (docs/bandit-camp-quest.md). Letter 6 is
+             Raborsch's and arrives with that contract. No IsQuestItem - it blocks
+             inventory:CreateItem, which is how these reach the leader's body. -->
+        <Document Type="5" IconId="letter_simple" UIInfo="merc_kk_letter1_uiinfo" UIName="merc_kk_letter1_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be88d" Name="merc_kk_letter1">
+            <DocumentContent Parts="merc_kk_letter1_part1 merc_kk_letter1_part2" />
+        </Document>
+        <Document Type="5" IconId="letter_simple" UIInfo="merc_kk_letter2_uiinfo" UIName="merc_kk_letter2_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be89d" Name="merc_kk_letter2">
+            <DocumentContent Parts="merc_kk_letter2_part1 merc_kk_letter2_part2" />
+        </Document>
+        <Document Type="5" IconId="letter_fancy" UIInfo="merc_kk_letter3_uiinfo" UIName="merc_kk_letter3_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be8ad" Name="merc_kk_letter3">
+            <DocumentContent Parts="merc_kk_letter3_part1 merc_kk_letter3_part2" />
+        </Document>
+        <Document Type="5" IconId="letter_simple" UIInfo="merc_kk_letter4_uiinfo" UIName="merc_kk_letter4_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be8bd" Name="merc_kk_letter4">
+            <DocumentContent Parts="merc_kk_letter4_part1 merc_kk_letter4_part2" />
+        </Document>
+        <Document Type="5" IconId="letter_fancy" UIInfo="merc_kk_letter5_uiinfo" UIName="merc_kk_letter5_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be8cd" Name="merc_kk_letter5">
+            <DocumentContent Parts="merc_kk_letter5_part1 merc_kk_letter5_part2" />
+        </Document>
+        <Document Type="5" IconId="letter_simple" UIInfo="merc_kk_letter7_uiinfo" UIName="merc_kk_letter7_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be8dd" Name="merc_kk_letter7">
+            <DocumentContent Parts="merc_kk_letter7_part1 merc_kk_letter7_part2" />
+        </Document>
 
     </ItemClasses>
 </database>

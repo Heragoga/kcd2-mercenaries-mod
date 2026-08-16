@@ -9,7 +9,7 @@ spawn it somewhere, point it at something.
 | 1 | **Camp raids** - small bandit bands hit the camp while the player is in it; a solo "armed Henry" variant | planned |
 | 2 | **Ambushes** - preset archer/melee spots + trigger areas on the road | **done** (authoring + live triggers) |
 | 3 | **Patrols** - enemy groups marching a road path in formation behind a leader | planned |
-| 4 | **Large bandit camps** - a mod camp populated by bandits instead of mercs | planned |
+| 4 | **Large bandit camps** - a mod camp populated by bandits instead of mercs | **done** as the quartermaster's contract quest ([bandit-camp-quest.md](bandit-camp-quest.md)); needs a site + layout authored |
 | 5 | **Siege of Raborsch** - one-off Kuttenberg quest, lift a Sigismund siege | planned |
 
 The shared spawn primitive is `mercenaries:SpawnEnemyAt(groupKey, isArcher, pos, yaw)`

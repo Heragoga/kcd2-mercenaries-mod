@@ -62,18 +62,26 @@ function mercenaries:DefSave()
     self:SaveString("QMWallClosed", self.WallClosed and "1" or "0")
     self:SaveString("QMWallType",   tostring(self.WallTypeIdx or 3))
 
+    -- Only the PLAYER's towers. A tower carrying `group` belongs to somebody else's camp (the
+    -- bandit-camp contract builds its watchtowers through the same TowerStations list), and
+    -- saving it here means the defence restore rebuilds it on load as one of ours - which put
+    -- a FRIENDLY archer on a bandit watchtower alongside the enemy one the camp spawned.
+    -- That camp persists through its own contract state and rebuilds its own towers.
     local towers = {}
     for _, st in ipairs(self.TowerStations or {}) do
-        if st.placedGround then
+        if st.placedGround and not st.group then
             table.insert(towers, { x = st.placedGround.x, y = st.placedGround.y,
                                    z = st.placedGround.z, yaw = st.yaw or 0 })
         end
     end
     self:SaveString("QMTowers", packPoses(towers))
 
+    -- Player carts only, for the same reason as the towers above: a cart carrying `group`
+    -- belongs to a bandit camp, and persisting it here would have the defence restore rebuild
+    -- it as ours, putting friendly archers on a bandit wagon.
     local carts = {}
     for _, st in ipairs(self.ArcherCarts or {}) do
-        if st.origin then
+        if st.origin and not st.group then
             table.insert(carts, { x = st.origin.x, y = st.origin.y, z = st.origin.z, yaw = st.yaw or 0 })
         end
     end

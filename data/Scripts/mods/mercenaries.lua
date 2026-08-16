@@ -741,6 +741,8 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMArcherCart,    function() self:LogiBuyArcherCart() end)
     tok(self.TokenIDQMRemoveUpg,     function() self:LogiRemoveAllUpgrades() end)
     tok(self.TokenIDQMWall,          function() self:LogiBuyWall() end)
+    tok(self.TokenIDBanditCamp,      function() self:BanditCampAccept() end)
+    tok(self.TokenIDBanditCampHandIn, function() self:BanditCampDeliverLetter() end)
     tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
     tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
     tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
@@ -814,6 +816,13 @@ function mercenaries.MonitorLoop()
 
     -- Sleeping in the camp bed saves the game (see docs/camp.md "The player tent").
     pcall(function() mercenaries:CampBedSleepWatch() end)
+
+    -- The bandit-camp contract: kill tracking, payout, and building/unloading the camp
+    -- as the player comes and goes. See docs/bandit-camp-quest.md.
+    pcall(function() mercenaries:BanditCampMonitor() end)
+
+    -- The siege of Raborsch: watches for the player closing on it. See docs/raborsch.md.
+    pcall(function() mercenaries:RaborschMonitor() end)
 
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
 end
@@ -952,15 +961,25 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     end)
     System.LogAlways("[Mercenaries] Recall keybind F4: " .. (okBind and "OK" or "FAILED - use merc_camp_recall console command"))
 
-    -- Patrol route recorder: F5 new, F6 save, F7 cancel, F8 dump. See docs/patrols.md.
-    pcall(function()
-        System.ExecuteCommand("bind f5 merc_route_new")
-        System.ExecuteCommand("bind f6 merc_route_save")
-        System.ExecuteCommand("bind f7 merc_route_cancel")
-        System.ExecuteCommand("bind f8 merc_route_dump")
-    end)
+    -- F5-F11 belong to the BANDIT CAMP BUILDER (docs/bandit-camps.md). The patrol route
+    -- recorder wants F5-F8 too and cannot have both: `merc_binds_routes` swaps them over for
+    -- a recording session, `merc_bcamp_binds` swaps them back. Routes are recorded once per
+    -- map and then never again, so the builder holds the keys by default.
+    -- F5-F11 go to the SIEGE builder. The camp builder's own binder is commented out in
+    -- mercenaries_banditcamp.lua while Raborsch is being authored - it was reclaiming the
+    -- keys on every load and merc_siege_binds never survived a reload.
+    -- To go back to the camp builder: swap this for mercenaries:BCampBinds(true) and
+    -- uncomment the body of BCampBinds.
+    pcall(function() mercenaries:SiegeBinds(true) end)
     pcall(function() mercenaries:RouteLoad() end)
     pcall(function() mercenaries:LivePatrolStart() end)
+    -- A bandit-camp contract in progress. Only the CONTRACT is restored here; the camp
+    -- itself is rebuilt by the monitor once the player is near it again.
+    pcall(function() mercenaries:BanditCampRestore() end)
+    -- ...and then drop everything this session cached in memory rather than saved, so the
+    -- quartermaster's dialog, the arc position and the marching column are all re-derived
+    -- from the save that was actually loaded. Runs whether or not a contract was in progress.
+    pcall(function() mercenaries:BanditCampResync() end)
 
     self:ReleaseSpeakingLock()
 
@@ -1019,6 +1038,7 @@ Script.LoadScript("Scripts/mods/mercenaries_routes.lua")
 Script.LoadScript("Scripts/mods/mercenaries_patrol_routes.lua")
 Script.LoadScript("Scripts/mods/mercenaries_patrol_routes_trosky.lua")
 Script.LoadScript("Scripts/mods/mercenaries_patrols_live.lua")
+Script.LoadScript("Scripts/mods/mercenaries_ambush_road.lua")
 Script.LoadScript("Scripts/mods/mercenaries_testnpc.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush_scenes.lua")
@@ -1029,6 +1049,12 @@ Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lootsweep.lua")
 Script.LoadScript("Scripts/mods/mercenaries_hide_others.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lodboost.lua")
+Script.LoadScript("Scripts/mods/mercenaries_banditcamp.lua")
+Script.LoadScript("Scripts/mods/mercenaries_banditcamp_quest.lua")
+-- After the camp builder: its catalogue is reused for the siege editor's props page.
+Script.LoadScript("Scripts/mods/mercenaries_siege.lua")
+-- After the siege builder: the siege replay resolves its pieces against that catalogue.
+Script.LoadScript("Scripts/mods/mercenaries_raborsch.lua")
 
 
 -- Prints every merc console command with a one-line description.
@@ -1051,6 +1077,8 @@ function mercenaries:PrintHelp()
         "archer_weapon_bow|crossbow|handcannon    archer ranged weapon type",
         "enemy_spawn_looters|bandits|sigi|prague|cumans|knights[_1|_20]   spawn an enemy group; base = row of 10 (debug)",
         "enemy_spawn_heinrich[_3]            spawn the overpowered Heinrich boss (debug)",
+        "merc_banditcamp_start|status|abandon|clear   the quartermaster's bandit-camp contract (docs/bandit-camp-quest.md)",
+        "merc_bcamp_site_here                 print a BanditCampSites row for where you stand",
         "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",
         "merc_buff_list                       squad status HUD icons (auto-driven by logistics); merc_buff_all tests them, merc_buff_auto hands back",
         "merc_recount                         re-sync the merc counter",

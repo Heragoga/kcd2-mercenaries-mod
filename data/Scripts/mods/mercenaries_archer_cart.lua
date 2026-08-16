@@ -62,11 +62,20 @@ function mercenaries:ArcherCartSpawnPart(model, wp, yaw, scale, invisible, track
 end
 
 -- Build one cart. `atPos`/`atYaw` place it; with no args it goes ahead of the player.
-function mercenaries:SpawnArcherCart(atPos, atYaw)
+-- `opts` = { mode =, group = } makes it somebody else's - a bandit camp's cart, whose archers
+-- run in "hostile" mode on enemy souls. Omitted, it is the player's own exactly as before.
+function mercenaries:SpawnArcherCart(atPos, atYaw, opts)
     if not player then return end
-    if #self.ArcherCarts >= self.ArcherCartMax then
-        System.LogAlways("[ArcherCart] limit reached (" .. self.ArcherCartMax .. ") - merc_archer_cart_clear first")
-        return
+    -- Player budget only; foreign carts are layout-authored (see the tower cap note).
+    if not (opts and opts.group) then
+        local own = 0
+        for _, st in ipairs(self.ArcherCarts) do
+            if not st.group then own = own + 1 end
+        end
+        if own >= self.ArcherCartMax then
+            System.LogAlways("[ArcherCart] limit reached (" .. self.ArcherCartMax .. ") - merc_archer_cart_clear first")
+            return
+        end
     end
 
     local yaw, ground
@@ -87,7 +96,8 @@ function mercenaries:SpawnArcherCart(atPos, atYaw)
     end
     if self.CampSnapToGround then ground = self:CampSnapToGround(ground) end
 
-    local st = { origin = ground, yaw = yaw, ids = {}, archers = {} }
+    local st = { origin = ground, yaw = yaw, ids = {}, archers = {},
+                 mode = opts and opts.mode, group = opts and opts.group }
     table.insert(self.ArcherCarts, st)
 
     -- wagon (visible) + bed collider (invisible)
@@ -109,7 +119,12 @@ function mercenaries:SpawnArcherCart(atPos, atYaw)
     Script.SetTimerForFunction(self.ArcherCartDelay, "mercenaries.ArcherCartSpawnArchersDelayed")
 
     System.LogAlways("[ArcherCart] cart #" .. #self.ArcherCarts .. " parked - archers in " .. self.ArcherCartDelay .. "ms")
-    pcall(function() if self.DefSave then self:DefSave() end end)
+    -- Somebody else's cart is not one of the player's defences: saving it would have the
+    -- defence restore rebuild it on load as OURS, with friendly archers on it. Same trap the
+    -- watchtowers hit. DefSave filters on st.group too.
+    if not st.group then
+        pcall(function() if self.DefSave then self:DefSave() end end)
+    end
     return st
 end
 
@@ -119,7 +134,7 @@ function mercenaries.ArcherCartSpawnArchersDelayed()
     local st = table.remove(self.ArcherCartSpawnQueue, 1)
     if not st or st.dead then return end
     for _, spec in ipairs(st.archerSpecs or {}) do
-        local ent = self:SpawnStaticArcher(spec.pos, self.ArcherCartMode, spec.face)
+        local ent = self:SpawnStaticArcher(spec.pos, st.mode or self.ArcherCartMode, spec.face, st.group)
         if ent then table.insert(st.archers, { ent = ent, pos = spec.pos, face = spec.face }) end
     end
     System.LogAlways("[ArcherCart] " .. #st.archers .. "/" .. #(st.archerSpecs or {}) .. " archers aboard")

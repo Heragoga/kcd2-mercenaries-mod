@@ -21,12 +21,25 @@ scripted main-quest battles**.
 > note that "a genuinely clean retry with no follow-up zeroing has never been attempted"
 > is the accurate statement.
 >
-> It now applies the same three calls that already fixed wall segments, towers and camp
-> props dropping out at distance (`mercenaries_wall.lua`): `SetViewDistUnlimited()`,
-> `SetViewDistRatio(255)`, `SetLodRatio(255)` — separate `pcall`s, since a method missing
-> on the NPC class must not skip the others. No `RenderShadow`: fifty extra shadow casters
-> is a real cost and shadows are not the symptom. Re-applied on the slow tick as well as at
-> spawn, because anything that rebuilds an entity can drop it. `merc_render_pin 0|1` to A/B it.
+> It now applies **`SetViewDistUnlimited()` + `SetViewDistRatio(255)`** — separate `pcall`s,
+> since a method missing on the NPC class must not skip the others. No `RenderShadow`: fifty
+> extra shadow casters is a real cost and shadows are not the symptom. Re-applied on the slow
+> tick as well as at spawn, because anything that rebuilds an entity can drop it.
+> `merc_render_pin 0|1` to A/B it.
+>
+> **`SetLodRatio` is deliberately NOT applied to mercs.** The wall code sets it to 255 and that
+> is correct *for a wall*; on a character it is a different thing entirely, because KCD2
+> assembles characters from clothing skins and swaps in a merged "uberlod" from a configurable
+> LOD number. At 255 mercs were low-detail puppets at arm's length.
+>
+> Driving it from a crowd count was then tried — a ratio interpolated 100‥130 from
+> (mercs + nearby hostiles), re-applied on the 5 s sweep — and it **brought back the popping
+> in and out that the view-distance pin had just fixed**. Two causes, both of which apply to
+> any variant of the idea: the crowd count moves constantly so the ratio moves with it, and
+> every change makes every merc re-evaluate which mesh LOD to draw; and it was re-applied on a
+> timer even when unchanged, giving the churn a floor. **Mesh LOD is left to the engine.** If
+> it ever has to be cut for performance, use a *fixed* value set once (`merc_render_lod <n>`,
+> `0` to hand it back) — never one that tracks a live count.
 >
 > **This is the renderer, not the AI tier.** The LOD budget below decides how much an NPC is
 > *simulated*; this decides whether he is *drawn*. They are independent, which is why run 13
@@ -2631,3 +2644,53 @@ the CVarOverride re-application that defeated console changes — though no cvar
   may silently fail on some of them.
 * The engine defaults for the `wh_cc_*` and `WH_AI_LOD_*` cvars: they are compiled in, not in
   any shipped `.cfg`, so they can only be read from the in-game console.
+
+---
+
+## Why the AI-LOD boost alone "did nothing"
+
+Two things, found together on a live dev log during the siege of Raborsch.
+
+**1. `WH_AI_LOD_*` is simulation, not rendering.** The boost raised the AI Detail budget and
+the log confirmed it took (`Detail 70 -> 300`), yet nothing looked different — because how
+well an NPC is *simulated* has no bearing on whether he is *drawn*. The same log measured
+`e_ViewDistRatio = 50` and `e_LodFaceAreaTargetSizeCharacterWH = 0.00305`: the renderer was
+culling and coarsening the men on the far wall regardless of how many Detail slots the AI had.
+Section 4's levers are now in `LodBoostCvars` alongside the AI ones.
+
+**2. Setting a cvar once is not enough.** `Libs/Tables/CVarOverride.xml` maps a game context to
+an override file *with a priority*, and entering one re-applies its numbers over the top of
+ours — `performanceDemandingArea.cfg` alone clamps `MaxDetailDistance=150`, `MaxCountDetail=70`
+and `e_ViewDistRatioCustom=80`. A boost applied once survives only until the next context
+change, which in a battle is immediately. `LodBoostReassert` now re-applies every tick while
+boosted.
+
+**Raising the numbers is not the fix.** 300/1000/400 was tried and was visibly *worse* than
+150/600/250: every Detail slot is full AI simulation, and the framerate cost exceeded what the
+demotions cost in fidelity.
+
+---
+
+## Not everything that looks like LOD is LOD
+
+A long hunt for "30% of a battle just stands there" ended nowhere near this document. The
+cause was in the log, in plain words:
+
+```
+[DrawAction]: Can't execute explicit DrawAction for selected weapon set which contains no weapons!
+```
+
+`EquipEnemy` picks a weapon CATEGORY and lets the engine fill it. When the category yields
+nothing for that character the man gets an EMPTY weapon set, `combat_melee` dies at the draw,
+and he stands in the open being hit — with a valid target, fully simulated, perfectly visible.
+23 such errors against 75 men is the 30%.
+
+Wrong turns worth not repeating:
+
+* **`npc_basic_scheduler` in an AI error path is not a bug.** It is the base subbrain every NPC
+  runs under, mercs included. It does not mean the mod's scheduler was bypassed.
+* **Raising `MaxCountDetail` does not fix responsiveness** and 300 measurably hurt.
+* **Mesh detail and AI tier are different systems.** `wh_cc_LodForUberlod` = -1 does not force
+  the cheap mesh, it disables the swap, and with one already loaded both versions draw at once.
+* **Read the error text before theorising.** Four rounds of LOD, camp-role and targeting work
+  went by while the answer sat in one line of the dev log.

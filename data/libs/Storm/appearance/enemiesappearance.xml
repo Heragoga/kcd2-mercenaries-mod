@@ -134,6 +134,50 @@
                 <setBeard name="m_beard_07" />
             </operations>
         </rule>
+        <rule name="appearance_soul_enemy_tower_archer_1">
+            <selectors>
+                <hasName Name="soul_enemy_tower_archer_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_002_dark_brown" />
+                <setBeard name="m_beard_08" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_tower_archer_2">
+            <selectors>
+                <hasName Name="soul_enemy_tower_archer_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_046" />
+                <setHair name="m_hair_004_black" />
+                <setBeard name="m_beard_12" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_tower_archer_3">
+            <selectors>
+                <hasName Name="soul_enemy_tower_archer_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_003_dark_grey" />
+                <setBeard name="m_beard_03" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_banditcamp_leader">
+            <selectors>
+                <hasName Name="soul_banditcamp_leader" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_046" />
+                <setHair name="m_hair_003_dark_brown" />
+                <setBeard name="m_beard_19" />
+            </operations>
+        </rule>
         <rule name="appearance_soul_enemy_bandit_1">
             <selectors>
                 <hasName Name="soul_enemy_bandit_1" />

@@ -1,0 +1,12 @@
+The idea is to make the contract system a bit more fun, by having a sort of story around it, that slowly unfolds as you complete contracts, with the culmination being the Siege of Raborsch. This will be only available on the Kuttenberg map, as that map is larger and offers more space for bandit camps.
+
+Types of contracts: 
+
+- Clear a bandit camp: the mod has a pool of preset bandit camps on the map, these bandit camps have defences (apart from the dozen or so bandits living inside) like archer towers, archer carts and palisades. The player has to clear them fully and earns a reward upon completion.
+- Ambush a patrol: The mod spawns in patrols (groups of soldiers that walk on a fixed path, can spawn one in with a map marker, side quest to destroy it completely
+- Camp ambush: when the player is in camp a bandit raid starts.
+- Siege of Raborsch: still untested, but giant bandit camp around the castle that the player has to clear, a few friendly archers inside the walls
+
+
+Functionality:
+- quest issuer is the quartermaster (advantage: the player carries him with him everywhere, can set up camp wherever he wants. disadvantage: not always spawned in

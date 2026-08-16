@@ -28,6 +28,26 @@
                 <Port Name="quartermaster_archercart" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_removeupg" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_wall" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_banditcamp"   Direction="Out" Type="trigger" />
+                <Port Name="kk1" Direction="In" Type="bool" />
+                <Port Name="kk2" Direction="In" Type="bool" />
+                <Port Name="kk3" Direction="In" Type="bool" />
+                <Port Name="kk4" Direction="In" Type="bool" />
+                <Port Name="kk5" Direction="In" Type="bool" />
+                <Port Name="kk6" Direction="In" Type="bool" />
+                <Port Name="kk7" Direction="In" Type="bool" />
+                <Port Name="kk8" Direction="In" Type="bool" />
+                <Port Name="kk9" Direction="In" Type="bool" />
+                <Port Name="kk10" Direction="In" Type="bool" />
+                <Port Name="kk11" Direction="In" Type="bool" />
+                <Port Name="kk12" Direction="In" Type="bool" />
+                <Port Name="kk13" Direction="In" Type="bool" />
+                <Port Name="kk10alt" Direction="In" Type="bool" />
+                <!-- A contract is running / its letter is in hand. Drives which of
+                     the two halves below the player is even offered. -->
+                <Port Name="kk_open" Direction="In" Type="bool" />
+                <Port Name="kk_ready" Direction="In" Type="bool" />
+                <Port Name="quartermaster_banditcamp_letter" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
@@ -67,6 +87,251 @@
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
                 <Decision Name="dec_quartermaster" Priority="General">
                     <Sequences>
+
+                        <!-- One accept line per contract of the Kleinkrieg arc.
+                             Port kkN is set once the run reaches contract N and never
+                             clears, so "kkN AND NOT kk(N+1)" isolates exactly the one
+                             the player is on. Hidden while a contract is running. -->
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_1" EntryCondition="Port('kk1') AND !Port('kk2') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_1" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_1" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_1_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_2" EntryCondition="Port('kk2') AND !Port('kk3') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_2" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_2" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_2_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_3" EntryCondition="Port('kk3') AND !Port('kk4') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_3" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_3" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_3_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_4" EntryCondition="Port('kk4') AND !Port('kk5') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_4" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_4" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_4_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_5" EntryCondition="Port('kk5') AND !Port('kk6') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_5" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_5" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_5_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_6" EntryCondition="Port('kk6') AND !Port('kk7') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_6" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_6" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_6_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_7" EntryCondition="Port('kk7') AND !Port('kk8') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_7" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_7" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_7_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_8" EntryCondition="Port('kk8') AND !Port('kk9') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_8" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_8" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_8_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_9" EntryCondition="Port('kk9') AND !Port('kk10') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_9" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_9" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_9_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_10" EntryCondition="Port('kk10') AND !Port('kk11') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_10" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_10" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_10_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_11" EntryCondition="Port('kk11') AND !Port('kk12') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_11" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_11" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_11_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_12" EntryCondition="Port('kk11') AND !Port('kk12') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_12" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_12" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_12_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_kk_acc_13" EntryCondition="Port('kk12') AND !Port('kk13') AND !Port('kk_open')">
+                            <UiPrompt StringName="ui_kk_acc_13" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_13" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_acc_13_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <!-- Safety net: if Lua has not set a phase yet (an old save,
+                             or the very first tick), the generic offer still works. -->
+                        <Sequence EndType="EndDialogue" Name="seq_qm_banditcamp_yes" EntryCondition="!Port('kk1')">
+                            <UiPrompt StringName="ui_qm_banditcamp_yes" />
+                            <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_banditcamp_yes" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_banditcamp_yes" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+                        <!-- ...and one report line per contract. These carry the
+                             plot: what Henry brings back, and what the quartermaster
+                             makes of it. Offered only once the job is actually done
+                             (kk_ready), so the option is never a dead end. -->
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_1" EntryCondition="Port('kk1') AND !Port('kk2') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_1" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_1" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_1_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_2" EntryCondition="Port('kk2') AND !Port('kk3') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_2" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_2" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_2_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_3" EntryCondition="Port('kk3') AND !Port('kk4') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_3" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_3" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_3_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_4" EntryCondition="Port('kk4') AND !Port('kk5') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_4" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_4" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_4_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_5" EntryCondition="Port('kk5') AND !Port('kk6') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_5" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_5" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_5_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_6" EntryCondition="Port('kk6') AND !Port('kk7') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_6" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_6" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_6_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_7" EntryCondition="Port('kk7') AND !Port('kk8') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_7" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_7" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_7_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_8" EntryCondition="Port('kk8') AND !Port('kk9') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_8" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_8" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_8_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_9" EntryCondition="Port('kk9') AND !Port('kk10') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_9" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_9" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_9_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_10b" EntryCondition="Port('kk10') AND !Port('kk11') AND Port('kk_ready') AND Port('kk10alt')">
+                            <UiPrompt StringName="ui_kk_turn_10b" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_10b" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_10b_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_10" EntryCondition="Port('kk10') AND !Port('kk11') AND Port('kk_ready') AND !Port('kk10alt')">
+                            <UiPrompt StringName="ui_kk_turn_10" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_10" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_10_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_11" EntryCondition="Port('kk11') AND !Port('kk12') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_11" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_11" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_11_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_12" EntryCondition="Port('kk11') AND !Port('kk12') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_12" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_12" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_12_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_kk_turn_13" EntryCondition="Port('kk12') AND !Port('kk13') AND Port('kk_ready')">
+                            <UiPrompt StringName="ui_kk_turn_13" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_13" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_kk_turn_13_b" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_banditcamp_letter" EntryCondition="!Port('kk1')">
+                            <UiPrompt StringName="ui_qm_banditcamp_letter" />
+                            <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_banditcamp_letter" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_banditcamp_letter" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
 
                         <!-- ===== Hire (mirrors the innkeeper's hire_dialog menu) =====
                              Same options, same ports, same tokens - the quartermaster
@@ -629,6 +894,12 @@
                             </Decision>
                         </Sequence>
 
+                        <!-- ===== Work (the bandit-camp contract) =====
+                             Two-step on purpose: picking "any work?" only asks. The port
+                             fires from the accept branch, so backing out costs nothing. -->
+                        <!-- The old "Any work going?" sub-menu is gone: its contract lines
+                             now sit at the top level, so the next job is one click away
+                             instead of two. Declining is simply not picking one. -->
                         <!-- ===== Status ===== -->
                         <Sequence EndType="EndDialogue" Name="seq_qm_ask_stats">
                             <UiPrompt StringName="ui_qm_ask_stats" />

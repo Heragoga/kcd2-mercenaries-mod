@@ -82,9 +82,12 @@ end
 
 -- One STATIC house part. mercenaries_Prop physicalises PE_STATIC; a plain
 -- BasicEntity would be a pushable rigid body, so it's only the fallback.
-function mercenaries:SpawnHousePart(model, pos, rx, ry, rz, scale)
+-- `namePrefix`/`trackList` let a camp that is NOT the player's own build one of these.
+-- Both matter: "MercCamp*" is swept GLOBALLY by name whenever the player rebuilds their
+-- camp, and CampEntities is the list BreakMercCamp tears down.
+function mercenaries:SpawnHousePart(model, pos, rx, ry, rz, scale, namePrefix, trackList)
     local params = {
-        name = "MercCampHouse_" .. tostring(math.random(100000, 999999)),
+        name = (namePrefix or "MercCampHouse_") .. tostring(math.random(100000, 999999)),
         position = pos,
         orientation = { x = rx, y = ry, z = rz },
         -- Never serialised: the camp is rebuilt from scratch on load, and saved
@@ -104,20 +107,20 @@ function mercenaries:SpawnHousePart(model, pos, rx, ry, rz, scale)
         pcall(function() ent:SetAngles({ x = rx, y = ry, z = rz }) end)
         pcall(function() ent:SetViewDistUnlimited() end)
         pcall(function() ent:RenderShadow(true) end)
-        table.insert(self.CampEntities, ent.id)
+        table.insert(trackList or self.CampEntities, ent.id)
     end
     return ent
 end
 
 -- One wall crate; invisible unless `visible` (DrawSlot 0,0 keeps physics).
-function mercenaries:SpawnHouseWallCrate(wp, yaw, sx, sy, sz, visible)
-    local ent = self:SpawnHousePart(self.CampHouseWallCollider, wp, 0, 0, yaw, { x = sx, y = sy, z = sz })
+function mercenaries:SpawnHouseWallCrate(wp, yaw, sx, sy, sz, visible, namePrefix, trackList)
+    local ent = self:SpawnHousePart(self.CampHouseWallCollider, wp, 0, 0, yaw, { x = sx, y = sy, z = sz }, namePrefix, trackList)
     if ent and not visible then pcall(function() ent:DrawSlot(0, 0) end) end
     return ent
 end
 
 -- Tile crates along one wall segment.
-function mercenaries:TileHouseWall(origin, angle, w, visible)
+function mercenaries:TileHouseWall(origin, angle, w, visible, namePrefix, trackList)
     local ex, ey = w.bx - w.ax, w.by - w.ay
     local len = math.sqrt(ex * ex + ey * ey)
     local sx, sy, sz = w.sx or 1, w.sy or 1, w.sz or 1
@@ -128,7 +131,7 @@ function mercenaries:TileHouseWall(origin, angle, w, visible)
         local t = (n > 0) and (i / n) or 0
         for _, lz in ipairs(self.CampHouseWallLayerZ) do
             local wp = self:HouseLocalToWorld(origin, angle, w.ax + ex * t, w.ay + ey * t, lz)
-            self:SpawnHouseWallCrate(wp, angle + segYaw, sx, sy, sz, visible)
+            self:SpawnHouseWallCrate(wp, angle + segYaw, sx, sy, sz, visible, namePrefix, trackList)
         end
     end
 end
@@ -136,7 +139,7 @@ end
 -- The player's bed inside the hut. Spawns the vanilla "Bed" entity class - only
 -- that class carries the sleep interaction (its GetActions / OnUsed); a
 -- BasicEntity is the fallback.
-function mercenaries:SpawnCampHouseBed(origin, angle)
+function mercenaries:SpawnCampHouseBed(origin, angle, namePrefix, trackList)
     if not self.CampHouseBedModel or self.CampHouseBedModel == "" then return end
     local ok, err = pcall(function()
         local b = self.CampHouseBedOffset
@@ -150,7 +153,7 @@ function mercenaries:SpawnCampHouseBed(origin, angle)
         -- so it looked right but couldn't be slept in.
         local bedEnt = System.SpawnEntity({
             class = "BasicEntity",
-            name = "MercCampHouseBed_" .. tostring(math.random(100000, 999999)),
+            name = (namePrefix or "MercCampHouseBed_") .. tostring(math.random(100000, 999999)),
             position = wp,
             properties = {
                 object_Model = self.CampHouseBedModel,
@@ -172,7 +175,7 @@ function mercenaries:SpawnCampHouseBed(origin, angle)
             pcall(function() bedEnt:SetAngles({ x = 0, y = 0, z = bedAngle }) end)
             pcall(function() bedEnt:SetViewDistUnlimited() end)
             pcall(function() bedEnt:RenderShadow(true) end)
-            table.insert(self.CampEntities, bedEnt.id)
+            table.insert(trackList or self.CampEntities, bedEnt.id)
             -- No ground-snap: the bed sits on the hut's raised deck, not the terrain.
             self:SpawnCampBedTrigger(bedEnt, wp, bedAngle)
         end
@@ -182,7 +185,7 @@ end
 
 -- Build the hut at (origin, angle): foundation, bed, shell + windows, colliders.
 -- Every piece tracks in CampEntities, so break-camp tears it down with the rest.
-function mercenaries:SpawnCampHouse(centerPos, facingAngle)
+function mercenaries:SpawnCampHouse(centerPos, facingAngle, namePrefix, trackList)
     local ok, err = pcall(function()
         local origin = self:CampSnapToGround(centerPos)
         local angle = (facingAngle or 0) + self.CampHouseFacingFix
@@ -200,21 +203,21 @@ function mercenaries:SpawnCampHouse(centerPos, facingAngle)
             local fp = self:HouseLocalToWorld(origin, angle, insLx + fo.x, insLy + fo.y, self.CampHouseFoundationZ)
             local fs = self.CampHouseFoundationScale
             local scale = (fs and (fs.x ~= 1 or fs.y ~= 1 or fs.z ~= 1)) and { x = fs.x, y = fs.y, z = fs.z } or nil
-            self:SpawnHousePart(self.CampHouseFoundationModel, fp, 0, 0, angle + (fo.yaw or 0), scale)
+            self:SpawnHousePart(self.CampHouseFoundationModel, fp, 0, 0, angle + (fo.yaw or 0), scale, namePrefix, trackList)
         end
 
-        self:SpawnCampHouseBed(origin, angle)
+        self:SpawnCampHouseBed(origin, angle, namePrefix and (namePrefix .. "Bed_") or nil, trackList)
 
         local h = self.CampHouseHeightScale or 1.0
         for _, part in ipairs(self.CampHouseParts) do
             local wp = self:HouseLocalToWorld(origin, angle, part.x, part.y, (part.z or 0) * h + self.CampHouseZ)
             local rx, ry, rz = self:HouseQuatToEuler(part.qx or 0, part.qy or 0, part.qz or 0, part.qw or 1)
             local scale = (h ~= 1.0) and { x = 1, y = 1, z = h } or nil
-            self:SpawnHousePart(part.model, wp, rx, ry, rz + angle, scale)
+            self:SpawnHousePart(part.model, wp, rx, ry, rz + angle, scale, namePrefix, trackList)
         end
 
         for _, w in ipairs(self.CampHouseWalls) do
-            self:TileHouseWall(origin, angle, w, false)
+            self:TileHouseWall(origin, angle, w, false, namePrefix, trackList)
         end
 
         local inside = self:HouseLocalToWorld(origin, angle, insLx, insLy, 0)

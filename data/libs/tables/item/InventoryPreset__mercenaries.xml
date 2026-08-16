@@ -2,6 +2,13 @@
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="InventoryPreset.xsd">
     <InventoryPresets version="2" >
         
+        <!-- What the bandit camp's chest holds. Assigned at spawn time through the Stash's
+             Database.sInventoryPreset property (mercenaries_banditcamp_quest.lua), which is
+             how vanilla fills its own containers - see InventoryPreset__stashes.xml. -->
+        <InventoryPreset Name="inventory_banditcamp_chest">
+            <PresetItem Name="merc_banditcamp_letter" Amount="1"/>
+        </InventoryPreset>
+
         <InventoryPreset Name="inventory_mercenary_test">
             <ClothingPresetRef Name="soldier_generic_3_01"/>
             <WeaponPresetRef Name="longsword_3_01"/>
