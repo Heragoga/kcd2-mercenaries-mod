@@ -1,5 +1,13 @@
 # The bandit-camp contract
 
+> **The quartermaster no longer issues this run.** Aleksej's nine beats (`docs/aleksej.md`) are
+> the Kleinkrieg quest and replace the twelve-contract cycle; his accept lines are gone and the
+> hand-in no longer chains into the next contract. What he offers now is the repeatable
+> [bounty](bounty.md). Everything below still describes the **camp machinery**, which both the
+> bounty and Aleksej's beats are built on, and the hand-in half of the arc, which is kept so a
+> contract taken before the change can still be closed out. `merc_banditcamp_start` is the only
+> way left to begin one.
+
 The quartermaster's "destroy the bandit camp" job. It is the mod's **first real journal
 quest** — everything before it (134 `CreatePlayerReward` tokens, the delivery panels) only
 used Skald as a dialog-to-Lua wire. This one puts an entry in the journal, a marker on the

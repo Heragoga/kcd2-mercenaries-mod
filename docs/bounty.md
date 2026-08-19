@@ -1,9 +1,14 @@
 # The standing bounty
 
-The quartermaster's second job: **clear a bandit camp, come back, get paid.** No letter, no
-story, no end to it. It runs alongside the Kleinkrieg arc rather than instead of it, because
-the arc chains straight from one contract into the next (`BanditCampChainNext`) and a job
-gated on "nothing else running" would practically never be offered.
+The quartermaster's job: **clear a bandit camp, come back, get paid.** No letter, no story, no
+end to it. Since the twelve-contract run was taken off his menu (see below), this is the only
+thing he issues.
+
+It is still built to run **alongside** Kleinkrieg rather than instead of it, and its gates are
+deliberately independent of `kk_open`/`kk_ready`. Kleinkrieg is now Aleksej's nine beats
+(`docs/aleksej.md`), which are live for most of a playthrough — a bounty gated on "nothing else
+running" would practically never be offered. The two share a site table, so what keeps them
+apart is the site rules further down, not a lock.
 
 | Piece | File |
 |---|---|
@@ -71,9 +76,10 @@ fixed run. What it will not take:
   road, not somewhere to pitch a camp.
 - **`raborsch`** — the siege. It carries the patrol layout so it is already excluded, and it is
   named out as well so a future layout rename cannot quietly hand the siege to a bounty.
-- **Anything Kleinkrieg has claimed.** `BountyReservedSites` holds both the site the arc's live
-  contract stands on *and* the one it will hand out next, so a bounty is never pitched where
-  the arc is about to need it.
+- **Anything Kleinkrieg has claimed.** `BountyReservedSites` holds the site of the Aleksej beat
+  currently standing (`self.AlxCamp`), plus the site of a legacy arc contract still in flight.
+  Only the *live* beat can be reserved: the progression is Skald's and Lua cannot see which beat
+  opens next, which is exactly what the yield below is for.
 
 Two softer preferences are applied first and dropped if they leave nothing: the site the last
 bounty used, and anything within `BanditCampForgetRange` (300 m) of the player, so a camp is
@@ -81,16 +87,21 @@ never pitched underfoot. A repeat beats refusing the job.
 
 ### Kleinkrieg still wins
 
-The reservation only covers the *next* arc contract. Paying one advances the run, and the arc
-chains immediately into the one after — whose site was never reserved. So `BanditCampAccept`
-calls **`BountyYieldSite(site.name)`** once it has settled on its ground, and the bounty is the
-one that moves:
+The reservation cannot cover the beat that has not opened yet, and when it does open
+`AlxSweepSite` clears everything around its site — which would delete the bounty's band and
+props out from under its own contract and leave it counting kills against men nobody killed.
+So `AlxSpawnBeat` calls **`BountyYieldSite(site.name)`** the moment a beat picks its ground (and
+`BanditCampAccept` does the same for a legacy arc contract), and the bounty is the one that
+moves:
 
 | Bounty state | What happens |
 |---|---|
 | camp still standing | it is torn down and the bounty re-picks a different site; the leader, the dead and the alert flag all reset, and the player is told |
 | already cleared, not yet reported | the props simply come down (`DespawnBanditCamp(true)`) — nothing is left but the walk home |
 | nowhere else to put it | the bounty is **called off** unpaid and its journal entry closes. Two contracts counting kills at one camp would pay out both on one fight |
+
+Nine camps are eligible and at most two are ever reserved, so the called-off branch is a
+backstop rather than something a player should meet.
 
 ## What it pays
 
@@ -123,6 +134,30 @@ value changes. `_boOpen`/`_boReady` start nil, so the first tick after a load re
 - **`bo_ready`** shows the report line, and only while the camp is cleared and unpaid.
 
 Neither is wired to `kk_open`/`kk_ready`. Both jobs can be live at once, in either order.
+
+## What was taken off his menu
+
+The quartermaster used to issue **two** things called Kleinkrieg: his own twelve-contract run
+(`KleinkriegContracts`) and, separately, Aleksej's nine beats — both under the journal name
+"Kleinkrieg". `docs/aleksej.md` says plainly that the beats *replace* the contract run rather
+than sit alongside it, so the run's offer is gone from his dialog:
+
+- **The fourteen accept sequences** (`seq_kk_acc_1`..`13` and the generic `seq_qm_banditcamp_yes`
+  fallback) are deleted. The `quartermaster_banditcamp` out-port and its `exec_qm_banditcamp`
+  node **stay declared** — the background quest still edges into that port, and a dangling
+  `Edge` is the one thing that bricks an entire Skald graph.
+- **`BanditCampChainNext` no longer chains.** Handing a contract in used to take the next one
+  1.2 s later, which is the quartermaster issuing another Kleinkrieg by a different route.
+  It now only hands the roaming patrols back. The function is kept so a timer left over from an
+  older save lands on something harmless.
+- **The hand-in always closes the journal entry** (`TokenIDKKArcDone`), not just on the twelfth
+  contract. Nothing can take a thirteenth, so waiting for one would strand the entry open.
+- **The thirteen report sequences stay**, gated on `kk_ready` as they always were — which needs
+  an active, cleared, unpaid contract. They are reachable only by someone who was mid-arc when
+  this changed, and using one closes it out for good.
+
+`merc_banditcamp_start` still exists for testing the contract machinery, which the bounty and
+Aleksej's beats both run on. Nothing in game issues it.
 
 ## Deliberately not done
 

@@ -2796,24 +2796,22 @@ function mercenaries:BanditCampDeliverLetter()
     -- collected on is not finished, and should still be the next one offered.
     self:BanditCampClearSiege()
     self:BanditCampAdvance()
-    -- Last contract of the arc: close the journal entry. Every other hand-in leaves it open
-    -- and raises the "ask him for the next one" objective instead.
-    if self:BanditCampCleared() >= #self.KleinkriegContracts then
-        self:BanditCampSignal(self.TokenIDKKArcDone)
-        S.arcFinished = true
-        qLog("the arc is finished - Kleinkrieg closes")
-    end
+    -- ALWAYS closes the journal entry now, not just on the twelfth contract. The
+    -- quartermaster no longer offers this run at all - Aleksej's nine beats are the
+    -- Kleinkrieg quest (docs/aleksej.md) - so a hand-in is the last thing that can happen
+    -- to it, and leaving the entry open waiting for a next contract that can never be
+    -- taken would strand it in the journal forever.
+    self:BanditCampSignal(self.TokenIDKKArcDone)
+    S.arcFinished = true
+    qLog("Kleinkrieg contract closed out - the quartermaster no longer issues these")
     -- Straight away, not on the next monitor tick: the player is still standing in the dialog.
     self:KleinkriegSyncGates()
     self:KleinkriegSyncPhase()
 
-    -- Reporting IS taking the next job. Making the player pick a second dialog line for it
-    -- (or worse, walk away and come back) is the friction the whole arc keeps tripping over,
-    -- so the next camp is marked and standing before he has left the tent. The accept lines
-    -- stay in the dialog for the first contract and for re-running the last one.
-    if not S.arcFinished then
-        Script.SetTimerForFunction(1200, "mercenaries.BanditCampChainNext")
-    end
+    -- The chain is gone with the offer. Reporting used to take the next job straight away,
+    -- which is precisely the quartermaster issuing another Kleinkrieg contract - so it would
+    -- have put the run back on the moment anyone handed one in. The roads come back instead.
+    self:BanditCampRestorePatrols()
 
     -- His report line is spoken in the hand-in dialog; this is just the receipt.
     local c = self:KleinkriegContract()
@@ -3091,13 +3089,13 @@ end
 
 -- Deferred a beat so the hand-in has finished settling (and the dialog has closed) before the
 -- next contract is written over the same BCQ table.
+-- Kept only so a timer left over from a save taken before the offer was removed lands on
+-- something harmless. It no longer takes the next contract: the quartermaster does not issue
+-- this run any more, and re-issuing it here would be the same thing by another route.
 function mercenaries.BanditCampChainNext()
     local self = mercenaries
     self.BCQ = self.BCQ_KK
-    local S = self.BCQ
-    if S.active and not S.paid then return end   -- something already took over
-    if S.arcFinished then self:BanditCampRestorePatrols(); return end
-    self:BanditCampAccept()
+    self:BanditCampRestorePatrols()
 end
 
 -- Everything that is cached in memory rather than saved has to be dropped and re-derived when
@@ -3150,7 +3148,9 @@ function mercenaries:BanditCampAbandon()
     qLog("contract abandoned and camp removed")
 end
 
-System.AddCCommand("merc_banditcamp_start",   "mercenaries:BanditCampAccept()",  "Take the bandit-camp contract (same as the quartermaster dialog)")
+-- The quartermaster no longer offers this run (Aleksej's nine beats are the Kleinkrieg quest),
+-- so this is the only way left to start one. Kept for testing the contract machinery itself.
+System.AddCCommand("merc_banditcamp_start",   "mercenaries:BanditCampAccept()",  "Take a Kleinkrieg contract (debug: nobody issues these in game any more)")
 System.AddCCommand("merc_banditcamp_status",  "mercenaries:BanditCampStatus()",  "Contract state: site, group, kills, reward")
 System.AddCCommand("merc_banditcamp_abandon", "mercenaries:BanditCampAbandon()", "Drop the contract and remove the camp")
 System.AddCCommand("merc_banditcamp_clear",   "mercenaries:BanditCampComplete()","Force-complete the contract (debug)")

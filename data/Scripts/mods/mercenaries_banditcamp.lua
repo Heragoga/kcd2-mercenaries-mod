@@ -498,16 +498,19 @@ function mercenaries:BCampBinds(quiet)
     -- if not quiet then self:BCampHelp() end
 end
 
+-- DISABLED with every other editor binder: the F-keys stay free for the game.
+-- Every merc_route_* command still works from the console.
 function mercenaries:BCampRouteBinds()
-    self:EditorOwner("routes")
-    self:EditorsStopExcept("routes")
-    pcall(function()
-        System.ExecuteCommand("bind f5 merc_route_new")
-        System.ExecuteCommand("bind f6 merc_route_save")
-        System.ExecuteCommand("bind f7 merc_route_cancel")
-        System.ExecuteCommand("bind f8 merc_route_dump")
-    end)
-    bLog("F5-F8 lent to the route recorder; merc_bcamp_binds takes them back")
+    bLog("key binding is OFF for the route recorder - nothing holds F5-F8.")
+    bLog("  every merc_route_* command still works from the console")
+    -- self:EditorOwner("routes")
+    -- self:EditorsStopExcept("routes")
+    -- pcall(function()
+    --     System.ExecuteCommand("bind f5 merc_route_new")
+    --     System.ExecuteCommand("bind f6 merc_route_save")
+    --     System.ExecuteCommand("bind f7 merc_route_cancel")
+    --     System.ExecuteCommand("bind f8 merc_route_dump")
+    -- end)
 end
 
 System.AddCCommand("merc_bcamp_tents",     "mercenaries:BCampPick(1)",  "Tents category / cycle (F5)")

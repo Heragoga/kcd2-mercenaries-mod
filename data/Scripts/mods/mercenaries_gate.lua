@@ -254,6 +254,7 @@ local function gateSpawnEnt(self, g)
         -- rides along on the entity itself
         ent.mercGateOpen = g.open
         g.ent = ent.id
+        g.entClass = params.class          -- which class actually took, for merc_gate_probe
     end
     self:GateBuildColliders(g)
     return ent
@@ -508,6 +509,66 @@ end
 
 function mercenaries:StartGatePlacement() self:StartPlacement(self:GatePlaceSpec()) end
 
+-- Walk the whole interaction chain and say where it breaks. Run it standing at a gate.
+-- Turn on the entity-side logging, so the log shows whether the engine ever asks the
+-- gate for its actions (i.e. whether it is even a candidate for the crosshair).
+function mercenaries:GateSetTrace(v)
+    local on = (tonumber(gateArg(v)) == 1)
+    if _G.mercenaries_Gate then
+        _G.mercenaries_Gate.mercTrace = on
+        System.LogAlways("[Gate] interactor trace " .. (on and "ON" or "off"))
+    else
+        System.LogAlways("[Gate] mercenaries_Gate class is NOT loaded - nothing to trace")
+    end
+end
+
+function mercenaries:GateProbe()
+    local function say(f, ...) System.LogAlways("[GateProbe] " .. string.format(f, ...)) end
+
+    -- 1. did the entity class script load at all? If the .ent did not register, or the
+    --    script errored on load, this global never appears.
+    say("class script loaded (global mercenaries_Gate): %s", tostring(_G.mercenaries_Gate ~= nil))
+    if _G.mercenaries_Gate then
+        say("  IsUsable defined:   %s", tostring(type(_G.mercenaries_Gate.IsUsable)))
+        say("  GetActions defined: %s", tostring(type(_G.mercenaries_Gate.GetActions)))
+        say("  OnUsed defined:     %s", tostring(type(_G.mercenaries_Gate.OnUsed)))
+    end
+
+    -- 2. are the interactor helpers in scope? Without these GetActions cannot build one.
+    say("Action(): %s   AddInteractorAction(): %s",
+        tostring(type(_G.Action)), tostring(type(_G.AddInteractorAction)))
+    say("inr_doorOpen: %s   inr_doorClose: %s",
+        tostring(_G.inr_doorOpen), tostring(_G.inr_doorClose))
+
+    -- 3. what did the gates actually spawn AS? A silent fallback to mercenaries_Prop
+    --    gives a solid gate with no prompt, which looks exactly like a broken class.
+    say("gates: %d", #(self.Gates or {}))
+    for i, g in ipairs(self.Gates or {}) do
+        local cls, hasGA = "?", "?"
+        local e = g.ent and System.GetEntity(g.ent) or nil
+        if e then
+            pcall(function() cls = tostring(e.class or e.className or "?") end)
+            pcall(function() hasGA = tostring(type(e.GetActions)) end)
+        end
+        say("  #%d requested=%s  entity.class=%s  GetActions on entity=%s  open=%s  ent=%s",
+            i, tostring(g.entClass), cls, hasGA, tostring(g.open), tostring(g.ent))
+    end
+
+    -- 4. how far away is the nearest gate? The prompt needs fUseDistance (2.5m).
+    if player and #(self.Gates or {}) > 0 then
+        local pp; pcall(function() pp = player:GetWorldPos() end)
+        if pp then
+            local bd
+            for _, g in ipairs(self.Gates) do
+                local d = math.sqrt((g.x - pp.x) ^ 2 + (g.y - pp.y) ^ 2 + (g.z - pp.z) ^ 2)
+                if not bd or d < bd then bd = d end
+            end
+            say("nearest gate is %.2fm away (fUseDistance is 2.5)", bd)
+        end
+    end
+    say("colliders enabled: %s", tostring(self.GateCollidersEnabled))
+end
+
 function mercenaries:GateStatus()
     local state = "at least one open"
     if self:GateAllClosed() then state = "ALL SHUT (raids suppressed)" end
@@ -530,6 +591,8 @@ System.AddCCommand("merc_gate_close",  "mercenaries:GateSetAllOpen(false)", "Shu
 System.AddCCommand("merc_gate_remove", "mercenaries:GateRemoveNearest()",   "Remove the gate nearest you")
 System.AddCCommand("merc_gate_clear",  "mercenaries:GateClearAll()",        "Remove every gate")
 System.AddCCommand("merc_gate_status", "mercenaries:GateStatus()",          "List the camp gates and their state")
+System.AddCCommand("merc_gate_probe",  "mercenaries:GateProbe()",           "Diagnose the E prompt: class registration, interactor helpers, spawned class, distance")
+System.AddCCommand("merc_gate_trace",  "mercenaries:GateSetTrace('%line')", "Log every interactor call on a gate: 0 or 1")
 System.AddCCommand("merc_gate_style",  "mercenaries:GateSetStyle('%line')", "Gate mesh pair: merc_gate_style <n> (no arg lists them)")
 System.AddCCommand("merc_gate_yawfix", "mercenaries:GateSetYawFix('%line')","Rotate every gate by N degrees (mesh front axis fix)")
 System.AddCCommand("merc_gate_sink",   "mercenaries:GateSetSink('%line')",  "Raise or sink every gate by N metres")

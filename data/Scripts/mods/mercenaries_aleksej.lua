@@ -351,19 +351,28 @@ function mercenaries:AlxTalkClear()
     alxSignal(self, self.AlxTokenFar)
 end
 
+-- DISABLED. No editor holds F5-F11 any more: all three binders are commented out so the
+-- F-keys stay free for the game. Every merc_alx_* command still works from the console -
+-- only the key grab is off.
+--
+-- TO RESTORE: uncomment the block below and uncomment the AlxBinds call in the load hook in
+-- mercenaries.lua.
 function mercenaries:AlxBinds(quiet)
-    self:EditorOwner("aleksej")
-    self:EditorsStopExcept("aleksej")
-    pcall(function()
-        System.ExecuteCommand("bind f5 merc_alx_spawn")
-        System.ExecuteCommand("bind f6 merc_alx_stool")
-        System.ExecuteCommand("bind f7 merc_alx_bed")
-        System.ExecuteCommand("bind f8 merc_alx_chest")
-        System.ExecuteCommand("bind f9 merc_alx_dump")
-        System.ExecuteCommand("bind f10 merc_alx_clear")
-        System.ExecuteCommand("bind f11 merc_alx_undo")
-    end)
-    if not quiet then self:AlxHelp() end
+    aLog("key binding is OFF for the lodging editor - nothing holds F5-F11.")
+    aLog("  every merc_alx_* command still works from the console")
+    aLog("  to restore: uncomment AlxBinds in mercenaries_aleksej.lua")
+    -- self:EditorOwner("aleksej")
+    -- self:EditorsStopExcept("aleksej")
+    -- pcall(function()
+    --     System.ExecuteCommand("bind f5 merc_alx_spawn")
+    --     System.ExecuteCommand("bind f6 merc_alx_stool")
+    --     System.ExecuteCommand("bind f7 merc_alx_bed")
+    --     System.ExecuteCommand("bind f8 merc_alx_chest")
+    --     System.ExecuteCommand("bind f9 merc_alx_dump")
+    --     System.ExecuteCommand("bind f10 merc_alx_clear")
+    --     System.ExecuteCommand("bind f11 merc_alx_undo")
+    -- end)
+    -- if not quiet then self:AlxHelp() end
 end
 
 function mercenaries:AlxHelp()
@@ -1267,6 +1276,12 @@ function mercenaries:AlxSpawnBeat(n)
 
     local site = self:BanditCampSiteByName(beat.site)
     if not site then aLog("beat " .. n .. ": no site '" .. tostring(beat.site) .. "'"); return end
+    -- Kleinkrieg has first claim on the ground. The quartermaster's repeatable bounty draws its
+    -- camp from the same site table and may be standing on this one right now - and AlxSweepSite
+    -- is about to delete everything near it, which would take the bounty's band and props with
+    -- it and leave that contract counting kills against men who were never killed. So the bounty
+    -- is told to move first (BountyYieldSite, mercenaries_bounty.lua).
+    pcall(function() self:BountyYieldSite(site.name) end)
     self:AlxSweepSite(site)
 
     local count, archers, group = self:AlxScale(beat)

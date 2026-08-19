@@ -16,7 +16,14 @@
 -- know which way the gate currently stands.
 -- =============================================================================
 
-Script.ReloadScript("scripts/Utils/InteractorAction.lua")
+-- Pulled in explicitly, the way Bed and the camping mod's entities do it. Entity scripts
+-- load in an order we do not control, and this file sorts BEFORE mercenaries_Prop.lua -
+-- so BasicEntity and EntityCommon cannot be assumed to be in scope yet. If they are not,
+-- EntityCommon.Derive below errors, the script never finishes, the class is never
+-- registered, and the only symptom is that no prompt ever appears.
+Script.ReloadScript("Scripts/Entities/EntityCommon.lua")
+Script.ReloadScript("Scripts/Entities/Physics/BasicEntity.lua")
+Script.ReloadScript("Scripts/Utils/InteractorAction.lua")
 
 mercenaries_Gate = {
     Properties = {
@@ -39,7 +46,10 @@ mercenaries_Gate = {
         },
         bInteractiveCollisionClass = true,
         bExcludeCover = false,
+        -- Both spellings: AnimDoor reads fUseDistance, Bed reads fUsabilityDistance, and
+        -- which one the engine honours depends on the class it derives from.
         fUseDistance = 2.5,
+        fUsabilityDistance = 2.5,
     },
     Client = {},
     Server = {},
@@ -58,8 +68,13 @@ function mercenaries_Gate:OnSpawn()
     pcall(function() self:RenderShadow(true) end)
 end
 
+-- Set by merc_gate_probe: logs every interactor call so the log shows whether the engine
+-- is asking this entity for actions at all.
+mercenaries_Gate.mercTrace = false
+
 -- Always usable: a camp gate has no lock and belongs to the player.
 function mercenaries_Gate:IsUsable(user)
+    if mercenaries_Gate.mercTrace then System.LogAlways("[GateProbe] IsUsable called") end
     return 1
 end
 
@@ -70,6 +85,9 @@ end
 
 function mercenaries_Gate:GetActions(user, firstFast)
     local output = {}
+    if mercenaries_Gate.mercTrace then
+        System.LogAlways("[GateProbe] GetActions called, open=" .. tostring(self.mercGateOpen))
+    end
     if self.mercGateOpen then
         AddInteractorAction(output, firstFast,
             Action():hint("@ui_door_close"):action("use")
@@ -96,3 +114,9 @@ end
 -- would overwrite the one above. AnimDoor, Ladder and Bed all skip it for the same
 -- reason and supply their own.
 EntityCommon.SetupCollisionFiltering(mercenaries_Gate)
+
+-- Reaching this line means the script parsed and the class is registered. If the log has
+-- no such line, the .ent never loaded or something above threw - and a missing class is
+-- indistinguishable in game from a broken prompt, because the gate silently falls back to
+-- mercenaries_Prop and still looks right.
+System.LogAlways("[Gate] mercenaries_Gate class script loaded")

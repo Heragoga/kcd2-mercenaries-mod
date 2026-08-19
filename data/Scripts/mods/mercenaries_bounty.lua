@@ -138,16 +138,23 @@ function mercenaries:BountyEligibleSites()
     return out
 end
 
--- Kleinkrieg gets first claim on the ground: the camp its live contract stands on AND the one
--- it will hand out next are both spoken for, so a bounty is never pitched where the arc is
--- about to need it.
+-- Kleinkrieg gets first claim on the ground. Its beats draw from this same site table, so a
+-- bounty is never pitched where one is already standing.
+--
+-- Only the LIVE beat can be reserved: the progression is Skald's, and Lua sees nothing but the
+-- camp that is currently up (self.AlxCamp). Which beat opens next is unknowable from here - the
+-- yield below is what covers that, and it is why it exists.
+--
+-- The quartermaster's old twelve-contract run is no longer issued at all (his accept lines are
+-- gone; Aleksej's nine beats are the Kleinkrieg quest), so its NEXT site is not reserved any
+-- more - that would have held woodland_camp out of the pool for a contract nobody can take. A
+-- contract still in flight from an older save is honoured.
 function mercenaries:BountyReservedSites()
     local r = {}
     local K = self.BCQ_KK
     if K.active and K.site and K.site.name then r[K.site.name] = true end
-    local idx = math.min(self:BanditCampCleared() + 1, #self.KleinkriegContracts)
-    local c = self.KleinkriegContracts[math.max(1, idx)]
-    if c and c.site then r[c.site] = true end
+    local A = self.AlxCamp
+    if A and A.site and A.site.name then r[A.site.name] = true end
     return r
 end
 
@@ -292,9 +299,10 @@ function mercenaries:BountySyncGates()
 end
 
 -- ==== Kleinkrieg's first claim ====
--- Called from BanditCampAccept once the arc has settled on its site. The reservation above
--- keeps this rare - it only bites when the arc ADVANCES past the contract that was reserved
--- while a bounty is already standing on the next one.
+-- Called from AlxSpawnBeat the moment a Kleinkrieg beat picks its ground (and from
+-- BanditCampAccept, for a legacy arc contract still in flight). The reservation above cannot
+-- cover this on its own: which beat opens next is Skald's business and invisible from Lua, so
+-- the collision has to be resolved when it actually happens.
 function mercenaries:BountyYieldSite(siteName)
     local B = self.BCQ_BO
     if not (B.active and B.site and B.site.name == siteName) then return end

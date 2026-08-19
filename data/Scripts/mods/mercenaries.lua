@@ -982,18 +982,13 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     end)
     System.LogAlways("[Mercenaries] Recall keybind F4: " .. (okBind and "OK" or "FAILED - use merc_camp_recall console command"))
 
-    -- F5-F11 belong to the BANDIT CAMP BUILDER (docs/bandit-camps.md). The patrol route
-    -- recorder wants F5-F8 too and cannot have both: `merc_binds_routes` swaps them over for
-    -- a recording session, `merc_bcamp_binds` swaps them back. Routes are recorded once per
-    -- map and then never again, so the builder holds the keys by default.
-    -- F5-F11 go to the SIEGE builder. The camp builder's own binder is commented out in
-    -- mercenaries_banditcamp.lua while Raborsch is being authored - it was reclaiming the
-    -- keys on every load and merc_siege_binds never survived a reload.
-    -- To go back to the camp builder: swap this for mercenaries:BCampBinds(true) and
-    -- uncomment the body of BCampBinds.
-    -- F5-F11 go to the Aleksej lodging editor. The camp builder's and siege builder's own
-    -- binders are commented out in their modules while that room is being authored.
-    pcall(function() mercenaries:AlxBinds(true) end)
+    -- F5-F11 ARE NOT BOUND. Four in-game editors want them - the bandit camp builder
+    -- (docs/bandit-camps.md), the siege builder, the Aleksej lodging editor and the patrol
+    -- route recorder - and every one of their binders is commented out in its own module, so
+    -- the F-keys stay free for the game. Every merc_bcamp_* / merc_siege_* / merc_alx_* /
+    -- merc_route_* command still works from the console. To re-enable ONE editor: uncomment
+    -- its binder body, then uncomment the matching call below.
+    -- pcall(function() mercenaries:AlxBinds(true) end)
     pcall(function() mercenaries:RouteLoad() end)
     -- Roaming patrols do not survive a save: sweep anything the engine serialised before the
     -- tick re-rolls fresh records. See mercenaries_patrols_live.lua.
