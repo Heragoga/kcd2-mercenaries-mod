@@ -27,6 +27,7 @@
 
 	<!-- Quartermaster -->
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_quartermaster" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_aleksej" />
 
 	<!-- Tower archers -->
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_static_archer_1" />
@@ -42,6 +43,16 @@
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_bandit_2" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_bandit_3" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_banditcamp_leader" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_bounty_leader" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_leader" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_ondra" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_vavra" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_hedge" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_bartos" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_knight" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_officer" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_ruthenian" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_alx_jezek" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_sigi_1" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_sigi_2" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_sigi_3" />

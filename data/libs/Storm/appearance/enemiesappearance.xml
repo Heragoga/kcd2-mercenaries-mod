@@ -178,6 +178,17 @@
                 <setBeard name="m_beard_19" />
             </operations>
         </rule>
+        <rule name="appearance_soul_bounty_leader">
+            <selectors>
+                <hasName Name="soul_bounty_leader" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_081" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
         <rule name="appearance_soul_enemy_bandit_1">
             <selectors>
                 <hasName Name="soul_enemy_bandit_1" />
@@ -759,6 +770,68 @@
                 <setHead name="m_head_054" />
                 <setHair name="m_hair_014_grey" />
                 <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <!-- Sir Jezhek of Holohlavy: head, hair and beard from his own vanilla rule
+             (references/Libs/Storm/appearance/quests/ztracenaCest.xml), plus a BODY, which his
+             vanilla rule leaves to his skald_character's unique_assets index and this one cannot.
+             Every other rule in this file sets all four; leaving setBody out gave him nothing to
+             render and he did not appear at all. -->
+        <!-- Aleksej's Ruthenians. Four souls share one character, so each gets its own
+             face here or the marsh is four copies of one man. -->
+        <rule name="appearance_soul_alx_ruthenian_1">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_ruthenian_2">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_081" />
+                <setHair name="m_hair_005_dark_brown" />
+                <setBeard name="m_beard_05" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_ruthenian_3">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_03" />
+                <setHead name="m_head_022" />
+                <setHair name="m_hair_003_grey" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_ruthenian_archer">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_archer" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_009_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_jezek">
+            <selectors>
+                <hasName Name="soul_alx_jezek" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHair name="m_hair_003_grey" />
+                <setHead name="m_head_022" />
+                <setBeard name="m_beard_10" />
             </operations>
         </rule>
         <rule name="appearance_soul_enemy_heinrich_1">

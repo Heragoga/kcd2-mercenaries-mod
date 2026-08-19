@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- TEST NPC switch. Attack-the-player is deliberately GONE for now: this NPC exists
+         to prove Lua-driven movement (the custom-navmesh groundwork), and a running
+         fight only competes for control. All that is left is a dispatcher: when Lua
+         raises the walk request (merc_wp_go), fire testnpc_walk as an interrupt and
+         stand back until it reports it is done.
+
+         The interrupt is the mechanism that actually hands movement over - a branch
+         inside another tree does not, as the retreat experiment showed. -->
+    <BehaviorTree name="onUpdate" is_function="0">
+        <Variables>
+            <Variable name="walkWanted" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="walkMrkev" type="_wuid" values="" isPersistent="0" form="single" />
+            <Variable name="gotoWanted" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="gotoMrkev" type="_wuid" values="" isPersistent="0" form="single" />
+        </Variables>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <SuppressFailure>
+                    <Parallel successMode="Any" failureMode="Any">
+
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:TestNpcWalkPoll(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$walkWanted">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$walkMrkev" nodeLabel="1237" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$walkMrkev" Behavior="'testnpc_walk'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                        <ExecuteLua code="System.LogAlways('[TestNpc] walk interrupt fired')" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- wall-aware approach to a live target (merc_nav_chase) -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:TestNpcGotoPoll(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$gotoWanted">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$gotoMrkev" nodeLabel="1238" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$gotoMrkev" Behavior="'nav_goto'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                        <ExecuteLua code="System.LogAlways('[Nav] goto interrupt fired')" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                            </Sequence>
+                        </Loop>
+
+                    </Parallel>
+                </SuppressFailure>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

@@ -48,12 +48,44 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [4/4] Packing English localization...
+echo [4/5] Packing English localization...
 set "TMP_LOC=%TEMP%\kcd2_loc_dev"
 if exist "%TMP_LOC%" rd /s /q "%TMP_LOC%"
 mkdir "%TMP_LOC%"
 copy /y "%REPO_ROOT%\localization\English_xml.xml" "%TMP_LOC%\test__mercenaries.xml" >nul
 powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%TMP_LOC%', '%OUT_DIR%\localization\English_xml.pak', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+
+:: ------------------------------------------------------------
+:: 5. OPTIONAL: Pack voice files -> localization\english.pak
+::    Flattens all subfolders, .ogg only.
+::    Internal path: dialog/mercenaries_background_quest/<file>.ogg
+:: ------------------------------------------------------------
+echo [5/5] Packing voice files (optional)...
+set "VOICE_SRC=%REPO_ROOT%\voice"
+set "VOICE_PAK=%OUT_DIR%\localization\english.pak"
+
+:: Declare temp paths OUTSIDE the if block so %var% expansion works correctly
+set "TMP_VOICE=%TEMP%\kcd2_voice_tmp"
+set "TMP_VOICE_INNER=%TEMP%\kcd2_voice_tmp\dialog\mercenaries_background_quest"
+
+if not exist "%VOICE_SRC%" (
+    echo       No voice folder found, skipping.
+) else (
+    if exist "%TMP_VOICE%" rd /s /q "%TMP_VOICE%"
+    mkdir "%TMP_VOICE_INNER%"
+
+    powershell -NoProfile -Command "Get-ChildItem -Path '%VOICE_SRC%' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '%TMP_VOICE_INNER%\' }; $n = (Get-ChildItem '%TMP_VOICE_INNER%').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
+
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%TMP_VOICE%', '%VOICE_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+
+    rd /s /q "%TMP_VOICE%"
+
+    if errorlevel 1 (
+        echo       ERROR: Failed to create english.pak.
+        goto :error
+    )
+    echo       Created: %VOICE_PAK%
+)
 rd /s /q "%TMP_LOC%"
 
 :: Clear the old log so the next run is unambiguous - we spent several rounds

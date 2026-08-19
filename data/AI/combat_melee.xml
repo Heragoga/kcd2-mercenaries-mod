@@ -29,6 +29,9 @@
             <Variable name="disengage" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="isArcher" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="isEnemy" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- False when the weapon is already drawn, so a re-fire of this behaviour
+                 does not replay the draw animation and stop the NPC mid-approach. -->
+            <Variable name="needsDraw" type="_bool" values="true" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -50,8 +53,13 @@
                                              fists for a moment. An explicit draw first (melee fighters only)
                                              gets the weapon out before the approach. Mercs follow before they
                                              fight, so their weapon is long settled - they skip this and keep
-                                             their draw-while-charging (no engage delay). -->
-                                        <IfCondition failOnCondition="false" condition="$isEnemy &amp; ~$isArcher">
+                                             their draw-while-charging (no engage delay).
+                                             needsDraw: skip it when the weapon is ALREADY out. This is a
+                                             full animation that stops the NPC where he stands, and it is
+                                             replayed every time this behaviour is re-fired - so on a
+                                             scheduler that re-fires at all often it reads as a pause every
+                                             time, in the middle of the approach. -->
+                                        <IfCondition failOnCondition="false" condition="$isEnemy &amp; ~$isArcher &amp; $needsDraw">
                                             <SuppressFailure>
                                                 <DrawAction WeaponSet="Primary" fullBody="false" tags="" />
                                             </SuppressFailure>
@@ -59,39 +67,48 @@
 
                                         <Parallel successMode="Any" failureMode="Any">
 
-                                            <Loop count="-1">
-                                                <MoveParamsDecorator speed="Run" pathFindingParams="" doorClosingPolicy="LeaveOpened">
-                                                    <MeleeOffenseAutomationDecorator active="$automation_offense">
-                                                        <MeleeDefenseAutomationDecorator active="$automation_defense">
-                                                            <MeleeGuardAutomationDecorator GuardMode="$guardMode" active="$automation_guard">
-                                                                <WeaponAutomationDecorator WeaponChange="$weaponChange" active="$automation_weapon">
-                                                                    <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="$automation_movement">
-                                                                        <Sequence>
-                                                                            <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
-                                                                            <IfElseCondition failOnCondition="false" condition="$isTargetAlive &amp; ~$disengage" saveVersion="2">
-                                                                                <Then canSkip="1">
-                                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
-                                                                                </Then>
-                                                                                <Else canSkip="1">
-                                                                                    <Fail />
-                                                                                </Else>
-                                                                            </IfElseCondition>
-                                                                        </Sequence>
-                                                                    </CombatFollowerDecorator>
-                                                                </WeaponAutomationDecorator>
-                                                            </MeleeGuardAutomationDecorator>
-                                                        </MeleeDefenseAutomationDecorator>
-                                                    </MeleeOffenseAutomationDecorator>
-                                                </MoveParamsDecorator>
-                                            </Loop>
+                                            <!-- Node for node vanilla's own NPC-vs-NPC melee,
+                                                 references/AI/crime/friendlyFight.xml. Three things here
+                                                 were all wrong at once and together made an approaching
+                                                 fighter close in visible steps - step, pause, step. Proven
+                                                 out on foe_combat.xml first; see docs/foe-ai.md.
+
+                                                 1. CombatMoveDecorator is what puts the NPC into COMBAT
+                                                    LOCOMOTION. It was missing everywhere in this mod.
+                                                 2. MoveParamsDecorator must NOT wrap this chain. Vanilla
+                                                    never puts one outside CombatFollowerDecorator and
+                                                    mostly has none at all; CombatMoveDecorator replaces it.
+                                                 3. CombatAction takes NO re-issue Loop. It is a continuous
+                                                    whole-fight action - under the offense/weapon
+                                                    automation it closes, swings and keeps swinging until
+                                                    the target is down. An outer Loop rebuilt this whole
+                                                    chain every time it returned, so the weapon automation
+                                                    lowered and re-raised the weapon each cycle.
+
+                                                 The liveness/disengage test that used to sit in here has
+                                                 gone with the Loop: the watchdog below already tests
+                                                 exactly the same condition on a timer, and IS the exit. -->
+                                            <CombatMoveDecorator>
+                                                <MeleeOffenseAutomationDecorator active="$automation_offense">
+                                                    <MeleeDefenseAutomationDecorator active="$automation_defense">
+                                                        <MeleeGuardAutomationDecorator GuardMode="$guardMode" active="$automation_guard">
+                                                            <WeaponAutomationDecorator WeaponChange="$weaponChange" active="$automation_weapon">
+                                                                <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="$automation_movement">
+                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                </CombatFollowerDecorator>
+                                                            </WeaponAutomationDecorator>
+                                                        </MeleeGuardAutomationDecorator>
+                                                    </MeleeDefenseAutomationDecorator>
+                                                </MeleeOffenseAutomationDecorator>
+                                            </CombatMoveDecorator>
 
                                             <!-- Watchdog: disengage covers the per-side leash / stance /
                                                  critical-health rules (Lua decides; enemies never leash).
-                                                 ~isTargetAlive is here too, and that is the only TIMED exit
-                                                 on target death: the arm above only samples it when
-                                                 CombatAction happens to return, so a fighter whose target
-                                                 went down could circle the body indefinitely. Enemies have
-                                                 no leash at all, so for them this is the ONLY exit.
+                                                 ~isTargetAlive is here too. Since the combat arm above is
+                                                 now a bare continuous CombatAction with no test of its
+                                                 own, this is the ONLY exit for every side - it ends the
+                                                 fight within ~1.7s of the target going down or the leash
+                                                 being crossed.
                                                  Confirmed on a second read 400ms later - UpdateMeleeCombatData
                                                  defaults isTargetAlive to false and only sets it after a
                                                  successful WUID lookup inside a pcall, so one hiccup reads as
@@ -118,7 +135,16 @@
 
                                 <OnFail canSkip="1">
                                     <Sequence>
-                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
+                                        <!-- The sheathe is gated on ~isEnemy. A merc leaving a fight is
+                                             done fighting and must put his weapon away (without this he
+                                             stands around in camp with his sword out). An enemy or patrol
+                                             is NOT done: he has no leash, so the only way he gets here is
+                                             his target dying, and he will be handed another within a
+                                             second. Sheathing him meant every re-fire cost a sheathe AND
+                                             a re-draw - which is what still made convoy fighters close in
+                                             steps after the draw was already made conditional. foe_combat
+                                             never sheathes for the same reason. See docs/foe-ai.md. -->
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() if not data.isEnemy then entity.human:DrawWeapon(false) end end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
                                         <!-- This Wait sits INSIDE the crime_interruptAttack context opened at
                                              the top of this tree, which every scheduler reads as $inCombat -
                                              so it is added directly to the dead time before locomotion can

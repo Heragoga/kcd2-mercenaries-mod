@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+    <weapon_presets version="1">
+		<!-- His broadsword, from his own vanilla weapon preset, plus the Lords of Holohlavy
+		     shield - which exists as an item but is in no preset at all in vanilla. -->
+		<weapon_preset weapon_preset_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7d02" weapon_preset_name="weapon_preset_alx_jezek">
+			<weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
+			<weapon_preset_item item_class_id="d8f1a893-0e67-4f29-b897-1a831a3ab923" />
+		</weapon_preset>
+
+        <!-- ==================== Shortsword ==================== -->
+        <weapon_preset weapon_preset_id="2c28935e-103c-4f0a-b154-36890bac73f2" weapon_preset_name="merc_weapon_shortsword_weak_1">
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="11bd007a-0312-4e4d-968d-2c4cb9fe6286" weapon_preset_name="merc_weapon_shortsword_weak_2">
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="8c38d157-2403-41fb-a573-c2a396a29235" weapon_preset_name="merc_weapon_shortsword_medium_1">
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="e4266b99-79fb-40ef-84fa-0b721a6ba3c2" weapon_preset_name="merc_weapon_shortsword_medium_2">
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="0d4fc137-2b83-4d2d-970e-cf09871f29d6" weapon_preset_name="merc_weapon_shortsword_strong_1">
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="8d7d2c25-874e-41f8-a169-c3e731b23249" weapon_preset_name="merc_weapon_shortsword_strong_2">
+            <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" />
+        </weapon_preset>
+
+        <!-- ==================== Longsword ==================== -->
+        <weapon_preset weapon_preset_id="38118d03-1fed-4b1b-a8ba-7e195ea7ebc7" weapon_preset_name="merc_weapon_longsword_weak_1">
+            <weapon_preset_item item_class_id="bdb6fc2a-43e4-40b8-93c8-f2d9162c1e45" /> <!-- Knight's longsword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="fc3dd411-ca51-49cd-bc1b-480caf1f2f20" weapon_preset_name="merc_weapon_longsword_weak_2">
+            <weapon_preset_item item_class_id="76009b72-1e65-4a78-98c7-6ada2f172c1f" /> <!-- Duelling longsword (empty) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="54e2ff1a-cd9c-4558-9533-ded96a3f0603" weapon_preset_name="merc_weapon_longsword_weak_3">
+            <weapon_preset_item item_class_id="d284732b-32d1-40e6-be9b-0c89e18f969f" /> <!-- Common longsword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="e84ebb37-bf5c-45ea-abe9-a416a5ad38e2" weapon_preset_name="merc_weapon_longsword_weak_4">
+            <weapon_preset_item item_class_id="2d466cad-74df-4337-ae97-4c7433a54b6d" /> <!-- Tournament longsword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="b53518cb-e7d6-4eb6-9d6e-211a14adcaa1" weapon_preset_name="merc_weapon_longsword_weak_5">
+            <weapon_preset_item item_class_id="9e31a288-7de0-4c0d-81cd-5cf00548d2d5" /> <!-- Common longsword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="5539c7d7-15e5-49a0-8db7-aeff9f3ce550" weapon_preset_name="merc_weapon_longsword_medium_1">
+            <weapon_preset_item item_class_id="9e31a288-7de0-4c0d-81cd-5cf00548d2d5" /> <!-- Toledo steel sword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="73fbc897-2756-4d34-9e7a-57959de342b2" weapon_preset_name="merc_weapon_longsword_medium_2">
+            <weapon_preset_item item_class_id="23855649-1783-4e0d-95ad-d3478797b642" /> <!-- Battle longsword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="b3072196-f572-401b-a213-5c023d8d1a92" weapon_preset_name="merc_weapon_longsword_medium_3">
+            <weapon_preset_item item_class_id="23855649-1783-4e0d-95ad-d3478797b642" /> <!-- Copy of longsword "Absolver" -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="eb316792-4ebd-43c7-b554-d0cbdef360f8" weapon_preset_name="merc_weapon_longsword_medium_4">
+            <weapon_preset_item item_class_id="23855649-1783-4e0d-95ad-d3478797b642" /> <!-- Executioner's sword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="c0638095-60c3-40d0-b93d-3f42f237a20e" weapon_preset_name="merc_weapon_longsword_medium_5">
+            <weapon_preset_item item_class_id="08f5ee0a-ac03-423e-bc00-c388303cf0c9" /> <!-- Longsword "Absolver" -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="890cca0b-6489-47f0-9331-706a015ff21e" weapon_preset_name="merc_weapon_longsword_strong_1">
+            <weapon_preset_item item_class_id="3858560f-cf48-436f-8815-4426003288fb" /> <!-- Broad longsword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d9c83f05-f0d7-4304-9dee-c3106d6ab3fe" weapon_preset_name="merc_weapon_longsword_strong_2">
+            <weapon_preset_item item_class_id="3858560f-cf48-436f-8815-4426003288fb" /> <!-- Hanush's sword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="94be3211-a101-4de7-b29d-a5dfde474f57" weapon_preset_name="merc_weapon_longsword_strong_3">
+            <weapon_preset_item item_class_id="5bda7534-6439-4424-bb9c-fe9737b79484" /> <!-- Kuttenberg longsword -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="31a30fb0-4d4e-4ed8-925d-fc481bd1063b" weapon_preset_name="merc_weapon_longsword_strong_4">
+            <weapon_preset_item item_class_id="00cca9e3-8ef2-46db-8cbf-86ec51930919" /> <!-- Duelling longsword -->
+        </weapon_preset>
+
+        <!-- ==================== Mace ==================== -->
+        <weapon_preset weapon_preset_id="720fcde5-15b8-4f3b-b0c9-489a99e7043e" weapon_preset_name="merc_weapon_mace_weak_1">
+            <weapon_preset_item item_class_id="cff7ae16-d134-41bd-9394-89e8c3970f94" /> <!-- Club -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="533bd7b4-d70a-4af2-abaa-fe09b5c8fb28" weapon_preset_name="merc_weapon_mace_weak_2">
+            <weapon_preset_item item_class_id="007907cf-aeb9-4dfa-ad3f-e0262893e423" /> <!-- Reinforced bludgeon -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="122e7230-d72f-4d84-a1a0-59f9f0f7d235" weapon_preset_name="merc_weapon_mace_weak_3">
+            <weapon_preset_item item_class_id="9cc07405-4195-46ab-bf17-fd0fd99721bd" /> <!-- Light mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="0d951547-9012-48cd-8e43-9d502e01e9a7" weapon_preset_name="merc_weapon_mace_weak_4">
+            <weapon_preset_item item_class_id="9cc07405-4195-46ab-bf17-fd0fd99721bd" /> <!-- Canker's mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="c66f0c6e-c281-4024-a1c5-3ebb1fc69cc0" weapon_preset_name="merc_weapon_mace_medium_1">
+            <weapon_preset_item item_class_id="00b0039b-daa4-4f32-ac7f-69a6a2e0add8" /> <!-- Dagger mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="10e96c57-99a6-43ee-9279-fd7bc7132972" weapon_preset_name="merc_weapon_mace_medium_2">
+            <weapon_preset_item item_class_id="f65df177-966b-48e5-8cc6-26a4f95e41b0" /> <!-- Bailiff's mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="439fe662-b7ec-4605-9729-e8f3e8df4bc7" weapon_preset_name="merc_weapon_mace_medium_3">
+            <weapon_preset_item item_class_id="af6a6142-c6f7-4ae7-94a9-bb5be41ebecc" /> <!-- Heavy mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="83142d88-9463-4930-9d6e-aa86dae6d35a" weapon_preset_name="merc_weapon_mace_medium_4">
+            <weapon_preset_item item_class_id="c67de991-e22a-4a19-8b68-9369919c41dd" /> <!-- Common mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="2ae255da-ed23-46b6-aec7-0deeac7d5e2e" weapon_preset_name="merc_weapon_mace_strong_1">
+            <weapon_preset_item item_class_id="839992c8-657b-4d5e-97c9-96ff94430d72" /> <!-- Leaf mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="97c91389-882c-4387-9cb4-9abfee9ded51" weapon_preset_name="merc_weapon_mace_strong_2">
+            <weapon_preset_item item_class_id="f2e86f22-8932-4751-8f62-fb1b8b846ddf" /> <!-- Captain's mace -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="9367c4d6-2897-42dd-9697-8adfa4356ecb" weapon_preset_name="merc_weapon_mace_strong_3">
+            <weapon_preset_item item_class_id="65a211bd-2c7e-40a8-984f-66c8730444e4" /> <!-- Ornated mace -->
+        </weapon_preset>
+
+        <!-- ==================== Axe ==================== -->
+        <weapon_preset weapon_preset_id="1fd54037-8eb6-4ce4-9f02-63acce98183d" weapon_preset_name="merc_weapon_axe_weak_1">
+            <weapon_preset_item item_class_id="1fc42528-2bef-4dde-bf8a-04febeef41c8" /> <!-- Protective axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="67cb04b2-2a7c-40dc-9f93-4b1ef6fd58c4" weapon_preset_name="merc_weapon_axe_weak_2">
+            <weapon_preset_item item_class_id="1fc42528-2bef-4dde-bf8a-04febeef41c8" /> <!-- Work axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="5076de8f-f9f2-4c4b-a1bd-e23034219359" weapon_preset_name="merc_weapon_axe_weak_3">
+            <weapon_preset_item item_class_id="81494400-b654-4aa7-8f31-c95c689db5f6" /> <!-- Carpenters axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="6aba5df6-a2cf-4a2e-8ec4-e69de02dcab4" weapon_preset_name="merc_weapon_axe_weak_4">
+            <weapon_preset_item item_class_id="53612e76-76fd-4dca-84b6-7905b986dc3b" /> <!-- Battle axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="986244d4-e276-40f4-a6b4-649a934cc450" weapon_preset_name="merc_weapon_axe_medium_1">
+            <weapon_preset_item item_class_id="c25fc705-c957-4c9a-a831-0f112e3b148d" /> <!-- Adorned axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d5f3e8de-5abf-4bea-be19-9a9d3c756f00" weapon_preset_name="merc_weapon_axe_medium_2">
+            <weapon_preset_item item_class_id="e2cf3e8b-b411-43a0-a7ed-2674ae8ac4d2" /> <!-- Raborsch butcher's axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="81787f5f-80a0-42fc-a742-46f0f3a8015e" weapon_preset_name="merc_weapon_axe_medium_3">
+            <weapon_preset_item item_class_id="eeeb5a48-9a97-41a6-aee0-3e1b64fc2405" /> <!-- Cuman fokosh -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="7803affa-1a74-42c6-9fcf-ed6c1d3289b0" weapon_preset_name="merc_weapon_axe_medium_4">
+            <weapon_preset_item item_class_id="bd74ce18-2623-48ba-a1a1-c9b09bbb2827" /> <!-- Bearded axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="9d139c04-b054-4e98-b4d3-8054a639f485" weapon_preset_name="merc_weapon_axe_strong_1">
+            <weapon_preset_item item_class_id="0802c111-75aa-4b9c-9a3f-f30bac55fbc7" /> <!-- Skalitz axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d834a864-7b9a-4557-93ad-024555604735" weapon_preset_name="merc_weapon_axe_strong_2">
+            <weapon_preset_item item_class_id="50a9ac1e-dbb5-480b-8b5e-2ba3a1ff8d82" /> <!-- Executioners axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="59418607-6a33-45cc-9903-582a07f22a5c" weapon_preset_name="merc_weapon_axe_strong_3">
+            <weapon_preset_item item_class_id="214ffcdd-a7a7-4b7a-b484-f60c8d00b39b" /> <!-- Knights axe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="a1554b5a-a4b8-4541-8706-c97b8657672c" weapon_preset_name="merc_weapon_axe_strong_4">
+            <weapon_preset_item item_class_id="0f0164d5-3746-4d07-a1ed-0f138225a6d9" /> <!-- Riding axe -->
+        </weapon_preset>
+
+        <!-- ==================== Polearm ==================== -->
+        <weapon_preset weapon_preset_id="5d4c7a48-c95c-4e59-96c4-54851e75160b" weapon_preset_name="merc_weapon_polearm_weak_1">
+            <weapon_preset_item item_class_id="85beaf9d-e351-45b1-8144-0bec039e2803" /> <!-- Farmer Matthew's pitchfork -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="ad5922d0-0614-4912-b98c-adb2241602b4" weapon_preset_name="merc_weapon_polearm_weak_2">
+            <weapon_preset_item item_class_id="08250d1c-c62e-43b5-967c-17ccb4adf1b5" /> <!-- Pitchfork -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="482d2d35-87d2-47e1-8edd-4ed85d28912e" weapon_preset_name="merc_weapon_polearm_weak_3">
+            <weapon_preset_item item_class_id="f4324daf-fe09-495e-b954-16f23226cf58" /> <!-- Spear with hook -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="8baedacf-d744-451a-8acd-332c32165120" weapon_preset_name="merc_weapon_polearm_weak_4">
+            <weapon_preset_item item_class_id="e5f25908-a843-456a-b095-c31db34aa577" /> <!-- Glaive -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d72d9727-43ab-4e85-a0fa-bd6664fff2e7" weapon_preset_name="merc_weapon_polearm_medium_1">
+            <weapon_preset_item item_class_id="aa11269e-ee54-46e0-b7c7-1efc50d7bcb8" /> <!-- Brunswick's poleaxe -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="1b086963-8c38-41c9-867e-b79174b6206d" weapon_preset_name="merc_weapon_polearm_medium_2">
+            <weapon_preset_item item_class_id="4bda3dd1-871c-452a-87fe-b783946435c2" /> <!-- Bardiche -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="3deb122d-a168-4bfb-9ae0-143d24ae029d" weapon_preset_name="merc_weapon_polearm_medium_3">
+            <weapon_preset_item item_class_id="03b6321d-4151-46cd-bdec-451ea7bfaabc" /> <!-- Voulge -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="9a8dccf1-9948-49d1-81f9-8b50d62cd373" weapon_preset_name="merc_weapon_polearm_strong_1">
+            <weapon_preset_item item_class_id="7cac0c1a-ad34-4fd7-a1e6-4d45edcf307f" /> <!-- Morgenstern -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="2cd35a00-09e3-4b76-b2c5-f13e2251cb65" weapon_preset_name="merc_weapon_polearm_strong_2">
+            <weapon_preset_item item_class_id="0f41ad99-3307-47c8-a110-a7d9b4af75e8" /> <!-- Guisarme -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="b1b35d6f-3daa-46df-b3bf-96eda006833c" weapon_preset_name="merc_weapon_polearm_strong_3">
+            <weapon_preset_item item_class_id="51bb7893-2054-40d3-a355-d278f416c482" /> <!-- Poleaxe -->
+        </weapon_preset>
+
+        <!-- ==================== Archer (bow) ==================== -->
+        <weapon_preset weapon_preset_id="e3e35ccf-4eac-47d6-93ed-9dd343540998" weapon_preset_name="merc_weapon_archer_weak_1">
+            <weapon_preset_item item_class_id="0fffb172-2183-4545-bbdb-01e04a3ff32f" /> <!-- Village hazel bow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4a2525e0-0787-4eb9-a56a-9ac9c105a8f4" weapon_preset_name="merc_weapon_archer_weak_2">
+            <weapon_preset_item item_class_id="db354284-2cf9-40a4-bcfc-e78d020204af" /> <!-- Dogwood village bow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="104b4d63-519f-4d76-8826-e8ffdc3b520f" weapon_preset_name="merc_weapon_archer_medium_1">
+            <weapon_preset_item item_class_id="7b77a0e9-91cd-403f-be3e-6be6bac8e589" /> <!-- Worn Cuman bow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4797ce5f-954d-4df4-ad4b-115b4004850c" weapon_preset_name="merc_weapon_archer_medium_2">
+            <weapon_preset_item item_class_id="f54e6116-6c6c-4712-99a9-8a11e3416e2b" /> <!-- Ash hunting bow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="832e27a6-f6a9-4f86-aa99-bf42066cd7ad" weapon_preset_name="merc_weapon_archer_strong_1">
+            <weapon_preset_item item_class_id="b4a0b9c9-bf92-4cce-ad43-f20f57c892b9" /> <!-- Elm longbow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d582651e-129b-4230-b6c1-b1c783a0566d" weapon_preset_name="merc_weapon_archer_strong_2">
+            <weapon_preset_item item_class_id="77262956-daee-4a0e-9035-517569f18ef4" /> <!-- Ash longbow -->
+        </weapon_preset>
+
+        <!-- ==================== Crossbow ==================== -->
+        <weapon_preset weapon_preset_id="8e256398-37a8-4c16-81eb-4535296a2c9c" weapon_preset_name="merc_weapon_crossbow_weak_1">
+            <weapon_preset_item item_class_id="7673efc2-0566-4dde-9e18-f96c7790ce2e" /> <!-- Old hunting crossbow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="3b297403-b517-441e-b219-d58fa7e078fc" weapon_preset_name="merc_weapon_crossbow_weak_2">
+            <weapon_preset_item item_class_id="cb6ee20b-6eee-434c-af4c-8031502e2bec" /> <!-- Hunting crossbow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="6b0e8574-0486-4990-8dcc-8aef99aeee85" weapon_preset_name="merc_weapon_crossbow_medium_1">
+            <weapon_preset_item item_class_id="b77f912a-042b-47ca-8f42-5fddbcad3763" /> <!-- Old field crossbow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="947a178c-5a0b-4040-9d71-534544c0e3b3" weapon_preset_name="merc_weapon_crossbow_medium_2">
+            <weapon_preset_item item_class_id="48f25a62-e787-490e-83e9-9335bf303ef9" /> <!-- Field crossbow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="7b026220-fd56-48fa-9f9c-7b8e33294118" weapon_preset_name="merc_weapon_crossbow_strong_1">
+            <weapon_preset_item item_class_id="f0fb0494-6ebd-4c6a-bb9e-ef396db3c5d4" /> <!-- Reinforced heavy crossbow -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="9f8743e4-6a5a-4a86-a74c-6ee33b2d1f45" weapon_preset_name="merc_weapon_crossbow_strong_2">
+            <weapon_preset_item item_class_id="588c12c6-f0fb-4b3e-847d-ce1df2739e73" /> <!-- Heavy crossbow -->
+        </weapon_preset>
+
+        <!-- ==================== Handcannon ==================== -->
+        <weapon_preset weapon_preset_id="b785e210-1881-4c93-aa76-52d87dad0620" weapon_preset_name="merc_weapon_handcannon_weak_1">
+            <weapon_preset_item item_class_id="ea78735d-b371-46d4-a039-bef0ebbb088e" /> <!-- Pistole -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4e80ca93-ebca-4397-9ed8-353c4fab2fec" weapon_preset_name="merc_weapon_handcannon_weak_2">
+            <weapon_preset_item item_class_id="d9ccf323-7ca7-4d05-b8fb-213c748bb23e" /> <!-- Hand cannon -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="53c9970d-531a-4c72-af42-867f20549fd8" weapon_preset_name="merc_weapon_handcannon_medium_1">
+            <weapon_preset_item item_class_id="2694bfef-be40-4fb2-901b-e010eaede3ec" /> <!-- Master's pistole -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="01aaaac4-be90-45cf-9f66-9392783f2c84" weapon_preset_name="merc_weapon_handcannon_strong_1">
+            <weapon_preset_item item_class_id="842c178a-54b8-4c2b-8255-77d430165320" /> <!-- Fine hand cannon -->
+        </weapon_preset>
+
+        <!-- ==================== Sword and shield ==================== -->
+        <weapon_preset weapon_preset_id="aef0bb38-59a8-46cb-99bd-f4447e849a04" weapon_preset_name="merc_weapon_swordshield_weak_1">
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" />
+            <weapon_preset_item item_class_id="292ea6c3-92b9-40a1-890c-d558ab00a8f2" /> <!-- Painted pavese -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4c06c342-1f4e-4259-ae48-94c636ae3d3e" weapon_preset_name="merc_weapon_swordshield_weak_2">
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" />
+            <weapon_preset_item item_class_id="66760529-5a60-4bc3-861b-6694d571f5a1" /> <!-- Painted pavese -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="e6b2dd31-5e6f-4ba9-a221-dfa8ec993d8e" weapon_preset_name="merc_weapon_swordshield_medium_1">
+            <weapon_preset_item item_class_id="eaf0b03b-d2bf-4680-a2fb-1f551bd10d1c" />
+            <weapon_preset_item item_class_id="8baa70c0-222a-42dc-a289-035c83a33d5e" /> <!-- Heater shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="cb12a1ab-b658-45bc-abdd-7e7d9e632bd6" weapon_preset_name="merc_weapon_swordshield_medium_2">
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
+            <weapon_preset_item item_class_id="4bfa707e-2a7b-4091-8230-0b7d83da716a" /> <!-- Heater shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="85741a9f-1e35-45b8-879e-cfa17fc87dc0" weapon_preset_name="merc_weapon_swordshield_strong_1">
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" />
+            <weapon_preset_item item_class_id="e4e1b22a-428a-4e20-aa92-ce216b324c0a" /> <!-- Knight shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="f21f88f7-d0d7-4b72-8c6d-abebe945f071" weapon_preset_name="merc_weapon_swordshield_strong_2">
+            <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" />
+            <weapon_preset_item item_class_id="2fd517a8-e990-45a1-8fbc-e4b3636cf30a" /> <!-- Knight shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="b6e1c2a4-3f8d-4c11-9a2e-7d5f8b3c1a90" weapon_preset_name="merc_weapon_swordshield_weak_3">
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="a17f9d2b-6c4e-4a83-8b1f-3e9c7d2a5b64" weapon_preset_name="merc_weapon_swordshield_weak_4">
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="c3d8a1f5-2b7e-4f96-8c3a-1d6e9b4f7c22" weapon_preset_name="merc_weapon_swordshield_medium_3">
+            <weapon_preset_item item_class_id="eaf0b03b-d2bf-4680-a2fb-1f551bd10d1c" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d4e9b2a6-3c8f-4a09-9d4b-2e7f0a5c8d33" weapon_preset_name="merc_weapon_swordshield_medium_4">
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="e5fa3b7c-4d9a-4b12-8e5c-3f8a1b6d9e44" weapon_preset_name="merc_weapon_swordshield_strong_3">
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="f60b4c8d-5eab-4c23-9f6d-4a9b2c7e0f55" weapon_preset_name="merc_weapon_swordshield_strong_4">
+            <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield -->
+        </weapon_preset>
+
+        <!-- ==================== Axe and shield ==================== -->
+        <weapon_preset weapon_preset_id="1231bf2d-a4a2-4afe-bc46-e90a89aeb693" weapon_preset_name="merc_weapon_axeshield_weak_1">
+            <weapon_preset_item item_class_id="fdfd6989-a28d-40bc-ac0d-882b4d1cf4f9" />
+            <weapon_preset_item item_class_id="292ea6c3-92b9-40a1-890c-d558ab00a8f2" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="3730631f-7bf6-42b0-9141-34a32ac3e0a0" weapon_preset_name="merc_weapon_axeshield_weak_2">
+            <weapon_preset_item item_class_id="1fc42528-2bef-4dde-bf8a-04febeef41c8" />
+            <weapon_preset_item item_class_id="66760529-5a60-4bc3-861b-6694d571f5a1" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="04cdf545-216f-40a9-8bbe-e3df62c6c9c4" weapon_preset_name="merc_weapon_axeshield_weak_3">
+            <weapon_preset_item item_class_id="81494400-b654-4aa7-8f31-c95c689db5f6" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="8cadc064-2b10-4c83-b623-baa48ed00887" weapon_preset_name="merc_weapon_axeshield_weak_4">
+            <weapon_preset_item item_class_id="53612e76-76fd-4dca-84b6-7905b986dc3b" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="75619084-5ad1-4b57-9367-3cf4b5564d4c" weapon_preset_name="merc_weapon_axeshield_medium_1">
+            <weapon_preset_item item_class_id="c25fc705-c957-4c9a-a831-0f112e3b148d" />
+            <weapon_preset_item item_class_id="8baa70c0-222a-42dc-a289-035c83a33d5e" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="841b2ea4-fc4a-4b9c-8bda-7e982f90945d" weapon_preset_name="merc_weapon_axeshield_medium_2">
+            <weapon_preset_item item_class_id="e2cf3e8b-b411-43a0-a7ed-2674ae8ac4d2" />
+            <weapon_preset_item item_class_id="4bfa707e-2a7b-4091-8230-0b7d83da716a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="67b28c22-75ae-46c1-9fbb-74c4e5404bc8" weapon_preset_name="merc_weapon_axeshield_medium_3">
+            <weapon_preset_item item_class_id="eeeb5a48-9a97-41a6-aee0-3e1b64fc2405" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d5320f5a-4b3f-4b24-a396-642e82ede04e" weapon_preset_name="merc_weapon_axeshield_medium_4">
+            <weapon_preset_item item_class_id="bd74ce18-2623-48ba-a1a1-c9b09bbb2827" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="a1bdde2f-5c26-4cc8-8f97-97e7e5120832" weapon_preset_name="merc_weapon_axeshield_strong_1">
+            <weapon_preset_item item_class_id="0802c111-75aa-4b9c-9a3f-f30bac55fbc7" />
+            <weapon_preset_item item_class_id="e4e1b22a-428a-4e20-aa92-ce216b324c0a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4f4e5cd2-fea7-486d-86c1-b0636631ff54" weapon_preset_name="merc_weapon_axeshield_strong_2">
+            <weapon_preset_item item_class_id="50a9ac1e-dbb5-480b-8b5e-2ba3a1ff8d82" />
+            <weapon_preset_item item_class_id="2fd517a8-e990-45a1-8fbc-e4b3636cf30a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4da2558e-7c3b-4e71-9a0f-4e0fb96e31f7" weapon_preset_name="merc_weapon_axeshield_strong_3">
+            <weapon_preset_item item_class_id="214ffcdd-a7a7-4b7a-b484-f60c8d00b39b" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="a03246b9-5795-4b88-8a09-2558cd3f2b21" weapon_preset_name="merc_weapon_axeshield_strong_4">
+            <weapon_preset_item item_class_id="0f0164d5-3746-4d07-a1ed-0f138225a6d9" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+        </weapon_preset>
+
+        <!-- ==================== Mace and shield ==================== -->
+        <weapon_preset weapon_preset_id="e9304794-d205-41a9-bc2c-4b91ef966d81" weapon_preset_name="merc_weapon_maceshield_weak_1">
+            <weapon_preset_item item_class_id="cff7ae16-d134-41bd-9394-89e8c3970f94" />
+            <weapon_preset_item item_class_id="292ea6c3-92b9-40a1-890c-d558ab00a8f2" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="cb350569-6753-40c2-bca8-e9bd059dfe56" weapon_preset_name="merc_weapon_maceshield_weak_2">
+            <weapon_preset_item item_class_id="007907cf-aeb9-4dfa-ad3f-e0262893e423" />
+            <weapon_preset_item item_class_id="66760529-5a60-4bc3-861b-6694d571f5a1" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="8cd52efe-5c75-4ca4-a73e-d742856de6ad" weapon_preset_name="merc_weapon_maceshield_weak_3">
+            <weapon_preset_item item_class_id="9cc07405-4195-46ab-bf17-fd0fd99721bd" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="05de7ab9-82dd-44db-8dcf-c065a3f88f4f" weapon_preset_name="merc_weapon_maceshield_weak_4">
+            <weapon_preset_item item_class_id="8a9e3a36-213e-4b90-a4ec-518fdec1d980" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="65804416-c27f-4a7b-bae2-40cc77d3bbec" weapon_preset_name="merc_weapon_maceshield_medium_1">
+            <weapon_preset_item item_class_id="00b0039b-daa4-4f32-ac7f-69a6a2e0add8" />
+            <weapon_preset_item item_class_id="8baa70c0-222a-42dc-a289-035c83a33d5e" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="946bd250-054d-49c7-a773-de35475c7f1a" weapon_preset_name="merc_weapon_maceshield_medium_2">
+            <weapon_preset_item item_class_id="f65df177-966b-48e5-8cc6-26a4f95e41b0" />
+            <weapon_preset_item item_class_id="4bfa707e-2a7b-4091-8230-0b7d83da716a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="e72434c6-0ce9-4a03-a9a1-a34586b5f141" weapon_preset_name="merc_weapon_maceshield_medium_3">
+            <weapon_preset_item item_class_id="af6a6142-c6f7-4ae7-94a9-bb5be41ebecc" />
+            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="b5a967b8-4ed8-4814-b233-a7b4125375d2" weapon_preset_name="merc_weapon_maceshield_medium_4">
+            <weapon_preset_item item_class_id="c67de991-e22a-4a19-8b68-9369919c41dd" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="45ca9e2a-16a1-445c-8b25-040f60987283" weapon_preset_name="merc_weapon_maceshield_strong_1">
+            <weapon_preset_item item_class_id="839992c8-657b-4d5e-97c9-96ff94430d72" />
+            <weapon_preset_item item_class_id="e4e1b22a-428a-4e20-aa92-ce216b324c0a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="56035f56-6a73-4ed7-87bf-8896f24ec33f" weapon_preset_name="merc_weapon_maceshield_strong_2">
+            <weapon_preset_item item_class_id="f2e86f22-8932-4751-8f62-fb1b8b846ddf" />
+            <weapon_preset_item item_class_id="2fd517a8-e990-45a1-8fbc-e4b3636cf30a" />
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="232574b9-4aef-42f2-8b78-8218d8702ddb" weapon_preset_name="merc_weapon_maceshield_strong_3">
+            <weapon_preset_item item_class_id="65a211bd-2c7e-40a8-984f-66c8730444e4" />
+            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+        </weapon_preset>
+
+        <!-- ==================== Archer sets (ranged mercs) ====================
+             Bow + arrows + a shortsword sidearm so the melee-fallback part of
+             the archer brain has something to swing when enemies close in.
+             Arrow item classes come from the vanilla item table (root item.xml):
+             arrow_normal / arrow_hunting / arrow_enh_hunting / arrow_enh_piercing.
+             Lua tops arrow count up on spawn (GiveArcherAmmo). -->
+        <weapon_preset weapon_preset_id="fca40a2e-4d33-4675-8dc2-a918c0998198" weapon_preset_name="merc_weapon_archerset_weak_1">
+            <weapon_preset_item item_class_id="0fffb172-2183-4545-bbdb-01e04a3ff32f" /> <!-- Village hazel bow -->
+            <weapon_preset_item item_class_id="ad6f0f01-aec4-44d1-982c-1210eb01b74a" /> <!-- arrow_normal -->
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4838fefa-bd2f-433f-861a-6599e2182f5b" weapon_preset_name="merc_weapon_archerset_weak_2">
+            <weapon_preset_item item_class_id="db354284-2cf9-40a4-bcfc-e78d020204af" /> <!-- Dogwood village bow -->
+            <weapon_preset_item item_class_id="ad6f0f01-aec4-44d1-982c-1210eb01b74a" /> <!-- arrow_normal -->
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="d6d73839-0334-4e24-adfe-3fa4b6cbdd2c" weapon_preset_name="merc_weapon_archerset_medium_1">
+            <weapon_preset_item item_class_id="7b77a0e9-91cd-403f-be3e-6be6bac8e589" /> <!-- Worn Cuman bow -->
+            <weapon_preset_item item_class_id="710e3706-8974-404b-b23a-6f51670ef1ed" /> <!-- arrow_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="fe692cff-7236-4cfd-af19-bc44e3d20f19" weapon_preset_name="merc_weapon_archerset_medium_2">
+            <weapon_preset_item item_class_id="f54e6116-6c6c-4712-99a9-8a11e3416e2b" /> <!-- Ash hunting bow -->
+            <weapon_preset_item item_class_id="710e3706-8974-404b-b23a-6f51670ef1ed" /> <!-- arrow_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="561167b1-0775-4066-8110-8c390e21ff95" weapon_preset_name="merc_weapon_archerset_strong_1">
+            <weapon_preset_item item_class_id="b4a0b9c9-bf92-4cce-ad43-f20f57c892b9" /> <!-- Elm longbow -->
+            <weapon_preset_item item_class_id="802507e9-d620-47b5-ae66-08fcc314e26a" /> <!-- arrow_enh_hunting -->
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="94c8ab63-cf02-471d-a6eb-7807623c8265" weapon_preset_name="merc_weapon_archerset_strong_2">
+            <weapon_preset_item item_class_id="77262956-daee-4a0e-9035-517569f18ef4" /> <!-- Ash longbow -->
+            <weapon_preset_item item_class_id="a5b31bbc-1e11-4831-835b-c06d5b13a7da" /> <!-- arrow_enh_piercing -->
+            <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+
+        <!-- ==================== Archer sets: crossbow ====================
+             Crossbow + bolts + the same shortsword sidearm used by the bow
+             sets. Crossbow/bolt item classes come from the vanilla item
+             table (root item.xml). Lua tops bolt count up on spawn/re-equip
+             (GiveArcherAmmo). -->
+        <weapon_preset weapon_preset_id="1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d" weapon_preset_name="merc_weapon_archerset_crossbow_weak_1">
+            <weapon_preset_item item_class_id="7673efc2-0566-4dde-9e18-f96c7790ce2e" /> <!-- Old hunting crossbow -->
+            <weapon_preset_item item_class_id="8460003f-637f-4713-92c9-4954037c4b9c" /> <!-- bolt_normal -->
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e" weapon_preset_name="merc_weapon_archerset_crossbow_weak_2">
+            <weapon_preset_item item_class_id="cb6ee20b-6eee-434c-af4c-8031502e2bec" /> <!-- Hunting crossbow -->
+            <weapon_preset_item item_class_id="8460003f-637f-4713-92c9-4954037c4b9c" /> <!-- bolt_normal -->
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f" weapon_preset_name="merc_weapon_archerset_crossbow_medium_1">
+            <weapon_preset_item item_class_id="b77f912a-042b-47ca-8f42-5fddbcad3763" /> <!-- Old field crossbow -->
+            <weapon_preset_item item_class_id="40337bef-e965-4a60-abee-695e9a784fa4" /> <!-- bolt_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a" weapon_preset_name="merc_weapon_archerset_crossbow_medium_2">
+            <weapon_preset_item item_class_id="48f25a62-e787-490e-83e9-9335bf303ef9" /> <!-- Field crossbow -->
+            <weapon_preset_item item_class_id="40337bef-e965-4a60-abee-695e9a784fa4" /> <!-- bolt_hunting -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b" weapon_preset_name="merc_weapon_archerset_crossbow_strong_1">
+            <weapon_preset_item item_class_id="f0fb0494-6ebd-4c6a-bb9e-ef396db3c5d4" /> <!-- Reinforced heavy crossbow -->
+            <weapon_preset_item item_class_id="b738d184-4ae1-4d74-8fac-b8db1943b1d4" /> <!-- bolt_enh_hunting -->
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f8a9b0c" weapon_preset_name="merc_weapon_archerset_crossbow_strong_2">
+            <weapon_preset_item item_class_id="588c12c6-f0fb-4b3e-847d-ce1df2739e73" /> <!-- Heavy crossbow -->
+            <weapon_preset_item item_class_id="b738d184-4ae1-4d74-8fac-b8db1943b1d4" /> <!-- bolt_enh_hunting -->
+            <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+
+        <!-- ==================== Archer sets: handcannon ====================
+             Handcannon + shot_ball ammo + the same shortsword sidearm.
+             Hand cannons DO have a trackable ammo item in the vanilla
+             tables (shot_ball, Type="3") - vanilla gunsmith stock always
+             pairs it with handgunFancy01/hookgunNormal01 (see
+             InventoryPreset__shops_components.xml, inventory_shop_pusko_special).
+             There's no tiered variant like arrows/bolts have, so every tier
+             uses the same shot_ball item. -->
+        <weapon_preset weapon_preset_id="7a8b9c0d-1e2f-4a3b-4c5d-6e7f8a9b0c1d" weapon_preset_name="merc_weapon_archerset_handcannon_weak_1">
+            <weapon_preset_item item_class_id="ea78735d-b371-46d4-a039-bef0ebbb088e" /> <!-- Pistole -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
+            <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="8b9c0d1e-2f3a-4b4c-5d6e-7f8a9b0c1d2e" weapon_preset_name="merc_weapon_archerset_handcannon_weak_2">
+            <weapon_preset_item item_class_id="d9ccf323-7ca7-4d05-b8fb-213c748bb23e" /> <!-- Hand cannon -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
+            <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="9c0d1e2f-3a4b-4c5d-6e7f-8a9b0c1d2e3f" weapon_preset_name="merc_weapon_archerset_handcannon_medium_1">
+            <weapon_preset_item item_class_id="2694bfef-be40-4fb2-901b-e010eaede3ec" /> <!-- Master's pistole -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+        <weapon_preset weapon_preset_id="0d1e2f3a-4b5c-4d6e-7f8a-9b0c1d2e3f4a" weapon_preset_name="merc_weapon_archerset_handcannon_strong_1">
+            <weapon_preset_item item_class_id="842c178a-54b8-4c2b-8255-77d430165320" /> <!-- Fine hand cannon -->
+            <weapon_preset_item item_class_id="f10ded12-a41c-40bf-a8ae-883d4e845059" /> <!-- shot_ball -->
+            <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
+        </weapon_preset>
+
+    </weapon_presets>
+</database>

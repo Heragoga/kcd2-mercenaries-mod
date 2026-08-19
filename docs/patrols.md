@@ -80,8 +80,28 @@ about everyone else** — civilians and quest NPCs fall through to the default n
 relation rather than being dragged into a war. Gating combat in Lua was tried for the
 tester and does not work; faction is the only thing the engine actually respects.
 
-**Size** is `PatrolPartyMin`..`PatrolPartyMax` (0.5x-3x) of the player's strength — himself
-plus his living mercs — clamped to `PatrolMinMen`..`PatrolMaxMen` (5..50), rolled per patrol.
+**Size** is a multiple of the player's strength — himself plus his living mercs — clamped to
+`PatrolMinMen`..`PatrolMaxMen` (3..50) and rolled per patrol. The floor of the multiple is a
+flat `PatrolPartyMin` (0.5x); **the ceiling scales with the party** (`PatrolMaxMultFor`),
+ramping from `PatrolPartyMaxSolo` (1.2x at a party of one) to `PatrolPartyMax` (2.0x at
+`PatrolPartyMaxAt`, 20, and above).
+
+It used to be a flat 0.5x‥3x with a floor of five men, and that is a mugging rather than an
+encounter at the sizes players actually ride around at: a lone rider always met exactly five,
+and a party of four met up to twelve. A big company can absorb the full multiple; a small one
+cannot, and the small one is the common case. Ramped rather than stepped, so there is no
+headcount at which hiring one more merc doubles what walks down the road.
+
+| Party | Was | Now |
+| --- | --- | --- |
+| 1 | 5 | 3 |
+| 4 | 5‥12 | 3‥5 |
+| 6 | 5‥18 | 3‥8 |
+| 11 | 6‥33 | 6‥18 |
+| 21 | 11‥50 | 11‥42 |
+| 31+ | 16‥50 | unchanged |
+
+`merc_patrols_status` prints the party strength and the size range it currently implies.
 
 **Strength and identity are both in the soul.** There is one soul per **group** per tier —
 `soul_patrol_<group>_1..4` at `combat_level` 0.4 / 0.7 / 0.9 / 1.0 — because the soul carries
@@ -96,6 +116,49 @@ patrol keeps a *notional* index that creeps along its route on a timer whether o
 spawned (`PatrolGhostSpeed`). Men appear within `PatrolSpawnRange` and are removed beyond
 `PatrolDespawnRange`, so a patrol turns up roughly where it should be rather than where you
 last left it. While spawned, the notional index tracks the real leader.
+
+### Never in your lap
+
+A gang materialises only inside a **band**, never on top of the player:
+
+| Knob | Value | Meaning |
+| --- | --- | --- |
+| `PatrolNoSpawnRange` | 200 m | never spawn closer than this |
+| `PatrolSpawnRange` | 250 m | ...and no further than this |
+| `PatrolDespawnRange` | 330 m | remove them out here (hysteresis) |
+| `PatrolFreshMinDist` | 450 m | where a newly rolled record starts |
+
+The floor is what stops "I load a save and get jumped". In normal play the floor never bites —
+a ghost walking toward a standing player crosses 250 m before it reaches 200 m and spawns at
+the outer edge — it only bites when a record appears *near* the player, which is exactly the
+load case. Raising the range is the other half: 140 m was close enough that a gang could
+resolve within sight.
+
+Three things happen on load. Every record is created fresh, and `PatrolMakeRecord` takes the
+farthest of `PatrolFreshTries` (8) random start points, stopping early once one clears
+`PatrolFreshMinDist` — measured on the point the slot offset actually lands on, not the one
+before it. `ClearAnyLeftoverPatrols` sweeps the men themselves. And nothing spawns at all for
+`PatrolLoadGraceSecs` (45 s).
+
+**The grace is the distance floor expressed in time.** Loading in is the one moment the player
+has no bearings and no squad: the merc cache rebuild is 2 s behind him and the camp restore 4 s,
+so a gang met in the first seconds is met alone — which is what "extreme when you just spawn in"
+was. It is a *spawn* gate only; the notional indices keep creeping through it, so when it lifts
+the gangs are spread along their roads where they belong rather than queued at the player.
+`merc_patrols_here` bypasses it (it spawns a gang directly), and `merc_patrols_status` prints
+the time left.
+
+**Patrols are not save-persistent, and cannot be.** The men are ordinary spawned NPCs, so the
+engine serialises them with the game — but `LivePatrols` is plain Lua state and is gone after a
+load. What came back was a hostile gang with no record, no leader and no route: they never
+walked, nothing despawned them, and they stood wherever the player saved. `ClearAnyLeftoverPatrols`
+(from `OnGameplayStarted`, before `LivePatrolStart`) removes anything matching `PatrolPrefixes`
+and empties `LivePatrols`; the tick re-rolls fresh records within a second or two. Corpses go
+with them — their record is gone, so `PatrolClearCorpses` could never reach them.
+
+It scans a `PatrolSweepRadius` (600 m) box rather than every NPC in the world: nothing of ours
+can be beyond `PatrolDespawnRange`, and the one permitted full-world NPC scan on load already
+belongs to the merc cache.
 
 **Back and forth**, not round and round: `PatrolAdvance` reverses `dir` at each end of the
 route. The tester still loops; `PatrolStepIndex` is what differs between them.

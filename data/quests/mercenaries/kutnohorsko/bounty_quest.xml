@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <!-- The quartermaster's repeatable camp bounty. Modelled on bandit_camp_quest.xml and
+             obeying the same rules: every node here is a primitive with NO Namespace attribute
+             (one namespaced node kills the whole mod quest graph - see docs/bandit-camp-quest.md),
+             and TypeT="wh::questmodule::QuestProgress" is an engine type string passed as a value,
+             not a namespace reference.
+
+             Two objectives and nothing else: clear the camp, walk back and get paid. There is no
+             letter leg, because there is no story riding on this one. Repeatable="true" is what
+             makes it infinitely repeatable - each accept reopens the same entry.
+
+             Everything real happens in mercenaries_bounty.lua and the shared camp machinery in
+             mercenaries_banditcamp_quest.lua. See docs/bounty.md. -->
+        <Quest Name="bounty_quest" Type="Side" Players="0" Repeatable="true">
+            <Ports>
+                <Port Name="run" Direction="In" Type="trigger" />
+            </Ports>
+            <Nodes>
+                <!-- The player's inventory, read continuously off the soul asset. It must NOT
+                     come from a ForEach: an effect node's data ports are only valid on the tick
+                     its trigger fires. -->
+                <ObjectProperties Name="bo_player_props" PositionY="0" PositionX="-900" DeclaringType="wh::rpgmodule::I_Soul">
+                    <Asset Name="I_Soul" Alias="player" />
+                </ObjectProperties>
+
+                <!-- IsActive takes a bool, never a raw trigger. `run` fires once at OnWake and
+                     the item triggers below do the real gating. -->
+                <State Name="bo_awake" PositionY="-400" PositionX="-900" TypeT="bool">
+                    <Constant Name="DefaultValue" Value="true" />
+                </State>
+
+                <!-- bedad: Lua says the job has been taken and the camp is marked. -->
+                <Function Name="bo_started_desc" PositionY="-200" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bedad" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bo_started_trigger" PositionY="-200" PositionX="-600">
+                    <Edge From="bo_player_props.Inventory" To="Inventory" />
+                    <Edge From="bo_started_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bo_awake.State" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- bedbd: the last man is down. -->
+                <Function Name="bo_cleared_desc" PositionY="200" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bedbd" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bo_cleared_trigger" PositionY="200" PositionX="-600">
+                    <Edge From="bo_player_props.Inventory" To="Inventory" />
+                    <Edge From="bo_cleared_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bo_clear_state.Active" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- beddd: reported in and paid. Also what closes the entry when a bounty has to
+                     be called off because Kleinkrieg claimed the last free camp. -->
+                <Function Name="bo_paid_desc" PositionY="440" PositionX="-900" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92beddd" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="bo_paid_trigger" PositionY="440" PositionX="-600">
+                    <Edge From="bo_player_props.Inventory" To="Inventory" />
+                    <Edge From="bo_paid_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="bo_quest_state.Active" To="IsActive" />
+                </ItemDescriptorTrigger>
+
+                <!-- One job, start to payment. Unlike Kleinkrieg there is no arc to hold open:
+                     the entry opens on accept and closes on payment, every time. -->
+                <State Name="bo_quest_state" PositionY="0" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="wh::questmodule::QuestProgress">
+                    <Edge From="bo_started_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bo_paid_trigger.OnAcquire" To="SetDone" />
+                </State>
+
+                <!-- Objective 1: clear the camp. Marked on the bounty camp's own leader. -->
+                <State Name="bo_clear_state" PositionY="200" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="Progress">
+                    <Edge From="bo_started_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bo_cleared_trigger.OnAcquire" To="SetDone" />
+                </State>
+
+                <!-- Objective 2: walk back. SetNone from the accept trigger so a repeat job
+                     starts with one live objective instead of inheriting the last one's tick. -->
+                <State Name="bo_report_state" PositionY="440" PositionX="0" RequiredForOutput="kutnohorsko" TypeT="Progress">
+                    <Edge From="bo_cleared_trigger.OnAcquire" To="SetActive" />
+                    <Edge From="bo_paid_trigger.OnAcquire" To="SetDone" />
+                    <Edge From="bo_started_trigger.OnAcquire" To="SetNone" />
+                </State>
+
+                <!-- Tag name == the Objective's Name below; this is what renders it. -->
+                <clear_the_camp Name="bo_clear_visual" PositionY="200" PositionX="300" RequiredForOutput="kutnohorsko">
+                    <Edge From="bo_clear_state.State" To="Progress" />
+                </clear_the_camp>
+                <report_the_bounty Name="bo_report_visual" PositionY="440" PositionX="300" RequiredForOutput="kutnohorsko">
+                    <Edge From="bo_report_state.State" To="Progress" />
+                </report_the_bounty>
+
+                <Output Name="Output">
+                    <Edge From="bo_quest_state.State" To="Progress" />
+                </Output>
+            </Nodes>
+
+            <Assets>
+                <SoulAsset Name="player" SharedSoulGuids="4c2dcffb-dea1-6263-72d7-b39f4db2d8b5" />
+                <SoulAsset Name="quartermaster" SharedSoulGuids="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" />
+                <!-- The bounty camp's OWN leader soul, not the Kleinkrieg one: with both jobs
+                     running at once, one shared soul would leave the two markers fighting over
+                     whichever leader the database resolved first. -->
+                <SoulAsset Name="bounty_leader" SharedSoulGuids="5c8f2b91-7d34-4e06-a1f8-2b96d4e70c53" />
+            </Assets>
+
+            <QuestName StringName="qname_merc_bounty" Text="Bandit Bounty" />
+            <QuestDescription StringName="qdesc_merc_bounty" Text="The quartermaster pays by the camp. There is never a shortage of camps." />
+
+            <Objectives>
+                <Objective TypeT="Progress" Name="clear_the_camp">
+                    <LocalizedName StringName="obj_merc_bounty_clear" Text="Clear out the bandit camp." />
+                    <Logs>
+                        <EnumLog Type="None" Name="None" />
+                        <EnumLog Type="Started" Name="Active" Marker="bounty_leader">
+                            <Log StringName="log_merc_bounty_clear_started" Text="A camp of them, and a price on the lot. The quartermaster wants it empty, not scattered." />
+                        </EnumLog>
+                        <EnumLog Type="Completed" Name="Done">
+                            <Log StringName="log_merc_bounty_clear_done" Text="Nobody left standing. Time to go and collect." />
+                        </EnumLog>
+                    </Logs>
+                </Objective>
+                <Objective TypeT="Progress" Name="report_the_bounty">
+                    <LocalizedName StringName="obj_merc_bounty_report" Text="Report to the quartermaster." />
+                    <Logs>
+                        <EnumLog Type="None" Name="None" />
+                        <EnumLog Type="Started" Name="Active" Marker="quartermaster">
+                            <Log StringName="log_merc_bounty_report_started" Text="He pays when he hears it's done, and not before." />
+                        </EnumLog>
+                        <EnumLog Type="Completed" Name="Done">
+                            <Log StringName="log_merc_bounty_report_done" Text="Counted out and paid. He'll have another camp for me whenever I want one." />
+                        </EnumLog>
+                    </Logs>
+                </Objective>
+            </Objectives>
+        </Quest>
+    </Skald>
+</Database>

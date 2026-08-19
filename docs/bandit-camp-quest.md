@@ -15,6 +15,10 @@ map, and closes itself when the last bandit falls.
 | Camp leader soul / face | `soul__mercenaries.xml`, `skald_character__mercenaries.xml`, `enemiesappearance.xml` |
 | Layout authoring tool | `data/Scripts/mods/mercenaries_banditcamp.lua` (the F5–F11 builder) |
 
+Everything below is Kleinkrieg's. The quartermaster's **second**, repeatable job runs on the
+same camp machinery from its own slot — see [the standing bounty](bounty.md), which also
+documents the slot pointer that lets two contracts be live at once.
+
 ---
 
 ## Authoring a camp

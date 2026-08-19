@@ -46,6 +46,26 @@ never touches it. The newest interrupt wins
 (`IgnorePriorityOnPreviousInterrupt`), so combat cleanly preempts the idle loop
 and the idle loop resumes afterward.
 
+### Why he used to stand where the fight ended
+
+Two separate bugs, both of which stopped the switch ever reaching arm 3 again.
+
+**1. A Lua `nil` does not clear a BT `_wuid`.** `FindQuartermasterTarget` ended with
+`data.currentTarget = best`, and `best` is `nil` when nothing hostile is near — which left the
+variable holding the last raider for ever. Arms 1 and 2 both tested
+`$currentTarget ~= $__null`, so after his first fight the switch sat on arm 2 ("let the combat
+tree run") permanently. Everywhere else in the mod a `_wuid` is cleared by a BT `Expression`
+(`$playerTarget = $__null` at the top of the merc scheduler's cycle); Lua only ever *writes*
+one. The fix keeps that rule: Lua writes `currentTarget` only when there is a real target and
+publishes a separate `_bool` **`qmHasTarget`**, which is what both arms now switch on.
+
+**2. The idle latch was only dropped by the arm that starts a fight.** `$isIdleActive = false`
+lived solely in arm 1, but a raider who swings first puts him in `crime_interruptAttack`
+without arm 1 ever running — the engine's own attack interrupt evicts `quartermaster_idle`, the
+latch stays `true`, and arm 3's `~$isIdleActive` guard blocks the re-fire. The combat-detection
+loop now clears the latch alongside `$inCombat = true`, so any route into a fight re-arms the
+walk home.
+
 **Idle** (`quartermaster_idle.xml`) each cycle: walk back to his post, sheathe,
 turn to face the tent, then stand a while and play a `eating_standing`
 UnstanceAction (a mode-2 standing activity, confirmed working — see

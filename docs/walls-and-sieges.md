@@ -20,9 +20,13 @@ Left-click marks a corner, right-click finishes. Two rules the player runs into:
 
 ### Gate sentries
 
-The first two camp guards are posted at the **two ends of the wall run** — which, because
-a corner may not be marked near the start, are the two sides of the gateway. Everyone else
-keeps patrolling the perimeter.
+The first two camp guards are posted at the camp's **gates** once any exist; with none they
+fall back to the two ends of the longest wall stretch. Everyone else keeps patrolling the
+perimeter.
+
+> The old "a corner may not be marked within `WallGateMin` of the start" rule no longer
+> forces the gateway — `WallGateMin` is 0 and gate snapping does the job instead. See
+> [gates.md](gates.md).
 
 A post is just a patrol route with a single waypoint: `camp_actor` walks there,
 `AdvancePatrolWaypoint` leaves the index where it is, and the man stands. No behaviour-tree

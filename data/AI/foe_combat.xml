@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Foe melee combat. Own tree, not combat_melee: it shares no Lua with the merc
+         side, has no leash of any kind (an alerted foe fights until his target is
+         down), and it carries the alert shout.
+
+         Target comes from $attackData.target, set by foe_scheduler.xml.
+         See docs/foe-ai.md. -->
+    <BehaviorTree name="foe_combat" is_function="0">
+        <Variables>
+            <Variable name="automation_defense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_guard" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_movement" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_offense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_weapon" type="_bool" values="true" isPersistent="0" form="single" />
+            <!-- melee, not none: a passive draw loses the race against an NPC that
+                 engages the moment it is told to, and he charges in with fists. -->
+            <Variable name="weaponChange" type="enum:weaponChange" values="$enum:weaponChange.melee" isPersistent="0" form="single" />
+            <Variable name="guardMode" type="enum:combatAutomationGuardMode" values="$enum:combatAutomationGuardMode.automate" isPersistent="0" form="single" />
+
+            <Variable name="isTargetAlive" type="_bool" values="true" isPersistent="0" form="single" />
+            <!-- Set by FoeCombatEnter on the foe who actually did the spotting; the men
+                 his shout woke up charge silently. -->
+            <Variable name="foeShout" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- False when the weapon is already drawn, so a re-fire does not replay the
+                 draw animation and stop him mid-charge. -->
+            <Variable name="needsDraw" type="_bool" values="true" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                    <EntityContextElement context="crime_interrupt" enabled="true">
+                        <EntityContext context="crime_interruptAttack" target="$this.id">
+                            <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                                <Child canSkip="1">
+                                    <Sequence>
+                                        <!-- First heartbeat: from here on Lua knows the fight started,
+                                             and stops re-firing it. -->
+                                        <ExecuteLua code="mercenaries:FoeCombatEnter(data, entity.this.id)" />
+
+                                        <!-- Explicit draw before the approach, but ONLY if the weapon is
+                                             not already out. This is a full animation that stops him
+                                             where he stands, and it is replayed on every re-fire of this
+                                             behaviour - so an unnecessary one is a visible pause in the
+                                             middle of a charge. Suppressed as well: a foe whose weapon
+                                             set came out empty must still reach the fight rather than
+                                             die at this node with his hands empty. -->
+                                        <IfCondition failOnCondition="false" condition="$needsDraw">
+                                            <SuppressFailure>
+                                                <DrawAction WeaponSet="Primary" fullBody="false" tags="" />
+                                            </SuppressFailure>
+                                        </IfCondition>
+
+                                        <Parallel successMode="Any" failureMode="Any">
+
+                                            <!-- Copied node for node from vanilla's own NPC-vs-NPC melee,
+                                                 references/AI/crime/friendlyFight.xml. Two things in it
+                                                 are not obvious and both were got wrong first:
+
+                                                 CombatMoveDecorator is what puts the NPC into COMBAT
+                                                 LOCOMOTION. Without it the combat follower issues its
+                                                 movement against the ordinary movement controller and
+                                                 the approach comes out as step, stop, step, stop. An NPC
+                                                 with an EMPTY weapon set never enters combat locomotion
+                                                 at all, which is why the unarmed foes ran straight at the
+                                                 player while every armed one shuffled - that split is
+                                                 what found this. It replaces the MoveParamsDecorator that
+                                                 used to wrap this stack: vanilla never puts one outside
+                                                 CombatFollowerDecorator, and mostly has none at all.
+
+                                                 CombatAction takes NO loop. It is a continuous
+                                                 whole-fight action - under the offense/weapon automation
+                                                 it closes, swings and keeps swinging until the target is
+                                                 down. The watchdog sibling below is what keeps this
+                                                 Parallel (and so the fight) alive. See docs/ai-modules.md.
+
+                                                 The automation_* flags come from Lua on entry
+                                                 (mercenaries.FoeAutomation / foe_auto) so each decorator
+                                                 can be switched off in-game to bisect a movement problem
+                                                 without a rebuild. -->
+                                            <CombatMoveDecorator>
+                                                <MeleeOffenseAutomationDecorator active="$automation_offense">
+                                                    <MeleeDefenseAutomationDecorator active="$automation_defense">
+                                                        <MeleeGuardAutomationDecorator GuardMode="$guardMode" active="$automation_guard">
+                                                            <WeaponAutomationDecorator WeaponChange="$weaponChange" active="$automation_weapon">
+                                                                <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="$automation_movement">
+                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                </CombatFollowerDecorator>
+                                                            </WeaponAutomationDecorator>
+                                                        </MeleeGuardAutomationDecorator>
+                                                    </MeleeDefenseAutomationDecorator>
+                                                </MeleeOffenseAutomationDecorator>
+                                            </CombatMoveDecorator>
+
+                                            <!-- Watchdog and heartbeat in one, and now the ONLY exit:
+                                                 the movement arm above no longer tests liveness, so a
+                                                 dead target ends the fight here, within ~1s. 700ms so
+                                                 Lua's 2.5s no-heartbeat timeout can never trip on a
+                                                 fight that is genuinely running. The second read 300ms
+                                                 later is because FoeCombatTick defaults isTargetAlive
+                                                 to false and only raises it after a successful WUID
+                                                 lookup, so a single hiccup would read as a death. -->
+                                            <Loop count="-1">
+                                                <Sequence>
+                                                    <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                    <ExecuteLua code="mercenaries:FoeCombatTick(data, entity.this.id)" />
+                                                    <IfCondition failOnCondition="false" condition="~$isTargetAlive">
+                                                        <Sequence>
+                                                            <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                            <ExecuteLua code="mercenaries:FoeCombatTick(data, entity.this.id)" />
+                                                            <IfCondition failOnCondition="false" condition="~$isTargetAlive">
+                                                                <Fail />
+                                                            </IfCondition>
+                                                        </Sequence>
+                                                    </IfCondition>
+                                                </Sequence>
+                                            </Loop>
+
+                                            <!-- The alert shout, played over the charge rather than before
+                                                 it. NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT is the vanilla
+                                                 "sees an enemy and will attack" bark METAROLE, so the
+                                                 engine casts it from the generic pool on this foe's own
+                                                 voice - no mod Skald dialog and no shipped VO needed.
+                                                 This Parallel ends on Any, so this arm must NEVER
+                                                 return - an arm that merely SUCCEEDS ends the fight
+                                                 just as surely as one that fails, and the man then
+                                                 stands there until the scheduler re-fires him a
+                                                 second later. Hence the endless Loop around a finite
+                                                 Wait rather than a bare Wait '-1'. -->
+                                            <Sequence>
+                                                <IfCondition failOnCondition="false" condition="$foeShout">
+                                                    <SuppressFailure>
+                                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$attackData.target" metarole="'NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'" skipInLod="true" subtitlesDown="false" />
+                                                    </SuppressFailure>
+                                                </IfCondition>
+                                                <Loop count="-1">
+                                                    <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="" />
+                                                </Loop>
+                                            </Sequence>
+
+                                        </Parallel>
+                                    </Sequence>
+                                </Child>
+
+                                <OnFail canSkip="1">
+                                    <Sequence>
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() mercenaries:FoeCombatEnded(entity.this.id) end)" />
+                                        <!-- No DrawWeapon(false): an alerted foe stays alerted, so he keeps
+                                             his weapon out between targets instead of sheathing and
+                                             re-drawing every time someone in front of him goes down.
+                                             This Wait sits inside crime_interruptAttack, so it is dead
+                                             time before the next fire - keep it short. -->
+                                        <Wait duration="'200ms'" timeType="GameTime" doFail="false" variation="" />
+                                    </Sequence>
+                                </OnFail>
+                            </FuseBox>
+                        </EntityContext>
+                    </EntityContextElement>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

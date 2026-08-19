@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- TEST NPC combat: a copy of combat_melee, cut down and given one extra rule, so
+         it can be hacked freely without touching the module every real NPC uses.
+         Differences from combat_melee.xml:
+           * no UpdateMeleeCombatData / disengage / leash watchdog - aggro is permanent
+           * the combat stack sits inside a Loop, and a watchdog Fails that inner
+             Parallel the moment the player is within TestNpcCloseRange (1m)
+           * failing it drops through to a Move to a random point within
+             TestNpcRetreatRange (10m), after which the loop re-enters combat
+         This is the experiment for whether we can take movement away from combat while
+         combat is running - the prerequisite for steering NPCs along our own navmesh.
+         Destination comes from Lua as a vec3 in $retreatPos and is handed to Move's
+         destinationSpecification, the same way sa_deterrentArea drives its own flee. -->
+    <BehaviorTree name="testnpc_combat" is_function="0">
+        <Variables>
+            <Variable name="automation_defense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_guard" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_movement" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_offense" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="automation_weapon" type="_bool" values="true" isPersistent="0" form="single" />
+            <Variable name="weaponChange" type="enum:weaponChange" values="$enum:weaponChange.melee" isPersistent="0" form="single" />
+            <Variable name="guardMode" type="enum:combatAutomationGuardMode" values="$enum:combatAutomationGuardMode.automate" isPersistent="0" form="single" />
+
+            <Variable name="tooClose" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="retreatPos" type="vec3" values="" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                    <EntityContextElement context="crime_interrupt" enabled="true">
+                        <EntityContext context="crime_interruptAttack" target="$this.id">
+                            <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                                <Child canSkip="1">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <DrawAction WeaponSet="Primary" fullBody="false" tags="" />
+                                        </SuppressFailure>
+
+                                        <!-- Plain melee, permanently aggroed. The retreat is NOT here: it
+                                             is a separate higher-priority interrupt (testnpc_retreat.xml),
+                                             because failing a branch of this tree did not take movement
+                                             away from the combat automation. -->
+                                        <Loop count="-1">
+                                            <MoveParamsDecorator speed="Run" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                <MeleeOffenseAutomationDecorator active="$automation_offense">
+                                                    <MeleeDefenseAutomationDecorator active="$automation_defense">
+                                                        <MeleeGuardAutomationDecorator GuardMode="$guardMode" active="$automation_guard">
+                                                            <WeaponAutomationDecorator WeaponChange="$weaponChange" active="$automation_weapon">
+                                                                <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="$automation_movement">
+                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                </CombatFollowerDecorator>
+                                                            </WeaponAutomationDecorator>
+                                                        </MeleeGuardAutomationDecorator>
+                                                    </MeleeDefenseAutomationDecorator>
+                                                </MeleeOffenseAutomationDecorator>
+                                            </MoveParamsDecorator>
+                                        </Loop>
+
+                                    </Sequence>
+                                </Child>
+
+                                <!-- No DrawWeapon(false) here. This OnFail runs every time the
+                                     retreat interrupt evicts the fight, and sheathing there is what
+                                     made him put the weapon away mid-retreat and draw it again on
+                                     re-aggro. He is permanently hostile, so the weapon simply stays
+                                     out. The target is not cleared either - combat is over as far as
+                                     the interrupt system is concerned, and clearing it only added
+                                     another draw/sheathe cycle. -->
+                                <OnFail canSkip="1">
+                                    <Wait duration="'200ms'" timeType="GameTime" doFail="false" variation="" />
+                                </OnFail>
+                            </FuseBox>
+                        </EntityContext>
+                    </EntityContextElement>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

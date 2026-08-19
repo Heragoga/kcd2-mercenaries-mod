@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Force the player into a dialogue. Copied from vanilla pacholek_forceDialogue
+         (references/AI/quests/mlynarskyUcen/mlynarskyucen.xml:382).
+
+         Function_speech_dialogInitiator is THE node for this: its recipient parameter is a
+         _wuid whose declared default is literally $__player, and 154 vanilla call sites pass
+         $__player explicitly. Every vanilla case of an NPC accosting the player - arrest,
+         frisk, trespass, ambush, the pre-duel taunt - uses this one node, differing only in
+         preset. See docs/aleksej.md for the six attempts that missed it.
+
+         Rules this file obeys, all of them taken from vanilla call-site censuses:
+           - alias ONLY. metarole and recipientMetaroles stay EMPTY. The player holds no metarole
+             in any vanilla player dialogue (185 of 199 uses are empty, every non-empty one
+             NPC-to-NPC), and vanilla never sets alias and metarole both to a literal.
+           - context/customParameters take $__null, not "".
+           - preset does NOT scope the decision search - a shipped Type="chat" dialogue is called
+             with both the ingame and the chat preset. What it decides is POSITIONING:
+             fader and ingame move and rotate the participants, so an NPC who cannot reach the
+             navmesh never arrives and the request times out; chat positions nobody, which is why
+             the pre-duel taunt uses it. player_ingame is NOT usable - the shipped preset switch
+             has no branch for it and its DefaultBranch is an ErrorNode.
+           - ForceLook + a Turn loop around the call, as the pre-duel taunt tree does.
+
+         What made the alias resolve was none of the above: the dialogue needed an INSTANCE NODE
+         in the quest's <Nodes>, not just a <Definition>. See docs/aleksej.md.
+
+         Aliased from Lua so the preset can be settled in one sitting rather than guessed:
+         alxPreset 1 = fader, 2 = chat, 3 = ingame. -->
+    <BehaviorTree name="forced_dialog" is_function="0">
+        <Variables>
+            <Variable name="alxAlias" type="_string" values="" isPersistent="0" form="single" />
+            <Variable name="alxPreset" type="_int" values="1" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <Sequence>
+                    <ExecuteLua code="mercenaries:ForceTalkPull(data, entity)" />
+                    <LogToConsole LogLevel="Info" Message="'[fd] entered, alias=$alxAlias; preset=$alxPreset;'" />
+
+                    <!-- No Move here. It was added believing the player was not joining the
+                         dialogue; he was (the log now shows both souls), so the premise was wrong,
+                         and an NPC standing off the navmesh only gets a path-finding error out of
+                         it. If a real beat needs him to walk up, do it in the arm that FIRES this
+                         behaviour, where a failed path can be handled. -->
+
+                    <Parallel successMode="Any" failureMode="Any">
+                        <!-- Keep him facing the player for as long as the speech runs. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <SuppressFailure>
+                                    <Turn target="$__player" align="false" />
+                                </SuppressFailure>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                            </Sequence>
+                        </Loop>
+
+                        <Sequence>
+                            <ForceLook LookTarget="$__player" DisableVariations="true">
+                                <Sequence>
+                                    <IfCondition failOnCondition="false" condition="$alxPreset == 1">
+                                        <Sequence>
+                                            <LogToConsole LogLevel="Info" Message="'[fd] dialogInitiator preset=fader'" />
+                                            <Function_speech_dialogInitiator alias="$alxAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="$__null" customParameters="$__null" metarole="" preset="$enum:dialogPreset.fader" recipient="$__player" recipientMetaroles="" nodeLabel="90010101" />
+                                        </Sequence>
+                                    </IfCondition>
+                                    <IfCondition failOnCondition="false" condition="$alxPreset == 2">
+                                        <Sequence>
+                                            <LogToConsole LogLevel="Info" Message="'[fd] dialogInitiator preset=chat'" />
+                                            <Function_speech_dialogInitiator alias="$alxAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="$__null" customParameters="$__null" metarole="" preset="$enum:dialogPreset.chat" recipient="$__player" recipientMetaroles="" nodeLabel="90010102" />
+                                        </Sequence>
+                                    </IfCondition>
+                                    <IfCondition failOnCondition="false" condition="$alxPreset == 3">
+                                        <Sequence>
+                                            <LogToConsole LogLevel="Info" Message="'[fd] dialogInitiator preset=ingame'" />
+                                            <Function_speech_dialogInitiator alias="$alxAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="$__null" customParameters="$__null" metarole="" preset="$enum:dialogPreset.ingame" recipient="$__player" recipientMetaroles="" nodeLabel="90010103" />
+                                        </Sequence>
+                                    </IfCondition>
+                                </Sequence>
+                            </ForceLook>
+                            <LogToConsole LogLevel="Info" Message="'[fd] dialogue returned'" />
+                        </Sequence>
+                    </Parallel>
+
+                    <ExecuteLua code="mercenaries:ForceTalkDone(data, entity)" />
+                    <LogToConsole LogLevel="Info" Message="'[fd] done'" />
+                </Sequence>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

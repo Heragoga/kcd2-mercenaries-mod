@@ -67,6 +67,39 @@ scripted main-quest battles**.
 > every Detail slot is full AI simulation, and the goal is to cover ~150 NPCs around a fight,
 > not to disable the system. `merc_lod_boost 0|1` and `merc_lod_status` to control and inspect.
 >
+> ### Crowd-scaled mesh LOD (`LodRatioBands`) — softened
+>
+> The boost also pushes a **mesh** LOD ratio onto every mod NPC, banded by crowd size (higher
+> ratio = detail drops sooner = cheaper). That is the affordable half of the trade that lets the
+> AI Detail budget go to 260.
+>
+> The first ladder was far too aggressive for ordinary play: it started at crowd **30** and
+> topped out at **300** — past the 255 this doc already records as *puppets at arm's length*.
+> A fifty-man company hits crowd 50 on its own, so simply **hiring** a big squad turned the
+> whole company into clay figures, and it never came back: the boost's own threshold is 8, so
+> the crowd never falls back through the lower bands with a squad that size, and the band is
+> only re-pushed when it **changes**. Reported as "the LOD is extreme when there are a lot of
+> mercs", and correctly so.
+>
+> | Crowd | Was | Now |
+> | --- | --- | --- |
+> | 150+ (full siege) | 300 | 200 |
+> | 100+ | 300 | 160 |
+> | 70+ | 300 | 130 |
+> | 50 | 300 | engine default |
+> | 30–40 | 150–250 | engine default |
+>
+> The ladder now starts where a real battle does and stops below 255, so a company on the road
+> draws at the engine's own mesh LOD.
+>
+> **`LodBoostOff` now hands mesh LOD back** (`LodRatioReset`). `LodRatioAutoApply` only runs
+> from `LodBoostReassert`, i.e. while the boost is on, so nothing used to undo the last band —
+> whatever ratio a fight settled on stayed on the squad for the rest of the session. Same for
+> `merc_lod_auto 0`, which now takes effect immediately instead of only on the next band change.
+>
+> `merc_lod_auto 0` disables crowd-scaled mesh LOD outright; `merc_lod_lodratio <n>` sets one
+> by hand to A/B it.
+
 > `wh_ai_LOD_Hide` is deliberately **not** in the set: run 13 showed it is unreachable through
 > `GetCVar`/`SetCVar` (`nil -> nil <-- DID NOT TAKE`).
 >

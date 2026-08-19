@@ -372,6 +372,35 @@ mercenaries.EnemyGroups = {
             "d99b867b-a4fd-559e-86b7-a2aa7be6ca8d",
         },
     },
+    -- The levy. Bodies, not soldiers: villagers handed a weapon and pointed at a wall, in the
+    -- clothes they were standing in. They exist so a siege still feels like a siege when the
+    -- player turns up with four men - see RaborschRecruitCount, which fields most of them for a
+    -- thin company and none at all for a full one.
+    --
+    -- Souls are the LOOTER group's weakest, reused as they are: they are already on
+    -- enemiesFaction, already have appearance rules, already have their faction relations. Only
+    -- the wardrobe changes, from bandit leathers to plain village wear.
+    recruit = {
+        label = "Recruits",
+        clothing = {
+            "ecf4eea7-ffe5-4a98-a351-8947eeabe5bd", "24e4aa5b-cd2c-4dba-9426-b63e674b7037", "c522ba8f-18ff-4274-8acb-d7d0f50d0365",
+            "cbc20d2b-3fff-4147-a650-92a8dcaf9875", "fd456ed6-f39e-4dad-8c53-e818c9789562", "b8c4e76c-1282-4103-a0dd-aa04dc2486b8",
+            "70b2e01e-016c-4939-b557-6e3a07ba6e99", "579e95df-0471-4b6a-8ab8-be355fe619f6", "eed86bb2-3a7b-463a-becc-1f0496fef0d8",
+        },
+        melee = {
+            { guid = "c5d5e34d-db66-59ab-b746-8b33acb1c6bc", tier = "weak" },
+            { guid = "ee7360d6-aab7-541d-81ae-38181f4c1eed", tier = "weak" },
+            { guid = "944cbf53-adbb-5371-8338-1f6c06ca6c0d", tier = "weak" },
+            { guid = "63b84059-ad9f-53d7-bd3a-02cdb5cf0d31", tier = "weak" },
+            { guid = "91e21fc3-e1d3-5fb2-8064-f0f24166dc67", tier = "weak" },
+            { guid = "3a0e97de-66eb-548d-9f2e-e0263b0d9a32", tier = "weak" },
+            { guid = "718f3c3a-8a1b-5c8e-82ec-8a48ef3ac884", tier = "weak" },
+            { guid = "542c2d13-16d2-5389-81ae-ec6cbbbdf77e", tier = "weak" },
+            { guid = "dcfe1fd1-ba0d-505c-a715-e848d224aa24", tier = "weak" },
+            { guid = "b695f7ea-8d54-5218-864f-87b7df0afe2b", tier = "weak" },
+        },
+        archers = {},
+    },
     bandit = {
         label = "Bandits",
         clothing = {
@@ -445,6 +474,40 @@ mercenaries.EnemyGroups = {
         archers = {
             "2f814f9f-c653-5748-8d58-fe93aab42bf0",
             "0ac880dd-1a09-527b-91d4-f50d71f6a08f",
+        },
+    },
+    -- Aleksej's own Ruthenians, the last fight of the arc. Nine years in Bohemia and paid out of
+    -- a Hungarian archbishop's silver, so they are neither one thing nor the other: the cuman
+    -- wardrobe mixed man to man with plate.
+    --
+    -- NO WAFFENROCKS. The obvious plate pool - EnemyGroups.knight - is Sigismund's livery and
+    -- every one of its presets carries a Waffenrock item, which is precisely what these men must
+    -- not be wearing. These six are armoured, male and heraldry-free (checked item by item
+    -- against clothing_preset.xml).
+    --
+    -- Axes and shields, always: weapons is the WeaponSets index list and 3 is axe+shield
+    -- (mercenaries_equipment.lua, ShieldWeaponTypes).
+    --
+    -- Their own souls, purely so they are called Ruthenians rather than Cumans -
+    -- char_enemy_cuman_* is shared with a Kleinkrieg contract and renaming it would rename them.
+    ruthenian = {
+        label = "Ruthenians",
+        weapons = { 3 },
+        clothing = {
+            "08d7d086-327a-4f95-92d3-6a6c60a494f0", "1291b696-d704-4fb0-90da-2bdf4c2eefef", "4163bbb6-a7bf-47a3-b5c7-bffdbe0c2062",
+            "838f07ef-5875-4391-9fe2-5fd93ffa6501", "e1f7bfd8-f211-4693-9004-0fc36f166e1f", "fca2a301-45e5-4cd9-af18-09469bbd8102",
+            "70618c60-9f1e-4949-a1d2-06b1a9709e82", "9b9f92a0-7040-4f3e-85ee-1f2651ee6672", "8d8951b3-af89-4c0a-a7d6-99c8f6f7fe86",
+            "bd87c9e4-5481-4a98-8279-ec010e4c10ad", "978b6b0c-288b-4d0b-8cfa-f2fe1a801409", "efff8f2e-a199-4883-8bb8-3219c4103e22",
+            "fdb7279e-f270-4983-a056-d202e5ebf210", "fb01d6a3-b3c2-4e38-9b56-3b08fb51856a", "f71d7aa7-fb43-4def-a837-7841fc5bb6cf",
+            "f0039e7c-1e96-45f7-8cc7-619332a8a782", "ef83067c-303f-4fc1-800a-d8e1fa524c7a", "fa74a7d7-a4ed-4fc0-be05-6f7c84d6c6c8",
+        },
+        melee = {
+            { guid = "a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f01", tier = "weak" },
+            { guid = "a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f02", tier = "medium" },
+            { guid = "a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f03", tier = "strong" },
+        },
+        archers = {
+            { guid = "a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f04", tier = "medium" },
         },
     },
     cuman = {
@@ -540,6 +603,10 @@ mercenaries.EnemyClaimWuid = {}  -- [enemyWuidStr] = raw wuid of the claimer
 -- 2 is the first concrete melee set (1 is "random", which is what failed in the first place).
 mercenaries.EnemyWeaponFallbacks = { 2 }
 
+-- Do not add a "skip the clothing" option here. A runtime-spawned NPC that has never had a
+-- clothing preset applied accepts inventory:CreateItem and then quietly refuses
+-- actor:EquipInventoryItem, so a leader who is hand-dressed afterwards has to come through this
+-- preset first or he ends up carrying his harness instead of wearing it. See AlxSpawnLeaderNPC.
 function mercenaries:EquipEnemy(ent, groupKey, isArcher)
     if not ent or not ent.actor then return end
     local grp = self.EnemyGroups[groupKey]
@@ -702,7 +769,14 @@ mercenaries.RenegadeSoulIndex = 1
 -- never vanilla NPCs and never each other. Swarm-capped; sticks to a close,
 -- live target. See docs/combat-target-selection.md.
 -- ---------------------------------------------------------------------------
+-- Kept for compatibility; no longer gates target holding (see FindEnemyTarget).
 mercenaries.EnemyTargetStickRange = 5.0
+
+-- How far an enemy will follow the target he has already committed to before giving
+-- up on him and re-acquiring. Deliberately as large as the acquisition radius: a
+-- fighter that re-picks mid-approach makes his scheduler re-fire, and a re-fire
+-- restarts the approach. See the comment in FindEnemyTarget and docs/foe-ai.md.
+mercenaries.EnemyTargetHoldRange = 60.0
 
 function mercenaries:IsEnemySpawnName(name)
     if not name then return false end
@@ -767,8 +841,22 @@ function mercenaries:FindEnemyTarget(data, myWuid)
                 if cp then
                     local dx, dy, dz = cp.x - mp.x, cp.y - mp.y, cp.z - mp.z
                     local walled = self.NavTargetBlocked and self:NavTargetBlocked(me, curEnt)
-                    if not walled and (dx*dx + dy*dy + dz*dz) <= (self.EnemyTargetStickRange * self.EnemyTargetStickRange) then
-                        return -- keep current close, live target
+                    -- Hold him for the whole approach, not just once he is close.
+                    --
+                    -- This used to keep the current target only inside EnemyTargetStickRange
+                    -- (5m), so for every second of every approach it fell through and
+                    -- re-picked the nearest man instead. In a crowded fight - the Kleinkrieg
+                    -- convoy - the nearest man keeps changing, which changes currentTarget,
+                    -- which trips the scheduler's `$currentTarget ~= $firedTarget` re-fire.
+                    -- A re-fire REPLACES the running combat and runs its OnFail, so the
+                    -- fighter restarts his approach roughly once a second: that is the
+                    -- step-pause-step. Enemies now behave like foes (docs/foe-ai.md) - the
+                    -- target is dropped only when he is dead, unreachable or walled off, and
+                    -- the swarm cap applies at acquisition rather than shuffling anyone off
+                    -- a man he is already fighting.
+                    local holdSq = (self.EnemyTargetHoldRange or 60.0) ^ 2
+                    if not walled and (dx*dx + dy*dy + dz*dz) <= holdSq then
+                        return -- keep the live target we are already committed to
                     end
                     -- a wall went up between us (or he ran behind one): drop him
                     if walled then

@@ -91,7 +91,9 @@ mercenaries.TokenIDKKUnready = "679a655e-189d-4519-b437-ccc4b92bea2d"
 -- Push the gates whenever they change. _kkOpen/_kkReady start nil, so the first tick after a
 -- load always re-asserts both and the dialog cannot come back out of step with the contract.
 function mercenaries:KleinkriegSyncGates()
-    local S = self.BCQ
+    -- The ARC's slot by name. This runs outside the monitor's per-slot bind (and again
+    -- straight out of the hand-in dialog), so the pointer is not to be trusted here.
+    local S = self.BCQ_KK
     local open  = (S.active == true and S.paid ~= true)
     local ready = (S.active == true and S.cleared == true and S.paid ~= true
                    and self:BanditCampHasLetter() == true)
@@ -876,7 +878,15 @@ mercenaries.KleinkriegPerHead = { looter = 55, bandit = 90, sigi = 110, prague =
                                   cuman = 120, knight = 160 }
 
 -- The contract the player is on (during one) or up for (between them).
+--
+-- A bounty is not part of the arc, so while the bounty slot is bound the "contract in hand"
+-- is the descriptor that job built for itself. Everything downstream - BanditCampScale, the
+-- letter lookup, the patrol/siege/disperse tests - then reads the right thing without
+-- knowing which kind of job it is servicing. An explicit `idx` always means the arc.
 function mercenaries:KleinkriegContract(idx)
+    if idx == nil and self.BCQ and self.BCQ.kind == "bounty" then
+        return self.BCQ.contract or self.BountyContractStub, 0
+    end
     local list = self.KleinkriegContracts
     local i = idx or self.BCQ.contractIdx or (self:BanditCampCleared() + 1)
     if i > #list then i = #list end
@@ -1128,10 +1138,21 @@ end
 -- bandit picks a target. Returns false for everything that is not part of THIS camp, so the
 -- mod's other encounters (ambushes, raids, patrols, wall battles) and the player's own tower
 -- archers are untouched.
+-- Asked from outside the monitor's pass, so it walks every slot rather than trusting the
+-- pointer: a bandit of the bounty camp is suppressed by the BOUNTY camp's alert flag.
 function mercenaries:BanditCampSuppressed(wuidStr)
-    local S = self.BCQ
+    for _, S in ipairs(self:BanditCampSlots()) do
+        if self:BanditCampSlotSuppresses(S, wuidStr) then return true end
+    end
+    return false
+end
+
+function mercenaries:BanditCampSlotSuppresses(S, wuidStr)
     if not (S and S.active and S.spawned) or S.alerted then return false end
-    if self.BanditCampActors[wuidStr] == true then return true end
+    -- BanditCampActors is the mod-wide "belongs to a foreign camp" set, shared with Aleksej's
+    -- camps and the siege, so it cannot say WHICH camp. Each slot keeps its own copy, and that
+    -- is the one the alert gate has to read.
+    if (S.actorSet or {})[wuidStr] then return true end
 
     -- Towers are checked directly rather than relying on the roster. Their archers arrive on
     -- their own deferred timer and are only registered by the next camp tick, which leaves a
@@ -1267,7 +1288,7 @@ function mercenaries:BanditCampChatTick()
     -- Age out our own pairs. Only role 1 carries the age, so each pair counts once.
     local expired = {}
     for w, c in pairs(chats) do
-        if c.foreign and c.role == 1 then
+        if c.foreign and c.role == 1 and c.slot == S.key then
             c.age = (c.age or 0) + 1
             if c.age >= self.BanditCampChatHoldTicks then table.insert(expired, w) end
         end
@@ -1315,8 +1336,10 @@ function mercenaries:BanditCampChatTick()
                         -- leaves it out of its age-out and its concurrency cap.
                         local aliases = self.CampGossipAliases or {}
                         local alias = (#aliases > 0) and aliases[math.random(#aliases)] or ""
-                        chats[tostring(a)] = { partner = b, role = 1, alias = alias, age = 0, foreign = true }
-                        chats[tostring(b)] = { partner = a, role = 2, alias = alias, foreign = true }
+                        chats[tostring(a)] = { partner = b, role = 1, alias = alias, age = 0,
+                                               foreign = true, slot = S.key }
+                        chats[tostring(b)] = { partner = a, role = 2, alias = alias,
+                                               foreign = true, slot = S.key }
                         used[i], used[j] = true, true
                         active = active + 1
                         break
@@ -1327,11 +1350,14 @@ function mercenaries:BanditCampChatTick()
     end
 end
 
+-- Drops this camp's conversations only: with two camps standing, wiping every foreign pair
+-- would silence the other one every time this camp unloaded.
 function mercenaries:ClearBanditCampChats()
     local chats = _G.MercCampChats
     if not chats then return end
+    local key = self.BCQ and self.BCQ.key
     for w, c in pairs(chats) do
-        if c and c.foreign then chats[w] = nil end
+        if c and c.foreign and (key == nil or c.slot == nil or c.slot == key) then chats[w] = nil end
     end
 end
 
@@ -1719,8 +1745,12 @@ function mercenaries:BanditCampEnsureLeader()
     end
 
     local origin = self:CampSnapToGround(self:BanditCampSiteAnchor(S.site))
+    -- Each camp gets its OWN leader soul. A SoulAsset marker resolves to whichever NPC
+    -- carries the guid, so two leaders sharing one soul would leave both quests' markers
+    -- pointing at an arbitrary one of them.
+    local soul = S.leaderSoul or self.BanditCampLeaderSoul
     local name = "SpawnedEnemy_banditcampleader_strong_" ..
-                 tostring(math.random(10000, 99999)) .. "_" .. self.BanditCampLeaderSoul
+                 tostring(math.random(10000, 99999)) .. "_" .. soul
     local leader
     pcall(function()
         System.SpawnEntity({
@@ -1728,7 +1758,7 @@ function mercenaries:BanditCampEnsureLeader()
             name = name,
             position = { x = origin.x, y = origin.y + 3.2, z = origin.z },
             orientation = { x = 0, y = 0, z = S.site.yaw or 0 },
-            properties = { guidSharedSoulId = self.BanditCampLeaderSoul },
+            properties = { guidSharedSoulId = soul },
         })
         leader = System.GetEntityByName(name)
         if leader then
@@ -1883,6 +1913,7 @@ function mercenaries:AssignBanditCampRoles(origin)
             local ws = tostring(wuid)
             i = i + 1
             self.BanditCampActors[ws] = true
+            S.actorSet[ws] = true
             S.spots = S.spots or {}
             S.spots[ws] = { actPos = ringPos(origin, i, #S.bandits, 4.5), firePos = origin }
 
@@ -2057,17 +2088,52 @@ end
 
 -- ==== lifecycle ====
 
-mercenaries.BCQ = mercenaries.BCQ or {
-    active = false,      -- contract taken and not yet paid out
-    spawned = false,     -- camp is physically standing
-    site = nil,
-    killed = 0,
-    target = 0,
-    group = nil,
-    reward = 0,
-    entities = {},
-    bandits = {},
-}
+-- Two contracts can be live at the same time: the Kleinkrieg arc and the quartermaster's
+-- repeatable bounty (mercenaries_bounty.lua). Rather than thread a state table through the
+-- two dozen functions in this file that all open with `local S = self.BCQ`, self.BCQ is a
+-- SLOT POINTER: BanditCampWith binds it to one camp for the length of that camp's work and
+-- puts it back afterwards, so everything below keeps reading self.BCQ and is unchanged.
+--
+-- Anything reached from OUTSIDE that pass - BanditCampSuppressed off the target selector,
+-- the accept and hand-in tokens, the console commands - must not trust whatever the last
+-- bind left behind. Those either pin their own slot or walk BanditCampSlots().
+local function newCampState(key)
+    return {
+        key = key,           -- slot name, and the suffix on its save tag
+        kind = key,          -- "kk" (the arc) or "bounty"
+        active = false,      -- contract taken and not yet paid out
+        spawned = false,     -- camp is physically standing
+        site = nil,
+        killed = 0,
+        target = 0,
+        group = nil,
+        reward = 0,
+        entities = {},
+        bandits = {},
+        actorSet = {},       -- this camp's own members, keyed by wuid string
+    }
+end
+
+mercenaries.BCQ_KK = mercenaries.BCQ_KK or newCampState("kk")
+mercenaries.BCQ_BO = mercenaries.BCQ_BO or newCampState("bounty")
+-- The bound slot. Rests on the arc, which is what every caller that does not say otherwise
+-- means by "the contract".
+mercenaries.BCQ = mercenaries.BCQ_KK
+
+function mercenaries:BanditCampSlots()
+    return { self.BCQ_KK, self.BCQ_BO }
+end
+
+-- Bind S for the length of fn, and put the pointer back whatever happens inside: a slot left
+-- bound after an error would hand the next caller the wrong camp.
+function mercenaries:BanditCampWith(S, fn)
+    local prev = self.BCQ
+    self.BCQ = S
+    local ok, err = pcall(fn)
+    self.BCQ = prev
+    if not ok then qLog("slot '" .. tostring(S and S.key) .. "': " .. tostring(err)) end
+    return ok
+end
 
 -- How many contracts have been finished. Persisted separately from the contract itself,
 -- because it has to outlive each one - it is what makes the camps a PROGRESSION.
@@ -2138,6 +2204,8 @@ end
 
 -- Token be81d: the player accepted the job.
 function mercenaries:BanditCampAccept()
+    -- Reached from the dialog token and the console, both outside the monitor's bind.
+    self.BCQ = self.BCQ_KK
     if self.BCQ.active then
         Game.SendInfoText('merc_info_banditcamp_already', false, 0, 4)
         return
@@ -2151,6 +2219,10 @@ function mercenaries:BanditCampAccept()
              "', which is not in BanditCampSites")
         return
     end
+
+    -- Kleinkrieg has first claim on the ground. If the repeatable bounty is standing on the
+    -- site this contract needs, the bounty is the one that moves (mercenaries_bounty.lua).
+    pcall(function() self:BountyYieldSite(site.name) end)
 
     -- BEFORE the scale call: BanditCampScale resolves the contract through KleinkriegContract,
     -- which reads S.contractIdx - left stale from the previous contract, it sized contract 4
@@ -2180,7 +2252,7 @@ function mercenaries:BanditCampAccept()
     S.letterOnLeader, S.warnedLetter = false, false
     S.target, S.killed, S.reward, S.archers = count, 0, reward, archers
     S.cleared, S.spawned, S.leaderDead = false, false, false
-    S.entities, S.bandits, S.spots = {}, {}, {}
+    S.entities, S.bandits, S.spots, S.actorSet = {}, {}, {}, {}
 
     -- Deliberately NOT spawned here: the camp is somewhere else, and the monitor builds it
     -- when the player gets within BanditCampForgetRange. Spawning now would put twenty NPCs
@@ -2252,6 +2324,7 @@ function mercenaries:DespawnBanditCamp(keepContract)
     self:ClearBanditCampChats()
 
     S.bandits, S.entities, S.spots, S.seats, S.beds = {}, {}, {}, {}, {}
+    S.actorSet = {}
     S.towers, S.carts, S.adoptedTowers, S.adoptedCarts, S.towerArcherIds = {}, {}, {}, {}, {}
     -- The chest went with the props, so a rebuilt camp gets a fresh one carrying the letter.
     -- A CLEARED camp never reaches a rebuild (the monitor returns first), so this cannot
@@ -2274,6 +2347,9 @@ end
 
 function mercenaries:ClearBanditCampActor(ws)
     self.BanditCampActors[ws] = nil
+    for _, S in ipairs(self:BanditCampSlots()) do
+        if S.actorSet then S.actorSet[ws] = nil end
+    end
     self.CampFurniture[ws]    = nil
     self.CampActivities[ws]   = nil
     self.CampPatrollers[ws]   = nil
@@ -2303,6 +2379,8 @@ function mercenaries:BanditCampSweepTokens()
                     self.TokenIDKKOpen, self.TokenIDKKShut,
                     self.TokenIDKKReady, self.TokenIDKKUnready }
     for _, id in ipairs(self.TokenIDKKPhase) do table.insert(sweep, id) end
+    -- The bounty's Lua->Skald signals, registered by mercenaries_bounty.lua.
+    for _, id in ipairs(self.BountySweepTokens or {}) do table.insert(sweep, id) end
     for _, id in ipairs(sweep) do
         pcall(function()
             local c = player.inventory:GetCountOfClass(id)
@@ -2322,12 +2400,25 @@ function mercenaries:BanditCampSweepTokens()
 end
 
 -- ==== the tick ====
+-- One pass per LIVE camp. The token sweep and the dialog gates are mod-wide and run once;
+-- everything after that is serviced with the slot bound, so BanditCampService and everything
+-- it calls sees exactly one camp through self.BCQ.
 function mercenaries:BanditCampMonitor()
     self:BanditCampSweepTokens()
     self:KleinkriegSyncPhase()
     self:KleinkriegSyncGates()
-    self:KleinkriegSyncGates()
+    pcall(function() self:BountySyncGates() end)
 
+    for _, S in ipairs(self:BanditCampSlots()) do
+        if S.active then
+            self:BanditCampWith(S, function() self:BanditCampService() end)
+        end
+    end
+    -- Back on the arc, so anything reading self.BCQ without asking gets what it always did.
+    self.BCQ = self.BCQ_KK
+end
+
+function mercenaries:BanditCampService()
     local S = self.BCQ
     if not S.active then return end
 
@@ -2343,7 +2434,7 @@ function mercenaries:BanditCampMonitor()
     -- The moment the letter is actually in hand, tell Skald: that closes "find the letter" and
     -- moves the tracker off the camp and onto the quartermaster. Polled rather than hooked
     -- because the player picks it up out of a container, which Lua never sees directly.
-    if S.cleared and not S.letterTaken and self:BanditCampHasLetter() then
+    if S.kind ~= "bounty" and S.cleared and not S.letterTaken and self:BanditCampHasLetter() then
         S.letterTaken = true
         self:BanditCampSignal(self.TokenIDBanditCampTaken)
         self:BanditCampSave()
@@ -2492,7 +2583,10 @@ function mercenaries:BanditCampAdoptTowerArchers()
             -- Registered as a camp member so the alert gate suppresses his fire too. He
             -- holds no camp ROLE, so the role accessors still hand back nil for him.
             local w = XGenAIModule.GetMyWUID(st.archer)
-            if w then self.BanditCampActors[tostring(w)] = true end
+            if w then
+                self.BanditCampActors[tostring(w)] = true
+                S.actorSet[tostring(w)] = true
+            end
             qLog("tower archer joined the count - target now " .. tostring(S.target))
         end
     end
@@ -2510,7 +2604,10 @@ function mercenaries:BanditCampAdoptTowerArchers()
                     table.insert(S.bandits, a.ent.id)
                     S.target = (S.target or 0) + 1
                     local w = XGenAIModule.GetMyWUID(a.ent)
-                    if w then self.BanditCampActors[tostring(w)] = true end
+                    if w then
+                        self.BanditCampActors[tostring(w)] = true
+                        S.actorSet[tostring(w)] = true
+                    end
                 end
             end
             qLog(#aboard .. " cart archer(s) joined the count - target now " .. tostring(S.target))
@@ -2636,6 +2733,17 @@ function mercenaries:BanditCampComplete()
     if S.cleared then return end
     S.cleared = true
 
+    -- The bounty is its own quest with its own two objectives and nothing to find on the
+    -- body, so it never touches the arc's tokens.
+    if S.kind == "bounty" then
+        S.letterTaken = true
+        self:BanditCampSignal(self.TokenIDBountyCleared)
+        Game.SendInfoText('merc_info_bounty_done', false, 0, 6)
+        qLog("bounty camp cleared - report to the quartermaster")
+        self:BanditCampSave()
+        return
+    end
+
     self:BanditCampSignal(self.TokenIDBanditCampCleared)
     -- Only fires if the leader refused the letter; normally the player loots it themselves.
     self:BanditCampGrantLetterFallback()
@@ -2666,6 +2774,7 @@ end
 -- The quartermaster dialog's hand-in option (token be85d). This is where the contract is
 -- actually paid: turning up without the letter is refused rather than half-completing.
 function mercenaries:BanditCampDeliverLetter()
+    self.BCQ = self.BCQ_KK
     local S = self.BCQ
     if not (S.active and S.cleared) then
         Game.SendInfoText('merc_info_banditcamp_noletter', false, 0, 4)
@@ -2679,7 +2788,7 @@ function mercenaries:BanditCampDeliverLetter()
 
     local cls = self:KleinkriegLetterClass()
     if cls then pcall(function() player.inventory:DeleteItemOfClass(cls, 1) end) end
-    pcall(function() player.inventory:AddMoney(S.reward or 0) end)
+    self:GiveMoney(S.reward or 0)
     self:BanditCampSignal(self.TokenIDBanditCampPaid)
 
     S.paid = true
@@ -2717,10 +2826,15 @@ end
 -- Spawned entities are not saved by the engine, so what survives a reload is the CONTRACT,
 -- not the camp: site, group, how many there were and how many are down. The camp itself is
 -- rebuilt from that on the next tick the player is near enough.
+function mercenaries:BanditCampSaveTag(S)
+    return (S.kind == "bounty") and "BOQuest" or "BCQuest"
+end
+
 function mercenaries:BanditCampSave()
     local S = self.BCQ
+    local tag = self:BanditCampSaveTag(S)
     if not S.active then
-        pcall(function() self:SaveString("BCQuest", "none") end)
+        pcall(function() self:SaveString(tag, "none") end)
         return
     end
     local blob = string.format("%s|%s|%d|%d|%d|%d|%.2f|%.2f|%.2f|%.4f|%s|%s|%s|%s|%s|%s|%s",
@@ -2733,7 +2847,7 @@ function mercenaries:BanditCampSave()
         S.alerted and "1" or "0", S.paid and "1" or "0",
         tostring(S.contractIdx or 0), S.dispersed and "1" or "0",
         S.letterTaken and "1" or "0")
-    pcall(function() self:SaveString("BCQuest", blob) end)
+    pcall(function() self:SaveString(tag, blob) end)
 end
 
 -- How far around the site a reload sweeps for the previous camp's leavings.
@@ -2802,7 +2916,7 @@ function mercenaries:ClearAnyLeftoverBanditCamp()
             local n = e and e:GetName() or ""
             -- SpawnedTower_archer_ is a MERC tower archer. One has no business at a bandit
             -- camp; if the defence restore ever puts one here again, it goes with the rest.
-            if (string.find(n, self.BanditCampLeaderSoul, 1, true)
+            if (string.find(n, S.leaderSoul or self.BanditCampLeaderSoul, 1, true)
                 or ((string.find(n, "SpawnedEnemy_", 1, true) == 1
                      or string.find(n, "SpawnedTower_archer_", 1, true) == 1) and near(e))) then
                 System.RemoveEntity(e.id); swept = swept + 1
@@ -2813,9 +2927,19 @@ function mercenaries:ClearAnyLeftoverBanditCamp()
     if swept > 0 then qLog("swept " .. swept .. " leftover(s) from the previous camp") end
 end
 
+-- Both slots, each from its own blob. Bound while it restores, because everything the
+-- restore calls (the leftover sweep, the site lookup) reads self.BCQ.
 function mercenaries:BanditCampRestore()
+    for _, S in ipairs(self:BanditCampSlots()) do
+        self:BanditCampWith(S, function() self:BanditCampRestoreSlot() end)
+    end
+    self.BCQ = self.BCQ_KK
+end
+
+function mercenaries:BanditCampRestoreSlot()
+    local S0 = self.BCQ
     local blob
-    pcall(function() blob = self:LoadString("BCQuest") end)
+    pcall(function() blob = self:LoadString(self:BanditCampSaveTag(S0)) end)
     if not blob or blob == "none" then return end
 
     local f = {}
@@ -2838,13 +2962,16 @@ function mercenaries:BanditCampRestore()
     S.contractIdx = tonumber(f[15])
     if S.contractIdx == 0 then S.contractIdx = nil end
     S.dispersed   = (f[16] == "1")
+    -- A bounty's "contract" is generated, not one of the arc's rows, so it is rebuilt here
+    -- from what the blob carries. Everything on it that matters after accept is the group.
+    if S.kind == "bounty" then S.contract = self:BountyContractFor(S.group) end
     -- Without this, reloading after the letter was taken refired the taken signal each load.
     S.letterTaken = (f[17] == "1")
     S.health, S.missing, S.chatCooldown = {}, {}, {}
     S.letterChestPlaced, S.warnedLetter = false, false
     S.site    = { name = f[1], x = tonumber(f[7]), y = tonumber(f[8]), z = tonumber(f[9]),
                   yaw = tonumber(f[10]), layout = "default" }
-    S.entities, S.bandits, S.spots = {}, {}, {}
+    S.entities, S.bandits, S.spots, S.actorSet = {}, {}, {}, {}
 
     -- Match the site back to a defined one so it keeps its layout - and, for a road site,
     -- its route. Without route/pt a reloaded patrol contract silently degrades: the band
@@ -2865,8 +2992,10 @@ end
 
 -- ==== console ====
 function mercenaries:BanditCampStatus()
+    pcall(function() self:BountyStatus() end)
+    self.BCQ = self.BCQ_KK
     local S = self.BCQ
-    if not S.active then qLog("no contract"); return end
+    if not S.active then qLog("no Kleinkrieg contract"); return end
     qLog(string.format("site=%s group=%s %d/%d killed reward=%d spawned=%s cleared=%s alerted=%s",
         tostring(S.site and S.site.name), tostring(S.group), S.killed or 0, S.target or 0,
         S.reward or 0, tostring(S.spawned), tostring(S.cleared), tostring(S.alerted)))
@@ -2964,6 +3093,7 @@ end
 -- next contract is written over the same BCQ table.
 function mercenaries.BanditCampChainNext()
     local self = mercenaries
+    self.BCQ = self.BCQ_KK
     local S = self.BCQ
     if S.active and not S.paid then return end   -- something already took over
     if S.arcFinished then self:BanditCampRestorePatrols(); return end
@@ -2983,11 +3113,13 @@ function mercenaries:BanditCampRestorePatrols()
 end
 
 function mercenaries:BanditCampResync()
+    self.BCQ = self.BCQ_KK
     -- Re-read from the save rather than trusting this session.
     self._bcampCleared, self._kkPhaseDone = nil, nil
     -- Force the dialog gates to re-assert on the next tick: nil means "unknown", so both are
-    -- pushed again whatever they turn out to be.
+    -- pushed again whatever they turn out to be. Same for the bounty's pair.
     self._kkOpen, self._kkReady = nil, nil
+    self._boOpen, self._boReady = nil, nil
     -- The column is rebuilt from scratch by AssignBanditCampRoles when the camp respawns; a
     -- chain of WUIDs from the previous session refers to entities that no longer exist.
     self.BanditCampColumn = {}
@@ -3011,6 +3143,7 @@ function mercenaries:BanditCampClearSiege()
 end
 
 function mercenaries:BanditCampAbandon()
+    self.BCQ = self.BCQ_KK
     self:BanditCampClearSiege()
     self:DespawnBanditCamp(false)
     self.BCQ.cleared = false

@@ -51,7 +51,12 @@ Instead: be yourself, but *inhabit the situation.* You've been marching all day 
 
 ## Step 5: Post-Processing
 
-This is where I can help least. At minimum:
+The repo has a tool for this: `tools/voice_master.py` denoises, dereverbs, EQs and
+levels a whole folder of takes to match base-game dialogue, and exports `.ogg` at
+48000 Hz. Run `python tools/voice_master.py --gui <your folder>` for sliders and A/B
+playback. See [voice-mastering.md](voice-mastering.md).
+
+If you would rather do it by hand, at minimum:
 
 1. **Denoise** and **normalize** your lines (Audacity handles both).
 2. Play with the **equalizer** until it sounds right.

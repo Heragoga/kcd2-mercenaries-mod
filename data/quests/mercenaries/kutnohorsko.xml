@@ -5,6 +5,7 @@
 			<Definitions>
 				<Definition File="kutnohorsko/mercenaries_background_quest.xml" />
 				<Definition File="kutnohorsko/bandit_camp_quest.xml" />
+				<Definition File="kutnohorsko/bounty_quest.xml" />
 			</Definitions>
 			<Nodes>
 				<mercenaries_background_quest Name="mercenaries_background_quest" RequiredForOutput="kutnohorsko">
@@ -15,6 +16,11 @@
 				<bandit_camp_quest Name="bandit_camp_quest" RequiredForOutput="kutnohorsko">
 					<Edge From="OnWake" To="run" />
 				</bandit_camp_quest>
+				<!-- The repeatable bounty. Kuttenberg only - Trosky has no authored camps, so
+				     trosecko.xml deliberately does not register it. -->
+				<bounty_quest Name="bounty_quest" RequiredForOutput="kutnohorsko">
+					<Edge From="OnWake" To="run" />
+				</bounty_quest>
 			</Nodes>
 			<Text Text="kutnohorsko" />
 		</Level>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="merc_both_barks">
+            <Text StringName="merc_both_barks_name" Text="Mercenary merc_both_barks" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_merc_both_barks" Priority="General" Autoselect="true" Alias="merc_both_barks">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_1">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_na_povesili_h_28ww" Text="They hung him right here by the road and it took a fortnight before someone cut him down!" /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_2">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_na_minule_sem_S90c" Text="Last time I rode with some German, and it's a wonder I didn't jump out in the middle of the trip." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_3">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_v__jenze_jak__dKpE" Text="But since he hadn't sat on one in years, he spurred it on when it wasn't expecting it, and the horse threw him off into a dung pile." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_4">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_v__jak_jsme_s_mbTi" Text="As we were fighting over the rooster, it bit me, and it still hurts..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_5">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_ho_nablil_sem_r4Ok" Text="I puked all over my feet, and then rolled around in it!" /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_6">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_ho_jak_bych_p_kI5E" Text="That Milena from next door... The jugs on her!" /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_7">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="zada_hajny_vos_jako_jestl_qfQT" Text="It's lucky it wasn't some poacher who found me up the tree that time. That wouldn't have done my reputation much good." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_8">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="pytl_hajny_vos_budiz_mu_z_4Uxl" Text="May he rest in peace. But at least it isn't us being grieved over, eh? Ha!" /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_9">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="dial_david_sed_nejak_se_v_AKi8" Text="If I hadn't discovered art and had to live like him, I'd probably drink myself to death out of boredom..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_10">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="dial_michal_nemam_duvod_d_p8SM" Text="I have reached enlightenment and my steps are guided by the Muse. I'm dedicating my life to unrequited love and French sonnets!" /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_11">
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="goss_gossip_na_hm_bejvalo_FBOC" Text="It used to be prettier here. Trees everywhere, the fields yielded twice as much..." /></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="goss_gossip_na_a_v_potoce_KJoH" Text="And you could catch fish in the streams with your bare hands!" /></Response>
+                            </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_12">
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="goss_gossip_v__ale_co_ti__jk1W" Text="Ah, what can I say? It's shit. I inherited a house in the village from my childless uncle." /></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="goss_gossip_v__strejc_sbi_Jw9T" Text="My uncle collected odds and ends from all over the place. Mostly benches, wardrobes, chests, chairs..." /></Response>
+                            </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_13">
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="goss_gossip_v__mno__umrel_9yyE" Text="Well... My dog died." /></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="goss_gossip_v__sem_mel_vo_fZ7I" Text="Sometimes I felt that she married the dog and not me." /></Response>
+                            </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_14">
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="s_ce_raubritte_ani_nespoc_ZSFY" Text="I can't even count how many times we saved each others' arses. And now his is in a sling..." /></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="s_ce_raubritte_aspon_umre_fxiH" Text="At least he died as he lived. And a few painful memories will serve you well too." /></Response>
+                            </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_15">
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="s_ju_jurko_pred_tejdnem_j_sRQf" Text="We were at a wedding in Rotemberg last week. A wee bit from Jihlava." /></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="s_ju_jurko_predtim_krtiny_kosA" Text="Before that it was a bairn's christening at Koshumberg and another wedding in Dalechin. Then a friendly visit to our kin the Shelbergs in Kuhberg..." /></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="s_ju_jurko_a_pak_uz_ani_n_GdcQ" Text="That's all I mind. I havnae been home for six months. And I dinnae care!" /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_32">
+            <Text StringName="gossip_merc_32_name" Text="Mercenary Gossip 32 - The Bandit Ambush" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_32" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_32">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_32">
+                            <DesignName StringName="gossip_merc_32_name" Text="The Bandit Ambush" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="voja_stajmistr_natrefili__g4s7" Text="We came across a bunch of them bandits who prey on folk here. We tore into them and hacked them to pieces." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="kapi_kapitan_v_my_na_ne_n_FQOq" Text="We came across them... They did for a couple of ours, but we sorted them out in the end." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="voja_stajmistr_zrovna_tam_5JWd" Text="They were just watering their horses when we set about them." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="voja_stajmistr_no_a_ty_ko_VJCe" Text="And we took their horses. They had loads of them. Who knows where they got them, but that's by the by now." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="kapi_kapitan_v_tak_jsme_h_UKVq" Text="So we took it, along with the other booty, see?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="voja_stajmistr_par_z_nasi_ZC4t" Text="A couple of our lads didn't make it - God rest their souls - but we kicked their arses." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="kapi_kapitan_v_zly_bastar_NjGM" Text="Evil bastards waiting to face the lord's justice." /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

@@ -1,10 +1,24 @@
 # Kleinkrieg - quartermaster voice lines
 
-50 lines. Every one is the quartermaster; Henry never speaks aloud (the player's
-choices are on-screen text only). Each contract has two lines on the way out and two
-on the way back, played back to back, so record each pair as one continuous thought.
+50 lines. Every one is the quartermaster; Henry never speaks aloud in the 12-contract
+accept/report loop below (the player's choices are on-screen text only). Each contract
+has two lines on the way out and two on the way back, played back to back, so record
+each pair as one continuous thought.
 
 Key = the localisation StringName. Do not rename them.
+
+The two safety-net lines that bracket the whole loop (`seq_qm_banditcamp_yes` /
+`seq_qm_banditcamp_letter` in `quartermaster_dialog.xml`) are the exception: Henry's
+line there is voiced with no new recording, by pointing straight at existing vanilla
+StringNames (`jeni_henry_proste_mi_jen__sjr0` = "Just tell me where they're camping and
+I'll worry about the rest." and `post_henry_jsou_mrtvi_vsi_HzlP` = "It's done.", both
+tmck/Henry lines that exist in the base game - see reference_henry_vanilla_voicelines.md
+for the technique). The audio still has to be shipped, though: the extracted `.ogg` for
+each StringName was copied byte-for-byte into `voice/carbongo/` so it packs into this
+quest's own VO folder - reusing the StringName only gets you the text for free, not the
+sound. The report line's second half, `merc_henry_qm_banditcamp_letter` ("Here's
+everything he carried."), has no vanilla match and stays a silent on-screen line like the
+rest of the loop.
 
 ------------------------------------------------------------------------
 ## 1. woodland

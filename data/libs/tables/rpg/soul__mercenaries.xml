@@ -137,6 +137,40 @@
             the marker resolves to exactly one NPC - the shared bandit souls above are
             round-robined and several spawns can share one. See docs/bandit-camp-quest.md. -->
        <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_banditcamp_leader" social_class_id="3" soul_archetype_id="0" soul_id="7a1c9e40-5d2b-4f83-9c16-8e5a3b7d0f21" soul_name="soul_banditcamp_leader" soul_vip_class_id="0" xp_multiplier="1" />
+       <!-- The bounty camp's leader. Identical to the one above in every way that matters;
+            he exists only so the two contracts' map markers have a soul each - a SoulAsset
+            marker binds to whichever NPC carries the guid, and two leaders sharing one would
+            leave both quests pointing at an arbitrary one of them. -->
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_bounty_leader" social_class_id="3" soul_archetype_id="0" soul_id="5c8f2b91-7d34-4e06-a1f8-2b96d4e70c53" soul_name="soul_bounty_leader" soul_vip_class_id="0" xp_multiplier="1" />
+       <!-- Aleksej's Kleinkrieg beats (1-5,7): same idea as banditcamp_leader above, one
+            dedicated soul reused across those beats (only one is ever active) so the
+            SoulAsset "alx_leader" (mercenaries_background_quest.xml) resolves to exactly
+            one live NPC and the objective's map marker has something to point at. -->
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_leader" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c01" soul_name="soul_alx_leader" soul_vip_class_id="0" xp_multiplier="1" />
+       <!-- The NAMED beat leaders (1-5). Aleksej gives a name and a place and never a
+            headcount, so the man he names has to be the man the player finds - on the
+            shared soul above every one of them was called "Captain". All six guids are
+            on the "alx_leader" SoulAsset (mercenaries_background_quest.xml); only one
+            beat is ever live, so the marker still resolves to exactly one NPC. -->
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_ondra" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c02" soul_name="soul_alx_ondra" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_vavra" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c03" soul_name="soul_alx_vavra" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_hedge" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c04" soul_name="soul_alx_hedge" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_bartos" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c05" soul_name="soul_alx_bartos" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_knight" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c06" soul_name="soul_alx_knight" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_officer" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c07" soul_name="soul_alx_officer" soul_vip_class_id="0" xp_multiplier="1" />
+       <!-- Aleksej's own Ruthenians (beat 9). Their own souls purely so they are called
+            Ruthenians and not Cumans - the cuman souls the marsh used to draw on carry
+            char_enemy_cuman_*, and those are shared with a Kleinkrieg contract. -->
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.9" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_ruthenian" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f01" soul_name="soul_alx_ruthenian_1" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.2" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_ruthenian" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f02" soul_name="soul_alx_ruthenian_2" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.5" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_ruthenian" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f03" soul_name="soul_alx_ruthenian_3" soul_vip_class_id="0" xp_multiplier="1" />
+       <soul brain_id="a7c3e1d9-4b2f-4a68-9c50-1e3d7f8a2b60" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_ruthenian" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7f04" soul_name="soul_alx_ruthenian_archer" soul_vip_class_id="0" xp_multiplier="1" />
+       <!-- Beat 5's knight is Sir Jezhek of Holohlavy - a CLONE, on a fresh soul, never his
+            own (ztracenaCest_jezek, e7c5b100-...). Sharing his real soul would put this hostile
+            and the man in his own questline on the same identity, and the quest's per-soul death
+            trigger with him. Same rule the mod's "heinrich" Henry look-alike already follows.
+            combat_level well above the other leaders: he is a real knight in real plate. -->
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.6" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_alx_jezek" social_class_id="3" soul_archetype_id="0" soul_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7c08" soul_name="soul_alx_jezek" soul_vip_class_id="0" xp_multiplier="1" />
        <!-- Sigismund's Soldier -->
        <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.5" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_sigi_1" social_class_id="3" soul_archetype_id="0" soul_id="b2cdf9d2-e2ac-5d65-ac26-14bbb604ea02" soul_name="soul_enemy_sigi_1" soul_vip_class_id="0" xp_multiplier="1" />
        <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.5" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_sigi_2" social_class_id="3" soul_archetype_id="0" soul_id="dfeb0a05-e07d-55fe-a4f7-56dcfab824ac" soul_name="soul_enemy_sigi_2" soul_vip_class_id="0" xp_multiplier="1" />
@@ -186,6 +220,12 @@
        <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_heinrich_1" social_class_id="3" soul_archetype_id="0" soul_id="1c9e791f-09ea-5171-96e7-102188affa24" soul_name="soul_enemy_heinrich_1" soul_vip_class_id="0" xp_multiplier="1" />
        <!-- Quatermaster -->
        <soul brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_mercenary_quartermaster" social_class_id="3" soul_archetype_id="0" soul_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" soul_name="soul_quartermaster" soul_vip_class_id="12" xp_multiplier="0" />
+		<soul brain_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b04" combat_level="0.9" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_aleksej" social_class_id="3" soul_archetype_id="0" soul_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b01" soul_name="soul_aleksej" soul_vip_class_id="12" xp_multiplier="0" />
+		<!-- The marsh Aleksej. He was on mercenariesFaction with a VIP class and his own townsman
+            brain, which is three separate reasons he stood there immortal, eating, being cut
+            at by his own Ruthenians. He is the last fight in the quest: hostile faction, no
+            VIP class, the strong-melee enemy brain, and a combat level to match his harness. -->
+       <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.8" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_aleksej_double" social_class_id="3" soul_archetype_id="0" soul_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b03" soul_name="soul_aleksej_double" soul_vip_class_id="0" xp_multiplier="1" />
        <!-- static archers -->
        <soul brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_static_archer_1" social_class_id="3" soul_archetype_id="0" soul_id="8d2f4a61-7b93-4c05-9e18-3a6d5f2b7c41" soul_name="soul_static_archer_1" soul_vip_class_id="16" xp_multiplier="0" />
 		<soul brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_static_archer_2" social_class_id="3" soul_archetype_id="0" soul_id="9e3a5b72-8c04-4d16-af29-4b7e6a3c8d52" soul_name="soul_static_archer_2" soul_vip_class_id="16" xp_multiplier="0" />
@@ -231,5 +271,19 @@
 		<soul brain_id="a71f4e93-2c85-4d16-8f3a-b62e94c17d08" combat_level="0.7" digestion_multiplier="0" factionName="patrolFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_prague_2" social_class_id="3" soul_archetype_id="0" soul_id="f1e2d3c4-0020-4a00-8b00-00000000002e" soul_name="soul_patrol_prague_2" soul_vip_class_id="0" xp_multiplier="1" />
 		<soul brain_id="a71f4e93-2c85-4d16-8f3a-b62e94c17d08" combat_level="0.9" digestion_multiplier="0" factionName="patrolFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_prague_3" social_class_id="3" soul_archetype_id="0" soul_id="f1e2d3c4-0020-4a00-8b00-00000000002f" soul_name="soul_patrol_prague_3" soul_vip_class_id="0" xp_multiplier="1" />
 		<soul brain_id="a71f4e93-2c85-4d16-8f3a-b62e94c17d08" combat_level="1.0" digestion_multiplier="0" factionName="patrolFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_prague_1" social_class_id="3" soul_archetype_id="0" soul_id="f1e2d3c4-0020-4a00-8b00-000000000030" soul_name="soul_patrol_prague_4" soul_vip_class_id="0" xp_multiplier="1" />
+
+		<!-- Foe test souls (docs/foe-ai.md): foe_brain, foeFaction, six faces so a spawned
+		     band is not six copies of one man. Lootable and worth XP like the enemy groups. -->
+		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.7" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_1" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000001" soul_name="soul_foe_1" soul_vip_class_id="0" xp_multiplier="1" />
+		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.7" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_2" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000002" soul_name="soul_foe_2" soul_vip_class_id="0" xp_multiplier="1" />
+		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.7" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_3" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000003" soul_name="soul_foe_3" soul_vip_class_id="0" xp_multiplier="1" />
+		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.9" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_1" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000004" soul_name="soul_foe_4" soul_vip_class_id="0" xp_multiplier="1" />
+		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.9" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_2" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000005" soul_name="soul_foe_5" soul_vip_class_id="0" xp_multiplier="1" />
+		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.9" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_3" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000006" soul_name="soul_foe_6" soul_vip_class_id="0" xp_multiplier="1" />
 	</souls>
+    <!-- Aleksej of Zaslawye (docs/aleksej.md). His own soul, character, role, brain and bindings -
+         nothing shared with the quartermaster. aleksej_brain is his own: same "lobotomized merc"
+         shape (stand, eat, self-defend) as the quartermaster's, plus his own camp routine and
+         forced-dialogue arms - see aleksej_scheduler.xml. combat_level is high because he has to
+         hold his own in the marsh. -->
 </database>

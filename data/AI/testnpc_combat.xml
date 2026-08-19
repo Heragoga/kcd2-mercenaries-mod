@@ -44,8 +44,11 @@
                                              is a separate higher-priority interrupt (testnpc_retreat.xml),
                                              because failing a branch of this tree did not take movement
                                              away from the combat automation. -->
-                                        <Loop count="-1">
-                                            <MoveParamsDecorator speed="Run" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                        <!-- CombatMoveDecorator (combat locomotion), no outer Loop, no
+                                             MoveParamsDecorator - same correction as combat_melee.xml.
+                                             See docs/foe-ai.md. -->
+                                        <Parallel successMode="Any" failureMode="Any">
+                                            <CombatMoveDecorator>
                                                 <MeleeOffenseAutomationDecorator active="$automation_offense">
                                                     <MeleeDefenseAutomationDecorator active="$automation_defense">
                                                         <MeleeGuardAutomationDecorator GuardMode="$guardMode" active="$automation_guard">
@@ -57,8 +60,14 @@
                                                         </MeleeGuardAutomationDecorator>
                                                     </MeleeDefenseAutomationDecorator>
                                                 </MeleeOffenseAutomationDecorator>
-                                            </MoveParamsDecorator>
-                                        </Loop>
+                                            </CombatMoveDecorator>
+                                            <!-- Keeps the behaviour alive now that the outer Loop is gone;
+                                                 he is permanently aggroed and only the retreat interrupt
+                                                 ever evicts him, so there is nothing to check for. -->
+                                            <Loop count="-1">
+                                                <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="" />
+                                            </Loop>
+                                        </Parallel>
 
                                     </Sequence>
                                 </Child>

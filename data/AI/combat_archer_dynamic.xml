@@ -45,7 +45,13 @@
                                                     <!-- Melee fallback burst -->
                                                     <SuppressFailure>
                                                         <Parallel successMode="Any" failureMode="Any">
-                                                            <MoveParamsDecorator speed="Run" pathFindingParams="" doorClosingPolicy="LeaveOpened">
+                                                            <!-- CombatMoveDecorator, not MoveParamsDecorator: this is a
+                                                                 MOVING melee fight (the archer closes with his sidearm),
+                                                                 and it is what puts him into combat locomotion. Without
+                                                                 it the approach comes out in steps. See combat_melee.xml
+                                                                 and docs/foe-ai.md. The stand-fire branches below keep
+                                                                 their AnyDecorator shape - they do not move. -->
+                                                            <CombatMoveDecorator>
                                                                 <MeleeOffenseAutomationDecorator active="true">
                                                                     <MeleeDefenseAutomationDecorator active="true">
                                                                         <MeleeGuardAutomationDecorator GuardMode="automate" active="true">
@@ -57,7 +63,7 @@
                                                                         </MeleeGuardAutomationDecorator>
                                                                     </MeleeDefenseAutomationDecorator>
                                                                 </MeleeOffenseAutomationDecorator>
-                                                            </MoveParamsDecorator>
+                                                            </CombatMoveDecorator>
                                                             <Loop count="-1">
                                                                 <Sequence>
                                                                     <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'200ms'" />

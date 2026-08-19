@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- The quartermaster's default behaviour: walk back to his post (after a raid
+         the shared combat tree drags him toward the enemy), sheathe, face the tent,
+         and stand there occasionally eating (eating_standing, a mode-2 activity).
+         Fired as an interrupt by quartermaster_scheduler.xml. See docs/quartermaster.md. -->
+    <BehaviorTree name="quartermaster_idle" is_function="0">
+        <Variables>
+            <Variable name="postPos" type="vec3" values="" isPersistent="0" form="single" />
+            <Variable name="facePos" type="vec3" values="" isPersistent="0" form="single" />
+            <Variable name="hasPost" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="hasFace" type="_bool" values="false" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <Loop count="-1">
+                    <Sequence>
+                        <!-- Pull his post (stand spot + tent-centre face point) from Lua into the vec3s. -->
+                        <ExecuteLua code="
+                            data.hasPost = false
+                            data.hasFace = false
+                            pcall(function()
+                                local p = mercenaries:GetQuartermasterPost()
+                                if p then
+                                    data.postPos.x = p.x
+                                    data.postPos.y = p.y
+                                    data.postPos.z = p.z
+                                    data.hasPost = true
+                                    if p.faceX then
+                                        data.facePos.x = p.faceX
+                                        data.facePos.y = p.faceY
+                                        data.facePos.z = p.faceZ
+                                        data.hasFace = true
+                                    end
+                                end
+                            end)
+                        " />
+
+                        <!-- Walk back to the post (returns instantly if already there). -->
+                        <IfCondition failOnCondition="false" condition="$hasPost">
+                            <SuppressFailure>
+                                <Move stopWithinDistance="0.600000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$postPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                            </SuppressFailure>
+                        </IfCondition>
+
+                        <!-- Put the weapon away (he may still be holding it from a fight). -->
+                        <SuppressFailure>
+                            <ExecuteLua code="pcall(function() if entity.human and entity.human:IsWeaponDrawn() then entity.human:DrawWeapon(false) end end)" />
+                        </SuppressFailure>
+
+                        <!-- Watch the player without following (CrimeFollower NoMoveOnlyTurn: face,
+                             don't step). Runs against a timer so he periodically breaks off to eat. -->
+                        <SuppressFailure>
+                            <Parallel successMode="Any" failureMode="Any">
+                                <CrimeFollower Target="$__player" Mode="NoMoveOnlyTurn" Role="Observer" RelativeSpeedLimit="Walk" DisableGhosting="false" BlockWay="false" NoMoveOnlyTurn="true" />
+                                <Wait duration="'45s'" timeType="GameTime" doFail="false" variation="'25s'" />
+                            </Parallel>
+                        </SuppressFailure>
+
+                        <!-- Then have a bite to eat (SuppressFailure so a missing fragment just skips). -->
+                        <SuppressFailure>
+                            <Sequence>
+                                <UnstanceAction unstance="eating_standing" locationObject="" slaveObject="" />
+                                <Wait duration="'12s'" timeType="GameTime" doFail="false" variation="'4s'" />
+                            </Sequence>
+                        </SuppressFailure>
+                    </Sequence>
+                </Loop>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

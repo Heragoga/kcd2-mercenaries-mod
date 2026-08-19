@@ -28,6 +28,8 @@
                 <Port Name="quartermaster_archercart" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_removeupg" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_wall" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_gate" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_gates" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_banditcamp"   Direction="Out" Type="trigger" />
                 <Port Name="kk1" Direction="In" Type="bool" />
                 <Port Name="kk2" Direction="In" Type="bool" />
@@ -48,6 +50,13 @@
                 <Port Name="kk_open" Direction="In" Type="bool" />
                 <Port Name="kk_ready" Direction="In" Type="bool" />
                 <Port Name="quartermaster_banditcamp_letter" Direction="Out" Type="trigger" />
+                <!-- The repeatable camp bounty (mercenaries_bounty.lua). Its two gates are
+                     driven by tokens of their own, exactly like kk_open/kk_ready, so it can be
+                     taken and reported while a Kleinkrieg contract is also running. -->
+                <Port Name="quartermaster_bounty"        Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_bounty_report" Direction="Out" Type="trigger" />
+                <Port Name="bo_open"  Direction="In" Type="bool" />
+                <Port Name="bo_ready" Direction="In" Type="bool" />
                 <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
@@ -202,7 +211,7 @@
                             <UiPrompt StringName="ui_qm_banditcamp_yes" />
                             <Triggers><Port Name="quartermaster_banditcamp" /></Triggers>
                             <Elements>
-                                <Response Role="HENRY"><Text StringName="merc_henry_qm_banditcamp_yes" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="HENRY"><Text StringName="jeni_henry_proste_mi_jen__sjr0" /><Commands><CameraCommand /></Commands></Response>
                                 <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_banditcamp_yes" /><Commands><CameraCommand /></Commands></Response>
                             </Elements>
                         </Sequence>
@@ -327,8 +336,35 @@
                             <UiPrompt StringName="ui_qm_banditcamp_letter" />
                             <Triggers><Port Name="quartermaster_banditcamp_letter" /></Triggers>
                             <Elements>
+                                <Response Role="HENRY"><Text StringName="post_henry_jsou_mrtvi_vsi_HzlP" /><Commands><CameraCommand /></Commands></Response>
                                 <Response Role="HENRY"><Text StringName="merc_henry_qm_banditcamp_letter" /><Commands><CameraCommand /></Commands></Response>
                                 <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_banditcamp_letter" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+                        <!-- ===== The standing bounty =====
+                             Independent of the Kleinkrieg arc and of its gates, so it is on
+                             offer whether or not a contract is running. Only bo_open (a bounty
+                             is out) hides the offer, and only bo_ready (its camp is cleared)
+                             shows the report - so neither line is ever a dead end.
+                             Henry's halves point at vanilla voice lines that already say the
+                             right thing; the quartermaster's are the mod's own, unvoiced,
+                             like the rest of his menu. -->
+                        <Sequence EndType="EndDialogue" Name="seq_qm_bounty_yes" EntryCondition="!Port('bo_open')">
+                            <UiPrompt StringName="ui_qm_bounty_yes" />
+                            <Triggers><Port Name="quartermaster_bounty" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="jeni_henry_proste_mi_jen__sjr0" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_bounty_yes" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_bounty_yes_b" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_bounty_report" EntryCondition="Port('bo_ready')">
+                            <UiPrompt StringName="ui_qm_bounty_report" />
+                            <Triggers><Port Name="quartermaster_bounty_report" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="post_henry_jsou_mrtvi_vsi_HzlP" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_bounty_report" /><Commands><CameraCommand /></Commands></Response>
                             </Elements>
                         </Sequence>
 
@@ -835,6 +871,11 @@
                                         <Triggers><Port Name="quartermaster_wall" /></Triggers>
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_wall" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_wall" /></Response></Elements>
                                     </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_gate">
+                                        <UiPrompt StringName="ui_qm_gate" />
+                                        <Triggers><Port Name="quartermaster_gate" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_gate" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_gate" /></Response></Elements>
+                                    </Sequence>
                                     <!-- Two-step: choosing this only ASKS. The port (and so the
                                          teardown) fires from the confirm branch, never from here. -->
                                     <Sequence EndType="Decision" Name="seq_qm_removeupg">
@@ -862,6 +903,15 @@
                             </Decision>
                         </Sequence>
 
+                        <!-- ===== Gates (one order swings every gate in the camp) ===== -->
+                        <Sequence EndType="EndDialogue" Name="seq_qm_gates">
+                            <UiPrompt StringName="ui_qm_gates" />
+                            <Triggers><Port Name="quartermaster_gates" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_gates" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_gates" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
                         <!-- ===== Deploy (take mercs out of camp to follow you) ===== -->
                         <Sequence EndType="Decision" Name="seq_qm_deploy">
                             <UiPrompt StringName="ui_qm_deploy" />

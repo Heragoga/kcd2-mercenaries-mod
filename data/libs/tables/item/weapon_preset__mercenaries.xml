@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
     <weapon_presets version="1">
+		<!-- His broadsword, from his own vanilla weapon preset, plus the Lords of Holohlavy
+		     shield - which exists as an item but is in no preset at all in vanilla. -->
+		<weapon_preset weapon_preset_id="a1e50100-1c4b-4e6a-9f01-3b8c5d2e7d02" weapon_preset_name="weapon_preset_alx_jezek">
+			<weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
+			<weapon_preset_item item_class_id="d8f1a893-0e67-4f29-b897-1a831a3ab923" />
+		</weapon_preset>
 
         <!-- ==================== Shortsword ==================== -->
         <weapon_preset weapon_preset_id="2c28935e-103c-4f0a-b154-36890bac73f2" weapon_preset_name="merc_weapon_shortsword_weak_1">
@@ -235,7 +241,7 @@
             <weapon_preset_item item_class_id="66760529-5a60-4bc3-861b-6694d571f5a1" /> <!-- Painted pavese -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="e6b2dd31-5e6f-4ba9-a221-dfa8ec993d8e" weapon_preset_name="merc_weapon_swordshield_medium_1">
-            <weapon_preset_item item_class_id="eaf0b03b-d2bf-4680-a2fb-1f551bd10d1c" />
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
             <weapon_preset_item item_class_id="8baa70c0-222a-42dc-a289-035c83a33d5e" /> <!-- Heater shield -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="cb12a1ab-b658-45bc-abdd-7e7d9e632bd6" weapon_preset_name="merc_weapon_swordshield_medium_2">
@@ -259,7 +265,7 @@
             <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="c3d8a1f5-2b7e-4f96-8c3a-1d6e9b4f7c22" weapon_preset_name="merc_weapon_swordshield_medium_3">
-            <weapon_preset_item item_class_id="eaf0b03b-d2bf-4680-a2fb-1f551bd10d1c" />
+            <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
             <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="d4e9b2a6-3c8f-4a09-9d4b-2e7f0a5c8d33" weapon_preset_name="merc_weapon_swordshield_medium_4">
@@ -277,7 +283,7 @@
 
         <!-- ==================== Axe and shield ==================== -->
         <weapon_preset weapon_preset_id="1231bf2d-a4a2-4afe-bc46-e90a89aeb693" weapon_preset_name="merc_weapon_axeshield_weak_1">
-            <weapon_preset_item item_class_id="fdfd6989-a28d-40bc-ac0d-882b4d1cf4f9" />
+            <weapon_preset_item item_class_id="1fc42528-2bef-4dde-bf8a-04febeef41c8" />
             <weapon_preset_item item_class_id="292ea6c3-92b9-40a1-890c-d558ab00a8f2" />
         </weapon_preset>
         <weapon_preset weapon_preset_id="3730631f-7bf6-42b0-9141-34a32ac3e0a0" weapon_preset_name="merc_weapon_axeshield_weak_2">
@@ -339,7 +345,7 @@
             <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="05de7ab9-82dd-44db-8dcf-c065a3f88f4f" weapon_preset_name="merc_weapon_maceshield_weak_4">
-            <weapon_preset_item item_class_id="8a9e3a36-213e-4b90-a4ec-518fdec1d980" />
+            <weapon_preset_item item_class_id="c64dcd8b-df93-4cb5-a80a-c71eb84ac6b0" />
             <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="65804416-c27f-4a7b-bae2-40cc77d3bbec" weapon_preset_name="merc_weapon_maceshield_medium_1">

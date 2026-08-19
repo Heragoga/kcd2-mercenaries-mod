@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Static archer module: a tower/wall archer that stands where it was placed
+         and shoots, and NEVER ENDS on its own.
+
+         The firing core is the vanilla battle-archer standFire, identical to
+         combat_archer_dynamic's stand-and-fire branch and to how the base-game
+         siege NPCs fight (see references/AI/quests/utokNaNebakov, .../test_shooting):
+         a SINGLE CombatAction inside a Parallel, kept alive by a watchdog sibling.
+         A single CombatAction under the offense/weapon automation runs the WHOLE
+         fight - it looses arrow after arrow on its own. It must NOT be wrapped in a
+         per-shot Loop: re-issuing CombatAction that way fires ONE arrow and then the
+         archer just stands holding the bow (the "shoots once" bug). The watchdog is
+         what keeps the Parallel (and thus the continuous fire) running; it only ends
+         the burst when the target is dead / out of arrows.
+
+         Never-ending wrapper: the whole standFire sits in an outer Loop inside the
+         crime_interruptAttack context. When the watchdog ends a burst (target died),
+         the outer Loop just re-enters standFire - the behaviour itself never ends and
+         never runs its OnFail, so the crime context and drawn bow stay on continuously
+         (no combat-mode flicker). Re-targeting is the scheduler's job: FindStaticArcherTarget
+         picks the next enemy and re-fires this with the new target, replacing the
+         instance via IgnorePriorityOnPreviousInterrupt. See docs/ai-modules.md. -->
+    <BehaviorTree name="combat_archer_static" is_function="0">
+        <Variables>
+            <Variable name="isTargetAlive"    type="_bool"  values="true"   isPersistent="0" form="single" />
+            <Variable name="outOfAmmo"        type="_bool"  values="false"  isPersistent="0" form="single" />
+            <Variable name="distanceToTarget" type="_float" values="9999.0" isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                    <EntityContextElement context="crime_interrupt" enabled="true">
+                        <EntityContext context="crime_interruptAttack" target="$this.id">
+                            <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                                <Child canSkip="1">
+                                    <!-- Never completes / never fails: on target death the burst ends and
+                                         this outer Loop re-enters standFire rather than ending the behaviour. -->
+                                    <SuppressFailure>
+                                        <Loop count="-1">
+                                            <Sequence>
+                                                <SuppressFailure>
+                                                    <Parallel successMode="Any" failureMode="Any">
+                                                        <!-- One CombatAction = the whole burst; the offense/weapon
+                                                             automation keeps loosing arrows. -->
+                                                        <AnyDecorator preset="crime_keepStateAndItems">
+                                                            <MeleeOffenseAutomationDecorator active="true">
+                                                                <WeaponAutomationDecorator WeaponChange="missile" active="true">
+                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                </WeaponAutomationDecorator>
+                                                            </MeleeOffenseAutomationDecorator>
+                                                        </AnyDecorator>
+                                                        <!-- Watchdog: keeps the Parallel (and the fire) alive, and ends the
+                                                             burst only when the target is dead / out of arrows. -->
+                                                        <Loop count="-1">
+                                                            <Sequence>
+                                                                <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                                <ExecuteLua code="mercenaries:UpdateStaticArcherCombatData(data, entity.this.id)" />
+                                                                <IfCondition failOnCondition="false" condition="~$isTargetAlive | $outOfAmmo">
+                                                                    <Fail />
+                                                                </IfCondition>
+                                                            </Sequence>
+                                                        </Loop>
+                                                    </Parallel>
+                                                </SuppressFailure>
+                                                <!-- Small gap before re-entering standFire (e.g. while the target is
+                                                     dead and the scheduler is picking the next one) so this can't busy-loop. -->
+                                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            </Sequence>
+                                        </Loop>
+                                    </SuppressFailure>
+                                </Child>
+
+                                <OnFail canSkip="1">
+                                    <Sequence>
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
+                                        <!-- Inside the crime_interruptAttack context = counted as $inCombat by
+                                             every scheduler. 300ms matches the CombatScanLoop. See combat_melee.xml. -->
+                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="" />
+                                    </Sequence>
+                                </OnFail>
+                            </FuseBox>
+                        </EntityContext>
+                    </EntityContextElement>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

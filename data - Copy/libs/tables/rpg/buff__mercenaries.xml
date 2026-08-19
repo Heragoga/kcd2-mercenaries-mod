@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<buffs version="1">
+        <buff buff_class_id="15"
+        buff_exclusivity_id="1"
+        buff_id="b8f4a2c1-3d7e-4f90-8b5a-6c2d9e1f0a3b"
+        buff_lifetime_id="1"
+        buff_name="mercenary_speed_boost"
+        buff_params="rms*1.15,drd-30,strength+10,agility+10,vitality+10,fencing+10,defense+10,weapon_sword+10,weapon_unarmed+10,weapon_large+10,heavy_weapons+10,marksmanship+10,mor+1.0,dmd*0.0,dmh*0.0,drn*0.0"
+        duration="-1"
+        implementation="Cpp:Constant"
+        is_persistent="false" />
+
+        <!-- Quartermaster logistics: applied/removed at runtime (soul:AddBuff /
+             RemoveAllBuffsByGuid) by mercenaries_logistics.lua. Rough combat
+             modifiers - tune the magnitudes in play. -->
+        <!-- Hungry: ~50% effectiveness (out of food). -->
+        <buff buff_class_id="15" buff_exclusivity_id="2"
+              buff_id="c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"
+              buff_lifetime_id="1" buff_name="merc_hungry_debuff"
+              buff_params="strength-8,agility-8,vitality-8,fencing-8,defense-8,weapon_sword-8,weapon_unarmed-8,weapon_large-8,heavy_weapons-8,marksmanship-8,mor-1.0,rms*0.9"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Well-watered: ~150% effectiveness (drink in stock). -->
+        <buff buff_class_id="15" buff_exclusivity_id="3"
+              buff_id="d2e3f4a5-b6c7-48d9-8e0f-2a3b4c5d6e7f"
+              buff_lifetime_id="1" buff_name="merc_drink_buff"
+              buff_params="strength+8,agility+8,vitality+8,fencing+8,defense+8,weapon_sword+8,weapon_unarmed+8,weapon_large+8,heavy_weapons+8,marksmanship+8,mor+1.0,rms*1.1"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+
+        <!-- Morale-based combat effectiveness (the logistics rewrite). The Lua
+             computes a single net combat % per squad (morale boost + smithy +
+             training - starving) and applies the closest of these tiers to each
+             merc. Magnitudes are first-pass; tune in play. -->
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10001-2c4b-4e6a-9f01-000000000001" buff_lifetime_id="1" buff_name="merc_cbt_dn2"
+              buff_params="strength-16,agility-16,vitality-16,fencing-16,defense-16,weapon_sword-16,weapon_unarmed-16,weapon_large-16,heavy_weapons-16,marksmanship-16,mor-2.0,rms*0.85"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10002-2c4b-4e6a-9f01-000000000002" buff_lifetime_id="1" buff_name="merc_cbt_dn1"
+              buff_params="strength-8,agility-8,vitality-8,fencing-8,defense-8,weapon_sword-8,weapon_unarmed-8,weapon_large-8,heavy_weapons-8,marksmanship-8,mor-1.0,rms*0.92"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10003-2c4b-4e6a-9f01-000000000003" buff_lifetime_id="1" buff_name="merc_cbt_up1"
+              buff_params="strength+5,agility+5,vitality+5,fencing+5,defense+5,weapon_sword+5,weapon_unarmed+5,weapon_large+5,heavy_weapons+5,marksmanship+5,mor+0.5"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10004-2c4b-4e6a-9f01-000000000004" buff_lifetime_id="1" buff_name="merc_cbt_up2"
+              buff_params="strength+10,agility+10,vitality+10,fencing+10,defense+10,weapon_sword+10,weapon_unarmed+10,weapon_large+10,heavy_weapons+10,marksmanship+10,mor+1.0"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10005-2c4b-4e6a-9f01-000000000005" buff_lifetime_id="1" buff_name="merc_cbt_up3"
+              buff_params="strength+16,agility+16,vitality+16,fencing+16,defense+16,weapon_sword+16,weapon_unarmed+16,weapon_large+16,heavy_weapons+16,marksmanship+16,mor+1.5,rms*1.1"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="4" buff_id="e5a10006-2c4b-4e6a-9f01-000000000006" buff_lifetime_id="1" buff_name="merc_cbt_up4"
+              buff_params="strength+24,agility+24,vitality+24,fencing+24,defense+24,weapon_sword+24,weapon_unarmed+24,weapon_large+24,heavy_weapons+24,marksmanship+24,mor+2.0,rms*1.15"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Alchemy bench: a bit more survivable (stacks with the combat tier). -->
+        <buff buff_class_id="15" buff_exclusivity_id="5" buff_id="e5a10007-2c4b-4e6a-9f01-000000000007" buff_lifetime_id="1" buff_name="merc_alchemy_buff"
+              buff_params="vitality+20,strength+5,hlh*0.8,slh*0.8"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Static (tower) archer: a fast, deadly marksman. marksmanship is the
+             verified lever for an archer's aim speed/steadiness and hit rate (the
+             mod's combat tiers use it), cranked hard here; agility and rms*2 push
+             his action/handling speed. NOTE: a literal "reload speed x2" stat code
+             is not confirmable from the reference data, so marksmanship+agility is
+             the working proxy - swap in the real reload code here if found.
+             Applied on spawn by mercenaries_static_archer.lua. -->
+        <!-- Keep-up: every merc carries this permanently. Dash is the highest RelativeSpeedLimit
+             the engine has, so the ONLY way to make a follower faster is to raise his actual
+             movement speed. A fully levelled Henry is a little quicker than a base NPC, which is
+             why the squad strings out when the player sprints. rms is the movement multiplier
+             (the mod's own buffs already use it); mst raises max stamina so a long run does not
+             leave them winded. Deliberately modest - this closes a small gap, it does not make
+             mercs outrun the player. -->
+        <buff buff_class_id="15" buff_exclusivity_id="11" buff_id="e5a10011-2c4b-4e6a-9f01-000000000011" buff_lifetime_id="1" buff_name="merc_keepup_buff"
+              buff_params="rms*1.3,mst*1.5"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+
+        <!-- Raborsch garrison archer. They must survive a long assault and chip at it rather
+             than delete anyone: hlh*0.2 is a fifth of the damage taken (the 5x health), and
+             the marksmanship/rms terms take their output back below an ordinary archer's
+             instead of the +40/x2.0 the marksman buff grants. hlh is verified - it is the same
+             code the Heinrich buff below documents. -->
+        <buff buff_class_id="15" buff_exclusivity_id="6" buff_id="e5a10012-2c4b-4e6a-9f01-000000000012" buff_name="merc_raborsch_defender"
+              buff_params="hlh*0.1,slh*0.1,marksmanship-25,rms*0.5"
+              buff_lifetime_id="1" duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <buff buff_class_id="15" buff_exclusivity_id="6" buff_id="e5a10008-2c4b-4e6a-9f01-000000000008" buff_lifetime_id="1" buff_name="merc_static_archer_buff"
+              buff_params="marksmanship+40,agility+30,rms*2.0"
+              duration="-1" implementation="Cpp:Constant" is_persistent="false" />
+        <!-- Heinrich (boss): near-imba combat buff so one Heinrich can wade into
+             a group and win. Modelled on vanilla's imba_combat_guy but toned down
+             so he is still beatable. Stat codes verified from vanilla buffs:
+             srg = stamina regen (x4), mst = max stamina (+50%), src/sco = stamina
+             cooldowns (0 = attack relentlessly), hlh/slh = health/stamina damage
+             taken (x0.3 = 70% resistance), health+/s = regen in combat. Applied to
+             his soul via the perk chain (perk__/perk_buff__/soul2perk__mercenaries). -->
+        <buff buff_class_id="15" buff_exclusivity_id="7"
+              buff_id="e5a10009-2c4b-4e6a-9f01-000000000009"
+              buff_lifetime_id="0" buff_name="heinrich_imba_buff"
+              buff_params="strength+40,agility+40,vitality+40,fencing+45,defense+45,weapon_sword+45,weapon_unarmed+40,weapon_large+45,heavy_weapons+40,marksmanship+30,mor+2.5,rms+0.02,hlh*0.3,slh*0.3,srg*4,mst*1.5,src=0,sco=0,health+5/s"
+              duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
+
+        <!-- Player-facing status indicators. No buff_params on purpose: these
+             only exist to show a HUD/inventory icon, they change nothing.
+             Added/removed from Lua - see mercenaries_management.lua.
+
+             Low morale uses the ShortTerm + Cpp:Fading shape (the T2 test): a
+             timed buff draws a red countdown ring that drains to grey, which
+             reads far better than an untimed icon. duration is a drain rate,
+             not how long the state lasts - a week means the ring sits at full
+             red for any realistic session, so the Lua never has to re-apply it
+             (and never replays the buff-appeared animation). How long low
+             morale actually lasts is the management layer's call. -->
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10010-2c4b-4e6a-9f01-000000000010"
+              buff_lifetime_id="0" buff_name="merc_low_morale"
+              buff_ui_name="buff_merc_low_morale_name"
+              buff_desc="buff_merc_low_morale_desc"
+              buff_ui_order="-100" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="low_morale_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <!-- The rest of the squad states, same shape as low morale. Custom icons
+             live in data/libs/UI/textures/icons/buffs as <name>_icon.dds and are
+             referenced here without the _icon suffix. buff_ui_type_id 2 (Debuff)
+             is what paints the disk behind the icon red - there is no colour
+             attribute, the disk art comes from the ui type.
+             ui_order runs worst-first so the row reads in severity order. -->
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10020-2c4b-4e6a-9f01-000000000020"
+              buff_lifetime_id="0" buff_name="merc_exhausted"
+              buff_ui_name="buff_merc_exhausted_name" buff_desc="buff_merc_exhausted_desc"
+              buff_ui_order="-101" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="exhausted_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10021-2c4b-4e6a-9f01-000000000021"
+              buff_lifetime_id="0" buff_name="merc_injured"
+              buff_ui_name="buff_merc_injured_name" buff_desc="buff_merc_injured_desc"
+              buff_ui_order="-102" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="injured_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10022-2c4b-4e6a-9f01-000000000022"
+              buff_lifetime_id="0" buff_name="merc_no_drink"
+              buff_ui_name="buff_merc_no_drink_name" buff_desc="buff_merc_no_drink_desc"
+              buff_ui_order="-103" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="no_drink_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10023-2c4b-4e6a-9f01-000000000023"
+              buff_lifetime_id="0" buff_name="merc_starvation_mild"
+              buff_ui_name="buff_merc_starvation_mild_name" buff_desc="buff_merc_starvation_mild_desc"
+              buff_ui_order="-104" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="starvation_mild_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1"
+              buff_id="e5a10024-2c4b-4e6a-9f01-000000000024"
+              buff_lifetime_id="0" buff_name="merc_starvation_strong"
+              buff_ui_name="buff_merc_starvation_strong_name" buff_desc="buff_merc_starvation_strong_desc"
+              buff_ui_order="-105" buff_ui_type_id="2" buff_ui_visibility_id="3"
+              duration="604800" icon_id="starvation_strong_merc"
+              implementation="Cpp:Fading" is_persistent="false" />
+
+        <buff buff_class_id="15" buff_exclusivity_id="1" buff_id="f123ee45-aade-4a13-a776-597c97d34bab" buff_lifetime_id="0" buff_name="merc_decreaseddamageintake" buff_params="hlh*0.7,slh*0.7" duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
+
+	</buffs>
+
+
+</database>

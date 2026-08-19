@@ -72,7 +72,12 @@ quartermaster spends:
 | --- | --- | --- |
 | Food | `LootPerKillFood` = 0.3 units | a unit feeds `FeedRatio` (8) mercs for a day, so ten bodies ≈ a day for 24 men |
 | Drink | `LootPerKillDrink` = 0.1 units | same units as food |
-| Wages | `LootPerKillWages` = 0.2 merc-days | priced at `WagePerTier.medium`, so 2 gr into the war chest |
+| Wages | `LootPerKillWages` = 2.4 merc-days | priced at `WagePerTier.medium`, so 24 gr into the war chest |
+
+Food and wages are tuned to buy the **same number of days** per body — the only comparison
+the after-action report makes. A day of food is `FeedRatio` units per man and a day of wages
+is one merc-day per man, so parity is `LootPerKillWages = LootPerKillFood * FeedRatio`
+(0.3 x 8 = 2.4). Move one and move the other.
 
 These are **fractions of a unit** — a body carries a bite and a swallow, not a day's rations
 for two dozen men. `accrue()` banks them in `L.lootCarryFood / lootCarryDrink / lootCarryCoin`

@@ -1,0 +1,838 @@
+<?xml version="1.0"?>
+<!DOCTYPE storm SYSTEM "..\storm.dtd">
+<storm>
+    <rules>
+        <rule name="appearance_soul_enemy_looter_1">
+            <selectors>
+                <hasName Name="soul_enemy_looter_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_2">
+            <selectors>
+                <hasName Name="soul_enemy_looter_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_081" />
+                <setHair name="m_hair_005_dark_brown" />
+                <setBeard name="m_beard_05" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_3">
+            <selectors>
+                <hasName Name="soul_enemy_looter_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_006_b00" />
+                <setHair name="m_hair_014_black" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_4">
+            <selectors>
+                <hasName Name="soul_enemy_looter_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_030" />
+                <setHair name="m_hair_014_dark_grey" />
+                <setBeard name="m_beard_12" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_5">
+            <selectors>
+                <hasName Name="soul_enemy_looter_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_026" />
+                <setHair name="m_hair_006_dark_brown" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_6">
+            <selectors>
+                <hasName Name="soul_enemy_looter_6" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_012" />
+                <setHair name="m_hair_002_dark_brown" />
+                <setBeard name="m_beard_03" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_7">
+            <selectors>
+                <hasName Name="soul_enemy_looter_7" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="m_head_070" />
+                <setHair name="m_hair_012_black" />
+                <setBeard name="m_beard_06" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_8">
+            <selectors>
+                <hasName Name="soul_enemy_looter_8" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_03" />
+                <setHead name="m_head_035" />
+                <setHair name="m_hair_005_black" />
+                <setBeard name="m_beard_14" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_9">
+            <selectors>
+                <hasName Name="soul_enemy_looter_9" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_042" />
+                <setHair name="m_hair_004_dark_brown" />
+                <setBeard name="m_beard_18" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_10">
+            <selectors>
+                <hasName Name="soul_enemy_looter_10" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_055" />
+                <setHair name="m_hair_005_dark_grey" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_archer_1">
+            <selectors>
+                <hasName Name="soul_enemy_looter_archer_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_045" />
+                <setHair name="m_hair_006_dark_brown" />
+                <setBeard name="m_beard_11" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_looter_archer_2">
+            <selectors>
+                <hasName Name="soul_enemy_looter_archer_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_066" />
+                <setHair name="m_hair_009_dark_brown" />
+                <setBeard name="m_beard_07" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_tower_archer_1">
+            <selectors>
+                <hasName Name="soul_enemy_tower_archer_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_002_dark_brown" />
+                <setBeard name="m_beard_08" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_tower_archer_2">
+            <selectors>
+                <hasName Name="soul_enemy_tower_archer_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_046" />
+                <setHair name="m_hair_004_black" />
+                <setBeard name="m_beard_12" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_tower_archer_3">
+            <selectors>
+                <hasName Name="soul_enemy_tower_archer_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_003_dark_grey" />
+                <setBeard name="m_beard_03" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_banditcamp_leader">
+            <selectors>
+                <hasName Name="soul_banditcamp_leader" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_046" />
+                <setHair name="m_hair_003_dark_brown" />
+                <setBeard name="m_beard_19" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_1">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_2">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_081" />
+                <setHair name="m_hair_005_dark_brown" />
+                <setBeard name="m_beard_05" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_3">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_006_b00" />
+                <setHair name="m_hair_014_black" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_4">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_030" />
+                <setHair name="m_hair_014_dark_grey" />
+                <setBeard name="m_beard_12" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_5">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_026" />
+                <setHair name="m_hair_006_dark_brown" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_6">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_6" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_012" />
+                <setHair name="m_hair_002_dark_brown" />
+                <setBeard name="m_beard_03" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_7">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_7" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="m_head_070" />
+                <setHair name="m_hair_012_black" />
+                <setBeard name="m_beard_06" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_8">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_8" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_03" />
+                <setHead name="m_head_035" />
+                <setHair name="m_hair_005_black" />
+                <setBeard name="m_beard_14" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_9">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_9" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_042" />
+                <setHair name="m_hair_004_dark_brown" />
+                <setBeard name="m_beard_18" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_10">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_10" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_055" />
+                <setHair name="m_hair_005_dark_grey" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_archer_1">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_archer_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_045" />
+                <setHair name="m_hair_006_dark_brown" />
+                <setBeard name="m_beard_11" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_bandit_archer_2">
+            <selectors>
+                <hasName Name="soul_enemy_bandit_archer_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_066" />
+                <setHair name="m_hair_009_dark_brown" />
+                <setBeard name="m_beard_07" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_1">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_02" />
+                <setHead name="m_head_004" />
+                <setHair name="m_hair_004_black" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_2">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_01" />
+                <setHead name="m_head_053" />
+                <setHair name="m_hair_011_black" />
+                <setBeard name="m_beard_05" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_3">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_039" />
+                <setHair name="m_hair_011_black" />
+                <setBeard name="m_beard_13" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_4">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_03" />
+                <setHead name="m_head_050" />
+                <setHair name="m_hair_012_black" />
+                <setBeard name="m_beard_07" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_5">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_034" />
+                <setHair name="m_hair_009_dark_ginger" />
+                <setBeard name="m_beard_15" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_6">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_6" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_04" />
+                <setHead name="m_head_017" />
+                <setHair name="m_hair_011_black" />
+                <setBeard name="m_beard_01" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_7">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_7" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_062" />
+                <setHair name="m_hair_006_black" />
+                <setBeard name="m_beard_08" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_8">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_8" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_02" />
+                <setHead name="m_head_046" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_9">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_9" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_057" />
+                <setHair name="m_hair_017_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_10">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_10" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_01" />
+                <setHead name="m_head_029_b00" />
+                <setHair name="m_hair_006_black" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_archer_1">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_archer_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_078" />
+                <setHair name="m_hair_012_black" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_sigi_archer_2">
+            <selectors>
+                <hasName Name="soul_enemy_sigi_archer_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_03" />
+                <setHead name="m_head_064" />
+                <setHair name="m_hair_009_grey" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_1">
+            <selectors>
+                <hasName Name="soul_enemy_prague_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="m_head_063" />
+                <setHair name="m_hair_011_light_brown" />
+                <setBeard name="m_beard_19" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_2">
+            <selectors>
+                <hasName Name="soul_enemy_prague_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_059" />
+                <setHair name="m_hair_009_black" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_3">
+            <selectors>
+                <hasName Name="soul_enemy_prague_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_037" />
+                <setHair name="m_hair_008_dark_brown" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_4">
+            <selectors>
+                <hasName Name="soul_enemy_prague_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_044" />
+                <setHair name="m_hair_008_dark_brown" />
+                <setBeard name="m_beard_11" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_5">
+            <selectors>
+                <hasName Name="soul_enemy_prague_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_033" />
+                <setHair name="m_hair_004_dark_grey" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_6">
+            <selectors>
+                <hasName Name="soul_enemy_prague_6" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_03" />
+                <setHead name="m_head_019" />
+                <setHair name="m_hair_008_dark_brown" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_7">
+            <selectors>
+                <hasName Name="soul_enemy_prague_7" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="m_head_069" />
+                <setHair name="m_hair_009_dark_brown" />
+                <setBeard name="m_beard_01" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_8">
+            <selectors>
+                <hasName Name="soul_enemy_prague_8" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_016" />
+                <setHair name="m_hair_002_black" />
+                <setBeard name="m_beard_04" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_9">
+            <selectors>
+                <hasName Name="soul_enemy_prague_9" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_024" />
+                <setHair name="m_hair_009_dark_brown" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_10">
+            <selectors>
+                <hasName Name="soul_enemy_prague_10" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_005" />
+                <setHair name="m_hair_004_dark_grey" />
+                <setBeard name="m_beard_08" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_archer_1">
+            <selectors>
+                <hasName Name="soul_enemy_prague_archer_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_048" />
+                <setHair name="m_hair_003_dark_grey" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_prague_archer_2">
+            <selectors>
+                <hasName Name="soul_enemy_prague_archer_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_072" />
+                <setHair name="m_hair_008_dark_brown" />
+                <setBeard name="m_beard_15" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_1">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_01" />
+                <setHead name="m_head_011" />
+                <setHair name="m_hair_005_black" />
+                <setBeard name="m_beard_01" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_2">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_02" />
+                <setHead name="m_head_027" />
+                <setHair name="m_hair_004_black" />
+                <setBeard name="m_beard_08" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_3">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_04" />
+                <setHead name="m_head_041" />
+                <setHair name="m_hair_005_black" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_4">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_01" />
+                <setHead name="m_head_046" />
+                <setHair name="m_hair_011_black" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_5">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_01" />
+                <setHead name="m_head_050" />
+                <setHair name="m_hair_003_black" />
+                <setBeard name="m_beard_01" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_6">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_6" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_02" />
+                <setHead name="m_head_053" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_04" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_7">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_7" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_01" />
+                <setHead name="m_head_055" />
+                <setHair name="m_hair_008_black" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_8">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_8" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_02" />
+                <setHead name="m_head_056" />
+                <setHair name="m_hair_005_black" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_9">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_9" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_03" />
+                <setHead name="m_head_058" />
+                <setHair name="m_hair_019_black" />
+                <setBeard name="m_beard_07" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_10">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_10" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_02" />
+                <setHead name="m_head_062" />
+                <setHair name="m_hair_009_black" />
+                <setBeard name="m_beard_18" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_archer_1">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_archer_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_03" />
+                <setHead name="m_head_066_b00" />
+                <setHair name="m_hair_006_black" />
+                <setBeard name="m_beard_19" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_cuman_archer_2">
+            <selectors>
+                <hasName Name="soul_enemy_cuman_archer_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_roma_01" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_002_black" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_knight_1">
+            <selectors>
+                <hasName Name="soul_enemy_knight_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_old_01" />
+                <setHead name="m_head_068" />
+                <setHair name="m_hair_003_grey" />
+                <setBeard name="m_beard_19" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_knight_2">
+            <selectors>
+                <hasName Name="soul_enemy_knight_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_old_01" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_014_dark_grey" />
+                <setBeard name="m_beard_14" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_knight_3">
+            <selectors>
+                <hasName Name="soul_enemy_knight_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_old_02" />
+                <setHead name="m_head_051" />
+                <setHair name="m_hair_003_grey" />
+                <setBeard name="m_beard_11" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_knight_4">
+            <selectors>
+                <hasName Name="soul_enemy_knight_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_039" />
+                <setHair name="m_hair_011_black" />
+                <setBeard name="m_beard_13" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_knight_5">
+            <selectors>
+                <hasName Name="soul_enemy_knight_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_old_02" />
+                <setHead name="m_head_054" />
+                <setHair name="m_hair_014_grey" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <!-- Sir Jezhek of Holohlavy: head, hair and beard from his own vanilla rule
+             (references/Libs/Storm/appearance/quests/ztracenaCest.xml), plus a BODY, which his
+             vanilla rule leaves to his skald_character's unique_assets index and this one cannot.
+             Every other rule in this file sets all four; leaving setBody out gave him nothing to
+             render and he did not appear at all. -->
+        <!-- Aleksej's Ruthenians. Four souls share one character, so each gets its own
+             face here or the marsh is four copies of one man. -->
+        <rule name="appearance_soul_alx_ruthenian_1">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_05" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_015_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_ruthenian_2">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_06" />
+                <setHead name="m_head_081" />
+                <setHair name="m_hair_005_dark_brown" />
+                <setBeard name="m_beard_05" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_ruthenian_3">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_03" />
+                <setHead name="m_head_022" />
+                <setHair name="m_hair_003_grey" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_ruthenian_archer">
+            <selectors>
+                <hasName Name="soul_alx_ruthenian_archer" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_073" />
+                <setHair name="m_hair_009_black" />
+                <setBeard name="m_beard_16" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_alx_jezek">
+            <selectors>
+                <hasName Name="soul_alx_jezek" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHair name="m_hair_003_grey" />
+                <setHead name="m_head_022" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_heinrich_1">
+            <selectors>
+                <hasName Name="soul_enemy_heinrich_1" />
+            </selectors>
+            <operations>
+                <setBody name="henry_body" />
+                <setHead name="henry" />
+                <setHair name="m_hair_henry" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+    </rules>
+</storm>

@@ -124,6 +124,16 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
         -- before the approach (combat_melee.xml) - patrols included.
         data.isEnemy = (side ~= "friend")
 
+        -- ...but only if it is not already out. The explicit DrawAction is a full
+        -- animation that halts the NPC, and combat_melee replays it on every re-fire,
+        -- which reads as a pause part-way through the charge. See docs/foe-ai.md.
+        data.needsDraw = true
+        if me and me.human then
+            local drawn = false
+            pcall(function() drawn = me.human:IsWeaponDrawn() end)
+            if drawn then data.needsDraw = false end
+        end
+
         local mp = me and me:GetPos()
         local tp = nil
         if data.attackData and data.attackData.target then

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Aleksej's own idle: sheathe if still drawn from a fight, watch the player,
+         occasionally eat. No "post" to walk back to - that is quartermaster_idle.xml,
+         which reads mercenaries:GetQuartermasterPost; reusing it here would walk
+         Aleksej over to the quartermaster's own spot. Fired by aleksej_scheduler.xml,
+         gated off whenever $isCampActor is true, so this only runs before his lodging
+         furniture is assigned or in any other gap camp_actor does not cover. -->
+    <BehaviorTree name="aleksej_idle" is_function="0">
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <Loop count="-1">
+                    <Sequence>
+                        <SuppressFailure>
+                            <ExecuteLua code="pcall(function() if entity.human and entity.human:IsWeaponDrawn() then entity.human:DrawWeapon(false) end end)" />
+                        </SuppressFailure>
+
+                        <!-- Watch the player without following (CrimeFollower NoMoveOnlyTurn: face,
+                             don't step). Runs against a timer so he periodically breaks off to eat. -->
+                        <SuppressFailure>
+                            <Parallel successMode="Any" failureMode="Any">
+                                <CrimeFollower Target="$__player" Mode="NoMoveOnlyTurn" Role="Observer" RelativeSpeedLimit="Walk" DisableGhosting="false" BlockWay="false" NoMoveOnlyTurn="true" />
+                                <Wait duration="'45s'" timeType="GameTime" doFail="false" variation="'25s'" />
+                            </Parallel>
+                        </SuppressFailure>
+
+                        <SuppressFailure>
+                            <Sequence>
+                                <UnstanceAction unstance="eating_standing" locationObject="" slaveObject="" />
+                                <Wait duration="'12s'" timeType="GameTime" doFail="false" variation="'4s'" />
+                            </Sequence>
+                        </SuppressFailure>
+                    </Sequence>
+                </Loop>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

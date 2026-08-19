@@ -79,6 +79,15 @@ end
 -- Skalitz group and everyone else from generic, so shields match the outfit.
 mercenaries.SkalitzOutfitIndex = 6
 mercenaries.ShieldWeaponTypes = { [2] = true, [3] = true, [5] = true }
+
+-- The band the "random" loadout (index 1) rolls in. Polearms (9) are excluded:
+-- the weapon reaches the hand fine - merc_wpn_audit reports 121/121 armed with no
+-- empty hands - but nothing renders while a polearm is sheathed, so a polearm NPC
+-- reads as unarmed until he draws. That is what the missing-weapon reports were
+-- about. Ranged (10-12) stay out as before. merc_weapon_polearm still hands them
+-- out on purpose; raise the max to 9 to put them back in the roll.
+mercenaries.RandomMeleeSetMin = 2
+mercenaries.RandomMeleeSetMax = 8
 mercenaries.SkalitzShieldPresets = {
     -- Sword + shield (v3 kite / v4 Skalitz wave, all tiers)
     ["b6e1c2a4-3f8d-4c11-9a2e-7d5f8b3c1a90"] = true,
@@ -131,9 +140,8 @@ function mercenaries:EquipMercenaryWeapon(ent, currentPreset, outfitPreset)
     local preset = currentPreset or 1
     if preset == 1 then
         -- "Random": pick a fresh category each time this merc is equipped,
-        -- so the squad ends up with a varied mix of loadouts. Capped at 9
-        -- (melee only) while ranged loadouts (10-12) are disabled.
-        preset = math.random(2, 9)
+        -- so the squad ends up with a varied mix of loadouts.
+        preset = math.random(self.RandomMeleeSetMin, self.RandomMeleeSetMax)
     end
 
     local styleData = self.WeaponSets[preset] or self.WeaponSets[2]

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <!-- Aleksej's talk-to menu. Two In-ports and nothing else: alx_beat (which beat is
+             live, 0 = not hired) and alx_done (that beat's leader is dead, walk back and say
+             so). Vanilla dialogue can compare an int Port directly, so every sequence gates on
+             "Port('alx_beat') == N" and there is no per-beat bool fan-out to keep in step -
+             which is what the old alx_b1..alx_b9 / alx_bN_done pairs were, and why finished
+             beats kept lingering in the menu.
+
+             Each committed sequence fires exactly one Out trigger, alx_hand_N, meaning "beat N
+             starts now". The quest graph uses that single trigger to advance the int, clear
+             alx_done, pay for the beat just finished and issue the next camp's spawn token - so
+             a hand-off is atomic and cannot half-happen.
+
+             A report runs straight into the next job: the report lines, the next assignment and
+             Henry's question about it are one unbroken sequence, so he never sends Henry away
+             and waits to be asked again.
+
+             Beats 6-9 have no entry here. He is absent from beat 6 onward - that absence is the
+             reveal - so those beats hand off on their own (the lodging search, then each
+             leader's death) with nobody to talk to.
+
+             role_aleksej has no recorded voiceover (mod dialogue never does) - SelectedSouls +
+             VoiceoverFallbackLevel + per-line ReferenceLength are required, exactly as proven in
+             carbongo/aleksej_marsh.xml, or the request stalls until timeout.
+
+             LOC KEY SCHEME: one Response per RECORDING - merc_alx_L1..L44, text verbatim from
+             voicelines/aleksej_script.md, ReferenceLength from that row's own `len` column. -->
+        <Dialog Name="aleksej_dialog">
+            <Ports>
+                <Port Name="alx_beat" Direction="In" Type="int">
+                    <DesignName Text="which beat is live (0 = not hired yet)" />
+                </Port>
+                <Port Name="alx_done" Direction="In" Type="bool">
+                    <DesignName Text="that beat's leader is dead" />
+                </Port>
+
+                <Port Name="alx_hand_1" Direction="Out" Type="trigger" />
+                <Port Name="alx_hand_2" Direction="Out" Type="trigger" />
+                <Port Name="alx_hand_3" Direction="Out" Type="trigger" />
+                <Port Name="alx_hand_4" Direction="Out" Type="trigger" />
+                <Port Name="alx_hand_5" Direction="Out" Type="trigger" />
+                <Port Name="alx_hand_6" Direction="Out" Type="trigger" />
+            </Ports>
+            <Text StringName="char_aleksej_uiName" />
+            <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_aleksej" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="HENRY" Voice="tomMcKay" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_aleksej" Priority="General" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="role_aleksej HENRY">
+                    <Sequences>
+                        <!-- THE OPENER. At beat 0 he has not been hired, so this is the only thing
+                             he can say - the player walks up, presses E, and is straight into the
+                             voiced hire. Firing alx_hand_1 moves the int to 1 and retires this
+                             sequence for good. Recordings 1,2,3,4 -> [H1] -> 5. -->
+                        <Sequence EndType="EndDialogue" Name="seq_alx_open" EntryCondition="Port('alx_beat') == 0">
+                            <UiPrompt StringName="ui_alx_open" />
+                            <Triggers><Port Name="alx_hand_1" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="ui_alx_open" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L1" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="6"><Text StringName="merc_alx_L2" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="7"><Text StringName="merc_alx_L3" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="8"><Text StringName="merc_alx_L4" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="HENRY"><Text StringName="ui_alx_1_guard" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="15"><Text StringName="merc_alx_L5" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+                        <!-- The floor while a job is out. A Dialogue with no enterable Sequence offers
+                             the player nothing at all - not even an "E to talk" prompt - so he needs
+                             one thing to say between being given a job and finishing it. -->
+                        <Sequence EndType="EndDialogue" Name="seq_alx_greet" EntryCondition="(Port('alx_beat') == 1 OR Port('alx_beat') == 2 OR Port('alx_beat') == 3 OR Port('alx_beat') == 4 OR Port('alx_beat') == 5) AND !Port('alx_done')">
+                            <UiPrompt StringName="ui_alx_greet" />
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="ui_alx_greet" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="4"><Text StringName="merc_alx_greet" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+
+                        <!-- ===== Beat 1 - woodland camp (Ondra) ===== -->
+                        <!-- No standalone "give me the job" sequence for any beat. Every briefing is
+                             delivered exactly once, by the sequence that OPENS that beat - beat 1 by
+                             seq_alx_open, beats 2-5 by the previous beat's report. -->
+                        <Sequence EndType="EndDialogue" Name="seq_alx_report_1" EntryCondition="Port('alx_beat') == 1 AND Port('alx_done')">
+                            <UiPrompt StringName="ui_alx_1_done" />
+                            <Triggers><Port Name="alx_hand_2" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="ui_alx_1_done" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="6"><Text StringName="merc_alx_L6" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="5"><Text StringName="merc_alx_L7" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="6"><Text StringName="merc_alx_L8" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="9"><Text StringName="merc_alx_L9" /><Commands><CameraCommand /></Commands></Response>
+                                <!-- straight on into beat 2 -->
+                                <Response Role="role_aleksej" ReferenceLength="7"><Text StringName="merc_alx_L10" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="12"><Text StringName="merc_alx_L11" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="14"><Text StringName="merc_alx_L12" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="HENRY" ReferenceLength="3"><Text StringName="ui_alx_2_who" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="8"><Text StringName="merc_alx_L13" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+                        <!-- ===== Beat 2 - mine hilltop (Vavra) ===== -->
+                        <Sequence EndType="EndDialogue" Name="seq_alx_report_2" EntryCondition="Port('alx_beat') == 2 AND Port('alx_done')">
+                            <UiPrompt StringName="ui_alx_2_done" />
+                            <Triggers><Port Name="alx_hand_3" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="ui_alx_2_done" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="9"><Text StringName="merc_alx_L14" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="16"><Text StringName="merc_alx_L15" /><Commands><CameraCommand /></Commands></Response>
+                                <!-- straight on into beat 3 -->
+                                <Response Role="role_aleksej" ReferenceLength="11"><Text StringName="merc_alx_L16" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="18"><Text StringName="merc_alx_L17" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="HENRY" ReferenceLength="2"><Text StringName="ui_alx_3_silver" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="18"><Text StringName="merc_alx_L18" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+                        <!-- ===== Beat 3 - convoy near Miskovitz (hedge knight) ===== -->
+                        <Sequence EndType="EndDialogue" Name="seq_alx_report_3" EntryCondition="Port('alx_beat') == 3 AND Port('alx_done')">
+                            <UiPrompt StringName="ui_alx_3_done" />
+                            <Triggers><Port Name="alx_hand_4" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="ui_alx_3_done" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="5"><Text StringName="merc_alx_L19" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="11"><Text StringName="merc_alx_L20" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="13"><Text StringName="merc_alx_L21" /><Commands><CameraCommand /></Commands></Response>
+                                <!-- straight on into beat 4 -->
+                                <Response Role="HENRY"><Text StringName="ui_alx_4_take" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L22" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L23" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+
+                        <!-- ===== Beat 4 - burnt mill camp (leader in Sigismund's colours) =====
+                             Its briefing is at the end of seq_alx_report_3. The report half OPENS on
+                             H4 - the mask-off moment (line 24, cold and short) - so ui_alx_4_done
+                             (H4's line) doubles as this Sequence's own UiPrompt. -->
+                        <Sequence EndType="Decision" Name="seq_alx_report_4" EntryCondition="Port('alx_beat') == 4 AND Port('alx_done')">
+                            <UiPrompt StringName="ui_alx_4_done" />
+                            <Elements>
+                                <Response Role="HENRY" ReferenceLength="4"><Text StringName="ui_alx_4_done" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="8"><Text StringName="merc_alx_L24" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                            <Decision Name="dec_alx_report_4">
+                                <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_alx_report_4_h5">
+                                        <UiPrompt StringName="ui_alx_4_describe" />
+                                        <Triggers><Port Name="alx_hand_5" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY" ReferenceLength="3"><Text StringName="ui_alx_4_describe" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="5"><Text StringName="merc_alx_L25" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="9"><Text StringName="merc_alx_L26" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="9"><Text StringName="merc_alx_L27" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="4"><Text StringName="merc_alx_L28" /><Commands><CameraCommand /></Commands></Response>
+                                            <!-- straight on into beat 5 -->
+                                            <Response Role="role_aleksej" ReferenceLength="7"><Text StringName="merc_alx_L29" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="9"><Text StringName="merc_alx_L30" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L31" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="HENRY" ReferenceLength="3"><Text StringName="ui_alx_5_anyway" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="5"><Text StringName="merc_alx_L32" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                        <!-- ===== Beat 5 - Sigismund patrol (outlier fight; the confession) ===== -->
+                        <!-- Line 33 is the slip: he swore at 30 he did not know their road past
+                             the fields, then names a point past the shrine. Matched pair with 30 -
+                             if the ambush site moves, both lines move. Never edit one alone. -->
+                        <Sequence EndType="Decision" Name="seq_alx_report_5" EntryCondition="Port('alx_beat') == 5 AND Port('alx_done')">
+                            <UiPrompt StringName="ui_alx_5_done" />
+                            <Elements>
+                                <Response Role="role_aleksej" ReferenceLength="12"><Text StringName="merc_alx_L33" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L34" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="17"><Text StringName="merc_alx_L35" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="6"><Text StringName="merc_alx_L36" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L37" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                            <Decision Name="dec_alx_report_5">
+                                <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_alx_report_5_h7">
+                                        <UiPrompt StringName="ui_alx_5_whynow" />
+                                        <Triggers><Port Name="alx_hand_6" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY" ReferenceLength="3"><Text StringName="ui_alx_5_whynow" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L38" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

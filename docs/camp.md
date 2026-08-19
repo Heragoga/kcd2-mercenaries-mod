@@ -99,6 +99,30 @@ Bark requests key off the entity id (`self.this.id`), which is what the follow-B
 
 ---
 
+## Leaving camp: who leads
+
+Breaking camp (or recalling) clears every camp role, but it does **not** stop a camp behaviour
+that is already mid-animation. `camp_actor` only asks `CampActorYield` between activities, so a
+merc who was drilling at the dummies when the order came keeps swinging for the rest of the
+`noob_sword_training` fragment plus its hold — tens of seconds during which he cannot walk.
+
+That is harmless for a follower and fatal for the **formation anchor**: everyone else
+`FormationFollower`s off him, so a leader stuck in the practice yard stands the whole squad.
+The camp guards never have this problem — they were already on their feet walking a perimeter.
+
+So the leader is elected from the guards. `MarkCampBusyMercs` runs at the top of
+`BreakMercCamp` / `RecallMercs`, **before** the role tables are cleared, and stamps every merc
+holding a `CampActivities` or `CampFurniture` record (i.e. everyone but the guards) into
+`CampBusyUntil` for `CampBusyRecoverSecs` (45 s). `UpdateFormationLeader` then works in two
+tiers: nearest non-busy merc wins, and the busy ones are only considered if there is nobody
+else at all. A busy incumbent loses the job immediately — `leaderStillOk` is never set for him,
+which is the same path a dead leader takes.
+
+It is a *preference*, not an exclusion: busy mercs still count toward `SquadSize`, still get
+formation slots, and are eligible to lead again the moment their stamp expires.
+
+---
+
 ## Known limitations
 
 - **Merc sit/sleep took three passes; the last fix isn't playtested yet.** History, since each failure looked identical (mercs standing around) but had a different cause: (1) SO properties hung on the prop `BasicEntity` — no real smart object existed; (2) real `StanceSmartObject` entities + `Move`, but the `StanceElement` child was a bare `<Wait>`, so the stance was *declared* but the sit/lie animation never executed — mercs walked to the furniture and stood on it; (3) added the required `<WaitAction/>`. Confirmed working up to stage (2) via `merc_camp_furniture_debug` (5 SOs spawned, 5 assignments with WUIDs, correct walk-to positions), so only the animation step is unverified. If they still don't pose, the remaining unknown is whether `StanceElement` needs the SO's `use` resource reserved — vanilla routes NPCs through a `SchedulerHub` link, which we bypass by calling `StanceElement` directly. Note the old disabled `StanceElement` comment blocks still sit in both scheduler XMLs' idle branches — inert, superseded by the follow-BT version.

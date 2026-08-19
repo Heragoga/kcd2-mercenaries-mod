@@ -125,7 +125,7 @@ Elements are the individual lines spoken by each participant, dictated by the `R
 
 `Delay` is in seconds from the start of that response. `Variant` selects between different animations within the same fragment. For a full catalogue of what's available, browse the vanilla dialog files — with enough creativity there's a considerable amount you can do to liven things up.
 
-**One important caveat:** I have no idea how to make lips move. KCD2 appears to use a proprietary pipeline for lip sync that we don't have access to. My advice is to avoid direct player-NPC dialogs as much as possible, and lean on short NPC-to-NPC exchanges or open-world monologs for the majority of your communication. The lips just sit there, and it's a little unsettling.
+**Lips:** this used to say lip sync was a proprietary pipeline we couldn't touch. It isn't — it's stock CryEngine, and a line's facial clip is bound to it purely by name (`<voiceAbbrev>_<StringName>`, at the same relative path as the line's `.ogg`). You can retarget a vanilla lipsync clip onto your own line, or force a generic talking face from Lua. See [Lipsync](../lipsync.md).
 
 ---
 

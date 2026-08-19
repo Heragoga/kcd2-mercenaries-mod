@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Patrol leader's route walk.
+
+         This is an INTERRUPT BEHAVIOUR, not an arm of patrol_scheduler.xml, for the same
+         reason the followers are one: in this mod schedulers FIRE and behaviours ACT. The
+         walk lived in the scheduler while the patrols were a harmless tester, and that was
+         fine because nothing ever competed for the leader's movement. Once the roaming
+         patrols gained combat it stopped being fine - the scheduler's own Move kept
+         driving him, so the combat interrupt could never take movement over and the
+         leader simply never entered a fight.
+
+         This is fired at Priority 200 and combat_melee at 160, so do NOT rely on the
+         combat fire evicting it - that claim was here and is unproven either way (see
+         docs/patrols.md). Instead PatrolWalkTick sets $routeDone as soon as this man holds
+         a target, so the walk ends ITSELF and frees the slot; the scheduler re-fires it
+         when the fight is over.
+
+         MOVEMENT is testnpc_walk.xml's: ONE continuous Move whose $wpPos Lua rewrites in
+         place, with the point advanced at a SWITCH radius rather than on arrival, so the
+         Move never completes and is never restarted from a standstill. -->
+    <BehaviorTree name="patrol_walk" is_function="0">
+        <Variables>
+            <Variable name="wpPos"           type="vec3"  values="" isPersistent="0" form="single" />
+            <Variable name="routeDone"       type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="MoveParams_walk" type="additionalMoveParams" values="destChangedThreshold('150ms')" isPersistent="0" form="single" />
+        </Variables>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                  <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                    <Child canSkip="1">
+                        <Sequence>
+                            <ExecuteLua code="mercenaries:PatrolWalkStart(data, entity)" />
+                            <SuppressFailure>
+                                <Parallel successMode="Any" failureMode="Any">
+                                    <Loop count="-1">
+                                        <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="false" fastForwardIncludesMove="false" destinationSpecification="$wpPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="$MoveParams_walk" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                    </Loop>
+                                    <Loop count="-1">
+                                        <Sequence>
+                                            <Wait duration="'150ms'" timeType="GameTime" doFail="false" variation="'50ms'" />
+                                            <ExecuteLua code="mercenaries:PatrolWalkTick(data, entity)" />
+                                            <IfCondition failOnCondition="false" condition="$routeDone">
+                                                <Fail />
+                                            </IfCondition>
+                                        </Sequence>
+                                    </Loop>
+                                </Parallel>
+                            </SuppressFailure>
+                        </Sequence>
+                    </Child>
+
+                    <OnFail canSkip="1">
+                        <ExecuteLua code="mercenaries:PatrolWalkEnd(entity)" />
+                    </OnFail>
+                  </FuseBox>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

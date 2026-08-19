@@ -66,6 +66,8 @@ mercenaries.TokenIDQMTower           = "679a655e-189d-4519-b437-ccc4b92be7dd"
 mercenaries.TokenIDQMArcherCart      = "679a655e-189d-4519-b437-ccc4b92be7ed"
 mercenaries.TokenIDQMRemoveUpg       = "679a655e-189d-4519-b437-ccc4b92be7fd"
 mercenaries.TokenIDQMWall            = "679a655e-189d-4519-b437-ccc4b92be80d"
+mercenaries.TokenIDQMGate            = "679a655e-189d-4519-b437-ccc4b92bec0d"
+mercenaries.TokenIDQMGates           = "679a655e-189d-4519-b437-ccc4b92bec1d"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
 mercenaries.TokenIDQMTakeHalf        = "679a655e-189d-4519-b437-ccc4b92be79d"
@@ -741,8 +743,23 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMArcherCart,    function() self:LogiBuyArcherCart() end)
     tok(self.TokenIDQMRemoveUpg,     function() self:LogiRemoveAllUpgrades() end)
     tok(self.TokenIDQMWall,          function() self:LogiBuyWall() end)
+    tok(self.TokenIDQMGate,          function() self:LogiBuyGate() end)
+    tok(self.TokenIDQMGates,         function() self:LogiToggleGates() end)
     tok(self.TokenIDBanditCamp,      function() self:BanditCampAccept() end)
     tok(self.TokenIDBanditCampHandIn, function() self:BanditCampDeliverLetter() end)
+    tok(self.TokenIDBountyAccept,     function() self:BountyAccept() end)
+    tok(self.TokenIDBountyHandIn,     function() self:BountyReport() end)
+
+    -- Aleksej of Zaslawye: the Skald->Lua half. The quest graph drops one of these when a beat
+    -- opens AND again on every level wake while that beat is still live and unfinished
+    -- (exec_alx_spawn_N / alx_wake_N), which is how a camp comes back after a load without being
+    -- save data. Everything about the PROGRESSION is Skald's; this only stands the camp up.
+    for n, cls in pairs(self.AlxSpawnToken or {}) do
+        tok(cls, function() self:AlxSpawnBeat(n) end)
+    end
+    tok(self.TokenIDAlxLodgingGone, function()
+        if not self.AlxLodgingGone then self:AlxLodgingRemove() end
+    end)
     tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
     tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
     tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
@@ -823,6 +840,10 @@ function mercenaries.MonitorLoop()
 
     -- The siege of Raborsch: watches for the player closing on it. See docs/raborsch.md.
     pcall(function() mercenaries:RaborschMonitor() end)
+
+    -- The pre-combat speech test NPC (docs/aleksej.md).
+    pcall(function() mercenaries:AlxTalkTick() end)
+    pcall(function() mercenaries:AlxLodgingTick() end)
 
     Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
 end
@@ -970,12 +991,22 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- keys on every load and merc_siege_binds never survived a reload.
     -- To go back to the camp builder: swap this for mercenaries:BCampBinds(true) and
     -- uncomment the body of BCampBinds.
-    pcall(function() mercenaries:SiegeBinds(true) end)
+    -- F5-F11 go to the Aleksej lodging editor. The camp builder's and siege builder's own
+    -- binders are commented out in their modules while that room is being authored.
+    pcall(function() mercenaries:AlxBinds(true) end)
     pcall(function() mercenaries:RouteLoad() end)
+    -- Roaming patrols do not survive a save: sweep anything the engine serialised before the
+    -- tick re-rolls fresh records. See mercenaries_patrols_live.lua.
+    pcall(function() mercenaries:ClearAnyLeftoverPatrols() end)
     pcall(function() mercenaries:LivePatrolStart() end)
     -- A bandit-camp contract in progress. Only the CONTRACT is restored here; the camp
     -- itself is rebuilt by the monitor once the player is near it again.
     pcall(function() mercenaries:BanditCampRestore() end)
+    -- Aleksej's camp is NOT save data and nothing here restores it: this drops whatever the last
+    -- session left standing. The quest re-issues that beat's spawn token on the level's own
+    -- OnWake if it is still live, and MonitorInventory stands the camp back up - no distance gate
+    -- anywhere in that path. See docs/aleksej.md.
+    pcall(function() mercenaries:AlxOnLoad() end)
     -- ...and then drop everything this session cached in memory rather than saved, so the
     -- quartermaster's dialog, the arc position and the marching column are all re-derived
     -- from the save that was actually loaded. Runs whether or not a contract was in progress.
@@ -1029,6 +1060,7 @@ Script.LoadScript("Scripts/mods/mercenaries_tower.lua")
 Script.LoadScript("Scripts/mods/mercenaries_static_archer.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archer_cart.lua")
 Script.LoadScript("Scripts/mods/mercenaries_wall.lua")
+Script.LoadScript("Scripts/mods/mercenaries_gate.lua")
 Script.LoadScript("Scripts/mods/mercenaries_navmesh.lua")
 Script.LoadScript("Scripts/mods/mercenaries_defences.lua")
 Script.LoadScript("Scripts/mods/mercenaries_wallbattle.lua")
@@ -1040,6 +1072,10 @@ Script.LoadScript("Scripts/mods/mercenaries_patrol_routes_trosky.lua")
 Script.LoadScript("Scripts/mods/mercenaries_patrols_live.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush_road.lua")
 Script.LoadScript("Scripts/mods/mercenaries_testnpc.lua")
+Script.LoadScript("Scripts/mods/mercenaries_weapon_audit.lua")
+-- The rewritten hostile AI (idle until alerted, then everyone engages). Own brain,
+-- souls, faction and trees - shares nothing with the enemy groups. See docs/foe-ai.md.
+Script.LoadScript("Scripts/mods/mercenaries_foe.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush_scenes.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
@@ -1051,10 +1087,14 @@ Script.LoadScript("Scripts/mods/mercenaries_hide_others.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lodboost.lua")
 Script.LoadScript("Scripts/mods/mercenaries_banditcamp.lua")
 Script.LoadScript("Scripts/mods/mercenaries_banditcamp_quest.lua")
+-- After the contract machinery: the bounty rides its camp slots and its leader soul is
+-- pinned onto BCQ_BO at load.
+Script.LoadScript("Scripts/mods/mercenaries_bounty.lua")
 -- After the camp builder: its catalogue is reused for the siege editor's props page.
 Script.LoadScript("Scripts/mods/mercenaries_siege.lua")
 -- After the siege builder: the siege replay resolves its pieces against that catalogue.
 Script.LoadScript("Scripts/mods/mercenaries_raborsch.lua")
+Script.LoadScript("Scripts/mods/mercenaries_aleksej.lua")
 
 
 -- Prints every merc console command with a one-line description.
@@ -1077,11 +1117,16 @@ function mercenaries:PrintHelp()
         "archer_weapon_bow|crossbow|handcannon    archer ranged weapon type",
         "enemy_spawn_looters|bandits|sigi|prague|cumans|knights[_1|_20]   spawn an enemy group; base = row of 10 (debug)",
         "enemy_spawn_heinrich[_3]            spawn the overpowered Heinrich boss (debug)",
+        "foe_spawn[_1|_20] / foe_spawn_scout  new hostile AI: unalerted foes that shout and all engage (docs/foe-ai.md)",
+        "foe_status / foe_alert / foe_calm / foe_clear / foe_ranges   foe AI state, engage delays and tuning",
         "merc_banditcamp_start|status|abandon|clear   the quartermaster's bandit-camp contract (docs/bandit-camp-quest.md)",
+        "merc_bounty_start|status|report|clear|abandon   the quartermaster's repeatable camp bounty (docs/bounty.md)",
         "merc_bcamp_site_here                 print a BanditCampSites row for where you stand",
         "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",
         "merc_buff_list                       squad status HUD icons (auto-driven by logistics); merc_buff_all tests them, merc_buff_auto hands back",
+        "merc_wpn_audit[_p1..p5|_enemy]       lineup with one NPC per weapon preset; _who names the one beside you, _report/_static list the broken ones (docs/weapon-audit.md)",
         "merc_recount                         re-sync the merc counter",
+        "merc_face [clip]                     play a facial animation on the quartermaster (docs/lipsync.md)",
         "merc_lua <code>                      run raw Lua (debug)",
     }
     for _, line in ipairs(lines) do
@@ -1100,6 +1145,9 @@ System.AddCCommand("merc_heal", "mercenaries:HealMercsForFlatFee()", "Heal & was
 System.AddCCommand("merc_loot_force", "mercenaries:LootSweepForce()", "Open a loot sweep on the bodies around you right now")
 System.AddCCommand("merc_loot_stop", "mercenaries:LootSweepStop()", "Cancel the running loot sweep and recall the mercs")
 System.AddCCommand("merc_loot_status", "mercenaries:LootSweepStatus()", "Report the loot sweep state")
+
+-- Lipsync diagnostics (docs/lipsync.md). No arg = generic talking clip.
+System.AddCCommand("merc_face", "mercenaries:FaceTest(\"%line\")", "Play a facial animation on the quartermaster (arg=clip name, default fa_cin_talk_neutral_01)")
 
 System.AddCCommand("merc_testmerc", "mercenaries:SpawnTestMerc()", "Control test: spawn ONE merc on the fixed test soul guid (free, no cap). See docs/quest-override-test.md")
 System.AddCCommand("merc_recount", "mercenaries:Recount()", "")
