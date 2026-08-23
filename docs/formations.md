@@ -928,6 +928,19 @@ Two things deliberately do **not** apply to him:
   restarting it destroys the formation and drops every follower onto the chain. His short leash
   means he teleports more often than the rest by design, so flagging him would churn the squad.
 
+#### The in-combat exemption is not a free pass
+
+Nobody is teleported mid-swing, but "in combat" only means *holding a target* — it says nothing
+about the fight being anywhere near the player. Two limits on that exemption:
+
+- Past `TeleportCombatOverride` (2×) his own gate, a fighting merc is dragged back anyway.
+- **Archers are exempt from the exemption entirely.** An archer has no swing to interrupt — he
+  stands and shoots — and unlike a melee merc he never closes on his target, so nothing brings
+  him forward on his own. His module breaks off at the player leash, the scheduler immediately
+  re-acquires the same man (targets are cached out to `EnemyAlertRadius` once the squad is
+  alerted), and he is "in combat" again. That made archers *permanently* exempt and permanently
+  left behind — the "archers never emergency-teleport" report.
+
 `merc_follow_stats 1` logs player speed and the squad's distance spread (nearest / median /
 worst, plus how many are past the teleport gate) **alongside the formation epoch, mode and
 preset** — those three are the things that can move a follower's target rather than the

@@ -80,7 +80,7 @@
                                      the interrupt system is concerned, and clearing it only added
                                      another draw/sheathe cycle. -->
                                 <OnFail canSkip="1">
-                                    <Wait duration="'200ms'" timeType="GameTime" doFail="false" variation="" />
+                                    <Wait duration="'200ms'" timeType="GameTime" doFail="false" variation="'80ms'" />
                                 </OnFail>
                             </FuseBox>
                         </EntityContext>

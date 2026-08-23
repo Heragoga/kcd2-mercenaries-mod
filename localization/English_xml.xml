@@ -567,6 +567,7 @@
   <Row><Cell>merc_info_gate_none</Cell><Cell>The camp has no gates to speak of.</Cell><Cell>The camp has no gates to speak of.</Cell></Row>
   <Row><Cell>merc_info_gate_opened</Cell><Cell>The gates stand open.</Cell><Cell>The gates stand open.</Cell></Row>
   <Row><Cell>merc_info_gate_closed</Cell><Cell>The gates are barred. No one is riding in tonight.</Cell><Cell>The gates are barred. No one is riding in tonight.</Cell></Row>
+  <Row><Cell>merc_info_gate_forced</Cell><Cell>They're through the gate!</Cell><Cell>They're through the gate!</Cell></Row>
   <Row><Cell>merc_info_wall_gate_done</Cell><Cell>The gate is hung and the palisade is finished.</Cell><Cell>The gate is hung and the palisade is finished.</Cell></Row>
   <Row><Cell>ui_qm_removeupg</Cell><Cell>Tear down all the camp's improvements.</Cell><Cell>Tear down all the camp's improvements.</Cell></Row>
   <Row><Cell>merc_henry_qm_removeupg</Cell><Cell>Pull down everything we've built. I want the camp bare again.</Cell><Cell>Pull down everything we've built. I want the camp bare again.</Cell></Row>
@@ -579,9 +580,13 @@
   <Row><Cell>ui_qm_deploy</Cell><Cell>I want to take some men with me.</Cell><Cell>I want to take some men with me.</Cell></Row>
   <Row><Cell>merc_henry_qm_deploy</Cell><Cell>I want to take some of the men out. The rest can hold the camp.</Cell><Cell>I want to take some of the men out. The rest can hold the camp.</Cell></Row>
   <Row><Cell>merc_qm_deploy</Cell><Cell>Aye. I'll rouse the best-equipped first. How many do you want?</Cell><Cell>Aye. I'll rouse the best-equipped first. How many do you want?</Cell></Row>
+  <Row><Cell>ui_qm_take_all</Cell><Cell>Everyone you can spare.</Cell><Cell>Everyone you can spare.</Cell></Row>
+  <Row><Cell>ui_qm_take_threeqtr</Cell><Cell>Three quarters of them.</Cell><Cell>Three quarters of them.</Cell></Row>
   <Row><Cell>ui_qm_take_half</Cell><Cell>Half of them.</Cell><Cell>Half of them.</Cell></Row>
   <Row><Cell>ui_qm_take_third</Cell><Cell>A third of them.</Cell><Cell>A third of them.</Cell></Row>
   <Row><Cell>ui_qm_take_quarter</Cell><Cell>A quarter of them.</Cell><Cell>A quarter of them.</Cell></Row>
+  <Row><Cell>merc_henry_qm_take_all</Cell><Cell>Every man you can spare, with me. Leave the camp standing.</Cell><Cell>Every man you can spare, with me. Leave the camp standing.</Cell></Row>
+  <Row><Cell>merc_henry_qm_take_threeqtr</Cell><Cell>Three quarters of the company, with me.</Cell><Cell>Three quarters of the company, with me.</Cell></Row>
   <Row><Cell>merc_henry_qm_take_half</Cell><Cell>Half the company, with me.</Cell><Cell>Half the company, with me.</Cell></Row>
   <Row><Cell>merc_henry_qm_take_third</Cell><Cell>A third of the company, with me.</Cell><Cell>A third of the company, with me.</Cell></Row>
   <Row><Cell>merc_henry_qm_take_quarter</Cell><Cell>A quarter of the company, with me.</Cell><Cell>A quarter of the company, with me.</Cell></Row>
@@ -1032,4 +1037,52 @@
   <Row><Cell>char_bounty_leader_uiName</Cell><Cell>Camp Leader</Cell><Cell>Camp Leader</Cell></Row>
   <Row><Cell>char_bounty_leader_fullName</Cell><Cell>Bandit Leader</Cell><Cell>Bandit Leader</Cell></Row>
   <Row><Cell>char_bounty_leader_description</Cell><Cell>The head of a bandit camp.</Cell><Cell>The head of a bandit camp.</Cell></Row>
+  <Row><Cell>ui_merc_wheel_fight</Cell><Cell>Fighting orders</Cell><Cell>Fighting orders</Cell></Row>
+  <Row><Cell>ui_merc_focus</Cell><Cell>Kill that one.</Cell><Cell>Kill that one.</Cell></Row>
+  <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>Escort him.</Cell></Row>
+  <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>Rules of engagement</Cell></Row>
+  <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>Engage at will.</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>Take on anyone who draws.</Cell></Row>
+  <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>Only strike back.</Cell></Row>
+  <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>Hold your blades.</Cell></Row>
+  <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>How to press them</Cell></Row>
+  <Row><Cell>ui_merc_aggro_tight</Cell><Cell>Keep your ranks.</Cell><Cell>Keep your ranks.</Cell></Row>
+  <Row><Cell>ui_merc_aggro_balanced</Cell><Cell>As you see fit.</Cell><Cell>As you see fit.</Cell></Row>
+  <Row><Cell>ui_merc_aggro_loose</Cell><Cell>Swarm them.</Cell><Cell>Swarm them.</Cell></Row>
+  <Row><Cell>merc_info_hold</Cell><Cell>Holding this ground.</Cell><Cell>Holding this ground.</Cell></Row>
+  <Row><Cell>merc_info_focus</Cell><Cell>Target called.</Cell><Cell>Target called.</Cell></Row>
+  <Row><Cell>merc_info_focus_none</Cell><Cell>No target to call.</Cell><Cell>No target to call.</Cell></Row>
+  <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>Escorting.</Cell></Row>
+  <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>Nobody to escort.</Cell></Row>
+  <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>Your men are under attack and holding their blades.</Cell></Row>
+  <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>Fall in.</Cell></Row>
+  <Row><Cell>ui_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Let's talk about how the company runs.</Cell></Row>
+  <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Let's talk about how the company runs.</Cell></Row>
+  <Row><Cell>merc_qm_settings_hub</Cell><Cell>As you like. Nothing here's settled that can't be unsettled.</Cell><Cell>As you like. Nothing here's settled that can't be unsettled.</Cell></Row>
+  <Row><Cell>ui_qm_enc_hub</Cell><Cell>About trouble finding us on the road.</Cell><Cell>About trouble finding us on the road.</Cell></Row>
+  <Row><Cell>ui_qm_enc_on</Cell><Cell>Let it come. Raids, patrols, ambushes and all.</Cell><Cell>Let it come. Raids, patrols, ambushes and all.</Cell></Row>
+  <Row><Cell>ui_qm_enc_off</Cell><Cell>No more of it. We go looking for fights, they don't come to us.</Cell><Cell>No more of it. We go looking for fights, they don't come to us.</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_hub</Cell><Cell>About feeding and paying the men.</Cell><Cell>About feeding and paying the men.</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_off</Cell><Cell>Stop keeping accounts. They'll feed themselves.</Cell><Cell>Stop keeping accounts. They'll feed themselves.</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_lenient</Cell><Cell>Go easy. Stretch the stores, and be generous with the spoils.</Cell><Cell>Go easy. Stretch the stores, and be generous with the spoils.</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_standard</Cell><Cell>Keep it as it is.</Cell><Cell>Keep it as it is.</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_harsh</Cell><Cell>Run it lean. They'll eat more and the spoils will go further apart.</Cell><Cell>Run it lean. They'll eat more and the spoils will go further apart.</Cell></Row>
+  <Row><Cell>ui_qm_icons_hub</Cell><Cell>About the marks on my screen.</Cell><Cell>About the marks on my screen.</Cell></Row>
+  <Row><Cell>ui_qm_icons_on</Cell><Cell>Keep reporting the company's state.</Cell><Cell>Keep reporting the company's state.</Cell></Row>
+  <Row><Cell>ui_qm_icons_off</Cell><Cell>Spare me. I'll ask when I want to know.</Cell><Cell>Spare me. I'll ask when I want to know.</Cell></Row>
+  <Row><Cell>merc_info_enc_on</Cell><Cell>Word is out. Expect company.</Cell><Cell>Word is out. Expect company.</Cell></Row>
+  <Row><Cell>merc_info_enc_off</Cell><Cell>We'll keep our heads down.</Cell><Cell>We'll keep our heads down.</Cell></Row>
+  <Row><Cell>ui_qm_threat_hub</Cell><Cell>What sort of trouble should I expect?</Cell><Cell>What sort of trouble should I expect?</Cell></Row>
+  <Row><Cell>merc_henry_qm_threat_hub</Cell><Cell>What sort of trouble should I expect?</Cell><Cell>What sort of trouble should I expect?</Cell></Row>
+  <Row><Cell>merc_qm_threat_hub</Cell><Cell>That depends on how loudly you want to advertise us. Say the word and I'll put it about accordingly.</Cell><Cell>That depends on how loudly you want to advertise us. Say the word and I'll put it about accordingly.</Cell></Row>
+  <Row><Cell>ui_qm_threat_easy</Cell><Cell>Keep it quiet. Fewer of them, and poorly armed.</Cell><Cell>Keep it quiet. Fewer of them, and poorly armed.</Cell></Row>
+  <Row><Cell>ui_qm_threat_medium</Cell><Cell>A fair fight.</Cell><Cell>A fair fight.</Cell></Row>
+  <Row><Cell>ui_qm_threat_difficult</Cell><Cell>Make it hard work.</Cell><Cell>Make it hard work.</Cell></Row>
+  <Row><Cell>ui_qm_threat_extreme</Cell><Cell>Send their best, and let them come armoured.</Cell><Cell>Send their best, and let them come armoured.</Cell></Row>
+  <Row><Cell>ui_qm_threat_impossible</Cell><Cell>I want odds no sane man would take.</Cell><Cell>I want odds no sane man would take.</Cell></Row>
+  <Row><Cell>ui_qm_threat_horde</Cell><Cell>Bury us in bodies. Rabble, but endless.</Cell><Cell>Bury us in bodies. Rabble, but endless.</Cell></Row>
+  <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>Leave it as it stands.</Cell></Row>
+  <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>See that it's so.</Cell></Row>
+  <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Aye. I'll pass the word around.</Cell></Row>
+  <Row><Cell>merc_henry_qm_threat_cancel</Cell><Cell>Never mind.</Cell><Cell>Never mind.</Cell></Row>
 </Table>

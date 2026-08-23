@@ -118,7 +118,7 @@
                             <!-- Matches mercenaries.FoeTickMs: the detection pass and the fire
                                  poll run at the same rate, so worst-case time from "a foe sees
                                  you" to "the interrupt is issued" is two ticks, half a second. -->
-                            <Wait duration="'250ms'" timeType="GameTime" doFail="false" variation="'50ms'" />
+                            <Wait duration="'250ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
                         </Sequence>
                     </Loop>
                 </SuppressFailure>

@@ -27,11 +27,15 @@
                             </Parallel>
                         </SuppressFailure>
 
+                        <!-- UnstanceElement, not UnstanceAction: the pose is scoped to the hold, so
+                             an interrupt that ends this tree also ends the animation. -->
                         <SuppressFailure>
-                            <Sequence>
-                                <UnstanceAction unstance="eating_standing" locationObject="" slaveObject="" />
-                                <Wait duration="'12s'" timeType="GameTime" doFail="false" variation="'4s'" />
-                            </Sequence>
+                            <UnstanceElement unstance="eating_standing" locationObject="" slaveObject="" enabled="true">
+                                <Sequence>
+                                    <WaitAction />
+                                    <Wait duration="'12s'" timeType="GameTime" doFail="false" variation="'4s'" />
+                                </Sequence>
+                            </UnstanceElement>
                         </SuppressFailure>
                     </Sequence>
                 </Loop>

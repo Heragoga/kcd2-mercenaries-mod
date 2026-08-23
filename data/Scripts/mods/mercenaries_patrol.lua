@@ -82,8 +82,10 @@ end
 -- a double column. Returns the entity to follow and which file he is in.
 -- Who this man walks behind, within his own patrol. The first PatrolWidth men follow the
 -- leader; everyone after follows the man PatrolWidth places ahead, giving two files.
-function mercenaries:PatrolChain(ent)
-    local leader, members = self:PatrolCtx(ent)
+-- leader/members are optional: pass them when the caller already has a PatrolCtx result
+-- (see PatrolFollowRole/PatrolChainPoll) to avoid asking PatrolCtx again.
+function mercenaries:PatrolChain(ent, leader, members)
+    if leader == nil then leader, members = self:PatrolCtx(ent) end
     if not leader then return nil, 0 end
     local idx
     for i, e in ipairs(members or {}) do
@@ -328,11 +330,11 @@ function mercenaries:PatrolFollowRole(data, ent)
     data.stillFollowing = false
     -- Same rule as the leader's walk: hand the interrupt slot to combat.
     if self:PatrolYieldToCombat(ent) then return end
-    local leader = self:PatrolCtx(ent)
+    local leader, members = self:PatrolCtx(ent)
     if not leader then return end
     if pKey(ent) == pKey(leader) then return end
 
-    local tgt, file = self:PatrolChain(ent)
+    local tgt, file = self:PatrolChain(ent, leader, members)
     if not tgt then return end
 
     data.followTarget   = (tgt.this and tgt.this.id) or tgt.id
@@ -355,11 +357,11 @@ end
 function mercenaries:PatrolChainPoll(data, ent)
     data.chainChanged = false
     if self:PatrolYieldToCombat(ent) then data.stillFollowing = false; return end
-    local leader = self:PatrolCtx(ent)
+    local leader, members = self:PatrolCtx(ent)
     if not leader then data.stillFollowing = false; return end
     if pKey(ent) == pKey(leader) then data.stillFollowing = false; return end
 
-    local tgt = self:PatrolChain(ent)
+    local tgt = self:PatrolChain(ent, leader, members)
     if not tgt then data.stillFollowing = false; return end
 
     local k = pKey(ent)
@@ -450,18 +452,31 @@ function mercenaries:PatrolWalkTick(data, ent)
             return
         end
 
-        if (dx * dx + dy * dy) <= (self.PatrolSwitchR * self.PatrolSwitchR) then
+        -- Keep stepping until the published point is beyond the switch radius, rather
+        -- than stepping once. One step is enough only while nothing else touches the
+        -- index; PatrolSyncIndex does, and a single step then republishes a point the
+        -- leader has already walked past - which brakes and turns him. Capped at the
+        -- route length so a short or degenerate route cannot spin here.
+        local steps = 0
+        while steps < #pts do
+            local wx, wy = wp.x - p.x, wp.y - p.y
+            if (wx * wx + wy * wy) > (self.PatrolSwitchR * self.PatrolSwitchR) then break end
+
             local nxt = self:PatrolStepIndex(rec, #pts, idx)
-            if not rec then
-                if nxt == idx and not self.PatrolLoop then
+            if nxt == idx then
+                if (not rec) and (not self.PatrolLoop) then
                     data.routeDone = true
                     self.PatrolActive = false
                     pLog("route finished")
                     return
                 end
-                self.PatrolIndex = nxt
+                break
             end
-            wp = pts[nxt] or wp
+
+            idx = nxt
+            if not rec then self.PatrolIndex = nxt end
+            wp    = pts[nxt] or wp
+            steps = steps + 1
         end
     end
 

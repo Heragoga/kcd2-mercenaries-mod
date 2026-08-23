@@ -14,8 +14,10 @@
                  "nearest hostile near myWuid" scan, not quartermaster-specific despite the
                  name, so it is reused as-is rather than duplicated. The switch reads THIS,
                  not currentTarget: Lua cannot clear a BT _wuid, so currentTarget is only
-                 ever written, never unset. -->
-            <Variable name="alxHasTarget" type="_bool" values="false" isPersistent="0" form="single" />
+                 ever written, never unset. Named qmHasTarget because that is the variable
+                 FindQuartermasterTarget writes - a local alias here was declared but never
+                 written by anything, so the write errored and this switch was always false. -->
+            <Variable name="qmHasTarget" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="inCombat" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="isIdleActive" type="_bool" values="false" isPersistent="0" form="single" />
 
@@ -79,7 +81,7 @@
                                         <Expression expressions="$campFired = true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'500ms'" />
+                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'800ms'" />
                             </Sequence>
                         </Loop>
 
@@ -109,7 +111,7 @@
                                         <Expression expressions="$fdFired = true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="&apos;1s&apos;" timeType="GameTime" doFail="false" variation="&apos;200ms&apos;" />
+                                <Wait duration="&apos;1s&apos;" timeType="GameTime" doFail="false" variation="&apos;400ms&apos;" />
                             </Sequence>
                         </Loop>
 
@@ -121,7 +123,7 @@
                                         <Function_switch_handleDialog dialogRequest="$dialogRequest" nodeLabel="92000005" />
                                     </ProcessMessage>
                                 </SuppressFailure>
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                             </Sequence>
                         </Loop>
 
@@ -140,7 +142,7 @@
                                         <Expression expressions="$inCombat = false" />
                                     </Else>
                                 </EntityContextCheck>
-                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'320ms'" />
                             </Sequence>
                         </Loop>
 
@@ -149,7 +151,7 @@
                         <Loop count="-1">
                             <Sequence>
                                 <ExecuteLua code="mercenaries:FindQuartermasterTarget(data, entity.this.id)" />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -159,7 +161,7 @@
                                 <!-- An attacker showed up and we're not yet fighting: fire the
                                      shared melee combat interrupt on it. Dropping isIdleActive
                                      means the idle behaviour re-fires once the fight is over. -->
-                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $alxHasTarget">
+                                <IfCondition failOnCondition="false" condition="~$inCombat &amp; $qmHasTarget">
                                     <Sequence>
                                         <SuppressFailure>
                                             <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="92000006" />
@@ -172,14 +174,14 @@
                                         <Expression expressions="$attackData.target = $currentTarget &#10; $attackData.information = $crimeInformation &#10; $attackData.stimulusKind = $enum:crime_stimulusKind.combat &#10; $attackData.previousReaction = $enum:crime_reactionKind.unknown &#10; $attackData.initiatedBy = $enum:switch_interruptInitiator.switch &#10; $attackData.defenceMode = false &#10; $attackData.relationOverride = true &#10; $attackData.source = $enum:crime_source.direct &#10; $attackData.freshlyAttributedCrime = false &#10; $attackData.criminalFreshness = $enum:crime_criminalFreshness.unknown &#10; $attackData.escalatedFromFailedSurrender = false" />
                                         <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                         <Expression expressions="$isIdleActive = false" />
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
                                 <!-- Fight ongoing (or a target still pending): let the combat
                                      tree run, don't touch the idle behaviour. -->
-                                <IfCondition failOnCondition="false" condition="$inCombat | $alxHasTarget">
-                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <IfCondition failOnCondition="false" condition="$inCombat | $qmHasTarget">
+                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                 </IfCondition>
 
                                 <!-- Default: stand and occasionally eat - ONLY while he is not a
@@ -206,7 +208,7 @@
                                                 <Expression expressions="$isIdleActive = true" />
                                             </Sequence>
                                         </IfCondition>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
@@ -217,7 +219,7 @@
                                 <IfCondition failOnCondition="false" condition="true">
                                     <Sequence>
                                         <Expression expressions="$isIdleActive = false" />
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 

@@ -115,11 +115,11 @@
                                                  death. Two reads cap the exit at ~1.7s with no false trip. -->
                                             <Loop count="-1">
                                                 <Sequence>
-                                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                                                     <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
                                                     <IfCondition failOnCondition="false" condition="$disengage | ~$isTargetAlive">
                                                         <Sequence>
-                                                            <Wait duration="'400ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                            <Wait duration="'400ms'" timeType="GameTime" doFail="false" variation="'160ms'" />
                                                             <ExecuteLua code="mercenaries:UpdateMeleeCombatData(data, entity.this.id)" />
                                                             <IfCondition failOnCondition="false" condition="$disengage | ~$isTargetAlive">
                                                                 <Fail />
@@ -152,7 +152,7 @@
                                              leaves CachedEnemies before re-acquisition can see it. Do NOT drop
                                              the cleanup Lua above with it: without it mercs stand around with
                                              their sword out, and ClearCombatClaim is what frees the swarm cap. -->
-                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="" />
+                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                                     </Sequence>
                                 </OnFail>
                             </FuseBox>

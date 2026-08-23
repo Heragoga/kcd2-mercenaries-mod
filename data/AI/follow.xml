@@ -59,6 +59,9 @@
             <Variable name="formationRelocate" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Order bark: RequestBark queues an alias in _G.MercBarkReq[wuid]; the bark loop below plays it once. -->
             <Variable name="barkReqAlias" type="_string" values="" isPersistent="0" form="single" />
+            <!-- ...or the vanilla combat shout instead, whose metarole is a literal in the
+                 node below. Exactly one of the two is ever set. -->
+            <Variable name="hasMetaBark" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="hasBarkReq" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
@@ -84,7 +87,7 @@
                                 <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                 <ExecuteLua code="mercenaries:CalculateFormationTarget(data, entity.this.id)" />
                                 <ExecuteLua code="mercenaries:UpdateFormationRole(data, entity.this.id)" />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
                         <!-- FORMATION OWNER. Holds the formation open for as long as this merc is
@@ -109,7 +112,7 @@
                                             <Subtree canSkip="1">
                                                 <Loop count="-1">
                                                     <Sequence>
-                                                        <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                        <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                                                         <IfCondition failOnCondition="false" condition="$formationEpoch ~= $joinedEpoch | ~$useFormation | ~$isFormationLeader">
                                                             <Fail />
                                                         </IfCondition>
@@ -123,7 +126,7 @@
                                     </SuppressFailure>
                                 </Then>
                                 <Else canSkip="1">
-                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                    <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                                 </Else>
                             </IfElseCondition>
                         </Loop>
@@ -135,7 +138,7 @@
                              on-foot follower branch, which owns the variable there. -->
                         <Loop count="-1">
                             <Sequence>
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                                 <IfCondition failOnCondition="false" condition="$horseSpawned &amp; ~$mountAbandoned &amp; $useFormation &amp; ~$isFormationLeader &amp; $formationLeader ~= $__null">
                                     <Sequence>
                                         <!-- Null it FIRST, like the on-foot follower branch does. Re-binding
@@ -153,7 +156,7 @@
 
                         <Loop count="-1">
                             <Sequence>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                 <!-- Mounting is instant, dismounting is debounced: a single missed
                                      StanceCheck flips this global false for the WHOLE squad, which
                                      dismounts everyone and starts every horse's despawn countdown.
@@ -176,22 +179,30 @@
                         </Loop>
                         <Loop count="-1">
                             <Sequence>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
 
-                                <!-- Only sortie mercs mount up to follow a mounted player; camped mercs stay on foot. -->
-                                <ExecuteLua code="data.playerIsMounted = (_G.PlayerMounted and mercenaries:IsMercInSortie(entity.this.id)) or false" />
+                                <!-- Only sortie mercs mount up to follow a mounted player; camped mercs stay
+                                     on foot. Also drops to false when a fight is close enough to be worth
+                                     getting down for, which lets the horse lifecycle below take them off
+                                     exactly the way a real player dismount does - no extra branch, and none
+                                     of the failure modes a threat-driven Fail arm had here before. See
+                                     UpdateDismountThreat. -->
+                                <ExecuteLua code="mercenaries:MercMountState(data, entity.this.id)" />
 
                                 <!-- Horse lifecycle. despawnCountdown is re-armed on every mounted poll
                                      and after a spawn: it only ever decremented before, so blips spread
                                      over a long ride still added up to a kill. bSaved_by_game=false keeps
                                      a transient mount out of the save.
+                                     PerfEntityByName replaces the raw System.GetEntityByName here: same
+                                     lookup, cached after the first resolve instead of a full scan every
+                                     500ms for a merc's whole lifetime. See docs/performance.md.
                                      NO LUA LINE COMMENTS INSIDE THIS code ATTRIBUTE: XML collapses the
                                      newlines to spaces, so the whole script is one line at runtime and a
                                      line comment swallows everything after it. -->
                                 <ExecuteLua code="
                                     local ok, err = pcall(function()
                                         local horseName = 'MercenaryHorse_' .. tostring(entity:GetName())
-                                        local existingHorse = System.GetEntityByName(horseName)
+                                        local existingHorse = mercenaries:PerfEntityByName(horseName)
 
                                         if data.playerIsMounted then
                                             data.despawnCountdown = 8
@@ -238,7 +249,7 @@
                                                 orientation = {x = 0, y = 0, z = 0},
                                                 properties = {guidSharedSoulId = soulId, bSaved_by_game = false}
                                             })
-                                            local horseEnt = System.GetEntityByName(horseName)
+                                            local horseEnt = mercenaries:PerfEntityByName(horseName)
                                             if horseEnt then
                                                 data.horse = horseEnt.this.id
                                                 data.horseSpawned = true
@@ -275,31 +286,24 @@
                         <Loop count="-1">
                             <Sequence>
                                 <ExecuteLua code="mercenaries:MountedLeaderGait(data, entity)" />
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                             </Sequence>
                         </Loop>
                         <!-- Order-bark consumer: poll _G.MercBarkReq for this merc, play the alias once, clear it. -->
                         <Loop count="-1">
                             <Sequence>
-                                <ExecuteLua code="
-                                    data.hasBarkReq = false
-                                    data.barkReqAlias = ''
-                                    local br = _G.MercBarkReq
-                                    if br then
-                                        local a = br[tostring(entity.this.id)]
-                                        if a and a ~= '' then
-                                            data.barkReqAlias = a
-                                            data.hasBarkReq = true
-                                            br[tostring(entity.this.id)] = nil
-                                        end
-                                    end
-                                " />
+                                <ExecuteLua code="mercenaries:BarkPoll(data, entity.this.id)" />
                                 <IfCondition failOnCondition="false" condition="$hasBarkReq">
                                     <SuppressFailure>
                                         <Function_speech_schedulerMonolog alias="$barkReqAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                     </SuppressFailure>
                                 </IfCondition>
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <IfCondition failOnCondition="false" condition="$hasMetaBark">
+                                    <SuppressFailure>
+                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="'NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'" skipInLod="true" subtitlesDown="false" />
+                                    </SuppressFailure>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -313,7 +317,7 @@
                                 <IfCondition failOnCondition="false" condition="~$useFormation &amp; $followTarget ~= $previousTarget">
                                     <Sequence>
                                         <Expression expressions="$previousTarget = $followTarget" />
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
@@ -327,7 +331,7 @@
                                                 <CrimeFollower Target="$playerWUID" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                             </MoveParamsDecorator>
                                         </SuppressFailure>
-                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
                                     </Parallel>
                                 </IfCondition>
 
@@ -368,7 +372,7 @@
                                                     </ContinuousSwitch>
                                                     <Loop count="-1">
                                                         <Sequence>
-                                                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                                                             <IfCondition failOnCondition="false" condition="$formationEpoch ~= $joinedEpoch | ~$useFormation">
                                                                 <Fail />
                                                             </IfCondition>
@@ -389,7 +393,7 @@
                                                         <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                                     </MoveParamsDecorator>
                                                 </SuppressFailure>
-                                                <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                                <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
                                             </Parallel>
                                         </Selector>
                                     </Sequence>
@@ -406,7 +410,7 @@
                                                 <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                             </MoveParamsDecorator>
                                         </SuppressFailure>
-                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
                                     </Parallel>
                                 </IfCondition>
                                 <IfCondition failOnCondition="false" condition="$horseSpawned &amp; ~$goFlee &amp; ~$mountAbandoned">
@@ -514,7 +518,7 @@
                                                                     <!-- gait -1: the player has stopped and the leader is already at
                                                                          station. Hold rather than creep the last few metres onto him. -->
                                                                     <IfCondition failOnCondition="false" condition="true">
-                                                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                                                                     </IfCondition>
 
                                                                 </ContinuousSwitch>
@@ -534,7 +538,7 @@
                                                 <Sequence>
                                                     <ExecuteLua code="
                                                         local ok, err = pcall(function()
-                                                            local h = System.GetEntityByName('MercenaryHorse_' .. tostring(entity:GetName()))
+                                                            local h = mercenaries:PerfEntityByName('MercenaryHorse_' .. tostring(entity:GetName()))
                                                             if h then System.RemoveEntity(h.id) end
                                                         end)
                                                         if not ok then System.LogAlways('[MercHorse_' .. tostring(entity:GetName()) .. '] EXCEPTION in abandon-despawn: ' .. tostring(err)) end
@@ -553,7 +557,7 @@
                                      standing still by construction, so if one ever does, the question
                                      is which arm above he is failing the condition for. -->
                                 <IfCondition failOnCondition="false" condition="true">
-                                    <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                                 </IfCondition>
 
                             </ContinuousSwitch>

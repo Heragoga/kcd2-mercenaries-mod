@@ -25,6 +25,11 @@ mercenaries.LootCorpseRadius = 30.0    -- bodies within this of the battle site 
 -- the 18m enemy-scan radius also means a looter jumped by a straggler is actually
 -- able to acquire it.
 mercenaries.LootMercRange    = 18.0
+-- ...and how far a merc will WALK to reach one. Without this the nearest-body pick had no
+-- upper bound, so with a camp standing and the fight somewhere else the men left holding
+-- the camp were handed corpses across the map and filed out to them. The camp-raid case
+-- (bodies in the camp) is well inside it.
+mercenaries.LootWalkRange    = 40.0
 mercenaries.LootWindow       = 150.0   -- seconds the sweep stays open once opened
 mercenaries.LootSettleDelay  = 5.0     -- quiet seconds before it opens (weapons go away first)
 mercenaries.LootMaxSweepers  = 8       -- most mercs out on the field at once
@@ -314,6 +319,9 @@ function mercenaries:LootAssign(t, playerPos)
         return
     end
 
+    -- Nothing assignable: skip the full ActiveMercs eligibility scan entirely.
+    if busy >= self.LootMaxSweepers or #free == 0 then return end
+
     for _, m in ipairs(self:LootEligibleMercs()) do
         if busy >= self.LootMaxSweepers or #free == 0 then break end
         local mk = tostring(m.wuid)
@@ -325,7 +333,7 @@ function mercenaries:LootAssign(t, playerPos)
                     local d = dist2(mp, c.pos)
                     if not bestD or d < bestD then bestI, bestD = i, d end
                 end
-                if bestI then
+                if bestI and bestD <= (self.LootWalkRange * self.LootWalkRange) then
                     local pick = table.remove(free, bestI)
                     self.LootClaims[tostring(pick.wuid)] = mk
                     self.LootActivities[mk] = {

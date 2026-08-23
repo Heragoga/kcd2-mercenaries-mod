@@ -78,7 +78,13 @@ function mercenaries:ShowSquadStatus()
             "Squad: %d (%d melee / %d archers / %d heroes) | Health: %.0f%% avg, %d injured | Orders: %s | Archers: %s, %s",
             total, total - archers - heroes, archers, heroes,
             avg, injured,
-            _G.MercenariesDismissed and "dismissed" or (self.CampActive and "camped" or (_G.MercIdle and "waiting" or "following")),
+            -- A hold order deliberately leaves _G.MercIdle alone (see MercIsIdle), so
+            -- asking that alone would report a holding squad as "following".
+            _G.MercenariesDismissed and "dismissed"
+                or (self.HoldActive and "holding ground")
+                or (self.EscortEnt and "escorting")
+                or (self.CampActive and "camped")
+                or (_G.MercIdle and "waiting" or "following"),
             tostring(_G.ArcherStance or "skirmish"),
             self:GetArcherWeaponType())
         System.LogAlways('[Mercenary Jeff] ' .. msg)
@@ -113,7 +119,6 @@ mercenaries.PlayerStatusBuffs = {
     { name = "low_morale",        guid = "e5a10010-2c4b-4e6a-9f01-000000000010", note = "morale at or below -50" },
     { name = "exhausted",         guid = "e5a10020-2c4b-4e6a-9f01-000000000020", note = "2 days out of camp" },
     { name = "injured",           guid = "e5a10021-2c4b-4e6a-9f01-000000000021", note = "a merc below 50% health" },
-    { name = "no_drink",          guid = "e5a10022-2c4b-4e6a-9f01-000000000022", note = "no drink at all" },
     { name = "starvation_mild",   guid = "e5a10023-2c4b-4e6a-9f01-000000000023", note = "1 day of food left" },
     { name = "starvation_strong", guid = "e5a10024-2c4b-4e6a-9f01-000000000024", note = "no food left" },
 }
@@ -207,8 +212,13 @@ function mercenaries:LogiUpdateStatusBuffs()
     self:Recount()
     local count = _G.MercCount or 0
 
+    -- Turned off from the quartermaster: clear the row and stop driving it. Checked
+    -- before the roster gate so switching them off takes them down immediately.
+    local iconsOn = true
+    pcall(function() iconsOn = self:StatusIconsOn() end)
+
     -- No squad: nothing to report, clear the row.
-    if _G.MercenariesDismissed or count <= 0 then
+    if (not iconsOn) or _G.MercenariesDismissed or count <= 0 then
         for i, _ in ipairs(self.PlayerStatusBuffs) do self:SetStatusBuff(i, false) end
         return
     end
@@ -229,7 +239,6 @@ function mercenaries:LogiUpdateStatusBuffs()
     self:SetStatusBuff('low_morale',        L.morale <= self.MoraleLowBuffAt)
     self:SetStatusBuff('exhausted',         (not self.CampActive) and (L.tiredness / self.SecondsPerDay) >= self.ExhaustedBuffDays)
     self:SetStatusBuff('injured',           injured)
-    self:SetStatusBuff('no_drink',          (L.drink <= 0) and not L.innActive)
     self:SetStatusBuff('starvation_mild',   foodDays == 1)
     self:SetStatusBuff('starvation_strong', foodDays <= 0)
 end

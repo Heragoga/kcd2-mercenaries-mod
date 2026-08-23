@@ -81,6 +81,58 @@ On load, `mercenaries:ClearAnyLeftoverCamp()` (from `OnGameplayStarted`) first s
 
 ---
 
+## Taking a party out, and joining a camp that is already up
+
+The squad splits in two while the camp stands: the **out-party** (`CampOutParty`, deployed,
+follows the player, marches in the formation) and the **camp roster** (`CampRoster`, holds the
+camp, runs `camp_actor`). The quartermaster's *Deploy* menu sets the split, always as an
+absolute fraction of the living squad, best tier first — asking for a quarter after asking for
+half leaves a quarter out:
+
+| Option | Fraction | Console |
+|---|---|---|
+| Everyone you can spare | `1.0` — camp stays pitched but empties; the pinned forge smith is the one man still spared | `merc_camp_take_all` |
+| Three quarters of them | `0.75` | `merc_camp_take_three_quarters` |
+| Half of them | `0.5` | `merc_camp_take_half` |
+| A third of them | `0.3333` | `merc_camp_take_third` |
+| A quarter of them | `0.25` | `merc_camp_take_quarter` |
+
+`CampReturnAll` sends the whole sortie back (the look-at prompt and `merc_camp_return_all`):
+each man barks, keeps running for ~2 s, then teleports in (`ProcessReturnPending`).
+
+**Camp roles are handed out once, when the camp is laid out** — and that was the root of a
+whole family of bugs. Anyone who joined the roster *afterwards* had no role, so `IsCampActor`
+was false for him, so the scheduler put him in the follow branch: he trailed the player while
+`IsMercInCampProper` still counted him as "in camp", which meant he could not be sent back (he
+was never in the out-party), was left out of the formation, and the look-at prompt offered him
+*Break camp* rather than *Back to camp*. It hit new hires, everyone past the tent/cluster caps
+in a big squad, and any returning man who found the shared seat/bed pools full.
+
+Three things fix it, all in [mercenaries_camp.lua](../data/Scripts/mods/mercenaries_camp.lua):
+
+- **`CampRoster` + `CampSyncRoster`** (each 5 s camp tick, and once when the camp goes up):
+  everyone in `ActiveMercs` who is not in the out-party is a camp member, and any member with
+  no occupation gets a spot (`CampEnsureSpot`, on the same activity ring the build loop uses)
+  and is rotated onto a role (`CampRotateRole`). `IsCampActor` falls back to membership, so a
+  member is a camp actor *even between occupations* — `camp_actor`'s last arm just stands, and
+  `CampActorYield` still drops him out the moment he has a fight.
+- **`CampOnMercJoined`**, called from every hire path: hired within `CampJoinRadius` (25 m) of
+  the camp he joins camp life, hired anywhere else he joins the party you are leading. Nothing
+  else made that choice, and the default — absent from the out-party — was the limbo above.
+- **`CampAdmitToCamp`**, used by both return paths, gives the returning man a spot and a role
+  in the same frame rather than leaving him role-less until the next rotation.
+
+`ApplyCampRole` now also falls back to an activity at the merc's own spot when the shared
+seat/bed pool is empty, so a claim that loses a race cannot strip a man of his camp role.
+
+Deploy and return both bump the formation epoch (`CampFormationDirty`) — `UpdateFormationLeader`
+only rebuilds on a change it notices itself, so without it the shape stays stale after a split.
+
+Membership is written under **both** WUID spaces (`CampMercKeys`): this file writes with
+`GetMyWUID`, every BT consumer reads `entity.this.id`.
+
+---
+
 ## Look-at prompts on a merc
 
 Looking at a merc shows up to two mod prompts alongside the vanilla ones (`InjectInteraction`, [mercenaries_lookatinteraction.lua](../data/Scripts/mods/mercenaries_lookatinteraction.lua)). The standard vanilla actions (Talk, Pickpocket, …) are preserved by calling through to `BasicAIActions.GetActions`; prompts only draw when the merc is conscious and alive. The looked-at merc barks an acknowledgment on each action.
@@ -189,6 +241,13 @@ Three facts make a generic system possible:
 1. **Standing actions need no `StanceElement` at all** — `references/AI/situation/dogbarkingpasserby/situation_dogbarking.xml` just calls `<UnstanceAction unstance="dogBarking" locationObject="" />` directly.
 2. **`unstance` accepts a variable** (vanilla uses `unstance="$unstance"` in the `smallTalkingWatchers` trees), so *one* BT node can play *any* action by name.
 3. Each `UnstanceData` declares `UseLocationObject` and `IsAligned`. Actions with `UseLocationObject="false"` need **no prop or anchor whatsoever**.
+
+**Leaving an activity: the pose must be unwound, not torn off.** The catalogue above is played through `UnstanceElement` (and `StanceElement` for the seated modes), **not** `UnstanceAction` - the action node starts the fragment and returns, so nothing owns it, and a merc pulled out of camp mid-activity kept the pose while he walked, followed and fought. Two things now guarantee he snaps out of it:
+
+- Every arm in `camp_actor.xml` holds *inside* its element, so ending the arm plays the `Out` fragment (the stand-up / put-the-tool-down), whatever ended it.
+- The hold is a poll `Loop` on `$campYield` instead of one long `Wait`, and the yield gate at the top of the tree sets `inCampAnim` while an arm is in a pose and waits up to 3 s for it to clear before failing the tree. So a merc who is needed elsewhere stands up first and then goes; a merc who was only standing about still leaves on the same tick as before.
+
+The same swap was made in `foe_idle.xml`, `aleksej_idle.xml` and `quartermaster_idle.xml`, which had the identical fire-and-forget shape.
 
 **The modes.** `CampActivityCatalogue` in `mercenaries_camp.lua` tags each activity with what it needs, and `camp_actor.xml` has one `ContinuousSwitch` case per mode (placed first, so an activity preempts patrol/sit/sleep/follow):
 

@@ -43,14 +43,14 @@
                                 </EntityContextCheck>
                                 <!-- 500ms (not 800): keep the tracker as fast as the fire loop so a
                                      just-started combat is not re-fired/replaced before inCombat updates. -->
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
 
                         <Loop count="-1">
                             <Sequence>
                                 <ExecuteLua code="mercenaries:FindEnemyTarget(data, entity.this.id)" />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -75,7 +75,7 @@
                                         <Expression expressions="$firedTarget = $currentTarget &#10; $inCombat = true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
 
@@ -103,7 +103,7 @@
                                         <Expression expressions="$campFired = true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'500ms'" />
+                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'800ms'" />
                             </Sequence>
                         </Loop>
 
@@ -121,7 +121,7 @@
                                         <AddInterrupt Target="$this.id" Host="$wbMrkev" Behavior="'nav_goto'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
 

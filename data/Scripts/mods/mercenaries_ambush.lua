@@ -220,7 +220,9 @@ function mercenaries:AmbushTest(groupKey)
     local pp = player and player:GetWorldPos()
 
     local function spawnAt(p, isArcher)
-        local pos = self:FindValidGround({ x = p.x, y = p.y, z = p.z }, p.z) or p
+        -- 16 tries: a scene places a dozen units in one frame, and forest ground is
+        -- exactly the case that exhausts the spiral.
+        local pos = self:FindValidGround({ x = p.x, y = p.y, z = p.z }, p.z, 3.0, 0.5, 16) or p
         local yaw = 0
         if pp then yaw = math.atan2(pp.y - pos.y, pp.x - pos.x) end
         local ent = self:SpawnEnemyAt(groupKey, isArcher, pos, yaw)
@@ -272,13 +274,14 @@ end
 -- until it has been dumped and pasted into mercenaries_ambush_scenes.lua - which
 -- is not what "I placed the barrels and walked in" expects.
 function mercenaries:AmbushEligibleScenes()
-    local out = {}
-    for name, sc in pairs(self.AmbushScenes) do out[name] = sc end
     local d = self.AmbushScene
     if d and #(d.triggers or {}) > 0 and (#(d.archers or {}) + #(d.melee or {})) > 0 then
+        local out = {}
+        for name, sc in pairs(self.AmbushScenes) do out[name] = sc end
         out[d.name] = d
+        return out
     end
-    return out
+    return self.AmbushScenes
 end
 
 function mercenaries:AmbushSceneHasPlayer(sc, pp)
@@ -305,7 +308,7 @@ function mercenaries:AmbushSpawnScene(name, sc)
     local ents, origin = {}, nil
 
     local function spawnAt(p, isArcher)
-        local pos = self:FindValidGround({ x = p.x, y = p.y, z = p.z }, p.z) or p
+        local pos = self:FindValidGround({ x = p.x, y = p.y, z = p.z }, p.z, 3.0, 0.5, 16) or p
         origin = origin or pos
         local yaw = 0
         if pp then yaw = math.atan2(pp.y - pos.y, pp.x - pos.x) end
@@ -330,6 +333,8 @@ end
 -- Every second from MonitorLoop. Never fires while markers are being placed.
 function mercenaries:AmbushMonitor()
     if not self.AmbushEnabled or self.ActivePlacement then return end
+    -- The quartermaster's master switch for uninvited trouble.
+    if self.EncountersOn and not self:EncountersOn() then return end
     local pp = player and player:GetWorldPos()
     if not pp then return end
 

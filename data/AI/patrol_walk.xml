@@ -39,7 +39,7 @@
                                     </Loop>
                                     <Loop count="-1">
                                         <Sequence>
-                                            <Wait duration="'150ms'" timeType="GameTime" doFail="false" variation="'50ms'" />
+                                            <Wait duration="'150ms'" timeType="GameTime" doFail="false" variation="'60ms'" />
                                             <ExecuteLua code="mercenaries:PatrolWalkTick(data, entity)" />
                                             <IfCondition failOnCondition="false" condition="$routeDone">
                                                 <Fail />

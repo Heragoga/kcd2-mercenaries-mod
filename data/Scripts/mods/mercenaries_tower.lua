@@ -760,7 +760,7 @@ function mercenaries:TowerLookedAtPos()
         local hits = {}
         local n = Physics.RayWorldIntersection(camPos,
             { x = camDir.x * range, y = camDir.y * range, z = camDir.z * range },
-            2, ent_terrain + ent_static, player, nil, hits)
+            2, ent_terrain + ent_static, (player and player.id) or nil, nil, hits)
         if n and n > 0 and hits[1] and hits[1].pos then
             result = { x = hits[1].pos.x, y = hits[1].pos.y, z = hits[1].pos.z }
         end

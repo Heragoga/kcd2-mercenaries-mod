@@ -29,6 +29,15 @@
                 <Port Name="order_follow" Direction="Out" Type="trigger" />
                 <Port Name="order_wait" Direction="Out" Type="trigger" />
                 <Port Name="order_status" Direction="Out" Type="trigger" />
+                <Port Name="order_focus" Direction="Out" Type="trigger" />
+                <Port Name="order_escort" Direction="Out" Type="trigger" />
+                <Port Name="engage_default" Direction="Out" Type="trigger" />
+                <Port Name="engage_aggressive" Direction="Out" Type="trigger" />
+                <Port Name="engage_defend" Direction="Out" Type="trigger" />
+                <Port Name="engage_hold" Direction="Out" Type="trigger" />
+                <Port Name="aggro_tight" Direction="Out" Type="trigger" />
+                <Port Name="aggro_balanced" Direction="Out" Type="trigger" />
+                <Port Name="aggro_loose" Direction="Out" Type="trigger" />
 
                 <Port Name="formation_column" Direction="Out" Type="trigger" />
                 <Port Name="formation_line" Direction="Out" Type="trigger" />
@@ -100,6 +109,83 @@
                                                 <UiPrompt StringName="ui_merc_wheel_report" />
                                                 <Triggers><Port Name="order_status" /></Triggers>
                                                 <Elements><Response Role="role_mercenary_test" /></Elements>
+                                            </Sequence>
+                                            <!-- Fighting orders. The chat menu holds four options plus the
+                                                 refusal, so the combat side lives one level down rather than
+                                                 displacing follow/wait/report. -->
+                                            <Sequence EndType="Decision" ChatPosition="Fourth" Name="seq_wheel_fight_hub">
+                                                <UiPrompt StringName="ui_merc_wheel_fight" />
+                                                <Elements><Response Role="role_mercenary_test" /></Elements>
+
+                                                <Decision Name="dec_wheel_fight" Priority="General" TimeLimit="0">
+                                                    <Sequences>
+
+                                                        <Sequence EndType="Decision" ChatPosition="First" Name="seq_wheel_engage_hub">
+                                                            <UiPrompt StringName="ui_merc_wheel_engage" />
+                                                            <Elements><Response Role="role_mercenary_test" /></Elements>
+
+                                                            <Decision Name="dec_wheel_engage" Priority="General" TimeLimit="0">
+                                                                <Sequences>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_engage_default">
+                                                                        <UiPrompt StringName="ui_merc_engage_default" />
+                                                                        <Triggers><Port Name="engage_default" /></Triggers>
+                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                    </Sequence>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_engage_aggressive">
+                                                                        <UiPrompt StringName="ui_merc_engage_aggressive" />
+                                                                        <Triggers><Port Name="engage_aggressive" /></Triggers>
+                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                    </Sequence>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_engage_defend">
+                                                                        <UiPrompt StringName="ui_merc_engage_defend" />
+                                                                        <Triggers><Port Name="engage_defend" /></Triggers>
+                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                    </Sequence>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="Fourth" Name="seq_wheel_engage_hold">
+                                                                        <UiPrompt StringName="ui_merc_engage_hold" />
+                                                                        <Triggers><Port Name="engage_hold" /></Triggers>
+                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                    </Sequence>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_engage_cancel">
+                                                                        <Elements><Response Role="HENRY" /></Elements>
+                                                                    </Sequence>
+                                                                </Sequences>
+                                                            </Decision>
+                                                        </Sequence>
+
+                                                        <Sequence EndType="Decision" ChatPosition="Second" Name="seq_wheel_aggro_hub">
+                                                            <UiPrompt StringName="ui_merc_wheel_aggro" />
+                                                            <Elements><Response Role="role_mercenary_test" /></Elements>
+
+                                                            <Decision Name="dec_wheel_aggro" Priority="General" TimeLimit="0">
+                                                                <Sequences>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_aggro_tight">
+                                                                        <UiPrompt StringName="ui_merc_aggro_tight" />
+                                                                        <Triggers><Port Name="aggro_tight" /></Triggers>
+                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                    </Sequence>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_aggro_balanced">
+                                                                        <UiPrompt StringName="ui_merc_aggro_balanced" />
+                                                                        <Triggers><Port Name="aggro_balanced" /></Triggers>
+                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                    </Sequence>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_aggro_loose">
+                                                                        <UiPrompt StringName="ui_merc_aggro_loose" />
+                                                                        <Triggers><Port Name="aggro_loose" /></Triggers>
+                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                    </Sequence>
+                                                                    <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_aggro_cancel">
+                                                                        <Elements><Response Role="HENRY" /></Elements>
+                                                                    </Sequence>
+                                                                </Sequences>
+                                                            </Decision>
+                                                        </Sequence>
+
+                                                        <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_fight_cancel">
+                                                            <Elements><Response Role="HENRY" /></Elements>
+                                                        </Sequence>
+                                                    </Sequences>
+                                                </Decision>
                                             </Sequence>
                                             <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_squad_cancel">
                                                 <Elements><Response Role="HENRY" /></Elements>

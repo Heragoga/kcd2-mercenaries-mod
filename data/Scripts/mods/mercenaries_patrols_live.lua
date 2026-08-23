@@ -27,7 +27,38 @@ mercenaries.PatrolFreshTries   = 8       -- ...best of this many random start po
 -- restore 4s, so a gang met in the first seconds is met alone.
 mercenaries.PatrolLoadGraceSecs = 45.0
 mercenaries.PatrolMinMen       = 3
-mercenaries.PatrolMaxMen       = 50
+-- Per-gang ceiling. Was 50: at a 20-merc company the size roll produced ~26-man gangs and
+-- several gangs are normally in range together, so the road fielded more men than a siege.
+-- A patrol is meant to be an encounter, not a battle; the aggregate caps below are what
+-- actually bound the cost, and this stops any single roll from eating the whole budget.
+mercenaries.PatrolMaxMen       = 16
+
+-- Ceiling on the TOTAL live patrol population, across every gang at once. Each gang was
+-- capped individually but nothing capped the sum, and several routes are usually inside
+-- the spawn band together: measured against the recorded Kuttenberg network, a player
+-- typically has 3 gang slots in range and up to 9. At a 20-merc squad (gangs of ~26) that
+-- is a median of 78 extra full NPCs and a worst case over 200 - each one a behaviour tree,
+-- a navigation agent and an assembled character. Gangs still scale with the party; only
+-- the total is bounded. merc_patrols_arm 0 turns the whole system off.
+mercenaries.PatrolMaxLiveMen   = 36
+-- ...and a ceiling on how many GANGS can be live at once, which is the one that bites at a
+-- road junction: the recorded networks have positions where 9 (Kuttenberg) and 12 (Trosky)
+-- gang slots sit inside the band simultaneously, and every one of them used to spawn.
+mercenaries.PatrolMaxLiveGangs = 3
+-- Spawning is staggered across ticks. A gang is a burst of SpawnEntity + ground-probe +
+-- clothing/weapon equips per man; letting three gangs land on one frame is a visible hitch
+-- even when the steady-state population is fine.
+mercenaries.PatrolSpawnPerTick = 1
+-- Total lingering corpses across every wiped gang. Bodies are deliberately lootable for a
+-- while, but a hotspot could stack several full gangs of ragdolls with nothing bounding the
+-- sum while fresh gangs kept spawning alongside them.
+mercenaries.PatrolMaxCorpses   = 12
+-- The pile the player just made is exempt from the CAP for this long, so the fight he has
+-- only just won is not swept out from under him. Recency, not distance: a "never evict
+-- within 60m" rule was tried and is unbounded - standing and fighting in one place
+-- accumulates corpses with nothing to stop it. At most a pile or two is ever fresh, and
+-- they age out. The walked-away and timeout rules are unaffected either way.
+mercenaries.PatrolCorpseGraceSecs = 30.0
 -- Size as a multiple of the player's fighting strength. The CEILING scales with the party:
 -- see PatrolMaxMultFor.
 mercenaries.PatrolPartyMin     = 0.5
@@ -35,7 +66,7 @@ mercenaries.PatrolPartyMaxSolo = 1.2     -- ceiling at a party of one
 mercenaries.PatrolPartyMax     = 2.0     -- ceiling at PatrolPartyMaxAt and above
 mercenaries.PatrolPartyMaxAt   = 20
 mercenaries.PatrolRespawnDays  = 1.0     -- a wiped patrol is back after this long
-mercenaries.PatrolCorpseSecs   = 600.0   -- bodies stay lootable this long if the player stays put
+mercenaries.PatrolCorpseSecs   = 180.0   -- bodies stay lootable this long if the player stays put
 mercenaries.PatrolGhostSpeed   = 1.4     -- m/s the unspawned patrol advances along its route
 mercenaries.PatrolLiveTickMs   = 3000
 -- How far a patrolman notices a target ON HIS OWN. It was 12, on the principle that a gang
@@ -73,6 +104,16 @@ mercenaries.PatrolLevels = { "kutnohorsko", "kuttenberg", "trosecko", "trosky" }
 mercenaries.PatrolGroupPool = { "bandit", "bandit", "looter", "looter", "sigi", "prague" }
 
 mercenaries.LivePatrols = {}   -- ["route:slot"] = { see PatrolMakeRecord }
+
+-- Session route escalation: a road the player has just cleared sends a slightly tougher
+-- reprisal later in the same session. Session-only, plain Lua state, NOT SaveString - same
+-- non-persistence as LivePatrols itself (see the note near ClearAnyLeftoverPatrols). Applied
+-- to the size roll BEFORE the difficulty tier (PatrolRollSize), so DifficultyCount/
+-- DifficultyCeil still have the final say on the ceiling.
+mercenaries.PatrolEscalationCap      = 0.35   -- hard ceiling on the size bonus, ever (+35%)
+mercenaries.PatrolEscalationPerKill  = 0.05   -- size bonus per patrolman killed on that route
+mercenaries.PatrolEscalationHalfLife = 900.0  -- seconds for a route's heat to decay by half
+mercenaries.PatrolRouteHeat = {}   -- [route] = { kills = <decayed float>, at = <last touched> }
 
 -- How many gangs walk this route. A 2km road with one patrol on it feels empty, and the
 -- two start half a route apart so they are not shadowing each other.
@@ -261,6 +302,9 @@ function mercenaries:PatrolRoutesForLevel()
                 if rec.spawned then self:PatrolDespawnGang(rec, "level changed") else self:PatrolClearCorpses(rec) end
             end
             self.LivePatrols = {}
+            -- Route index means a different road on each map, same as LivePatrols above -
+            -- carrying heat across would escalate the wrong road on the new map.
+            self.PatrolRouteHeat = {}
         end
         self._patrolRouteKey = chosen.key
         self.PatrolRouteData = data
@@ -361,6 +405,60 @@ System.AddCCommand("merc_level_probe", "mercenaries:PatrolLevelProbe()",
                    "Dump every level-name API's return plus distance to each recorded road network")
 
 
+-- ==== session escalation ====
+-- Settle a route's heat to the current time (exponential decay by half-life) and return
+-- the settled kill count. Also writes the settled value back, so two reads in the same
+-- tick do not each re-derive from the same stale base.
+function mercenaries:PatrolHeatDecay(route)
+    local h = self.PatrolRouteHeat[route]
+    if not h then return 0 end
+    local now = nowT()
+    local dt = now - (h.at or now)
+    if dt > 0 and (self.PatrolEscalationHalfLife or 0) > 0 then
+        h.kills = h.kills * (0.5 ^ (dt / self.PatrolEscalationHalfLife))
+    end
+    h.at = now
+    -- Below this, the multiplier it would produce rounds away to nothing anyway -
+    -- drop the entry instead of carrying a shrinking float forever.
+    if h.kills < 0.01 then
+        self.PatrolRouteHeat[route] = nil
+        return 0
+    end
+    return h.kills
+end
+
+-- A kill just happened near this route's notional position.
+function mercenaries:PatrolHeatAdd(route, n)
+    if not (route and n and n > 0) then return end
+    self:PatrolHeatDecay(route)   -- settle whatever heat is already there before adding
+    local h = self.PatrolRouteHeat[route]
+    if not h then h = { kills = 0, at = nowT() }; self.PatrolRouteHeat[route] = h end
+    h.kills = h.kills + n
+    h.at = nowT()
+end
+
+-- The size multiplier this route's recent kills earn. Capped well short of the difficulty
+-- tier's own range - this is flavour on a route the player just fought, not a substitute
+-- for the difficulty setting.
+function mercenaries:PatrolEscalationMultFor(route)
+    if not route then return 1.0 end
+    local kills = self:PatrolHeatDecay(route)
+    return 1.0 + math.min(self.PatrolEscalationCap or 0, kills * (self.PatrolEscalationPerKill or 0))
+end
+
+function mercenaries:PatrolEscalationStatus()
+    local any = false
+    for route, _ in pairs(self.PatrolRouteHeat or {}) do
+        local kills = self:PatrolHeatDecay(route)
+        if kills > 0.01 then
+            any = true
+            lLog(string.format("  route %s: heat %.2f kill(s) -> size x%.2f",
+                tostring(route), kills, self:PatrolEscalationMultFor(route)))
+        end
+    end
+    if not any then lLog("  no route is currently escalated") end
+end
+
 -- ==== sizing ====
 -- A multiple of the player's fighting strength - himself plus his living mercs.
 function mercenaries:PatrolPartySize()
@@ -381,13 +479,24 @@ function mercenaries:PatrolMaxMultFor(party)
     return self.PatrolPartyMaxSolo + t * (self.PatrolPartyMax - self.PatrolPartyMaxSolo)
 end
 
-function mercenaries:PatrolRollSize()
+-- route is optional (nil for anything rolling a size outside a route context, e.g. the
+-- status line) - PatrolMakeRecord/PatrolRollIdentity pass rec.route so a road just
+-- cleared can send a tougher reprisal.
+function mercenaries:PatrolRollSize(route)
     local party = self:PatrolPartySize()
     local hi    = self:PatrolMaxMultFor(party)
     local mult  = self.PatrolPartyMin + math.random() * math.max(0, hi - self.PatrolPartyMin)
     local n     = math.floor(party * mult + 0.5)
+    -- Session escalation BEFORE difficulty, so the difficulty tier's own ceiling still
+    -- has the final say over how far a hot route can push a gang.
+    if route then n = math.floor(n * self:PatrolEscalationMultFor(route) + 0.5) end
+    -- The difficulty tier rides on top of the roll rather than replacing it, so a
+    -- gang is still sometimes small on a hard setting and sometimes big on an easy one.
+    pcall(function() n = self:DifficultyCount(n, party, self.PatrolMinMen) end)
     if n < self.PatrolMinMen then n = self.PatrolMinMen end
-    if n > self.PatrolMaxMen then n = self.PatrolMaxMen end
+    local ceil_ = self.PatrolMaxMen
+    pcall(function() ceil_ = self:DifficultyCeil(self.PatrolMaxMen) end)
+    if n > ceil_ then n = ceil_ end
     return n
 end
 
@@ -539,13 +648,20 @@ end
 function mercenaries:PatrolRollIdentity(rec)
     rec.group = self.PatrolGroupPool[math.random(1, #self.PatrolGroupPool)]
     rec.soul  = self:PatrolRollSoul(rec.group)
-    rec.size  = self:PatrolRollSize()
+    rec.size  = self:PatrolBudgetFor(self:PatrolRollSize(rec.route))
 end
 
 function mercenaries:PatrolSpawnGang(rec)
     local p = self:PatrolPointOf(rec)
     if not p then return false end
     self:PatrolRollIdentity(rec)
+    -- The roll is clamped to whatever budget is left, which can be nothing if another gang
+    -- took it since this record was picked. A one- or two-man "gang" is worse than none, so
+    -- the record simply stays notional and is reconsidered next tick.
+    if (rec.size or 0) < (self.PatrolMinMen or 3) then
+        rec.size = nil
+        return false
+    end
 
     -- Face along the ROUTE, in the direction of travel. This used to be
     -- `math.random() * 2 * math.pi` - a random bearing - so the column was laid out across
@@ -591,7 +707,11 @@ function mercenaries:PatrolSpawnGang(rec)
         if e then table.insert(rec.men, e) end
     end
 
+    self:PatrolIndexGang(rec)
     rec.spawned = true
+    -- Baseline for the kill-escalation diff in PatrolTickOne - it only knows a man died
+    -- by the living headcount dropping since the last tick it looked.
+    rec.lastAlive = #rec.men
     lLog(string.format("route %d: %d %s spawned at point %d/%d",
         rec.route, #rec.men, rec.group, rec.idx, #self:PatrolRouteOf(rec).pts))
     return true
@@ -602,6 +722,7 @@ function mercenaries:PatrolDespawnGang(rec, why)
         pcall(function() System.RemoveEntity(e.id) end)
     end
     rec.men = {}
+    self:PatrolIndexClear(rec)
     rec.spawned = false
     self:PatrolClearCorpses(rec)
     if why then lLog("route " .. rec.route .. ": despawned (" .. why .. ")") end
@@ -616,6 +737,51 @@ function mercenaries:PatrolClearCorpses(rec)
         pcall(function() System.RemoveEntity(e.id) end)
     end
     if rec then rec.corpses = nil; rec.corpsesAt = nil end
+end
+
+-- Every living patrolman currently in the world, across all gangs.
+function mercenaries:PatrolLiveMenCount()
+    local n = 0
+    for _, rec in pairs(self.LivePatrols or {}) do
+        if rec.spawned then n = n + self:PatrolAliveCount(rec) end
+    end
+    return n
+end
+
+-- Counts rec.spawned, NOT living men. A wiped gang releasing its slot the instant its last
+-- man dies lets a replacement spawn alongside the corpse pile, so the world briefly holds
+-- both - which is more entities at once, not fewer. The slot frees on the next tick anyway.
+-- It also keeps this off IsAliveAndWell, since PatrolBudgetFor calls it per candidate.
+function mercenaries:PatrolLiveGangCount()
+    local n = 0
+    for _, rec in pairs(self.LivePatrols or {}) do
+        if rec.spawned then n = n + 1 end
+    end
+    return n
+end
+
+function mercenaries:PatrolCorpseCount()
+    local n = 0
+    for _, rec in pairs(self.LivePatrols or {}) do
+        n = n + #(rec.corpses or {})
+    end
+    return n
+end
+
+-- What this gang is allowed to be, given what is already out there. Returns 0 when there
+-- is no room for even a minimum gang, and the caller simply does not spawn it.
+function mercenaries:PatrolBudgetFor(want)
+    -- Both aggregate caps scale with the tier. Raising only the per-gang size would
+    -- be a no-op: the population budget would swallow the extra men on the way out.
+    local gangCap = self.PatrolMaxLiveGangs or 0
+    pcall(function() gangCap = self:DifficultyCeil(gangCap) end)
+    if gangCap > 0 and self:PatrolLiveGangCount() >= gangCap then return 0 end
+    local cap = self.PatrolMaxLiveMen or 0
+    pcall(function() cap = self:DifficultyCeil(cap) end)
+    if cap <= 0 then return want end
+    local room = cap - self:PatrolLiveMenCount()
+    if room < (self.PatrolMinMen or 3) then return 0 end
+    return math.min(want, room)
 end
 
 function mercenaries:PatrolAliveCount(rec)
@@ -651,6 +817,8 @@ function mercenaries.LivePatrolTick()
         -- PatrolRouteData is deliberately NOT part of this guard: it is set by the level check
         -- below, so testing it here would mean the check never ran and no map ever had routes.
         if not (self.LivePatrolsEnabled and player) then return end
+        -- The quartermaster's master switch for uninvited trouble.
+        if self.EncountersOn and not self:EncountersOn() then return end
         local pp; pcall(function() pp = player:GetWorldPos() end)
         if not pp then return end
         local t = nowT()
@@ -668,6 +836,12 @@ function mercenaries.LivePatrolTick()
             return
         end
 
+        -- Candidates are collected rather than spawned inline. Spawning inside the loop
+        -- meant pairs() order decided who appeared, so at a junction the gang that won was
+        -- arbitrary rather than the nearest, and every eligible record spawned on the same
+        -- frame. Now the tick does its bookkeeping first and spawns the closest eligible
+        -- gang (or PatrolSpawnPerTick of them) afterwards.
+        local wants = {}
         for i = 1, #self.PatrolRouteData do
             for slot = 1, self:PatrolCountFor(i) do
                 local key = i .. ":" .. slot
@@ -676,7 +850,20 @@ function mercenaries.LivePatrolTick()
                     rec = self:PatrolMakeRecord(i, slot)
                     self.LivePatrols[key] = rec
                 end
-                if rec then self:PatrolTickOne(rec, pp, t) end
+                if rec then
+                    local d = self:PatrolTickOne(rec, pp, t)
+                    if d then wants[#wants + 1] = { rec = rec, d = d } end
+                end
+            end
+        end
+        if #wants > 0 then
+            table.sort(wants, function(a, b) return a.d < b.d end)
+            local placed = 0
+            local perTick = self.PatrolSpawnPerTick or 1
+            for _, w in ipairs(wants) do
+                if placed >= perTick then break end
+                if self:PatrolBudgetFor(self.PatrolMinMen or 3) <= 0 then break end
+                if self:PatrolSpawnGang(w.rec) then placed = placed + 1 end
             end
         end
     end)
@@ -691,12 +878,17 @@ function mercenaries:PatrolTickOne(rec, pp, t)
         -- the corpses lose their owner and stand for ever.
         if rec.corpses then
             local q = self:PatrolPointOf(rec)
-            local far = true
+            local dist = nil
             if q then
                 local cx, cy = pp.x - q.x, pp.y - q.y
-                far = math.sqrt(cx * cx + cy * cy) > self.PatrolDespawnRange
+                dist = math.sqrt(cx * cx + cy * cy)
             end
-            if far or (t - (rec.corpsesAt or t)) >= self.PatrolCorpseSecs then
+            local far   = (dist == nil) or (dist > self.PatrolDespawnRange)
+            local fresh = (t - (rec.corpsesAt or 0)) < (self.PatrolCorpseGraceSecs or 0)
+            local over  = (self.PatrolMaxCorpses or 0) > 0
+                          and self:PatrolCorpseCount() > self.PatrolMaxCorpses
+                          and not fresh
+            if far or over or (t - (rec.corpsesAt or t)) >= self.PatrolCorpseSecs then
                 self:PatrolClearCorpses(rec)
             end
         end
@@ -729,12 +921,19 @@ function mercenaries:PatrolTickOne(rec, pp, t)
         end
 
         local alive = self:PatrolAliveCount(rec)
+        -- Kill escalation: the cheapest existing look at this gang's headcount is this
+        -- tick's own alive count, taken every 3s regardless - no new timer needed. Counts
+        -- however many died since the last tick noticed, not just the wipe-out case below.
+        local diedNow = math.max(0, (rec.lastAlive or alive) - alive)
+        if diedNow > 0 then self:PatrolHeatAdd(rec.route, diedNow) end
+        rec.lastAlive = alive
         if alive == 0 then
             -- Hand the bodies to the corpse list instead of deleting them with the
             -- record, so the fight you just won can be looted. Swept above.
             rec.corpses  = rec.men
             rec.corpsesAt = t
             rec.men      = {}
+            self:PatrolIndexClear(rec)
             rec.spawned  = false
             rec.deadAt   = t
             lLog("route " .. rec.route .. ": patrol wiped out - back in " ..
@@ -762,16 +961,23 @@ function mercenaries:PatrolTickOne(rec, pp, t)
         -- The floor matters as much as the range: a gang must never appear on top of the
         -- player. Inside it the record just stays notional until the gap opens again.
         -- The grace is the same idea in time rather than distance - see PatrolLoadGraceSecs.
+        -- Eligible, but the caller decides: it spawns the nearest few, not everyone.
         if d <= self.PatrolSpawnRange and d >= self.PatrolNoSpawnRange
            and not self:PatrolInLoadGrace() then
-            self:PatrolSpawnGang(rec)
+            return d
         end
     end
 end
 
 -- Keep the notional index on the point nearest the real leader, so despawning and
 -- respawning does not teleport the patrol back down the road.
-function mercenaries:PatrolSyncIndex(rec, lp)
+--
+-- It may only move the index FORWARD along the direction of travel unless forced.
+-- PatrolWalkTick takes the next point well before the leader reaches the current one -
+-- that lookahead is what makes the route walk smooth - so the nearest point is normally
+-- one or two behind the index, and putting it back republished a point he had already
+-- walked past, braking and turning him. See docs/patrols.md.
+function mercenaries:PatrolSyncIndex(rec, lp, force)
     local r = self:PatrolRouteOf(rec)
     if not r then return end
     local best, bestD2 = rec.idx, nil
@@ -779,6 +985,10 @@ function mercenaries:PatrolSyncIndex(rec, lp)
         local dx, dy = q.x - lp.x, q.y - lp.y
         local d2 = dx * dx + dy * dy
         if not bestD2 or d2 < bestD2 then best, bestD2 = i, d2 end
+    end
+    if not force then
+        local dir = (rec.dir ~= nil and rec.dir ~= 0) and rec.dir or 1
+        if ((best - rec.idx) * dir) < 0 then return end
     end
     rec.idx = best
 end
@@ -798,6 +1008,9 @@ end
 mercenaries.PatrolTickStaleSecs = 15.0
 
 function mercenaries:LivePatrolWatchdog()
+    -- Cheap safety net: rebuilds PatrolMemberIndex from LivePatrols every pass, so any
+    -- future desync between rec.men and the index self-heals within one watchdog tick.
+    self:PatrolIndexRebuild()
     local now = nowT()
     local last = self._liveTickAt
     if last and (now - last) < self.PatrolTickStaleSecs then return end
@@ -849,6 +1062,9 @@ function mercenaries:ClearAnyLeftoverPatrols()
         end
     end)
     self.LivePatrols = {}
+    -- After the reset, not before: rebuilding from the old table just to discard it was a
+    -- no-op that only self-healed on the next watchdog pass.
+    if self.PatrolIndexRebuild then self:PatrolIndexRebuild() end
     if swept > 0 then lLog("swept " .. swept .. " leftover patrolman/men from the save") end
 end
 
@@ -863,6 +1079,9 @@ function mercenaries:LivePatrolStatus()
                                 math.min(self.PatrolMaxMen,
                                          math.floor(party * self:PatrolMaxMultFor(party) + 0.5)))) ..
          (left and string.format(", load grace %.0fs left", left) or ""))
+    lLog(string.format("live: %d men in %d gang(s), %d corpse(s)  |  caps: %d men, %d gangs, %d per gang",
+        self:PatrolLiveMenCount(), self:PatrolLiveGangCount(), self:PatrolCorpseCount(),
+        self.PatrolMaxLiveMen or 0, self.PatrolMaxLiveGangs or 0, self.PatrolMaxMen or 0))
     lLog("level '" .. levelName() .. "' -> " ..
          (self:PatrolLevelAllowed() and "patrols allowed" or "WRONG LEVEL, no patrols"))
     for i, rec in pairs(self.LivePatrols) do
@@ -904,8 +1123,10 @@ function mercenaries:LivePatrolHere()
     if not best then lLog("no routes loaded"); return end
     best.deadAt = nil
     self:PatrolDespawnGang(best)
-    self:PatrolSyncIndex(best, pp)
-    self:PatrolSpawnGang(best)
+    self:PatrolSyncIndex(best, pp, true)   -- forced: this gang is deliberately re-seated on the player
+    if not self:PatrolSpawnGang(best) then
+        lLog("nothing spawned - population budget is full (merc_patrols_status shows the caps)")
+    end
 end
 
 function mercenaries:LivePatrolClear()
@@ -924,7 +1145,10 @@ end
 -- on past. Once ANY man makes contact the whole gang is ALERTED - the target is pushed to
 -- every living member through ForcedTargetOf, which FindEnemyTarget honours ahead of its own
 -- scan and without any distance limit, so the tail turns round and comes too.
-function mercenaries:PatrolAlert(rec, targetWuid)
+-- livingMen is optional: pass it when the caller already has PatrolLivingMen(rec) on
+-- hand (see PatrolFindTarget) to skip recomputing it here. Falls back to computing its
+-- own when omitted, so any other caller keeps working unchanged.
+function mercenaries:PatrolAlert(rec, targetWuid, livingMen)
     if not (rec and targetWuid) then return end
     local now   = nowT()
     local first = (rec.alertAt == nil)
@@ -941,21 +1165,23 @@ function mercenaries:PatrolAlert(rec, targetWuid)
     rec.alertAt     = now
     rec.alertSyncAt = now
     rec.alertTarget = targetWuid
-    for _, e in ipairs(self:PatrolLivingMen(rec)) do
+    local living = livingMen or self:PatrolLivingMen(rec)
+    for _, e in ipairs(living) do
         local k = lKey(e)
         if k then self.ForcedTargetOf[k] = targetWuid end
     end
     if first then
         lLog("route " .. tostring(rec.route) .. ": gang alerted, " ..
-             tostring(#self:PatrolLivingMen(rec)) .. " man(men) closing")
+             tostring(#living) .. " man(men) closing")
     end
 end
 
 -- Drop the alert: the fight is over, or it has run its course. Only clears the entries this
--- gang owns, so a man who has since picked his own target keeps it.
-function mercenaries:PatrolAlertClear(rec)
+-- gang owns, so a man who has since picked his own target keeps it. livingMen is optional,
+-- same as PatrolAlert above.
+function mercenaries:PatrolAlertClear(rec, livingMen)
     if not (rec and rec.alertAt) then return end
-    for _, e in ipairs(self:PatrolLivingMen(rec)) do
+    for _, e in ipairs(livingMen or self:PatrolLivingMen(rec)) do
         local k = lKey(e)
         if k and self.ForcedTargetOf[k] == rec.alertTarget then self.ForcedTargetOf[k] = nil end
     end
@@ -971,14 +1197,24 @@ function mercenaries:PatrolFindTarget(bt_data, myWuid)
     pcall(function() tgt = XGenAIModule.GetEntityByWUID(bt_data.currentTarget) end)
     if not (me and tgt) then return end
 
-    local rec
-    pcall(function() local _, _, _, _, r = self:PatrolCtx(me); rec = r end)
+    -- PatrolCtx already builds the living-members list internally (leader + followers);
+    -- rebuild it here from those two return values instead of asking PatrolAlert/Clear
+    -- to walk the gang again a moment later.
+    local rec, living
+    pcall(function()
+        local leader, followers, _, _, r = self:PatrolCtx(me)
+        rec = r
+        if leader then
+            living = { leader }
+            for _, e in ipairs(followers or {}) do living[#living + 1] = e end
+        end
+    end)
 
     -- An alerted gang keeps whatever the alert handed it, however far off it is - that is
     -- the whole point of the alert, and ForcedTargetOf is what got him this target.
     if rec and rec.alertAt and self.ForcedTargetOf[lKey(me) or ''] ~= nil then
         if (nowT() - rec.alertAt) < self.PatrolAlertSecs then return end
-        self:PatrolAlertClear(rec)
+        self:PatrolAlertClear(rec, living)
     end
 
     local a, b
@@ -988,7 +1224,7 @@ function mercenaries:PatrolFindTarget(bt_data, myWuid)
     if (dx * dx + dy * dy + dz * dz) > (self.PatrolDetectRange * self.PatrolDetectRange) then
         bt_data.currentTarget = nil
     elseif rec then
-        self:PatrolAlert(rec, bt_data.currentTarget)   -- contact: bring the rest of them
+        self:PatrolAlert(rec, bt_data.currentTarget, living)   -- contact: bring the rest of them
     end
 end
 
@@ -1013,23 +1249,23 @@ function mercenaries:PatrolCtx(ent)
         end
     end
 
-    -- a roaming patrol. Membership is checked against the FULL list (so a downed man
-    -- is still recognised as one of ours), but the leader and the chain are built
-    -- from the living only - see PatrolLivingMen. Deliberately no PatrolEpoch bump:
-    -- that counter is global across every gang and the tester, so bumping it would
-    -- restart every CrimeFollower on the map at once.
-    for _, rec in pairs(self.LivePatrols or {}) do
-        local men = rec.men or {}
-        for _, e in ipairs(men) do
-            if lKey(e) == k then
-                local living = self:PatrolLivingMen(rec)
-                if #living == 0 then return nil end
-                local followers = {}
-                for j = 2, #living do table.insert(followers, living[j]) end
-                local r = self:PatrolRouteOf(rec)
-                return living[1], followers, (r and r.pts or {}), rec.idx, rec
-            end
-        end
+    -- a roaming patrol, found via PatrolMemberIndex (O(1) instead of scanning every
+    -- LivePatrols record - see mercenaries_perf.lua). Membership still covers a downed
+    -- man (the index is kept for the whole rec.men list, corpses included), but the
+    -- leader and the chain are built from the living only - see PatrolLivingMen.
+    -- Deliberately no PatrolEpoch bump: that counter is global across every gang and
+    -- the tester, so bumping it would restart every CrimeFollower on the map at once.
+    local rec = self.PatrolMemberIndex[k]
+    if rec then
+        local living = self:PatrolLivingMen(rec)
+        if #living == 0 then return nil end
+        -- Rebuilt only when the living list itself was, so a steady gang stops allocating a
+        -- followers table on every one of the ~5 asks per man per second. Tied to the same
+        -- table identity, so it cannot go stale independently of it.
+        local followers = {}
+        for j = 2, #living do table.insert(followers, living[j]) end
+        local r = self:PatrolRouteOf(rec)
+        return living[1], followers, (r and r.pts or {}), rec.idx, rec
     end
     return nil
 end
@@ -1051,3 +1287,21 @@ System.AddCCommand("merc_patrols_status", "mercenaries:LivePatrolStatus()",     
 System.AddCCommand("merc_patrols_arm",    "mercenaries:LivePatrolSetEnabled(%line)", "Roaming patrols on or off: merc_patrols_arm 0 | 1")
 System.AddCCommand("merc_patrols_here",   "mercenaries:LivePatrolHere()",          "Spawn the nearest patrol on top of you")
 System.AddCCommand("merc_patrols_clear",  "mercenaries:LivePatrolClear()",         "Remove every patrol and re-roll them")
+System.AddCCommand("merc_patrols_budget", "mercenaries:PatrolBudgetSet('%line')",
+                   "Population caps: merc_patrols_budget <maxMen> [maxGangs] [maxPerGang]")
+System.AddCCommand("merc_patrols_escalation", "mercenaries:PatrolEscalationStatus()",
+                   "Per-route session kill escalation: heat and the size multiplier it earns")
+
+-- One knob for the three caps, so the cost can be tuned in-game against a real scene
+-- rather than by editing and repackaging. merc_patrols_budget with no argument reports.
+function mercenaries:PatrolBudgetSet(v)
+    local a, b, c = string.match(tostring(v or ""), "(%d+)%s*(%d*)%s*(%d*)")
+    if a then
+        self.PatrolMaxLiveMen = tonumber(a)
+        if b and b ~= "" then self.PatrolMaxLiveGangs = tonumber(b) end
+        if c and c ~= "" then self.PatrolMaxMen       = tonumber(c) end
+    end
+    lLog(string.format("caps: %d men total, %d gangs, %d per gang  (live now: %d men in %d gang(s), %d corpse(s))",
+        self.PatrolMaxLiveMen or 0, self.PatrolMaxLiveGangs or 0, self.PatrolMaxMen or 0,
+        self:PatrolLiveMenCount(), self:PatrolLiveGangCount(), self:PatrolCorpseCount()))
+end

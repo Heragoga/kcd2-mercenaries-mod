@@ -76,6 +76,9 @@ function mercenaries:Hire(cost, amount, tier)
                 -- Register in cache immediately so MonitorLoop needn't world-scan.
                 self.ActiveMercs[entityName] = ent
                 self:InjectInteraction(ent)
+                -- With a camp up, say which half of the squad he joined - nothing else does,
+                -- and the default left him neither camping nor following (CampOnMercJoined).
+                pcall(function() self:CampOnMercJoined(ent) end)
 
             end
 
@@ -170,6 +173,7 @@ function mercenaries:HireCustomCompanion(ccID)
             mercenaries:EnsureMercIsAlwaysRendered(ent)
             self.ActiveMercs[entityName] = ent
             self:InjectInteraction(ent)
+            pcall(function() self:CampOnMercJoined(ent) end)
         end
     end)
     
@@ -590,6 +594,7 @@ end
 mercenaries.EnemySwarmCap = 2
 mercenaries.EnemyTargetOf = {}   -- [enemyWuidStr] = targetWuidStr
 mercenaries.EnemyTargetLoad = {} -- [targetWuidStr] = enemies currently on it
+
 -- The RAW wuid behind each EnemyTargetOf key. The key is a string and cannot be
 -- handed back to GetEntityByWUID, so without this there is no way to ask "is the
 -- claimer still alive" - and a dead claimer's entry inflated EnemyTargetLoad
@@ -611,7 +616,10 @@ function mercenaries:EquipEnemy(ent, groupKey, isArcher)
     if not ent or not ent.actor then return end
     local grp = self.EnemyGroups[groupKey]
     if not grp then return end
-    local clothing = grp.clothing[math.random(1, #grp.clothing)]
+    -- The difficulty tier gets first refusal on the wardrobe; it returns nil on
+    -- the mixed tiers, which leaves the original uniform draw untouched.
+    local clothing = self:DiffPickClothing(groupKey)
+                     or grp.clothing[math.random(1, #grp.clothing)]
     if clothing then pcall(function() ent.actor:EquipClothingPreset(clothing) end) end
     -- Weapon. A group can pin one exact preset (grp.weaponPreset, e.g. Heinrich's
     -- St. George's sword), or restrict to a preferred set of WeaponSets categories
@@ -978,6 +986,7 @@ function mercenaries:SpawnTestMerc()
         self:EquipMercenaryWeapon(ent, _G.MercCurrentWeapon or 1, _G.MercCurrentOutfit or 1)
         self.ActiveMercs[entityName] = ent
         self:InjectInteraction(ent)
+        pcall(function() self:CampOnMercJoined(ent) end)
 
         -- Follow needs the squad to be un-dismissed and not idling.
         _G.MercenariesDismissed = false

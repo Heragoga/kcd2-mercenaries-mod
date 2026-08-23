@@ -14,6 +14,20 @@
                 <Port Name="quartermaster_ask_food"      Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_ask_drink"     Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_ask_stats"     Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_enc_on" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_enc_off" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_upkeep_off" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_upkeep_lenient" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_upkeep_standard" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_upkeep_harsh" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_icons_on" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_icons_off" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_threat_easy"       Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_threat_medium"     Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_threat_difficult"  Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_threat_extreme"    Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_threat_impossible" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_threat_horde"      Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_withhold_wages" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_deposit"       Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_withdraw"      Direction="Out" Type="trigger" />
@@ -57,6 +71,8 @@
                 <Port Name="quartermaster_bounty_report" Direction="Out" Type="trigger" />
                 <Port Name="bo_open"  Direction="In" Type="bool" />
                 <Port Name="bo_ready" Direction="In" Type="bool" />
+                <Port Name="quartermaster_take_all"     Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_take_threeqtr" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
@@ -815,6 +831,16 @@
                             </Elements>
                             <Decision Name="dec_qm_deploy">
                                 <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_take_all">
+                                        <UiPrompt StringName="ui_qm_take_all" />
+                                        <Triggers><Port Name="quartermaster_take_all" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_take_all" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_take" /></Response></Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_take_threeqtr">
+                                        <UiPrompt StringName="ui_qm_take_threeqtr" />
+                                        <Triggers><Port Name="quartermaster_take_threeqtr" /></Triggers>
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_take_threeqtr" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_take" /></Response></Elements>
+                                    </Sequence>
                                     <Sequence EndType="EndDialogue" Name="seq_qm_take_half">
                                         <UiPrompt StringName="ui_qm_take_half" />
                                         <Triggers><Port Name="quartermaster_take_half" /></Triggers>
@@ -844,7 +870,211 @@
                         <!-- The old "Any work going?" sub-menu is gone: its contract lines
                              now sit at the top level, so the next job is one click away
                              instead of two. Declining is simply not picking one. -->
-                        <!-- ===== Status ===== -->
+                        <!-- ===== How the company runs =====
+                             Everything the player can retune about the mod itself: how
+                             hard the fighting is, whether it goes looking for him at
+                             all, how expensive his men are to keep, and whether the
+                             HUD reports any of it. -->
+                        <Sequence EndType="Decision" Name="seq_qm_settings_hub">
+                            <UiPrompt StringName="ui_qm_settings_hub" />
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_settings_hub" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_settings_hub" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+
+                            <Decision Name="dec_qm_settings">
+                                <Sequences>
+<!-- ===== How hard the fighting should be =====
+                                 One setting, read by the raids, the roaming patrols and the
+                                 bounty/Kleinkrieg contracts alike. All six leaves share one
+                                 pair of spoken lines - the option the player picked is already
+                                 on the prompt, so six near-identical takes would be six
+                                 recordings saying the same thing. -->
+                            <Sequence EndType="Decision" Name="seq_qm_threat_hub">
+                                <UiPrompt StringName="ui_qm_threat_hub" />
+                                <Elements>
+                                    <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_hub" /><Commands><CameraCommand /></Commands></Response>
+                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_hub" /><Commands><CameraCommand /></Commands></Response>
+                                </Elements>
+
+                                <Decision Name="dec_qm_threat">
+                                    <Sequences>
+                                        <Sequence EndType="EndDialogue" Name="seq_qm_threat_easy">
+                                            <UiPrompt StringName="ui_qm_threat_easy" />
+                                            <Triggers><Port Name="quartermaster_threat_easy" /></Triggers>
+                                            <Elements>
+                                                <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            </Elements>
+                                        </Sequence>
+                                        <Sequence EndType="EndDialogue" Name="seq_qm_threat_medium">
+                                            <UiPrompt StringName="ui_qm_threat_medium" />
+                                            <Triggers><Port Name="quartermaster_threat_medium" /></Triggers>
+                                            <Elements>
+                                                <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            </Elements>
+                                        </Sequence>
+                                        <Sequence EndType="EndDialogue" Name="seq_qm_threat_difficult">
+                                            <UiPrompt StringName="ui_qm_threat_difficult" />
+                                            <Triggers><Port Name="quartermaster_threat_difficult" /></Triggers>
+                                            <Elements>
+                                                <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            </Elements>
+                                        </Sequence>
+                                        <Sequence EndType="EndDialogue" Name="seq_qm_threat_extreme">
+                                            <UiPrompt StringName="ui_qm_threat_extreme" />
+                                            <Triggers><Port Name="quartermaster_threat_extreme" /></Triggers>
+                                            <Elements>
+                                                <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            </Elements>
+                                        </Sequence>
+                                        <Sequence EndType="EndDialogue" Name="seq_qm_threat_impossible">
+                                            <UiPrompt StringName="ui_qm_threat_impossible" />
+                                            <Triggers><Port Name="quartermaster_threat_impossible" /></Triggers>
+                                            <Elements>
+                                                <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            </Elements>
+                                        </Sequence>
+                                        <Sequence EndType="EndDialogue" Name="seq_qm_threat_horde">
+                                            <UiPrompt StringName="ui_qm_threat_horde" />
+                                            <Triggers><Port Name="quartermaster_threat_horde" /></Triggers>
+                                            <Elements>
+                                                <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            </Elements>
+                                        </Sequence>
+                                        <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_threat_cancel">
+                                            <UiPrompt StringName="ui_qm_threat_cancel" />
+                                            <Elements>
+                                                <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_cancel" /><Commands><CameraCommand /></Commands></Response>
+                                            </Elements>
+                                        </Sequence>
+                                    </Sequences>
+                                </Decision>
+                            </Sequence>
+
+                                                        <Sequence EndType="Decision" Name="seq_qm_enc_hub">
+                                <UiPrompt StringName="ui_qm_enc_hub" />
+                                <Elements>
+                                    <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                </Elements>
+                                <Decision Name="dec_qm_enc">
+                                    <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_enc_on">
+                                        <UiPrompt StringName="ui_qm_enc_on" />
+                                        <Triggers><Port Name="quartermaster_enc_on" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_enc_off">
+                                        <UiPrompt StringName="ui_qm_enc_off" />
+                                        <Triggers><Port Name="quartermaster_enc_off" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_qm_settings" Name="seq_qm_enc_hub_cancel">
+                                            <UiPrompt StringName="ui_qm_threat_cancel" />
+                                            <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_threat_cancel" /><Commands><CameraCommand /></Commands></Response></Elements>
+                                        </Sequence>
+                                    </Sequences>
+                                </Decision>
+                            </Sequence>
+                            <Sequence EndType="Decision" Name="seq_qm_upkeep_hub">
+                                <UiPrompt StringName="ui_qm_upkeep_hub" />
+                                <Elements>
+                                    <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                </Elements>
+                                <Decision Name="dec_qm_upkeep">
+                                    <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_upkeep_off">
+                                        <UiPrompt StringName="ui_qm_upkeep_off" />
+                                        <Triggers><Port Name="quartermaster_upkeep_off" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_upkeep_lenient">
+                                        <UiPrompt StringName="ui_qm_upkeep_lenient" />
+                                        <Triggers><Port Name="quartermaster_upkeep_lenient" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_upkeep_standard">
+                                        <UiPrompt StringName="ui_qm_upkeep_standard" />
+                                        <Triggers><Port Name="quartermaster_upkeep_standard" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_upkeep_harsh">
+                                        <UiPrompt StringName="ui_qm_upkeep_harsh" />
+                                        <Triggers><Port Name="quartermaster_upkeep_harsh" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_qm_settings" Name="seq_qm_upkeep_hub_cancel">
+                                            <UiPrompt StringName="ui_qm_threat_cancel" />
+                                            <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_threat_cancel" /><Commands><CameraCommand /></Commands></Response></Elements>
+                                        </Sequence>
+                                    </Sequences>
+                                </Decision>
+                            </Sequence>
+                            <Sequence EndType="Decision" Name="seq_qm_icons_hub">
+                                <UiPrompt StringName="ui_qm_icons_hub" />
+                                <Elements>
+                                    <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                </Elements>
+                                <Decision Name="dec_qm_icons">
+                                    <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_icons_on">
+                                        <UiPrompt StringName="ui_qm_icons_on" />
+                                        <Triggers><Port Name="quartermaster_icons_on" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_icons_off">
+                                        <UiPrompt StringName="ui_qm_icons_off" />
+                                        <Triggers><Port Name="quartermaster_icons_off" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_qm_settings" Name="seq_qm_icons_hub_cancel">
+                                            <UiPrompt StringName="ui_qm_threat_cancel" />
+                                            <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_threat_cancel" /><Commands><CameraCommand /></Commands></Response></Elements>
+                                        </Sequence>
+                                    </Sequences>
+                                </Decision>
+                            </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_settings_cancel">
+                                        <UiPrompt StringName="ui_qm_threat_cancel" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_threat_cancel" /><Commands><CameraCommand /></Commands></Response></Elements>
+                                    </Sequence>
+                                </Sequences>
+                            </Decision>
+                        </Sequence>
+
+<!-- ===== Status ===== -->
                         <Sequence EndType="EndDialogue" Name="seq_qm_ask_stats">
                             <UiPrompt StringName="ui_qm_ask_stats" />
                             <Triggers><Port Name="quartermaster_ask_stats" /></Triggers>

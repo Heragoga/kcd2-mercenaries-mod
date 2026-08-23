@@ -68,8 +68,10 @@
             <Variable name="barkRandom" type="_int" values="1" isPersistent="0" form="single" />
             <!-- barkAlias: context self-talk dialog (camp/travel/both) chosen for barkRandom 29+. -->
             <Variable name="barkAlias" type="_string" values="" isPersistent="0" form="single" />
-            <!-- barkReqAlias: order bark consumed from _G.MercBarkReq. -->
+            <!-- barkReqAlias: order bark consumed from _G.MercBarkReq. hasMetaBark is the
+                 vanilla-shout alternative, whose metarole is spelled out in the node. -->
             <Variable name="barkReqAlias" type="_string" values="" isPersistent="0" form="single" />
+            <Variable name="hasMetaBark" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="hasBarkReq" type="_bool" values="false" isPersistent="0" form="single" />
 
             <Variable name="wasInCombat" type="_bool" values="false" isPersistent="0" form="single" />
@@ -93,6 +95,12 @@
         <Variable name="wbStageGo" type="_bool" values="false" isPersistent="0" form="single" />
 
         <Variable name="wbMrkev" type="_wuid" values="" isPersistent="0" form="single" />
+
+        <!-- navOrderGo: a hold or escort order has a fresh destination for this man.
+             Set only when NavGotoRequest actually recorded a NEW one, so the interrupt
+             is never re-fired over a nav_goto that is already walking him there. -->
+        <Variable name="navOrderGo" type="_bool" values="false" isPersistent="0" form="single" />
+        <Variable name="navOrderMrkev" type="_wuid" values="" isPersistent="0" form="single" />
 
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
@@ -124,7 +132,7 @@
                                         <Expression expressions="$fdFired = true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="&apos;1s&apos;" timeType="GameTime" doFail="false" variation="&apos;200ms&apos;" />
+                                <Wait duration="&apos;1s&apos;" timeType="GameTime" doFail="false" variation="&apos;400ms&apos;" />
                             </Sequence>
                         </Loop>
 
@@ -136,12 +144,12 @@
 
                                 <!-- 300ms: this is the squad's reaction time to a new threat. idleTicks
                                      thresholds below are scaled to it (55 ticks ~ 16s). -->
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
 
                                 <AtomicDecorator>
                                     <Sequence>
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
-                                        <ExecuteLua code="data.isIdle = _G.MercIdle or false" />
+                                        <ExecuteLua code="data.isIdle = mercenaries:MercIsIdle(entity)" />
                                         <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
                                         <ExecuteLua code="mercenaries:MercLeashes(data)" />
 
@@ -209,7 +217,7 @@
                                                         <Expression expressions="$currentTarget = $__null" />
                                                     </Sequence>
                                                 </IfCondition>
-                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                             </Sequence>
                                         </Then>
                                         <Else canSkip="1">
@@ -277,7 +285,7 @@
                                 </EntityContextCheck>
                                 <!-- Matches the acquisition loop: inCombat gates it, so a stale value
                                      costs reaction time. -->
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                             </Sequence>
                         </Loop>
 
@@ -305,7 +313,7 @@
                                         end
                                     end)
                                 " />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
                         <Loop count="-1">
@@ -333,7 +341,7 @@
 
                                             <!-- Just stand. Camp sit/sleep and guard patrol live in
                                                  camp_actor.xml now (this branch only plain-idles). -->
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                         </Sequence>
                                     </EntityContext>
                                 </IfCondition>
@@ -342,7 +350,7 @@
                                     <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
                                         <Sequence>
                                             <Expression expressions="$isFollowingActive = false" />
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                         </Sequence>
                                     </EntityContext>
                                 </IfCondition>
@@ -390,7 +398,7 @@
 
                                                 </Sequence>
                                             </IfCondition>
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                         </Sequence>
                                     </EntityContext>
                                 </IfCondition>
@@ -421,7 +429,7 @@
                                         <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -449,25 +457,18 @@
                              so only one tree plays it. -->
                         <Loop count="-1">
                             <Sequence>
-                                <ExecuteLua code="
-                                    data.hasBarkReq = false
-                                    data.barkReqAlias = ''
-                                    local br = _G.MercBarkReq
-                                    if br then
-                                        local a = br[tostring(entity.this.id)]
-                                        if a and a ~= '' then
-                                            data.barkReqAlias = a
-                                            data.hasBarkReq = true
-                                            br[tostring(entity.this.id)] = nil
-                                        end
-                                    end
-                                " />
+                                <ExecuteLua code="mercenaries:BarkPoll(data, entity.this.id)" />
                                 <IfCondition failOnCondition="false" condition="$hasBarkReq">
                                     <SuppressFailure>
                                         <Function_speech_schedulerMonolog alias="$barkReqAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                     </SuppressFailure>
                                 </IfCondition>
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <IfCondition failOnCondition="false" condition="$hasMetaBark">
+                                    <SuppressFailure>
+                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="'NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'" skipInLod="true" subtitlesDown="false" />
+                                    </SuppressFailure>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -769,7 +770,27 @@
                                         <AddInterrupt Target="$this.id" Host="$wbMrkev" Behavior="'nav_goto'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Hold ground / escort. Same shape as the staging arm above, but
+                             gated on ~inCombat so a fight always wins: a man on a hold
+                             station who is attacked fights, and walks back to his mark
+                             once the scheduler sees combat end. Never fires while the
+                             walled battle owns him. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:NavOrderPoll(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$navOrderGo &amp; ~$inCombat &amp; ~$wbStageGo &amp; ~$wbLocked">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$navOrderMrkev" nodeLabel="1244" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$navOrderMrkev" Behavior="'nav_goto'" Priority="150" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'250ms'" />
                             </Sequence>
                         </Loop>
 

@@ -37,7 +37,7 @@
                                     <!-- corner cutting: hand over the next waypoint before he arrives -->
                                     <Loop count="-1">
                                         <Sequence>
-                                            <Wait duration="'150ms'" timeType="GameTime" doFail="false" variation="'50ms'" />
+                                            <Wait duration="'150ms'" timeType="GameTime" doFail="false" variation="'60ms'" />
                                             <ExecuteLua code="mercenaries:TestNpcAdvanceWaypoint(data, entity)" />
                                             <IfCondition failOnCondition="false" condition="$routeDone">
                                                 <Fail />

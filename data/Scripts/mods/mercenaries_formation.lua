@@ -99,10 +99,12 @@ function mercenaries:UpdateFormationLeader()
     local leaderStillOk, leaderD = false, nil
     -- Fallback tier: men still finishing a camp activity. Only used if there is nobody else.
     local busyBest, busyBestD = nil, nil
+    -- Constant across every iteration; rebuilding it per-merc was pure waste.
+    local leaderStr = self.FormationLeader and tostring(self.FormationLeader) or nil
 
     for _, ent in pairs(self.ActiveMercs) do
         local wuid = ent and (ent.this and ent.this.id or ent.id)
-        if self:IsFormationEligible(ent, wuid) and not self:IsCampActor(wuid) then
+        if self:IsFormationEligible(ent, wuid) then
             count = count + 1
 
             -- NEAREST to the player leads. The formation hangs off the leader, so
@@ -113,7 +115,8 @@ function mercenaries:UpdateFormationLeader()
             -- the mass, facing the way it needs to go.
             local d = 0
             if pp then
-                local mp = ent:GetPos()
+                -- PerfPos is refreshed every 50ms; nil just means not scanned yet.
+                local mp = self:PerfMercPos(wuid) or ent:GetWorldPos()
                 if mp then
                     local dx, dy = pp.x - mp.x, pp.y - mp.y
                     d = math.sqrt(dx * dx + dy * dy)
@@ -127,7 +130,7 @@ function mercenaries:UpdateFormationLeader()
             local busy = self.IsCampBusy and self:IsCampBusy(wuid) or false
 
             if not busy then
-                if self.FormationLeader and tostring(wuid) == tostring(self.FormationLeader) then
+                if leaderStr and tostring(wuid) == leaderStr then
                     leaderStillOk, leaderD = true, d
                 end
                 if not bestD or d < bestD then best, bestD = wuid, d end
@@ -317,7 +320,10 @@ end
 System.AddCCommand("merc_follow_stats", "mercenaries:FollowStatsSet('%line')",
                    "Log squad spread and player speed: merc_follow_stats 1 | 0")
 
-function mercenaries.FormationLoop()
+-- Slot body: work only. The scheduler gates on ActiveMercs/player before calling
+-- this; FormationLoop below is the legacy self-arming path used when merc_sched is
+-- off, so it keeps its own gate. See docs/performance.md.
+function mercenaries:FormationLoopBody()
     local ok, err = pcall(function()
         if next(mercenaries.ActiveMercs) and player then
             mercenaries:UpdateFormationLeader()
@@ -325,7 +331,13 @@ function mercenaries.FormationLoop()
         end
     end)
     if not ok then System.LogAlways('[MercForm] FormationLoop Error: ' .. tostring(err)) end
-    Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
+end
+
+function mercenaries.FormationLoop()
+    mercenaries:FormationLoopBody()
+    if not mercenaries.SchedRunning then
+        Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
+    end
 end
 
 -- Per merc, from follow.xml's updater loop.
@@ -344,10 +356,13 @@ function mercenaries:UpdateFormationRole(bt_data, myWuid)
         -- A walled camp is the one place the formation cannot be steered around an
         -- obstacle, so it stands down and the merc falls back to the follow chain.
         if self.NavSuppressFormation and self:NavSuppressFormation() then return end
+        -- A hold or escort order routes every man individually through nav_goto; an
+        -- engine formation running alongside it would be a second set of destinations
+        -- pulling the same NPCs somewhere else.
+        if self.HoldActive or self.EscortEnt then return end
         if _G.MercenariesDismissed or _G.MercIdle then return end
         if not self.FormationLeader then return end
         if not self:IsFormationEligible(nil, myWuid) then return end
-        if self:IsCampActor(myWuid) then return end
         if (self.SquadSize or 0) < 2 then return end
 
         bt_data.useFormation      = true

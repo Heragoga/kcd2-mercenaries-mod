@@ -92,16 +92,51 @@ and a party of four met up to twelve. A big company can absorb the full multiple
 cannot, and the small one is the common case. Ramped rather than stepped, so there is no
 headcount at which hiring one more merc doubles what walks down the road.
 
-| Party | Was | Now |
-| --- | --- | --- |
-| 1 | 5 | 3 |
-| 4 | 5‥12 | 3‥5 |
-| 6 | 5‥18 | 3‥8 |
-| 11 | 6‥33 | 6‥18 |
-| 21 | 11‥50 | 11‥42 |
-| 31+ | 16‥50 | unchanged |
+| Party | Original | Ramped | With the population caps |
+| --- | --- | --- | --- |
+| 1 | 5 | 3 | 3 |
+| 4 | 5‥12 | 3‥5 | 3‥5 |
+| 6 | 5‥18 | 3‥8 | 3‥8 |
+| 11 | 6‥33 | 6‥18 | 6‥16 |
+| 21 | 11‥50 | 11‥42 | 11‥16 |
+| 31+ | 16‥50 | unchanged | 16 |
 
-`merc_patrols_status` prints the party strength and the size range it currently implies.
+`merc_patrols_status` prints the party strength, the size range it currently implies, and the
+live population against the caps.
+
+## Population caps
+
+The ramp above sizes *one* gang. Nothing used to bound how many gangs were live at once, and
+that is where the cost was: the recorded networks have positions with 9 (Kuttenberg) and 12
+(Trosky) gang slots inside the spawn band simultaneously, and every one of them spawned. At a
+20-merc company that measured a median of 78 and a worst case of **234** extra NPCs.
+
+| cap | default | bounds |
+| --- | --- | --- |
+| `PatrolMaxMen` | 16 | one gang |
+| `PatrolMaxLiveMen` | 36 | every gang, added up |
+| `PatrolMaxLiveGangs` | 3 | how many gangs at once |
+| `PatrolSpawnPerTick` | 1 | how many may appear per 3s tick |
+| `PatrolMaxCorpses` | 12 | lingering bodies, all gangs |
+| `PatrolCorpseGraceSecs` | 30 s | the pile just made is exempt from the cap for this long |
+
+Worst case is now 36 living patrolmen, whatever the route geometry. Small parties are
+unaffected — they never reached the caps.
+
+**`PatrolMaxMen` clips the ramp above a party of about ten.** That is deliberate: the ceiling
+in `PatrolMaxMultFor` still describes the *intent* (a big company should be outnumbered), but a
+26-man gang met three at a time is a battle, not a patrol, and the aggregate caps are what
+actually bound the cost.
+
+**Spawning is staggered and nearest-first.** Candidates are collected each tick, sorted by
+distance, and at most `PatrolSpawnPerTick` of them appear. Previously table order decided who
+spawned at a junction and all of them landed on one frame. One consequence worth knowing: a
+mounted player crossing a busy junction quickly may only trigger one or two gangs where the old
+behaviour would have spawned everything in range. Raise `PatrolSpawnPerTick` if roads feel empty
+in transit.
+
+Tune any of it live with `merc_patrols_budget <men> [gangs] [perGang]`; `merc_patrols_arm 0`
+switches the system off entirely.
 
 **Strength and identity are both in the soul.** There is one soul per **group** per tier —
 `soul_patrol_<group>_1..4` at `combat_level` 0.4 / 0.7 / 0.9 / 1.0 — because the soul carries
@@ -353,6 +388,27 @@ gets there, the `Move` never completes — and a `Move` that completes is restar
 standstill by the loop around it, which is the stop every few metres. The first version
 drove the leader through `nav_goto`, which ends on arrival and gets re-issued, and stopped
 at every waypoint for exactly that reason.
+
+#### The lookahead has to be defended, not just written
+
+The switch radius only helps while the index it advances stays advanced, and two things
+fight it. `PatrolSyncIndex` (every live tick, 3 s) parks the record's index on the point
+*nearest* the leader — but the walk deliberately runs one or two points ahead of that, so
+the sync rewound it and the next tick republished a point he had already walked past.
+A destination 11 m **behind** the previous one makes him brake, turn, and pick the road up
+again 150 ms later: that is the stop at every waypoint, back again with the lookahead
+apparently in place. Measured over one Kuttenberg route it happened 38 times.
+
+Two changes, both needed:
+
+- `PatrolSyncIndex` may only move the index **forward along `rec.dir`** unless a caller
+  forces it (`merc_patrols_here` does, since it is re-seating the gang on the player).
+- `PatrolWalkTick` advances in a **`while` loop** instead of one step, until the published
+  point is beyond the switch radius. One step is only ever enough while nothing else
+  touches the index, and something does.
+
+The rule to keep: the destination handed to that `Move` must be monotone along the route
+and never nearer than `PatrolSwitchR`. Anything that writes `rec.idx` has to respect it.
 
 **The formation is `follow.xml`'s, verbatim**: the leader owns a `MakeFormation` and the
 rest run `FormationFollower` off him, with the same `formationEpoch` / `formationModeCode`

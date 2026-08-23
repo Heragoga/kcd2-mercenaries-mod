@@ -25,7 +25,7 @@ function mercenaries:IsFormationEligible(ent, wuid)
     if not wuid then return false end
     if ent and not self:IsAliveAndWell(ent, false) then return false end
     if self:IsMercInCampProper(wuid) then return false end
-    if self:IsCampActor(wuid) then return false end
+    if self:CampActorGet(wuid) then return false end
     if self.NpcFormations and self.NpcFormations[tostring(wuid)] then return false end
     return true
 end

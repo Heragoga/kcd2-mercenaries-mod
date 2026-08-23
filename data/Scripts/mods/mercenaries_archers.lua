@@ -182,6 +182,7 @@ function mercenaries:HireArcher(cost, amount)
                 self:EquipArcherWeapon(ent)
                 self.ActiveMercs[entityName] = ent
                 self:InjectInteraction(ent)
+                pcall(function() self:CampOnMercJoined(ent) end)
             end
         end
     end)

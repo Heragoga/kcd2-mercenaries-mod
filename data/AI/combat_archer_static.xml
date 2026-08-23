@@ -57,7 +57,7 @@
                                                              burst only when the target is dead / out of arrows. -->
                                                         <Loop count="-1">
                                                             <Sequence>
-                                                                <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                                <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'280ms'" />
                                                                 <ExecuteLua code="mercenaries:UpdateStaticArcherCombatData(data, entity.this.id)" />
                                                                 <IfCondition failOnCondition="false" condition="~$isTargetAlive | $outOfAmmo">
                                                                     <Fail />
@@ -68,7 +68,7 @@
                                                 </SuppressFailure>
                                                 <!-- Small gap before re-entering standFire (e.g. while the target is
                                                      dead and the scheduler is picking the next one) so this can't busy-loop. -->
-                                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                                             </Sequence>
                                         </Loop>
                                     </SuppressFailure>
@@ -79,7 +79,7 @@
                                         <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
                                         <!-- Inside the crime_interruptAttack context = counted as $inCombat by
                                              every scheduler. 300ms matches the CombatScanLoop. See combat_melee.xml. -->
-                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="" />
+                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                                     </Sequence>
                                 </OnFail>
                             </FuseBox>

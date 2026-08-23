@@ -70,6 +70,8 @@ mercenaries.TokenIDQMGate            = "679a655e-189d-4519-b437-ccc4b92bec0d"
 mercenaries.TokenIDQMGates           = "679a655e-189d-4519-b437-ccc4b92bec1d"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
+mercenaries.TokenIDQMTakeAll         = "679a655e-189d-4519-b437-ccc4b92bee3d"
+mercenaries.TokenIDQMTakeThreeQtr    = "679a655e-189d-4519-b437-ccc4b92bee2d"
 mercenaries.TokenIDQMTakeHalf        = "679a655e-189d-4519-b437-ccc4b92be79d"
 mercenaries.TokenIDQMTakeThird       = "679a655e-189d-4519-b437-ccc4b92be7ad"
 mercenaries.TokenIDQMTakeQuarter     = "679a655e-189d-4519-b437-ccc4b92be7bd"
@@ -512,16 +514,39 @@ function mercenaries:SetState(state)
     end
 
     if state == "dismiss" then
+        self:HoldEnd(true)
+        self:EscortEnd(true)
         _G.MercenariesDismissed = true
         self:SaveString("MercenariesDismissed", "1")
         self:LogiUpdateStatusBuffs()   -- clear the HUD icons now, not on the next tick
         Game.SendInfoText('merc_info_dismissed', false, 0, 3)
     elseif state == "wait" then
-        _G.MercIdle = true
-        _G.MercPersistentIdleFlag = true
-        self:SaveString("MercIdlePersistent", "1")
-        Game.SendInfoText('merc_info_waiting', false, 0, 3)
+        -- TOGGLE, not a re-issue. The wheel fires this same token whichever way its
+        -- label currently reads, so a second "wait" has to mean "fall in" or the
+        -- order is one-way: the men plant, and the only way to recall them is the
+        -- E-dialog. Re-planting a line on top of itself is never what was meant.
+        if self.HoldActive then
+            self:SetState("follow")
+            return
+        end
+
+        -- "Wait here" is a real hold order now: they form a line on this ground and
+        -- fight only what comes to it, instead of standing wherever they happened to
+        -- be evicted with nothing pulling them back.
+        --
+        -- MercIdle is deliberately NOT set. The scheduler's idle arm evicts the
+        -- follow tree and then parks the man on a 500ms Wait forever, which would sit
+        -- on the same interrupt slot nav_goto needs to walk him to his station. Hold
+        -- carries its own guards in the formation and straggler sweeps instead, and
+        -- the persistent flag is cleared so a save taken mid-hold cannot come back
+        -- permanently idle.
+        _G.MercIdle = false
+        _G.MercPersistentIdleFlag = false
+        self:SaveString("MercIdlePersistent", "0")
+        self:HoldBegin()
     elseif state == "follow" then
+        self:HoldEnd(true)
+        self:EscortEnd(true)
         _G.MercIdle = false
         _G.MercPersistentIdleFlag = false
         mercenaries:SaveString("MercIdlePersistent", "0")
@@ -579,15 +604,16 @@ System.AddCCommand("merc_bark_test", "mercenaries:BarkTest('%1')", "Manually fir
 -- ignore this flag and keep camping. In-camp mercs are held by their roles, so a
 -- wait order only stops the sortie.
 function mercenaries:SetSortieWait(wait)
+    -- Same hold order as SetState('wait'); see the note there for why MercIdle stays
+    -- off. The men in camp are held by their roles either way.
+    _G.MercIdle = false
+    _G.MercPersistentIdleFlag = false
+    self:SaveString("MercIdlePersistent", "0")
     if wait then
-        _G.MercIdle = true
-        _G.MercPersistentIdleFlag = true
-        self:SaveString("MercIdlePersistent", "1")
-        Game.SendInfoText('merc_info_waiting', false, 0, 3)
+        self:HoldBegin()
     else
-        _G.MercIdle = false
-        _G.MercPersistentIdleFlag = false
-        self:SaveString("MercIdlePersistent", "0")
+        self:HoldEnd(true)
+        self:EscortEnd(true)
         Game.SendInfoText('merc_info_following', false, 0, 3)
     end
 end
@@ -760,6 +786,8 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDAlxLodgingGone, function()
         if not self.AlxLodgingGone then self:AlxLodgingRemove() end
     end)
+    tok(self.TokenIDQMTakeAll,       function() self:CampTakeParty(1.0) end)
+    tok(self.TokenIDQMTakeThreeQtr,  function() self:CampTakeParty(0.75) end)
     tok(self.TokenIDQMTakeHalf,      function() self:CampTakeParty(0.5) end)
     tok(self.TokenIDQMTakeThird,     function() self:CampTakeParty(0.3333) end)
     tok(self.TokenIDQMTakeQuarter,   function() self:CampTakeParty(0.25) end)
@@ -803,49 +831,73 @@ function mercenaries:MonitorInventory()
     -- Formation shape chosen from dialogue or the order wheel
     self:MonitorFormationTokens(p)
 
+    -- Engagement stance, aggression preset and called targets
+    self:MonitorOrderTokens(p)
+    self:MonitorHoldTokens(p)
+
+    -- How hard the quartermaster lets the fighting get
+    self:MonitorDifficultyTokens(p)
+
 end
 
--- The looping function
-function mercenaries.MonitorLoop()
+-- Slot body: work only. The scheduler calls this; MonitorLoop below is the
+-- legacy self-arming path used when merc_sched is off. See docs/performance.md.
+function mercenaries:MonitorLoopBody()
 
     if player and player.inventory then
-        mercenaries:MonitorInventory()
+        mercenaries:ProfCall("mon.MonitorInventory", "MonitorInventory")
     end
-    mercenaries:MonitorMainQuestLoop()
+    mercenaries:ProfCall("mon.MainQuestLoop", "MonitorMainQuestLoop")
+
+    -- What the crosshair is on, remembered so an order fired a second later still
+    -- knows what the player meant; plus the staggered bark queue and the one-shot
+    -- shout when the squad first notices a fight.
+    mercenaries:ProfCall("mon.OrderLookTick", "OrderLookTick")
+    mercenaries:ProfCall("mon.OrderBarkDrain", "OrderBarkDrain")
+    mercenaries:ProfCall("mon.OrderAlertBark", "OrderAlertBarkTick")
+
+    -- Torches at night, camp or no camp: a company on a road after dark carries
+    -- light too. The camp's own lamps stay on the camp tick.
+    mercenaries:ProfCall("mon.NightTorches", "CampNightTorchTick")
 
     if next(mercenaries.ActiveMercs) then
         -- One shared "fell too far behind" pass over the whole squad instead
         -- of every merc's behavior tree running its own raycast sweep.
-        mercenaries:MonitorDistanceAndTeleport()
+        mercenaries:ProfCall("mon.DistanceAndTeleport", "MonitorDistanceAndTeleport")
 
         -- Delayed "return to camp" teleports (mercs bark + jog first).
-        mercenaries:ProcessReturnPending()
+        mercenaries:ProfCall("mon.ProcessReturnPending", "ProcessReturnPending")
     end
 
     -- Tower archers stand off the navmesh, and the AI ground-snaps its actors, so
     -- one that has been knocked/snapped down gets put back. Runs regardless of
     -- ActiveMercs - static archers are not squad members. See KeepStaticArchersUp.
-    pcall(function() mercenaries:KeepStaticArchersUp() end)
+    mercenaries:ProfCall("mon.KeepStaticArchersUp", "KeepStaticArchersUp")
 
     -- Ambush trigger boxes. Independent of ActiveMercs - an ambush can catch a
     -- player travelling alone. See docs/encounters.md.
-    pcall(function() mercenaries:AmbushMonitor() end)
+    mercenaries:ProfCall("mon.AmbushMonitor", "AmbushMonitor")
 
     -- Sleeping in the camp bed saves the game (see docs/camp.md "The player tent").
-    pcall(function() mercenaries:CampBedSleepWatch() end)
+    mercenaries:ProfCall("mon.CampBedSleepWatch", "CampBedSleepWatch")
 
     -- The bandit-camp contract: kill tracking, payout, and building/unloading the camp
     -- as the player comes and goes. See docs/bandit-camp-quest.md.
-    pcall(function() mercenaries:BanditCampMonitor() end)
+    mercenaries:ProfCall("mon.BanditCampMonitor", "BanditCampMonitor")
 
     -- The siege of Raborsch: watches for the player closing on it. See docs/raborsch.md.
-    pcall(function() mercenaries:RaborschMonitor() end)
+    mercenaries:ProfCall("mon.RaborschMonitor", "RaborschMonitor")
 
     -- The pre-combat speech test NPC (docs/aleksej.md).
-    pcall(function() mercenaries:AlxTalkTick() end)
-    pcall(function() mercenaries:AlxLodgingTick() end)
+    mercenaries:ProfCall("mon.AlxTalkTick", "AlxTalkTick")
+    mercenaries:ProfCall("mon.AlxLodgingTick", "AlxLodgingTick")
+end
 
-    Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
+function mercenaries.MonitorLoop()
+    mercenaries:MonitorLoopBody()
+    if not mercenaries.SchedRunning then
+        Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
+    end
 end
 
 -- Enemy detection runs on its own faster tick: it is the squad's reaction time
@@ -854,74 +906,105 @@ end
 -- camped, so the cache is kept fresh regardless of idle state.
 -- PERFORMANCE: skipped entirely when there's no squad to act on it - nothing
 -- reads CachedEnemies if ActiveMercs is empty.
-function mercenaries.CombatScanLoop()
+function mercenaries:CombatScanLoopBody()
     -- Outside the ActiveMercs gate: it only reads a global and a clock, and it
     -- must see the dismount edge even on a tick where the roster is momentarily
     -- empty. See DismountWatch.
-    pcall(function() mercenaries:DismountWatch() end)
+    mercenaries:ProfCall("cmb.DismountWatch", "DismountWatch")
     -- Player speed, smoothed. Read by the mounted leader so he can match it.
-    pcall(function() mercenaries:UpdatePlayerSpeed() end)
+    mercenaries:ProfCall("cmb.UpdatePlayerSpeed", "UpdatePlayerSpeed")
 
     if next(mercenaries.ActiveMercs) then
-        mercenaries:UpdateEnemyCache()
+        -- One NPC box query for this whole pass. UpdateEnemyCache and any other
+        -- consumer slice it by radius instead of running their own. It reads last
+        -- pass's EnemyAlerted to size itself; on the tick the alert first rises the
+        -- slice is too narrow, PerfNpcsNear returns nil and the consumer falls back
+        -- to its own query. See docs/performance.md.
+        mercenaries:ProfCall("cmb.PerfScanNpcs", "PerfScanNpcs")
+        mercenaries:ProfCall("cmb.UpdateEnemyCache", "UpdateEnemyCache")
         -- One squad-wide "is there a fight" flag, off the cache this pass just built.
         -- Mounted mercs poll it to break out of their riding block early; doing that
         -- per merc would be a target scan each, several times a second, per rider.
-        pcall(function() mercenaries:UpdateSquadThreat() end)
+        mercenaries:ProfCall("cmb.UpdateSquadThreat", "UpdateSquadThreat")
+        -- ...and the tighter, latched version of it that decides whether riders get
+        -- down and fight on foot. See UpdateDismountThreat.
+        mercenaries:ProfCall("cmb.UpdateDismountThreat", "UpdateDismountThreat")
     else
         mercenaries.CachedEnemies = {}
         _G.MercSquadThreat = false
+        _G.MercDismountThreat = false
     end
 
     -- Outside the ActiveMercs gate: a battle can be under way with the squad wiped or in
     -- camp, and the boost must still come back down afterwards.
-    pcall(function() mercenaries:LodBoostTick() end)
+    mercenaries:ProfCall("cmb.LodBoostTick", "LodBoostTick")
 
-    Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
+    -- Drives the scheduler's 300ms -> 600ms backoff. Re-evaluated every master tick,
+    -- never latched, so a squad going alert is picked up on the very next tick.
+    if self.SchedMarkIdle then
+        self:SchedMarkIdle("combatscan",
+            not (self.EnemyAlerted or next(self.CachedEnemies or {}) ~= nil))
+    end
 end
 
-function mercenaries.LowPriorityMonitorLoop()
+function mercenaries.CombatScanLoop()
+    mercenaries:CombatScanLoopBody()
+    if not mercenaries.SchedRunning then
+        Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
+    end
+end
+
+function mercenaries:LowPriorityMonitorLoopBody()
     if next(mercenaries.ActiveMercs) then
         -- Pruning matters even while idle now that aggro applies at rest.
-        mercenaries:PruneMercCache()
+        mercenaries:ProfCall("low.PruneMercCache", "PruneMercCache")
 
         if not _G.MercIdle then
-            mercenaries:UpdateFormationSlots()
+            mercenaries:ProfCall("low.UpdateFormationSlots", "UpdateFormationSlots")
         end
 
         -- Archers that emptied their quiver in a fight refill once it's over.
-        mercenaries:ResupplyArchersOutOfCombat()
+        mercenaries:ProfCall("low.ResupplyArchers", "ResupplyArchersOutOfCombat")
     end
 
     -- Static (tower) archers are not in ActiveMercs, so they resupply outside the
     -- block above - they never walk anywhere to restock.
-    pcall(function() mercenaries:ResupplyStaticArchers() end)
+    mercenaries:ProfCall("low.ResupplyStaticArchers", "ResupplyStaticArchers")
 
     -- Outside the ActiveMercs gate on purpose: ambushes and roaming patrols hold
     -- combat claims with no merc anywhere near.
-    pcall(function() mercenaries:PruneCombatClaims() end)
+    mercenaries:ProfCall("low.PruneCombatClaims", "PruneCombatClaims")
 
     -- Re-pin renderer view distance; anything that rebuilds an entity can drop it.
-    pcall(function() mercenaries:RefreshRenderPins() end)
+    mercenaries:ProfCall("low.RefreshRenderPins", "RefreshRenderPins")
 
     -- Roaming patrols run on their own timer; re-arm it if it has died (level change).
-    pcall(function() mercenaries:LivePatrolWatchdog() end)
+    mercenaries:ProfCall("low.LivePatrolWatchdog", "LivePatrolWatchdog")
 
     -- Camp patrol tick runs regardless of ActiveMercs being empty, since a
     -- camp can (briefly) outlive its squad's cache entry.
-    mercenaries:MonitorCamp()
+    mercenaries:ProfCall("low.MonitorCamp", "MonitorCamp")
 
     -- Quartermaster logistics: tiredness / food / drink / wages upkeep.
-    mercenaries:LogiTick()
+    mercenaries:ProfCall("low.LogiTick", "LogiTick")
+end
 
-    Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
-
+function mercenaries.LowPriorityMonitorLoop()
+    mercenaries:LowPriorityMonitorLoopBody()
+    if not mercenaries.SchedRunning then
+        Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
+    end
 end
 
 
 -- Mod Initialization
 function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     System.LogAlways("[Mercenaries] Game loaded! Starting the inventory monitor loop...")
+
+    -- Saver entities belong to the save just loaded, so the tag map must be rebuilt
+    -- before the LoadString calls below read from it.
+    if self.SaverForget then self:SaverForget() end
+
 
     -- Hook Player.OnAction (mouse input for tower placement). Delayed so that a mod
     -- which replaced the callback without chaining cannot lock us out - the same
@@ -938,10 +1021,11 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
         _G.MercPersistentIdleFlag = false
     end
     
+
     -- Load DISMISSED State
     local savedDismissed = mercenaries:LoadString("MercenariesDismissed")
     if savedDismissed == "1" then
-        _G.MercenariesDismissed = true 
+        _G.MercenariesDismissed = true
     else
         _G.MercenariesDismissed = false 
     end
@@ -966,6 +1050,16 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 
     -- Load archer stance + skirmish AI variant
     self:LoadArcherState()
+
+    -- Engagement stance and anti-swarm preset. Hold/escort are deliberately NOT
+    -- restored: they are anchored to a spot in the world the player picked, and a
+    -- squad that reloads still planted on ground he has since left reads as a bug.
+    self:LoadOrderState()
+    self.HoldActive, self.HoldStations, self.EscortEnt = false, {}, nil
+
+    -- Company survival mode: this also rescales the consumption and spoils rates, so
+    -- it has to run before the first logistics tick.
+    self:UpkeepLoad()
 
     -- Camp props are runtime-spawned and don't survive a save, so sweep any that
     -- lingered. The camp itself IS persistent: only its anchor is saved, and
@@ -1011,15 +1105,44 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 
     _G.PlayerMounted = false
 
+    -- Drop every shared cache: entity handles, positions and the patrol index all
+    -- refer to the previous session. See docs/performance.md.
+    if self.PerfReset then self:PerfReset() end
+
+    -- Wrap the BT hooks and the remaining timers with timing. Done here, not at load:
+    -- the profiler loads first and the functions it wraps do not exist yet at that point.
+    if self.ProfEnabled and self.ProfInstrumentAll then
+        pcall(function() self:ProfInstrumentAll() end)
+    end
+    -- Armed regardless of the SCHEDULER (a stalled or disabled master tick is exactly when
+    -- an independent observer is needed), but not when profiling is off - there is nothing
+    -- for it to observe, and `self.ProfHeartbeat` is a function reference, so the old
+    -- condition was always true and left a 4Hz no-op timer running every session.
+    -- merc_prof 1 arms it (see ProfSet).
+    if self.ProfEnabled and self.ProfHeartbeat and not self._profHbArmed then
+        self._profHbArmed = true
+        Script.SetTimerForFunction(self.ProfHeartbeatMs or 250, "mercenaries.ProfHeartbeat")
+    end
+
     -- Rebuild the merc cache: the one permitted full-world NPC scan, on load only.
     Script.SetTimerForFunction(2000, "mercenaries.RebuildMercCacheDelayed")
     -- Put a saved camp back up - after the cache above, since it hands out tents
     -- from ActiveMercs (see RestoreCampDelayed).
     Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
-    Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
-    Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
-    Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
-    Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
+    -- One master tick drives these four instead of four independent timers, so they
+    -- are phase-offset, gated and backed off when idle. merc_sched 0 restores the
+    -- legacy timers at the next load. See docs/performance.md.
+    if self.SchedEnabled and self.SchedRegisterAll then
+        self:SchedRegisterAll()
+        self:SchedStart()
+    elseif self.SchedArmLegacy then
+        self:SchedArmLegacy()
+    else
+        Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
+        Script.SetTimerForFunction(300,  "mercenaries.CombatScanLoop")
+        Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
+        Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
+    end
     -- Post-battle loot sweep. Own tick: it must keep watching CachedEnemies drain
     -- even with no squad orders pending. See docs/loot-sweep.md.
     Script.SetTimerForFunction(1000, "mercenaries.LootSweepLoop")
@@ -1031,13 +1154,22 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 end
 
 -- Register the other scripts (most are also referenced from the AI behaviour trees).
+Script.LoadScript("Scripts/mods/mercenaries_profiler.lua")
+Script.LoadScript("Scripts/mods/mercenaries_perf.lua")
 Script.LoadScript("Scripts/mods/mercenaries_spawning.lua")
+-- Before every system that fields hostiles (raids, patrols, bounty/Kleinkrieg):
+-- they all read the tier at runtime, but it should exist by the time they load.
+Script.LoadScript("Scripts/mods/mercenaries_difficulty.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ai_modules.lua")
 Script.LoadScript("Scripts/mods/mercenaries_equipment.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
 Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")
 Script.LoadScript("Scripts/mods/mercenaries_teleport.lua")
+-- Squad combat orders (engagement stance, aggression, called targets) and the two
+-- standing orders that put the men somewhere specific. See docs/squad-orders.md.
+Script.LoadScript("Scripts/mods/mercenaries_orders.lua")
+Script.LoadScript("Scripts/mods/mercenaries_hold.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation.lua")
 Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
@@ -1090,6 +1222,8 @@ Script.LoadScript("Scripts/mods/mercenaries_siege.lua")
 -- After the siege builder: the siege replay resolves its pieces against that catalogue.
 Script.LoadScript("Scripts/mods/mercenaries_raborsch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_aleksej.lua")
+-- Last: every slot body it registers must already be defined.
+Script.LoadScript("Scripts/mods/mercenaries_scheduler.lua")
 
 
 -- Prints every merc console command with a one-line description.
@@ -1102,6 +1236,15 @@ function mercenaries:PrintHelp()
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
         "merc_camp_recall (F4)                bring the whole squad to you from anywhere (doesn't break camp)",
         "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
+        "merc_hold / merc_hold_end            hold this ground: a line with archers on the flanks, and a leash (docs/squad-orders.md)",
+        "merc_escort / merc_escort_end        escort whoever you are looking at, in column",
+        "merc_focus / merc_focus_clear        call the target you are looking at (or locked onto) for the whole squad",
+        "merc_engage_default|aggressive|defend|hold   rules of engagement",
+        "merc_aggro_tight|balanced|loose      how hard they pile onto one enemy",
+        "merc_orders_status / merc_hold_status        report the squad's combat and standing orders",
+        "merc_difficulty easy|medium|difficult|extreme|impossible|horde   raid/patrol/contract difficulty (docs/difficulty.md)",
+        "merc_difficulty_status               the tier and the ceilings it implies",
+        "merc_autodismount 0|1                mercs get off their horses to fight",
         "merc_formation_column|line|square|wedge|circle|escort|vanilla   marching shape (see docs/formations.md)",
         "merc_formation_relaxed|keepshape|movehistory              how followers hold the shape",
         "merc_formation_relocate_on|off / merc_formation_status    crowding + diagnostics",

@@ -53,13 +53,42 @@ They still spawn under the melee `medium` tier name (`mercenaries.ArcherTier`) r
 
 ---
 
+## Follow / leash parity with the melee mercs
+
+Three places where `archer_scheduler.xml` had drifted from `mercenary_scheduler.xml` and produced the "archers behave weirdly" symptoms:
+
+- **De-target distance** was a flat 40 m. It now comes from `MercLeashes` (`$deTargetDist`) and scales with squad size, so a rear-rank archer is no longer handed a target and told to drop it on the same tick. `UpdateRangedCombatData`'s friend leash follows the same `MeleePlayerLeash()`.
+- **The follow re-arm loop was missing.** `FollowStalled` (raised by the teleporter's repeat-straggler counter) sets a flag nothing consumed, so a stalled archer kept `$isFollowingActive` set forever and never re-fired `follow`. The melee scheduler's `PollFollowRefire` / `ConsumeFollowRefire` + `teleport`-evict loop is now here too.
+- **The 8 s distance self-heal fired at 15 m, not 35 m.** Archers form up at the *back* of the formation, so 15 m is a normal rear-rank distance — every needless restart dropped them out of `FormationFollower`, their only locomotion, and they coasted further back and re-tripped it.
+
+Archers are also exempt from the emergency teleporter's in-combat exemption — see docs/formations.md.
+
+## Engagement bands
+
+How close an archer fights is per weapon type, from `mercenaries.ArcherBands` (`mercenaries_ai_modules.lua`). Every threshold in `combat_archer_dynamic.xml` is published from there each cycle, so changing the table is the whole knob.
+
+| Weapon | `melee` | `keepMin` | `keepMax` |
+|---|---|---|---|
+| Bow | 4.5 m | 9 m | 35 m |
+| Crossbow | 4.5 m | 9 m | 35 m |
+| Hand cannon | 3 m | 5 m | 12 m |
+
+- Below `melee` (or out of ammo) — sidearm burst, until the gap reopens past `melee + 7.5`.
+- Between `melee` and `keepMin` — step back to the edge of the band, then fire.
+- Between `keepMin` and `keepMax` — stand and fire.
+- Beyond `keepMax` — **walk in** to just outside `keepMin`, then fire.
+
+The approach state is why hand cannons work at all. Before it existed the module never advanced, so an archer's engagement range was simply wherever the follow formation had left him standing — fine for a bow, useless for a ten-metre weapon. Approach points are refused when they would put the archer more than 35 m from the player, or across a camp wall.
+
+Enemy and patrol archers always take the bow band: only the player's archers have a chosen weapon type.
+
 ## Archer stances (separate from the melee squad stance)
 
 Set via any merc's dialog → "Change combat orders..." → "Orders for the archers", or console:
 
 | Stance | Console | Behaviour |
 |---|---|---|
-| **Skirmish** (default) | `archer_stance_skirmish` | Shoot while keeping distance (`combat_archer_dynamic`): stand-and-fire, but when an enemy closes into the 4.5-9m band the archer steps ~4m back (ground-validated) and resumes shooting. The player leash + scheduler follow logic drags them along when the fight moves. Never melee unless an enemy is within ~5m (or the quiver is empty), and they disengage back to the bow once the threat is dead or 12m+ away. |
+| **Skirmish** (default) | `archer_stance_skirmish` | Shoot at the range the weapon actually wants (`combat_archer_dynamic`): stand-and-fire inside the band, walk in when too far, step back (ground-validated) when the enemy closes. The player leash + scheduler follow logic drags them along when the fight moves. Sidearm only when an enemy is inside `meleeRange` (or the quiver is empty), and back to the ranged weapon once the threat is dead or the gap reopens past `reengageRange`. See **Engagement bands** below. |
 | **Melee** | `archer_stance_melee` | Sheathe the bow, draw the sidearm, fight like a regular merc (`WeaponChange="melee"`). |
 | **Hold** | `archer_stance_hold` | Don't engage at all; disengage if already fighting. |
 

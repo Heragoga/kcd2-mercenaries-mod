@@ -49,18 +49,35 @@ mercenaries.LodRatioBands = {
 mercenaries.LodRatioAuto  = true
 mercenaries._lodRatioBand = nil
 
-function mercenaries:LodRatioForCrowd(crowd)
+-- A band change is expensive: a 300m NPC query, a SetLodRatio per NPC and a log write.
+-- The crowd count it keys off is live and noisy (CachedEnemies gains and loses entries
+-- every scan as enemies close, die or re-engage), so a fight sitting near 70, 100 or 150
+-- re-crossed the edge and paid that cost every 300ms tick. Hysteresis plus a dwell time
+-- makes a band change a real event rather than jitter. See docs/performance.md.
+mercenaries.LodRatioMargin    = 12     -- must clear the edge by this much to drop a band
+mercenaries.LodRatioDwellSecs = 8.0    -- and no two changes closer together than this
+mercenaries._lodRatioAt       = nil
+
+-- Asymmetric on purpose: rising to a bigger crowd takes effect immediately, falling has
+-- to clear the margin, so a fight that thins out briefly does not drop a band and bounce.
+function mercenaries:LodRatioForCrowd(crowd, current)
+    local margin = self.LodRatioMargin or 0
     for _, b in ipairs(self.LodRatioBands) do
-        if crowd >= b.crowd then return b.ratio end
+        local edge = b.crowd
+        if current and current == b.ratio then edge = edge - margin end
+        if crowd >= edge then return b.ratio end
     end
     return nil   -- under the smallest band: hand mesh LOD back to the engine
 end
--- Trigger on CROWD, not on combat. The first version fired only on >=3 live hostiles, and a
--- log with ~50 mercs and no enemies showed it never engaging at all - yet that is exactly the
--- case that oversubscribes the budget, because the Detail budget is a COUNT and the mod's own
--- mercs consume it just as enemies do. A 50-man squad in a city is 50 slots out of 70 before
--- a single bandit turns up.
-mercenaries.LodBoostMinCrowd = 8      -- our mercs + nearby hostiles past this = raise the budget
+-- Trigger on CROWD, but crowd must not be squad size alone: MercCount is a raw,
+-- distance-unfiltered headcount, so at the old threshold of 8 simply HIRING that many mercs
+-- latched the boost on permanently - in town, in camp, everywhere. Same false-trigger the
+-- mesh-LOD ladder above already had and was banded to fix (see LodRatioBands and
+-- docs/npc-lod.md:69-80). Mirrored here the same way: the threshold now sits well past
+-- MaxCompanions, and mercs only join the count once there is something to fight. See
+-- docs/performance.md, "The AI-LOD cvar boost".
+mercenaries.LodBoostMinCrowd    = 70     -- our mercs + nearby hostiles past this = raise the budget
+mercenaries.LodBoostRequireFoes = true   -- mercs count toward crowd only while CachedEnemies is non-empty
 mercenaries.LodBoostHoldSecs = 20.0   -- stay boosted this long after it drops, so it cannot flap
 mercenaries._lodSaved        = nil
 mercenaries._lodLastFoeAt    = nil
@@ -130,6 +147,15 @@ local function setCVar(n, v)
     pcall(function() System.SetCVar(n, v) end)
 end
 
+-- System.GetCVar can hand back a number or a string depending on the cvar, so compare
+-- tolerantly - a float formatting mismatch (e.g. "0.05" vs 0.05) must not force a write.
+local function cvarSame(cur, want)
+    if cur == want then return true end
+    local cn, wn = tonumber(cur), tonumber(want)
+    if cn and wn then return cn == wn end
+    return tostring(cur) == tostring(want)
+end
+
 -- Saves what is live RIGHT NOW rather than a hardcoded stock table: the game loads different
 -- cvar overrides per context (Battle.cfg, performanceDemandingArea.cfg...), so the value to
 -- restore is whatever was in force when the fight started, not what the docs measured once.
@@ -157,10 +183,14 @@ end
 -- the top of ours - performanceDemandingArea.cfg alone clamps MaxDetailDistance=150,
 -- MaxCountDetail=70 and e_ViewDistRatioCustom=80. Setting them once and walking away means
 -- the boost survives only until the next context change, which in a battle is immediately.
+--
+-- Compare-before-write: read each cvar back and only call SetCVar when it actually differs, so
+-- a tick nothing has reset costs ~22 reads instead of ~22 writes. Cadence stays 300ms - that is
+-- what stops the LOD popping this system exists to fix. docs/performance.md.
 function mercenaries:LodBoostReassert()
     if not self.LodBoostActive then return end
     for _, e in ipairs(self.LodBoostCvars) do
-        setCVar(e[1], e[2])
+        if not cvarSame(getCVar(e[1]), e[2]) then setCVar(e[1], e[2]) end
     end
     self:LodRatioAutoApply()
 end
@@ -178,8 +208,15 @@ function mercenaries:LodRatioAutoApply()
             crowd = (_G.MercCount or 0) + #(S.foot or {}) + #(S.archers or {})
         end
     end)
-    local want = self:LodRatioForCrowd(crowd)
+    local want = self:LodRatioForCrowd(crowd, self._lodRatioBand)
     if want == self._lodRatioBand then return end
+
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if self._lodRatioAt and (now - self._lodRatioAt) < (self.LodRatioDwellSecs or 0) then
+        return
+    end
+    self._lodRatioAt   = now
     self._lodRatioBand = want
     local list, n = self:LodModNpcs(), 0
     for _, e in ipairs(list) do
@@ -216,6 +253,15 @@ function mercenaries:LodBoostOff()
     lbLog("battle LOD budget restored")
 end
 
+-- crowd = mercs + nearby hostiles, but mercs only join the count once there is something to
+-- fight (LodBoostRequireFoes) - otherwise a big idle squad alone latches the boost on. Second
+-- return is the foe count, for callers that want to explain the number. docs/performance.md.
+function mercenaries:LodBoostCrowd()
+    local foes  = #(self.CachedEnemies or {})
+    local mercs = (self.LodBoostRequireFoes and foes == 0) and 0 or (_G.MercCount or 0)
+    return mercs + foes, foes
+end
+
 -- Driven from CombatScanLoop (300ms). CachedEnemies is already built by that pass, so this
 -- costs a table length and a clock read.
 function mercenaries:LodBoostTick()
@@ -231,7 +277,7 @@ function mercenaries:LodBoostTick()
         return
     end
 
-    local crowd = (_G.MercCount or 0) + #(self.CachedEnemies or {})
+    local crowd = self:LodBoostCrowd()
     local now   = 0
     pcall(function() now = System.GetCurrTime() or 0 end)
 
@@ -430,10 +476,30 @@ function mercenaries:LodRatioAutoSet(v)
 end
 
 function mercenaries:LodBoostStatus()
+    local crowd, foes = self:LodBoostCrowd()
+    local why
+    if self.LodBoostPinned then
+        why = "pinned"
+    elseif not self.LodBoostEnabled then
+        why = "disabled"
+    elseif crowd >= self.LodBoostMinCrowd then
+        why = "crowd >= min"
+    elseif self.LodBoostActive then
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        local left = self.LodBoostHoldSecs - (now - (self._lodLastFoeAt or now))
+        why = string.format("holding, crowd < min, %.0fs left", math.max(0, left))
+    elseif self.LodBoostRequireFoes and foes == 0 then
+        why = "crowd < min (no hostiles, mercs not counted)"
+    else
+        why = "crowd < min"
+    end
     lbLog("enabled=" .. tostring(self.LodBoostEnabled) ..
           " pinned=" .. tostring(self.LodBoostPinned) ..
           " active=" .. tostring(self.LodBoostActive) ..
-          " crowd=" .. tostring((_G.MercCount or 0) + #(self.CachedEnemies or {})))
+          " crowd=" .. tostring(crowd) .. " foes=" .. tostring(foes) ..
+          " min=" .. tostring(self.LodBoostMinCrowd) ..
+          " why=" .. why)
     for _, e in ipairs(self.LodBoostCvars) do
         lbLog("  " .. e[1] .. " = " .. tostring(getCVar(e[1])) .. " (boost " .. tostring(e[2]) .. ")")
     end

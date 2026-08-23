@@ -129,6 +129,16 @@ attention. See "When the fight opens" below.
 
 ### Gaps and gate radius
 
+**Gates come first.** If the camp is walled and has any gate, `WBGateGaps` builds the gap
+list straight off the gates — one gap per gate, on the bearing from the camp centre, as
+wide as `GateWidth` — and the ray sweep below never runs. Attackers therefore always
+muster in front of a gate and come in through it, and a *shut* gate is still a gap: it is
+where the fight will be, not a hole in the pathing. Without that, a sealed camp has no
+walkable bearing at all and falls through to the "wholly enclosed" stand-in, which points
+at due east rather than at anything the camp actually has.
+
+The rest of this section is what happens on a walled camp with **no** gate.
+
 A gap is a bearing along which you can leave camp without crossing a wall, found by a
 72-ray sweep from the camp centre — that works for a ring left open, several separate runs,
 or a deliberate gateway. The sweep passes `margin = 0` so a narrow gateway is not sealed
@@ -184,15 +194,23 @@ tear the order down and re-issue it every poll.
 
 Whichever comes first:
 
-- **contact** — any attacker within `WBEngageDist` of any defender. Since that distance is
-  about the width of no-man's-land between the two lines, the first man to reach the gap
-  starts it; everyone still short of their slot is released and walks in under their own
-  behaviour, like any other fight
+- **contact** — any attacker within `WBEngageDist` of any defender, *once the attacking
+  side has met `WBStageQuorum`*. That distance is about the width of no-man's-land between
+  the two lines, so without the quorum test the first raider to reach the gate would open
+  the fight and the rest of the column would feed in behind him a man at a time. They
+  gather, then go in. A lone attacker is his own quorum, so an ordinary enemy walking up to
+  the camp still starts a fight the moment he is in reach. Everyone still short of their
+  slot is then released and walks in under their own behaviour, like any other fight
 - both lines formed (per-side quorum) plus `WBStageGrace`
 - the staging allowance expiring
 
 The quartermaster is a defender. He is not in `ActiveMercs`, so before that he was the one
 man with no muster point and no combat lock, and charged through the wall alone.
+
+Turning `battle` on also runs `WBForceGates`: every gate the attackers were assigned to is
+swung open, so a raid that formed up outside a barred gate comes in through it instead of
+standing at a solid wall. Only the gates under attack move — read off `WBAssign`, which is
+why it runs before the assignments are dropped. Gates elsewhere on the perimeter stay shut.
 
 ### Movement is BT-driven
 
@@ -223,11 +241,34 @@ not clockwork), and only when:
   nobody is there to fight is just a band of men standing in a field
 - no fight is already under way (`WBPhase` is idle and no raid force is still alive)
 
-The force is `RaidShare` (80%) of the living company, clamped to `RaidMinCount`..`RaidMaxCount`,
-so it is a real fight without taking away the edge the wall and the archers are meant to give.
-Its quality follows the company's own: the mean of the men's tiers picks the enemy group
-through `RaidGroupByTier`, reusing the mapping the old renegade tiers used
-(weak → looters, medium → bandits, strong → knights).
+Barred gates used to stand the raid watch down; they no longer do. `RaidSealed` survives
+only as a line in `merc_raid_status`.
+
+### The roster
+
+Who turns up is rolled at launch from `RaidRoster`, **every group equally likely**. The
+company's own quality no longer picks the enemy — what varies is `share`, the number of
+raiders per living man in the company, because the groups are nowhere near each other in
+worth:
+
+| Group | Key | Share | 13-man company faces |
+|---|---|---|---|
+| Sigismund's knights | `knight` | 0.5 | 7 |
+| Sigismund's soldiers | `sigi` | 0.6 | 8 |
+| Prague regiment (Kuttenberg) | `prague` | 0.6 | 8 |
+| Cumans | `cuman` | 0.7 | 9 |
+| Bandits | `bandit` | 1.0 | 13 |
+| Looters | `looter` | 1.0 | 13 |
+
+Knights at even numbers would be a massacre and looters at even numbers a warm-up, so the
+count is what levels them — half a dozen knights and a full dozen looters are both a fight
+for the same company. `RaidPick` rolls the group and sizes it in one call; the result is
+clamped to `RaidMinCount`..`RaidMaxCount` (**3..14**), so a four-man camp is not walked
+over and a full one is not besieged. Knights carry no archer souls, so a knight raid is
+all melee (`SpawnEnemyAt` downgrades the archer slots by itself).
+
+Because the group is only rolled when the raid launches, `merc_raid_status` cannot name it
+in advance — it prints the whole draw instead, sized against the company you have now.
 
 The next raid day is saved (`QMRaidNextDay`) so it survives a reload, and a clock that jumps
 backwards re-arms rather than firing immediately.

@@ -72,7 +72,7 @@
                                         <Expression expressions="$campFired = true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'500ms'" />
+                                <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'800ms'" />
                             </Sequence>
                         </Loop>
 
@@ -101,7 +101,7 @@
                                         <Expression expressions="$fdFired = true" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="&apos;1s&apos;" timeType="GameTime" doFail="false" variation="&apos;200ms&apos;" />
+                                <Wait duration="&apos;1s&apos;" timeType="GameTime" doFail="false" variation="&apos;400ms&apos;" />
                             </Sequence>
                         </Loop>
 
@@ -114,7 +114,7 @@
                                         <Function_switch_handleDialog dialogRequest="$dialogRequest" nodeLabel="68945293" />
                                     </ProcessMessage>
                                 </SuppressFailure>
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                             </Sequence>
                         </Loop>
 
@@ -133,7 +133,7 @@
                                         <Expression expressions="$inCombat = false" />
                                     </Else>
                                 </EntityContextCheck>
-                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'800ms'" timeType="GameTime" doFail="false" variation="'320ms'" />
                             </Sequence>
                         </Loop>
 
@@ -142,7 +142,7 @@
                         <Loop count="-1">
                             <Sequence>
                                 <ExecuteLua code="mercenaries:FindQuartermasterTarget(data, entity.this.id)" />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -168,14 +168,14 @@
                                             <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                         </IfCondition>
                                         <Expression expressions="$isIdleActive = false" />
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
                                 <!-- Fight ongoing (or a target still pending): let the combat
                                      tree run, don't touch the idle behaviour. -->
                                 <IfCondition failOnCondition="false" condition="$inCombat | $qmHasTarget">
-                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                 </IfCondition>
 
                                 <!-- Default: stand and occasionally eat. Fired once (guarded by
@@ -200,7 +200,7 @@
                                                 <Expression expressions="$isIdleActive = true" />
                                             </Sequence>
                                         </IfCondition>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
@@ -221,7 +221,7 @@
                                         <AddInterrupt Target="$this.id" Host="$wbMrkev" Behavior="'nav_goto'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
 

@@ -32,7 +32,7 @@
                                         <ExecuteLua code="System.LogAlways('[TestNpc] walk interrupt fired')" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
 
@@ -49,7 +49,7 @@
                                         <ExecuteLua code="System.LogAlways('[Nav] goto interrupt fired')" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                             </Sequence>
                         </Loop>
 

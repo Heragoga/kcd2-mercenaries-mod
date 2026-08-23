@@ -153,6 +153,57 @@ mercenaries.BanditCampChestLoot = {
     { "009a655e-189d-4519-b437-ccc4b92be48d", 1, 2, 0.4 },   -- loot_sackOfNails
 }
 
+-- One flavour rolled per Kleinkrieg chest (KK contract chest, every Aleksej beat's camp chest,
+-- and the beat-6 lodging chest), on TOP of the coin and whatever the quest itself requires -
+-- those two are never part of this table and are granted unconditionally at each call site.
+-- Same row shape as BanditCampChestLoot: { class, minimum, maximum, chance }, rolled
+-- independently once a pool is picked. craft reuses BanditCampChestLoot itself rather than
+-- duplicating its rows. Extend any pool here without touching a single stocking function.
+--
+-- healing and gear are vanilla GUIDs (item.xml / item__alchemy.xml) never exercised by this
+-- mod's own CreateItem before - verified by grepping references/Libs/Tables/item/ directly for
+-- each Id= (no IsQuestItem on any of them), but smoke-test with merc_banditcamp_chest_probe or
+-- the AlxGiveItem read-back once before shipping. Gear reuses four of AlxKnightHarness's own
+-- pieces (mercenaries_aleksej.lua) - those ARE proven to CreateItem in this mod already - plus
+-- two vanilla arm pieces found the same way as the healing rows.
+mercenaries.KleinkriegRewardPools = {
+    craft = mercenaries.BanditCampChestLoot,
+    healing = {
+        { "9fa3000e-3807-48a8-bed8-81427f0bda55", 1, 3, 0.6 },   -- bandage_classic
+        { "b38c34b7-6016-4f64-9ba2-65e1ce31d4a1", 1, 2, 0.5 },   -- potion_marigold
+        { "761f9e84-e07b-4b4b-9425-7681898abccd", 1, 2, 0.35 },  -- potion_marigold_medium
+        { "b4e0af8c-3ed7-40ed-8537-7772489832c8", 1, 1, 0.2 },   -- potion_marigold_high
+        { "928463d9-e21a-4f7c-b5d3-8378ed375cd1", 1, 2, 0.3 },   -- potion_saviourSchnapps
+        { "3d4a8904-98f1-464a-9b3e-d3926b835804", 1, 1, 0.15 },  -- potion_saviourSchnapps_high
+    },
+    gear = {
+        { "1b4b6487-72cc-409e-9296-692b53e0429e", 1, 1, 0.5 },   -- arming cap, CoifCap01_m01_C
+        { "09ae6cbc-77d1-4686-801e-871b49440d7d", 1, 1, 0.35 },  -- gauntlets, Gauntlets05_m01_A5
+        { "078e439b-1a5b-40ca-b009-d4abf6fcf810", 1, 1, 0.4 },   -- padded hose, LegsPadded01_m07_C3
+        { "569438e6-7cae-483b-a4db-d1d25aa783d0", 1, 1, 0.4 },   -- boots, BootsKnee01_m01_C
+        { "a3c3146a-84a7-4c98-a7a9-eb27d547e547", 1, 1, 0.3 },   -- ArmPlate01_m03_C2
+        { "a42c2f51-88e5-45ce-b672-aa4e4e42a4ee", 1, 1, 0.12 },  -- BrigandineArm03_m05_C2, rare
+    },
+}
+mercenaries.KleinkriegRewardPoolNames = { "craft", "healing", "gear" }
+
+-- Pick one flavour and roll its rows into an inventory (player, NPC, or Stash - all take the
+-- same CreateItem call). Same "attempt every row, no per-row verify" idiom as the craft loop
+-- this replaces; the coin already stocked is what's verified, per chest.
+function mercenaries:KleinkriegRollPool(inv)
+    if not inv then return 0 end
+    local names = self.KleinkriegRewardPoolNames
+    local pool = self.KleinkriegRewardPools[names[math.random(#names)]]
+    local rolled = 0
+    for _, L in ipairs(pool or {}) do
+        if math.random() < (L[4] or 1) then
+            pcall(function() inv:CreateItem(L[1], 1, math.random(L[2] or 1, L[3] or 1)) end)
+            rolled = rolled + 1
+        end
+    end
+    return rolled
+end
+
 mercenaries.BanditCampLeaderSoul = "7a1c9e40-5d2b-4f83-9c16-8e5a3b7d0f21"
 
 -- Props are despawned when the player is this far from the camp centre, and the whole
@@ -911,7 +962,11 @@ function mercenaries:BanditCampScale()
         count = math.floor(math.max(1, F) * (c.ratio or 1.0) + 0.5)
     end
     if count < (c.min or 3) then count = c.min or 3 end
+    -- Contract sizing is the one the player chose a difficulty for; F (the men who
+    -- actually walked out) is the right strength to cap against, not the payroll.
+    pcall(function() count = self:DifficultyCount(count, math.max(1, F), c.min or 3) end)
     local cap = (F == 0) and 10 or 20
+    pcall(function() cap = self:DifficultyCeil(cap) end)
     if count > cap then count = cap end
 
     local archers = math.floor(count * (c.archerFrac or 0))
@@ -1018,16 +1073,9 @@ function mercenaries:BanditCampChestInsert(e)
     pcall(function() e.inventory:CreateItem(self.BanditCampMoneyItem, 1, coin) end)
     if count(self.BanditCampMoneyItem) <= 0 then return 0, nil end   -- inventory not ready yet
 
-    -- Rolled per row, so two camps never hold quite the same haul.
-    local rolled = 0
-    for _, L in ipairs(self.BanditCampChestLoot or {}) do
-        local cls, lo, hi, chance = L[1], L[2], L[3], L[4]
-        if math.random() < (chance or 1) then
-            local amt = math.random(lo or 1, hi or 1)
-            pcall(function() e.inventory:CreateItem(cls, 1, amt) end)
-            rolled = rolled + 1
-        end
-    end
+    -- One flavour per chest - craft materials, healing, or gear - so two camps never hold quite
+    -- the same haul (mercenaries.KleinkriegRewardPools).
+    local rolled = self:KleinkriegRollPool(e.inventory)
     qLog(string.format("chest: %d groschen and %d kind(s) of stock", coin, rolled))
     return 1, "entity.inventory"
 end
@@ -1140,10 +1188,23 @@ end
 -- archers are untouched.
 -- Asked from outside the monitor's pass, so it walks every slot rather than trusting the
 -- pointer: a bandit of the bounty camp is suppressed by the BOUNTY camp's alert flag.
+-- Cheap precondition for the hot path. IsValidEnemy asks about suppression for EVERY nearby
+-- NPC on every 300ms combat scan, so in a crowd this runs dozens of times a tick - and the
+-- answer is "no camp is suppressing anything" in almost every session. Two table lookups,
+-- no allocation, no string. See docs/performance.md "Costs that scale with NPC density".
+function mercenaries:BanditCampAnyUnalerted()
+    local S = self.BCQ_KK
+    if S and S.active and S.spawned and not S.alerted then return true end
+    S = self.BCQ_BO
+    if S and S.active and S.spawned and not S.alerted then return true end
+    return false
+end
+
 function mercenaries:BanditCampSuppressed(wuidStr)
-    for _, S in ipairs(self:BanditCampSlots()) do
-        if self:BanditCampSlotSuppresses(S, wuidStr) then return true end
-    end
+    -- Slots walked directly rather than through BanditCampSlots(): that builds a fresh
+    -- two-element table on every call, and this is a per-NPC-per-tick path.
+    if self:BanditCampSlotSuppresses(self.BCQ_KK, wuidStr) then return true end
+    if self:BanditCampSlotSuppresses(self.BCQ_BO, wuidStr) then return true end
     return false
 end
 
@@ -2370,18 +2431,23 @@ function mercenaries:BanditCampSignal(tokenId)
     self.BanditCampTokenSeen[tokenId] = false
 end
 
+-- TokenIDKKPhase and BountySweepTokens are assigned once at load and never
+-- reassigned, so the combined list is built once and reused.
 function mercenaries:BanditCampSweepTokens()
     if not (player and player.inventory) then return end
     self.BanditCampTokenSeen = self.BanditCampTokenSeen or {}
-    local sweep = { self.TokenIDBanditCampCleared, self.TokenIDBanditCampUp,
-                    self.TokenIDKKArcDone, self.TokenIDKKPhaseAlt,
-                    self.TokenIDKKSearch, self.TokenIDKKReport,
-                    self.TokenIDKKOpen, self.TokenIDKKShut,
-                    self.TokenIDKKReady, self.TokenIDKKUnready }
-    for _, id in ipairs(self.TokenIDKKPhase) do table.insert(sweep, id) end
-    -- The bounty's Lua->Skald signals, registered by mercenaries_bounty.lua.
-    for _, id in ipairs(self.BountySweepTokens or {}) do table.insert(sweep, id) end
-    for _, id in ipairs(sweep) do
+    if not self._bcSweepTokens then
+        local sweep = { self.TokenIDBanditCampCleared, self.TokenIDBanditCampUp,
+                        self.TokenIDKKArcDone, self.TokenIDKKPhaseAlt,
+                        self.TokenIDKKSearch, self.TokenIDKKReport,
+                        self.TokenIDKKOpen, self.TokenIDKKShut,
+                        self.TokenIDKKReady, self.TokenIDKKUnready }
+        for _, id in ipairs(self.TokenIDKKPhase) do table.insert(sweep, id) end
+        -- The bounty's Lua->Skald signals, registered by mercenaries_bounty.lua.
+        for _, id in ipairs(self.BountySweepTokens or {}) do table.insert(sweep, id) end
+        self._bcSweepTokens = sweep
+    end
+    for _, id in ipairs(self._bcSweepTokens) do
         pcall(function()
             local c = player.inventory:GetCountOfClass(id)
             if c and c > 0 then

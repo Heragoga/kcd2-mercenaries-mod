@@ -101,10 +101,23 @@ function mercenaries:RefreshRenderPins()
     end
 end
 
+-- Turning the pin off now actually un-pins the live squad, so this is a usable A/B:
+-- pinned mercs are never distance-culled and never LOD-reduced, which is the mod's
+-- largest standing per-merc engine cost. 100 is the entity default ratio (never pass 0,
+-- that is the MINIMUM - see the note at the top of this file). docs/performance.md.
 function mercenaries:RenderPinSet(v)
     self.RenderPin = (tostring(v or ''):match('1') ~= nil)
-    System.LogAlways('[Mercenary Jeff] render pin ' .. (self.RenderPin and 'ON' or 'OFF (restart to fully clear)'))
-    if self.RenderPin then self:RefreshRenderPins() end
+    if self.RenderPin then
+        self:RefreshRenderPins()
+        System.LogAlways('[Mercenary Jeff] render pin ON')
+    else
+        local n = 0
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            if pcall(function() ent:SetViewDistRatio(100) end) then n = n + 1 end
+        end
+        System.LogAlways('[Mercenary Jeff] render pin OFF - restored default view distance on '
+                         .. n .. ' merc(s); they can be distance-culled again')
+    end
 end
 
 System.AddCCommand("merc_render_pin", "mercenaries:RenderPinSet('%line')",
@@ -178,6 +191,7 @@ function mercenaries:PruneCombatClaims()
             if self.ForcedTargetOf then self.ForcedTargetOf[k] = nil end
         end
     end
+
 end
 
 -- Dot syntax on purpose: invoked by name from Script.SetTimerForFunction,
@@ -261,8 +275,11 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
         if rotatedDir then
             local checkVec = VectorUtils.Scale(rotatedDir, rayDistance)
             -- Use ent_terrain + ent_static: ignore dynamic entities (NPCs, horses, etc.)
+            -- Param 5 is a skip-entity ID, not an entity table. Passing the table made
+            -- the engine log a parameter-type warning per ray AND ignore the skip, so the
+            -- ray could hit the very entity it was cast from. Vanilla passes self.id.
             local hits = Physics.RayWorldIntersection(eyePos, checkVec, 2,
-                ent_terrain + ent_static, pe, nil, hitTable)
+                ent_terrain + ent_static, (pe and pe.id) or nil, nil, hitTable)
 
             local clearDist = rayDistance
             if hits > 0 and hitTable[1] and hitTable[1].dist then
@@ -318,14 +335,26 @@ end
 -- tree/rock/roof tops, and if blocked we spiral out in `step` rings up to
 -- `maxRadius` for a clear tile. Pass the squad's z as `refZ` so "valid" means
 -- near their level, not a ledge above. Falls back to a plain snap.
-function mercenaries:FindValidGround(pos, refZ, maxRadius, step)
+-- maxTries bounds the WORST case. Each candidate costs up to 9 physics raycasts via
+-- CampValidateSpot, and the full 3.0m/0.5m spiral is 132 candidates - 1,188 rays for a
+-- single call, synchronous, and 19 call sites used the bare defaults. The burst callers
+-- are the problem: a camp raid places up to 14 units and an ambush scene 12, all in one
+-- frame. Keeping the fine 0.5m step preserves precision near the origin, where almost
+-- every call succeeds; the budget only truncates the hopeless case (dense forest), which
+-- then falls through to the plain ground snap below exactly as an exhausted spiral did.
+-- See docs/performance.md.
+function mercenaries:FindValidGround(pos, refZ, maxRadius, step, maxTries)
     if not pos then return pos end
     refZ = refZ or pos.z
     maxRadius = maxRadius or 3.0
     step = step or 0.5
+    maxTries = maxTries or 40
     local foot = self.CampMercFootprint or 0.6
+    local tries = 0
 
     local function try(x, y)
+        if tries >= maxTries then return nil end
+        tries = tries + 1
         local okv, v, gz = pcall(function()
             local valid, groundZ = self:CampValidateSpot({ x = x, y = y, z = refZ }, refZ, foot)
             return valid, groundZ
@@ -338,12 +367,13 @@ function mercenaries:FindValidGround(pos, refZ, maxRadius, step)
     if hit then return hit end
 
     local r = step
-    while r <= maxRadius + 1e-6 do
+    while r <= maxRadius + 1e-6 and tries < maxTries do
         local n = math.max(8, math.floor((2 * math.pi * r) / step))
         for k = 0, n - 1 do
             local a = (k / n) * 2 * math.pi
             hit = try(pos.x + math.cos(a) * r, pos.y + math.sin(a) * r)
             if hit then return hit end
+            if tries >= maxTries then break end
         end
         r = r + step
     end
@@ -361,7 +391,10 @@ function mercenaries:IsAliveAndWell(ent, allowUnconscious)
     if ent.actor.IsDead and ent.actor:IsDead() then return false end
     if not allowUnconscious and ent.actor:IsUnconscious() then return false end
 
-    local ok, hp = pcall(function() return ent.soul:GetState('health') end)
+    -- pcall(method, obj, arg) rather than pcall(function() ... end): the closure form
+    -- allocates on every call, and this is the single most-called predicate in the mod -
+    -- once per nearby NPC per combat scan, so its garbage scales with crowd density.
+    local ok, hp = pcall(ent.soul.GetState, ent.soul, 'health')
     if not ok or hp == nil or hp <= 0 then return false end
 
     return true
@@ -403,6 +436,7 @@ function mercenaries.DespawnHorseByName(horseName)
     if not horseName then return end
     local horseEnt = System.GetEntityByName(horseName)
     if horseEnt then
+        if mercenaries.PerfUnregister then mercenaries:PerfUnregister(horseName) end
         System.RemoveEntity(horseEnt.id)
         System.LogAlways('[MercHorse] Deferred despawn complete: ' .. horseName)
     else

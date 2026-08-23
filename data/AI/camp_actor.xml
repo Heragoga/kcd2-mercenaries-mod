@@ -61,12 +61,16 @@
             <Variable name="hasChatAlias" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Order bark: RequestBark queues an alias in _G.MercBarkReq[wuid]; the bark loop below plays it once. -->
             <Variable name="barkReqAlias" type="_string" values="" isPersistent="0" form="single" />
+            <Variable name="hasMetaBark" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="hasBarkReq" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="polylog_participants" type="_wuid" values="" isPersistent="0" form="array" />
             <Variable name="polylog_participantsMetaroles" type="soulToMetaroles" values="" isPersistent="0" form="array" />
             <!-- Camp smith (mode 10): the conjured work item and the one-time-equip guard flag. -->
             <Variable name="forgeHammerItem" type="_wuid" values="" isPersistent="0" form="single" />
             <Variable name="m10Equipped" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- True only while an arm is inside a StanceElement/UnstanceElement. The yield
+                 gate below waits for it to clear so the pose is unwound, not torn off. -->
+            <Variable name="inCampAnim" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -84,14 +88,37 @@
                                      ever ends it, so without this a besieger with a target
                                      stands in the middle of a battle being hit. The patrol
                                      trees do exactly this via PatrolYieldToCombat. -->
-                                <ExecuteLua code="mercenaries:ForceTalkRole(data, entity)" />
-                                <ExecuteLua code="mercenaries:CampActorYield(data, entity)" />
-                                <IfCondition failOnCondition="false" condition="$campYield">
-                                    <Fail />
-                                </IfCondition>
-                                <ExecuteLua code="data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)" />
-                                <ExecuteLua code="mercenaries:ColumnFollowRole(data, entity)" />
                                 <ExecuteLua code="
+                                    mercenaries:ForceTalkRole(data, entity)
+                                    mercenaries:CampActorYield(data, entity)
+                                " />
+                                <IfCondition failOnCondition="false" condition="$campYield">
+                                    <Sequence>
+                                        <!-- Give an arm that is mid-pose up to 3s to unwind its own
+                                             StanceElement/UnstanceElement and stand up (the Out fragment
+                                             plus the stand-up runs to about that). Failing the tree
+                                             straight away tears the fragment off its owner instead, and
+                                             the merc leaves camp floating in whatever pose he was in.
+                                             Ends the instant inCampAnim clears, so a man merely standing
+                                             about still yields on the same tick as before. -->
+                                        <Loop count="12">
+                                            <Sequence>
+                                                <IfCondition failOnCondition="false" condition="~$inCampAnim">
+                                                    <Fail />
+                                                </IfCondition>
+                                                <Wait duration="'250ms'" timeType="GameTime" doFail="false" variation="" />
+                                            </Sequence>
+                                        </Loop>
+                                        <Fail />
+                                    </Sequence>
+                                </IfCondition>
+                                <!-- Guard/column/furniture/chat-pairing/activity refresh, merged into one
+                                     ExecuteLua crossing instead of five - same calls, same order, only
+                                     after the yield gate above. See docs/performance.md. -->
+                                <ExecuteLua code="
+                                    data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)
+                                    mercenaries:ColumnFollowRole(data, entity)
+
                                     data.isCampSitter = false
                                     data.isCampSleeper = false
                                     data.hasCampFurnitureFace = false
@@ -109,9 +136,7 @@
                                         end
                                         if f.kind == 'bed' then data.isCampSleeper = true else data.isCampSitter = true end
                                     end
-                                " />
-                                <!-- Camp conversation pairing: read this merc's role/partner/alias from _G.MercCampChats. -->
-                                <ExecuteLua code="
+
                                     data.chatRole = 0
                                     data.chatAlias = ''
                                     data.hasChatAlias = false
@@ -125,9 +150,7 @@
                                             data.hasChatAlias = true
                                         end
                                     end
-                                " />
-                                <!-- Camp activity refresh; campActMode 0 = none assigned. -->
-                                <ExecuteLua code="
+
                                     data.campActMode = 0
                                     data.campActDrawWeapon = false
                                     data.campActHasFace = false
@@ -149,31 +172,24 @@
                                         data.campActMode = a.mode or 2
                                     end
                                 " />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
                         <!-- Order-bark consumer: poll _G.MercBarkReq for this merc, play the alias once, clear it. -->
                         <Loop count="-1">
                             <Sequence>
-                                <ExecuteLua code="
-                                    data.hasBarkReq = false
-                                    data.barkReqAlias = ''
-                                    local br = _G.MercBarkReq
-                                    if br then
-                                        local a = br[tostring(entity.this.id)]
-                                        if a and a ~= '' then
-                                            data.barkReqAlias = a
-                                            data.hasBarkReq = true
-                                            br[tostring(entity.this.id)] = nil
-                                        end
-                                    end
-                                " />
+                                <ExecuteLua code="mercenaries:BarkPoll(data, entity.this.id)" />
                                 <IfCondition failOnCondition="false" condition="$hasBarkReq">
                                     <SuppressFailure>
                                         <Function_speech_schedulerMonolog alias="$barkReqAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
                                     </SuppressFailure>
                                 </IfCondition>
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <IfCondition failOnCondition="false" condition="$hasMetaBark">
+                                    <SuppressFailure>
+                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="'NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'" skipInLod="true" subtitlesDown="false" />
+                                    </SuppressFailure>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -216,7 +232,7 @@
                                         </SuppressFailure>
                                         <Loop count="-1">
                                             <Sequence>
-                                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                                                 <ExecuteLua code="mercenaries:ColumnFollowRole(data, entity)" />
                                                 <IfCondition failOnCondition="false" condition="~$stillFollowing | $followTarget != $columnTarget">
                                                     <Fail />
@@ -277,7 +293,7 @@
                                             </Timeout>
                                         </SuppressFailure>
                                         <ExecuteLua code="pcall(function() mercenaries:EndCampChat(entity.this.id) end)" />
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
                                 <IfCondition failOnCondition="false" condition="$chatRole == 2.0">
@@ -307,13 +323,14 @@
                                                 </Sequence>
                                             </Timeout>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
                                 <!-- Camp activities (first cases, so an assigned activity preempts
-                                     patrol/sit/sleep/follow). UnstanceAction plays $campActUnstance
-                                     (a NPCStateUnstanceDatabase name); the following Wait is the hold
-                                     before the Out fragment. See docs/camp.md. -->
+                                     patrol/sit/sleep/follow). UnstanceElement plays $campActUnstance
+                                     (a NPCStateUnstanceDatabase name) for as long as its children run,
+                                     so leaving the arm plays the Out fragment - an UnstanceAction here
+                                     would leave the pose on the merc after the tree died. See docs/camp.md. -->
 
                                 <!-- Mode 1: sit on the anchor seat, then play the action seated.
                                      The <WaitAction/> performs the sit-down. -->
@@ -330,17 +347,31 @@
                                                         <Turn target="$campActFace" align="false" />
                                                     </SuppressFailure>
                                                 </IfCondition>
+                                                <Expression expressions="$inCampAnim = true" />
                                                 <StanceElement smartObject="$campActLoc" stance="sitting" allowAny="false" enabled="true">
                                                     <Sequence>
                                                         <WaitAction />
                                                         <!-- locationObject MUST be the seat smart object; empty makes the merc stand on the stool. -->
-                                                        <UnstanceAction unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" />
-                                                        <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                                        <UnstanceElement unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" enabled="true">
+                                                            <Sequence>
+                                                                <WaitAction />
+                                                                <!-- Interruptible hold: ends on campYield, so the element above unwinds and plays its Out fragment. -->
+                                                                <Loop count="30">
+                                                                    <Sequence>
+                                                                        <IfCondition failOnCondition="false" condition="$campYield">
+                                                                            <Fail />
+                                                                        </IfCondition>
+                                                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                                    </Sequence>
+                                                                </Loop>
+                                                            </Sequence>
+                                                        </UnstanceElement>
                                                     </Sequence>
                                                 </StanceElement>
                                             </Sequence>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$inCampAnim = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
@@ -362,12 +393,25 @@
                                                         <DrawAction WeaponSet="Primary" fullBody="false" tags="" />
                                                     </SuppressFailure>
                                                 </IfCondition>
-                                                <UnstanceAction unstance="$campActUnstance" locationObject="" slaveObject="" />
-                                                <!-- Short hold so the switch can drop this activity promptly (e.g. on break-camp). -->
-                                                <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'3s'" />
+                                                <Expression expressions="$inCampAnim = true" />
+                                                <UnstanceElement unstance="$campActUnstance" locationObject="" slaveObject="" enabled="true">
+                                                    <Sequence>
+                                                        <WaitAction />
+                                                        <!-- Interruptible hold: ends on campYield, so the element above unwinds and plays its Out fragment. -->
+                                                        <Loop count="16">
+                                                            <Sequence>
+                                                                <IfCondition failOnCondition="false" condition="$campYield">
+                                                                    <Fail />
+                                                                </IfCondition>
+                                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                            </Sequence>
+                                                        </Loop>
+                                                    </Sequence>
+                                                </UnstanceElement>
                                             </Sequence>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$inCampAnim = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
@@ -388,16 +432,30 @@
                                                 <Expression expressions="$m10Equipped = true" />
                                             </Sequence>
                                         </IfCondition>
+                                        <Expression expressions="$inCampAnim = true" />
                                         <SuppressFailure>
                                             <StanceElement smartObject="$campActLoc" stance="sitting" allowAny="false" enabled="true">
                                                 <Sequence>
                                                     <WaitAction />
-                                                    <UnstanceAction unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" />
-                                                    <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                                    <UnstanceElement unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" enabled="true">
+                                                        <Sequence>
+                                                            <WaitAction />
+                                                            <!-- Interruptible hold: ends on campYield, so the element above unwinds and plays its Out fragment. -->
+                                                            <Loop count="30">
+                                                                <Sequence>
+                                                                    <IfCondition failOnCondition="false" condition="$campYield">
+                                                                        <Fail />
+                                                                    </IfCondition>
+                                                                    <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                                </Sequence>
+                                                            </Loop>
+                                                        </Sequence>
+                                                    </UnstanceElement>
                                                 </Sequence>
                                             </StanceElement>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$inCampAnim = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
@@ -407,11 +465,25 @@
                                         <SuppressFailure>
                                             <Sequence>
                                                 <Move stopWithinDistance="0.800000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
-                                                <UnstanceAction unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" />
-                                                <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                                <Expression expressions="$inCampAnim = true" />
+                                                <UnstanceElement unstance="$campActUnstance" locationObject="$campActLoc" slaveObject="" enabled="true">
+                                                    <Sequence>
+                                                        <WaitAction />
+                                                        <!-- Interruptible hold: ends on campYield, so the element above unwinds and plays its Out fragment. -->
+                                                        <Loop count="30">
+                                                            <Sequence>
+                                                                <IfCondition failOnCondition="false" condition="$campYield">
+                                                                    <Fail />
+                                                                </IfCondition>
+                                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                            </Sequence>
+                                                        </Loop>
+                                                    </Sequence>
+                                                </UnstanceElement>
                                             </Sequence>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$inCampAnim = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
 
@@ -421,11 +493,25 @@
                                         <SuppressFailure>
                                             <Sequence>
                                                 <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campActPos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
-                                                <UnstanceAction unstance="$campActUnstance" locationObject="" slaveObject="$campActSlave" />
-                                                <Wait duration="'15s'" timeType="GameTime" doFail="false" variation="'5s'" />
+                                                <Expression expressions="$inCampAnim = true" />
+                                                <UnstanceElement unstance="$campActUnstance" locationObject="" slaveObject="$campActSlave" enabled="true">
+                                                    <Sequence>
+                                                        <WaitAction />
+                                                        <!-- Interruptible hold: ends on campYield, so the element above unwinds and plays its Out fragment. -->
+                                                        <Loop count="30">
+                                                            <Sequence>
+                                                                <IfCondition failOnCondition="false" condition="$campYield">
+                                                                    <Fail />
+                                                                </IfCondition>
+                                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                            </Sequence>
+                                                        </Loop>
+                                                    </Sequence>
+                                                </UnstanceElement>
                                             </Sequence>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$inCampAnim = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
                                 <!-- Camp-guard patrol: Walk to the current perimeter waypoint (changeNPCState="true",
@@ -469,7 +555,7 @@
                                                     </IfElseCondition>
                                                 </Sequence>
                                             </IfCondition>
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                         </Sequence>
                                     </SuppressFailure>
                                 </IfCondition>
@@ -483,15 +569,25 @@
                                         <SuppressFailure>
                                             <Sequence>
                                                 <Move stopWithinDistance="0.500000" stopDistanceVariation="0.200000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$campFurniturePos" destinationSpecification2="" destinationSpecification3="" speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                <Expression expressions="$inCampAnim = true" />
                                                 <StanceElement smartObject="$campFurniture" stance="lying" allowAny="false" enabled="true">
                                                     <Sequence>
                                                         <WaitAction />
-                                                        <Wait duration="'40s'" timeType="GameTime" doFail="false" variation="'20s'" />
+                                                        <!-- Interruptible hold: ends on campYield, so the element above unwinds and plays its Out fragment. -->
+                                                        <Loop count="80">
+                                                            <Sequence>
+                                                                <IfCondition failOnCondition="false" condition="$campYield">
+                                                                    <Fail />
+                                                                </IfCondition>
+                                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                            </Sequence>
+                                                        </Loop>
                                                     </Sequence>
                                                 </StanceElement>
                                             </Sequence>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$inCampAnim = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
                                 <!-- Camp sitter: same Move-then-StanceElement (sitting) as the sleeper. -->
@@ -508,19 +604,29 @@
                                                         <Turn target="$campFurnitureFace" align="false" />
                                                     </SuppressFailure>
                                                 </IfCondition>
+                                                <Expression expressions="$inCampAnim = true" />
                                                 <StanceElement smartObject="$campFurniture" stance="sitting" allowAny="false" enabled="true">
                                                     <Sequence>
                                                         <WaitAction />
-                                                        <Wait duration="'40s'" timeType="GameTime" doFail="false" variation="'20s'" />
+                                                        <!-- Interruptible hold: ends on campYield, so the element above unwinds and plays its Out fragment. -->
+                                                        <Loop count="80">
+                                                            <Sequence>
+                                                                <IfCondition failOnCondition="false" condition="$campYield">
+                                                                    <Fail />
+                                                                </IfCondition>
+                                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                                            </Sequence>
+                                                        </Loop>
                                                     </Sequence>
                                                 </StanceElement>
                                             </Sequence>
                                         </SuppressFailure>
-                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                        <Expression expressions="$inCampAnim = false" />
+                                        <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                     </Sequence>
                                 </IfCondition>
                                 <IfCondition failOnCondition="false" condition="true">
-                                    <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                    <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                                 </IfCondition>
 
                             </ContinuousSwitch>

@@ -6,6 +6,15 @@
                 <Port Name="mercenary_dismissed" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_wait" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_follow" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_engage_default" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_engage_aggressive" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_engage_defend" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_engage_hold" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_aggro_tight" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_aggro_balanced" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_aggro_loose" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_focus" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_escort" Direction="Out" Type="trigger" />
 
                 <Port Name="equip_generic_mercenaries" Direction="Out" Type="trigger" />
                 <Port Name="equip_bandits" Direction="Out" Type="trigger" />

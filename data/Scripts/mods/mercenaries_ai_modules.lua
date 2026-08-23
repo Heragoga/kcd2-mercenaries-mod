@@ -7,6 +7,27 @@
 -- Which side an AI-module NPC is on, from its spawn-name prefix.
 -- 'friend' = the player's people, 'enemy' = the hostile groups,
 -- 'patrol'  = the roaming road gangs.
+-- How long an archer's kite-retreat point stays valid before it is searched again.
+mercenaries.RetreatCacheSecs = 2.0
+
+-- Archer engagement bands, per ranged weapon. See docs/archers.md.
+--   melee   - inside this, drop to the sidearm
+--   keepMin - inside this, step back (the kite band is melee..keepMin)
+--   keepMax - beyond this, walk in to keepMin before firing
+mercenaries.ArcherBands = {
+    bow        = { melee = 4.5, keepMin = 9.0, keepMax = 35.0 },
+    crossbow   = { melee = 4.5, keepMin = 9.0, keepMax = 35.0 },
+    handcannon = { melee = 3.0, keepMin = 5.0, keepMax = 12.0 },
+}
+
+-- Only the player's archers carry a chosen weapon type; every other side spawns
+-- with bows, so they take the bow band.
+function mercenaries:ArcherBand(side)
+    if side == "friend" and self.GetArcherWeaponType then
+        return self.ArcherBands[self:GetArcherWeaponType()] or self.ArcherBands.bow
+    end
+    return self.ArcherBands.bow
+end
 mercenaries.FriendPrefixes = { "SpawnedFriend_", "MercenaryCustomCompanion", "MercQuartermaster" }
 mercenaries.EnemyPrefixes  = { "SpawnedEnemy_", "SpawnedRenegade_" }
 
@@ -94,6 +115,8 @@ function mercenaries:ClearCombatClaim(wuid)
     if self.MercTargetOf then self.MercTargetOf[k] = nil end
     if self.EnemyTargetOf then self.EnemyTargetOf[k] = nil end
     if self.EnemyClaimWuid then self.EnemyClaimWuid[k] = nil end
+    -- Combat ending is the one moment he should look again immediately, and it is also
+    -- what keeps this table from growing an entry per NPC the mod ever spawned.
     if self.StaticArcherTargetOf then self.StaticArcherTargetOf[k] = nil end
     -- ForcedTargetOf is otherwise only cleared when the TARGET dies, so an
     -- encounter override outlived the NPC that held it.
@@ -211,6 +234,7 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
         data.stanceValid = true
         data.leashExceeded = false
         data.hasRetreat = false
+        data.hasApproach = false
         data.distanceToTarget = 9999.0
 
         local me = XGenAIModule.GetEntityByWUID(myWuid)
@@ -218,6 +242,13 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
         local name = me:GetName() or ''
         local side = self:SideOf(name)
         local myPos = me:GetPos()
+
+        -- The tree's own thresholds come from here, so one band table drives the
+        -- whole engagement. reengage = the gap the sidearm burst must reopen before
+        -- the ranged weapon comes back out.
+        local band = self:ArcherBand(side)
+        data.meleeRange = band.melee
+        data.reengageRange = band.melee + 7.5
 
         local tp = nil
         if data.attackData and data.attackData.target then
@@ -232,18 +263,30 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
             end
         end
 
-        -- Out of ammo: nothing left in any ranged ammo class (arrows, bolts, shot).
+        -- Out of ammo: friends carry the one weapon type the player selected
+        -- (GetArcherWeaponType), so only that pool needs checking. Other sides always
+        -- spawn with bows but aren't tracked by that global, so keep scanning every pool.
         data.outOfAmmo = false
         if me.inventory and me.inventory.GetCountOfClass then
+            local pools
+            if side == "friend" then
+                local weaponType = self:GetArcherWeaponType()
+                if weaponType == "crossbow" then pools = { self.ArcherBoltClasses }
+                elseif weaponType == "handcannon" then pools = { self.ArcherShotClasses }
+                else pools = { self.ArcherArrowClasses } end
+            else
+                pools = { self.ArcherArrowClasses, self.ArcherBoltClasses, self.ArcherShotClasses }
+            end
             local total = 0
-            local pools = { self.ArcherArrowClasses, self.ArcherBoltClasses, self.ArcherShotClasses }
             for _, pool in ipairs(pools) do
                 if pool then
                     for _, cls in ipairs(pool) do
                         local ok2, c = pcall(function() return me.inventory:GetCountOfClass(cls) end)
                         if ok2 and c then total = total + c end
+                        if total > 0 then break end
                     end
                 end
+                if total > 0 then break end
             end
             data.outOfAmmo = (total == 0)
         end
@@ -265,21 +308,28 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
         end
 
         if side == "friend" then
-            if distToPlayer > 40.0 then data.leashExceeded = true end
+            -- The same leash the melee module uses, for the same reason: a flat 40m sat
+            -- below the acquisition range, so an archer was handed a target and told to
+            -- break off on the same tick, over and over. See MeleePlayerLeash.
+            if distToPlayer > self:MeleePlayerLeash() then data.leashExceeded = true end
             if (_G.ArcherStance or "skirmish") ~= "skirmish" then data.stanceValid = false end
         else
             if data.isTargetAlive and data.distanceToTarget > 60.0 then data.leashExceeded = true end
         end
 
-        -- Keep-distance retreat point (dynamic module only reads it in the 4.5-9m band).
+        -- Keep-distance retreat point (dynamic module only reads it in the melee..keepMin band).
         if data.isTargetAlive and tp and myPos
-           and data.distanceToTarget >= 4.5 and data.distanceToTarget < 9.0
+           and data.distanceToTarget >= band.melee and data.distanceToTarget < band.keepMin
            and not (side == "friend" and distToPlayer > 35.0) then
             local ax, ay = myPos.x - tp.x, myPos.y - tp.y
             local len = math.sqrt(ax * ax + ay * ay)
             if len > 0.1 then
                 ax, ay = ax / len, ay / len
-                local raw = { x = myPos.x + ax * 4.0, y = myPos.y + ay * 4.0, z = myPos.z }
+                -- Step just past the near edge of the band, not a fixed 4m: a hand
+                -- cannon's band is 5m wide and a fixed step overshot it entirely.
+                local step = (band.keepMin + 1.0) - data.distanceToTarget
+                if step < 1.5 then step = 1.5 end
+                local raw = { x = myPos.x + ax * step, y = myPos.y + ay * step, z = myPos.z }
                 -- Don't kite backwards through a camp wall: if the step crosses one,
                 -- simply don't take it (the tree tolerates hasRetreat = false and just
                 -- keeps shooting from where it stands).
@@ -287,12 +337,93 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
                 if self.NavIsBlocked then
                     pcall(function() blocked = self:NavIsBlocked(myPos, raw) end)
                 end
-                local ground = (not blocked) and self:FindValidGround(raw, myPos.z) or nil
+                -- FindValidGround's defaults (3.0m radius, 0.5m step) spiral over 132
+                -- candidate points, and each one costs up to 9 physics raycasts - ~1,188
+                -- rays, every BT cycle, per archer being kited. A retreat step is only
+                -- 4m, so a 1.2m search is ample. The result is also cached briefly: the
+                -- archer has not moved far between cycles, and recomputing it from
+                -- scratch every 300ms was the whole cost. See docs/performance.md.
+                local ground = nil
+                if not blocked then
+                    local key   = tostring(myWuid)
+                    local now   = 0
+                    pcall(function() now = System.GetCurrTime() or 0 end)
+                    self._retreatCache = self._retreatCache or {}
+                    local c = self._retreatCache[key]
+                    if c and (now - c.at) < self.RetreatCacheSecs
+                       and math.abs(c.fx - raw.x) < 0.75 and math.abs(c.fy - raw.y) < 0.75 then
+                        ground = c.pos
+                    else
+                        ground = self:FindValidGround(raw, myPos.z, 1.2, 0.6)
+                        if ground then
+                            self._retreatCache[key] =
+                                { pos = ground, at = now, fx = raw.x, fy = raw.y }
+                        end
+                    end
+                end
                 if ground then
                     data.retreatPos.x = ground.x
                     data.retreatPos.y = ground.y
                     data.retreatPos.z = ground.z
                     data.hasRetreat = true
+                end
+            end
+        end
+
+        -- Approach point: beyond keepMax the module used to stand and fire anyway, so
+        -- the engagement distance was simply wherever the follow formation had left the
+        -- archer. That is fine with a bow and useless with a hand cannon. Walk in to
+        -- just outside keepMin instead. See docs/archers.md.
+        if data.isTargetAlive and tp and myPos and not data.hasRetreat
+           and data.distanceToTarget > band.keepMax then
+            local ax, ay = myPos.x - tp.x, myPos.y - tp.y
+            local len = math.sqrt(ax * ax + ay * ay)
+            if len > 0.1 then
+                ax, ay = ax / len, ay / len
+                local want = band.keepMin + 1.0
+                local raw = { x = tp.x + ax * want, y = tp.y + ay * want, z = tp.z }
+
+                -- A friendly archer is leashed to the player, so the spot he closes on
+                -- has to be inside that leash - otherwise he walks himself out of the
+                -- squad, trips the 40m leash and disengages the moment he arrives.
+                local allowed = true
+                if side == "friend" and player then
+                    local pp = player:GetPos()
+                    if pp then
+                        local px, py = pp.x - raw.x, pp.y - raw.y
+                        allowed = math.sqrt(px * px + py * py) <= 35.0
+                    end
+                end
+                if allowed and self.NavIsBlocked then
+                    pcall(function() if self:NavIsBlocked(myPos, raw) then allowed = false end end)
+                end
+
+                if allowed then
+                    -- Cached on the same terms as the retreat point, and for the same
+                    -- reason: FindValidGround is raycast-heavy and this runs per archer
+                    -- every BT cycle. See docs/performance.md.
+                    local key = tostring(myWuid)
+                    local now = 0
+                    pcall(function() now = System.GetCurrTime() or 0 end)
+                    self._approachCache = self._approachCache or {}
+                    local c = self._approachCache[key]
+                    local ground
+                    if c and (now - c.at) < self.RetreatCacheSecs
+                       and math.abs(c.fx - raw.x) < 1.5 and math.abs(c.fy - raw.y) < 1.5 then
+                        ground = c.pos
+                    else
+                        ground = self:FindValidGround(raw, tp.z, 1.5, 0.6)
+                        if ground then
+                            self._approachCache[key] =
+                                { pos = ground, at = now, fx = raw.x, fy = raw.y }
+                        end
+                    end
+                    if ground then
+                        data.approachPos.x = ground.x
+                        data.approachPos.y = ground.y
+                        data.approachPos.z = ground.z
+                        data.hasApproach = true
+                    end
                 end
             end
         end

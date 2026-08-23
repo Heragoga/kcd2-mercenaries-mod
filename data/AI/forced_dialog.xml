@@ -54,7 +54,7 @@
                                 <SuppressFailure>
                                     <Turn target="$__player" align="false" />
                                 </SuppressFailure>
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 

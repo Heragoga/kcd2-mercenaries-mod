@@ -549,6 +549,7 @@
   <Row><Cell>merc_info_gate_none</Cell><Cell>The camp has no gates to speak of.</Cell><Cell>The camp has no gates to speak of.</Cell></Row>
   <Row><Cell>merc_info_gate_opened</Cell><Cell>The gates stand open.</Cell><Cell>The gates stand open.</Cell></Row>
   <Row><Cell>merc_info_gate_closed</Cell><Cell>The gates are barred. No one is riding in tonight.</Cell><Cell>The gates are barred. No one is riding in tonight.</Cell></Row>
+  <Row><Cell>merc_info_gate_forced</Cell><Cell>They're through the gate!</Cell><Cell>They're through the gate!</Cell></Row>
   <Row><Cell>merc_info_wall_gate_done</Cell><Cell>The gate is hung and the palisade is finished.</Cell><Cell>The gate is hung and the palisade is finished.</Cell></Row>
   <Row><Cell>ui_qm_removeupg</Cell><Cell>Tear down all the camp's improvements.</Cell><Cell>Tear down all the camp's improvements.</Cell></Row>
   <Row><Cell>merc_henry_qm_removeupg</Cell><Cell>Pull down everything we've built. I want the camp bare again.</Cell><Cell>Pull down everything we've built. I want the camp bare again.</Cell></Row>

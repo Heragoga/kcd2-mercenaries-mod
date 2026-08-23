@@ -34,7 +34,7 @@
 
                             <!-- stand still a moment at the far spot, so the run is obvious
                                  and the scheduler has a clear gap in which to re-aggro -->
-                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             <ExecuteLua code="System.LogAlways('[TestNpc] retreat interrupt finished'); mercenaries:TestNpcSetRetreating(entity, false)" />
                         </Sequence>
                     </Child>

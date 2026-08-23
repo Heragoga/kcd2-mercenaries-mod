@@ -27,6 +27,10 @@ mercenaries.WBStartedAt = 0
 mercenaries.WBTickMs = 700
 
 mercenaries.WBTriggerRange   = 55.0   -- an attacker this close to camp starts staging
+-- Beyond this, skip the WBTriggerRange sphere query entirely - raids only launch within
+-- 45m and forces spawn within 120m, so 300m is generous headroom that can never eat a
+-- real one. An in-progress raid (WBRaidForce) is tracked separately and stays unaffected.
+mercenaries.WBPlayerGateRange = 300.0
 mercenaries.WBStageTimeout   = 12.0   -- seconds before we start the fight regardless
 mercenaries.WBStageQuorum    = 0.9    -- once this share is in place, the rest get WBStageGrace
 mercenaries.WBStageGrace     = 2.0    -- ...and then the fight opens without the stragglers
@@ -84,6 +88,34 @@ function mercenaries:WBWallRayDist(c, ang, maxR)
 end
 
 -- ==== gaps ====
+-- A camp with gates is attacked at its gates. Once one is built it IS the gap - the
+-- raid forms up in front of it and comes in through it whether it is open or shut -
+-- rather than the ray sweep hunting for whatever hole it can find in the palisade.
+-- `gate` indexes self.Gates, which is what lets WBForceGates find the leaf to swing.
+function mercenaries:WBGateGaps()
+    local out = {}
+    local c = self.CampCenter
+    if not c then return out end
+    local half = ((self.GateWidth and self:GateWidth()) or 4.0) * 0.5
+    for i, g in ipairs(self.Gates or {}) do
+        local dx, dy = g.x - c.x, g.y - c.y
+        local r = math.sqrt(dx * dx + dy * dy)
+        if r > 1.0 then
+            local dir = { x = dx / r, y = dy / r }
+            table.insert(out, {
+                dir = dir, gateR = r, gate = i,
+                width = 2 * math.asin(math.min(half / r, 0.999)),
+                right = { x = -dir.y, y = dir.x },
+                outside = { x = c.x + dir.x * (r + self.WBOutsideOffset),
+                            y = c.y + dir.y * (r + self.WBOutsideOffset), z = c.z },
+                inside  = { x = c.x + dir.x * math.max(r - self.WBInsideOffset, 2.0),
+                            y = c.y + dir.y * math.max(r - self.WBInsideOffset, 2.0), z = c.z },
+            })
+        end
+    end
+    return out
+end
+
 -- A gap is a direction in which you can walk out of camp without crossing a wall.
 -- Found by sweeping rays from the camp centre rather than by reading the corner list,
 -- so it works for a ring left open, several separate runs, or a deliberate gateway.
@@ -91,6 +123,25 @@ function mercenaries:NavFindGaps()
     if self.WBGaps and self.WBGapsVersion == self.WallVersion then return self.WBGaps end
     local c = self.CampCenter
     if not c then self.WBGaps = {}; self.WBGapsVersion = self.WallVersion; return self.WBGaps end
+
+    -- Gates first: a walled camp that has one is entered through it, so the sweep below
+    -- never runs. This is also what keeps a sealed camp attackable - a shut gate is a
+    -- blocking segment, so the sweep would find no way in at all and fall through to the
+    -- "wholly enclosed" stand-in, which points at an arbitrary bearing rather than a gate.
+    if self:WallHasAny() and #(self.Gates or {}) > 0 then
+        local gg = self:WBGateGaps()
+        if #gg > 0 then
+            for _, g in ipairs(gg) do
+                if self.CampSnapToGround then
+                    g.outside = self:CampSnapToGround(g.outside)
+                    g.inside  = self:CampSnapToGround(g.inside)
+                end
+            end
+            self.WBGaps, self.WBGapsVersion = gg, self.WallVersion
+            wbLog(#gg .. " gate(s) to attack")
+            return gg
+        end
+    end
 
     -- No wall at all: the whole camp is one open approach. One notional gap on the
     -- bearing the attack is coming from gives both sides somewhere sensible to form up,
@@ -200,17 +251,31 @@ function mercenaries:WBAttackersNearCamp()
         end
     end
 
-    local ents
-    pcall(function() ents = System.GetEntitiesInSphere(c, self.WBTriggerRange) end)
-    for _, e in pairs(ents or {}) do
-        pcall(function()
-            local k = wbKey(e)
-            if k and seen[k] then return end
-            local nm = e:GetName() or ""
-            if self.IsModEnemyName and self:IsModEnemyName(nm) and self:IsAliveAndWell(e, true) then
-                table.insert(out, e)
-            end
-        end)
+    -- Skip the sphere query while the player is far from camp - cheap squared-distance
+    -- gate. Only guards the query itself: if we can't get a player position, don't skip
+    -- (run as before) rather than risk silently going blind.
+    local skipSphere = false
+    local pp = nil
+    pcall(function() pp = player and player:GetWorldPos() end)
+    if pp then
+        local dx, dy, dz = pp.x - c.x, pp.y - c.y, pp.z - c.z
+        local gate = self.WBPlayerGateRange or 300.0
+        if (dx * dx + dy * dy + dz * dz) > (gate * gate) then skipSphere = true end
+    end
+
+    if not skipSphere then
+        local ents
+        pcall(function() ents = System.GetEntitiesInSphere(c, self.WBTriggerRange) end)
+        for _, e in pairs(ents or {}) do
+            pcall(function()
+                local k = wbKey(e)
+                if k and seen[k] then return end
+                local nm = e:GetName() or ""
+                if self.IsModEnemyName and self:IsModEnemyName(nm) and self:IsAliveAndWell(e, true) then
+                    table.insert(out, e)
+                end
+            end)
+        end
     end
     return out
 end
@@ -511,11 +576,37 @@ function mercenaries:WBStageAllowance()
 end
 
 -- ==== phase machine ====
+-- The gate opens when the fight does. A raid that has drawn up in front of a shut gate
+-- forces it rather than standing at a solid wall for the whole battle - shutting up is
+-- what buys the company the time to form its line, not immunity. Only the gates actually
+-- being attacked swing; the far side of the camp stays barred.
+function mercenaries:WBForceGates()
+    local hit = {}
+    for _, a in pairs(self.WBAssign or {}) do
+        if a.side == "enemy" and a.gap then hit[a.gap] = true end
+    end
+    local n = 0
+    for gi in pairs(hit) do
+        local gp = (self.WBGaps or {})[gi]
+        local g  = gp and gp.gate and (self.Gates or {})[gp.gate]
+        if g and not g.open and self:GateSetOpen(g, true) then n = n + 1 end
+    end
+    if n > 0 then
+        self:GateTouched()
+        pcall(function() if self.DefSave then self:DefSave() end end)
+        wbLog(n .. " gate(s) forced by the attackers")
+        Game.SendInfoText('merc_info_gate_forced', false, 0, 5)
+    end
+    return n
+end
+
 function mercenaries:WBSetPhase(p)
     if self.WBPhase == p then return end
     self.WBPhase = p
     wbLog("phase -> " .. p)
     if p == "battle" then
+        -- before the assignments are dropped: they are what says which gate is under attack
+        pcall(function() self:WBForceGates() end)
         -- release everyone: wall rules off, fight normally. Men still short of the gap
         -- simply walk the rest of the way under their own behaviour.
         for key in pairs(self.WBAssign) do
@@ -667,7 +758,12 @@ function mercenaries.WBTick()
             if #attackers == 0 then self:WBSetPhase("idle"); return end
             self:WBColumnCheck()
             local all, ready, total, per = self:WBAllStaged()
-            if self:WBContact() then
+            -- The attacking side has to be formed before contact counts. Without this the
+            -- first raider to reach the gate opens the fight and the rest of the column
+            -- feeds in behind him one at a time: they gather at the gate, then go in.
+            local atk = per.enemy
+            local atkFormed = (atk.t == 0) or ((atk.r / atk.t) >= self.WBStageQuorum)
+            if atkFormed and self:WBContact() then
                 wbLog("contact - the fight is on")
                 self:WBSetPhase("battle")
             elseif all then
@@ -809,7 +905,8 @@ function mercenaries:WBRaid(line)
         local lat = (file - (inRank - 1) / 2) * self.WBLineSpacing
         local dep = rank * self.WBRankSpacing
         local p = { x = origin.x + rx * lat + ax * dep, y = origin.y + ry * lat + ay * dep, z = origin.z }
-        if self.FindValidGround then p = self:FindValidGround(p, origin.z) end
+        -- 16 tries, not the default 40: a raid places up to 14 units in a single frame.
+        if self.FindValidGround then p = self:FindValidGround(p, origin.z, 3.0, 0.5, 16) end
         local e = self:SpawnEnemyAt(group, (i % 4 == 0), p, yaw)
         if e then table.insert(force, e) end
     end

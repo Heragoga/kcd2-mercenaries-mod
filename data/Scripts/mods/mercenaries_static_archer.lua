@@ -426,6 +426,10 @@ function mercenaries:SpawnStaticArcher(pos, mode, faceAngle, enemyGroup, elevate
         -- bow. Only the tower passes it; cart archers stand about a metre up on the wagon bed
         -- and are perfectly reachable, so they stay fair game for everyone.
         self.StaticArchers[ws] = { mode = mode, ent = ent, outfit = outfit, elevated = elevated }
+        -- The shared NPC scan is player-centred; a tower reaches StaticArcherRange around
+        -- ITSELF, so the scan must be widened or a remote tower goes uncovered (falls back
+        -- to its own query, which is correct, just not the win).
+        self:PerfWantRadius(self.StaticArcherRange)
         -- Put him where he was asked for and hold him there - a fresh NPC settles
         -- to the ground right after spawning, so one SetPos here is not enough.
         self:PlaceStaticArcher(ent, pos)
@@ -534,18 +538,40 @@ function mercenaries:FindStaticArcherDefendTarget(data, myWuid, me, mp)
         --     which is what made the tower fire unreliably; OR
         --   * it passes the squad's own IsValidEnemy (covers world hostiles the
         --     mercs would also fight).
-        local ents = System.GetPhysicalEntitiesInBoxByClass(mp, self.StaticArcherRange, "NPC")
-        if not ents then return end
-        for _, ent in pairs(ents) do
-            if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id
-               and tostring(ent.this.id) ~= tostring(myWuid) and self:IsCombatViable(ent) then
-                local isModEnemy = self:IsModEnemyName(ent:GetName() or "")
-                if isModEnemy or self:IsValidEnemy(ent, me, playerWuid, false) then
-                    local ep = ent:GetPos()
-                    if ep then
+        local myWuidStr = tostring(myWuid)
+        -- Shared scan first. It runs at StaticArcherRange for as long as any static archer
+        -- exists (PerfScanNpcs recomputes that per pass - it used to latch wide forever
+        -- after the first archer, which cost a 90m NPC sweep in every crowd thereafter). A
+        -- remote tower outside the shared scan's coverage gets nil and falls back below -
+        -- expected, not a bug.
+        local shared = self:PerfNpcsNear(mp, self.StaticArcherRange, 1200)
+        if shared then
+            for _, e in ipairs(shared) do
+                local ent = e.entity
+                if ent and ent.soul and e.wuid and tostring(e.wuid) ~= myWuidStr and self:IsCombatViable(ent) then
+                    local isModEnemy = self:IsModEnemyName(ent:GetName() or "")
+                    if isModEnemy or self:IsValidEnemy(ent, me, playerWuid, false) then
+                        local ep = e.pos
                         local dx, dy, dz = ep.x - mp.x, ep.y - mp.y, ep.z - mp.z
                         local d2 = dx * dx + dy * dy + dz * dz
-                        if not bestD2 or d2 < bestD2 then best, bestD2 = ent.this.id, d2 end
+                        if not bestD2 or d2 < bestD2 then best, bestD2 = e.wuid, d2 end
+                    end
+                end
+            end
+        else
+            local ents = System.GetPhysicalEntitiesInBoxByClass(mp, self.StaticArcherRange, "NPC")
+            if not ents then return end
+            for _, ent in pairs(ents) do
+                if ent and type(ent) == "table" and ent.soul and ent.this and ent.this.id
+                   and tostring(ent.this.id) ~= myWuidStr and self:IsCombatViable(ent) then
+                    local isModEnemy = self:IsModEnemyName(ent:GetName() or "")
+                    if isModEnemy or self:IsValidEnemy(ent, me, playerWuid, false) then
+                        local ep = ent:GetPos()
+                        if ep then
+                            local dx, dy, dz = ep.x - mp.x, ep.y - mp.y, ep.z - mp.z
+                            local d2 = dx * dx + dy * dy + dz * dz
+                            if not bestD2 or d2 < bestD2 then best, bestD2 = ent.this.id, d2 end
+                        end
                     end
                 end
             end

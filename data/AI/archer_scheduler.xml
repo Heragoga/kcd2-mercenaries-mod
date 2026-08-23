@@ -3,6 +3,11 @@
     <BehaviorTree name="onUpdate" is_function="0">
         <Variables>
             <Variable name="distanceToPlayer"    type="_float"               values="0"                                 isPersistent="0" form="single" />
+            <!-- De-target/sheathe distance. Set every cycle by MercLeashes so it scales with
+                 squad size and stays in step with the combat modules' own leash; the flat 40m
+                 this replaced was below the acquisition range, so a rear-rank archer was handed
+                 a target and told to drop it on the same tick. Same fix as mercenary_scheduler.xml. -->
+            <Variable name="deTargetDist"        type="_float"               values="40.0"                              isPersistent="0" form="single" />
             <Variable name="MoveParams_fleeing"  type="additionalMoveParams" values="destChangedThreshold('1s')"        isPersistent="0" form="single" />
             <Variable name="pathParams_fleeing"  type="pathFindingParams"    values="usePaths(true),useGeneratedNSO(true),useSmartObjects(true)" isPersistent="0" form="single" />
             <Variable name="distanceToFlee"      type="_float"               values="50.0"                              isPersistent="0" form="single" />
@@ -12,6 +17,10 @@
             <Variable name="goFlee"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isIdle"              type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="isFollowingActive"   type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <!-- Raised by FollowStalled (the teleporter's repeat-straggler counter) and consumed
+                 by the re-arm loop below. Without it an archer flagged as stalled kept the latch
+                 set forever - the melee scheduler has had this since the same bug was found there. -->
+            <Variable name="followStuck"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Which follow-family behaviour is running: camp_actor (true) or follow (false). -->
             <Variable name="firedCampActor"     type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Mirror of _G.PlayerMounted; keeps the self-heal from restarting a
@@ -55,6 +64,9 @@
         <Variable name="wbLocked" type="_bool" values="false" isPersistent="0" form="single" />
         <Variable name="wbStageGo" type="_bool" values="false" isPersistent="0" form="single" />
         <Variable name="wbMrkev" type="_wuid" values="" isPersistent="0" form="single" />
+        <!-- Hold/escort order destination for this archer. See mercenaries_hold.lua. -->
+        <Variable name="navOrderGo" type="_bool" values="false" isPersistent="0" form="single" />
+        <Variable name="navOrderMrkev" type="_wuid" values="" isPersistent="0" form="single" />
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">
@@ -67,14 +79,15 @@
 
                                 <!-- 300ms: reaction time to a new threat. idleTicks thresholds below
                                      are scaled to it (55 ticks ~ 16s). -->
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
 
                                 <AtomicDecorator>
                                     <Sequence>
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
-                                        <ExecuteLua code="data.isIdle = _G.MercIdle or false" />
+                                        <ExecuteLua code="data.isIdle = mercenaries:MercIsIdle(entity)" />
                                         <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
                                         <ExecuteLua code="data.stanceMode = mercenaries:GetArcherStanceCode()" />
+                                        <ExecuteLua code="mercenaries:MercLeashes(data)" />
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
@@ -130,13 +143,13 @@
                                     <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
                                         <Then canSkip="1">
                                             <Sequence>
-                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; 40.0 | $idleTicks &gt; 55 | $stanceMode == 2">
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; $deTargetDist | $idleTicks &gt; 55 | $stanceMode == 2">
                                                     <Sequence>
                                                         <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
                                                         <Expression expressions="$currentTarget = $__null" />
                                                     </Sequence>
                                                 </IfCondition>
-                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                             </Sequence>
                                         </Then>
                                         <Else canSkip="1">
@@ -213,7 +226,7 @@
                                         <Expression expressions="$inCombat = false" />
                                     </Else>
                                 </EntityContextCheck>
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                             </Sequence>
                         </Loop>
 
@@ -241,7 +254,7 @@
                                         end
                                     end)
                                 " />
-                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                             </Sequence>
                         </Loop>
 
@@ -271,7 +284,7 @@
 
                                             <!-- Just stand. Camp sit/sleep and guard patrol live in
                                                  camp_actor.xml now (this branch only plain-idles). -->
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                         </Sequence>
                                     </EntityContext>
                                 </IfCondition>
@@ -280,7 +293,7 @@
                                     <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
                                         <Sequence>
                                             <Expression expressions="$isFollowingActive = false" />
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                         </Sequence>
                                     </EntityContext>
                                 </IfCondition>
@@ -327,23 +340,44 @@
 
                                                 </Sequence>
                                             </IfCondition>
-                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                            <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
                                         </Sequence>
                                     </EntityContext>
                                 </IfCondition>
                             </ContinuousSwitch>
                         </Loop>
 
+                        <!-- Direct re-arm, same as mercenary_scheduler.xml: the follow behaviour told
+                             us it ended. Consume FIRST so it runs once per raised flag; re-firing
+                             'follow' over a running 'follow' does not displace it, so fire 'teleport'
+                             (destination = self, nothing visibly moves) purely to evict it. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:PollFollowRefire(data, entity.this.id)" />
+                                <IfCondition failOnCondition="false" condition="$followStuck &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee">
+                                    <Sequence>
+                                        <ExecuteLua code="mercenaries:ConsumeFollowRefire(entity.this.id)" />
+                                        <Expression expressions="$isFollowingActive = false" />
+                                        <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
+                            </Sequence>
+                        </Loop>
+
                         <!-- Self-heal for a rare stuck-follower bug (same as mercenary_scheduler.xml):
-                             a follower marked following but idle and far (>15m) forces a retry by
-                             clearing $isFollowingActive. -->
+                             a follower marked following but idle and far forces a retry by clearing
+                             $isFollowingActive. 35m, not 15: archers form up at the BACK of the
+                             formation, so a rear-rank archer is legitimately that far out, and each
+                             needless restart drops him out of FormationFollower - his only
+                             locomotion - so he coasts further back and re-trips it 8s later. -->
                         <Loop count="-1">
                             <Sequence>
                                 <Wait duration="'8s'" timeType="GameTime" doFail="false" variation="'2s'" />
                                 <!-- Skip the retry while mounted - restarting the follow tree throws
                                      the archer off the horse mid-ride (see mercenary_scheduler.xml). -->
                                 <ExecuteLua code="data.playerMounted = _G.PlayerMounted or false" />
-                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 15.0">
+                                <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee &amp; ~$playerMounted &amp; $mercTarget == $__null &amp; $distanceToPlayer &gt; 35.0">
                                     <Expression expressions="$isFollowingActive = false" />
                                 </IfCondition>
                             </Sequence>
@@ -392,7 +426,25 @@
                                         <AddInterrupt Target="$this.id" Host="$wbMrkev" Behavior="'nav_goto'" Priority="200" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                     </Sequence>
                                 </IfCondition>
-                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                <Wait duration="'500ms'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Hold ground / escort: walk to the station the order assigned this
+                             archer (the flank, a little back). Gated on ~inCombat so shooting
+                             always wins, and he re-takes his mark once the fight is over. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:NavOrderPoll(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$navOrderGo &amp; ~$inCombat &amp; ~$wbStageGo &amp; ~$wbLocked">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$navOrderMrkev" nodeLabel="1245" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$navOrderMrkev" Behavior="'nav_goto'" Priority="150" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'250ms'" />
                             </Sequence>
                         </Loop>
 

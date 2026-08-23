@@ -105,11 +105,11 @@
                                                  lookup, so a single hiccup would read as a death. -->
                                             <Loop count="-1">
                                                 <Sequence>
-                                                    <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                    <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'280ms'" />
                                                     <ExecuteLua code="mercenaries:FoeCombatTick(data, entity.this.id)" />
                                                     <IfCondition failOnCondition="false" condition="~$isTargetAlive">
                                                         <Sequence>
-                                                            <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'100ms'" />
+                                                            <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
                                                             <ExecuteLua code="mercenaries:FoeCombatTick(data, entity.this.id)" />
                                                             <IfCondition failOnCondition="false" condition="~$isTargetAlive">
                                                                 <Fail />
@@ -153,7 +153,7 @@
                                              re-drawing every time someone in front of him goes down.
                                              This Wait sits inside crime_interruptAttack, so it is dead
                                              time before the next fire - keep it short. -->
-                                        <Wait duration="'200ms'" timeType="GameTime" doFail="false" variation="" />
+                                        <Wait duration="'200ms'" timeType="GameTime" doFail="false" variation="'80ms'" />
                                     </Sequence>
                                 </OnFail>
                             </FuseBox>

@@ -1118,11 +1118,9 @@ function mercenaries:AlxStockCampChest(C)
         local coin = math.random(self.AlxChestCoin[1], self.AlxChestCoin[2])
         e.inventory:CreateItem(self.BanditCampMoneyItem, 1, coin)
         if (e.inventory:GetCountOfClass(self.BanditCampMoneyItem) or 0) <= 0 then return end
-        for _, L in ipairs(self.BanditCampChestLoot or {}) do
-            if math.random() < (L[4] or 1) then
-                pcall(function() e.inventory:CreateItem(L[1], 1, math.random(L[2] or 1, L[3] or 1)) end)
-            end
-        end
+        -- One flavour per chest, not the same craft-material grab-bag every beat
+        -- (mercenaries.KleinkriegRewardPools, mercenaries_banditcamp_quest.lua).
+        self:KleinkriegRollPool(e.inventory)
         done = true
     end)
 
@@ -1725,9 +1723,14 @@ end
 
 -- No combat: a chest to stock, not a spawner. Kept independent of BanditCampChestInsert (that
 -- one is BCQ-bound) - the pattern is the same three lines, CreateItem then verify.
+-- Also the fallback when the chest itself never gets placed/spawned (below) - so it grants the
+-- same coin and flavour roll the chest would have held, straight to the player, on top of the
+-- two required documents.
 function mercenaries:AlxGrantBeat6Items()
     self:AlxGiveItem(player.inventory, self.AlxDocs.doc3, "doc3")
     self:AlxGiveItem(player.inventory, self.AlxDocs.doc4, "doc4")
+    self:GiveMoney(math.random(self.AlxChestCoin[1], self.AlxChestCoin[2]))
+    self:KleinkriegRollPool(player.inventory)
 end
 
 function mercenaries:AlxBeat6Start()
@@ -1774,6 +1777,10 @@ function mercenaries:AlxBeat6Start()
     end
     self:AlxGiveItem(e.inventory, self.AlxDocs.doc3, "doc3")
     self:AlxGiveItem(e.inventory, self.AlxDocs.doc4, "doc4")
+    -- Every other Kleinkrieg chest carries coin and a rolled flavour on top of what it must
+    -- carry; this one only had the two documents (and the still-unauthored surcoat).
+    pcall(function() e.inventory:CreateItem(self.BanditCampMoneyItem, 1, math.random(self.AlxChestCoin[1], self.AlxChestCoin[2])) end)
+    self:KleinkriegRollPool(e.inventory)
     self.AlxBeat6ChestId = e.id
     aLog("beat 6: the chest is stocked (docs 3 and 4" .. (surcoat and " and the surcoats" or "") .. ")")
 end

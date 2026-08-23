@@ -16,6 +16,11 @@ mercenaries.TeleportDistMax     = 130.0
 -- sits a few metres away, so this only fires when something is actually wrong.
 mercenaries.TeleportLeaderDist = 20.0
 
+-- Past this multiple of his own gate, a merc is dragged back even if he is fighting. The
+-- in-combat exemption exists so nobody is yanked out mid-swing, but it was unbounded, and
+-- "in combat" only means holding a target - not that the fight is anywhere near the player.
+mercenaries.TeleportCombatOverride = 2.0
+
 function mercenaries:TeleportDistance(isLeader)
     if isLeader then return self.TeleportLeaderDist end
     local squad = self.SquadSize or 0
@@ -109,6 +114,10 @@ end
 function mercenaries:MonitorDistanceAndTeleport()
     local ok, err = pcall(function()
         if _G.MercIdle or _G.MercenariesDismissed then return end
+        -- Men under a hold or escort order are SUPPOSED to be away from the player.
+        -- Dragging them back to him is the one thing that would defeat the order
+        -- outright, and it would fire constantly the moment he walked off.
+        if self.HoldActive or self.EscortEnt then return end
         -- Never teleport while the player is mounted. A merc is either on his own
         -- horse or running to catch one, and SetPos does not bring the horse with
         -- him: it strands the rider beside a horse that is somewhere else, or drops
@@ -139,44 +148,55 @@ function mercenaries:MonitorDistanceAndTeleport()
                 local inCombat = false
                 pcall(function() inCombat = ent.soul:HasScriptContext("crime_interruptAttack") end)
 
-                if not inCombat then
-                    local mp = ent:GetPos()
-                    if mp then
-                        local dx = playerPos.x - mp.x
-                        local dy = playerPos.y - mp.y
-                        local dz = playerPos.z - mp.z
-                        local distance = math.sqrt(dx*dx + dy*dy + dz*dz)
+                -- ...but an archer has no swing to interrupt: he stands and shoots, and
+                -- unlike a melee merc he never closes on his target, so nothing brings him
+                -- forward on his own. His module breaks off at 40m from the player, then the
+                -- scheduler re-acquires the same man (targets are cached to 60m once the
+                -- squad is alerted) and he is "in combat" again - permanently exempt, and
+                -- permanently left behind. That is the archers-never-teleport report.
+                if inCombat and self:IsArcherName(name) then inCombat = false end
 
-                        local isLeader = leaderKey ~= nil
-                            and tostring(ent.this and ent.this.id or ent.id) == leaderKey
+                local mp = ent:GetPos()
+                if mp then
+                    local dx = playerPos.x - mp.x
+                    local dy = playerPos.y - mp.y
+                    local dz = playerPos.z - mp.z
+                    local distance = math.sqrt(dx*dx + dy*dy + dz*dz)
 
-                        if distance > (isLeader and leaderGate or gate) then
-                            if not sweepDone then
-                                sweepDone = true
-                                sharedSafePos = self:GetSafeSpawnPosition(player, 10)
+                    local isLeader = leaderKey ~= nil
+                        and tostring(ent.this and ent.this.id or ent.id) == leaderKey
+
+                    local myGate = isLeader and leaderGate or gate
+                    -- Still fighting, but far enough that the fight is plainly not the
+                    -- player's: bring him back rather than leave him out there forever.
+                    if inCombat then myGate = myGate * self.TeleportCombatOverride end
+
+                    if distance > myGate then
+                        if not sweepDone then
+                            sweepDone = true
+                            sharedSafePos = self:GetSafeSpawnPosition(player, 10)
+                        end
+                        if sharedSafePos then
+                            -- Validate the jittered spot so a straggler
+                            -- isn't teleported onto a tree/rock (the jitter
+                            -- and flat z alone could land on one).
+                            local tp = self:FindValidGround({
+                                x = sharedSafePos.x + (math.random() - 0.5) * 3.0,
+                                y = sharedSafePos.y + (math.random() - 0.5) * 3.0,
+                                z = sharedSafePos.z
+                            }, sharedSafePos.z)
+                            -- Both of these are about the leader, so neither applies TO him:
+                            -- pushing him behind himself is meaningless, and his follow tree
+                            -- is the one that owns MakeFormation - restarting it destroys the
+                            -- formation and drops every follower onto the chain until it is
+                            -- rebuilt. His short leash means he teleports more often than the
+                            -- rest, so flagging him would churn the whole squad.
+                            if not isLeader then
+                                tp = self:TeleportKeepBehindLeader(tp) or tp
                             end
-                            if sharedSafePos then
-                                -- Validate the jittered spot so a straggler
-                                -- isn't teleported onto a tree/rock (the jitter
-                                -- and flat z alone could land on one).
-                                local tp = self:FindValidGround({
-                                    x = sharedSafePos.x + (math.random() - 0.5) * 3.0,
-                                    y = sharedSafePos.y + (math.random() - 0.5) * 3.0,
-                                    z = sharedSafePos.z
-                                }, sharedSafePos.z)
-                                -- Both of these are about the leader, so neither applies TO him:
-                                -- pushing him behind himself is meaningless, and his follow tree
-                                -- is the one that owns MakeFormation - restarting it destroys the
-                                -- formation and drops every follower onto the chain until it is
-                                -- rebuilt. His short leash means he teleports more often than the
-                                -- rest, so flagging him would churn the whole squad.
-                                if not isLeader then
-                                    tp = self:TeleportKeepBehindLeader(tp) or tp
-                                end
-                                ent:SetPos(tp)
-                                if not isLeader then
-                                    pcall(function() self:NoteTeleport(ent) end)
-                                end
+                            ent:SetPos(tp)
+                            if not isLeader then
+                                pcall(function() self:NoteTeleport(ent) end)
                             end
                         end
                     end

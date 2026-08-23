@@ -67,7 +67,7 @@
                                     </SuppressFailure>
                                     <Loop count="-1">
                                         <Sequence>
-                                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'200ms'" />
+                                            <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
                                             <ExecuteLua code="mercenaries:PatrolChainPoll(data, entity)" />
                                             <IfCondition failOnCondition="false" condition="$chainChanged | ~$stillFollowing">
                                                 <Fail />

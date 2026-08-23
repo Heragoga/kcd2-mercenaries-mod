@@ -69,11 +69,20 @@ mercenaries.UpgPracticeCost      = 1000
 mercenaries.PracticeMaxLevel     = 6
 mercenaries.PracticePctPerLevel  = 8
 mercenaries.UpgHouseCost         = 1000        -- swaps the player's tent for a hut
-mercenaries.UpgTowerCost         = 100         -- TEMP: buying only enables aim-placing an archer tower (no persistence)
-mercenaries.UpgArcherCartCost    = 300         -- TEMP: buying only enables aim-placing an archer cart (3 archers, no persistence)
+mercenaries.UpgTowerCost         = 100         -- buying enables aim-placing an archer tower (hasTower + placement both persist)
+mercenaries.UpgArcherCartCost    = 300         -- buying enables aim-placing an archer cart, 3 archers (hasArcherCart + placement both persist)
 
 mercenaries.UpgWallCost          = 2000        -- palisade around the camp; stays with this pitch
 mercenaries.UpgGateCost          = 400         -- one gate for an opening in that palisade
+
+-- Wealth draws raiders: rolled at the same daily upkeep tick, off the PLAYER'S OWN
+-- purse (not the coffer - hoarding in the war chest doesn't paint a target on you).
+-- Hard floor below WealthRaidFloor (zero chance, no ramp-in), then a linear ramp to
+-- WealthRaidMaxChance by WealthRaidFloor + WealthRaidSpan gold. Deliberately gentle:
+-- even a fabulously rich purse only adds a ~25% chance to a given day's roll.
+mercenaries.WealthRaidFloor      = 5000        -- purse below this: no extra chance at all
+mercenaries.WealthRaidSpan       = 45000       -- gold above the floor to reach max chance
+mercenaries.WealthRaidMaxChance  = 0.25        -- chance at/above floor+span
 
 -- Combat buff tiers (net effectiveness %). LogiApplyBuffs picks the closest.
 mercenaries.CombatBuffTiers = {
@@ -174,6 +183,7 @@ function mercenaries:LogiState()
             wagesWithheld = false, coffer = 0,
             foodCartDays = 0, innDays = 0, hunterSpots = 0,
             hasSmithy = false, hasAlchemy = false, hasPracticeYard = false, hasHouse = false, trainLevel = 0,
+            hasTower = false, hasArcherCart = false,
             lastUpkeepDay = nil, lastTick = nil,
             -- runtime combat tracking
             lastAliveCount = nil, selfRemoved = 0, desertProgress = 0,
@@ -289,14 +299,18 @@ end
 
 -- ==== Persistence ====
 mercenaries.LogiLastSaved = {}
+-- Collects into a pending batch when one is open (see LogiSave), so a tick that
+-- changes several fields writes them behind a single persistence pass.
 function mercenaries:LogiSaveField(tag, val)
     val = tostring(val)
     if self.LogiLastSaved[tag] == val then return end
     self.LogiLastSaved[tag] = val
-    self:SaveString(tag, val)
+    if self._logiPending then self._logiPending[tag] = val
+    else self:SaveString(tag, val) end
 end
 function mercenaries:LogiSave()
     local L = self:LogiState()
+    self._logiPending = {}
     self:LogiSaveField("QMMorale", tostring(math.floor(L.morale + 0.5)))
     self:LogiSaveField("QMTiredness", tostring(math.floor(L.tiredness / 300) * 300))
     self:LogiSaveField("QMFood", L.food)
@@ -315,6 +329,15 @@ function mercenaries:LogiSave()
     self:LogiSaveField("QMPractice", L.hasPracticeYard and 1 or 0)
     self:LogiSaveField("QMHouse", L.hasHouse and 1 or 0)
     self:LogiSaveField("QMTrainLevel", L.trainLevel)
+    self:LogiSaveField("QMTower", L.hasTower and 1 or 0)
+    self:LogiSaveField("QMArcherCart", L.hasArcherCart and 1 or 0)
+
+    local batch = self._logiPending
+    self._logiPending = nil
+    if next(batch) ~= nil then
+        if self.SaveStrings then self:SaveStrings(batch)
+        else for tag, val in pairs(batch) do self:SaveString(tag, val) end end
+    end
 end
 function mercenaries:LogiLoad()
     local L = self:LogiState()
@@ -337,6 +360,8 @@ function mercenaries:LogiLoad()
     L.hasPracticeYard = num("QMPractice", 0) == 1
     L.hasHouse        = num("QMHouse", 0) == 1
     L.trainLevel      = num("QMTrainLevel", 0)
+    L.hasTower        = num("QMTower", 0) == 1
+    L.hasArcherCart   = num("QMArcherCart", 0) == 1
     L.innActive       = L.innDays > 0
     L.lastTick = self:LogiNow()          -- not persisted (see comment in LogiTick)
     L.lastAliveCount = self:LogiAliveCount()
@@ -586,6 +611,9 @@ function mercenaries:LogiProcessUpkeep()
     self:Recount()
     local count = _G.MercCount or 0
     if _G.MercenariesDismissed or count <= 0 then return end
+    -- Company survival stood down from the quartermaster: no rations, no wages, no
+    -- morale drift. The rates themselves are scaled by UpkeepApply, not here.
+    if self.UpkeepOn and not self:UpkeepOn() then return end
 
     -- Passive food from upgrades.
     local covered = 0
@@ -631,7 +659,47 @@ function mercenaries:LogiProcessUpkeep()
 
     self:LogiProcessWages()
     self:LogiApplyBuffs()
+    self:LogiWealthRaidTick()
 end
+
+-- Current extra-raid chance off the player's own purse (not the coffer). 0 below
+-- WealthRaidFloor; ramps linearly to WealthRaidMaxChance by WealthRaidFloor+Span.
+function mercenaries:LogiWealthRaidChance()
+    local money = 0
+    pcall(function() money = player.inventory:GetMoney() end)
+    if money < self.WealthRaidFloor then return 0 end
+    local frac = (money - self.WealthRaidFloor) / self.WealthRaidSpan
+    if frac < 0 then frac = 0 elseif frac > 1 then frac = 1 end
+    return frac * self.WealthRaidMaxChance
+end
+
+-- Rolled once per evening upkeep tick. A hit only fires through the existing raid
+-- entry point (mercenaries_raids.lua), and only when nothing is already under way
+-- and the player is actually there to see it - a wealth raid that lands on an empty
+-- camp fifty miles away would just be a silent squad wipe.
+function mercenaries:LogiWealthRaidTick()
+    local chance = self:LogiWealthRaidChance()
+    if chance <= 0 then return end
+    local roll = math.random()
+    System.LogAlways(string.format("[Logistics] wealth-raid roll %.3f vs chance %.3f", roll, chance))
+    if roll > chance then return end
+    if self:RaidBusy() or not self:RaidPlayerInCamp() then return end
+    System.LogAlways("[Logistics] wealth-raid roll succeeded - launching an extra raid")
+    pcall(function() self:RaidNow() end)
+end
+
+-- Console-only report: LogiWealthRaidChance() just returns a number, so this logs it
+-- with the purse and tunables that produced it, for testing without waiting for evening.
+function mercenaries:LogiWealthRaidReport()
+    local money = 0
+    pcall(function() money = player.inventory:GetMoney() end)
+    local chance = self:LogiWealthRaidChance()
+    System.LogAlways(string.format(
+        "[Logistics] wealth-raid chance: purse=%d floor=%d span=%d max=%.0f%% -> chance=%.1f%%",
+        money, self.WealthRaidFloor, self.WealthRaidSpan, self.WealthRaidMaxChance * 100, chance * 100))
+end
+System.AddCCommand("merc_logi_wealth_raid_chance", "mercenaries:LogiWealthRaidReport()",
+    "Log today's wealth-draws-raiders chance from the player's own purse")
 
 -- Lift starving the moment food is on hand again (ration is still only consumed
 -- at the evening tally, so no double-charge).
@@ -678,6 +746,37 @@ function mercenaries:LogiProcessWages()
     end
 end
 
+-- Health floor an "injured" merc reads below - matches mercenaries_management.lua's
+-- own injured status-buff threshold exactly, so a merc counts as injured to the camp
+-- (bed-claiming bias, owned by mercenaries_camp.lua) and to logistics (bed-rest heal
+-- multiplier below, and LogiIsInjured) at the same health.
+mercenaries.InjuredHealthPct = 50
+-- Injured mercs heal this many times faster while actually occupying a camp bed
+-- (mercenaries_camp.lua's CampFurniture[wuid].kind == "bed") than the flat in-camp rate.
+mercenaries.BedRestHealMult = 3
+
+-- Cooperation point for mercenaries_camp.lua: is this merc (by either WUID space -
+-- they coincide for mercs today, see CampMercKeys) below the injured health floor?
+-- Camp code can call this to bias injured mercs toward claiming a bed in the first
+-- place; LogiCampRegen below is the other half, healing him faster once he's in one.
+-- A merc not found, dead, or without a soul reads as not injured.
+function mercenaries:LogiIsInjured(mercWuid)
+    if mercWuid == nil then return false end
+    local key = tostring(mercWuid)
+    for _, ent in pairs(self.ActiveMercs) do
+        if ent then
+            local ws = tostring(ent.this and ent.this.id or ent.id)
+            if ws == key then
+                if not (ent.soul and self:IsAliveAndWell(ent, true)) then return false end
+                local hp
+                pcall(function() hp = tonumber(ent.soul:GetState('health')) end)
+                return (hp ~= nil) and (hp < self.InjuredHealthPct)
+            end
+        end
+    end
+    return false
+end
+
 -- ==== In-camp health regen ====
 -- While camped the men recover fully over a day, the quartermaster over an hour
 -- (driven off game time, so sleeping/waiting counts). Not logged (per-tick noise).
@@ -689,12 +788,21 @@ function mercenaries:LogiCampRegen(dt)
         if ent and ent.soul and self:IsAliveAndWell(ent, false) then
             pcall(function()
                 local hp = ent.soul:GetState('health')
-                if hp and hp < 100 then ent.soul:SetState('health', math.min(100, hp + mercHeal)) end
+                if hp and hp < 100 then
+                    local heal = mercHeal
+                    -- Injured AND actually in a bed right now: rest works, not just camp.
+                    if hp < self.InjuredHealthPct then
+                        local ws = tostring(ent.this and ent.this.id or ent.id)
+                        local fur = self.CampFurniture and self.CampFurniture[ws]
+                        if fur and fur.kind == "bed" then heal = heal * self.BedRestHealMult end
+                    end
+                    ent.soul:SetState('health', math.min(100, hp + heal))
+                end
             end)
         end
     end
     pcall(function()
-        local qm = self.QuartermasterName and System.GetEntityByName(self.QuartermasterName)
+        local qm = self.QuartermasterName and self:PerfEntityByName(self.QuartermasterName)
         if qm and qm.soul then
             local hp = qm.soul:GetState('health')
             if hp and hp < 100 then qm.soul:SetState('health', math.min(100, hp + qmHeal)) end
@@ -923,6 +1031,8 @@ function mercenaries:LogiRemoveAllUpgrades()
     L.hasPracticeYard = false
     L.hasHouse        = false
     L.trainLevel      = 0
+    L.hasTower        = false
+    L.hasArcherCart   = false
 
     pcall(function() self:DespawnCampFoodCart() end)
     -- defences are per-pitch: take them down AND forget them, or they would come back
@@ -975,10 +1085,17 @@ function mercenaries:LogiBuyHouse()
     L.hasHouse = true; self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
     self:LogiRebuildCampForUpgrade()
 end
--- TEMP archer-tower upgrade: buying it just enables aim-placement (StartTowerPlacement).
--- No hasTower flag / no save persistence yet - intentionally throwaway for now.
+-- Archer tower: buying it enables aim-placement (StartTowerPlacement); the placed
+-- structure's own position persists independently via DefSave/DefRestore
+-- (mercenaries_defences.lua, QMTowers) as long as the company doesn't re-pitch.
+-- hasTower is the missing half: an "I bought this" record that survives a
+-- re-pitch even when the standing tower is left behind, same as every other
+-- upgrade flag. Stackable, not re-buy-guarded - StartTowerPlacement's own
+-- TowerMaxCount caps how many can actually stand.
 function mercenaries:LogiBuyTower()
     if not self:LogiSpend(self.UpgTowerCost) then return end
+    local L = self:LogiState(); L.hasTower = true
+    self:LogiSave()
     Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
     self:StartTowerPlacement()
 end
@@ -1023,8 +1140,13 @@ function mercenaries:LogiToggleGates()
     self:GateSetAllOpen(not anyOpen)
 end
 
+-- Archer cart: same deal as the tower - hasArcherCart is the missing "I bought
+-- this" record, the placed cart itself already persists via DefSave/DefRestore
+-- (QMCarts) as long as the company doesn't re-pitch. Stackable up to ArcherCartMax.
 function mercenaries:LogiBuyArcherCart()
     if not self:LogiSpend(self.UpgArcherCartCost) then return end
+    local L = self:LogiState(); L.hasArcherCart = true
+    self:LogiSave()
     Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
     self:StartArcherCartPlacement()
 end

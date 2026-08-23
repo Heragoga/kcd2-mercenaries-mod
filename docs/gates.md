@@ -2,7 +2,9 @@
 
 A gate is placed on its own, independently of any wall, and can be opened or shut.
 Shutting them seals the camp: a closed gate blocks pathing exactly like a piece of
-wall, and a camp whose gates are all shut is not raided.
+wall. It does not call a raid off — raiders march on the gate whether it is barred or
+not, form up in front of it, and force it open when the fight opens. Barring the gate
+buys the company the time to make its line, not immunity.
 
 Meshes are `gate_wooden_d` (open) and `gate_wooden_d_closed` (shut) — the same gate
 carved both ways, which is the only true open/closed pair the game ships. There is no
@@ -90,13 +92,15 @@ opening; `merc_gate_status` reports the count per gate.
 perpendicular to the way the gate faces, and `NavWallSegments` appends those to the
 wall segments. So:
 
-* shut gate → the navmesh sees wall → `NavFindGaps` finds no gap there → the staged
-  battle has nothing to muster at, and `RaidSealed` stands the raid watch down;
-* open gate → contributes nothing → the gap reopens and a raid marches through it.
+* shut gate → the navmesh sees wall → nobody walks through it while it stays shut;
+* open gate → contributes nothing → the opening is walkable again.
 
-Raid suppression needs an actual gate — a camp with no gates is open by definition,
-however much wall it has. The raid *day* is not reset while sealed, so opening up
-again lets one land shortly after rather than buying a fresh two days' grace.
+Either way the gate is still where the battle happens. `NavFindGaps` checks for gates
+*before* it sweeps for holes, so a walled camp that has one gets one gap per gate
+(`WBGateGaps`) regardless of open state — which is what stops a sealed camp falling
+through to the "wholly enclosed" stand-in and mustering both sides on an arbitrary
+bearing. `WBForceGates` then swings the gates under attack as the phase turns to
+`battle`; gates on the quiet side of the camp stay barred.
 
 Sentries post on the gates once any exist (`NavGatePosts`); with none they fall back
 to the ends of the longest wall run, as before.

@@ -121,6 +121,36 @@ function mercenaries:DefBelongToCurrentCamp()
     return (dx * dx + dy * dy) <= (self.DefAnchorEps * self.DefAnchorEps)
 end
 
+-- Remove any tower/cart archer left over from a previous session, and forget him.
+--
+-- Matches ONLY our own StaticArcherNamePrefix, never IsStaticArcherName: that also
+-- matches the enemy 'towerarcher' variants a bandit camp or a siege puts on its own
+-- platforms, and those are not ours to sweep.
+function mercenaries:DefSweepTowerArchers()
+    local swept = 0
+    pcall(function()
+        local prefix = self.StaticArcherNamePrefix
+        if not prefix then return end
+        local pp; pcall(function() pp = player and player:GetWorldPos() end)
+        local ents = pp and System.GetPhysicalEntitiesInBoxByClass(pp, 300.0, "NPC")
+                        or System.GetEntitiesByClass("NPC")
+        for _, e in pairs(ents or {}) do
+            local n = (e and e.GetName and e:GetName()) or ""
+            if string.find(n, prefix, 1, true) == 1 then
+                local key = tostring((e.this and e.this.id) or e.id)
+                if self.StaticArchers then self.StaticArchers[key] = nil end
+                if self.RemoveStaticArcher then pcall(function() self:RemoveStaticArcher(e) end) end
+                pcall(function() System.RemoveEntity(e.id) end)
+                swept = swept + 1
+            end
+        end
+    end)
+    if swept > 0 then
+        System.LogAlways("[Defences] swept " .. swept .. " leftover tower archer(s) before rebuilding")
+    end
+    return swept
+end
+
 -- ==== restore ====
 -- Called after the camp itself is back up. Rebuilds only when the anchor matches, so
 -- a camp pitched somewhere new starts bare.
@@ -167,6 +197,12 @@ function mercenaries:DefRestore()
         pcall(function() self:GateBuild({ x = g.x, y = g.y, z = g.z }, g.yaw, g.open == 1) end)
     end
 
+    -- The tower PERSISTS but the archer on it does not, and the two disagree: the
+    -- engine serialises a spawned archer like any other NPC, so a reload brings last
+    -- session's man back - and then TowerBuildStation below spawns a fresh one,
+    -- leaving the old one stood on the ground under the tower. One more every load.
+    self:DefSweepTowerArchers()
+
     for _, t in ipairs(unpackPoses(self:LoadString("QMTowers"))) do
         pcall(function() self:TowerBuildStation({ x = t.x, y = t.y, z = t.z }, t.yaw) end)
     end
@@ -195,14 +231,18 @@ function mercenaries:DefClearWorld()
     pcall(function() self:ClearArcherCarts() end)
 end
 
+-- A space, not "" - SaveString refuses an empty string, so every one of these writes
+-- used to fail with "Cannot save an empty string" and the old layout was never actually
+-- forgotten. Same sentinel RouteForget already uses; every reader treats it as absent
+-- (unpackPoses finds no comma groups, tonumber(" ") is nil).
 function mercenaries:DefForget()
-    self:SaveString("QMGates", "")
-    self:SaveString("QMWallPts", "")
+    self:SaveString("QMGates", " ")
+    self:SaveString("QMWallPts", " ")
     self:SaveString("QMWallClosed", "0")
-    self:SaveString("QMTowers", "")
-    self:SaveString("QMCarts", "")
-    self:SaveString("QMDefX", "")
-    self:SaveString("QMDefY", "")
+    self:SaveString("QMTowers", " ")
+    self:SaveString("QMCarts", " ")
+    self:SaveString("QMDefX", " ")
+    self:SaveString("QMDefY", " ")
 end
 
 -- A camp was pitched somewhere new: the old defences are gone for good.

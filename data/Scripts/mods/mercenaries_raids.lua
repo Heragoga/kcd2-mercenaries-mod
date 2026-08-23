@@ -7,12 +7,14 @@
 -- The force is sized off the company (a raid the player cannot lose is not a raid, and
 -- one he cannot win is not fun either) and drawn from the group that matches how good
 -- his men are. Everything after the decision is mercenaries_wallbattle.lua's WBRaid.
+--
+-- If the camp has a gate they always make for it, gather in front of it, and force it
+-- open when the fight opens - barring the gate buys time to form up, not immunity.
 -- See docs/walls-and-sieges.md.
 
 mercenaries.RaidEnabled     = true
 mercenaries.RaidDaysBetween = 2.0     -- average days between raids
 mercenaries.RaidDayJitter   = 0.75    -- +/- this many days, so it is not clockwork
-mercenaries.RaidShare       = 0.8     -- raiders as a fraction of the company
 mercenaries.RaidMinCount    = 3
 mercenaries.RaidMaxCount    = 14
 mercenaries.RaidCampRange   = 45.0    -- the player must be this close to camp
@@ -20,9 +22,19 @@ mercenaries.RaidWallDist    = 120.0   -- they form up this far out when there is
 mercenaries.RaidNoWallDist  = 50.0    -- ...and this close when there is not
 mercenaries.RaidTickMs      = 20000
 
--- Which enemies turn up, by how good the company is. Same mapping the old renegade
--- tiers used, so "strong company draws knights" stays consistent across the mod.
-mercenaries.RaidGroupByTier = { weak = "looter", medium = "bandit", strong = "knight" }
+-- Who turns up: drawn at random, every group equally likely. What differs is `share` -
+-- how many of them per man in the company - because the groups are nowhere near each
+-- other in worth. Knights at even numbers would be a massacre and looters at even
+-- numbers a warm-up, so the count is what levels them: half a dozen knights and a full
+-- dozen looters are both a fight for the same company.
+mercenaries.RaidRoster = {
+    { group = "knight", share = 0.5 },   -- Sigismund's knights: elite, health-boosted
+    { group = "sigi",   share = 0.6 },   -- Sigismund's soldiers
+    { group = "prague", share = 0.6 },   -- the Prague regiment, Kuttenberg's own
+    { group = "cuman",  share = 0.7 },   -- Cumans
+    { group = "bandit", share = 1.0 },   -- Bandits
+    { group = "looter", share = 1.0 },   -- Looters
+}
 
 local function raidLog(s) System.LogAlways("[Raids] " .. s) end
 
@@ -43,15 +55,31 @@ function mercenaries:RaidScheduleNext(fromDay)
 end
 
 -- ==== who ====
--- 80% of the company, so a raid is a real fight but the defenders keep the edge the
--- wall and their archers are supposed to give them.
-function mercenaries:RaidForceSize()
+-- How many of this group it takes to make a fight of it against the living company,
+-- clamped so a four-man camp is not walked over and a full one is not besieged.
+-- A raid is fought by the WHOLE company, including the men asleep in camp, so the
+-- strength this is sized against is the full living roster and not the sortie.
+function mercenaries:RaidForceSize(share)
     local n = 0
     pcall(function() n = self:LogiAliveCount() end)
-    local want = math.floor(n * self.RaidShare + 0.5)
+    local want = math.floor(n * (share or 1.0) + 0.5)
+    -- The tier scales the band and caps how badly the company may be outnumbered.
+    pcall(function() want = self:DifficultyCount(want, n, self.RaidMinCount) end)
     if want < self.RaidMinCount then want = self.RaidMinCount end
-    if want > self.RaidMaxCount then want = self.RaidMaxCount end
+    -- The ceiling rises with the tier, or a horde is clipped straight back to 14.
+    local ceil_ = self.RaidMaxCount
+    pcall(function() ceil_ = self:DifficultyCeil(self.RaidMaxCount) end)
+    if want > ceil_ then want = ceil_ end
     return want
+end
+
+-- Roll the raid: which group, and how many of them. One call, because the size only
+-- means anything alongside the group it was rolled for.
+function mercenaries:RaidPick()
+    local roster = self.RaidRoster or {}
+    if #roster == 0 then return "bandit", self:RaidForceSize(1.0), 1.0 end
+    local r = roster[math.random(1, #roster)]
+    return r.group, self:RaidForceSize(r.share), (r.share or 1.0)
 end
 
 -- The company's average quality, as one of the three tier names.
@@ -63,10 +91,6 @@ function mercenaries:RaidCompanyTier()
     if score >= 2.5 then return "strong" end
     if score >= 1.5 then return "medium" end
     return "weak"
-end
-
-function mercenaries:RaidGroup()
-    return self.RaidGroupByTier[self:RaidCompanyTier()] or "bandit"
 end
 
 -- ==== conditions ====
@@ -81,13 +105,9 @@ function mercenaries:RaidPlayerInCamp()
     return (dx * dx + dy * dy) <= (self.RaidCampRange * self.RaidCampRange)
 end
 
--- Shut gates call the raid off. Bandits pick on a camp they can walk into; a company
--- that has barred its gates is not worth the assault, so the raid is not launched at
--- all rather than being spawned and left milling about outside.
---
--- It takes a gate to do it: a camp with none is open by definition, however much wall
--- it has. The raid day is left alone, so opening the gates again lets one land shortly
--- after rather than resetting the clock.
+-- Shut gates no longer call the raid off. A raid marches on a gate whether it is barred
+-- or not: it forms up in front of it, and the assault forces it open (WBForceGates).
+-- Kept as a status line only - merc_raid_status still reports whether the camp is shut.
 function mercenaries:RaidSealed()
     return (self.GateAllClosed ~= nil) and self:GateAllClosed()
 end
@@ -102,13 +122,12 @@ end
 
 -- ==== the raid ====
 function mercenaries:RaidLaunch()
-    local count = self:RaidForceSize()
-    local group = self:RaidGroup()
+    local group, count, share = self:RaidPick()
     local walled = self:WallHasAny()
     local dist = walled and self.RaidWallDist or self.RaidNoWallDist
 
-    raidLog(string.format("%d %s inbound (company is %s%s)",
-        count, group, self:RaidCompanyTier(), walled and ", walled camp" or ", open camp"))
+    raidLog(string.format("%d %s inbound at %.1f/man (company is %s%s)",
+        count, group, share, self:RaidCompanyTier(), walled and ", walled camp" or ", open camp"))
     local n = self:WBRaid(count .. " " .. group .. " " .. dist)
     if n and n > 0 then
         Game.SendInfoText('merc_info_raid', false, 0, 6)
@@ -121,16 +140,10 @@ function mercenaries.RaidTick()
     local self = mercenaries
     pcall(function()
         if not self.RaidEnabled then return end
+        -- The quartermaster's master switch for uninvited trouble.
+        if self.EncountersOn and not self:EncountersOn() then return end
         if not self:RaidPlayerInCamp() then return end
         if self:RaidBusy() then return end
-        if self:RaidSealed() then
-            if not self._raidSealedSaid then
-                raidLog("gates are shut - no raid while the camp is barred")
-                self._raidSealedSaid = true
-            end
-            return
-        end
-        self._raidSealedSaid = nil
 
         local day = self:LogiUpkeepDay()
         if not self.RaidNextDay then
@@ -161,9 +174,15 @@ function mercenaries:RaidStatus()
     local day = self:LogiUpkeepDay()
     raidLog("enabled: " .. tostring(self.RaidEnabled))
     raidLog(string.format("day %d, next raid on day %s", day, tostring(self.RaidNextDay or self:RaidLoadNextDay() or "?")))
-    raidLog("player in camp: " .. tostring(self:RaidPlayerInCamp()) .. ", busy: " .. tostring(self:RaidBusy()))
-    raidLog(string.format("next force: %d x %s (company is %s)",
-        self:RaidForceSize(), self:RaidGroup(), self:RaidCompanyTier()))
+    raidLog("player in camp: " .. tostring(self:RaidPlayerInCamp()) .. ", busy: " .. tostring(self:RaidBusy())
+        .. ", gates sealed: " .. tostring(self:RaidSealed()))
+    -- The group is rolled at launch, so the best status can do is show the whole draw.
+    local parts = {}
+    for _, r in ipairs(self.RaidRoster or {}) do
+        table.insert(parts, string.format("%d %s", self:RaidForceSize(r.share), r.group))
+    end
+    raidLog(string.format("company is %s; the draw is one of: %s",
+        self:RaidCompanyTier(), table.concat(parts, ", ")))
 end
 
 function mercenaries:RaidSetEnabled(v)
