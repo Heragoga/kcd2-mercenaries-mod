@@ -52,7 +52,6 @@ function mercenaries:EngageDropClaims(all)
         for myWuidStr, _ in pairs(self.MercTargetOf or {}) do
             if all or not self:EngageBeingAttacked(myWuidStr) then
                 if self.ClearCombatClaim then self:ClearCombatClaim(myWuidStr) end
-                self.MercTargetOf[myWuidStr] = nil
             end
         end
     end)
@@ -60,17 +59,23 @@ end
 
 -- Is anything currently locked onto this merc? Used so "defend only" does not
 -- yank a man out of a fight somebody else started with him.
+-- Is this merc in a fight somebody else started with him? Used so "defend only" does not
+-- yank a man out of one.
+--
+-- Asks the MERC, not the enemies. The old version walked CachedEnemies calling
+-- soul:GetTarget() on each - a bind that does not exist, so it answered false for
+-- everyone and the defend stance dropped claims it was meant to keep.
+-- HasScriptContext("crime_interruptAttack") is the same test every scheduler already
+-- uses for $inCombat, and it is proven.
 function mercenaries:EngageBeingAttacked(myWuidStr)
     local hit = false
     pcall(function()
-        for _, e in ipairs(self.CachedEnemies or {}) do
-            local ent = e and e.entity
-            if ent then
-                local t
-                pcall(function() t = ent.soul and ent.soul:GetTarget() end)
-                if t and tostring(t) == tostring(myWuidStr) then hit = true end
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w and tostring(w) == myWuidStr then
+                hit = ent.soul and ent.soul:HasScriptContext("crime_interruptAttack") or false
+                return
             end
-            if hit then break end
         end
     end)
     return hit
@@ -91,14 +96,62 @@ end
 -- pass still runs first, so declared hostiles who have not drawn yet stay in the
 -- cache exactly as before, and the aggressive pass only ADDS armed neutrals.
 --
--- The two hostility gates are never both waived in one call - the relationship
--- floor and the drawn-weapon proof are each other's safety net (see
--- docs/combat-target-selection.md).
-function mercenaries:EngageCacheAccepts(ent, playerWuid)
-    if self:IsValidEnemy(ent, player, playerWuid, false, true) then return true end
-    if self:EngageCode() ~= 1 then return false end
-    if self:IsOwnSide(ent) then return false end
-    return self:IsValidEnemy(ent, player, playerWuid, true, false)
+-- The two hostility gates are never both waived on the RELATIONSHIP paths - the
+-- relationship floor and the drawn-weapon proof are each other's safety net (see
+-- docs/combat-target-selection.md). LockedOntoUs is a third gate, not a waiver of
+-- those two: see below.
+-- Returns accepted, viaLockOn. The second tells UpdateEnemyCache this man is confirmed
+-- to be FIGHTING us, which is what its second pass grows the rest of the battle from.
+-- `armed` is read once by the caller and handed down rather than re-queried here.
+function mercenaries:EngageCacheAccepts(ent, playerWuid, armed, confirmed)
+    if self:IsValidEnemy(ent, player, playerWuid, false, true) then return true, false end
+    -- Someone with his weapon out and OUR name on it, whatever the relationship table
+    -- says. This is what base-game enemies need: the relationship floor demands exactly
+    -- -1 to the player, and a vanilla hostile does not necessarily sit there until he has
+    -- actually picked the fight - so he never entered the cache, and a cache miss is
+    -- total. ScanForEnemies feeds the BT's candidate array from the cache, so the
+    -- lock-on pass (EvaluateCombatTarget) could not see him either, and the ONLY way in
+    -- was the player's own target - which is why the squad waited for the player to
+    -- commit ("not instantly") and then only put the cap's worth of men on that one man
+    -- ("not all of them").
+    if not self:IsOwnSide(ent) and (confirmed or self:LockedOntoUs(ent, armed)) then
+        -- His camp is awake, whatever its own alarm still thinks. IsValidEnemy refuses
+        -- every member of an unalerted bandit camp - which is right for a camp nobody
+        -- has touched, and completely wrong once one of its men is swinging at us: the
+        -- squad then stood watching a fight it was not allowed to see. Waking the camp
+        -- rather than exempting the one man is deliberate - the rest of them are in it
+        -- too, and the whole point is that the squad engages the CAMP, not one bandit.
+        if self.BanditCampAlertFor then
+            self:BanditCampAlertFor(tostring(ent.this and ent.this.id or ent.id),
+                                    "a bandit is fighting us")
+        end
+        if self:IsValidEnemy(ent, player, playerWuid, true, true) then return true, true end
+    end
+    if self:EngageCode() ~= 1 then return false, false end
+    if self:IsOwnSide(ent) then return false, false end
+    return self:IsValidEnemy(ent, player, playerWuid, true, false), false
+end
+
+-- Is this NPC armed and targeting the player or one of the squad?
+--
+-- BEST EFFORT ONLY, and nothing may depend on it. `soul:GetTarget()` is not a Lua
+-- scriptbind in this engine - it appears nowhere in vanilla's own scripts - so this
+-- silently answers "no" for everybody and always has. The working answer comes from the
+-- behaviour tree's GetTarget node via NoteAttacker, which is what the `confirmed`
+-- argument above carries; this is kept only so that it starts contributing for free if
+-- the bind ever exists. Do NOT build anything new on it.
+--
+-- Gated on the weapon first so it costs nothing in a town, where every NPC in the scan
+-- reaches this line.
+function mercenaries:LockedOntoUs(ent, armed)
+    if armed == false then return false end
+    local hit = false
+    pcall(function()
+        if armed == nil and ent.human and not ent.human:IsWeaponDrawn() then return end
+        local t = ent.soul and ent.soul:GetTarget()
+        if t and self:IsOneOfOurs(t) then hit = true end
+    end)
+    return hit
 end
 
 -- Never turn on our own, whatever the stance says. IsValidEnemy filters by soul
@@ -265,6 +318,10 @@ mercenaries.FocusHoldSecs = 45.0
 
 function mercenaries:OrderFocusTarget()
     local ent
+    -- Best effort, and it never fires: soul:GetTarget() is not a Lua scriptbind (see
+    -- LockedOntoUs above), so in practice the look-at memory below IS this order's
+    -- input. Left in place because it costs nothing and would be the better source if
+    -- the bind ever existed.
     pcall(function()
         local t = player and player.soul and player.soul:GetTarget()
         if t then ent = XGenAIModule.GetEntityByWUID(t) end
@@ -322,7 +379,7 @@ end
 -- line passing word along instead of a chord.
 mercenaries.OrderBarkMinGap = 6.0
 
-function mercenaries:OrderBarkSome(alias, count, metarole)
+function mercenaries:OrderBarkSome(alias, count)
     count = math.max(1, tonumber(count) or 3)
     local pool = {}
     pcall(function()
@@ -360,7 +417,7 @@ function mercenaries:OrderBarkSome(alias, count, metarole)
         if wuid then
             n = n + 1
             if i == 1 then
-                self:OrderBarkFire(wuid, alias, metarole)
+                self:OrderBarkFire(wuid, alias)
             else
                 -- Staggered by hand rather than by timer id: SetTimerForFunction
                 -- takes a function NAME, so the delay is carried in a queue the
@@ -368,7 +425,7 @@ function mercenaries:OrderBarkSome(alias, count, metarole)
                 self.OrderBarkQueue = self.OrderBarkQueue or {}
                 table.insert(self.OrderBarkQueue, {
                     at = nowSecs() + (i - 1) * (0.55 + math.random() * 0.5),
-                    wuid = wuid, alias = alias, metarole = metarole,
+                    wuid = wuid, alias = alias,
                 })
             end
         end
@@ -376,26 +433,21 @@ function mercenaries:OrderBarkSome(alias, count, metarole)
     return n
 end
 
--- `metarole` is a boolean request for THE vanilla combat shout, not a name - the tree
--- spells the metarole out as a literal. Wiring a second one means a second node.
--- See docs/squad-orders.md.
-function mercenaries:OrderBarkFire(wuid, alias, metarole)
-    if metarole then
-        _G.MercMetaBarkReq = _G.MercMetaBarkReq or {}
-        _G.MercMetaBarkReq[tostring(wuid)] = true
-    elseif alias then
-        self:RequestBark(wuid, alias)
-    end
+function mercenaries:OrderBarkFire(wuid, alias)
+    if alias then self:RequestBark(wuid, alias) end
 end
 
--- One consumer for both bark queues, shared by follow.xml, camp_actor.xml and
--- mercenary_scheduler.xml. An alias names one of our own dialogs; a metarole casts
--- from the base game's own pool for that role instead, which is how a merc shouts a
--- real voiced line with no mod dialog and no shipped audio. Exactly one of the two
--- is ever non-empty, because schedulerMonolog treats a set alias as the pin.
+-- The one bark consumer, shared by follow.xml, camp_actor.xml and
+-- mercenary_scheduler.xml. An alias names one of this mod's own dialogs.
+--
+-- THERE IS NO VANILLA-METAROLE PATH. A combat-start shout was built on
+-- schedulerMonolog with alias="" and metarole='NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT' -
+-- casting from the base game's own pool, the way foe_combat.xml does - and it never
+-- produced a sound on a merc. Removed rather than left in mute: the requirement is
+-- that the speaking soul has a skald_character row whose voice carries those
+-- recordings, and the merc souls do not.
 function mercenaries:BarkPoll(bt_data, myWuid)
     bt_data.hasBarkReq   = false
-    bt_data.hasMetaBark  = false
     bt_data.barkReqAlias = ''
     local k = tostring(myWuid)
 
@@ -406,17 +458,7 @@ function mercenaries:BarkPoll(bt_data, myWuid)
             bt_data.barkReqAlias = a
             bt_data.hasBarkReq   = true
             br[k] = nil
-            return
         end
-    end
-
-    -- A flag, not a name: the metarole itself is a LITERAL in the tree. schedulerMonolog
-    -- takes it as a node attribute and there is no shipped example anywhere of one being
-    -- fed from a variable, so it stays spelled out the way foe_combat.xml does it.
-    local mr = _G.MercMetaBarkReq
-    if mr and mr[k] then
-        bt_data.hasMetaBark = true
-        mr[k] = nil
     end
 end
 
@@ -425,31 +467,10 @@ function mercenaries:OrderBarkDrain()
     if not q or #q == 0 then return end
     local t, keep = nowSecs(), {}
     for _, r in ipairs(q) do
-        if t >= r.at then self:OrderBarkFire(r.wuid, r.alias, r.metarole)
+        if t >= r.at then self:OrderBarkFire(r.wuid, r.alias)
         else table.insert(keep, r) end
     end
     self.OrderBarkQueue = keep
-end
-
--- Shout on a fresh alert, and again if a fight simply drags on.
---
--- Latching on the rising edge ALONE was wrong: EnemyAlerted holds for 20s after the
--- last armed hostile and barely ever falls on a road with patrols about, so the
--- squad shouted once and then stayed silent for the rest of the session.
-mercenaries.OrderAlertRepeatSecs = 45.0
-
-function mercenaries:OrderAlertBarkTick()
-    if not self.EnemyAlerted then
-        self._alertBarked = false
-        return
-    end
-    local t    = nowSecs()
-    local last = self._alertBarkAt or -999
-    if self._alertBarked and (t - last) < self.OrderAlertRepeatSecs then return end
-    if (t - last) < self.OrderBarkMinGap then return end
-    self._alertBarked = true
-    self._alertBarkAt = t
-    self:OrderBarkSome(nil, math.random(3, 5), true)
 end
 
 -- Told, at most once a minute, that the men are standing there being hit because the
@@ -510,14 +531,11 @@ function mercenaries:OrderStatus()
 end
 
 for _, k in ipairs(mercenaries.EngageOrder) do
-    System.AddCCommand("merc_engage_" .. k, "mercenaries:SetEngageStance('" .. k .. "')",
+    mercenaries:DevCommand("merc_engage_" .. k, "mercenaries:SetEngageStance('" .. k .. "')",
         "Engagement stance: " .. (mercenaries.EngageLabel[k] or k))
 end
 for _, k in ipairs(mercenaries.AggroOrder) do
-    System.AddCCommand("merc_aggro_" .. k, "mercenaries:SetAggroPreset('" .. k .. "')",
+    mercenaries:DevCommand("merc_aggro_" .. k, "mercenaries:SetAggroPreset('" .. k .. "')",
         "Anti-swarm preset: " .. (mercenaries.AggroPresets[k].label or k))
 end
-System.AddCCommand("merc_focus", "mercenaries:OrderFocusTarget()",
-    "Call the target you are looking at (or locked onto) for the whole squad")
-System.AddCCommand("merc_focus_clear", "mercenaries:OrderFocusClear('console')", "Drop the called target")
-System.AddCCommand("merc_orders_status", "mercenaries:OrderStatus()", "Report the squad's combat orders")
+mercenaries:DevCommand("merc_orders_status", "mercenaries:OrderStatus()", "Report the squad's combat orders")

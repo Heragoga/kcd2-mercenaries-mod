@@ -112,7 +112,27 @@ function mercenaries:RaidSealed()
     return (self.GateAllClosed ~= nil) and self:GateAllClosed()
 end
 
+-- A raid that has been standing this long is not a raid any more, whatever the wall
+-- battle still thinks. Something wedged, or a handful of raiders broke off and wandered,
+-- and neither may stop the company ever being raided again - RaidTick gates every
+-- scheduled raid on RaidBusy, so a force that never dies is a permanent stop.
+mercenaries.RaidStaleSecs = 300.0
+
 function mercenaries:RaidBusy()
+    -- Checked FIRST, and it clears the force rather than merely ignoring it: leaving a
+    -- stale band standing about while a fresh one marches in stacks two raids on the camp.
+    local at = self.WBRaidAt
+    if at and self.WBRaidForce then
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        if (now - at) > self.RaidStaleSecs then
+            raidLog(string.format("the last raid has been standing %.0fs - clearing it",
+                                  now - at))
+            pcall(function() self:WBRaidClear() end)
+            return false
+        end
+    end
+
     if (self.WBPhase or "idle") ~= "idle" then return true end
     for _, e in ipairs(self.WBRaidForce or {}) do
         if e and self:IsAliveAndWell(e, true) then return true end
@@ -190,12 +210,20 @@ function mercenaries:RaidSetEnabled(v)
     raidLog("raids " .. (self.RaidEnabled and "on" or "off"))
 end
 
+-- The console order to raid NOW. It REPLACES whatever is still standing rather than
+-- refusing: this command exists to make a raid happen, and "a raid is already under way"
+-- is not that - it is the answer that made the second merc_raid_now look like raids had
+-- stopped working. The scheduled path (RaidTick) still defers to RaidBusy, because a
+-- raid landing on top of the one the player is fighting is not something the clock
+-- should be able to do on its own.
 function mercenaries:RaidNow()
-    if self:RaidBusy() then raidLog("a raid is already under way"); return end
+    if self:RaidBusy() then
+        raidLog("a raid is still under way - clearing it and launching a fresh one")
+        pcall(function() self:WBRaidClear() end)
+    end
     self:RaidLaunch()
     self:RaidScheduleNext(self:LogiUpkeepDay())
 end
 
-System.AddCCommand("merc_raid_now",    "mercenaries:RaidNow()",         "Launch the scheduled raid immediately")
-System.AddCCommand("merc_raid_status", "mercenaries:RaidStatus()",      "When the next raid is due, and what it will be")
-System.AddCCommand("merc_raid_arm",    "mercenaries:RaidSetEnabled(%line)", "Turn scheduled raids on or off: merc_raid_arm 0 | 1")
+mercenaries:DevCommand("merc_raid_status", "mercenaries:RaidStatus()",      "When the next raid is due, and what it will be")
+mercenaries:DevCommand("merc_raid_arm",    "mercenaries:RaidSetEnabled(%line)", "Turn scheduled raids on or off: merc_raid_arm 0 | 1")

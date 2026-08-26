@@ -40,9 +40,14 @@ function mercenaries:UpdateFormationSlots()
 
         for name, ent in pairs(self.ActiveMercs) do
             local entWuid  = ent and (ent.this and ent.this.id or ent.id)
-            -- Mercs holding the camp aren't part of the marching formation; only
-            -- sortie mercs (and the whole squad when there's no camp) form up.
-            if self:IsAliveAndWell(ent, false) and not self:IsMercInCampProper(entWuid) then
+            -- ONE membership rule, the same one the engine formation elects from.
+            -- This used to test only IsMercInCampProper while IsFormationEligible
+            -- also excluded camp actors, and that gap is a blob generator: a merc
+            -- the chain skipped got no FormationSlots entry, so
+            -- CalculateFormationTarget fell through to followTarget = the player
+            -- and he walked straight at him instead of holding a place in the
+            -- queue. Enough of them and the whole squad piles onto the player.
+            if self:IsFormationEligible(ent, entWuid) then
                 local mercType = self:GetMercType(ent)
                 local entName  = ent:GetName() or name
                 local hp       = 0
@@ -207,11 +212,17 @@ end
 -- deliberately replacing follow ends it too, so re-arming from there re-arms the
 -- re-fire that ended it, and follow restarts once a second for ever - which churns
 -- the formation, because every restart re-runs GetMemberFormation. That was tried.
-mercenaries.FollowStuck = {}   -- [wuidStr] = true
+mercenaries.FollowStuck = {}   -- [wuidStr] = earliest time his re-fire may run
 
 local function fhKey(ent)
     local w = ent and ((ent.this and ent.this.id) or ent.id)
     return w and tostring(w) or nil
+end
+
+local function fhNow()
+    local t = 0
+    pcall(function() t = System.GetCurrTime() or 0 end)
+    return t
 end
 
 -- Called by the teleporter. A merc who had to be dragged back to the player is by
@@ -219,12 +230,33 @@ end
 -- scheduler's 35m self-heal: it resets his distance every pass, so the stuck
 -- merc never stays far enough away long enough to be noticed. Gate is already
 -- tight upstream - out of combat, not idle, not in camp, player not mounted.
+--
+-- Raising it is a QUEUE, not a flag. Each refire evicts one behaviour tree and starts
+-- another, and the engine applies interrupts on its own update rather than where they
+-- are queued - so a whole squad raised in the same instant (which is what releasing a
+-- hold order used to do) puts fifty evictions and fifty re-fires into the same couple
+-- of frames. Men who are already queued keep the slot they were given.
+mercenaries.FollowRefireStagger = 0.30
+
 function mercenaries:FollowStalled(ent)
     local ok = pcall(function()
         local k = fhKey(ent)
-        if k then self.FollowStuck[k] = true end
+        if not k then return end
+        if self.FollowStuck[k] then return end
+        local now  = fhNow()
+        local slot = math.max(now, self._fsNextSlot or 0)
+        self._fsNextSlot   = slot + self.FollowRefireStagger
+        self.FollowStuck[k] = slot
     end)
     if not ok then System.LogAlways('[MercForm] FollowStalled error') end
+end
+
+-- Same signal, for callers that hold a wuid rather than an entity.
+function mercenaries:FollowStalledWuid(wuid)
+    if not wuid then return end
+    local ent
+    pcall(function() ent = XGenAIModule.GetEntityByWUID(wuid) end)
+    if ent then self:FollowStalled(ent) end
 end
 
 -- BT hook, polled by mercenary_scheduler.xml. Sets data.followStuck. READ-ONLY:
@@ -236,7 +268,9 @@ function mercenaries:PollFollowRefire(bt_data, myWuid)
     bt_data.followStuck = false
     local ok = pcall(function()
         local k = tostring(myWuid)
-        if not self.FollowStuck[k] then return end
+        local due = self.FollowStuck[k]
+        if not due then return end
+        if fhNow() < due then return end
         local me = XGenAIModule.GetEntityByWUID(myWuid)
         if me and self.IsNavGotoActive and self:IsNavGotoActive(me) then return end
         bt_data.followStuck = true
@@ -246,6 +280,80 @@ end
 
 function mercenaries:ConsumeFollowRefire(myWuid)
     self.FollowStuck[tostring(myWuid)] = nil
+end
+
+-- ---------------------------------------------------------------------------
+-- EVICTION GUARD - the race that leaves a merc standing for ever.
+--
+-- Replacing a stalled follow tree takes two steps in two INDEPENDENT scheduler arms:
+-- the re-fire arm fires 'teleport' to evict whatever is running, and the follow arm
+-- fires 'follow' the next time it sees $isFollowingActive false. An interrupt is not
+-- applied where it is queued - the engine applies it on its own update - so when the
+-- follow arm's timer lands inside that gap the order becomes
+--
+--     queue teleport  ->  fire follow, latch = true  ->  teleport lands, evicts follow
+--
+-- and the latch now claims he is following with nothing running. The follow arm only
+-- ever retries on a FALSE latch, so he stands there for good; the 35m self-heal is the
+-- only thing left, and it cannot see a man who stopped next to the player.
+--
+-- The gap widens with squad size (more interrupts per engine update), which is why it
+-- only bites at forty or fifty men, and it fires en masse on a hold release - the one
+-- moment the whole squad re-fires at once. See docs/squad-orders.md.
+--
+-- So: whoever queues an eviction stamps a block here, and the follow arm will not fire
+-- 'follow' until it expires. Deliberately time-based and self-expiring - a BT latch
+-- held across a Wait would strand a merc for good if his branch were abandoned
+-- mid-wait, which is the same class of bug one level down.
+-- ---------------------------------------------------------------------------
+mercenaries.FollowEvictBlockSecs = 0.75
+mercenaries.FollowBlockUntil = {}      -- [wuidStr] = no 'follow' interrupt before this time
+
+function mercenaries:NoteFollowEviction(myWuid)
+    pcall(function()
+        self.FollowBlockUntil[tostring(myWuid)] = fhNow() + self.FollowEvictBlockSecs
+    end)
+end
+
+-- Ripple the squad into motion instead of letting fifty follow interrupts land inside
+-- the same half second. Total spread is capped, so a small squad still starts at once
+-- and a big one takes about a second and a half to get going - which is both kinder to
+-- the interrupt queue and closer to how a column actually moves off.
+mercenaries.FollowStaggerTotal = 1.5
+
+function mercenaries:FollowStaggerSquad()
+    local n = 0
+    for _ in pairs(self.ActiveMercs or {}) do n = n + 1 end
+    if n < 2 then return 0 end
+    local step = math.min(0.05, self.FollowStaggerTotal / n)
+    local now, i = fhNow(), 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        local k = fhKey(ent)
+        if k then
+            self.FollowBlockUntil[k] = now + i * step
+            i = i + 1
+        end
+    end
+    return (i - 1) * step
+end
+
+-- One call per merc per scheduler tick: publishes the guard above into the BT.
+function mercenaries:FollowGate(bt_data, myWuid)
+    -- Cleared FIRST, in its own pcall, so that any failure below leaves the gate OPEN.
+    -- A gate that fails shut is a merc who never follows again, which is the bug this
+    -- exists to fix.
+    pcall(function() bt_data.refireBlock = false end)
+    local ok = pcall(function()
+        local k      = tostring(myWuid)
+        local until_ = self.FollowBlockUntil[k]
+        local now    = fhNow()
+        if until_ and now < until_ then
+            bt_data.refireBlock = true
+        elseif until_ then
+            self.FollowBlockUntil[k] = nil
+        end
+    end)
+    if not ok then System.LogAlways('[MercForm] FollowGate error') end
 end
 
 -- ---------------------------------------------------------------------------
@@ -285,10 +393,16 @@ end
 --
 -- This is not the general movement/velocity stuck detector that was removed for
 -- causing twitching and horse churn, and it must not be widened into one. It is
--- bounded on all sides: it only runs inside a window after a dismount, it only
--- judges a merc on a tick where the PLAYER has actually moved (so a squad standing
--- still with a standing player is never touched), and it cannot spawn horses
--- because it only runs while the player is on foot.
+-- bounded on all sides: it only runs inside a WINDOW, it only judges a merc on a tick
+-- where the PLAYER has actually moved (so a squad standing still with a standing
+-- player is never touched), and it cannot spawn horses because it only runs while the
+-- player is on foot.
+--
+-- A dismount is no longer the only thing that opens the window. Releasing a hold or
+-- escort order opens it too (BeginFollowVerify), for the same reason and with the same
+-- bounds: that is the other moment the whole squad re-fires follow at once, and it is
+-- exactly where a man who silently fails to start walking is invisible - he is stood
+-- next to the player, so no distance rule can ever see him.
 -- ---------------------------------------------------------------------------
 mercenaries.DismountResetDelay   = 2.0   -- seconds after dismount before watching
 mercenaries.DismountVerifySecs   = 25.0  -- keep verifying this long
@@ -297,10 +411,27 @@ mercenaries.DismountVerifyMoved  = 1.0   -- a merc covering less than this has n
 mercenaries.DismountVerifyPlayer = 5.0   -- ...judged stuck once the player has covered this much
 mercenaries.DismountVerifyFar    = 22.0  -- ...or if he is simply this far away and stationary
 
-local function fhNow()
-    local t = 0
-    pcall(function() t = System.GetCurrTime() or 0 end)
-    return t
+-- THE FAR TEST DOES NOT APPLY TO A MAN HOLDING A FORMATION SLOT. 22m is shorter than the
+-- formation itself: merc_column40 is 36m deep, so the rear half of a CORRECTLY formed column
+-- is beyond it, and when the player pauses those men are stationary because they are standing
+-- exactly where they were told to. The verify then evicted and re-fired every one of them
+-- every 2s for the whole window, which drops a man out of his slot to re-acquire it - the
+-- squad churns instead of settling. Deploying 38 men into merc_column40 made it unmissable:
+-- 17 men, matching the 17 spots at or past 22m, "not following" and climbing.
+--
+-- Freshness is what makes this safe rather than a blind spot. FormationSlotAt is stamped from
+-- follow.xml every pass, so a claim this recent proves the man's tree is RUNNING. A genuinely
+-- stalled merc stops stamping, his claim expires, and the far test picks him up again. The
+-- player-drift test is never waived: if the player moves and a man does not, he is stuck
+-- whatever he believes about his slot.
+mercenaries.FormationSlotFreshSecs = 2.5
+
+function mercenaries:FormationSlotFresh(k)
+    if not (self.FormationInSlot or {})[k] then return false end
+    local at = (self.FormationSlotAt or {})[k]
+    if not at then return false end
+    local now = fhNow()
+    return (now - at) <= self.FormationSlotFreshSecs
 end
 
 function mercenaries:DismountWatch()
@@ -317,7 +448,7 @@ function mercenaries:DismountWatch()
         local now = fhNow()
         if self.DismountResetAt and now >= self.DismountResetAt then
             self.DismountResetAt = nil
-            self:BeginDismountReset()
+            self:BeginFollowVerify("dismount")
         end
 
         -- Verification window: did the reset actually take?
@@ -351,6 +482,9 @@ end
 --     player standing still watching a stranded merc is exactly when it is most
 --     obvious and least detectable by player movement.
 function mercenaries:DismountVerify()
+    -- A standing order re-issued inside the window: the men are MEANT to be still.
+    if self.HoldActive or self.EscortEnt then self._dvUntil, self._dvPos = nil, nil; return end
+
     local pp
     pcall(function() pp = player and player:GetWorldPos() end)
     if not pp then return end
@@ -381,14 +515,20 @@ function mercenaries:DismountVerify()
                     local ex, ey = pp.x - mp.x, pp.y - mp.y
                     local far    = math.sqrt(ex * ex + ey * ey)
 
-                    if drift >= self.DismountVerifyPlayer or far >= self.DismountVerifyFar then
+                    -- Far-but-stationary means nothing for a man demonstrably in his slot.
+                    local farCounts = (far >= self.DismountVerifyFar)
+                                      and not self:FormationSlotFresh(k)
+                    if drift >= self.DismountVerifyPlayer or farCounts then
+                        -- A man walking a nav order (hold station, wall staging) is not
+                        -- following by design, and re-firing follow would fight the walk.
                         local busy = false
                         pcall(function()
                             busy = self:IsCampActor(ent.this and ent.this.id or ent.id)
+                                or self:IsNavGotoActive(ent)
                                 or ent.soul:HasScriptContext("crime_interruptAttack")
                         end)
                         if not busy then
-                            self.FollowStuck[k] = true
+                            self:FollowStalled(ent)
                             n = n + 1
                         end
                         -- Re-anchor either way, so one stall is one reset.
@@ -400,21 +540,23 @@ function mercenaries:DismountVerify()
     end
 
     if n > 0 then
-        System.LogAlways('[MercForm] dismount verify: ' .. tostring(n) ..
-                         ' merc(s) still not following - resetting again')
+        System.LogAlways('[MercForm] ' .. tostring(n) .. ' merc(s) were not following after "' ..
+                         tostring(self._dvReason or 'dismount') .. '" - re-firing follow on them')
     end
 end
 
 -- Opens the verification window. Resets nobody by itself - see the block comment.
-function mercenaries:BeginDismountReset()
+function mercenaries:BeginFollowVerify(reason)
     -- They are meant to be standing, or there is no squad.
     if _G.MercIdle or _G.MercenariesDismissed then return end
+    if self.HoldActive or self.EscortEnt then return end
     if not next(self.ActiveMercs or {}) then return end
 
     local now = fhNow()
     self._dvUntil  = now + self.DismountVerifySecs
     self._dvNextAt = now + self.DismountVerifyEvery
-    self._dvPos = nil
+    self._dvPos    = nil
+    self._dvReason = reason or "dismount"
 end
 
 function mercenaries:CalculateFormationTarget(bt_data, myWuid)

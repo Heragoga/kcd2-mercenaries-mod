@@ -5,12 +5,21 @@ function mercenaries:Hire(cost, amount, tier)
     self:Recount()
     if not _G.MercCount then _G.MercCount = 0 end
 
+    -- Both rejections below were completely silent in the log - a small on-screen toast
+    -- was the only trace, easy to miss over everything else the game puts on screen, and
+    -- a hire that never happened for this reason looked identical in the log to one that
+    -- happened and simply produced no NPC. Logged so "troops don't spawn" is diagnosable
+    -- from kcd.log alone rather than guessed at.
     if _G.MercCount + amount > self.MaxCompanions then
+        System.LogAlways(string.format('[Mercenaries] Hire: rejected - too many (count=%d + %d > max=%d)',
+            _G.MercCount, amount, self.MaxCompanions))
         Game.SendInfoText('merc_info_too_many', false, 0, 3)
         return
     end
 
     if p:GetMoney() < cost then
+        System.LogAlways(string.format('[Mercenaries] Hire: rejected - not enough money (have %d, need %d)',
+            p:GetMoney(), cost))
         Game.SendInfoText('merc_info_not_enough_money', false, 0, 3)
         return
     end
@@ -30,9 +39,21 @@ function mercenaries:Hire(cost, amount, tier)
 
     _G.MercCount = _G.MercCount + amount
 
+    -- Hired at an innkeeper's, the men muster outside rather than in his taproom -
+    -- HireSpawnAnchor decides that, and hiring in the open is untouched. `spawned`
+    -- is counted for real: every earlier version paid the fee, sent the "hired"
+    -- text and bumped the count whether or not a single NPC actually appeared.
+    local outside = nil
+    local spawned = 0
+
     local ok, err = pcall(function()
-        local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
-        if not spawnPos then return end
+        local a = self:HireSpawnAnchor()
+        if not (a and a.pos and a.rot) then
+            System.LogAlways('[Mercenaries] Hire: no usable spawn position - nobody placed')
+            return
+        end
+        local spawnPos, playerRot = a.pos, a.rot
+        outside = a.outside
 
         local soulList = self.Souls[tier] or self.Souls["weak"]
 
@@ -48,11 +69,15 @@ function mercenaries:Hire(cost, amount, tier)
                 self.SoulIndex[tier] = 1 
             end
             
-            local offsetPos = self:FindValidGround({
+            local raw = {
                 x = spawnPos.x + (math.random() - 0.5) * 1.5,
                 y = spawnPos.y + (math.random() - 0.5) * 1.5,
                 z = spawnPos.z
-            }, spawnPos.z)
+            }
+            -- a.snap = false means an enclosed interior: every ground probe here
+            -- fires from above and would find the roof, so the anchor's own height
+            -- is used verbatim. See HireSpawnAnchor.
+            local offsetPos = a.snap and self:FindValidGround(raw, spawnPos.z) or raw
 
             local safeRot = {x = 0, y = 0, z = playerRot.z}
             local entityName = "SpawnedFriend_" .. tier .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
@@ -69,32 +94,109 @@ function mercenaries:Hire(cost, amount, tier)
             local ent = System.GetEntityByName(entityName)
 
             if ent then
-                mercenaries:EnsureMercIsAlwaysRendered(ent)
-
-                self:EquipMercenary(ent, currentPreset)
-                self:EquipMercenaryWeapon(ent, currentWeaponPreset, currentPreset)
-                -- Register in cache immediately so MonitorLoop needn't world-scan.
+                -- REGISTER FIRST, then dress him. The equip calls pick randomly out of
+                -- preset tables and throw on an empty one; with registration after them
+                -- a throw left a live NPC standing in the world that nothing tracked -
+                -- not in ActiveMercs, so invisible to Recount, dismiss and every squad
+                -- command - while still being counted as hired and therefore not
+                -- refunded. Registration is also what MonitorLoop uses instead of a
+                -- world scan, so it wants to happen as early as possible either way.
                 self.ActiveMercs[entityName] = ent
-                self:InjectInteraction(ent)
-                -- With a camp up, say which half of the squad he joined - nothing else does,
-                -- and the default left him neither camping nor following (CampOnMercJoined).
-                pcall(function() self:CampOnMercJoined(ent) end)
+                spawned = spawned + 1
 
+                -- Its own pcall: one man's bad gear must not abort the rest of the batch.
+                local dressed, derr = pcall(function()
+                    mercenaries:EnsureMercIsAlwaysRendered(ent)
+                    self:EquipMercenary(ent, currentPreset)
+                    self:EquipMercenaryWeapon(ent, currentWeaponPreset, currentPreset)
+                    self:InjectInteraction(ent)
+                    -- With a camp up, say which half of the squad he joined - nothing else
+                    -- does, and the default left him neither camping nor following.
+                    self:CampOnMercJoined(ent)
+                end)
+                if not dressed then
+                    System.LogAlways('[Mercenaries] Hire: post-spawn setup failed for ' ..
+                                     entityName .. ': ' .. tostring(derr))
+                end
+
+            else
+                System.LogAlways('[Mercenaries] Hire: SpawnEntity produced nothing for ' .. entityName)
             end
 
         end
 
     end)
-    
+
     if not ok then System.LogAlways('[Mercenaries] Teleport Error: ' .. tostring(err)) end
 
-    if amount == 1 then
+    -- Nobody pays for a man who never arrived, and the count goes back to what is
+    -- actually standing there rather than what was asked for.
+    if spawned < amount then
+        self:Recount()
+        local refund = math.floor((cost or 0) * (amount - spawned) / math.max(amount, 1))
+        if refund > 0 then self:GiveMoney(refund) end
+    end
+
+    if spawned <= 0 then
+        Game.SendInfoText('merc_info_hire_failed', false, 0, 4)
+        return
+    end
+
+    if spawned == 1 then
         Game.SendInfoText('merc_info_hired_single', false, 0, 3)
     else
         Game.SendInfoText('merc_info_hired_multiple', false, 0, 3)
     end
+
+    -- They are out of sight, so say so - otherwise a hire indoors reads as nothing
+    -- having happened at all.
+    if outside then Game.SendInfoText('merc_info_hired_outside', false, 0, 5) end
+
+    -- A hire is one more moment where a batch of men must all pick up follow at once,
+    -- and it rebuilds the formation (grow), which drops every follower's slot at the
+    -- same time. Same bounded window the dismount, order-release, battle-over and
+    -- loot-sweep cases use: anyone who demonstrably fails to start walking is re-fired.
+    pcall(function() mercenaries:BeginFollowVerify("hire") end)
 end
 
+
+-- One merc, at an exact spot, free and off the books except for ActiveMercs. Hire owns
+-- the money, the cap and the muster point; this is for callers that already decided
+-- where a man stands - the battle stager in mercenaries_commands.lua.
+function mercenaries:SpawnMercAt(tier, pos, yaw, outfit, weapon)
+    if not pos then return nil end
+    local soulList = self.Souls[tier] or self.Souls["weak"]
+    if not soulList then return nil end
+    outfit = outfit or _G.MercCurrentOutfit or 1
+    weapon = weapon or _G.MercCurrentWeapon or 1
+
+    local ent
+    local ok, err = pcall(function()
+        local idx = self.SoulIndex[tier] or 1
+        local soulGuid = soulList[idx]
+        self.SoulIndex[tier] = (idx % #soulList) + 1
+
+        local name = "SpawnedFriend_" .. tier .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+        System.SpawnEntity({
+            class = "NPC", name = name, position = pos,
+            orientation = { x = 0, y = 0, z = yaw or 0 },
+            properties = { guidSharedSoulId = soulGuid },
+        })
+        ent = System.GetEntityByName(name)
+        if not ent then return end
+        -- Registered before dressing, for the reason given in Hire.
+        self.ActiveMercs[name] = ent
+        pcall(function()
+            self:EnsureMercIsAlwaysRendered(ent)
+            self:EquipMercenary(ent, outfit)
+            self:EquipMercenaryWeapon(ent, weapon, outfit)
+            self:InjectInteraction(ent)
+            self:CampOnMercJoined(ent)
+        end)
+    end)
+    if not ok then System.LogAlways('[Mercenaries] SpawnMercAt error: ' .. tostring(err)) end
+    return ent
+end
 
 function mercenaries:HireCustomCompanion(ccID)
     local p = player.inventory
@@ -124,11 +226,17 @@ function mercenaries:HireCustomCompanion(ccID)
     if not _G.MercCount then _G.MercCount = 0 end
 
     if _G.MercCount + amount > self.MaxCompanions then
+        System.LogAlways(string.format(
+            '[Mercenaries] HireCustomCompanion: rejected - too many (count=%d + %d > max=%d)',
+            _G.MercCount, amount, self.MaxCompanions))
         Game.SendInfoText('merc_info_too_many', false, 0, 3)
         return
     end
 
     if p:GetMoney() < cost then
+        System.LogAlways(string.format(
+            '[Mercenaries] HireCustomCompanion: rejected - not enough money (have %d, need %d)',
+            p:GetMoney(), cost))
         Game.SendInfoText('merc_info_not_enough_money', false, 0, 3)
         return
     end
@@ -147,18 +255,32 @@ function mercenaries:HireCustomCompanion(ccID)
 
     _G.MercCount = _G.MercCount + amount
 
-    local ok, err = pcall(function()
-        local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
-        if not spawnPos then return end
+    -- Same indoor rule as Hire above: hired in a tavern, he waits outside it.
+    local outside = nil
+    local spawned = 0
 
-        local offsetPos = self:FindValidGround({
+    local ok, err = pcall(function()
+        local a = self:HireSpawnAnchor()
+        if not (a and a.pos and a.rot) then
+            System.LogAlways('[Mercenaries] HireCustomCompanion: no usable spawn position')
+            return
+        end
+        local spawnPos, playerRot = a.pos, a.rot
+        outside = a.outside
+
+        local raw = {
             x = spawnPos.x + (math.random() - 0.5) * 1.5,
             y = spawnPos.y + (math.random() - 0.5) * 1.5,
             z = spawnPos.z
-        }, spawnPos.z)
+        }
+        local offsetPos = a.snap and self:FindValidGround(raw, spawnPos.z) or raw
 
         local safeRot = {x = 0, y = 0, z = playerRot.z}
-        local entityName = "MercenaryCustomCompanion_" .. soulGuid .. "_" .. tostring(math.random(10000, 99999))
+        -- SpawnedFriend_, like the archers: the prefix is what every squad system keys
+        -- on, so a companion gets the camp, the look-at prompts, formations, orders and
+        -- the LOD boost for free instead of each of those needing its own special case.
+        -- `_hero_` marks the exceptions - own gear, no talking. See IsHeroName.
+        local entityName = "SpawnedFriend_hero_" .. soulGuid .. "_" .. tostring(math.random(10000, 99999))
 
         System.SpawnEntity({
             class = "NPC", 
@@ -170,16 +292,48 @@ function mercenaries:HireCustomCompanion(ccID)
 
         local ent = System.GetEntityByName(entityName)
         if ent then
-            mercenaries:EnsureMercIsAlwaysRendered(ent)
+            -- Register before anything can throw - see the note in Hire above.
             self.ActiveMercs[entityName] = ent
-            self:InjectInteraction(ent)
-            pcall(function() self:CampOnMercJoined(ent) end)
+            spawned = 1
+            local dressed, derr = pcall(function()
+                mercenaries:EnsureMercIsAlwaysRendered(ent)
+                self:InjectInteraction(ent)
+                self:CampOnMercJoined(ent)
+            end)
+            -- And again a moment later. A regular hire runs two equip calls between
+            -- SpawnEntity and InjectInteraction, which touch ent.actor and
+            -- ent.inventory and so force the script table live before GetActions is
+            -- assigned to it; a companion is equipped by his soul and gets nothing in
+            -- between, so the override can land on a table the engine has not finished
+            -- with. Re-injecting is idempotent - it reassigns the same closures - so
+            -- this costs a timer and settles the race either way.
+            Script.SetTimerForFunction(1000, "mercenaries.CCReinject", ent.id)
+            if not dressed then
+                System.LogAlways('[Mercenaries] HireCustomCompanion: post-spawn setup failed for ' ..
+                                 entityName .. ': ' .. tostring(derr))
+            end
+        else
+            System.LogAlways('[Mercenaries] HireCustomCompanion: SpawnEntity produced nothing for ' .. entityName)
         end
     end)
-    
+
     if not ok then System.LogAlways('[Mercenaries] Teleport Error: ' .. tostring(err)) end
 
+    if spawned <= 0 then
+        self:Recount()
+        if (cost or 0) > 0 then self:GiveMoney(cost) end
+        Game.SendInfoText('merc_info_hire_failed', false, 0, 4)
+        return
+    end
+
     Game.SendInfoText('merc_info_hired_special', false, 0, 3)
+    if outside then Game.SendInfoText('merc_info_hired_outside', false, 0, 5) end
+
+    -- A hire is one more moment where a batch of men must all pick up follow at once,
+    -- and it rebuilds the formation (grow), which drops every follower's slot at the
+    -- same time. Same bounded window the dismount, order-release, battle-over and
+    -- loot-sweep cases use: anyone who demonstrably fails to start walking is re-fired.
+    pcall(function() mercenaries:BeginFollowVerify("hire") end)
 end
 
 -- Debug: spawn a line of mercs (player centred) facing a line of renegades for
@@ -338,8 +492,13 @@ end
 -- ============================================================================
 -- Pick an outfit index for SpawnTestBattle's enemy line that differs from the
 -- mercs' current one, so the two battle lines read as distinct at a glance.
+-- 7 is the custom uniform and has no preset pool of its own; EquipMercenary
+-- falls back to style 1 for it, so it is mapped like style 1 here.
 mercenaries.EnemyOutfitOverride = {
-    [1] = 5, [2] = 5, [3] = 1, [4] = 2, [5] = 2, [6] = 2
+    [1] = 5, [2] = 5, [3] = 1, [4] = 2, [5] = 2, [6] = 2,
+    [7] = 5, [8] = 2, [9] = 4,
+    -- The house liveries all field against a plainly different-looking line.
+    [10] = 2, [11] = 3, [12] = 2, [13] = 3, [14] = 2, [15] = 3, [16] = 2, [17] = 3
 }
 function mercenaries:GetEnemyOutfitFor(mercOutfit)
     local override = self.EnemyOutfitOverride[mercOutfit]
@@ -353,11 +512,19 @@ end
 mercenaries.EnemyGroups = {
     looter = {
         label = "Looters",
+        -- WeaponSets categories this group may draw. 2/3/5 bundle a shield;
+        -- a list without them can never produce one.
+        weapons = { 6, 7, 8 },
+        -- Empty on purpose: looters carry no shield. Their weapons list holds no
+        -- shield-bearing category either, so this is belt and braces.
+        shields = {},
+        -- Nothing but the clothes they were caught in: tunic, hose, shoes, maybe a
+        -- cap or a hood. No helmet, no mail, no padding, no shield (see weapons).
         clothing = {
-            "20aba0c4-1cfb-42de-97dd-939530d6240d", "2285cbe9-3962-4093-94a9-86f556e5bf2f", "87d45cbe-f5af-418b-a238-9de0a541b28d",
-            "8c3c5bb8-ffaa-4f30-b635-9af37750a4d0", "c8f922a2-f889-4d90-9d1d-3ffc26f90961", "e0eefec7-ac35-46eb-a07e-9cda47a926bb",
-            "07a49bb9-1b92-43c2-848f-f4abf88a3b12", "c685a814-ace0-4c6b-b8bb-9a024d073d42", "394c8de2-7525-4f3a-8774-17876c95b6b6",
-            "fdec006f-b7e2-491a-8a1d-f453501b7ffc", "0154a9ef-ad07-4c4a-bf5b-4bca21b65d7b", "d4468c20-47e3-49dd-995e-65063040696e",
+            "6d657263-e001-4c00-9000-000000000001", "6d657263-e001-4c00-9000-000000000002", "6d657263-e001-4c00-9000-000000000003",
+            "6d657263-e001-4c00-9000-000000000004", "6d657263-e001-4c00-9000-000000000005", "6d657263-e001-4c00-9000-000000000006",
+            "6d657263-e001-4c00-9000-000000000007", "6d657263-e001-4c00-9000-000000000008", "6d657263-e001-4c00-9000-000000000009",
+            "6d657263-e001-4c00-9000-00000000000a", "6d657263-e001-4c00-9000-00000000000b", "6d657263-e001-4c00-9000-00000000000c",
         },
         melee = {
             { guid = "c5d5e34d-db66-59ab-b746-8b33acb1c6bc", tier = "weak" },
@@ -386,6 +553,10 @@ mercenaries.EnemyGroups = {
     -- the wardrobe changes, from bandit leathers to plain village wear.
     recruit = {
         label = "Recruits",
+        -- Plain village shields (Pisek), no heraldry - fits the plain village wear.
+        shields = {
+            "10f9a49f-07d0-4873-88d0-54d2cd5567f1", "3d4d4f2f-b6bd-4018-b0cf-1b3b1a4a4f93", "cb7cbe56-00e7-4f92-b19f-4479849fca71",
+        },
         clothing = {
             "ecf4eea7-ffe5-4a98-a351-8947eeabe5bd", "24e4aa5b-cd2c-4dba-9426-b63e674b7037", "c522ba8f-18ff-4274-8acb-d7d0f50d0365",
             "cbc20d2b-3fff-4147-a650-92a8dcaf9875", "fd456ed6-f39e-4dad-8c53-e818c9789562", "b8c4e76c-1282-4103-a0dd-aa04dc2486b8",
@@ -407,11 +578,23 @@ mercenaries.EnemyGroups = {
     },
     bandit = {
         label = "Bandits",
+        -- WeaponSets categories this group may draw. 2/3/5 bundle a shield;
+        -- a list without them can never produce one.
+        weapons = { 3, 6, 7, 8, 7, 8 },
+        -- The vanilla Trosecko bandit-camp shield, plus a couple of scavenged
+        -- painted patterns for variety.
+        shields = {
+            "707470d0-9ce2-41ff-9836-1911f8420448", "2a668746-916a-41db-b079-29c7aa4a9845", "fd0449fd-931f-4ede-a752-f419617297af",
+        },
+        -- Looted mail over a gambeson with scrap plate on the limbs and an open
+        -- helmet - never a cuirass or a brigandine, which a bandit has no way to
+        -- come by. Quality 1 and a low Condition on every preset is what makes
+        -- the kit read as rusty and pitted.
         clothing = {
-            "07a49bb9-1b92-43c2-848f-f4abf88a3b12", "c685a814-ace0-4c6b-b8bb-9a024d073d42", "394c8de2-7525-4f3a-8774-17876c95b6b6",
-            "fdec006f-b7e2-491a-8a1d-f453501b7ffc", "0154a9ef-ad07-4c4a-bf5b-4bca21b65d7b", "d4468c20-47e3-49dd-995e-65063040696e",
-            "48f33d37-90ab-489a-9236-d56819d25ea2", "94d6d667-139b-4d79-a25b-f2b608b86c96", "ed029076-0371-4dd1-86dc-bdacc427f593",
-            "0e75824c-19de-40d2-a6fa-14d6c9964c48",
+            "6d657263-e002-4c00-9000-000000000001", "6d657263-e002-4c00-9000-000000000002", "6d657263-e002-4c00-9000-000000000003",
+            "6d657263-e002-4c00-9000-000000000004", "6d657263-e002-4c00-9000-000000000005", "6d657263-e002-4c00-9000-000000000006",
+            "6d657263-e002-4c00-9000-000000000007", "6d657263-e002-4c00-9000-000000000008", "6d657263-e002-4c00-9000-000000000009",
+            "6d657263-e002-4c00-9000-00000000000a", "6d657263-e002-4c00-9000-00000000000b", "6d657263-e002-4c00-9000-00000000000c",
         },
         melee = {
             { guid = "3740f7d5-082e-5b52-a295-e59d1fbfd5cf", tier = "medium" },
@@ -432,11 +615,22 @@ mercenaries.EnemyGroups = {
     },
     sigi = {
         label = "Sigismund's soldiers",
+        -- WeaponSets categories this group may draw. 2/3/5 bundle a shield;
+        -- a list without them can never produce one.
+        weapons = { 2, 3, 4, 5, 7, 8 },
+        -- Sigismund's own livery (Shield_Kite_Sigismund_* / Shield_Heater_Sigismund_*).
+        shields = {
+            "50341116-226b-410f-abcb-4f2a52b0efe9", "94b119d6-2e57-4d63-ad93-56e669ea0294",
+            "4a13b6f7-1b8d-4b60-ab66-cacbed951120", "c0b01938-8a36-4418-9a59-97073adf3dc3",
+        },
+        -- Sigismund was King of Hungary, so his men fly the Magyar/Uher heraldry -
+        -- the only Sigismund-army livery the game ships. Good kit, but open
+        -- helmets throughout: kettle hats, skull caps and open bascinets.
         clothing = {
-            "38a0421c-2f15-4f06-882e-08ec70b60964", "ea1790da-3e8c-42ab-91f9-c7a32aadba8c", "756deef5-2f65-43b8-80ce-c24f71c5fa8c",
-            "867554aa-3869-4cd5-9a68-777758c6ac62", "a7ed4975-d7eb-453c-b105-1c00b3ef4004", "27819f74-9253-445f-9854-4947fd8d63c6",
-            "47e600f9-211a-4bd9-81df-f8e2f72e0797", "2743aeed-5875-485d-9876-22a672e16847", "f726b377-64ad-4214-871c-4ac2cf64246f",
-            "6fff0f15-312a-4197-8c0a-b4b5cf0f5543", "2c786925-afb6-4433-bde5-c00d5f1965fd", "fa9eb229-a17f-4603-a60d-0c7058f3b44b",
+            "6d657263-e003-4c00-9000-000000000001", "6d657263-e003-4c00-9000-000000000002", "6d657263-e003-4c00-9000-000000000003",
+            "6d657263-e003-4c00-9000-000000000004", "6d657263-e003-4c00-9000-000000000005", "6d657263-e003-4c00-9000-000000000006",
+            "6d657263-e003-4c00-9000-000000000007", "6d657263-e003-4c00-9000-000000000008", "6d657263-e003-4c00-9000-000000000009",
+            "6d657263-e003-4c00-9000-00000000000a", "6d657263-e003-4c00-9000-00000000000b", "6d657263-e003-4c00-9000-00000000000c",
         },
         melee = {
             { guid = "b2cdf9d2-e2ac-5d65-ac26-14bbb604ea02", tier = "weak" },
@@ -457,11 +651,21 @@ mercenaries.EnemyGroups = {
     },
     prague = {
         label = "Prague regiment",
+        -- WeaponSets categories this group may draw. 2/3/5 bundle a shield;
+        -- a list without them can never produce one.
+        weapons = { 2, 3, 4, 5, 7, 8 },
+        -- Prague's own livery (Shield_Kite_Prague_* / Shield_Heater_Prague_*).
+        shields = {
+            "e784827b-ea4a-43d3-afa4-91c1bb6b40df", "fd65fbb0-115b-4b63-a410-c235a69860a1",
+            "3f8a55d6-5b3a-4b58-b88b-007560f6dc02", "1ef6f97a-4fed-4d18-883f-fabe1aa58a8b",
+        },
+        -- Prague livery on every man (4 surcoats, a coat, 2 hoods, 2 coifs), same
+        -- standard of kit as the Hungarians and the same open helmets.
         clothing = {
-            "1d2added-3bb4-499e-a8d4-47c173645aaf", "4a9f5058-bfcf-4aaf-b3a6-61148255cfb1", "8613aa99-02bb-4aa5-988c-ce18ea85f848",
-            "c0301b0e-684d-47c1-b3d3-349a97978413", "5932acad-aa4f-484c-9b48-397090f51d1c", "27a95a3c-3d88-4f42-beea-baea8ae7c486",
-            "40b88acb-c938-4873-b925-9eca6d6d15ab", "90c339e3-5bba-4bde-a95a-65b15b17469a", "8244772d-c115-4db3-82fe-3d1b3ec48019",
-            "91889017-8282-4638-980a-bfc258b68f02",
+            "6d657263-e004-4c00-9000-000000000001", "6d657263-e004-4c00-9000-000000000002", "6d657263-e004-4c00-9000-000000000003",
+            "6d657263-e004-4c00-9000-000000000004", "6d657263-e004-4c00-9000-000000000005", "6d657263-e004-4c00-9000-000000000006",
+            "6d657263-e004-4c00-9000-000000000007", "6d657263-e004-4c00-9000-000000000008", "6d657263-e004-4c00-9000-000000000009",
+            "6d657263-e004-4c00-9000-00000000000a", "6d657263-e004-4c00-9000-00000000000b", "6d657263-e004-4c00-9000-00000000000c",
         },
         melee = {
             { guid = "b8fc46b7-74a1-5642-bd92-9da50b68a131", tier = "medium" },
@@ -497,6 +701,13 @@ mercenaries.EnemyGroups = {
     ruthenian = {
         label = "Ruthenians",
         weapons = { 3 },
+        -- The dedicated Cuman shield family, not a Sigismund/Prague livery one - the
+        -- comment above says these six are heraldry-free, checked item by item, and
+        -- a faction-liveried kite shield would undo exactly that.
+        shields = {
+            "00f104b3-e95c-41ee-95a9-35d0331ac295", "10badb5a-8249-4649-9c3e-374b5f8224ff",
+            "2cb53d10-c5da-47ef-8789-8e1ae34dac6c", "94111648-b45b-4a1c-b189-8dd628deaa56",
+        },
         clothing = {
             "08d7d086-327a-4f95-92d3-6a6c60a494f0", "1291b696-d704-4fb0-90da-2bdf4c2eefef", "4163bbb6-a7bf-47a3-b5c7-bffdbe0c2062",
             "838f07ef-5875-4391-9fe2-5fd93ffa6501", "e1f7bfd8-f211-4693-9004-0fc36f166e1f", "fca2a301-45e5-4cd9-af18-09469bbd8102",
@@ -516,11 +727,25 @@ mercenaries.EnemyGroups = {
     },
     cuman = {
         label = "Cumans",
+        -- WeaponSets categories this group may draw. 2/3/5 bundle a shield;
+        -- a list without them can never produce one.
+        weapons = { 3, 6, 7, 8, 2, 8 },
+        -- Vanilla ships a dedicated Cuman shield family (Shield_Cuman_*, item.xml
+        -- Class=8 SubClass=9) - use it rather than any of the kite/pavise/heater
+        -- ones the other factions draw from.
+        shields = {
+            "000a72ec-f904-4e06-8c57-2eac8ab6ec73", "1c22229e-9703-4e23-a552-9d13f74ada02",
+            "30b6df49-7789-4c22-b645-e5e087df8ffd", "f13c6be9-09ab-492d-82f5-628170cc1dc2",
+        },
+        -- Cuman kit throughout - caftan instead of a gambeson, loose hose, knee
+        -- boots, open bascinets, no heraldry. Budget sits between the bandits and
+        -- the regular soldiers, and the ramp is deliberately wide so a line of
+        -- them is a mix rather than a uniform.
         clothing = {
-            "08d7d086-327a-4f95-92d3-6a6c60a494f0", "1291b696-d704-4fb0-90da-2bdf4c2eefef", "4163bbb6-a7bf-47a3-b5c7-bffdbe0c2062",
-            "838f07ef-5875-4391-9fe2-5fd93ffa6501", "e1f7bfd8-f211-4693-9004-0fc36f166e1f", "fca2a301-45e5-4cd9-af18-09469bbd8102",
-            "70618c60-9f1e-4949-a1d2-06b1a9709e82", "9b9f92a0-7040-4f3e-85ee-1f2651ee6672", "8d8951b3-af89-4c0a-a7d6-99c8f6f7fe86",
-            "bd87c9e4-5481-4a98-8279-ec010e4c10ad", "978b6b0c-288b-4d0b-8cfa-f2fe1a801409", "efff8f2e-a199-4883-8bb8-3219c4103e22",
+            "6d657263-e005-4c00-9000-000000000001", "6d657263-e005-4c00-9000-000000000002", "6d657263-e005-4c00-9000-000000000003",
+            "6d657263-e005-4c00-9000-000000000004", "6d657263-e005-4c00-9000-000000000005", "6d657263-e005-4c00-9000-000000000006",
+            "6d657263-e005-4c00-9000-000000000007", "6d657263-e005-4c00-9000-000000000008", "6d657263-e005-4c00-9000-000000000009",
+            "6d657263-e005-4c00-9000-00000000000a", "6d657263-e005-4c00-9000-00000000000b", "6d657263-e005-4c00-9000-00000000000c",
         },
         melee = {
             { guid = "91be4853-2c08-5897-9950-45bc0340e698", tier = "weak" },
@@ -544,16 +769,26 @@ mercenaries.EnemyGroups = {
         -- Elites: combat_level is maxed (1.0) in the soul, so extra strength comes
         -- from a health boost applied on spawn (see EquipEnemy).
         healthMult = 1.6,
-        -- Best in-game armour: every preset here has a steel cuirass (breastplate),
-        -- tier 5-6 Sigismund / Kuttenberg plate. Mix of surcoated (waffenrock, first
-        -- two rows) and plain plate (third row), so not every knight wears a tabard.
-        clothing = {
-            "b7d72548-8a0a-4631-b1c1-21c692ec99c4", "418ca358-97de-47c8-acd5-92bdcd11d157", "0f5e458e-1a8b-4477-8a02-8e11d96fe371",
-            "768e217c-c1a8-46f4-af72-4924e9e6a552", "889f554c-d211-4147-8bd7-8432d2420ec0", "39681dff-fd4a-44ba-83b2-61c5611130ff",
-            "8a6ea286-b8f7-458c-abdf-193f5b4a0542", "cbd0d40e-0b19-4e21-b896-7c11c2c64bdd", "fe31e28a-d4c9-4b8c-9e87-82dc40123042",
+        -- Kuttenberg (their surcoat, per the clothing comment below) and Bergov
+        -- (a noble seat) - a heraldic step up from the rank-and-file Sigismund
+        -- livery on the plain "sigi" soldiers. Only applies when the weapons roll
+        -- below actually lands on a shield type (2 sword+shield / 5 mace+shield) -
+        -- weapons {4, 7} are longsword/bare mace and stay unshielded.
+        shields = {
+            "23d3d037-6eb4-46dd-b294-10b0951b85f8", "a18df8ed-8a4a-47fa-a9fc-bbf8a7f72d68",
+            "1da8f314-6441-4afc-9a4a-f516067e9613", "c37d067f-7342-4952-a8ce-2e2d78832d7f",
         },
-        -- Knights prefer swords and maces (WeaponSets: 2 sword+shield, 4 longsword,
-        -- 5 mace+shield, 7 mace) over axes/polearms. Tier is strong (best weapons).
+        -- Best armour in the mod: closed-visor bascinets, steel cuirass or heavy
+        -- brigandine over mail, full limb harness. Twelve different noble houses,
+        -- one per preset, so a line of them reads as a coalition not a regiment.
+        clothing = {
+            "6d657263-e006-4c00-9000-000000000001", "6d657263-e006-4c00-9000-000000000002", "6d657263-e006-4c00-9000-000000000003",
+            "6d657263-e006-4c00-9000-000000000004", "6d657263-e006-4c00-9000-000000000005", "6d657263-e006-4c00-9000-000000000006",
+            "6d657263-e006-4c00-9000-000000000007", "6d657263-e006-4c00-9000-000000000008", "6d657263-e006-4c00-9000-000000000009",
+            "6d657263-e006-4c00-9000-00000000000a", "6d657263-e006-4c00-9000-00000000000b", "6d657263-e006-4c00-9000-00000000000c",
+        },
+        -- WeaponSets categories this group may draw. 2/3/5 bundle a shield;
+        -- a list without them can never produce one.
         weapons = { 2, 4, 5, 7 },
         melee = {
             { guid = "25f42406-fa61-5842-bdaf-f879920cce87", tier = "strong" },
@@ -604,9 +839,10 @@ mercenaries.EnemyClaimWuid = {}  -- [enemyWuidStr] = raw wuid of the claimer
 -- Dress a freshly spawned enemy: clothing from the group's pool, weapon via the
 -- shared merc weapon path (which parses the tier out of the entity name, and
 -- routes "_archer_" names to the bow set automatically).
--- Explicit weapon-loadout indices to fall back on when the random category comes out empty.
--- 2 is the first concrete melee set (1 is "random", which is what failed in the first place).
-mercenaries.EnemyWeaponFallbacks = { 2 }
+-- Weapon categories to draw from when a group names none of its own. Explicit
+-- categories only - 1 ("random") is what produced the empty weapon sets in the
+-- first place, so it is never used here.
+mercenaries.EnemyWeaponFallbacks = { 2, 4, 7, 8 }
 
 -- Do not add a "skip the clothing" option here. A runtime-spawned NPC that has never had a
 -- clothing preset applied accepts inventory:CreateItem and then quietly refuses
@@ -629,11 +865,15 @@ function mercenaries:EquipEnemy(ent, groupKey, isArcher)
     if grp.weaponPreset and not isArcher then
         pcall(function() ent.actor:EquipWeaponPreset(grp.weaponPreset) end)
     else
-        local weaponIndex = 1
+        -- Every draw comes from the group's OWN allowed categories. That is what
+        -- keeps a shield off a group that must not have one: 2/3/5 bundle a
+        -- shield, so a list without them cannot produce one however it rolls.
+        local allowed = self.EnemyWeaponFallbacks
         if grp.weapons and #grp.weapons > 0 and not isArcher then
-            weaponIndex = grp.weapons[math.random(1, #grp.weapons)]
+            allowed = grp.weapons
         end
-        self:EquipMercenaryWeapon(ent, weaponIndex, nil)
+        local resolvedType = self:EquipMercenaryWeapon(
+            ent, allowed[math.random(1, #allowed)], nil)
 
         -- BACKSTOP for the empty weapon set the log reports:
         --   [DrawAction]: Can't execute explicit DrawAction for selected weapon set which
@@ -642,13 +882,30 @@ function mercenaries:EquipEnemy(ent, groupKey, isArcher)
         -- category yields nothing for this character the set comes out empty, combat_melee
         -- dies at the draw, and he stands in the open being hit. That was ~23 of 75 besiegers.
         --
-        -- Retried with EXPLICIT categories rather than the random one, using the same proven
-        -- call. grp.melee is NOT usable here - despite the name it holds character SOUL guids
-        -- (see the spawn below: soulGuid, tierName = m.guid, m.tier), and feeding one to
-        -- EquipWeaponPreset leaves the man with nothing at all.
+        -- A SECOND draw from the same allowed list, not a hardcoded category. The
+        -- old code re-equipped everyone with category 2 (sword+shield) here, and
+        -- since the last call wins that silently overrode grp.weapons for every
+        -- group - knights included - and handed a shield to anyone who spawned.
+        -- grp.melee is NOT usable here: despite the name it holds character SOUL
+        -- guids (see the spawn below), and feeding one to EquipWeaponPreset leaves
+        -- the man with nothing at all.
         if not isArcher then
-            for _, idx in ipairs(self.EnemyWeaponFallbacks) do
-                pcall(function() self:EquipMercenaryWeapon(ent, idx, nil) end)
+            local backstop = allowed[math.random(1, #allowed)]
+            local ok, again = pcall(function()
+                return self:EquipMercenaryWeapon(ent, backstop, nil)
+            end)
+            if ok and again then resolvedType = again end
+
+            -- Shield to match the FACTION, not the player's own squad. Without this,
+            -- the shield preset above (merc gear, shared with the player's mercs)
+            -- reads outfitPreset=nil and falls back to _G.MercCurrentOutfit - the
+            -- squad's own current outfit choice, which has nothing to do with this
+            -- enemy at all. That is the literal cause of "enemy shields... are the
+            -- same as the mercs". Only fires when the draw that actually stuck
+            -- produced a shield-bearing category, so a longsword- or bare-mace-armed
+            -- man is left alone.
+            if self.ShieldWeaponTypes[resolvedType] and #(grp.shields or {}) > 0 then
+                pcall(function() self:EquipEnemyShield(ent, grp) end)
             end
         end
     end
@@ -665,6 +922,27 @@ function mercenaries:EquipEnemy(ent, groupKey, isArcher)
             end
         end)
     end
+end
+
+-- Put the group's own shield on an already-armed enemy, replacing whatever his
+-- weapon preset bundled by default. `grp.shields` is a pool of vanilla shield
+-- item_class_ids (data/libs/tables/item/item.xml, Class=8) picked to read as that
+-- faction: Shield_Kite_Prague_* for the Prague regiment, Shield_Kite_Sigismund_* /
+-- Shield_Heater_Sigismund_* for Sigismund's soldiers and knights, the dedicated
+-- Shield_Cuman_* family for Cumans (and reused for the ruthenian group, which is
+-- explicitly written elsewhere in this file to be heraldry-free - a faction-liveried
+-- Sigismund/Prague shield would contradict that), Shield_Pavise_Tlama for bandits
+-- (the vanilla Trosecko bandit-camp shield), and unbranded painted/heraldic
+-- patterns for looters and recruits, who belong to no organised force.
+--
+-- Reuses AlxWear (mercenaries_aleksej.lua): CreateItem into the inventory, find
+-- the instance id, EquipInventoryItem on that - the pattern proven to work on a
+-- runtime-spawned NPC. Safe to call unconditionally; a group with no `shields`
+-- pool (heinrich) just no-ops.
+function mercenaries:EquipEnemyShield(ent, grp)
+    if not (ent and grp and grp.shields and #grp.shields > 0) then return end
+    local shieldClass = grp.shields[math.random(1, #grp.shields)]
+    self:AlxWear(ent, shieldClass, "enemy shield (" .. tostring(grp.label) .. ")")
 end
 
 -- Spawn ONE member of a group at an exact spot. The single spawn path for every
@@ -1002,3 +1280,20 @@ function mercenaries:SpawnTestMerc()
     end
 end
 
+
+-- Second pass over a freshly hired companion, a second after the hire. Re-registers
+-- him (the name is the ActiveMercs key and it does not change) and re-injects the
+-- look-at prompts. See the note at the timer that arms this.
+function mercenaries.CCReinject(entId)
+    local self = mercenaries
+    local ent
+    pcall(function() ent = System.GetEntity(entId) end)
+    if not ent then return end
+    local name = ent.GetName and ent:GetName() or nil
+    if not name or not self:IsHeroName(name) then return end
+    if not self:IsAliveAndWell(ent, true) then return end
+    self.ActiveMercs[name] = ent
+    pcall(function() self:EnsureMercIsAlwaysRendered(ent) end)
+    pcall(function() self:InjectInteraction(ent) end)
+    System.LogAlways("[Mercenaries] companion re-injected: " .. name)
+end

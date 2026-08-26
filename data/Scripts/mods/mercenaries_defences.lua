@@ -252,7 +252,7 @@ function mercenaries:DefOnNewCamp()
     System.LogAlways("[Defences] camp moved - walls, towers and carts left behind")
 end
 
-System.AddCCommand("merc_def_save",    "mercenaries:DefSave()",       "Save the current camp's defences")
-System.AddCCommand("merc_def_restore", "mercenaries:DefRestore()",    "Rebuild the saved defences")
-System.AddCCommand("merc_def_forget",  "mercenaries:DefForget()",     "Forget the saved defences")
-System.AddCCommand("merc_def_clear",   "mercenaries:DefClearWorld()", "Remove standing walls, towers and carts")
+mercenaries:DevCommand("merc_def_save",    "mercenaries:DefSave()",       "Save the current camp's defences")
+mercenaries:DevCommand("merc_def_restore", "mercenaries:DefRestore()",    "Rebuild the saved defences")
+mercenaries:DevCommand("merc_def_forget",  "mercenaries:DefForget()",     "Forget the saved defences")
+mercenaries:DevCommand("merc_def_clear",   "mercenaries:DefClearWorld()", "Remove standing walls, towers and carts")

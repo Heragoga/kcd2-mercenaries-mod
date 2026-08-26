@@ -131,12 +131,12 @@ function mercenaries:LoadString(tag)
     return nil
 end
 
-System.AddCCommand("merc_saver_remap", "mercenaries:SaverForget(); mercenaries:SaverMap(true)",
+mercenaries:DevCommand("merc_saver_remap", "mercenaries:SaverForget(); mercenaries:SaverMap(true)",
                    "Rebuild the tag -> saver-entity map from a full scan")
 function mercenaries:SaverLogToggle()
     self.SaverLog = not self.SaverLog
     sLog("persistence logging " .. (self.SaverLog and "ON" or "OFF"))
 end
 
-System.AddCCommand("merc_saver_log", "mercenaries:SaverLogToggle()",
+mercenaries:DevCommand("merc_saver_log", "mercenaries:SaverLogToggle()",
                    "Toggle per-write persistence logging (off by default: it is file I/O)")

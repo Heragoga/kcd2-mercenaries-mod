@@ -117,11 +117,17 @@ function mercenaries:HireArcher(cost, amount)
     if not _G.MercCount then _G.MercCount = 0 end
 
     if _G.MercCount + amount > self.MaxCompanions then
+        System.LogAlways(string.format(
+            '[Archer] HireArcher: rejected - too many (count=%d + %d > max=%d)',
+            _G.MercCount, amount, self.MaxCompanions))
         Game.SendInfoText('merc_info_too_many', false, 0, 3)
         return
     end
 
     if p:GetMoney() < cost then
+        System.LogAlways(string.format(
+            '[Archer] HireArcher: rejected - not enough money (have %d, need %d)',
+            p:GetMoney(), cost))
         Game.SendInfoText('merc_info_not_enough_money', false, 0, 3)
         return
     end
@@ -140,9 +146,19 @@ function mercenaries:HireArcher(cost, amount)
 
     _G.MercCount = _G.MercCount + amount
 
+    -- Same indoor rule as Hire (mercenaries_spawning.lua): hired at an innkeeper's,
+    -- the archers muster outside, and only the ones that actually appeared are paid for.
+    local outside = nil
+    local spawned = 0
+
     local ok, err = pcall(function()
-        local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 3)
-        if not spawnPos then return end
+        local a = self:HireSpawnAnchor()
+        if not (a and a.pos and a.rot) then
+            System.LogAlways('[Archer] HireArcher: no usable spawn position - nobody placed')
+            return
+        end
+        local spawnPos, playerRot = a.pos, a.rot
+        outside = a.outside
 
         local soulList = self.ArcherSouls
         local currentPreset = _G.MercCurrentOutfit or 1
@@ -156,11 +172,12 @@ function mercenaries:HireArcher(cost, amount)
                 self.ArcherSoulIndex = 1
             end
 
-            local offsetPos = self:FindValidGround({
+            local raw = {
                 x = spawnPos.x + (math.random() - 0.5) * 1.5,
                 y = spawnPos.y + (math.random() - 0.5) * 1.5,
                 z = spawnPos.z
-            }, spawnPos.z)
+            }
+            local offsetPos = a.snap and self:FindValidGround(raw, spawnPos.z) or raw
 
             local safeRot = {x = 0, y = 0, z = playerRot.z}
             local entityName = "SpawnedFriend_archer_" .. self.ArcherTier .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
@@ -176,30 +193,100 @@ function mercenaries:HireArcher(cost, amount)
             local ent = System.GetEntityByName(entityName)
 
             if ent then
-                mercenaries:EnsureMercIsAlwaysRendered(ent)
-
-                self:EquipMercenary(ent, currentPreset)
-                self:EquipArcherWeapon(ent)
+                -- Register before the equip calls, which throw on an empty preset table
+                -- and would otherwise leave a live NPC nothing tracks. See Hire.
                 self.ActiveMercs[entityName] = ent
-                self:InjectInteraction(ent)
-                pcall(function() self:CampOnMercJoined(ent) end)
+                spawned = spawned + 1
+
+                local dressed, derr = pcall(function()
+                    mercenaries:EnsureMercIsAlwaysRendered(ent)
+                    self:EquipMercenary(ent, currentPreset)
+                    self:EquipArcherWeapon(ent)
+                    self:InjectInteraction(ent)
+                    self:CampOnMercJoined(ent)
+                end)
+                if not dressed then
+                    System.LogAlways('[Archer] HireArcher: post-spawn setup failed for ' ..
+                                     entityName .. ': ' .. tostring(derr))
+                end
+            else
+                System.LogAlways('[Archer] HireArcher: SpawnEntity produced nothing for ' .. entityName)
             end
         end
     end)
 
     if not ok then System.LogAlways('[Archer] HireArcher error: ' .. tostring(err)) end
 
-    if amount == 1 then
+    if spawned < amount then
+        self:Recount()
+        local refund = math.floor((cost or 0) * (amount - spawned) / math.max(amount, 1))
+        if refund > 0 then self:GiveMoney(refund) end
+    end
+
+    if spawned <= 0 then
+        Game.SendInfoText('merc_info_hire_failed', false, 0, 4)
+        return
+    end
+
+    if spawned == 1 then
         Game.SendInfoText('merc_info_archer_hired_single', false, 0, 3)
     else
         Game.SendInfoText('merc_info_archer_hired_multiple', false, 0, 3)
     end
+
+    if outside then Game.SendInfoText('merc_info_hired_outside', false, 0, 5) end
+
+    -- A hire is one more moment where a batch of men must all pick up follow at once,
+    -- and it rebuilds the formation (grow), which drops every follower's slot at the
+    -- same time. Same bounded window the dismount, order-release, battle-over and
+    -- loot-sweep cases use: anyone who demonstrably fails to start walking is re-fired.
+    pcall(function() mercenaries:BeginFollowVerify("hire") end)
+end
+
+-- One archer, at an exact spot. The counterpart of SpawnMercAt (see it for why this
+-- is not just HireArcher with a position argument).
+function mercenaries:SpawnArcherAt(pos, yaw, outfit)
+    if not pos then return nil end
+    outfit = outfit or _G.MercCurrentOutfit or 1
+    local ent
+    local ok, err = pcall(function()
+        local idx = self.ArcherSoulIndex
+        local soulGuid = self.ArcherSouls[idx]
+        self.ArcherSoulIndex = (idx % #self.ArcherSouls) + 1
+
+        local name = "SpawnedFriend_archer_" .. self.ArcherTier .. "_" ..
+                     tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+        System.SpawnEntity({
+            class = "NPC", name = name, position = pos,
+            orientation = { x = 0, y = 0, z = yaw or 0 },
+            properties = { guidSharedSoulId = soulGuid },
+        })
+        ent = System.GetEntityByName(name)
+        if not ent then return end
+        self.ActiveMercs[name] = ent
+        pcall(function()
+            self:EnsureMercIsAlwaysRendered(ent)
+            self:EquipMercenary(ent, outfit)
+            self:EquipArcherWeapon(ent)
+            self:InjectInteraction(ent)
+            self:CampOnMercJoined(ent)
+        end)
+    end)
+    if not ok then System.LogAlways('[Archer] SpawnArcherAt error: ' .. tostring(err)) end
+    return ent
 end
 
 function mercenaries:EquipArcherWeapon(ent)
     if not ent or not ent.actor then return end
 
     local name = ent:GetName() or ''
+
+    -- The custom uniform arms the archers too: it picks the missile set (its own, if
+    -- the player handed one over) and hangs whatever else he named on top.
+    if self:GearWantsCustom(ent, nil) then
+        self:GearApplyWeapons(ent, true)
+        return
+    end
 
     local weaponType = self:GetArcherWeaponType()
     local sets = self.ArcherWeaponSets[weaponType] or self.ArcherWeaponSets["bow"]
@@ -356,15 +443,3 @@ function mercenaries:MonitorArcherTokens(p)
         self:SetArcherWeaponType(self.ArcherWeaponTypeByIndex[countArcherWeaponType] or "bow")
     end
 end
-
--- Console commands for testing without dialog
-System.AddCCommand("archer_hire_1", "mercenaries:HireArcher(0, 1)", "")
-System.AddCCommand("archer_hire_3", "mercenaries:HireArcher(0, 3)", "")
-
-System.AddCCommand("archer_stance_skirmish", "mercenaries:SetArcherStance('skirmish')", "")
-System.AddCCommand("archer_stance_melee", "mercenaries:SetArcherStance('melee')", "")
-System.AddCCommand("archer_stance_hold", "mercenaries:SetArcherStance('hold')", "")
-
-System.AddCCommand("archer_weapon_bow", "mercenaries:SetArcherWeaponType('bow')", "")
-System.AddCCommand("archer_weapon_crossbow", "mercenaries:SetArcherWeaponType('crossbow')", "")
-System.AddCCommand("archer_weapon_handcannon", "mercenaries:SetArcherWeaponType('handcannon')", "")

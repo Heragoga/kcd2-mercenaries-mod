@@ -71,22 +71,28 @@ function mercenaries:RenderLodSet(v)
     if n then self:RefreshRenderPins() end
 end
 
-System.AddCCommand("merc_render_lod", "mercenaries:RenderLodSet('%line')",
+mercenaries:DevCommand("merc_render_lod", "mercenaries:RenderLodSet('%line')",
                    "Fixed merc mesh detail, or 0 for engine default: merc_render_lod 130")
 
 -- Movement speed + stamina, so the squad can stay with a sprinting player. Dash is the
 -- highest RelativeSpeedLimit the engine has, so raising actual movement speed is the only
--- lever left. Applied once per merc and tracked here: AddBuff would otherwise stack a fresh
--- instance every refresh.
+-- lever left. Applied once per entity and tracked here: AddBuff would otherwise stack a
+-- fresh instance every refresh. Generic on purpose: RefreshRenderPins applies KeepUpBuff to
+-- every merc's own soul, and follow.xml's horse lifecycle applies HorseKeepUpBuff (a
+-- separate, stronger buff - 1.3x on the rider was not enough once mounted) to a mounted
+-- merc's HORSE soul instead - riding, the merc's own rms is irrelevant, only the horse's
+-- speed carries him, and vanilla's own horse gear buffs (item_horse_shoe, item_bridle) use
+-- these same rms/mst codes, confirming they apply to horse souls exactly like human ones.
 mercenaries.KeepUpBuff = "e5a10011-2c4b-4e6a-9f01-000000000011"
+mercenaries.HorseKeepUpBuff = "e5a10013-2c4b-4e6a-9f01-000000000013"
 mercenaries.KeepUpBuffOn = true
 mercenaries._keepUpDone = {}
 
-function mercenaries:ApplyKeepUpBuff(ent)
+function mercenaries:ApplyKeepUpBuff(ent, buffId)
     if not (ent and ent.soul and self.KeepUpBuffOn) then return end
     local k = tostring((ent.this and ent.this.id) or ent.id)
     if self._keepUpDone[k] then return end
-    local ok = pcall(function() ent.soul:AddBuff(self.KeepUpBuff) end)
+    local ok = pcall(function() ent.soul:AddBuff(buffId or self.KeepUpBuff) end)
     if ok then self._keepUpDone[k] = true end
 end
 
@@ -120,7 +126,7 @@ function mercenaries:RenderPinSet(v)
     end
 end
 
-System.AddCCommand("merc_render_pin", "mercenaries:RenderPinSet('%line')",
+mercenaries:DevCommand("merc_render_pin", "mercenaries:RenderPinSet('%line')",
                    "Pin merc renderer view distance so they are never distance-culled: merc_render_pin 1 | 0")
 function mercenaries:RebuildMercCache()
     self.ActiveMercs = {}
@@ -161,14 +167,12 @@ function mercenaries:PruneMercCache()
     for name, ent in pairs(self.ActiveMercs) do
         if not self:IsAliveAndWell(ent, true) then
             self.ActiveMercs[name] = nil
-            local wuid = ent.this and ent.this.id or ent.id
-            self.MercTargetOf[tostring(wuid)] = nil
+            self:MercDropClaim(ent.this and ent.this.id or ent.id)
             Script.SetTimerForFunction(10000, "mercenaries.DespawnMerc", ent.id)
         elseif not self:IsCombatViable(ent) then
             -- Knocked out: keeps his roster slot (a false answer above schedules a
             -- despawn), but he is not fighting and must not hold a swarm-cap slot.
-            local wuid = ent.this and ent.this.id or ent.id
-            self.MercTargetOf[tostring(wuid)] = nil
+            self:MercDropClaim(ent.this and ent.this.id or ent.id)
         end
     end
 end
@@ -192,6 +196,25 @@ function mercenaries:PruneCombatClaims()
         end
     end
 
+    -- ...and the MERC side of the same bookkeeping. Nothing else prunes it: a claim is
+    -- released by combat_melee's OnFail, which never runs for a merc who was KILLED
+    -- holding one - so his entry sat in MercTargetOf for the rest of the session,
+    -- counting against that enemy's swarm cap and quietly benching a living man.
+    --
+    -- Both keys here are tostring(wuid), not wuids, so they cannot be resolved back to
+    -- entities; the live set is built from ActiveMercs instead. The TARGET side needs no
+    -- pruning of its own - a claim on a dead enemy is released by the OnFail of the merc
+    -- holding it, and that merc is alive by construction.
+    if self.MercSetClaim then
+        local live = {}
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w and self:IsAliveAndWell(ent, true) then live[tostring(w)] = true end
+        end
+        for k in pairs(self.MercTargetOf or {}) do
+            if not live[k] then self:MercSetClaim(k, nil) end
+        end
+    end
 end
 
 -- Dot syntax on purpose: invoked by name from Script.SetTimerForFunction,
@@ -331,6 +354,156 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
     return spawnPos, playerRot
 end
 
+-- Where men hired INDOORS muster.
+-- Full write-up: docs/spawning-npcs.md "Spawning while the player is indoors".
+--
+-- GetSafeSpawnPosition only looks ~5m behind the player, so hiring from an
+-- innkeeper put the squad in the tavern with him - and its ground snap starts 5m
+-- above his feet, which inside a building is usually above the ceiling, so the
+-- downward ray hits the roof and the men were placed on top of it. That is the
+-- "they don't spawn at all" report: they did spawn, over the player's head.
+--
+-- So when the player is under a roof the muster point moves outside: rings of
+-- bearings at growing radius, keeping the first candidate with open sky over it
+-- and ground a man can stand on. Rejecting an indoor candidate costs ONE ray
+-- (the roof probe), so the inside-the-building half of the search is cheap; only
+-- open-sky candidates pay for CampValidateSpot's nine-ray footprint check.
+--
+-- The two checks use DIFFERENT reference heights on purpose:
+--   * the roof probe is deliberately player-relative. The question it answers is
+--     "is there still something over my head at this bearing", i.e. have we left
+--     the building, and that is measured from the floor he is standing on.
+--   * the standability check is candidate-relative, against the ground actually
+--     under the candidate. Hired upstairs the street is several metres down, and
+--     judging it against his floor would reject the whole street.
+-- The cost of the player-relative roof probe is a slope bias: open ground more
+-- than CampRoofDetectHeight (3m) ABOVE his feet reads as roofed and is skipped.
+-- That is the safe direction to err in - it drops some bearings on hilly ground,
+-- and there are 16 per ring - and it is not worth "fixing" by snapping first,
+-- because a snap taken indoors lands on the roof and would make a rooftop
+-- candidate look like open sky, which is the bug this whole function exists for.
+mercenaries.OutdoorAnchorMin   = 4.0    -- first ring (still inside, but cheap to reject)
+-- Far enough to clear a tavern common room, deliberately no further: men put down 30m
+-- away can end up round the back of the building with an awkward path back, and the
+-- ring search returns the NEAREST hit anyway, so a large cap only changes the
+-- give-up case.
+mercenaries.OutdoorAnchorMax   = 20.0   -- give up past this and let the caller fall back
+mercenaries.OutdoorAnchorStep  = 2.0
+mercenaries.OutdoorAnchorRays  = 16     -- bearings per ring
+mercenaries.OutdoorAnchorDrop  = 10.0   -- ...but never this far above/below the player (cliff, wrong storey)
+mercenaries.OutdoorAnchorTries = 24     -- footprint checks before giving up (bounds the raycast burst)
+mercenaries.HireIndoorOffset   = 2.0    -- enclosed interior: how far behind the player to place them
+
+-- Returns spot, underRoof:
+--   nil, false  the player is outdoors - leave the normal placement alone
+--   pos, true   he is indoors and this is the open ground to muster on
+--   nil, true   he is indoors and there is no open ground within reach
+function mercenaries:FindOutdoorSpawnAnchor(from)
+    if not (from and self.CampDetectRoof) then return nil, false end
+    local roofed = false
+    pcall(function() roofed = self:CampDetectRoof(from) and true or false end)
+    if not roofed then return nil, false end
+
+    local ok, res = pcall(function()
+        local tries, ring = 0, 0
+        local r = self.OutdoorAnchorMin
+        while r <= self.OutdoorAnchorMax + 1e-6 do
+            ring = ring + 1
+            -- Half-step alternate rings so the samples never line up in spokes,
+            -- which would keep probing the same wall all the way out.
+            local base = (ring % 2 == 0) and (math.pi / self.OutdoorAnchorRays) or 0
+            for k = 0, self.OutdoorAnchorRays - 1 do
+                local a  = base + (k / self.OutdoorAnchorRays) * 2 * math.pi
+                local cx = from.x + math.cos(a) * r
+                local cy = from.y + math.sin(a) * r
+                if not self:CampDetectRoof({ x = cx, y = cy, z = from.z }) then
+                    local g = self:CampSnapToGround({ x = cx, y = cy, z = from.z })
+                    if g and math.abs(g.z - from.z) <= self.OutdoorAnchorDrop then
+                        tries = tries + 1
+                        local valid = self:CampValidateSpot({ x = cx, y = cy, z = g.z }, g.z,
+                                                            self.CampMercFootprint)
+                        if valid then return { x = cx, y = cy, z = g.z } end
+                        if tries >= self.OutdoorAnchorTries then return nil end
+                    end
+                end
+            end
+            r = r + self.OutdoorAnchorStep
+        end
+        return nil
+    end)
+
+    return (ok and res) or nil, true
+end
+
+-- The single muster point every hire path uses. Returns nil only when there is no
+-- player to measure from.
+--
+--   { pos =, rot =, outside =, snap = }
+--
+-- `snap = false` means "place them exactly here, do NOT ground-snap or validate".
+-- That is the enclosed case - a mine, a keep, a cellar - where the player is under
+-- a roof and no open ground is within reach. Falling through to the normal
+-- placement there is what put men on the roof: both CampSnapToGround and
+-- CampValidateSpot probe from above, so indoors they find the building's roof
+-- rather than the floor the player is standing on. His own z is the one height we
+-- know is a real floor, so we use it verbatim.
+function mercenaries:HireSpawnAnchor()
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
+
+    local base, rot = self:GetSafeSpawnPosition(player, 3)
+    if not rot then pcall(function() rot = player and player:GetAngles() end) end
+    if not pp then
+        if not base then return nil end
+        return { pos = base, rot = rot, outside = false, snap = true }
+    end
+
+    local out, underRoof = self:FindOutdoorSpawnAnchor(pp)
+    -- Logged because which of the three branches fired is otherwise invisible, and the
+    -- two indoor ones move men somewhere the player is not looking.
+    if out then
+        System.LogAlways(string.format(
+            '[Mercenaries] hire indoors - mustering outside at %.1fm',
+            math.sqrt((out.x - pp.x) ^ 2 + (out.y - pp.y) ^ 2)))
+        return { pos = out, rot = rot, outside = true, snap = true }
+    end
+    if not underRoof then
+        if not base then return nil end
+        return { pos = base, rot = rot, outside = false, snap = true }
+    end
+    System.LogAlways('[Mercenaries] hire indoors with no open ground in reach - ' ..
+                     'mustering on the player\'s own floor, unvalidated')
+
+    -- Enclosed interior. This spot gets NO validation - every ground probe in the mod
+    -- fires from above and would find the roof - so it has to be somewhere we already
+    -- know is good rather than somewhere merely plausible.
+    --
+    -- The player's own feet are the only such point: he is standing on walkable floor,
+    -- on the navmesh, by definition. GetSafeSpawnPosition's x/y is NOT good enough on
+    -- its own - it picks a bearing by a SCORE (clear distance scaled by an angle
+    -- penalty), not by true clearance, so in a cramped room its 0.5m margin can be
+    -- optimistic, and an unvalidated spawn there can put a man inside geometry or off
+    -- the mesh. An NPC off the navmesh cannot walk at all, which reads as "he never
+    -- follows" rather than as a placement bug.
+    --
+    -- So: keep GetSafeSpawnPosition's BEARING (behind the player, away from the wall it
+    -- liked least) but only step HireIndoorOffset along it. A couple of metres from a
+    -- known-good point is as safe as placement gets without a navmesh query.
+    local ox, oy = 0, 0
+    if base then
+        local dx, dy = base.x - pp.x, base.y - pp.y
+        local L = math.sqrt(dx * dx + dy * dy)
+        if L > 1e-3 then
+            local r = math.min(L, self.HireIndoorOffset)
+            ox, oy = (dx / L) * r, (dy / L) * r
+        end
+    end
+    return {
+        pos  = { x = pp.x + ox, y = pp.y + oy, z = pp.z },
+        rot  = rot, outside = false, snap = false,
+    }
+end
+
 -- Snap a position onto valid, obstacle-free ground: CampValidateSpot rejects
 -- tree/rock/roof tops, and if blocked we spiral out in `step` rings up to
 -- `maxRadius` for a clear tile. Pass the squad's z as `refZ` so "valid" means
@@ -409,12 +582,33 @@ function mercenaries:IsCombatViable(ent)
     return self:IsAliveAndWell(ent, false)
 end
 
+-- A named companion. They are spawned as "SpawnedFriend_hero_<soul>_<n>" precisely so
+-- that every system keying on SpawnedFriend picks them up for free - camp membership,
+-- the look-at prompts, formations, the LOD boost, orders, the lot - exactly the trick
+-- the archers use. `_hero_` then marks the two things they must NOT share: they keep
+-- their own gear rather than the squad's, and they never talk.
+--
+-- "MercenaryCustomCompanion" was the old name. Saves taken before the rename still hold
+-- entities called that, so it is still recognised here and nowhere else.
+mercenaries.HeroNameMark = "_hero_"
+mercenaries.HeroLegacyPrefix = "MercenaryCustomCompanion"
+
+function mercenaries:IsHeroName(name)
+    if not name or name == '' then return false end
+    return string.find(name, self.HeroNameMark, 1, true) ~= nil
+        or string.find(name, self.HeroLegacyPrefix, 1, true) ~= nil
+end
+
+function mercenaries:IsHero(ent)
+    return ent ~= nil and self:IsHeroName(ent.GetName and ent:GetName() or '')
+end
+
 -- Identify whether an entity is a mercenary, returning its type or nil.
 function mercenaries:GetMercType(ent)
     if not ent then return nil end
     local name = ent:GetName() or ''
 
-    if string.find(name, 'MercenaryCustomCompanion') then return "hero" end
+    if self:IsHeroName(name) then return "hero" end
     if string.find(name, 'SpawnedFriend') then
         if string.find(name, '_archer_') then return "archer" end
         return "regular"
@@ -431,7 +625,6 @@ function mercenaries.ReleaseSpeakingLock()
     -- System.LogAlways('[Mercenary] Speaking lock released.')
 end
 
-
 function mercenaries.DespawnHorseByName(horseName)
     if not horseName then return end
     local horseEnt = System.GetEntityByName(horseName)
@@ -443,8 +636,6 @@ function mercenaries.DespawnHorseByName(horseName)
         System.LogAlways('[MercHorse] Deferred despawn: already gone: ' .. horseName)
     end
 end
-
-
 
 -- ==== paying the player ====
 -- player.inventory:AddMoney DOES NOT EXIST. Every call to it in this mod sat inside a pcall,

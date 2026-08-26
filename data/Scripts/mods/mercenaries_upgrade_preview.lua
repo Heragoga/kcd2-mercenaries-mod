@@ -982,47 +982,47 @@ function mercenaries:PartDump()
     end
 end
 
-System.AddCCommand("merc_upgrade_preview", "mercenaries:UpgradePreview()",
+mercenaries:DevCommand("merc_upgrade_preview", "mercenaries:UpgradePreview()",
     "Spawn one candidate prop per camp upgrade in a flag-marked row in front of you (see kcd.log for the order).")
-System.AddCCommand("merc_upgrade_preview_clear", "mercenaries:ClearUpgradePreview()",
+mercenaries:DevCommand("merc_upgrade_preview_clear", "mercenaries:ClearUpgradePreview()",
     "Remove the merc_upgrade_preview props.")
-System.AddCCommand("merc_forge_preview", "mercenaries:ForgePreview()",
+mercenaries:DevCommand("merc_forge_preview", "mercenaries:ForgePreview()",
     "Spawn the forge/smithy candidates in a flag-marked row (see kcd.log for the order). Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_prefab_preview", "mercenaries:PrefabPreview()",
+mercenaries:DevCommand("merc_prefab_preview", "mercenaries:PrefabPreview()",
     "Spawn complete prefab compositions (smithy workshop, cooking station, alchemy table, camp fireplace, gate tower) in a flag-marked row. Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_composition_preview", "mercenaries:CompositionPreview()",
+mercenaries:DevCommand("merc_composition_preview", "mercenaries:CompositionPreview()",
     "Spawn our own hand-built prop compositions (e.g. the full forge kit) from real models. Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_forge_build", "mercenaries:ForgeBuild(%1)",
+mercenaries:DevCommand("merc_forge_build", "mercenaries:ForgeBuild(%1)",
     "Build the whole forge (visual only) 4m in front of you, rotated by a global yaw in degrees. Re-run to re-orient; clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_forge_func", "mercenaries:ForgeBuildFunctional(%1)",
+mercenaries:DevCommand("merc_forge_func", "mercenaries:ForgeBuildFunctional(%1)",
     "Functional forge, strategy A: visuals + Smithery + blacksmith SmartObjectHolder, GetLinkedSmartObject monkey-patched. Press E at the anvil. Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_forge_func2", "mercenaries:ForgeBuildFunctional2(%1)",
+mercenaries:DevCommand("merc_forge_func2", "mercenaries:ForgeBuildFunctional2(%1)",
     "Functional forge, strategy B: same build but linked via the engine's entity CreateLink (if exposed). Press E at the anvil. Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_forge_func3", "mercenaries:ForgeBuildFunctional3(%1)",
+mercenaries:DevCommand("merc_forge_func3", "mercenaries:ForgeBuildFunctional3(%1)",
     "Functional forge, strategy C: the COMPLETE rig - item slots (hammer/tongs), alignment point, coal, bellows bag, particles, light, all entity-linked. Press E at the anvil. Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_forge_func4", "mercenaries:ForgeBuildFunctional4(%1)",
+mercenaries:DevCommand("merc_forge_func4", "mercenaries:ForgeBuildFunctional4(%1)",
     "Functional forge, strategy D: our visuals + the NESTED smithy_workshop_base prefab spawned directly - its Smithery/ItemSlots/alignment come pre-linked. Press E at the anvil. Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_forge_func5", "mercenaries:ForgeBuildFunctional5(%1)",
+mercenaries:DevCommand("merc_forge_func5", "mercenaries:ForgeBuildFunctional5(%1)",
     "Functional forge, strategy E: base prefab + census of what actually spawned (logged) + auto-wire our Smithery to the prefab's ItemSlots/alignment/holder if its own is missing. Clear with merc_upgrade_preview_clear.")
-System.AddCCommand("merc_itemslot_scan", "mercenaries:ItemSlotScan()",
+mercenaries:DevCommand("merc_itemslot_scan", "mercenaries:ItemSlotScan()",
     "Recon: enumerate loaded ItemSlots + report any blacksmith hammer/tongs slots and their distance (tests the ItemSlot-hijack idea). Output in kcd.log.")
-System.AddCCommand("merc_smithery_dump", "mercenaries:SmitheryDump()",
+mercenaries:DevCommand("merc_smithery_dump", "mercenaries:SmitheryDump()",
     "Recon: find the nearest loaded (real, village) Smithery and dump its links - can we grab its hammer/tongs/alignment slot entities? Output in kcd.log.")
-System.AddCCommand("merc_forge_real", "mercenaries:ForgeReal()",
+mercenaries:DevCommand("merc_forge_real", "mercenaries:ForgeReal()",
     "Fire Blacksmithing.StartMinigame on the nearest REAL loaded Smithery (which already has working slots). If it runs cleanly, a camp forge near a settlement can trigger it.")
-System.AddCCommand("merc_anvil_grab", "mercenaries:AnvilGrab()",
+mercenaries:DevCommand("merc_anvil_grab", "mercenaries:AnvilGrab()",
     "Teleport the nearest REAL Smithery (+ its alignment holder) to right in front of you, so you can smith at camp with its real tool slots. Restore with merc_anvil_restore.")
-System.AddCCommand("merc_anvil_use", "mercenaries:AnvilUse()",
+mercenaries:DevCommand("merc_anvil_use", "mercenaries:AnvilUse()",
     "Force-start blacksmithing on the borrowed anvil (if pressing E doesn't).")
-System.AddCCommand("merc_anvil_restore", "mercenaries:AnvilRestore()",
+mercenaries:DevCommand("merc_anvil_restore", "mercenaries:AnvilRestore()",
     "Put the borrowed village Smithery back where it belongs.")
-System.AddCCommand("merc_forge_nudge", "mercenaries:ForgeNudge(%1, %2, %3, %4, %5)",
+mercenaries:DevCommand("merc_forge_nudge", "mercenaries:ForgeNudge(%1, %2, %3, %4, %5)",
     "Live-tune the borrowed forge: merc_forge_nudge <idx> dfwd dlat dup dyaw  (1=anvil_interact 2=anvil_forge 3=forge 4=coal 5=water 6=barrel 7=bellows 8=furnace; metres + degrees, +fwd=toward anvil, +lat=left, +yaw=CCW).")
-System.AddCCommand("merc_forge_dump", "mercenaries:ForgeDump()",
+mercenaries:DevCommand("merc_forge_dump", "mercenaries:ForgeDump()",
     "Print the current borrowed-forge layout (fwd/lat/up per piece) to paste back into ForgeVisualLayout.")
-System.AddCCommand("merc_part_reset", "mercenaries:PartReset()",
+mercenaries:DevCommand("merc_part_reset", "mercenaries:PartReset()",
     "Part tuner: clear placed parts and set the anchor 4m in front of you.")
-System.AddCCommand("merc_part", "mercenaries:PartSpawn(%1, %2, %3, %4, %5, %6, %7, %8)",
+mercenaries:DevCommand("merc_part", "mercenaries:PartSpawn(%1, %2, %3, %4, %5, %6, %7, %8)",
     "Part tuner: merc_part <idx> dx dy dz rx ry rz scale  (idx 1=forge 2=coals 3=anvil 4=water 5=barrel; all 8 args; pos metres, rot degrees, scale e.g. 1).")
-System.AddCCommand("merc_part_dump", "mercenaries:PartDump()",
+mercenaries:DevCommand("merc_part_dump", "mercenaries:PartDump()",
     "Part tuner: print all current parts' pos/rot/scale to the log to paste back.")

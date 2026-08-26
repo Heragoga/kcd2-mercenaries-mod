@@ -54,6 +54,29 @@ Keeping the assignment radius at the scan radius makes all four moot. The 20 m g
 
 `standSpotFor` deliberately does **not** ground-validate its stand spot. It called `FindValidGround` at first, which spirals out to 2 m in 0.5 m rings at nine raycasts a probe — ~80 casts per assignment, each logging a `RayWorldIntersection` parameter warning, which buried the log during a sweep. A body lies on walkable ground by definition, and `Move` pathfinds the last stretch anyway.
 
+## Handing a sweeper back to the squad
+
+A man coming off loot duty stops being a camp actor, and the scheduler is *supposed* to notice the
+role change by itself and re-fire `follow`. It cannot always. `camp_actor` is an infinite loop that
+owns the interrupt slot once it has it, and a merc inside the rummage unstance can swallow the
+`follow` interrupt while the scheduler latches `$isFollowingActive = true` anyway — so he stands
+over the body for the rest of the session. **That is the one-in-fifty who never comes back after a
+battle**, and it is why the report always points at the loot sweep.
+
+`LootReleaseFinished` runs at the end of every sweep tick, diffs `LootActivities` against
+`LootWasSweeping`, and raises `FollowStalled` on anyone who dropped off the list. That is the signal
+that evicts a running tree *properly* — `teleport` first, then `follow` — and it is queued, staggered
+and race-guarded, so kicking a handful of men costs nothing. See
+[formations.md](formations.md), "The eviction race".
+
+The diff is taken **after** `LootAssign`, so a merc who finished one body and was handed another on
+the same tick is not kicked; only a man genuinely leaving the sweep is. Releasing anyone also opens
+a `BeginFollowVerify` window, which re-fires anyone who still fails to start walking.
+
+The end of a fight opens that window too, independently of the sweep: `UpdateEnemyCache` calls it
+when the squad alert drops. Combat replaces `follow` for every merc who fought, and whatever ran
+next did not always give it back.
+
 ## Commands
 
 ```

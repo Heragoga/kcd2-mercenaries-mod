@@ -32,20 +32,50 @@ mercenaries.LodBoostPinned   = false
 -- 100 is the engine default, 200 is medium, 300 leaves ~3m detailed and the rest clay figures;
 -- docs/npc-lod.md separately records 255 as "puppets at arm's length".
 --
--- SOFTENED, and the reason is worth keeping: the ladder used to start at crowd 30 and top out
--- at 300, so simply HIRING fifty mercs put the whole company past puppet-grade - and left it
--- there, because a squad that size never lets the crowd fall back through the lower bands. A
--- big company is ordinary play, not a battle. The ladder now starts where a real battle does
--- and stops below 255, so a fifty-man squad on the road draws at the engine's own mesh LOD.
---
 -- BANDED, not interpolated, and only changed when the band changes: scaling a LOD ratio
 -- continuously off a live count is what caused pop-in the last time it was tried
 -- (see RenderLodSet in mercenaries_util.lua).
-mercenaries.LodRatioBands = {
-    { crowd = 150, ratio = 200 },   -- a full siege, ~190 NPCs
-    { crowd = 100, ratio = 160 },
-    { crowd =  70, ratio = 130 },
+--
+-- SOFTENED TWICE. The first ladder started at crowd 30 and topped out at 300 - past the 255
+-- this doc records as puppets at arm's length - so simply HIRING fifty men turned the company
+-- into clay figures and left it there. The second (150/200, 100/160, 70/130) still coarsened
+-- ordinary play: a company plus one raid clears crowd 70 without being a battle. The default
+-- ladder now starts at a hundred bodies and tops out at 150, which is a visible cut only at
+-- ranges where a man is a few pixels wide.
+--
+-- The trade is real - a softer ladder costs framerate in a big siege - so it is a SETTING
+-- rather than a constant. merc_lod_quality picks the ladder; `performance` is the old one.
+mercenaries.LodQualityPresets = {
+    -- Never coarsen anything: mesh LOD stays exactly where the engine puts it, whatever the
+    -- crowd. The AI-tier boost below still applies, so a siege is still simulated properly.
+    crisp = {
+        bands = {},
+        uberlod = 3,
+    },
+    -- Default. Only a real battle coarsens, and never past 150.
+    balanced = {
+        bands = {
+            { crowd = 190, ratio = 150 },   -- a full siege, ~190 NPCs
+            { crowd = 140, ratio = 130 },
+            { crowd = 100, ratio = 115 },
+        },
+        uberlod = 2,
+    },
+    -- What the mod shipped before: cheaper, and visibly so.
+    performance = {
+        bands = {
+            { crowd = 150, ratio = 200 },
+            { crowd = 100, ratio = 160 },
+            { crowd =  70, ratio = 130 },
+        },
+        uberlod = 1,
+    },
 }
+mercenaries.LodQualityDefault = "balanced"
+mercenaries.LodQuality        = nil     -- resolved from the save on first use
+mercenaries._lodQualityLoaded = false
+
+mercenaries.LodRatioBands = mercenaries.LodQualityPresets.balanced.bands
 mercenaries.LodRatioAuto  = true
 mercenaries._lodRatioBand = nil
 
@@ -128,7 +158,9 @@ mercenaries.LodBoostCvars = {
     -- OFF, and doing that with one already loaded drew the merged mesh and the separate
     -- attachments simultaneously (the two versions blended together). A LOW NUMBER is the
     -- setting: swap to the cheap mesh from LOD 1 rather than never.
-    { "wh_cc_LodForUberlod",                   1 },
+    -- Preset-driven (LodQualityPresets.uberlod): 1 swaps to the merged mesh as early as the
+    -- engine offers it, 3 keeps the assembled outfit two LOD levels longer. Never -1.
+    { "wh_cc_LodForUberlod",                   2 },
     { "wh_cc_UberlodLoadDistRatio",          100 },   -- % of max view distance uberlods load at
     { "wh_cc_UnloadHysteresisDist",           80 },   -- metres before an outfit is unloaded
     { "ca_AttachmentCullingRation",         1000 },   -- system.cfg raises this as a "missing eyes fix"
@@ -198,8 +230,57 @@ end
 -- Pick the band for the current crowd and, only if it CHANGED, push it to every mod NPC.
 -- Re-applying the same number every tick would be pointless work; changing it every tick
 -- would be the pop-in bug.
+-- Which ladder is in force. Loaded lazily from the save the first time anything asks,
+-- the same way the difficulty and status-icon settings do it.
+function mercenaries:LodQualityName()
+    if not self._lodQualityLoaded then
+        self._lodQualityLoaded = true
+        local v
+        pcall(function() v = self:LoadString("MercLodQuality") end)
+        if not (v and self.LodQualityPresets[v]) then v = self.LodQualityDefault end
+        self:LodQualityApply(v, true)
+    end
+    return self.LodQuality or self.LodQualityDefault
+end
+
+-- Swap ladders. `quiet` is the load path: no log line and nothing written back.
+function mercenaries:LodQualityApply(name, quiet)
+    local preset = self.LodQualityPresets[name]
+    if not preset then return false end
+    self.LodQuality    = name
+    self.LodRatioBands = preset.bands
+    for _, e in ipairs(self.LodBoostCvars) do
+        if e[1] == "wh_cc_LodForUberlod" then e[2] = preset.uberlod end
+    end
+    -- Whatever band is currently pushed onto the NPCs belongs to the old ladder, and the
+    -- dwell timer would otherwise hold the new one off for LodRatioDwellSecs.
+    self._lodRatioAt = nil
+    self:LodRatioReset()
+    if self.LodBoostActive then self:LodBoostReassert() end
+    if not quiet then
+        lbLog("mesh LOD quality = " .. name)
+    end
+    return true
+end
+
+function mercenaries:LodQualitySet(v)
+    local name = tostring(v or ""):match("%a+")
+    if not (name and self.LodQualityPresets[name]) then
+        lbLog("merc_lod_quality crisp | balanced | performance   (now: " ..
+              tostring(self:LodQualityName()) .. ")")
+        lbLog("  crisp       never coarsen mesh detail, whatever the crowd")
+        lbLog("  balanced    only a real battle coarsens, and never past 150 (default)")
+        lbLog("  performance the older, cheaper ladder")
+        return
+    end
+    self._lodQualityLoaded = true
+    self:LodQualityApply(name)
+    self:SaveString("MercLodQuality", name)
+end
+
 function mercenaries:LodRatioAutoApply()
     if not self.LodRatioAuto then return end
+    self:LodQualityName()      -- resolve the saved ladder before the first band is picked
     local crowd = (_G.MercCount or 0) + #(self.CachedEnemies or {})
     -- The siege knows its own headcount; CachedEnemies only sees what is near the player.
     pcall(function()
@@ -500,20 +581,22 @@ function mercenaries:LodBoostStatus()
           " crowd=" .. tostring(crowd) .. " foes=" .. tostring(foes) ..
           " min=" .. tostring(self.LodBoostMinCrowd) ..
           " why=" .. why)
+    lbLog("mesh LOD quality=" .. tostring(self:LodQualityName()) ..
+          " band=" .. (self._lodRatioBand and tostring(self._lodRatioBand) or "engine default"))
     for _, e in ipairs(self.LodBoostCvars) do
         lbLog("  " .. e[1] .. " = " .. tostring(getCVar(e[1])) .. " (boost " .. tostring(e[2]) .. ")")
     end
 end
 
-System.AddCCommand("merc_lod_auto",     "mercenaries:LodRatioAutoSet('%line')", "Crowd-scaled mesh LOD on/off: merc_lod_auto 0 | 1")
-System.AddCCommand("merc_lod_vdr",      "mercenaries:LodVdrSet('%line')",   "Per-NPC view distance: merc_lod_vdr 254 | merc_lod_vdr max")
-System.AddCCommand("merc_lod_lodratio", "mercenaries:LodRatioSet('%line')", "Per-NPC mesh detail: merc_lod_lodratio 100 (higher = drops sooner)")
-System.AddCCommand("merc_lod_cvar",     "mercenaries:LodCvarSet('%line')",  "Set and KEEP any cvar: merc_lod_cvar e_ViewDistRatio 300")
-System.AddCCommand("merc_lod_probe",   "mercenaries:LodProbe('%line')",  "Per-NPC render state: hidden / view-dist ratio / has-character / lod ratio")
-System.AddCCommand("merc_lod_pinall",  "mercenaries:LodPinAllMercs()",   "Unlimited view distance on every merc (per-entity, not a cvar)")
-System.AddCCommand("merc_lod_pin",    "mercenaries:LodBoostPin(true)",  "Hold the LOD boost on regardless of crowd")
-System.AddCCommand("merc_lod_unpin",  "mercenaries:LodBoostPin(false)", "Let the crowd count decide again")
-System.AddCCommand("merc_lod_boost",  "mercenaries:LodBoostSet('%line')",
+mercenaries:DevCommand("merc_lod_auto",     "mercenaries:LodRatioAutoSet('%line')", "Crowd-scaled mesh LOD on/off: merc_lod_auto 0 | 1")
+mercenaries:DevCommand("merc_lod_vdr",      "mercenaries:LodVdrSet('%line')",   "Per-NPC view distance: merc_lod_vdr 254 | merc_lod_vdr max")
+mercenaries:DevCommand("merc_lod_lodratio", "mercenaries:LodRatioSet('%line')", "Per-NPC mesh detail: merc_lod_lodratio 100 (higher = drops sooner)")
+mercenaries:DevCommand("merc_lod_cvar",     "mercenaries:LodCvarSet('%line')",  "Set and KEEP any cvar: merc_lod_cvar e_ViewDistRatio 300")
+mercenaries:DevCommand("merc_lod_probe",   "mercenaries:LodProbe('%line')",  "Per-NPC render state: hidden / view-dist ratio / has-character / lod ratio")
+mercenaries:DevCommand("merc_lod_pinall",  "mercenaries:LodPinAllMercs()",   "Unlimited view distance on every merc (per-entity, not a cvar)")
+mercenaries:DevCommand("merc_lod_pin",    "mercenaries:LodBoostPin(true)",  "Hold the LOD boost on regardless of crowd")
+mercenaries:DevCommand("merc_lod_unpin",  "mercenaries:LodBoostPin(false)", "Let the crowd count decide again")
+mercenaries:DevCommand("merc_lod_boost",  "mercenaries:LodBoostSet('%line')",
                    "Battle AI-LOD budget boost on or off: merc_lod_boost 1 | 0")
-System.AddCCommand("merc_lod_status", "mercenaries:LodBoostStatus()",
+mercenaries:DevCommand("merc_lod_status", "mercenaries:LodBoostStatus()",
                    "Show the battle LOD boost state and the live cvar values")

@@ -169,19 +169,59 @@ function mercenaries:SchedArmLegacy()
     schLog("legacy timers armed")
 end
 
--- Latched, like WBStart and LivePatrolStart elsewhere in this codebase. Without this
--- guard, OnGameplayStarted arms a fresh chain on EVERY load/quickload/death-reload while
--- the previous chain may still be alive, and the time-based duplicate check below only
--- kills a chain whose ticks happen to land inside a narrow window - so a chain landing in
--- the dead zone survives forever. Each surviving ghost independently drives every slot,
--- doubling the box queries, soul-API validation and formation passes. That is invisible
--- with no mercs (the slot bodies all gate on ActiveMercs) and compounding with them,
--- which is exactly the "sometimes laggy" report. Pass force=true to re-arm deliberately.
+-- ---------------------------------------------------------------------------
+-- LOAD GENERATION. Call this at the top of OnGameplayStarted, before anything arms
+-- a timer.
+--
+-- Script.SetTimerForFunction chains DO NOT survive a save load - the engine drops
+-- them with the level - but this table is plain Lua and survives everything, so any
+-- latch guarding a timer has to be reset per load or it locks the timer out for the
+-- rest of the session. That is not a theory: LootSweepLoop is armed unconditionally on
+-- every load and re-arms itself unconditionally, so if timers survived it would double
+-- every single load, and it does not.
+--
+-- Getting this wrong killed the whole mod on the second save loaded in one session.
+-- SchedRunning was still true from the first, SchedStart refused to arm, the master
+-- tick never ran again - and with it went MonitorInventory, so the hire tokens were
+-- never consumed and hiring silently did nothing. _schedWatchdogArmed was latched the
+-- same way, so the one thing that could have noticed was dead too. The log says
+-- "master tick already running - refusing to arm a second chain" and then nothing.
+-- ---------------------------------------------------------------------------
+mercenaries.SchedLoadGen = 0
+
+-- Every latch in the mod that guards a timer chain. They are plain Lua fields, so each
+-- one outlives the chain it guards and, left set, means that tick never comes back.
+-- The scheduler is the one module that already knows timers die on load, so it clears
+-- the lot rather than each module growing its own half-remembered load hook.
+--
+-- Only latches whose chain is re-armed somewhere belong here: WBRunning and
+-- LivePatrolRunning are re-armed by the camp/wall build and by LivePatrolStart in
+-- OnGameplayStarted, RaidRunning by OnGameplayStarted, FoeLoopArmed and GearTickArmed
+-- on demand the next time there is a foe or an open wardrobe.
+mercenaries.TimerLatches = {
+    "SchedRunning", "_schedWatchdogArmed",
+    "LivePatrolRunning", "RaidRunning", "WBRunning",
+    "FoeLoopArmed", "GearTickArmed", "_profHbArmed",
+}
+
+function mercenaries:SchedOnLoad()
+    self.SchedLoadGen = (self.SchedLoadGen or 0) + 1
+    for _, k in ipairs(self.TimerLatches) do self[k] = false end
+    self._schedStrikes, self._schedLastSeenTick = 0, nil
+end
+
+-- Latched, like WBStart and LivePatrolStart elsewhere in this codebase, but the latch is
+-- per LOAD and not per session (see SchedOnLoad). Within one load it still refuses a
+-- second chain: OnGameplayStarted arming twice for the same load would leave two ghosts
+-- independently driving every slot, doubling the box queries, soul-API validation and
+-- formation passes - invisible with no mercs (the slot bodies all gate on ActiveMercs)
+-- and compounding with them. Pass force=true to re-arm deliberately.
 function mercenaries:SchedStart(force)
-    if self.SchedRunning and not force then
+    if self.SchedRunning and self._schedArmedGen == self.SchedLoadGen and not force then
         schLog("master tick already running - refusing to arm a second chain")
         return
     end
+    self._schedArmedGen = self.SchedLoadGen
     self.SchedEpoch = (self.SchedEpoch or 0) + 1
     self.SchedRunning = true
     self.SchedTick = 0
@@ -215,9 +255,9 @@ function mercenaries:SchedSet(v)
            " - takes effect on the next load (legacy timers are used when disabled)")
 end
 
-System.AddCCommand("merc_sched", "mercenaries:SchedSet('%line')",
+mercenaries:DevCommand("merc_sched", "mercenaries:SchedSet('%line')",
                    "Master scheduler on/off, applied at next load: merc_sched 1 | 0")
-System.AddCCommand("merc_sched_status", "mercenaries:SchedStatus()",
+mercenaries:DevCommand("merc_sched_status", "mercenaries:SchedStatus()",
                    "Report master scheduler slots, rates and any slot errors")
 
 -- ---------------------------------------------------------------------------

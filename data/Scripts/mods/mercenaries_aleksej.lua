@@ -385,22 +385,22 @@ function mercenaries:AlxHelp()
     aLog("merc_alx_status     what the runner is doing right now")
 end
 
-System.AddCCommand("merc_alx_lodging",    "mercenaries:AlxLodgingSpawn()",  "Spawn Aleksej and his room (Kuttenberg)")
-System.AddCCommand("merc_alx_lodging_off","mercenaries:AlxLodgingRemove()", "Remove Aleksej and his room")
-System.AddCCommand("merc_alx_spawn",      "mercenaries:AlxPick(1)",   "F5 - Aleksej's spawn point")
-System.AddCCommand("merc_alx_stool",      "mercenaries:AlxPick(2)",   "F6 - stool")
-System.AddCCommand("merc_alx_bed",        "mercenaries:AlxPick(3)",   "F7 - bed")
-System.AddCCommand("merc_alx_chest",      "mercenaries:AlxPick(4)",   "F8 - chest")
-System.AddCCommand("merc_alx_dump",       "mercenaries:AlxDump()",    "F9 - print the four positions")
-System.AddCCommand("merc_alx_clear",      "mercenaries:AlxClear()",   "F10 - remove what has been placed")
-System.AddCCommand("merc_alx_undo",       "mercenaries:AlxUndo()",    "F11 - undo the last piece")
-System.AddCCommand("merc_alx_place",      "mercenaries:AlxPlace()",   "Place at your aim point (console)")
-System.AddCCommand("merc_alx_binds",      "mercenaries:AlxBinds()",   "Take F5-F11 for the lodging editor")
-System.AddCCommand("merc_alx_help",       "mercenaries:AlxHelp()",    "Key map")
-System.AddCCommand("merc_alx_talk",       "mercenaries:AlxTalkTest('%line')", "Pre-combat speech test: spawn an NPC that speaks when approached")
-System.AddCCommand("merc_alx_talk_now",   "mercenaries:AlxTalkFire()",  "Force the test line without walking up")
-System.AddCCommand("merc_alx_preset",     "mercenaries:AlxTalkPresetSet('%line')", "Forced-dialogue preset: 1 fader, 2 chat, 3 ingame")
-System.AddCCommand("merc_alx_talk_clear", "mercenaries:AlxTalkClear()", "Remove the test NPC")
+mercenaries:DevCommand("merc_alx_lodging",    "mercenaries:AlxLodgingSpawn()",  "Spawn Aleksej and his room (Kuttenberg)")
+mercenaries:DevCommand("merc_alx_lodging_off","mercenaries:AlxLodgingRemove()", "Remove Aleksej and his room")
+mercenaries:DevCommand("merc_alx_spawn",      "mercenaries:AlxPick(1)",   "F5 - Aleksej's spawn point")
+mercenaries:DevCommand("merc_alx_stool",      "mercenaries:AlxPick(2)",   "F6 - stool")
+mercenaries:DevCommand("merc_alx_bed",        "mercenaries:AlxPick(3)",   "F7 - bed")
+mercenaries:DevCommand("merc_alx_chest",      "mercenaries:AlxPick(4)",   "F8 - chest")
+mercenaries:DevCommand("merc_alx_dump",       "mercenaries:AlxDump()",    "F9 - print the four positions")
+mercenaries:DevCommand("merc_alx_clear",      "mercenaries:AlxClear()",   "F10 - remove what has been placed")
+mercenaries:DevCommand("merc_alx_undo",       "mercenaries:AlxUndo()",    "F11 - undo the last piece")
+mercenaries:DevCommand("merc_alx_place",      "mercenaries:AlxPlace()",   "Place at your aim point (console)")
+mercenaries:DevCommand("merc_alx_binds",      "mercenaries:AlxBinds()",   "Take F5-F11 for the lodging editor")
+mercenaries:DevCommand("merc_alx_help",       "mercenaries:AlxHelp()",    "Key map")
+mercenaries:DevCommand("merc_alx_talk",       "mercenaries:AlxTalkTest('%line')", "Pre-combat speech test: spawn an NPC that speaks when approached")
+mercenaries:DevCommand("merc_alx_talk_now",   "mercenaries:AlxTalkFire()",  "Force the test line without walking up")
+mercenaries:DevCommand("merc_alx_preset",     "mercenaries:AlxTalkPresetSet('%line')", "Forced-dialogue preset: 1 fader, 2 chat, 3 ingame")
+mercenaries:DevCommand("merc_alx_talk_clear", "mercenaries:AlxTalkClear()", "Remove the test NPC")
 
 -- ==== the beat runner ====
 -- Nine beats, and SKALD OWNS THE PROGRESSION - which beat is live, when it is finished, what it
@@ -1463,7 +1463,6 @@ function mercenaries:AlxOnLoad()
     self:AlxLodgingResetOnLoad()
 end
 
-
 -- The persistent Aleksej the player actually talks to for beats 1-5 (aleksej_dialog.xml is a
 -- talk-to menu; it needs a standing NPC to open it on). Spawned at beat 1's start on his own
 -- immortal soul. He goes away the instant beat 6 starts ("Aleksej absent" - that absence is the
@@ -1907,17 +1906,17 @@ end
 -- NOT merc_alx_spawn / merc_alx_clear: those are already the lodging editor's F5 and F10
 -- (AlxPick(1) / AlxClear), bound by AlxBinds on every load. Registering the same names twice
 -- silently broke one feature or the other depending on which registration won.
-System.AddCCommand("merc_alx_beat",   "mercenaries:AlxSpawnBeat('%line')", "TEST: stand beat N's camp up (Skald normally asks)")
-System.AddCCommand("merc_alx_beat_clear", "mercenaries:AlxDespawnCamp()",  "TEST: take the standing camp down")
-System.AddCCommand("merc_alx_status", "mercenaries:AlxStatus()",           "What Aleksej's camp is doing")
-System.AddCCommand("merc_alx_goto",   "mercenaries:AlxGoto()",             "TEST: teleport to the standing camp")
+mercenaries:DevCommand("merc_alx_beat",   "mercenaries:AlxSpawnBeat('%line')", "TEST: stand beat N's camp up (Skald normally asks)")
+mercenaries:DevCommand("merc_alx_beat_clear", "mercenaries:AlxDespawnCamp()",  "TEST: take the standing camp down")
+mercenaries:DevCommand("merc_alx_status", "mercenaries:AlxStatus()",           "What Aleksej's camp is doing")
+mercenaries:DevCommand("merc_alx_goto",   "mercenaries:AlxGoto()",             "TEST: teleport to the standing camp")
 -- Baked one per line: AddCCommand does not substitute %1 (reference_ccommand_arg_substitution).
-System.AddCCommand("merc_alx_msg_lodging",
+mercenaries:DevCommand("merc_alx_msg_lodging",
                    "mercenaries:AlxThought(mercenaries.AlxLodgingMsgKey)",
                    "TEST: Henry's thought on the emptied lodging")
-System.AddCCommand("merc_alx_msg_raborsch",
+mercenaries:DevCommand("merc_alx_msg_raborsch",
                    "mercenaries:AlxThought(mercenaries.AlxThoughts[7])",
                    "TEST: Henry's thought on the siege of Raborsch")
-System.AddCCommand("merc_alx_msg_reset",
+mercenaries:DevCommand("merc_alx_msg_reset",
                    "mercenaries:AlxLodgingMsgReset()",
                    "TEST: let the lodging thought play again")

@@ -707,6 +707,124 @@ function mercenaries:NavSuppressFormation()
     return self._navFormationOff
 end
 
+-- Per-merc version of the above, and the one UpdateFormationRole actually calls.
+--
+-- The squad-wide test is decided from the PLAYER's position against a 60m radius
+-- (75m to come back). A camp is nowhere near 60m across, so sallying out of a walled
+-- camp meant the whole squad marched the first 75m on the CrimeFollower chain with no
+-- formation at all - and a hire made anywhere near the camp came out on the chain for
+-- the same reason. That is the "they revert to crime follower when sallying out"
+-- report, and it is this function's fault, not the formation's.
+--
+-- What the suppression is actually for is narrow: a merc who has to route AROUND the
+-- camp wall cannot be steered there by an engine formation, so he drops to slot
+-- following and the custom navmesh takes him. That is a fact about where THAT MAN is
+-- standing, not about where the player is. A man already outside the walls and
+-- marching away needs no such help.
+--
+-- Hysteresis is kept, and kept PER MERC (the original comment's warning about churn
+-- is real - a man hovering on the boundary would otherwise tear the formation down
+-- and rebuild it every few seconds). Position comes from the PerfPos cache, refreshed
+-- every 50ms, so this costs nothing per call.
+mercenaries._navFormationOffFor = {}   -- [wuidStr] = true while suppressed for that merc
+
+-- How far the palisade actually reaches from the camp centre.
+--
+-- THE RADIUS HAS TO COME FROM THE WALL. Making the test per-merc (above) fixed half of the
+-- "they revert to crime follower when sallying out" report and left the other half in place:
+-- it kept measuring against NavActiveRadius, 60m, when a camp is nowhere near 60m across. A
+-- palisade of 51 segments encloses a circle of roughly 22m, so every man deployed from a
+-- walled camp - and the leader they form on, and the player who gave the order, all standing
+-- inside it - was suppressed, and stayed suppressed until he was 75m out. The whole sortie
+-- marched on the follow chain with no formation at all.
+--
+-- Cached against the shape of the wall tables, the only thing that can change the answer.
+mercenaries.NavWallPadding = 8.0       -- clear of the palisade before it stops mattering
+
+function mercenaries:NavWallRadius()
+    local runs = #(self.WallRuns or {})
+    local marks = #(self.WallMarks or {})
+    if self._navWallR and self._navWallRuns == runs and self._navWallMarks == marks then
+        return self._navWallR
+    end
+    local c = self.CampCenter
+    if not c then return 0 end
+    local far = 0
+    local ok = pcall(function()
+        for _, q in ipairs(self:WallAllPoints() or {}) do
+            local dx, dy = q.x - c.x, q.y - c.y
+            local dd = math.sqrt(dx * dx + dy * dy)
+            if dd > far then far = dd end
+        end
+    end)
+    if not ok then far = 0 end
+    self._navWallR, self._navWallRuns, self._navWallMarks = far, runs, marks
+    return far
+end
+
+-- Where the formation hangs from: the elected leader, or the player before one is elected.
+local function navAnchorPos(self)
+    local w = self.FormationLeader
+    if w then
+        local p = self:PerfMercPos(w)
+        if p then return p end
+    end
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
+    return pp
+end
+
+function mercenaries:NavSuppressFormationFor(wuid)
+    if not (self.CampCenter and self:WallHasAny()) then
+        if next(self._navFormationOffFor) then self._navFormationOffFor = {} end
+        return false
+    end
+    if not wuid then return false end
+
+    local key = tostring(wuid)
+    local mp = self:PerfMercPos(wuid)
+    if not mp then
+        -- Not scanned yet: keep whatever we last decided rather than flipping him.
+        return self._navFormationOffFor[key] == true
+    end
+
+    local r = self:NavWallRadius()
+    if r <= 0 then
+        self._navFormationOffFor[key] = nil
+        return false
+    end
+    r = r + self.NavWallPadding
+
+    local c = self.CampCenter
+    local dx, dy = mp.x - c.x, mp.y - c.y
+    local d = math.sqrt(dx * dx + dy * dy)
+
+    -- SAME SIDE OF THE WALL AS THE ANCHOR: nothing to route around, so the formation can
+    -- steer him normally. This is the sortie forming up inside its own camp before marching
+    -- out of the gate, which is the case that was broken. The suppression is only for the man
+    -- who has to come round the palisade to reach the shape - him inside and the anchor out,
+    -- or the reverse - because an engine formation cannot steer him round it and the custom
+    -- navmesh has to.
+    local ap = navAnchorPos(self)
+    if ap then
+        local ax, ay = ap.x - c.x, ap.y - c.y
+        local anchorInside = math.sqrt(ax * ax + ay * ay) <= r
+        if (d <= r) == anchorInside then
+            self._navFormationOffFor[key] = nil
+            return false
+        end
+    end
+
+    if self._navFormationOffFor[key] then
+        if d > (r + self.NavFormationOffMargin) then
+            self._navFormationOffFor[key] = nil
+        end
+    elseif d <= r then
+        self._navFormationOffFor[key] = true
+    end
+    return self._navFormationOffFor[key] == true
+end
+
 -- Enemy approach poll, called from enemy_melee_scheduler.xml.
 -- Sets data.navDetour (true while nav_goto owns him - the combat loop stands down on
 -- this, or a 160 combat fire would replace the running 200 detour and restart it) and
@@ -1105,11 +1223,11 @@ function mercenaries:SetNavDebug(v)
     System.LogAlways("[Nav] debug logging " .. (self.NavDebug and "ON" or "off"))
 end
 
-System.AddCCommand("merc_nav_build",  "mercenaries:NavBuild(%line)", "Build the camp nav graph: merc_nav_build [radius] [spacing]")
-System.AddCCommand("merc_nav_show",   "mercenaries:NavShow()",       "Mark the nodes that sit against a wall")
-System.AddCCommand("merc_nav_test",   "mercenaries:NavTest()",       "Path from you to the crosshair, drawn with markers")
-System.AddCCommand("merc_nav_clear",  "mercenaries:NavClearDebug()", "Remove nav debug markers")
-System.AddCCommand("merc_nav_patrol", "mercenaries:NavRefreshPatrolRings()", "Re-cut the guards' patrol route along the wall")
-System.AddCCommand("merc_nav_debug",  "mercenaries:SetNavDebug(%line)", "Nav logging on the hot path: 0 or 1")
-System.AddCCommand("merc_nav_lane",   "mercenaries:SetNavLane(%line)",  "How far off the shared route each NPC walks: merc_nav_lane <metres>, 0 for single file")
-System.AddCCommand("merc_nav_aim",    "mercenaries:SetNavAim(%line)",   "How far ahead the steering point is held: merc_nav_aim <metres>, higher = smoother, 0 = halts at waypoints")
+mercenaries:DevCommand("merc_nav_build",  "mercenaries:NavBuild(%line)", "Build the camp nav graph: merc_nav_build [radius] [spacing]")
+mercenaries:DevCommand("merc_nav_show",   "mercenaries:NavShow()",       "Mark the nodes that sit against a wall")
+mercenaries:DevCommand("merc_nav_test",   "mercenaries:NavTest()",       "Path from you to the crosshair, drawn with markers")
+mercenaries:DevCommand("merc_nav_clear",  "mercenaries:NavClearDebug()", "Remove nav debug markers")
+mercenaries:DevCommand("merc_nav_patrol", "mercenaries:NavRefreshPatrolRings()", "Re-cut the guards' patrol route along the wall")
+mercenaries:DevCommand("merc_nav_debug",  "mercenaries:SetNavDebug(%line)", "Nav logging on the hot path: 0 or 1")
+mercenaries:DevCommand("merc_nav_lane",   "mercenaries:SetNavLane(%line)",  "How far off the shared route each NPC walks: merc_nav_lane <metres>, 0 for single file")
+mercenaries:DevCommand("merc_nav_aim",    "mercenaries:SetNavAim(%line)",   "How far ahead the steering point is held: merc_nav_aim <metres>, higher = smoother, 0 = halts at waypoints")

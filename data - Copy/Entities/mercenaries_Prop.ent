@@ -1,4 +1,0 @@
-<Entity
-    Name="mercenaries_Prop"
-    Script="Scripts/Entities/mercenaries_Prop.lua"
-/>

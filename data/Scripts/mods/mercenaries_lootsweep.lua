@@ -161,7 +161,40 @@ function mercenaries.LootSweepLoop()
     Script.SetTimerForFunction(1000, "mercenaries.LootSweepLoop")
 end
 
+-- Who was on loot duty last tick, so LootReleaseFinished can spot the men who came off it.
+mercenaries.LootWasSweeping = {}       -- [mercWuidStr] = wuid
+
+-- A man coming off loot duty stops being a camp actor, and the scheduler is SUPPOSED to
+-- notice the role change by itself and re-fire follow. It cannot always: camp_actor is an
+-- infinite loop that owns the interrupt slot once it has it, and a merc inside the rummage
+-- unstance can swallow the follow interrupt while the scheduler latches "following"
+-- anyway - so he stands over the body for the rest of the session. That is the
+-- one-in-fifty who never comes back after a battle.
+--
+-- FollowStalled is the signal that evicts a running tree properly - teleport first, then
+-- follow - and it is queued, staggered and race-guarded, so kicking a handful of men
+-- costs nothing. See docs/formations.md, "The eviction race".
+function mercenaries:LootReleaseFinished()
+    local now_, released = {}, 0
+    for k, t in pairs(self.LootActivities) do now_[k] = t.wuid end
+    for k, w in pairs(self.LootWasSweeping) do
+        if not now_[k] and w then
+            released = released + 1
+            pcall(function() self:FollowStalledWuid(w) end)
+        end
+    end
+    self.LootWasSweeping = now_
+    if released > 0 then
+        pcall(function() self:BeginFollowVerify("loot sweep ended") end)
+    end
+end
+
 function mercenaries:LootSweepTick()
+    self:LootSweepBody()
+    pcall(function() self:LootReleaseFinished() end)
+end
+
+function mercenaries:LootSweepBody()
     local t = nowT()
 
     -- A staged wall battle owns the squad's movement (and gates every interrupt

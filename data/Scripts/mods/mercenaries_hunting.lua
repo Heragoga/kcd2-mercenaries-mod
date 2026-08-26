@@ -101,9 +101,8 @@ function mercenaries:HuntPropsClear()
     self.HuntPropEnts = {}
 end
 
-System.AddCCommand("merc_hunt_props",       "mercenaries:HuntPropsSpawn()", "Spawn all hunting-upgrade candidate props in a labelled grid to eye them")
-System.AddCCommand("merc_hunt_props_clear", "mercenaries:HuntPropsClear()", "Remove the hunting prop grid")
-
+mercenaries:DevCommand("merc_hunt_props",       "mercenaries:HuntPropsSpawn()", "Spawn all hunting-upgrade candidate props in a labelled grid to eye them")
+mercenaries:DevCommand("merc_hunt_props_clear", "mercenaries:HuntPropsClear()", "Remove the hunting prop grid")
 
 -- Hunting station composition + live tuner. Each entry is placed relative to a
 -- station origin in the player's frame: fwd = toward look dir, lat = +left, up =
@@ -239,14 +238,13 @@ function mercenaries:HuntDump()
     end
 end
 
-System.AddCCommand("merc_hunt_spawn", "mercenaries:SpawnHuntStation()",        "Spawn the hunting-station composition in front of you")
-System.AddCCommand("merc_hunt_clear", "mercenaries:HuntStationClear()",        "Remove the hunting station")
-System.AddCCommand("merc_hunt_list",  "mercenaries:HuntList()",                "List the station pieces with their indices")
-System.AddCCommand("merc_hunt_sel",   "mercenaries:HuntSel(%1)",               "Select a station piece to tune (index from merc_hunt_list)")
-System.AddCCommand("merc_hunt_move",  "mercenaries:HuntMove(%1, %2, %3)",      "Nudge selected piece: merc_hunt_move <dFwd> <dLat> <dUp>")
-System.AddCCommand("merc_hunt_rot",   "mercenaries:HuntRot('%1', '%2', '%3')", "Set selected piece rotation (deg): merc_hunt_rot <x> <y> <z>  (x=roll, y=pitch, z=yaw)")
-System.AddCCommand("merc_hunt_dump",  "mercenaries:HuntDump()",                "Print the tuned layout to the log for baking in")
-
+mercenaries:DevCommand("merc_hunt_spawn", "mercenaries:SpawnHuntStation()",        "Spawn the hunting-station composition in front of you")
+mercenaries:DevCommand("merc_hunt_clear", "mercenaries:HuntStationClear()",        "Remove the hunting station")
+mercenaries:DevCommand("merc_hunt_list",  "mercenaries:HuntList()",                "List the station pieces with their indices")
+mercenaries:DevCommand("merc_hunt_sel",   "mercenaries:HuntSel(%1)",               "Select a station piece to tune (index from merc_hunt_list)")
+mercenaries:DevCommand("merc_hunt_move",  "mercenaries:HuntMove(%1, %2, %3)",      "Nudge selected piece: merc_hunt_move <dFwd> <dLat> <dUp>")
+mercenaries:DevCommand("merc_hunt_rot",   "mercenaries:HuntRot('%1', '%2', '%3')", "Set selected piece rotation (deg): merc_hunt_rot <x> <y> <z>  (x=roll, y=pitch, z=yaw)")
+mercenaries:DevCommand("merc_hunt_dump",  "mercenaries:HuntDump()",                "Print the tuned layout to the log for baking in")
 
 -- ==== Camp hunting station (the actual upgrade) ====
 -- Built near camp when the Hunter upgrade is owned, on the flattest ring spot that

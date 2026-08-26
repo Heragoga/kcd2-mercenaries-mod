@@ -108,6 +108,29 @@ indiscriminate `FindRenegadeTarget`, he only ever engages real raiders.
   token (`...be67d`) to `mercenaries:QuartermasterTest` — the same Skald↔Lua
   token bridge everything else uses.
 
+### He is also the mod's settings menu
+
+Everything the player can retune about the mod itself lives in his dialogue, under one hub
+(`seq_qm_settings_hub`): **difficulty**, **random encounters**, **upkeep** and the **HUD icons**.
+There is no other in-game way to reach them — the console commands (`merc_difficulty`, etc.) are the
+same settings by another door.
+
+That made it easy to miss. The hub used to be labelled *"Let's talk about how the company runs."*,
+which reads as flavour chat sitting at the bottom of a long menu, and the four options under it
+(*"About trouble finding us on the road."*, *"About feeding and paying the men."*, *"About the marks
+on my screen."*) named their subject only obliquely. The **UI prompts** now say what they are —
+`[Mod settings]` on the hub, and `Difficulty:` / `Random encounters:` / `Upkeep:` / `HUD icons:` on
+the leaves — while the **spoken** lines (`merc_henry_qm_settings_hub`, `merc_qm_settings_hub`) stay
+in fiction and are untouched. A `UiPrompt` is never voiced, so relabelling one costs no audio.
+
+Both region quests are hand-mirrored copies but share one string table, so this was a localisation
+change only — no XML edit in either copy.
+
+> **Coverage gap, unrelated to the above:** those five strings existed *only* in
+> `English_xml.xml`. They have been added to all 16 files, but a wider audit shows **~141 keys are
+> still missing from every non-English file** (English has 999). Non-English players see those rows
+> unresolved. Worth a dedicated pass.
+
 ---
 
 ## Lifecycle

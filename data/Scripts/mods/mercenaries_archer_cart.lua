@@ -139,7 +139,13 @@ function mercenaries.ArcherCartSpawnArchersDelayed()
     if not st or st.dead then return end
     for _, spec in ipairs(st.archerSpecs or {}) do
         local ent = self:SpawnStaticArcher(spec.pos, st.mode or self.ArcherCartMode, spec.face, st.group)
-        if ent then table.insert(st.archers, { ent = ent, pos = spec.pos, face = spec.face }) end
+        if ent then
+            table.insert(st.archers, { ent = ent, pos = spec.pos, face = spec.face })
+            -- Standing on the wagon bed, so a footman cannot reach him - the same rule the
+            -- tower's `elevated` flag carries. StaticArcherPerched reads both.
+            local rec = self.StaticArchers[tostring(ent.this and ent.this.id or ent.id)]
+            if rec then rec.cart = true end
+        end
     end
     System.LogAlways("[ArcherCart] " .. #st.archers .. "/" .. #(st.archerSpecs or {}) .. " archers aboard")
     table.insert(self.ArcherCartAttachQueue, st)
@@ -251,7 +257,7 @@ end
 
 function mercenaries:StartArcherCartPlacement() self:StartPlacement(self:CartPlaceSpec()) end
 
-System.AddCCommand("merc_archer_cart",        "mercenaries:SpawnArcherCart()",       "Spawn an archer cart (wagon + 3 static archers) ahead of you")
-System.AddCCommand("merc_archer_cart_build",  "mercenaries:StartArcherCartPlacement()","Enter archer-cart placement: aim, left-click to place, right-click to finish")
-System.AddCCommand("merc_archer_cart_clear",  "mercenaries:ClearArcherCarts()",      "Remove all archer carts")
-System.AddCCommand("merc_archer_cart_z",      "mercenaries:SetArcherCartHeight(%line)","Set the archers' standing height on the bed (respawns carts)")
+mercenaries:DevCommand("merc_archer_cart",        "mercenaries:SpawnArcherCart()",       "Spawn an archer cart (wagon + 3 static archers) ahead of you")
+mercenaries:DevCommand("merc_archer_cart_build",  "mercenaries:StartArcherCartPlacement()","Enter archer-cart placement: aim, left-click to place, right-click to finish")
+mercenaries:DevCommand("merc_archer_cart_clear",  "mercenaries:ClearArcherCarts()",      "Remove all archer carts")
+mercenaries:DevCommand("merc_archer_cart_z",      "mercenaries:SetArcherCartHeight(%line)","Set the archers' standing height on the bed (respawns carts)")

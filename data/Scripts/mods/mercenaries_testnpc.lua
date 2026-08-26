@@ -282,7 +282,6 @@ function mercenaries:TestNpcAdvanceWaypoint(data, ent)
     System.LogAlways(string.format("[Nav] cornering -> waypoint %d/%d", i, #self.NavWaypoints))
 end
 
-
 -- Wall-aware chase: he heads for the player, going around camp walls when one is in
 -- the way and straight at him when it is not. The live-target case that matters.
 mercenaries.NavChaseRequested = false
@@ -309,17 +308,17 @@ function mercenaries:TestNpcGotoPoll(data, ent)
     if self:NavGotoRequest(ent, player) then data.gotoWanted = true end
 end
 
-System.AddCCommand("merc_nav_chase",      "mercenaries:NavChase()",     "Test NPC walks to you, around walls when needed")
-System.AddCCommand("merc_nav_chase_stop", "mercenaries:NavChaseStop()", "Stop the chase")
+mercenaries:DevCommand("merc_nav_chase",      "mercenaries:NavChase()",     "Test NPC walks to you, around walls when needed")
+mercenaries:DevCommand("merc_nav_chase_stop", "mercenaries:NavChaseStop()", "Stop the chase")
 
-System.AddCCommand("merc_wp_add",   "mercenaries:NavWpAdd()",   "Drop a waypoint where you are looking")
-System.AddCCommand("merc_wp_clear", "mercenaries:NavWpClear()", "Remove all waypoints")
-System.AddCCommand("merc_wp_list",  "mercenaries:NavWpList()",  "List the waypoints")
-System.AddCCommand("merc_wp_go",    "mercenaries:NavWpGo()",    "Send the test NPC along the waypoints")
-System.AddCCommand("merc_wp_stop",  "mercenaries:NavWpStop()",  "Cancel the walk")
-System.AddCCommand("merc_wp_radius","mercenaries:SetNavRadii(%line)", "Corner smoothing: merc_wp_radius <switchM> <arriveM>")
+mercenaries:DevCommand("merc_wp_add",   "mercenaries:NavWpAdd()",   "Drop a waypoint where you are looking")
+mercenaries:DevCommand("merc_wp_clear", "mercenaries:NavWpClear()", "Remove all waypoints")
+mercenaries:DevCommand("merc_wp_list",  "mercenaries:NavWpList()",  "List the waypoints")
+mercenaries:DevCommand("merc_wp_go",    "mercenaries:NavWpGo()",    "Send the test NPC along the waypoints")
+mercenaries:DevCommand("merc_wp_stop",  "mercenaries:NavWpStop()",  "Cancel the walk")
+mercenaries:DevCommand("merc_wp_radius","mercenaries:SetNavRadii(%line)", "Corner smoothing: merc_wp_radius <switchM> <arriveM>")
 
-System.AddCCommand("merc_testnpc",       "mercenaries:SpawnTestNpc(%line)", "Spawn the test NPC (no combat; walks waypoints): merc_testnpc [distance]")
-System.AddCCommand("merc_testnpc_clear", "mercenaries:ClearTestNpcs()",     "Remove all test NPCs")
-System.AddCCommand("merc_testnpc_state", "mercenaries:TestNpcState()",      "Log each test NPC's position, speed and animation state")
-System.AddCCommand("merc_testnpc_range", "mercenaries:SetTestNpcRanges(%line)", "Retreat trigger + distance: merc_testnpc_range <closeM> <retreatM>")
+mercenaries:DevCommand("merc_testnpc",       "mercenaries:SpawnTestNpc(%line)", "Spawn the test NPC (no combat; walks waypoints): merc_testnpc [distance]")
+mercenaries:DevCommand("merc_testnpc_clear", "mercenaries:ClearTestNpcs()",     "Remove all test NPCs")
+mercenaries:DevCommand("merc_testnpc_state", "mercenaries:TestNpcState()",      "Log each test NPC's position, speed and animation state")
+mercenaries:DevCommand("merc_testnpc_range", "mercenaries:SetTestNpcRanges(%line)", "Retreat trigger + distance: merc_testnpc_range <closeM> <retreatM>")

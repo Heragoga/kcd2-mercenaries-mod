@@ -97,5 +97,3 @@ function mercenaries:ToggleHideOthers()
         System.LogAlways('[Mercenaries] hide-others ON - hid ' .. tostring(hidden) .. ' NPC(s), watching for more. Run merc_hide_others again to restore (do this before saving).')
     end
 end
-
-System.AddCCommand("merc_hide_others", "mercenaries:ToggleHideOthers()", "Toggle: hide+deactivate every NPC that is not a merc/static archer/patrol/quartermaster/mod enemy. Run again to restore. Restore before saving.")

@@ -64,7 +64,9 @@ function mercenaries:DifficultySet(name)
     local t = self.DifficultyTiers[name]
     diffLog(string.format("%s - up to %.1f enemies per man, %s armour",
         t.label, t.countMult, t.quality))
-    Game.SendInfoText("Difficulty: " .. t.label, false, 0, 4)
+    -- Interleaved @-keys, not "Difficulty: " .. label: SendInfoText resolves each
+    -- WORD as a string id, so a raw sentence renders untranslated at best.
+    Game.SendInfoText("@merc_info_difficulty @merc_diff_" .. name, false, 0, 4)
     return true
 end
 
@@ -106,21 +108,23 @@ function mercenaries:DifficultyCeil(base)
 end
 
 -- ==== wardrobe quality ====
--- mercenaries.Outfits already grades the same clothing GUIDs the enemy groups
--- dress from into weak/medium/strong, so the quality ladder is authored data
--- rather than a guess. Built once and cached.
+-- Grades clothing GUIDs into weak/medium/strong. Outfits covers what the squad
+-- wears; OutfitTierHints covers the vanilla presets only the enemy groups still
+-- use, so both have to be folded in or half the enemy wardrobe loses its grade
+-- and falls back to array position. Built once and cached.
 function mercenaries:DiffClothingTierIndex()
     if self._diffClothTier then return self._diffClothTier end
     local idx = {}
-    for _, set in pairs(self.Outfits or {}) do
-        if type(set) == "table" then
-            for tier, list in pairs(set) do
-                if type(list) == "table" then
-                    for _, guid in ipairs(list) do idx[guid] = tier end
-                end
+    local function grade(set)
+        if type(set) ~= "table" then return end
+        for tier, list in pairs(set) do
+            if type(list) == "table" then
+                for _, guid in ipairs(list) do idx[guid] = tier end
             end
         end
     end
+    for _, set in pairs(self.Outfits or {}) do grade(set) end
+    grade(self.OutfitTierHints)
     self._diffClothTier = idx
     return idx
 end
@@ -204,6 +208,12 @@ function mercenaries:MonitorDifficultyTokens(p)
     if s and s > 0 then
         p:DeleteItemOfClass(self.TokenIDQMStatusIcons, s)
         self:StatusIconsSet(s == 1)
+    end
+
+    local h = p:GetCountOfClass(self.TokenIDQMHorses)
+    if h and h > 0 then
+        p:DeleteItemOfClass(self.TokenIDQMHorses, h)
+        self:HorsesSet(h == 1)
     end
 end
 
@@ -330,6 +340,39 @@ function mercenaries:StatusIconsSet(on)
     diffLog("status icons " .. (self.StatusIconsEnabled and "on" or "off"))
 end
 
+-- ==== horses ====
+-- Off means the company marches on foot whatever the player is riding. The lever is
+-- _G.PlayerMounted, not the horse spawn: that global is what the whole mod reads as "the
+-- squad is operating mounted", and it independently selects the mounted formation preset,
+-- widens the leader-swap margin and DISABLES the fall-behind teleport - so blocking only
+-- the spawn leaves men on foot in a 64m cavalry column with no way to catch up. Held false
+-- at the single place that publishes it (MercPlayerMountSeen), which makes everything
+-- downstream follow, including the orphan sweep that despawns horses already standing.
+mercenaries.HorsesEnabled  = true
+mercenaries.TokenIDQMHorses = "679a655e-189d-4519-b437-ccc4b92beefd"
+
+function mercenaries:HorsesAllowed()
+    if self._horsesLoaded == nil then
+        local v
+        pcall(function() v = self:LoadString("MercHorses") end)
+        self.HorsesEnabled = (v ~= "0")
+        self._horsesLoaded = true
+    end
+    return self.HorsesEnabled
+end
+
+function mercenaries:HorsesSet(on)
+    self.HorsesEnabled = on and true or false
+    self._horsesLoaded = true
+    self:SaveString("MercHorses", self.HorsesEnabled and "1" or "0")
+    -- Takes effect now rather than at the next mount poll: dropping the global puts every
+    -- merc's tree back on its on-foot arm and hands the standing horses to the orphan
+    -- sweep in mercenaries_target_selection.lua, which despawns them within a tick.
+    if not self.HorsesEnabled then _G.PlayerMounted = false end
+    diffLog("merc horses " .. (self.HorsesEnabled and "on" or "off"))
+    Game.SendInfoText(self.HorsesEnabled and 'merc_info_horses_on' or 'merc_info_horses_off', false, 0, 4)
+end
+
 -- ==== status ====
 function mercenaries:DifficultyStatus()
     local t = self:DifficultyTier()
@@ -345,14 +388,3 @@ function mercenaries:DifficultyStatus()
     end
     diffLog("tiers: " .. table.concat(parts, ", "))
 end
-
-System.AddCCommand("merc_difficulty", "mercenaries:DifficultySet('%line')",
-    "Set global difficulty: easy | medium | difficult | extreme | impossible | horde")
-System.AddCCommand("merc_difficulty_status", "mercenaries:DifficultyStatus()",
-    "Report the difficulty tier and the ceilings it implies")
-System.AddCCommand("merc_encounters", "mercenaries:EncountersSet(tonumber('%line') ~= 0)",
-    "Random encounters (raids, patrols, ambushes) on or off: merc_encounters 0 | 1")
-System.AddCCommand("merc_upkeep", "mercenaries:UpkeepSet('%line')",
-    "Company survival: off | lenient | standard | harsh")
-System.AddCCommand("merc_status_icons", "mercenaries:StatusIconsSet(tonumber('%line') ~= 0)",
-    "Squad status HUD icons on or off: merc_status_icons 0 | 1")

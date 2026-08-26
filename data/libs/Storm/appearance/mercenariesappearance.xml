@@ -945,5 +945,310 @@
             </operations>
         </rule>
 
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+        <rule name="appearance_mercenary_radzig">
+            <selectors>
+                <hasName Name="soul_merc_radzig" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_radzig" />
+                <setHair name="m_hair_radzig" />
+                <setBeard name="UC_beard_radzig" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_hanush">
+            <selectors>
+                <hasName Name="soul_merc_hanush" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_hanush" />
+                <setHair name="m_hair_hanush" />
+                <setBeard name="UC_beard_hanush" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_erik">
+            <selectors>
+                <hasName Name="soul_merc_erik" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_erik" />
+                <setHair name="m_hair_erik" />
+                <setBeard name="m_beard_00" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_aulitz">
+            <selectors>
+                <hasName Name="soul_merc_aulitz" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_aulitz" />
+                <setHair name="m_hair_aulitz" />
+                <setBeard name="UC_beard_aulitz" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_jobst">
+            <selectors>
+                <hasName Name="soul_merc_jobst" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_jobst" />
+                <setHair name="m_hair_jobst" />
+                <setBeard name="UC_beard_jobst" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_bergov">
+            <selectors>
+                <hasName Name="soul_merc_bergov" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_bergov" />
+                <setHair name="m_hair_bergov" />
+                <setBeard name="UC_beard_bergov" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_vavak">
+            <selectors>
+                <hasName Name="soul_merc_vavak" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_vavak" />
+                <setBeard name="m_beard_00" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_ruthard">
+            <selectors>
+                <hasName Name="soul_merc_ruthard" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_ruthard" />
+                <setHair name="m_hair_ruthard" />
+                <setBeard name="UC_beard_ruthard" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_samuel">
+            <selectors>
+                <hasName Name="soul_merc_samuel" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_samuel" />
+                <setHair name="m_hair_samuel" />
+                <setBeard name="UC_beard_samuel" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_oderin">
+            <selectors>
+                <hasName Name="soul_merc_oderin" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_oderin" />
+                <setBeard name="m_beard_00" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_istvan">
+            <selectors>
+                <hasName Name="soul_merc_istvan" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_istvan" />
+                <setBody name="m_body_tan_06" />
+                <setBeard name="m_beard_00" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_chamberlain">
+            <selectors>
+                <hasName Name="soul_merc_chamberlain" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_chamberlain" />
+                <setBeard name="m_beard_00" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_sigismund">
+            <selectors>
+                <hasName Name="soul_merc_sigismund" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_zikmund" />
+                <setHair name="m_hair_zikmund" />
+                <setBeard name="UC_beard_zikmund" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_lichtenstein">
+            <selectors>
+                <hasName Name="soul_merc_lichtenstein" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_lichtenstejn" />
+                <setBeard name="m_beard_00" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_brabant">
+            <selectors>
+                <hasName Name="soul_merc_brabant" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_drabant" />
+                <setHair name="m_hair_drabant" />
+                <setBeard name="UC_beard_drabant" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_musa">
+            <selectors>
+                <hasName Name="soul_merc_musa" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_musa" />
+                <setHair name="m_hair_musa" />
+                <setBody name="african" />
+                <setBeard name="UC_beard_musa" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_zacharias">
+            <selectors>
+                <hasName Name="soul_merc_zacharias" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_zachary" />
+                <setHair name="m_hair_zachary" />
+                <setBody name="m_body_pale_04" />
+                <setBeard name="UC_beard_zachary" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_martin">
+            <selectors>
+                <hasName Name="soul_merc_martin" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_father" />
+                <setHair name="m_hair_father" />
+                <setBeard name="UC_beard_father" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_bocek">
+            <selectors>
+                <hasName Name="soul_merc_bocek" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_bocek" />
+                <setBeard name="m_beard_00" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_pisek">
+            <selectors>
+                <hasName Name="soul_merc_pisek" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_pisek" />
+                <setHair name="m_hair_pisek" />
+                <setBeard name="UC_beard_pisek" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_painter">
+            <selectors>
+                <hasName Name="soul_merc_painter" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_painter" />
+                <setHair name="m_hair_006_black" />
+                <setBeard name="UC_beard_painter" />
+                <setUnderwear name="m_underwear01_m01" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_hertl">
+            <selectors>
+                <hasName Name="soul_merc_hertl" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_044_b00" />
+                <setHair name="m_hair_009_dark_brown" />
+                <setBeard name="m_beard_15" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_pelcl">
+            <selectors>
+                <hasName Name="soul_merc_pelcl" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_045_b00" />
+                <setHair name="m_hair_001_black" />
+                <setBeard name="m_beard_04" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_marek">
+            <selectors>
+                <hasName Name="soul_merc_marek" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_046" />
+                <setHair name="m_hair_008_blonde" />
+                <setBeard name="m_beard_04" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_cverk">
+            <selectors>
+                <hasName Name="soul_merc_cverk" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_060" />
+                <setHair name="m_hair_003_dark_grey" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+
+        <rule name="appearance_mercenary_volek">
+            <selectors>
+                <hasName Name="soul_merc_volek" />
+            </selectors>
+            <operations>
+                <setHead name="m_head_001" />
+                <setHair name="m_hair_001_dark_brown" />
+                <setBeard name="m_beard_13" />
+            </operations>
+        </rule>
+<!-- end generated companions -->
 </rules>
 </storm>

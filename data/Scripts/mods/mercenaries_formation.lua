@@ -62,6 +62,7 @@ mercenaries.FormationLeaderSwapCooldown = 6.0
 mercenaries.FormationModeCode = 1
 mercenaries.FormationRelocate = false
 mercenaries.FormationModeNames = { [0] = "Relaxed", [1] = "KeepShape", [2] = "MoveHistory" }
+mercenaries.FormationModeLocKeys = { [0] = "merc_form_mode_relaxed", [1] = "merc_form_mode_keepshape", [2] = "merc_form_mode_movehistory" }
 
 -- Formation shape chosen from dialogue. Count-encoded on one token the way the
 -- archer stance is: the quest grants Amount = N and N indexes FormationShapeOrder,
@@ -77,6 +78,14 @@ mercenaries.TokenIDFormation = "679a655e-189d-4519-b437-ccc4b92be51d"
 function mercenaries:FormationPresetName(size)
     if self.FormationShape == "vanilla" then
         return ((size or 0) <= 8) and "followNPC" or "infantryMen20"
+    end
+    -- Diagnostic shape only (merc_formation_control). A name that exists in NO
+    -- catalogue, ours or the game's. It answers the one question the OK/NULL log
+    -- line cannot answer on its own: if MakeFormation reports OK even for this,
+    -- then the engine hands back a handle for any name at all and a null handle is
+    -- not a usable signal. See docs/formations.md.
+    if self.FormationShape == "control" then
+        return "merc_control_no_such_formation"
     end
     local pick = self.FormationSizes[#self.FormationSizes]
     for _, n in ipairs(self.FormationSizes) do
@@ -97,7 +106,12 @@ function mercenaries:UpdateFormationLeader()
 
     local best, bestD, count = nil, nil, 0
     local leaderStillOk, leaderD = false, nil
-    -- Fallback tier: men still finishing a camp activity. Only used if there is nobody else.
+    local leaderHurt = false
+    -- Fallback tiers, in order of preference: a hurt man anchors the squad only when
+    -- every fit man is gone, and a man still finishing a camp activity only when even
+    -- the hurt ones are. Camp-busy ranks LAST because he physically cannot walk yet -
+    -- an anchor that cannot walk stands the entire squad.
+    local hurtBest, hurtBestD = nil, nil
     local busyBest, busyBestD = nil, nil
     -- Constant across every iteration; rebuilding it per-merc was pure waste.
     local leaderStr = self.FormationLeader and tostring(self.FormationLeader) or nil
@@ -128,19 +142,56 @@ function mercenaries:UpdateFormationLeader()
             -- cannot walk stands the whole squad. In practice that leaves the camp guards,
             -- who were already patrolling. See CampBusyUntil in mercenaries_camp.lua.
             local busy = self.IsCampBusy and self:IsCampBusy(wuid) or false
+            -- ...and a man under the injured floor does not lead either. The anchor is the
+            -- one merc the whole formation hangs off and the one who walks nearest the
+            -- player, so he is both the most visible man in the squad and the one whose
+            -- death costs the most - he re-elects, which rebuilds the formation and makes
+            -- every follower re-join. Same threshold as the HUD's injured buff and the
+            -- camp bed-rest bias, so "injured" means one thing across the mod.
+            -- Read straight off the entity we already hold. LogiIsInjured answers the same
+            -- question but scans ActiveMercs for the key, which at 150ms over fifty men is
+            -- O(squad^2) a tick. Same constant, so the two cannot disagree.
+            local hurt = false
+            pcall(function()
+                local hp = tonumber(ent.soul:GetState('health'))
+                hurt = (hp ~= nil) and (hp < (self.InjuredHealthPct or 50))
+            end)
 
-            if not busy then
+            if not busy and not hurt then
                 if leaderStr and tostring(wuid) == leaderStr then
                     leaderStillOk, leaderD = true, d
                 end
                 if not bestD or d < bestD then best, bestD = wuid, d end
-            elseif not busyBestD or d < busyBestD then
-                busyBest, busyBestD = wuid, d
+            elseif not busy then
+                -- Still a usable anchor, just not a preferred one: he keeps the job while
+                -- he holds it rather than being torn out the instant he is scratched.
+                if leaderStr and tostring(wuid) == leaderStr then
+                    leaderStillOk, leaderD, leaderHurt = true, d, true
+                end
+                if not hurtBestD or d < hurtBestD then hurtBest, hurtBestD = wuid, d end
+            else
+                -- A busy INCUMBENT keeps the job too. Without this he never registers as
+                -- still eligible, so the immediate-replace branch below re-elects the
+                -- nearest busy man on every tick - and each swap bumps the epoch, which
+                -- rebuilds the formation and makes every follower re-acquire a slot. That
+                -- is a squad that never settles, which is what a camp deploy produced
+                -- while the whole out-party was (wrongly) marked busy. leaderHurt is the
+                -- same demotion signal: hand over as soon as a fit man exists.
+                if leaderStr and tostring(wuid) == leaderStr then
+                    leaderStillOk, leaderD, leaderHurt = true, d, true
+                end
+                if not busyBestD or d < busyBestD then busyBest, busyBestD = wuid, d end
             end
         end
     end
 
-    -- Nobody but the winding-down men: better a slow anchor than none.
+    -- Held before the fallbacks below overwrite it: "is there a FIT man to hand the
+    -- job to" is a different question from "who anchors the squad", and the injured
+    -- demotion needs the first one.
+    local fitBest = best
+
+    -- Nobody fit: better a hurt anchor than none, and a winding-down one than that.
+    if not best then best, bestD = hurtBest, hurtBestD end
     if not best then best, bestD = busyBest, busyBestD end
 
     self.SquadSize = count
@@ -193,6 +244,19 @@ function mercenaries:UpdateFormationLeader()
     if not leaderStillOk then
         if tostring(best or '') ~= tostring(self.FormationLeader or '') then reason = "leader" end
         self.FormationLeader = best
+        self._leadSwapAt = now
+        self._leadChallenger, self._leadChallengeAt = nil, nil
+    elseif leaderHurt and fitBest and tostring(fitBest) ~= tostring(self.FormationLeader or '')
+           and not cooling then
+        -- Hand the job to a fit man. Bounded by the SAME cooldown as a displacement
+        -- swap and for the same reason: health only falls during a fight, so without it
+        -- a hard scrap would demote leader after leader as each one crosses the floor,
+        -- and every demotion rebuilds the formation and makes fifty men re-join. Once
+        -- every FormationLeaderSwapCooldown at worst. Deliberately NOT the immediate
+        -- path above - that one is for a leader who is dead or gone, which is not a
+        -- preference but an emergency.
+        reason = "leader injured"
+        self.FormationLeader = fitBest
         self._leadSwapAt = now
         self._leadChallenger, self._leadChallengeAt = nil, nil
     elseif held and not cooling then
@@ -292,6 +356,10 @@ function mercenaries:FollowStatsTick()
         if not pp then return end
         local gate = (self.TeleportDistance and self:TeleportDistance()) or 50.0
         local d, far = {}, 0
+        -- inSlot/followers is the headline number: "8 men following" with 0 in a slot
+        -- is the blob, and it is indistinguishable from a healthy squad by eye.
+        local leader = self.FormationLeader and tostring(self.FormationLeader) or nil
+        local inSlot, followers = 0, 0
         for _, ent in pairs(self.ActiveMercs or {}) do
             local mp = ent:GetWorldPos()
             if mp then
@@ -299,6 +367,11 @@ function mercenaries:FollowStatsTick()
                 local v = math.sqrt(dx * dx + dy * dy)
                 table.insert(d, v)
                 if v > gate then far = far + 1 end
+            end
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w and tostring(w) ~= leader then
+                followers = followers + 1
+                if (self.FormationInSlot or {})[tostring(w)] then inSlot = inSlot + 1 end
             end
         end
         if #d == 0 then return end
@@ -309,15 +382,16 @@ function mercenaries:FollowStatsTick()
         -- new anchor. If the spread jumps on the same tick one of these changes, the squad is
         -- chasing a moved goalpost, not failing to keep up.
         System.LogAlways(string.format(
-            '[MercSpread] pSpeed=%.1f n=%d near=%.1f med=%.1f worst=%.1f beyondGate=%d | epoch=%d mode=%d preset=%s',
+            '[MercSpread] pSpeed=%.1f n=%d near=%.1f med=%.1f worst=%.1f beyondGate=%d | inFormation=%d/%d epoch=%d mode=%d preset=%s',
             self.PlayerSpeed or 0, #d,
             d[1], d[math.ceil(#d / 2)], d[#d], far,
+            inSlot, followers,
             self.FormationEpoch or 0, self.FormationModeCode or 1,
             tostring(self.FormationName)))
     end)
 end
 
-System.AddCCommand("merc_follow_stats", "mercenaries:FollowStatsSet('%line')",
+mercenaries:DevCommand("merc_follow_stats", "mercenaries:FollowStatsSet('%line')",
                    "Log squad spread and player speed: merc_follow_stats 1 | 0")
 
 -- Slot body: work only. The scheduler gates on ActiveMercs/player before calling
@@ -327,6 +401,7 @@ function mercenaries:FormationLoopBody()
     local ok, err = pcall(function()
         if next(mercenaries.ActiveMercs) and player then
             mercenaries:UpdateFormationLeader()
+            mercenaries:UpdateFormationFront()
             mercenaries:FollowStatsTick()
         end
     end)
@@ -340,11 +415,120 @@ function mercenaries.FormationLoop()
     end
 end
 
+-- ---------------------------------------------------------------------------
+-- NAMED COMPANIONS RIDE AT THE FRONT.
+--
+-- FormationFollower takes a PreferredPositions string naming a <Spot> in the preset,
+-- and our generated shapes name their spots by rank (see tools/gen_formations.py).
+-- Without it the engine drops each follower in any free spot, so the one man the
+-- player actually hired for himself was as likely to be at the back of forty as at
+-- the front. Heroes ask for the front-most band; everyone else asks for nothing and
+-- fills in around them.
+--
+-- The spot NAMES differ per shape, so this is derived from the live preset rather
+-- than hardcoded - a name that does not exist in the current formation is at best a
+-- silent fallback and at worst a failed node (see docs/formations.md).
+mercenaries.FormationFrontSpotName = {
+    column = "front", line = "front", square = "front", wedge = "front",
+    circle = "inner",
+    -- Escort is two files flanking the subject; it has no front to be at.
+    escort = nil,
+}
+mercenaries.FormationFrontSpotMounted = "rank1"
+
+-- How many men may ask for that band, per shape. This is the MINIMUM count of
+-- front-named spots across the whole size ladder, so the request can never exceed
+-- what the smallest preset of that shape actually has - ask for a full band and the
+-- overflow men fail the node, drop to the time-boxed CrimeFollower fallback, and
+-- retry every 1.5s for ever, which is visible churn. Regenerate alongside
+-- tools/gen_formations.py if the shapes change.
+mercenaries.FormationFrontSpots = {
+    column = 3, line = 6, square = 5, wedge = 4, circle = 6, escort = 0,
+}
+mercenaries.FormationFrontSpotsMounted = 2
+
+function mercenaries:FormationFrontSpot()
+    if _G.PlayerMounted then
+        return self.FormationFrontSpotMounted, self.FormationFrontSpotsMounted
+    end
+    local shape = self.FormationShape
+    -- The stock vanilla presets are somebody else's catalogue; their spot names are
+    -- not ours to guess.
+    local name = shape and self.FormationFrontSpotName[shape] or nil
+    if not name then return nil, 0 end
+    return name, (self.FormationFrontSpots[shape] or 0)
+end
+
+-- Which heroes get the front band, recomputed with the leader tick. Sorted by name so
+-- the same men keep the same standing: re-ranking them each pass would re-issue a
+-- different PreferredPositions every tick and make them swap places on the march.
+mercenaries.FormationFrontOf = {}      -- [wuidStr] = spot name
+
+function mercenaries:UpdateFormationFront()
+    -- Once a second, not every leader tick: IsHero costs a GetName per merc and nothing
+    -- here changes fast. Recomputed at once on a rebuild, because the epoch is what
+    -- carries a shape change - and the spot NAMES are shape-specific.
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    local leaderKey = self.FormationLeader and tostring(self.FormationLeader) or nil
+    if self._ffAt and (now - self._ffAt) < 1.0
+       and self._ffEpoch == self.FormationEpoch
+       and self._ffLeader == leaderKey then
+        return
+    end
+    self._ffAt, self._ffEpoch, self._ffLeader = now, self.FormationEpoch, leaderKey
+
+    local spot, slots = self:FormationFrontSpot()
+    local out = {}
+    if spot and slots > 0 then
+        local heroes = {}
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local wuid = ent and (ent.this and ent.this.id or ent.id)
+            if wuid and self:IsHero(ent) and self:IsFormationEligible(ent, wuid) then
+                local n
+                pcall(function() n = ent:GetName() end)
+                table.insert(heroes, { key = tostring(wuid), name = tostring(n or wuid) })
+            end
+        end
+        table.sort(heroes, function(a, b) return a.name < b.name end)
+        -- The leader is already the front-most man in the shape and holds no spot of
+        -- his own, so he never consumes one of these.
+        local n = 0
+        for _, h in ipairs(heroes) do
+            if h.key ~= leaderKey then
+                if n >= slots then break end
+                out[h.key] = spot
+                n = n + 1
+            end
+        end
+    end
+    self.FormationFrontOf = out
+end
+
+-- [wuidStr] = true while that merc is actually inside FormationFollower, written
+-- from the flag follow.xml's locomotion arms set. This is the only honest answer to
+-- "is the squad in formation": useFormation says we ASKED for one, this says he got
+-- a slot. merc_follow_stats prints both.
+mercenaries.FormationInSlot = {}
+mercenaries.FormationSlotAt  = {}    -- [wuidStr] = when he last published the line above
+
 -- Per merc, from follow.xml's updater loop.
 function mercenaries:UpdateFormationRole(bt_data, myWuid)
     local ok, err = pcall(function()
+        local slotKey = tostring(myWuid)
+        self.FormationInSlot[slotKey] = (bt_data.inFormation == true)
+        -- ...and WHEN he said so. This runs from follow.xml, so a fresh stamp is proof his
+        -- tree is alive; a man whose tree died stops stamping and his claim goes stale. That
+        -- is what makes the flag safe to trust in DismountVerify - see FormationSlotFresh.
+        local slotNow = 0
+        pcall(function() slotNow = System.GetCurrTime() or 0 end)
+        self.FormationSlotAt[slotKey] = slotNow
+
         bt_data.useFormation      = false
         bt_data.isFormationLeader = false
+        -- Reset with the rest, or a man who drops out of the formation carries his last
+        -- preference into whatever shape he re-joins - and the spot names are per-shape.
+        bt_data.preferredSpot     = ""
         bt_data.formationEpoch    = self.FormationEpoch or 0
         bt_data.formationModeCode = self.FormationModeCode or 1
         bt_data.formationRelocate = self.FormationRelocate or false
@@ -353,21 +537,54 @@ function mercenaries:UpdateFormationRole(bt_data, myWuid)
         bt_data.formationName     = self.FormationName
                                     or self:FormationPresetName(math.max((self.SquadSize or 1) - 1, 0))
 
-        -- A walled camp is the one place the formation cannot be steered around an
-        -- obstacle, so it stands down and the merc falls back to the follow chain.
-        if self.NavSuppressFormation and self:NavSuppressFormation() then return end
+        -- The SQUAD-WIDE reasons to stand the formation down. By eye they are all the
+        -- same thing - men trailing the player in a clump - so `off` names which one
+        -- it was and logs once per change: that is how "the formation is broken" gets
+        -- told apart from "a hold order is still standing" without guessing.
+        -- Per-merc ineligibility below is deliberately NOT logged here; it differs
+        -- from man to man and would flip the shared reason every pass.
+        local off = nil
         -- A hold or escort order routes every man individually through nav_goto; an
         -- engine formation running alongside it would be a second set of destinations
         -- pulling the same NPCs somewhere else.
-        if self.HoldActive or self.EscortEnt then return end
-        if _G.MercenariesDismissed or _G.MercIdle then return end
-        if not self.FormationLeader then return end
+        if self.HoldActive then off = "hold order"
+        elseif self.EscortEnt then off = "escort order"
+        elseif _G.MercenariesDismissed then off = "dismissed"
+        elseif _G.MercIdle then off = "idle"
+        elseif not self.FormationLeader then off = "no leader"
+        elseif (self.SquadSize or 0) < 2 then off = "squad under 2"
+        end
+        if off ~= self._formationOffReason then
+            self._formationOffReason = off
+            System.LogAlways(off
+                and ('[MercForm] formation OFF (' .. off .. ') - squad is on the follow chain')
+                or  '[MercForm] formation back ON')
+        end
+        if off then return end
         if not self:IsFormationEligible(nil, myWuid) then return end
-        if (self.SquadSize or 0) < 2 then return end
+        -- Per-merc, and deliberately AFTER the squad-wide reasons and out of the `off`
+        -- chain: this one is true for the man standing inside the camp walls and false
+        -- for his mate already marching away, so it can never be a single shared
+        -- reason string. See NavSuppressFormationFor.
+        --
+        -- NEVER the leader, though. MakeFormation runs only inside follow.xml behind
+        -- $isFormationLeader, so suppressing the ANCHOR means no formation object exists
+        -- for anybody - every follower's GetMemberFormation comes back null and the whole
+        -- squad drops to the follow chain, instead of just the men still inside the walls.
+        -- He is what the shape hangs off; he is not steered by it. This is why a party
+        -- deployed from a WALLED camp formed up nowhere: the leader is elected nearest the
+        -- player, and the player is standing in his own camp when he gives the order.
+        local isLeader = (tostring(self.FormationLeader) == tostring(myWuid))
+        if not isLeader and self.NavSuppressFormationFor
+           and self:NavSuppressFormationFor(myWuid) then return end
 
         bt_data.useFormation      = true
         bt_data.formationLeader   = self.FormationLeader
         bt_data.isFormationLeader = (tostring(self.FormationLeader) == tostring(myWuid))
+        -- "" (set above) is the engine's own "any free spot", which is what everyone but
+        -- a named companion keeps. See UpdateFormationFront.
+        local front = (self.FormationFrontOf or {})[tostring(myWuid)]
+        if front then bt_data.preferredSpot = front end
     end)
     if not ok then System.LogAlways('[MercForm] UpdateFormationRole Error: ' .. tostring(err)) end
 end
@@ -377,27 +594,90 @@ end
 -- been proven - nothing in the reference set overrides it, and it is read once at
 -- AI-system init rather than lazily. If a name does not resolve the handle is
 -- null, every follower's GetMemberFormation returns null, and they all drop to the
--- follow chain. Logged on change only, so it costs nothing while it is working.
+-- follow chain - which is the "they don't hold a formation, they just follow me in
+-- a blob" report.
+--
+-- The verdict comes from $formationOk, which follow.xml computes with a BT
+-- comparison against $__null. It must NOT be re-derived here: a _wuid never reads
+-- back as nil across the Lua bridge (same reason `data.x = nil` cannot clear one),
+-- so the old `bt_data.formationWUID ~= nil` test answered OK unconditionally and
+-- this log line was worthless.
+--
+-- On a genuine null we do not just report it: the squad is dropped onto stock
+-- vanilla presets, which are in the catalogue no matter what happened to ours. A
+-- real formation in the wrong shape beats no formation at all.
+mercenaries.FormationFallbackMisses = 2   -- consecutive nulls before falling back (one can be a rebuild race)
+
 function mercenaries:FormationMade(bt_data)
-    local ok = bt_data and bt_data.formationWUID ~= nil
+    local ok   = (bt_data and bt_data.formationOk) == true
     local name = tostring(bt_data and bt_data.formationName)
     if ok ~= self._lastFormationOk or name ~= self._lastFormationName then
         self._lastFormationOk, self._lastFormationName = ok, name
         System.LogAlways(string.format('[MercForm] MakeFormation %s -> %s%s',
             name, ok and "OK" or "NULL HANDLE",
-            ok and "" or "  <-- preset not found; squad falls back to the follow chain (a column)"))
+            ok and "" or "  <-- preset not found; squad falls back to the follow chain (a blob)"))
     end
+
+    -- The control shape is the one case where a NULL HANDLE is the good answer, so
+    -- spell the verdict out rather than leaving it to be inferred.
+    if self.FormationShape == "control" then
+        if self._controlLogged then return end
+        self._controlLogged = true
+        System.LogAlways(ok
+            and '[MercForm] CONTROL: MakeFormation returned a handle for a name that exists NOWHERE. '
+                .. 'A null handle is therefore not a usable signal, and the automatic vanilla fallback '
+                .. 'can never fire - A/B merc_formation_vanilla by eye instead.'
+            or  '[MercForm] CONTROL: null handle for a nonexistent name, as it should be. '
+                .. 'Null-handle detection works, so an OK on a merc_* preset means the catalogue IS loaded.')
+        System.LogAlways('[MercForm] control test done - run merc_formation_column (or any shape) to restore.')
+        return
+    end
+
+    if ok then self._formationNullRun = 0 return end
+
+    -- "vanilla" is already the fallback - it must not trigger another switch.
+    if self.FormationShape == "vanilla" then return end
+
+    -- The misses have to be against the SAME preset name. Counting any two
+    -- consecutive Inits would let a load or a shape change - where the name is
+    -- mid-flight - contribute a strike, and downgrade the whole session to stock
+    -- presets over a startup race rather than a genuinely missing catalogue.
+    if name ~= self._formationNullName then
+        self._formationNullName = name
+        self._formationNullRun  = 0
+    end
+
+    self._formationNullRun = (self._formationNullRun or 0) + 1
+    if self._formationNullRun < self.FormationFallbackMisses then
+        -- Nothing re-runs MakeFormation on its own - the owner branch only re-enters
+        -- when the epoch changes - so waiting for a second opinion means asking for
+        -- one. Without this bump the counter sits on one strike for ever and the
+        -- fallback never fires. Bounded: at most FormationFallbackMisses-1 rebuilds.
+        self.FormationEpoch = (self.FormationEpoch or 0) + 1
+        return
+    end
+    self._formationNullRun = 0
+
+    System.LogAlways('[MercForm] ' .. name .. ' does not resolve - the mod\'s FormationDefinitions.xml ' ..
+                     'override is not in the loaded catalogue. Switching to stock vanilla presets so the ' ..
+                     'squad marches in SOME formation; merc_formation_column etc. will re-arm ours.')
+    self:SetFormationShape("vanilla", true)
 end
 
 -- ===== Controls =====
-function mercenaries:SetFormationShape(key)
-    if key ~= "vanilla" then
+function mercenaries:SetFormationShape(key, silent)
+    if key ~= "vanilla" and key ~= "control" then
         local known = false
         for _, k in ipairs(self.FormationShapeOrder) do
             if k == key then known = true break end
         end
         if not known then key = "column" end
     end
+    -- Picking a shape by hand clears the null-handle streak: the automatic
+    -- fallback must never fire off misses counted against a shape you have since
+    -- replaced.
+    self._formationNullRun = 0
+    self._controlLogged    = false
     self.FormationShape = key
     -- Resolve the new preset name RIGHT HERE. Leaving FormationName nil for even one
     -- tick is a live bug: the per-merc updater runs on its own loop, sees nil, and
@@ -407,7 +687,7 @@ function mercenaries:SetFormationShape(key)
     self.FormationCap  = 0
     self.FormationName = self:FormationPresetName(math.max((self.SquadSize or 1) - 1, 0))
     self.FormationEpoch = (self.FormationEpoch or 0) + 1
-    Game.SendInfoText("Formation: " .. key, false, 0, 3)
+    if not silent then Game.SendInfoText("@merc_n_form_shape @merc_form_" .. key, false, 0, 3) end
     System.LogAlways('[MercForm] shape = ' .. key .. ' preset=' .. tostring(self.FormationName))
 end
 
@@ -418,14 +698,14 @@ function mercenaries:SetFormationMode(code)
     if not self.FormationModeNames[code] then code = 1 end
     self.FormationModeCode   = code
     self.FormationModePinned = true
-    Game.SendInfoText("Mode: " .. self.FormationModeNames[code], false, 0, 3)
+    Game.SendInfoText("@merc_n_form_mode @" .. self.FormationModeLocKeys[code], false, 0, 3)
     System.LogAlways('[MercForm] mode = ' .. self.FormationModeNames[code] ..
                      ' (pinned; automatic sprint slack is now off)')
 end
 
 function mercenaries:SetFormationRelocate(on)
     self.FormationRelocate = on and true or false
-    Game.SendInfoText("Relocation: " .. tostring(self.FormationRelocate), false, 0, 3)
+    Game.SendInfoText("@merc_n_form_reloc @" .. (self.FormationRelocate and "merc_form_reloc_on" or "merc_form_reloc_off"), false, 0, 3)
     System.LogAlways('[MercForm] AllowRelocation = ' .. tostring(self.FormationRelocate))
 end
 
@@ -439,10 +719,44 @@ function mercenaries:MonitorFormationTokens(p)
 end
 
 function mercenaries:FormationStatus()
+    local leader = self.FormationLeader and tostring(self.FormationLeader) or nil
+    local inSlot, followers = 0, 0
+    -- Eligibility is decided per merc and is deliberately NOT logged per tick, so this
+    -- is the only place it can be seen. It is the number that matters after a partial
+    -- deploy: the out-party is supposed to be eligible and the men left in camp are not,
+    -- and "eligible=0/8" says at a glance that the split did not take.
+    local elig, total, camped, actor = 0, 0, 0, 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        local w = ent and (ent.this and ent.this.id or ent.id)
+        if w then
+            total = total + 1
+            if self:IsFormationEligible(ent, w) then elig = elig + 1 end
+            if self.IsMercInCampProper and self:IsMercInCampProper(w) then camped = camped + 1 end
+            if self.CampActorGet and self:CampActorGet(w) then actor = actor + 1 end
+        end
+        if w and tostring(w) ~= leader then
+            followers = followers + 1
+            if (self.FormationInSlot or {})[tostring(w)] then inSlot = inSlot + 1 end
+        end
+    end
     System.LogAlways(string.format(
-        '[MercForm] shape=%s preset=%s mode=%s relocate=%s leader=%s epoch=%d squad=%d mounted=%s',
+        '[MercForm] shape=%s preset=%s mode=%s relocate=%s leader=%s epoch=%d squad=%d mounted=%s makeFormation=%s inFormation=%d/%d',
         tostring(self.FormationShape), tostring(self.FormationName),
         tostring(self.FormationModeNames[self.FormationModeCode or 1]),
         tostring(self.FormationRelocate), tostring(self.FormationLeader),
-        self.FormationEpoch or 0, self.SquadSize or 0, tostring(self.FormationMounted)))
+        self.FormationEpoch or 0, self.SquadSize or 0, tostring(self.FormationMounted),
+        (self._lastFormationOk == nil) and "not-yet-run" or (self._lastFormationOk and "OK" or "NULL HANDLE"),
+        inSlot, followers))
+    local front = 0
+    for _ in pairs(self.FormationFrontOf or {}) do front = front + 1 end
+    local spotName, spotSlots = self:FormationFrontSpot()
+    System.LogAlways(string.format(
+        '[MercForm] eligible=%d/%d (in camp %d, camp actor %d) off=%s front=%d/%d spot=%s',
+        elig, total, camped, actor, tostring(self._formationOffReason or "no"),
+        front, spotSlots or 0, tostring(spotName or "-")))
+    if followers > 0 and inSlot == 0 then
+        System.LogAlways('[MercForm] NOBODY is in a formation slot - the squad is on the follow chain. ' ..
+                         'If makeFormation says OK, run merc_formation_control: if THAT also says OK the ' ..
+                         'engine returns a handle for any name and the preset catalogue is the problem.')
+    end
 end

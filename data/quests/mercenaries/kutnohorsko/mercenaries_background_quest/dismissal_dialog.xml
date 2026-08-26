@@ -16,12 +16,24 @@
                 <Port Name="mercenary_focus" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_escort" Direction="Out" Type="trigger" />
 
+                <Port Name="gear_set" Direction="Out" Type="trigger" />
                 <Port Name="equip_generic_mercenaries" Direction="Out" Type="trigger" />
+                <Port Name="equip_custom" Direction="Out" Type="trigger" />
                 <Port Name="equip_bandits" Direction="Out" Type="trigger" />
                 <Port Name="equip_cumans" Direction="Out" Type="trigger" />
                 <Port Name="equip_leipa" Direction="Out" Type="trigger" />
                 <Port Name="equip_kuttenberg" Direction="Out" Type="trigger" />
                 <Port Name="equip_skalitz" Direction="Out" Type="trigger" />
+                <Port Name="equip_prague" Direction="Out" Type="trigger" />
+                <Port Name="equip_sigismund" Direction="Out" Type="trigger" />
+                <Port Name="equip_krizovnik" Direction="Out" Type="trigger" />
+                <Port Name="equip_bergov" Direction="Out" Type="trigger" />
+                <Port Name="equip_nebakov" Direction="Out" Type="trigger" />
+                <Port Name="equip_semine" Direction="Out" Type="trigger" />
+                <Port Name="equip_pisek" Direction="Out" Type="trigger" />
+                <Port Name="equip_teuton" Direction="Out" Type="trigger" />
+                <Port Name="equip_ruthard" Direction="Out" Type="trigger" />
+                <Port Name="equip_papal" Direction="Out" Type="trigger" />
 
                 <Port Name="mercenary_open_heal_menu" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_status_report" Direction="Out" Type="trigger" />
@@ -94,7 +106,25 @@
                             <Triggers><Port Name="mercenary_open_heal_menu" /></Triggers>
                         </Sequence>
 
-                        <Sequence EndType="Decision" Name="seq_squad_orders_hub">
+<!-- Same hand-over as the quartermaster's, from any merc in the field. Both
+                             ports drop the same token; Lua puts the wardrobe chest down in front
+                             of the player, so this works anywhere, camp or no camp. -->
+                        <Sequence EndType="EndDialogue" Name="seq_gear_set">
+                            <UiPrompt StringName="ui_merc_gear_set" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_gear_set" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_test">
+                                    <Text StringName="merc_test_gear_set" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                            <Triggers><Port Name="gear_set" /></Triggers>
+                        </Sequence>
+
+                                                <Sequence EndType="Decision" Name="seq_squad_orders_hub">
                             <UiPrompt StringName="ui_mercenary_squad_orders_hub" />
                             <Elements>
                                 <Response Role="HENRY">
@@ -316,6 +346,22 @@
                                                     <Triggers><Port Name="equip_generic_mercenaries" /></Triggers>
                                                 </Sequence>
 
+                                                <!-- The set the player handed the quartermaster. Second in the list
+                                                     on purpose: it sits next to Generic as the other "our own kit"
+                                                     answer. See docs/custom-gear.md. -->
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_custom">
+                                                    <UiPrompt StringName="ui_merc_equip_custom" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_custom" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_custom" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_custom" /></Triggers>
+                                                </Sequence>
+
                                                 <Sequence EndType="EndDialogue" Name="seq_equip_bandits">
                                                     <UiPrompt StringName="ui_merc_equip_ban" />
                                                     <Elements>
@@ -379,6 +425,136 @@
                                                         </Response>
                                                     </Elements>
                                                     <Triggers><Port Name="equip_skalitz" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_prague">
+                                                    <UiPrompt StringName="ui_merc_equip_pra" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_pra" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_pra" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_prague" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_sigismund">
+                                                    <UiPrompt StringName="ui_merc_equip_sig" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_sig" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_sig" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_sigismund" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_krizovnik">
+                                                    <UiPrompt StringName="ui_merc_equip_kri" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_kri" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_kri" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_krizovnik" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_bergov">
+                                                    <UiPrompt StringName="ui_merc_equip_ber" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_ber" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_ber" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_bergov" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_nebakov">
+                                                    <UiPrompt StringName="ui_merc_equip_neb" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_neb" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_neb" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_nebakov" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_semine">
+                                                    <UiPrompt StringName="ui_merc_equip_sem" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_sem" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_sem" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_semine" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_pisek">
+                                                    <UiPrompt StringName="ui_merc_equip_pis" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_pis" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_pis" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_pisek" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_teuton">
+                                                    <UiPrompt StringName="ui_merc_equip_teu" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_teu" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_teu" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_teuton" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_ruthard">
+                                                    <UiPrompt StringName="ui_merc_equip_rut" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_rut" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_rut" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_ruthard" /></Triggers>
+                                                </Sequence>
+
+                                                <Sequence EndType="EndDialogue" Name="seq_equip_papal">
+                                                    <UiPrompt StringName="ui_merc_equip_pap" />
+                                                    <Elements>
+                                                        <Response Role="HENRY">
+                                                            <Text StringName="merc_henry_equip_pap" />
+                                                        </Response>
+                                                        <Response Role="role_mercenary_test">
+                                                            <Text StringName="merc_test_equip_pap" />
+                                                        </Response>
+                                                    </Elements>
+                                                    <Triggers><Port Name="equip_papal" /></Triggers>
                                                 </Sequence>
 
                                                 <Sequence EndType="GoTo" GoToDecision="dec_equipment_hub_choices" Name="seq_equip_cancel">

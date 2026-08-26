@@ -100,6 +100,29 @@ each man walked to it by `NavGotoRequest` and the stock `nav_goto` tree.
 
 ### The shape
 
+**Default: stand fast.** Every man's station is the ground he is already standing on
+when the order is given. Nobody walks anywhere — which is the whole point of "wait
+here", and was the one thing the drawn-up version below got wrong: it marched the
+entire squad into a block centred on the player and pushed the archers out to the
+flanks, so *giving the order to stop* made everyone move.
+
+Because these stations are wherever the men happened to be, rather than a lattice off
+a fixed anchor, they are **not** recomputed on a rebuild. `HoldBuildStations` keeps
+any station it already has and only stamps men who lack one. Re-stamping the roster
+would move the station of every man who had stepped off his mark to fight to wherever
+the fight had taken him, and he would never walk back. A *fresh* order
+(`HoldBegin`) clears the table first, so re-issuing "wait here" somewhere else does
+re-stamp on the new ground.
+
+The leash, the defend-yourself rules and everything under "What else had to stand
+down" are unchanged — a man still steps off his mark to fight what comes to him and
+is walked back afterwards.
+
+`merc_hold_formup 1` restores the drawn-up block below for anyone who wants a formed
+line; `merc_hold_formup 0` (the default) stands fast.
+
+### The drawn-up block (`merc_hold_formup 1`)
+
 A square block of melee centred on the anchor, archers in a file down each flank,
 oriented along the direction the player was facing when the order was given:
 
@@ -176,10 +199,33 @@ when it is over.
 `_G.MercIdle` itself is deliberately **not** set by a hold order, and its persistent
 flag is cleared, so a save taken mid-hold cannot come back permanently idle.
 
-Ending the order calls `HoldReleaseAll`, which raises `FollowStalled` on everyone.
-A nav order leaves the scheduler still believing `follow` is running, so without that
-the men just stand where they were released; `FollowStalled` is the existing one-shot
-signal that evicts the stale tree and re-fires `follow`.
+Ending the order calls `HoldReleaseAll`, which raises `FollowStalled` on **the men who
+were actually under a nav order**. A nav order leaves the scheduler still believing
+`follow` is running, so without that those men just stand where they were released;
+`FollowStalled` is the existing one-shot signal that evicts the stale tree and re-fires
+`follow`.
+
+> It used to be raised on the whole squad, and **that is what broke "follow me" at forty
+> or fifty men** — everyone started walking and about a third stopped again for good. A
+> man stood on his station is *idle*, so his follow tree has already been evicted and his
+> latch cleared, and he re-fires by himself; flagging him too queued a second eviction
+> that lands *after* he has started walking, and the interrupt queue then decides whether
+> it destroys the follow he just started. Full write-up, including the `refireBlock` guard
+> that closes the race, is in [formations.md](formations.md) under "The eviction race".
+
+Everyone still gets two harmless things on release, and they are what make it safe at
+scale: a **staggered start** (`FollowStaggerSquad`, so fifty follow interrupts do not land
+in the same half second) and a **verification window** (`BeginFollowVerify`) that re-fires
+anyone who demonstrably fails to start walking while the player does.
+
+**A hold order binds the men you had when you gave it.** `HoldBegin` snapshots
+`HoldMembers`, and `HoldRoster` filters on it. Without that, hiring during a standing
+"wait here" was a silent trap: the new man is in `ActiveMercs`, so the next station
+rebuild stamps him a stand-fast station **on his spawn point**, `MercIsIdle` goes true,
+and the scheduler's idle arm parks him there for good. It reads as "he spawned and never
+followed me", and nothing short of re-issuing "follow me" clears it. Nobody told *him* to
+wait. Escort deliberately keeps the **live** roster — the column is being formed as you
+go, so a man hired during it belongs in it.
 
 Hold and escort are **not** saved. They are anchored to a spot the player picked, and
 a squad that reloads still planted on ground he has since left reads as a bug.
@@ -239,24 +285,25 @@ tearing down anyone's route and restarting them from a standstill.
   tick, because `Script.SetTimerForFunction` takes a function *name* and cannot carry
   per-call arguments.
 
-### Vanilla voiced lines, for free
+### There is no combat-start shout — and why
 
-`schedulerMonolog` with `alias=""` and a metarole casts from the engine's own pool for
-that role, on the cast soul's voice. No mod dialog, no shipped `.ogg`, no
-localisation. The alert shout uses `NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT` ("sees an enemy,
-will attack"), fired once on the rising edge of `EnemyAlerted`.
+A shout when the squad first notices a fight was built and **removed**. It used the
+free-vanilla-voice trick: `schedulerMonolog` with `alias=""` and
+`metarole='NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'` ("sees an enemy, will attack"), casting
+from the base game's own pool with no mod dialog, no shipped `.ogg` and no
+localisation — exactly as `foe_combat.xml` still does it for the foe AI.
 
-**The metarole is a literal in the node, never a variable.** Binding it to
-`$barkReqMeta` was tried and backed out: `schedulerMonolog` takes it as a node
-attribute, and there is no shipped example anywhere of one being fed from a variable
-(the same class of attribute as `FormationMode` and `speed`, which provably cannot be
-— see [formations.md](formations.md)). A tree that fails to load costs the formation,
-the following and the standing orders all at once, which is not worth saving a node.
+**On a merc it produced no sound.** The trick has one requirement: the speaking soul
+needs a `skald_character` row whose voice actually carries those recordings — which is
+the whole reason `soul_foe_*` has `char_foe_*` rows. The merc souls do not, so the node
+was mute. It was taken out rather than left in as dead weight.
 
-So each tree carries **two** nodes: `$hasBarkReq` → our own alias, and `$hasMetaBark`
-→ the vanilla shout spelled out exactly as `foe_combat.xml` ships it. `OrderBarkFire`'s
-`metarole` argument is therefore a *flag*, not a name; wiring a second vanilla shout
-means adding a second node. `BarkPoll` is the one shared consumer, used by
+If it is ever wanted back, the two honest routes are: give the merc souls
+`skald_character` rows on a voice that has the lines, or author a normal mod dialog and
+ship VO for it — at which point it is just another alias and needs none of this.
+
+Barks that **do** work are alias-based: `RequestBark` / `OrderBarkSome` name one of this
+mod's own dialogs from `BarkPools`. `BarkPoll` is the single shared consumer, used by
 `follow.xml`, `camp_actor.xml` and `mercenary_scheduler.xml`.
 
 ---

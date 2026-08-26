@@ -22,6 +22,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 
 
 ### Lua
+* [Console commands](console.md) (Every command a player can type, where they are registered, and how the `merc_dev` gate keeps the ~350 authoring/diagnostic ones out of the player's console)
 * [Spawning NPCs](spawning-npcs.md) (How to spawn an NPC you defined in the other guides)
 
 ### XML
@@ -41,6 +42,9 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Combat target selection](combat-target-selection.md) (How mercs, archers and enemies pick who to fight: the shared enemy cache, the lock-on aggro rule, anti-swarm cap and the -1 relationship rule)
 * [Squad orders](squad-orders.md) (Everything the player can order beyond follow/equip: the four engagement stances and why they need no scheduler XML at all, anti-swarm presets, calling a target, holding ground with a role-shaped line and a leash, escorting in column, and multi-merc barks — including vanilla voiced shouts for free)
 * [Difficulty](difficulty.md) (One tier setting read by raids, roaming patrols and the bounty/Kleinkrieg contracts: how the count cap works against each system's own strength measure, the hard ceilings that had to scale with it, and how armour quality is biased from data the mod already had)
+* [Custom companions](companions.md) (The 44 named companions cloned from vanilla characters: the roster generator that is the single source of truth, the thirteen files each one has to exist in, vanilla-versus-built gear, the categorised hire menu, and the three traps - quest items that arm nobody, sheathed polearms that do not render, and body_type making an NPC invisible)
+* [Squad outfits](outfits.md) (The 180-preset wardrobe: the per-tier armour budget that makes every style equally tough, the layering rules that break silently, the six styles and their heraldry, the reinforced caftans the Cuman styles need, and what is excluded from the item pool and why)
+* [The custom uniform](custom-gear.md) (Drop a set of gear in a chest and the whole company wears a copy of it, anywhere, camp or no camp: the offline GUID→slot table that exists because nothing in the scriptbind reports a slot, the dressing order that is the whole trick, the gambeson-under-plate rule, and how an empty pattern means naked with a sword)
 * [Formations](formations.md) (How the squad marches: the engine formation system, the elected-leader anchor it forces, the seven generated shapes, and the mounted variant - plus the vanilla research behind it)
 * [Performance](performance.md) (What the mod costs and what controls it: the patrol population caps that fixed the long-standing lag, every cost tunable with its default, the profiler and how to read it, and what was ruled out so it is not re-chased)
 * [NPC LOD and invisible mercenaries](npc-lod.md) (The four systems that can stop an NPC rendering while it keeps fighting: AI LOD tiers and count budgets, the runtime clothing/attachment pipeline, quest-driven hides, and the per-battle cvar overrides — plus diagnostics)

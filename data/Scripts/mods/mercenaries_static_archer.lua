@@ -321,6 +321,18 @@ function mercenaries:IsStaticArcher(wuid)
     return self.StaticArchers[tostring(wuid)] ~= nil
 end
 
+-- Is he up on something? A tower deck (`elevated`) or a cart bed (`cart`, set by
+-- ArcherCartSpawnArchersDelayed) puts him out of a footman's reach; an archer standing on
+-- the GROUND - the besiegers at Raborsch, anyone the siege builder placed - is an ordinary
+-- enemy. The targeting layer uses this to decide who may claim him: see MercMayClaim.
+function mercenaries:StaticArcherPerched(wuid)
+    local rec = self.StaticArchers[tostring(wuid)]
+    if rec == nil then return false end
+    -- `attached` covers both on its own once AttachStaticArcher has run, but that is a
+    -- delayed call - the flags are set at spawn, so they answer during the gap too.
+    return rec.elevated == true or rec.cart == true or rec.attached == true
+end
+
 function mercenaries:GetStaticArcherMode(wuid)
     local rec = self.StaticArchers[tostring(wuid)]
     return (rec and rec.mode) or self.StaticArcherDefaultMode
@@ -765,7 +777,7 @@ function mercenaries:SpawnStaticArcherHere(mode)
     self:SpawnStaticArcher(pos, self:ResolveStaticArcherMode(mode), yaw + math.pi)
 end
 
-System.AddCCommand("merc_static_archer",       "mercenaries:SpawnStaticArcherHere(%1)", "Spawn a static archer 3m ahead on the ground: merc_static_archer [mode]  (mode: 1=defend 2=hostile 3=mod_enemies, default 1)")
-System.AddCCommand("merc_static_archer_clear", "mercenaries:ClearStaticArchers()",      "Remove all static archers")
-System.AddCCommand("merc_static_archer_mode",  "mercenaries:SetStaticArcherMode(%1)",   "Set the mode of every static archer: 1=defend 2=hostile 3=mod_enemies")
-System.AddCCommand("merc_static_archer_scale", "mercenaries:SetStaticArcherScale(%1)",  "Resize every static archer (1.0 = normal): merc_static_archer_scale <scale>")
+mercenaries:DevCommand("merc_static_archer",       "mercenaries:SpawnStaticArcherHere(%1)", "Spawn a static archer 3m ahead on the ground: merc_static_archer [mode]  (mode: 1=defend 2=hostile 3=mod_enemies, default 1)")
+mercenaries:DevCommand("merc_static_archer_clear", "mercenaries:ClearStaticArchers()",      "Remove all static archers")
+mercenaries:DevCommand("merc_static_archer_mode",  "mercenaries:SetStaticArcherMode(%1)",   "Set the mode of every static archer: 1=defend 2=hostile 3=mod_enemies")
+mercenaries:DevCommand("merc_static_archer_scale", "mercenaries:SetStaticArcherScale(%1)",  "Resize every static archer (1.0 = normal): merc_static_archer_scale <scale>")

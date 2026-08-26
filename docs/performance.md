@@ -505,6 +505,37 @@ end
 - **`campchat`**: the `if not CampActive` chat-wipe branch stays unconditional inside the fn; only the O(n²) pairing scan is gated on distance-to-`CampBuildOrigin`.
 - **`lootsweep`**: no gate; `busy`/`free` are computed first inside the fn and `LootEligibleMercs()` is skipped when neither can change.
 
+### Timer latches must be cleared on load, not on session start
+
+`Script.SetTimerForFunction` chains **do not survive a save load** — the engine drops them with the
+level. The `mercenaries` table does survive, so **any latch guarding a timer outlives the timer it
+guards**, and left set it means that tick never comes back for the rest of the session.
+
+That is not a theory. `LootSweepLoop` is armed unconditionally on every load *and* re-arms itself
+unconditionally; if timers survived it would double every single load, and it does not.
+
+Getting it wrong killed the whole mod on the second save loaded in one session. `SchedRunning` was
+still true from the first, `SchedStart` refused to arm, and the master tick never ran again — taking
+`MonitorInventory` with it, so the hire tokens were never consumed and **hiring silently did
+nothing**. `_schedWatchdogArmed` was latched the same way, so the one thing that could have noticed
+was dead too. The log says it plainly and then stops:
+
+```
+[Mercenaries] Game loaded! Starting the inventory monitor loop...
+[MercSched] master tick already running - refusing to arm a second chain
+```
+
+`SchedOnLoad` runs at the very top of `OnGameplayStarted`, before anything arms a timer, and clears
+every latch in `TimerLatches` — `SchedRunning`, `_schedWatchdogArmed`, `LivePatrolRunning`,
+`RaidRunning`, `WBRunning`, `FoeLoopArmed`, `GearTickArmed`, `_profHbArmed`. **Add to that list
+whenever a new self-arming loop gets a latch.** Only latches whose chain is re-armed somewhere
+belong there; a latch nobody re-arms is just a flag.
+
+The latch itself is kept, because the thing it protects against is real — `OnGameplayStarted` arming
+twice for *one* load would leave two ghosts independently driving every slot. It is now keyed to a
+**load generation** (`SchedLoadGen`) instead of the session: within one load a second `SchedStart`
+is still refused, across loads it arms fresh.
+
 ## Full findings table
 
 Sorted by severity, then tick rate (fastest first) within severity.

@@ -108,7 +108,6 @@ function mercenaries:KleinkriegSyncGates()
     end
 end
 
-
 -- Latch every phase up to the contract the run has reached. Cheap and idempotent: the Skald
 -- states only ever go true, so re-latching after a reload costs nothing, and catching up
 -- from 1 means a save made before this existed still lands on the right lines.
@@ -1166,7 +1165,13 @@ end
 -- It wakes up on any of:
 --   * a bandit ending up within BanditCampAlertRange of the player or a merc,
 --   * any bandit losing health (the player attacked, from any distance),
---   * a bandit dying.
+--   * a bandit dying,
+--   * any bandit TAKING one of ours as his target, at any range.
+--
+-- That last one is the authoritative one and the others are early warnings. A man who has
+-- picked the player or a merc to fight has started the battle by definition, and until it
+-- existed the camp could be mid-brawl and still read as asleep - which suppresses every
+-- one of its members out of the squad's target cache, so the mercs stand and watch.
 -- Once alerted it stays alerted for the life of the camp; walking away and coming back
 -- rebuilds it, and a rebuilt camp is calm again.
 mercenaries.BanditCampAlertRange = 10.0
@@ -1238,6 +1243,26 @@ function mercenaries:BanditCampSlotSuppresses(S, wuidStr)
     return false
 end
 
+-- Wake whichever camp owns this man, from outside the monitor's per-slot pass.
+-- BanditCampAlert reads self.BCQ, so the slot has to be bound round it - the pointer is
+-- whatever the last bind left behind, and it is usually the wrong camp for a call coming
+-- in off the target selector. Returns true if a camp was actually woken.
+--
+-- BanditCampSlotSuppresses already answers false for a slot that is alerted, inactive or
+-- unspawned, so this is a no-op in every case except the one it is for.
+function mercenaries:BanditCampAlertFor(wuidStr, why)
+    local woke = false
+    pcall(function()
+        for _, S in ipairs(self:BanditCampSlots()) do
+            if self:BanditCampSlotSuppresses(S, wuidStr) then
+                self:BanditCampWith(S, function() self:BanditCampAlert(why) end)
+                woke = true
+            end
+        end
+    end)
+    return woke
+end
+
 function mercenaries:BanditCampAlert(why)
     local S = self.BCQ
     if S.alerted then return end
@@ -1294,6 +1319,24 @@ function mercenaries:BanditCampAlertTick()
                 local was = S.health[entId]
                 if was and hp < was then self:BanditCampAlert("a bandit was hurt"); return end
                 S.health[entId] = hp
+            end
+
+            -- In a fight. Not gated on proximityArms: the disperse path is about not
+            -- STARTING one, and this only fires once one has started.
+            --
+            -- Two sources, both proven. IsRecentAttacker is the authoritative one - the
+            -- behaviour tree's own GetTarget node confirmed this man has taken one of
+            -- ours as his target (see NoteAttacker). IsInCombatDanger is vanilla's own
+            -- "this soul is in a fight" and catches him a beat earlier. What is NOT used
+            -- is soul:GetTarget(), which is not a Lua scriptbind and silently answers no.
+            local w = e.this and e.this.id or e.id
+            if w and self.IsRecentAttacker and self:IsRecentAttacker(w) then
+                self:BanditCampAlert("a bandit took one of ours as his target"); return
+            end
+            local fighting = false
+            pcall(function() fighting = e.soul and e.soul:IsInCombatDanger() or false end)
+            if fighting then
+                self:BanditCampAlert("a bandit is in a fight"); return
             end
 
             local bp; pcall(function() bp = e:GetWorldPos() end)
@@ -3216,15 +3259,15 @@ end
 
 -- The quartermaster no longer offers this run (Aleksej's nine beats are the Kleinkrieg quest),
 -- so this is the only way left to start one. Kept for testing the contract machinery itself.
-System.AddCCommand("merc_banditcamp_start",   "mercenaries:BanditCampAccept()",  "Take a Kleinkrieg contract (debug: nobody issues these in game any more)")
-System.AddCCommand("merc_banditcamp_status",  "mercenaries:BanditCampStatus()",  "Contract state: site, group, kills, reward")
-System.AddCCommand("merc_banditcamp_abandon", "mercenaries:BanditCampAbandon()", "Drop the contract and remove the camp")
-System.AddCCommand("merc_banditcamp_clear",   "mercenaries:BanditCampComplete()","Force-complete the contract (debug)")
-System.AddCCommand("merc_banditcamp_alert",   "mercenaries:BanditCampAlert('console')", "Wake the camp up now (debug)")
-System.AddCCommand("merc_banditcamp_resync", "mercenaries:BanditCampResync()", "Re-derive the arc state after a load (debug)")
-System.AddCCommand("merc_banditcamp_reset",   "mercenaries:SaveString('BCampDone','0')", "Restart the camp run from the first site (debug)")
-System.AddCCommand("merc_banditcamp_chest_probe", "mercenaries:BanditCampChestProbe()", "Report what the camp chest entity exposes (letter diagnostics)")
-System.AddCCommand("merc_banditcamp_item_test",  "mercenaries:BanditCampItemTest()",  "Try a known-good item AND the letter into the player's inventory")
-System.AddCCommand("merc_banditcamp_chest_test", "mercenaries:BanditCampChestTest()", "Try a known-good item AND the letter into the camp chest")
-System.AddCCommand("merc_banditcamp_give_letter","mercenaries:BanditCampGiveLetter()","Put the letter straight in the player's pack (test the hand-in)")
-System.AddCCommand("merc_bcamp_site_here",    "mercenaries:BanditCampSiteHere()","Print a BanditCampSites row for where you stand")
+mercenaries:DevCommand("merc_banditcamp_start",   "mercenaries:BanditCampAccept()",  "Take a Kleinkrieg contract (debug: nobody issues these in game any more)")
+mercenaries:DevCommand("merc_banditcamp_status",  "mercenaries:BanditCampStatus()",  "Contract state: site, group, kills, reward")
+mercenaries:DevCommand("merc_banditcamp_abandon", "mercenaries:BanditCampAbandon()", "Drop the contract and remove the camp")
+mercenaries:DevCommand("merc_banditcamp_clear",   "mercenaries:BanditCampComplete()","Force-complete the contract (debug)")
+mercenaries:DevCommand("merc_banditcamp_alert",   "mercenaries:BanditCampAlert('console')", "Wake the camp up now (debug)")
+mercenaries:DevCommand("merc_banditcamp_resync", "mercenaries:BanditCampResync()", "Re-derive the arc state after a load (debug)")
+mercenaries:DevCommand("merc_banditcamp_reset",   "mercenaries:SaveString('BCampDone','0')", "Restart the camp run from the first site (debug)")
+mercenaries:DevCommand("merc_banditcamp_chest_probe", "mercenaries:BanditCampChestProbe()", "Report what the camp chest entity exposes (letter diagnostics)")
+mercenaries:DevCommand("merc_banditcamp_item_test",  "mercenaries:BanditCampItemTest()",  "Try a known-good item AND the letter into the player's inventory")
+mercenaries:DevCommand("merc_banditcamp_chest_test", "mercenaries:BanditCampChestTest()", "Try a known-good item AND the letter into the camp chest")
+mercenaries:DevCommand("merc_banditcamp_give_letter","mercenaries:BanditCampGiveLetter()","Put the letter straight in the player's pack (test the hand-in)")
+mercenaries:DevCommand("merc_bcamp_site_here",    "mercenaries:BanditCampSiteHere()","Print a BanditCampSites row for where you stand")

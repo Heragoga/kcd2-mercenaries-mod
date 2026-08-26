@@ -1,4 +1,0 @@
-<Entity
-    Name="mercenaries_Gate"
-    Script="Scripts/Entities/mercenaries_Gate.lua"
-/>

@@ -154,6 +154,6 @@ function mercenaries:AmbRoadClear()
     if n > 0 then aLog("removed " .. n .. " ambusher(s)") end
 end
 
-System.AddCCommand("merc_ambush_road",       "mercenaries:AmbRoadSpawn('%line')",
+mercenaries:DevCommand("merc_ambush_road",       "mercenaries:AmbRoadSpawn('%line')",
     "Ambush your party on the road you are standing on: merc_ambush_road [total] [group] - total defaults to your party + 1, half melee half archers")
-System.AddCCommand("merc_ambush_road_clear", "mercenaries:AmbRoadClear()", "Remove the road ambush")
+mercenaries:DevCommand("merc_ambush_road_clear", "mercenaries:AmbRoadClear()", "Remove the road ambush")

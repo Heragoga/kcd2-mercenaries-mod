@@ -143,8 +143,12 @@
                                              second. Sheathing him meant every re-fire cost a sheathe AND
                                              a re-draw - which is what still made convoy fighters close in
                                              steps after the draw was already made conditional. foe_combat
-                                             never sheathes for the same reason. See docs/foe-ai.md. -->
-                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() if not data.isEnemy then entity.human:DrawWeapon(false) end end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
+                                             never sheathes for the same reason. See docs/foe-ai.md.
+                                             CombatMaySheathe carries the same reasoning over to a MERC with
+                                             the battle still going on around him: this tree ends every time
+                                             his TARGET dies, so in a big fight the old unconditional sheathe
+                                             fired every few seconds with enemies still swinging at him. -->
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() if mercenaries:CombatMaySheathe(data, entity) then entity.human:DrawWeapon(false) end end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
                                         <!-- This Wait sits INSIDE the crime_interruptAttack context opened at
                                              the top of this tree, which every scheduler reads as $inCombat -
                                              so it is added directly to the dead time before locomotion can

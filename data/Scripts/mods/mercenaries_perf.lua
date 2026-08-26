@@ -366,7 +366,7 @@ function mercenaries:PerfStatus()
         self:_TableCount(self.PatrolMemberIndex)))
 end
 
-System.AddCCommand("merc_perf_verify", "mercenaries:PerfVerify()",
+mercenaries:DevCommand("merc_perf_verify", "mercenaries:PerfVerify()",
                    "Check the own-soul hash set answers the same as the old scan for every NPC nearby")
-System.AddCCommand("merc_perf_status", "mercenaries:PerfStatus()",
+mercenaries:DevCommand("merc_perf_status", "mercenaries:PerfStatus()",
                    "Report shared cache sizes and NPC scan age")

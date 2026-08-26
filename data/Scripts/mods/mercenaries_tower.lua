@@ -193,14 +193,13 @@ function mercenaries:BarricadePropsClear()
     self.BarricadePropEnts = {}
 end
 
-System.AddCCommand("merc_barricade",       "mercenaries:BarricadePropsSpawn(%line)", "Row of barricade/obstacle candidates: merc_barricade [spacing]")
-System.AddCCommand("merc_barricade_clear", "mercenaries:BarricadePropsClear()",      "Remove the barricade row")
+mercenaries:DevCommand("merc_barricade",       "mercenaries:BarricadePropsSpawn(%line)", "Row of barricade/obstacle candidates: merc_barricade [spacing]")
+mercenaries:DevCommand("merc_barricade_clear", "mercenaries:BarricadePropsClear()",      "Remove the barricade row")
 
-System.AddCCommand("merc_tower_props",       "mercenaries:TowerPropsSpawn(%1)", "Row of archer-tower structure props, 1m up: merc_tower_props [spacing]")
-System.AddCCommand("merc_tower_props_clear", "mercenaries:TowerPropsClear()",   "Remove the structure prop row")
-System.AddCCommand("merc_tower_rails",       "mercenaries:TowerRailsSpawn(%1)", "Row of railing/fence/ladder candidates, 1m up: merc_tower_rails [spacing]")
-System.AddCCommand("merc_tower_rails_clear", "mercenaries:TowerRailsClear()",   "Remove the railing/ladder row")
-
+mercenaries:DevCommand("merc_tower_props",       "mercenaries:TowerPropsSpawn(%1)", "Row of archer-tower structure props, 1m up: merc_tower_props [spacing]")
+mercenaries:DevCommand("merc_tower_props_clear", "mercenaries:TowerPropsClear()",   "Remove the structure prop row")
+mercenaries:DevCommand("merc_tower_rails",       "mercenaries:TowerRailsSpawn(%1)", "Row of railing/fence/ladder candidates, 1m up: merc_tower_rails [spacing]")
+mercenaries:DevCommand("merc_tower_rails_clear", "mercenaries:TowerRailsClear()",   "Remove the railing/ladder row")
 
 -- ==== The tower: an exact replica of the game's own scaffolding tower ====
 -- Rebuilt part-for-part from references/Prefabs/manmade/scaffolding/
@@ -966,7 +965,7 @@ function mercenaries:SetActionLog(v)
     System.LogAlways("[Action] logging " .. (self.ActionLog and "ON - press LMB/RMB and read the names" or "off"))
 end
 
-System.AddCCommand("merc_action_log", "mercenaries:SetActionLog('%1')", "Log every player input action: merc_action_log 1 (0 to stop)")
+mercenaries:DevCommand("merc_action_log", "mercenaries:SetActionLog('%1')", "Log every player input action: merc_action_log 1 (0 to stop)")
 
 -- ==== INPUT PROBE (legacy): what is the player playing when he clicks? ====
 -- There is no mouse-button hook in KCD's Lua, so left/right click have to be
@@ -1132,9 +1131,9 @@ function mercenaries:PlayerApiDump(which)
 end
 
 -- Quoted args so a missing one is an empty string rather than "Not enough arguments".
-System.AddCCommand("merc_anim_poll",   "mercenaries:AnimPoll('%1', '%2')",              "Log the player's probed state on change: merc_anim_poll 1 [intervalMs] (0 to stop)")
-System.AddCCommand("merc_anim_add",    "mercenaries:AnimProbeAdd('%1', '%2', '%3')",    "Add a probe: merc_anim_add <sub|.> <method> [arg]")
-System.AddCCommand("merc_player_dump", "mercenaries:PlayerApiDump('%1')",               "List what the player entity actually exposes: merc_player_dump [sub]")
+mercenaries:DevCommand("merc_anim_poll",   "mercenaries:AnimPoll('%1', '%2')",              "Log the player's probed state on change: merc_anim_poll 1 [intervalMs] (0 to stop)")
+mercenaries:DevCommand("merc_anim_add",    "mercenaries:AnimProbeAdd('%1', '%2', '%3')",    "Add a probe: merc_anim_add <sub|.> <method> [arg]")
+mercenaries:DevCommand("merc_player_dump", "mercenaries:PlayerApiDump('%1')",               "List what the player entity actually exposes: merc_player_dump [sub]")
 
 -- ==== Collider tuner ====
 mercenaries.TowerColSel = 1
@@ -1230,22 +1229,22 @@ function mercenaries:TowerArcherZ(z, drop)
     System.LogAlways(string.format("[Tower] archer z = %.2f, dropped from %.2f above", a.z, self.StaticArcherDropHeight))
 end
 
-System.AddCCommand("merc_tower_spawn",     "mercenaries:SpawnTowerAhead()",               "Spawn the scaffolding tower fresh ahead of you (parts, climbable ladder, deck collider)")
-System.AddCCommand("merc_tower_clear",     "mercenaries:TowerStationClearAll()",          "Remove all towers")
-System.AddCCommand("merc_tower_build",        "mercenaries:StartTowerPlacement()",   "Enter tower placement mode: look at a spot, left-click to place, right-click to finish")
-System.AddCCommand("merc_tower_place",        "mercenaries:ConfirmPlacement()",      "Place at the ghost marker (normally left-click)")
-System.AddCCommand("merc_tower_place_cancel", "mercenaries:CancelPlacement()",       "Leave placement mode (normally right-click)")
-System.AddCCommand("merc_tower_ghost_mtl",    "mercenaries:SetTowerGhostMaterial('%1')", "Set the placement ghost's material (blank = show current)")
-System.AddCCommand("merc_tower_clearance",    "mercenaries:SetTowerClearance('%1', '%2')", "How much room a tower needs: merc_tower_clearance <fromCampProps> <fromTowers>")
-System.AddCCommand("merc_tower_sink",      "mercenaries:TowerSetSink(%1)",                "Move the tower into the ground (negative = deeper), e.g. -2.0 - lowers the on-top archer's height. Respawns it.")
-System.AddCCommand("merc_tower_archer_z",  "mercenaries:TowerArcherZ('%1', '%2')",        "Re-drop the tower archer: merc_tower_archer_z <deck z> [drop height]")
-System.AddCCommand("merc_tower_col_show",  "mercenaries:TowerColShow(%1)",                "Show/hide the deck colliders while tuning: merc_tower_col_show <0|1>")
-System.AddCCommand("merc_tower_col_list",  "mercenaries:TowerColList()",                  "List the deck colliders")
-System.AddCCommand("merc_tower_col_sel",   "mercenaries:TowerColSelect(%1)",              "Select a collider to tune")
-System.AddCCommand("merc_tower_col_move",  "mercenaries:TowerColMove(%1, %2, %3)",        "Nudge selected collider: merc_tower_col_move <dx> <dy> <dz>")
-System.AddCCommand("merc_tower_col_scale", "mercenaries:TowerColScale('%1', '%2', '%3')", "Set selected collider scale: merc_tower_col_scale <sx> <sy> <sz>")
-System.AddCCommand("merc_tower_col_add",   "mercenaries:TowerColAdd('%1')",               "Add another collider (copy of selected): merc_tower_col_add [name]")
-System.AddCCommand("merc_tower_col_dump",  "mercenaries:TowerColDump()",                  "Print the tuned colliders + sink for baking in")
+mercenaries:DevCommand("merc_tower_spawn",     "mercenaries:SpawnTowerAhead()",               "Spawn the scaffolding tower fresh ahead of you (parts, climbable ladder, deck collider)")
+mercenaries:DevCommand("merc_tower_clear",     "mercenaries:TowerStationClearAll()",          "Remove all towers")
+mercenaries:DevCommand("merc_tower_build",        "mercenaries:StartTowerPlacement()",   "Enter tower placement mode: look at a spot, left-click to place, right-click to finish")
+mercenaries:DevCommand("merc_tower_place",        "mercenaries:ConfirmPlacement()",      "Place at the ghost marker (normally left-click)")
+mercenaries:DevCommand("merc_tower_place_cancel", "mercenaries:CancelPlacement()",       "Leave placement mode (normally right-click)")
+mercenaries:DevCommand("merc_tower_ghost_mtl",    "mercenaries:SetTowerGhostMaterial('%1')", "Set the placement ghost's material (blank = show current)")
+mercenaries:DevCommand("merc_tower_clearance",    "mercenaries:SetTowerClearance('%1', '%2')", "How much room a tower needs: merc_tower_clearance <fromCampProps> <fromTowers>")
+mercenaries:DevCommand("merc_tower_sink",      "mercenaries:TowerSetSink(%1)",                "Move the tower into the ground (negative = deeper), e.g. -2.0 - lowers the on-top archer's height. Respawns it.")
+mercenaries:DevCommand("merc_tower_archer_z",  "mercenaries:TowerArcherZ('%1', '%2')",        "Re-drop the tower archer: merc_tower_archer_z <deck z> [drop height]")
+mercenaries:DevCommand("merc_tower_col_show",  "mercenaries:TowerColShow(%1)",                "Show/hide the deck colliders while tuning: merc_tower_col_show <0|1>")
+mercenaries:DevCommand("merc_tower_col_list",  "mercenaries:TowerColList()",                  "List the deck colliders")
+mercenaries:DevCommand("merc_tower_col_sel",   "mercenaries:TowerColSelect(%1)",              "Select a collider to tune")
+mercenaries:DevCommand("merc_tower_col_move",  "mercenaries:TowerColMove(%1, %2, %3)",        "Nudge selected collider: merc_tower_col_move <dx> <dy> <dz>")
+mercenaries:DevCommand("merc_tower_col_scale", "mercenaries:TowerColScale('%1', '%2', '%3')", "Set selected collider scale: merc_tower_col_scale <sx> <sy> <sz>")
+mercenaries:DevCommand("merc_tower_col_add",   "mercenaries:TowerColAdd('%1')",               "Add another collider (copy of selected): merc_tower_col_add [name]")
+mercenaries:DevCommand("merc_tower_col_dump",  "mercenaries:TowerColDump()",                  "Print the tuned colliders + sink for baking in")
 
 -- ==== FOOTING TEST (merc_tower_foot) ====
 -- The deck collider blocks the PLAYER but not an NPC - the archer drops straight
@@ -1342,9 +1341,8 @@ function mercenaries:FootTestClear()
     self.FootTestArchers = {}
 end
 
-System.AddCCommand("merc_tower_foot",       "mercenaries:FootTestSpawn(%1, %2)", "Row of candidate NPC footings, each with an archer on top: merc_tower_foot [height] [spacing]")
-System.AddCCommand("merc_tower_foot_clear", "mercenaries:FootTestClear()",       "Remove the footing test")
-
+mercenaries:DevCommand("merc_tower_foot",       "mercenaries:FootTestSpawn(%1, %2)", "Row of candidate NPC footings, each with an archer on top: merc_tower_foot [height] [spacing]")
+mercenaries:DevCommand("merc_tower_foot_clear", "mercenaries:FootTestClear()",       "Remove the footing test")
 
 -- ==== HOLD TEST (merc_tower_hold) ====
 -- The footing was never the problem: a static slab stops rigid bodies, but an NPC
@@ -1476,5 +1474,5 @@ function mercenaries:TowerHoldClear()
     self.HoldTestSpots = {}
 end
 
-System.AddCCommand("merc_tower_hold",       "mercenaries:TowerHoldSpawn(%1, %2)", "Row of NPC-hold strategies, each with an archer on a deck slab: merc_tower_hold [height] [spacing]")
-System.AddCCommand("merc_tower_hold_clear", "mercenaries:TowerHoldClear()",       "Remove the hold test")
+mercenaries:DevCommand("merc_tower_hold",       "mercenaries:TowerHoldSpawn(%1, %2)", "Row of NPC-hold strategies, each with an archer on a deck slab: merc_tower_hold [height] [spacing]")
+mercenaries:DevCommand("merc_tower_hold_clear", "mercenaries:TowerHoldClear()",       "Remove the hold test")

@@ -81,16 +81,26 @@ scripted main-quest battles**.
 > only re-pushed when it **changes**. Reported as "the LOD is extreme when there are a lot of
 > mercs", and correctly so.
 >
-> | Crowd | Was | Now |
-> | --- | --- | --- |
-> | 150+ (full siege) | 300 | 200 |
-> | 100+ | 300 | 160 |
-> | 70+ | 300 | 130 |
-> | 50 | 300 | engine default |
-> | 30–40 | 150–250 | engine default |
+> Softened twice, and it is now a **setting** rather than a constant — `merc_lod_quality`
+> picks the ladder, and the choice is saved. Higher ratio = detail drops sooner = cheaper.
 >
-> The ladder now starts where a real battle does and stops below 255, so a company on the road
-> draws at the engine's own mesh LOD.
+> | Crowd | Original | `performance` | `balanced` (default) | `crisp` |
+> | --- | --- | --- | --- | --- |
+> | 190+ | 300 | 200 | **150** | engine default |
+> | 150+ | 300 | 200 | 130 | engine default |
+> | 100+ | 300 | 160 | **115** | engine default |
+> | 70+ | 300 | 130 | engine default | engine default |
+> | 50 | 300 | engine default | engine default | engine default |
+>
+> The second ladder still coarsened ordinary play: a full company plus one raid clears crowd
+> 70 without being a battle, and 200 is a visible cut. `balanced` starts at a hundred bodies
+> and tops out at 150, which shows only where a man is a few pixels wide. `performance` is the
+> old ladder, kept for weaker machines; `crisp` never touches mesh LOD at all.
+>
+> The preset also drives **`wh_cc_LodForUberlod`** (1 / 2 / 3): how early a character swaps
+> from its assembled clothing attachments to the merged low-polygon outfit mesh. `balanced`
+> keeps the assembled version one LOD level longer than the mod used to. Never set it to −1 —
+> that turns the swap off rather than forcing it, and draws both versions at once.
 >
 > **`LodBoostOff` now hands mesh LOD back** (`LodRatioReset`). `LodRatioAutoApply` only runs
 > from `LodBoostReassert`, i.e. while the boost is on, so nothing used to undo the last band —

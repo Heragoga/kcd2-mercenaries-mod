@@ -62,7 +62,11 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     -- See mercenaries_perf.lua:IsOwnSoulId - O(1) hash lookup, same containment
     -- semantics as the old Souls/ArcherSouls/StaticArcherSouls triple scan.
     if self:IsOwnSoulId(eid) then return false end
-    if string.find(ent:GetName() or '', 'MercenaryCustomCompanion') then
+    -- Companions are not in the Souls tables IsOwnSoulId is built from - each one has
+    -- its own soul - so they are recognised by name instead. IsHeroName, not the old
+    -- prefix: they are spawned as SpawnedFriend_hero_ now, and a miss here means the
+    -- squad treats its own named companions as targets.
+    if self:IsHeroName(ent:GetName() or '') then
         return false
     end
 
@@ -91,6 +95,54 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     return true
 end
 
+-- ---------------------------------------------------------------------------
+-- WHO IS FIGHTING US - recorded by the BEHAVIOUR TREE, not by Lua.
+--
+-- `soul:GetTarget()` is NOT a Lua scriptbind in this engine. It appears nowhere in
+-- vanilla's own scripts (where soul:IsInCombatDanger and soul:HasScriptContext are used
+-- dozens of times) and every call the mod makes to it sits inside a pcall, so it fails
+-- silently and reads as "nobody is targeting anyone". Anything built on it is dead code
+-- that looks alive - which is exactly what happened: the whole lock-on detection was
+-- inert, so against enemies the relationship floor refuses (base-game and DLC camps, who
+-- are not pinned at -1) the squad had no targets at all and stood and watched.
+--
+-- The engine's GetTarget BEHAVIOUR-TREE node does work, and always has - it is what
+-- feeds $candidateTarget for the acquisition pass. So the authoritative answer comes
+-- from there: EvaluateCombatTarget records every candidate it confirms is locked onto
+-- the player or onto a merc, and this register is what the cache reads back.
+--
+-- Entries expire: a man who broke off, died or streamed out must stop seeding the fight.
+-- ---------------------------------------------------------------------------
+mercenaries.AttackerSeen = {}          -- [wuidStr] = time last confirmed fighting us
+mercenaries.AttackerMemorySecs = 6.0
+
+function mercenaries:NoteAttacker(wuid)
+    if not wuid then return end
+    local t = 0
+    pcall(function() t = System.GetCurrTime() or 0 end)
+    self.AttackerSeen[tostring(wuid)] = t
+end
+
+function mercenaries:IsRecentAttacker(wuid)
+    if not wuid then return false end
+    local at = self.AttackerSeen[tostring(wuid)]
+    if not at then return false end
+    local t = 0
+    pcall(function() t = System.GetCurrTime() or 0 end)
+    if (t - at) > self.AttackerMemorySecs then
+        self.AttackerSeen[tostring(wuid)] = nil
+        return false
+    end
+    return true
+end
+
+-- Is this WUID the player or one of the squad? OurWuids is rebuilt once per enemy-cache
+-- pass; anything asking earlier than that reads an empty set and simply says no.
+function mercenaries:IsOneOfOurs(wuid)
+    if not wuid then return false end
+    return (self.OurWuids or {})[tostring(wuid)] == true
+end
+
 -- Called every 300ms from CombatScanLoop: one sphere query + all soul-API
 -- validation for the whole squad, cached in mercenaries.CachedEnemies.
 -- Candidates that have not drawn a weapon yet are cached too and are fair game
@@ -100,8 +152,9 @@ function mercenaries:UpdateEnemyCache()
     local ok, err = pcall(function()
         self.CachedEnemies = {}
 
-        -- Anti-swarm load, rebuilt from MercTargetOf so each merc's swarm check
-        -- is an O(1) lookup instead of a position scan.
+        -- Who counts as "one of ours" for LockedOntoUs. Built here rather than per
+        -- candidate: this pass already walks the roster once for the load map below.
+        local ours = {}
         local load = {}
         for _, targetWuidStr in pairs(self.MercTargetOf) do
             load[targetWuidStr] = (load[targetWuidStr] or 0) + 1
@@ -113,11 +166,39 @@ function mercenaries:UpdateEnemyCache()
         if not playerPos then return end
 
         local playerWuid = player.this and player.this.id or player.id
+        ours[tostring(playerWuid)] = true
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w then ours[tostring(w)] = true end
+        end
+        self.OurWuids = ours
 
         -- Alerted: look as far as EnemyAlertRadius. The alert is raised below the moment an
         -- ARMED hostile is in the cache (a fight, not a passer-by) and held for a few seconds
         -- after the last one, so a squad standing in a market is not sweeping 60m of NPCs.
         local radius = self.EnemyAlerted and self.EnemyAlertRadius or self.EnemyScanRadius
+
+        -- Where the men confirmed to be FIGHTING us are standing, and the armed
+        -- candidates the normal gates turned away. Both feed the second pass below, and
+        -- `maybe` is also published for ScanForEnemies to hand to the behaviour tree -
+        -- the BT's GetTarget node is the only thing that can tell us they are fighting.
+        local attackers, maybe = {}, {}
+
+        local function consider(ent, entWuid, pos)
+            if not (ent and type(ent) == "table" and ent.soul) then return end
+            -- Read once and handed down: EngageCacheAccepts needs it for the lock-on
+            -- gate and the cache entry needs it for the alert, and it is an engine call.
+            local armed = (ent.human == nil) or ent.human:IsWeaponDrawn()
+            -- The engagement stance can widen this: see EngageCacheAccepts.
+            local accept, viaLockOn =
+                self:EngageCacheAccepts(ent, playerWuid, armed, self:IsRecentAttacker(entWuid))
+            if accept then
+                table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid, armed = armed, pos = pos })
+                if viaLockOn and pos then table.insert(attackers, pos) end
+            elseif armed and pos then
+                table.insert(maybe, { entity = ent, wuid = entWuid, pos = pos })
+            end
+        end
 
         -- Shared player-centered scan covers this exact (pos, radius) - see
         -- mercenaries_perf.lua and docs/performance.md #4. A nil return means
@@ -126,33 +207,73 @@ function mercenaries:UpdateEnemyCache()
         local shared = self:PerfNpcsNear(playerPos, radius, 400)
         if shared then
             for _, e in ipairs(shared) do
-                local ent = e.entity
-                if ent and type(ent) == "table" and ent.soul then
-                    -- The engagement stance can widen this: see EngageCacheAccepts.
-                    if self:EngageCacheAccepts(ent, playerWuid) then
-                        local armed = (ent.human == nil) or ent.human:IsWeaponDrawn()
-                        local p = e.pos
-                        local pos = p and { x = p.x, y = p.y, z = p.z } or nil
-                        table.insert(self.CachedEnemies, { entity = ent, wuid = e.wuid, armed = armed, pos = pos })
-                    end
-                end
+                local p = e.pos
+                consider(e.entity, e.wuid, p and { x = p.x, y = p.y, z = p.z } or nil)
             end
         else
             local ents = System.GetPhysicalEntitiesInBoxByClass(playerPos, radius, "NPC")
             if ents then
                 for _, ent in pairs(ents) do
-                    if ent and type(ent) == "table" and ent.soul then
-                        if self:EngageCacheAccepts(ent, playerWuid) then
-                            local entWuid = ent.this and ent.this.id or ent.id
-                            local armed = (ent.human == nil) or ent.human:IsWeaponDrawn()
-                            local p0 = ent:GetPos()
-                            local pos = p0 and { x = p0.x, y = p0.y, z = p0.z } or nil
-                            table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid, armed = armed, pos = pos })
-                        end
+                    if ent and type(ent) == "table" then
+                        local p0 = ent:GetPos()
+                        consider(ent, ent.this and ent.this.id or ent.id,
+                                 p0 and { x = p0.x, y = p0.y, z = p0.z } or nil)
                     end
                 end
             end
         end
+
+        -- ---------------------------------------------------------------------------
+        -- SECOND PASS: the men standing WITH whoever is fighting us.
+        --
+        -- The lock-on gate above only admits the individuals who have actually taken one
+        -- of ours as a target - in a camp of ten that is the two or three who reacted
+        -- first. The rest are still behind the relationship floor, so the squad has two
+        -- or three claimable enemies for twenty men, and seventeen of them stand there
+        -- with nothing to go at. That is the "only three of twenty ever engaged" report,
+        -- and it is not the swarm cap: there was nothing to be capped.
+        --
+        -- A fight is a fight between GROUPS. Once someone is confirmed to be fighting us,
+        -- every ARMED man standing with him is in it, and the squad should commit to all
+        -- of them - which is what "the alert engages everyone" has always meant.
+        --
+        -- Deliberately narrow, on four counts at once:
+        --   * it does nothing at all unless somebody is already fighting us, so peace is
+        --     untouched and so is the cost - `maybe` is only walked when `attackers` is
+        --     non-empty, which is almost never;
+        --   * ARMED only, which is the same drawn-weapon proof the aggressive stance
+        --     leans on - a bystander in a market is not swept up by a brawl beside him;
+        --   * within FightGroupRange of a confirmed attacker, not of the player, so it
+        --     grows from the fight rather than from wherever the player happens to be;
+        --   * IsOwnSide plus the whole of IsValidEnemy still apply, so it can never turn
+        --     the squad on itself, on a hero, or on a man who is fleeing or protected.
+        -- ---------------------------------------------------------------------------
+        if #attackers > 0 and #maybe > 0 then
+            local r2 = (self.FightGroupRange or 20.0) ^ 2
+            for _, m in ipairs(maybe) do
+                local near = false
+                for _, a in ipairs(attackers) do
+                    local dx, dy, dz = m.pos.x - a.x, m.pos.y - a.y, m.pos.z - a.z
+                    if (dx * dx + dy * dy + dz * dz) <= r2 then near = true break end
+                end
+                if near and not self:IsOwnSide(m.entity)
+                   and self:IsValidEnemy(m.entity, player, playerWuid, true, false) then
+                    table.insert(self.CachedEnemies,
+                                 { entity = m.entity, wuid = m.wuid, armed = true, pos = m.pos })
+                    m.taken = true
+                end
+            end
+        end
+
+        -- Whatever is left is what ScanForEnemies offers the behaviour tree as extra
+        -- candidates, so its GetTarget node can find the men who ARE fighting us among
+        -- them. That is the bootstrap: one confirmed attacker seeds NoteAttacker, and the
+        -- next pass through here admits him and everyone standing with him.
+        local rest = {}
+        for _, m in ipairs(maybe) do
+            if not m.taken then table.insert(rest, m) end
+        end
+        self.MaybeEnemies = rest
 
         -- Raise / hold / drop the alert from what this pass just found. Armed only: an
         -- unarmed hostile is an aggro source, not a fight, and widening the sweep for one
@@ -166,11 +287,23 @@ function mercenaries:UpdateEnemyCache()
         -- the cache above only reaches EnemyScanRadius while unalerted, so an alert raised
         -- purely from its contents can never fire for something far away - the very case this
         -- exists for. Whether the player is fighting is knowable at any distance.
+        -- ...and it fires on the player DRAWING AND LOCKING ON, not only on him being
+        -- swung at. The unalerted cache reaches EnemyScanRadius (18m) from the player, so
+        -- against base-game enemies - who are not in it until they commit - the squad
+        -- could not react until the fight was already on top of him. Both halves of this
+        -- are knowable at any distance, and raising the alert widens the sweep to
+        -- EnemyAlertRadius so the whole engagement becomes visible at once.
+        --
+        -- IsInCombatDanger, not GetTarget. `soul:GetTarget()` is not a Lua scriptbind
+        -- (see NoteAttacker) so the version of this that asked it never fired at all;
+        -- IsInCombatDanger is used on player.soul throughout vanilla's own scripts and
+        -- means exactly what is wanted here - the player is in a fight, whether or not a
+        -- blow has landed on HIM yet, which the crime context below only catches after.
         if not armedNear then
             pcall(function()
-                if player and player.soul and player.soul:HasScriptContext("crime_interruptAttack") then
-                    armedNear = true
-                end
+                if not (player and player.soul) then return end
+                if player.soul:HasScriptContext("crime_interruptAttack") then armedNear = true return end
+                if player.soul:IsInCombatDanger() then armedNear = true end
             end)
         end
         -- ...and so is "one of ours is already committed to someone".
@@ -188,6 +321,11 @@ function mercenaries:UpdateEnemyCache()
             if not self._alertAt or (now - self._alertAt) >= self.EnemyAlertHoldSecs then
                 self.EnemyAlerted = false
                 System.LogAlways('[Mercenary Jeff] squad alert over')
+                -- The end of a fight is the other moment a merc reliably ends up with a
+                -- behaviour that has stopped producing movement - combat replaced follow,
+                -- and whatever ran next did not always give it back. Same bounded window
+                -- the dismount and order-release cases use.
+                pcall(function() self:BeginFollowVerify("battle over") end)
             end
         end
 
@@ -307,7 +445,13 @@ function mercenaries:ScanForEnemies(bt_data, myWuid)
         local maxCandidates = 8
         local nearWuid, nearDist, count = {}, {}, 0
 
-        for _, entry in ipairs(self.CachedEnemies or {}) do
+        -- Cached enemies first, then the armed candidates the cache refused. The BT runs
+        -- its GetTarget node over every one of these, and that node is the only working
+        -- way to learn who is fighting us - see NoteAttacker. `rest` is empty except in a
+        -- real fight, so in a town this adds nothing.
+        local pools = { self.CachedEnemies or {}, self.MaybeEnemies or {} }
+        for _, pool in ipairs(pools) do
+        for _, entry in ipairs(pool) do
             local ent = entry.entity
             if ent then
                 local ep = entry.pos or ent:GetPos()
@@ -331,6 +475,7 @@ function mercenaries:ScanForEnemies(bt_data, myWuid)
                     end
                 end
             end
+        end
         end
 
         for i = 1, count do
@@ -360,6 +505,75 @@ function mercenaries:IsWithinAggroRange(ent)
     return ok and result or false
 end
 
+-- THE one place MercTargetOf is written, so TargetLoad is always maintained with it.
+--
+-- TargetLoad used to be rebuilt only once per UpdateEnemyCache pass (300ms) and
+-- TryClaimTarget never touched it, so every merc evaluating inside that window judged
+-- the cap against the same stale snapshot. With a lot of enemies about that breaks
+-- twice over: they all pile onto the same nearest man because he still reads as empty,
+-- and the NEXT snapshot then shows every candidate far OVER cap - so the men who did
+-- not get a fight are refused every target there is and simply stand through the
+-- battle. It also flaps: a merc whose target dies is refused a new one, sheathes, and
+-- is handed one again a tick later. Counting the claim as it is made fixes both.
+-- UpdateEnemyCache still recounts from scratch each pass, which corrects any drift.
+function mercenaries:MercSetClaim(myWuidStr, targetWuidStr)
+    local prev = self.MercTargetOf[myWuidStr]
+    if prev == targetWuidStr then return end
+    if prev then
+        local n = (self.TargetLoad[prev] or 1) - 1
+        self.TargetLoad[prev] = (n > 0) and n or nil
+    end
+    self.MercTargetOf[myWuidStr] = targetWuidStr
+    if targetWuidStr then
+        self.TargetLoad[targetWuidStr] = (self.TargetLoad[targetWuidStr] or 0) + 1
+    end
+end
+
+function mercenaries:MercDropClaim(myWuid)
+    if not myWuid then return end
+    self:MercSetClaim(tostring(myWuid), nil)
+end
+
+-- How far a fight spreads from whoever is confirmed to be fighting us: every armed man
+-- inside this of an attacker counts as being in the same battle. See the second pass in
+-- UpdateEnemyCache.
+mercenaries.FightGroupRange = 20.0
+
+-- How close a merc must already be to the fight before he is allowed past the
+-- anti-swarm cap. See the fallback at the end of PickCombatTarget.
+mercenaries.SwarmOverflowRange = 18.0
+
+-- Is this WUID an archer merc? One entity lookup, so callers that ask per candidate
+-- resolve it once and test StaticArcherPerched (an O(1) table read) per target instead.
+-- Only ever a merc asks (static archers pick their own targets in their own scheduler),
+-- so '_archer_' in the name means an archer MERC and not an enemy bowman.
+function mercenaries:MercIsArcherWuid(myWuid)
+    local myName
+    pcall(function()
+        local me = XGenAIModule.GetEntityByWUID(myWuid)
+        myName = me and me:GetName()
+    end)
+    return (myName and self:IsArcherName(myName)) or false
+end
+
+-- May this merc go for this target? The one rule here is the PERCHED archer: a man on a
+-- watchtower deck or a cart bed is archer-merc business only, because a footman walks to
+-- the foot of the thing and stands there while the distance leash flaps him between drawn
+-- and sheathed.
+--
+-- It used to refuse EVERY entity in StaticArchers, which is where the besiegers at
+-- Raborsch went wrong: they are static archers standing on open ground, so the whole
+-- company refused to touch them and the siege was fought against the foot alone. Perch,
+-- not registry membership, is what actually puts a target out of reach.
+--
+-- Keyed by entity.this.id, which is what CachedEnemies stores and what SpawnStaticArcher
+-- records under - the two keyspaces have to agree or this silently never matches.
+function mercenaries:MercMayClaim(myWuid, targetWuidStr, iAmArcher)
+    if not (self.StaticArcherPerched and self:StaticArcherPerched(targetWuidStr)) then return true end
+    if iAmArcher ~= nil then return iAmArcher end
+    return self:MercIsArcherWuid(myWuid)
+end
+
 -- Claim a target for a merc if it's below the cap; records it in MercTargetOf.
 -- force bypasses the cap - used only for genuine self-defence, where refusing the
 -- claim would leave a merc standing still while someone swings at him.
@@ -373,26 +587,7 @@ function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid, force)
     end
     local targetWuidStr = tostring(targetWuid)
 
-    -- A static archer - on a watchtower OR on an archer cart - is not a melee merc's business.
-    -- He walks to the foot of the thing and stands there while the distance leash flaps him
-    -- between drawn and sheathed. Only an archer merc may claim him. This covers BOTH now:
-    -- gating on `elevated` alone still left melee mercs piling onto cart archers.
-    -- Nothing needs undoing when a tower archer comes down - BanditCampBringArchersDown calls
-    -- RemoveStaticArcher and replaces him with a new ground entity that was never in the table.
-    --
-    -- Keyed by entity.this.id, which is what CachedEnemies stores and what SpawnStaticArcher
-    -- records under - the two keyspaces have to agree or this silently never matches.
-    local rec = self.StaticArchers and self.StaticArchers[targetWuidStr]
-    if rec then
-        local myName
-        pcall(function()
-            local me = XGenAIModule.GetEntityByWUID(myWuid)
-            myName = me and me:GetName()
-        end)
-        -- Only ever a merc asks here (static archers pick targets in their own scheduler), so
-        -- '_archer_' in the name means an archer MERC and not the enemy on the platform.
-        if not (myName and self:IsArcherName(myName)) then return false end
-    end
+    if not self:MercMayClaim(myWuid, targetWuidStr) then return false end
 
     -- Holding ground means holding it. Checked here rather than in the acquisition
     -- passes because this is the single choke point every claim goes through, so no
@@ -407,7 +602,7 @@ function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid, force)
     bt_data.playerTarget = targetWuid
     bt_data.isFriendly = false
     bt_data.foundTarget = true
-    self.MercTargetOf[tostring(myWuid)] = targetWuidStr
+    self:MercSetClaim(tostring(myWuid), targetWuidStr)
     return true
 end
 
@@ -430,6 +625,24 @@ function mercenaries:EvaluateCombatTarget(bt_data, myWuid)
         if not self:EngageAllowsRetaliation() then
             self:HoldFireWarn()
             return
+        end
+
+        -- The candidate list now includes men the CACHE refused (see ScanForEnemies), so
+        -- this is the point that has to re-validate rather than assume. Both hostility
+        -- gates are waived, because "he has taken one of ours as his target" is a
+        -- stronger proof than either of them - the same reasoning as EngageCacheAccepts.
+        local cand
+        pcall(function() cand = XGenAIModule.GetEntityByWUID(bt_data.candidate) end)
+        if not cand then return end
+        if self:IsOwnSide(cand) then return end
+        if not self:IsValidEnemy(cand, player, bt_data.playerWUID, true, true) then return end
+
+        -- THE authoritative record of who is fighting us, and the only one that works:
+        -- this is the engine's own GetTarget node's answer, not a Lua guess. The enemy
+        -- cache reads it back next pass to admit him and everyone standing with him.
+        self:NoteAttacker(bt_data.candidate)
+        if self.BanditCampAlertFor then
+            self:BanditCampAlertFor(tostring(bt_data.candidate), "a bandit is fighting us")
         end
 
         -- Someone swinging at ME overrides the swarm cap: refusing that claim leaves
@@ -494,19 +707,54 @@ function mercenaries:PickCombatTarget(bt_data, myWuid)
         local myPos = me and me:GetPos()
         if not myPos then return end
 
+        local cap  = self.EffectiveSwarmCap or self.SwarmCap
+        local hard = self.SwarmCapHard or 10
+        if hard < cap then hard = cap end
         local best, bestDist = nil, nil
+        -- ...and the nearest one that is merely under the HARD stop, for the fallback below.
+        local any, anyDist = nil, nil
+        -- Candidates this man is not allowed to claim are skipped HERE rather than being
+        -- picked and then refused by TryClaimTarget: `best` is the single nearest enemy, so
+        -- one perched archer standing closer than the foot around him used to blank the whole
+        -- pass and leave a melee merc with no target at all.
+        local iAmArcher = self:MercIsArcherWuid(myWuid)
         for _, entry in ipairs(self.CachedEnemies or {}) do
             local ep = entry.pos or (entry.entity and entry.entity:GetPos())
-            if ep and (self.TargetLoad[tostring(entry.wuid)] or 0) < (self.EffectiveSwarmCap or self.SwarmCap) then
+            local ws = tostring(entry.wuid)
+            if ep and self:MercMayClaim(myWuid, ws, iAmArcher) then
                 local dx, dy, dz = ep.x - myPos.x, ep.y - myPos.y, ep.z - myPos.z
                 local d = dx*dx + dy*dy + dz*dz
-                if not bestDist or d < bestDist then
-                    best, bestDist = entry.wuid, d
-                end
+                local load = self.TargetLoad[ws] or 0
+                if load < hard and (not anyDist or d < anyDist) then any, anyDist = entry.wuid, d end
+                if load < cap  and (not bestDist or d < bestDist) then best, bestDist = entry.wuid, d end
             end
         end
 
-        if best then self:TryClaimTarget(bt_data, myWuid, best) end
+        if best and self:TryClaimTarget(bt_data, myWuid, best) then return end
+
+        -- AT-CAP FALLBACK. Every candidate is full, so the anti-swarm rule has nothing
+        -- left to offer this man, and the cap is a preference rather than a law. Without
+        -- this he keeps no target at all and stands through the whole battle with his
+        -- weapon away, a few metres from a fight - which is far worse than one more man
+        -- on an already-busy enemy.
+        --
+        -- BOUNDED TWO WAYS, and both bounds are the design rather than caution.
+        --
+        --   * SwarmCapHard still stands. It is the "fifty men must not all mob three
+        --     bandits" stop, and against a handful of enemies EffectiveSwarmCap has
+        --     already risen to meet it - so there is no headroom, nothing spills over,
+        --     and the surplus keeps formation exactly as before. In a real battle the
+        --     cap is down at two to four while the hard stop is ten, and that gap is
+        --     precisely the relief this needs.
+        --   * SwarmOverflowRange. A benched merc standing inside the melee doing nothing
+        --     is the bug; a man forty metres back in the column is the design. Distance
+        --     tells the two apart on its own.
+        --
+        -- Force bypasses the soft cap only: the hold leash and the perched-archer rule
+        -- inside TryClaimTarget still apply, so this cannot pull a man off his station.
+        if any and anyDist <= (self.SwarmOverflowRange * self.SwarmOverflowRange) then
+            self:TryClaimTarget(bt_data, myWuid, any, true)
+        end
     end)
 
     if not ok then
@@ -612,6 +860,36 @@ function mercenaries:UpdateDismountThreat()
     end
 end
 
+-- ==== is the SQUAD operating mounted ====
+-- The two halves of follow.xml's mount poll. In Lua rather than inline in the XML
+-- `code` attributes because the answer now has a policy in it (HorsesAllowed) and a
+-- Lua comment inside an XML attribute silently truncates the rest of the script.
+--
+-- Mounting is instant, dismounting is debounced: a single missed StanceCheck would
+-- otherwise flip this global false for the WHOLE squad, dismounting everyone and starting
+-- every horse's despawn countdown. Poll and debounce are a pair - see docs/formations.md.
+mercenaries.MountDebounceSecs = 1.2
+
+function mercenaries:MercPlayerMountSeen()
+    pcall(function() _G.PlayerMountedSeenAt = System.GetCurrTime() end)
+    -- Horses off: the player may ride, the company never does. Held false HERE so every
+    -- reader of the global agrees - the formation picks a foot preset and the fall-behind
+    -- teleport stays armed, which is what lets men on foot keep up with a rider at all.
+    if not self:HorsesAllowed() then
+        if _G.PlayerMounted then _G.PlayerMounted = false end
+        return
+    end
+    if not _G.PlayerMounted then _G.PlayerMounted = true end
+end
+
+function mercenaries:MercPlayerMountLost()
+    if not _G.PlayerMounted then return end
+    local t = _G.PlayerMountedSeenAt
+    local now
+    pcall(function() now = System.GetCurrTime() end)
+    if not (t and now) or (now - t) > self.MountDebounceSecs then _G.PlayerMounted = false end
+end
+
 -- Called from follow.xml's horse-lifecycle poll in place of the old inline
 -- expression, so the "get down and fight" rule sits with the rest of the combat
 -- state instead of being buried in an XML attribute.
@@ -626,6 +904,3 @@ function mercenaries:AutoDismountSet(v)
     self.AutoDismount = (tostring(v or ''):match('1') ~= nil)
     System.LogAlways('[Mercenary Jeff] dismount-to-fight ' .. (self.AutoDismount and 'ON' or 'OFF'))
 end
-
-System.AddCCommand("merc_autodismount", "mercenaries:AutoDismountSet('%line')",
-    "Mercs get off their horses to fight: merc_autodismount 0 | 1")

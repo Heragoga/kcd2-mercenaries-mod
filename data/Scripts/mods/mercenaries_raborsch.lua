@@ -296,13 +296,71 @@ mercenaries.RaborschDefenderHealth = 12.0
 -- Walk this close to anyone in the siege and the whole thing goes off at once: the besiegers
 -- drop whatever they were doing, the archers stop holding fire, and the squad widens its own
 -- scan so it joins in rather than trickling into the fight a man at a time.
-mercenaries.RaborschAlertRange = 10.0
+-- 10 was far too tight, and it was measured off the player alone (see RaborschMonitor,
+-- which now watches the whole company).
+--
+-- Be precise about what SiegePeace actually withholds, because it is NOT "every
+-- besieger": SiegeSuppressed only covers entities registered in StaticArchers, i.e. the
+-- tower and cart archers. Foot besiegers are in BanditCampActors, and the gate that reads
+-- that table only inspects the two bandit-camp-quest slots, never RBQ - so a foot
+-- besieger inside the ordinary EnemyScanRadius can be engaged before the alert fires.
+-- What the alert really buys is the archers coming off hold-fire, the forced targets,
+-- and the wide radius/ceiling - which is still the difference between a battle and a
+-- trickle, but it is not a total embargo.
+--
+-- 60 is EnemyAlertRadius: the siege goes live at exactly the range an alerted squad can
+-- already acquire targets, so the fight starts when the men can see something to fight
+-- rather than well after. Note the trigger has no line-of-sight test (wall gating is
+-- deliberately off during a siege - NavTargetBlocked's RBQ early-out at
+-- mercenaries_navmesh.lua:891), so it can fire through terrain; that is acceptable here
+-- only because RaborschMonitor runs at all only while the siege is already set up and
+-- staged for this quest beat, so there is no "wandered past by accident" case to guard.
+mercenaries.RaborschAlertRange = 60.0
 
 -- SwarmCap is 2 - only two mercs may claim any one target - which is right for a roadside
 -- scrap and wrong for a battle: with fifty mercs and a handful of enemies in the cache at any
 -- moment, most of the squad is turned away at the claim and stands there. Raised for the
 -- duration and put back when the siege is struck.
 mercenaries.RaborschSwarmCap = 6
+
+-- ...but pinning EffectiveSwarmCap to that flat 6 every tick was the wrong way to do it,
+-- and it put back the very bug the elastic cap was written to fix. UpdateEnemyCache
+-- recomputes EffectiveSwarmCap from squad size vs visible enemies every 300ms
+-- (mercenaries_target_selection.lua) precisely so "a 50-man squad against a handful of
+-- enemies could only ever commit 4 men per enemy - everyone past that found every
+-- candidate full, kept no target, and held formation". Overwriting that with a constant
+-- 6 once a second re-imposed exactly that ceiling for the whole siege, which is the
+-- battle where it hurts most.
+--
+-- So raise the elastic formula's own CEILING for the duration and let it do its job:
+-- against a thin line it commits properly, against one straggler it still will not send
+-- all fifty. Saved and restored, because these are global tunables the rest of the game
+-- keeps using.
+mercenaries.RaborschSwarmCapMax  = 10
+mercenaries.RaborschSwarmCapHard = 20
+
+function mercenaries:RaborschRaiseSwarmCeiling()
+    if self._rabSavedCapMax == nil then
+        self._rabSavedCapMax  = self.SwarmCapMax
+        self._rabSavedCapHard = self.SwarmCapHard
+    end
+    self.SwarmCapMax  = self.RaborschSwarmCapMax
+    self.SwarmCapHard = self.RaborschSwarmCapHard
+    -- Floor the live value too, so the squad does not have to wait out one cache pass
+    -- before anyone past the old ceiling is allowed to claim.
+    if (self.EffectiveSwarmCap or 0) < self.RaborschSwarmCap then
+        self.EffectiveSwarmCap = self.RaborschSwarmCap
+    end
+end
+
+function mercenaries:RaborschRestoreSwarmCeiling()
+    if self._rabSavedCapMax ~= nil then
+        self.SwarmCapMax  = self._rabSavedCapMax
+        self.SwarmCapHard = self._rabSavedCapHard
+        self._rabSavedCapMax, self._rabSavedCapHard = nil, nil
+    end
+    self.EffectiveSwarmCap = self.SwarmCap
+end
 
 -- EnemyAlerted is NOT enough on its own: UpdateEnemyCache recomputes it every 300ms from what
 -- it just found, so setting it once is undone almost immediately - the same trap as the LOD
@@ -314,7 +372,7 @@ mercenaries.RaborschEngageRadius = 160.0
 -- that only re-reads its Lua on its own cycle, so stripping his role once leaves him where he
 -- is until that comes round - which is where the "twenty seconds, and still stragglers" came
 -- from. The alert is re-applied every tick for this many ticks (1Hz) instead.
-mercenaries.RaborschAlertSweeps = 20
+mercenaries.RaborschAlertSweeps = 32
 mercenaries.RaborschDefenderAmmo  = "ad6f0f01-aec4-44d1-982c-1210eb01b74a"  -- arrow_normal, the weakest
 
 -- Applied to every archer a defender tower or cart put up. Deferred, because the towers spawn
@@ -877,7 +935,7 @@ function mercenaries:RaborschEngageAll(quiet)
     -- And the squad: EnemyAlerted widens their sweep from EnemyScanRadius to EnemyAlertRadius,
     -- and the swarm cap comes off so the whole company can pile in instead of two men per foe.
     self.EnemyAlerted = true
-    self.EffectiveSwarmCap = self.RaborschSwarmCap
+    self:RaborschRaiseSwarmCeiling()
     self._rabSavedAlertR = self._rabSavedAlertR or self.EnemyAlertRadius
     self.EnemyAlertRadius = self.RaborschEngageRadius
     pcall(function() self._lodLastFoeAt = System.GetCurrTime() end)
@@ -898,7 +956,7 @@ function mercenaries:RaborschMonitor()
     if S.alerted then
         self.EnemyAlerted = true
         self.EnemyAlertRadius = self.RaborschEngageRadius
-        self.EffectiveSwarmCap = self.RaborschSwarmCap
+        self:RaborschRaiseSwarmCeiling()
         -- Keep sweeping up the stragglers for a while: anyone whose behaviour had not come
         -- round yet on the first pass gets stripped and re-pointed on the next.
         S.alertSweeps = (S.alertSweeps or 0) + 1
@@ -916,6 +974,20 @@ function mercenaries:RaborschMonitor()
     pcall(function() p = player:GetWorldPos() end)
     if not p then return end
 
+    -- WHOSE approach counts. Testing the player alone is the same "wrong body's
+    -- position" defect NavSuppressFormation had: a company could be standing among the
+    -- besiegers with the siege still asleep, because the man the check cared about was
+    -- fifty metres back. Any merc walking into it sets it off too. Positions come from
+    -- the PerfPos cache (refreshed every 50ms), so this stays a handful of subtractions
+    -- at 1Hz - the cost here has always been the GetEntity/GetWorldPos per besieger,
+    -- which is unchanged and now done once per besieger rather than once per watcher.
+    local watchers = { p }
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        local w = ent and (ent.this and ent.this.id or ent.id)
+        local mp = w and self:PerfMercPos(w) or nil
+        if mp then watchers[#watchers + 1] = mp end
+    end
+
     local r2 = self.RaborschAlertRange * self.RaborschAlertRange
     local function near(id)
         local e = System.GetEntity(id)
@@ -923,16 +995,19 @@ function mercenaries:RaborschMonitor()
         local q
         pcall(function() q = e:GetWorldPos() end)
         if not q then return false end
-        local dx, dy, dz = q.x - p.x, q.y - p.y, q.z - p.z
-        return (dx * dx + dy * dy + dz * dz) <= r2
+        for _, w in ipairs(watchers) do
+            local dx, dy, dz = q.x - w.x, q.y - w.y, q.z - w.z
+            if (dx * dx + dy * dy + dz * dz) <= r2 then return true end
+        end
+        return false
     end
 
     for _, id in ipairs(S.foot or {}) do
-        if near(id) then self:RaborschAlert("player within " ..
+        if near(id) then self:RaborschAlert("the company came within " ..
             string.format("%.0fm", self.RaborschAlertRange)); return end
     end
     for _, id in ipairs(S.archers or {}) do
-        if near(id) then self:RaborschAlert("player at the barricades"); return end
+        if near(id) then self:RaborschAlert("the company reached the barricades"); return end
     end
 end
 
@@ -988,7 +1063,7 @@ function mercenaries:DespawnRaborsch()
 
     self.SiegePeace = false
     -- Hand the squad's targeting rules back, and release every forced target.
-    self.EffectiveSwarmCap = self.SwarmCap
+    self:RaborschRestoreSwarmCeiling()
     if self._rabSavedAlertR then
         self.EnemyAlertRadius, self._rabSavedAlertR = self._rabSavedAlertR, nil
     end
@@ -1109,10 +1184,8 @@ function mercenaries:RaborschStatus()
         #(S.seats or {}), #(S.beds or {}), tostring(self.SiegePeace)))
 end
 
-System.AddCCommand("merc_raborsch",        "mercenaries:SpawnRaborsch()",  "Raise the siege of Raborsch")
-System.AddCCommand("merc_raborsch_clear",  "mercenaries:DespawnRaborsch()","Strike the siege")
-System.AddCCommand("merc_raborsch_besiegers", "mercenaries:RaborschBesiegers()", "Are the besiegers in combat, or still camp actors?")
-System.AddCCommand("merc_raborsch_defenders", "mercenaries:RaborschDefenders()", "Why each defender archer is or is not shooting")
-System.AddCCommand("merc_raborsch_status", "mercenaries:RaborschStatus()", "What is standing")
-System.AddCCommand("merc_raborsch_go",     "mercenaries.RaborschRelease()","Let the two lines shoot, without waiting")
-System.AddCCommand("merc_raborsch_alert",  "mercenaries:RaborschAlert('console')", "Set the whole siege on the player now")
+mercenaries:DevCommand("merc_raborsch_besiegers", "mercenaries:RaborschBesiegers()", "Are the besiegers in combat, or still camp actors?")
+mercenaries:DevCommand("merc_raborsch_defenders", "mercenaries:RaborschDefenders()", "Why each defender archer is or is not shooting")
+mercenaries:DevCommand("merc_raborsch_status", "mercenaries:RaborschStatus()", "What is standing")
+mercenaries:DevCommand("merc_raborsch_go",     "mercenaries.RaborschRelease()","Let the two lines shoot, without waiting")
+mercenaries:DevCommand("merc_raborsch_alert",  "mercenaries:RaborschAlert('console')", "Set the whole siege on the player now")

@@ -584,22 +584,20 @@ function mercenaries:GateStatus()
     end
 end
 
-System.AddCCommand("merc_gate_build",  "mercenaries:StartGatePlacement()",
+mercenaries:DevCommand("merc_gate_build",  "mercenaries:StartGatePlacement()",
     "Place a gate: aim, left-click to place, right-click to finish")
-System.AddCCommand("merc_gate_open",   "mercenaries:GateSetAllOpen(true)",  "Open every camp gate")
-System.AddCCommand("merc_gate_close",  "mercenaries:GateSetAllOpen(false)", "Shut every camp gate (stops raids)")
-System.AddCCommand("merc_gate_remove", "mercenaries:GateRemoveNearest()",   "Remove the gate nearest you")
-System.AddCCommand("merc_gate_clear",  "mercenaries:GateClearAll()",        "Remove every gate")
-System.AddCCommand("merc_gate_status", "mercenaries:GateStatus()",          "List the camp gates and their state")
-System.AddCCommand("merc_gate_probe",  "mercenaries:GateProbe()",           "Diagnose the E prompt: class registration, interactor helpers, spawned class, distance")
-System.AddCCommand("merc_gate_trace",  "mercenaries:GateSetTrace('%line')", "Log every interactor call on a gate: 0 or 1")
-System.AddCCommand("merc_gate_style",  "mercenaries:GateSetStyle('%line')", "Gate mesh pair: merc_gate_style <n> (no arg lists them)")
-System.AddCCommand("merc_gate_yawfix", "mercenaries:GateSetYawFix('%line')","Rotate every gate by N degrees (mesh front axis fix)")
-System.AddCCommand("merc_gate_sink",   "mercenaries:GateSetSink('%line')",  "Raise or sink every gate by N metres")
-System.AddCCommand("merc_gate_walldist","mercenaries:GateSetWallDist('%line')", "Clearance between a snapped gate and the wall it joins (0 = flush, negative overlaps)")
-System.AddCCommand("merc_gate_width",  "mercenaries:GateSetWidth('%line')", "Length of the gate in metres (default 4)")
-System.AddCCommand("merc_gate_colliders","mercenaries:GateSetColliders('%line')", "Build the shut gate's collider crates at all: 0 or 1 (currently OFF)")
-System.AddCCommand("merc_gate_colliders_show","mercenaries:GateSetCollidersShow('%line')", "Make those collider crates visible: 0 or 1")
+mercenaries:DevCommand("merc_gate_remove", "mercenaries:GateRemoveNearest()",   "Remove the gate nearest you")
+mercenaries:DevCommand("merc_gate_clear",  "mercenaries:GateClearAll()",        "Remove every gate")
+mercenaries:DevCommand("merc_gate_status", "mercenaries:GateStatus()",          "List the camp gates and their state")
+mercenaries:DevCommand("merc_gate_probe",  "mercenaries:GateProbe()",           "Diagnose the E prompt: class registration, interactor helpers, spawned class, distance")
+mercenaries:DevCommand("merc_gate_trace",  "mercenaries:GateSetTrace('%line')", "Log every interactor call on a gate: 0 or 1")
+mercenaries:DevCommand("merc_gate_style",  "mercenaries:GateSetStyle('%line')", "Gate mesh pair: merc_gate_style <n> (no arg lists them)")
+mercenaries:DevCommand("merc_gate_yawfix", "mercenaries:GateSetYawFix('%line')","Rotate every gate by N degrees (mesh front axis fix)")
+mercenaries:DevCommand("merc_gate_sink",   "mercenaries:GateSetSink('%line')",  "Raise or sink every gate by N metres")
+mercenaries:DevCommand("merc_gate_walldist","mercenaries:GateSetWallDist('%line')", "Clearance between a snapped gate and the wall it joins (0 = flush, negative overlaps)")
+mercenaries:DevCommand("merc_gate_width",  "mercenaries:GateSetWidth('%line')", "Length of the gate in metres (default 4)")
+mercenaries:DevCommand("merc_gate_colliders","mercenaries:GateSetColliders('%line')", "Build the shut gate's collider crates at all: 0 or 1 (currently OFF)")
+mercenaries:DevCommand("merc_gate_colliders_show","mercenaries:GateSetCollidersShow('%line')", "Make those collider crates visible: 0 or 1")
 
 -- ==== candidate gallery (authoring) ====
 -- cellsize = cell width in metres, percol = candidates per row, flank = 0/1.
@@ -690,13 +688,13 @@ function mercenaries:GateMxList()
 end
 
 -- %line, not %1: AddCCommand only substitutes the whole rest of the line.
-System.AddCCommand("merc_gate_matrix",       "mercenaries:GateMatrixSpawn('%line')",
+mercenaries:DevCommand("merc_gate_matrix",       "mercenaries:GateMatrixSpawn('%line')",
     "Grid of palisade-gate candidates: merc_gate_matrix [cellsize] [percol] [flank 0|1]")
-System.AddCCommand("merc_gate_matrix_clear", "mercenaries:GateMatrixClear()",
+mercenaries:DevCommand("merc_gate_matrix_clear", "mercenaries:GateMatrixClear()",
     "Remove the gate matrix")
-System.AddCCommand("merc_gate_mx_yaw",          "mercenaries:GateMxSetYaw('%line')",
+mercenaries:DevCommand("merc_gate_mx_yaw",          "mercenaries:GateMxSetYaw('%line')",
     "Spin every candidate by N degrees and respawn (try 90)")
-System.AddCCommand("merc_gate_mx_up",           "mercenaries:GateMxSetUp('%line')",
+mercenaries:DevCommand("merc_gate_mx_up",           "mercenaries:GateMxSetUp('%line')",
     "Raise or sink every candidate by N metres and respawn")
-System.AddCCommand("merc_gate_mx_list",         "mercenaries:GateMxList()",
+mercenaries:DevCommand("merc_gate_mx_list",         "mercenaries:GateMxList()",
     "Print the candidate list with mesh paths")

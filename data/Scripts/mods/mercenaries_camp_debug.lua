@@ -281,9 +281,9 @@ function mercenaries:ClearCampScan()
     self.ScanTestEntities = {}
 end
 
-System.AddCCommand("merc_camp_scan", "mercenaries:CampScan(%1, %2)", "Probe a grid around you with the camp ground validator: flag = valid spot, barrel = rejected. Usage: merc_camp_scan [radius] [spacing]")
-System.AddCCommand("merc_camp_scan_clear", "mercenaries:ClearCampScan()", "Remove the merc_camp_scan markers")
-System.AddCCommand("merc_camp_activity_list", "mercenaries:ListCampActivities()", "List the camp activity catalogue (index, name, mode) for merc_camp_activity_test")
-System.AddCCommand("merc_camp_activity_test", "mercenaries:SpawnCampActivityTest(%1)", "Spawn what an activity needs and make a merc play it. Usage: merc_camp_activity_test <index or name>")
-System.AddCCommand("merc_camp_activity_test_clear", "mercenaries:ClearCampActivityTest()", "Stop the activity test and remove its props")
-System.AddCCommand("merc_camp_furniture_debug", "mercenaries:DebugCampFurniture()", "Dump the merc sit/sleep smart-object state (spawned SOs, per-merc assignments, guard count)")
+mercenaries:DevCommand("merc_camp_scan", "mercenaries:CampScan(%1, %2)", "Probe a grid around you with the camp ground validator: flag = valid spot, barrel = rejected. Usage: merc_camp_scan [radius] [spacing]")
+mercenaries:DevCommand("merc_camp_scan_clear", "mercenaries:ClearCampScan()", "Remove the merc_camp_scan markers")
+mercenaries:DevCommand("merc_camp_activity_list", "mercenaries:ListCampActivities()", "List the camp activity catalogue (index, name, mode) for merc_camp_activity_test")
+mercenaries:DevCommand("merc_camp_activity_test", "mercenaries:SpawnCampActivityTest(%1)", "Spawn what an activity needs and make a merc play it. Usage: merc_camp_activity_test <index or name>")
+mercenaries:DevCommand("merc_camp_activity_test_clear", "mercenaries:ClearCampActivityTest()", "Stop the activity test and remove its props")
+mercenaries:DevCommand("merc_camp_furniture_debug", "mercenaries:DebugCampFurniture()", "Dump the merc sit/sleep smart-object state (spawned SOs, per-merc assignments, guard count)")

@@ -671,6 +671,67 @@ Three bugs from building this are worth not repeating:
 | Re-targeting | `EndFormation` + `MakeFormation` | epoch bump, logged with a reason |
 | Spacing/facing | authored | authored |
 
+### Diagnosing "they don't hold a formation, they just follow me in a blob"
+
+Every path that leaves a merc without a formation slot drops him onto `CrimeFollower`, and a squad on
+the chain trailing the player is exactly what "a blob" looks like. Nothing on screen tells the two
+apart, so the answer has to come out of the log. Three instruments, in the order you should read them:
+
+**1. `merc_formation_status`** prints `makeFormation=` and `inFormation=n/m`.
+
+`inFormation` is the honest number: it is written from a flag `follow.xml`'s locomotion arms set, so it
+counts men who are genuinely *inside* `FormationFollower`, not men we merely asked to be. `n=0` with a
+healthy `makeFormation=OK` means the handle resolves but nobody gets a slot — i.e. the formation exists
+and is **empty**, which is what an unloaded preset catalogue would produce if `MakeFormation` hands
+back a handle for any name. `merc_follow_stats 1` prints the same pair every 2 s alongside the spread.
+
+**2. `[MercForm] formation OFF (<reason>)`** names which squad-wide gate stood the formation down —
+`hold order`, `escort order`, `idle`, `dismissed`, `no leader`, `squad under 2` — logged
+once per change.
+
+`walled camp` is **no longer one of them**, and that was a real bug rather than a missing log line.
+`NavSuppressFormation` decided from the *player's* position against a 60 m radius (75 m to come
+back), and switched the **whole squad** together. A camp is nowhere near 60 m across, so sallying out
+of a walled camp meant the entire squad marched the first 75 m on the CrimeFollower chain, and a hire
+made anywhere in that ring came out on the chain too — the "they revert to crime follower when
+sallying out" report. What the suppression is actually for is narrow: a merc who must route *around*
+the camp wall cannot be steered there by an engine formation, so he drops to slot following and the
+custom navmesh takes him. That is a fact about where **that man** is standing, not where the player
+is. `NavSuppressFormationFor(wuid)` now decides it per merc, with per-merc hysteresis (the original
+comment's warning about boundary churn is real) off the 50 ms `PerfPos` cache, and it is checked
+*after* the squad-wide reasons and outside the `off` chain — it can be true for the man inside the
+walls and false for his mate already marching away, so it can never be one shared reason string. A hold order that was never cleared is the single easiest way to be permanently on the
+chain: `UpdateFormationRole` returns early on `HoldActive`, and every path that resumes following has
+to call `HoldEnd`. `SetState('follow')`, `SetState('dismiss')`, `SetSortieWait(false)`, `BreakMercCamp`,
+`RecallMercs` and the load-time reset all do; anything new that resumes following must too.
+
+**3. `[MercForm] MakeFormation <preset> -> OK | NULL HANDLE`.**
+
+**This line used to lie.** It was derived in Lua as `bt_data.formationWUID ~= nil`, and a `_wuid`
+never reads back as `nil` across the Lua bridge — the same reason `data.x = nil` cannot clear one — so
+it answered `OK` even for a null handle. The verdict now comes from `$formationOk`, computed in
+`follow.xml` with a BT comparison against `$__null`, which is the only thing that can see it. Any
+older log showing `OK` proves nothing.
+
+On a genuine null the squad is no longer just told about it: after `FormationFallbackMisses`
+consecutive nulls it switches itself to `vanilla` and re-makes the formation on a stock preset
+(`followNPC` / `infantryMen20`), which is in the catalogue whatever happened to ours. A real formation
+in the wrong shape beats no formation at all. Any manual `merc_formation_*` command re-arms our shapes.
+
+**The control test.** `merc_formation_control` runs `MakeFormation` on `merc_control_no_such_formation`
+— a name in no catalogue, ours or the game's. If that still logs `OK`, the engine returns a handle for
+any name, a null handle is not a usable signal, and the automatic fallback above can never fire; fall
+back to eyeballing `merc_formation_vanilla` (if the squad suddenly holds a shape, our whole-file
+override of `FormationDefinitions.xml` is not being loaded). If it logs `NULL HANDLE` while the real
+preset logs `OK`, the override *is* loaded and the blob is somewhere else — start at instrument 2.
+
+**One membership rule.** `IsFormationEligible` gates the engine formation; `UpdateFormationSlots`
+builds the chain that catches everyone it rejects. They must use the *same* test. They did not — the
+chain checked only `IsMercInCampProper` while eligibility also excluded camp actors — and a merc who
+falls through the gap gets no `FormationSlots` entry at all, so `CalculateFormationTarget` defaults him
+to `followTarget = the player` and he walks straight at him. Enough of them and the squad piles onto
+the player even with a perfectly healthy formation running.
+
 ## This mod's own shapes
 
 [data/AI/FormationDefinitions.xml](../data/AI/FormationDefinitions.xml) is **generated** — do not hand-edit it:
@@ -726,6 +787,122 @@ fired on eight of nineteen followers in a deep column, each restart leaving them
 drifted further back and re-tripped it — the whole "fine at 10 mercs, bad at 20" cliff. Keep the deepest spot
 of any preset well inside that threshold.
 
+### Who anchors it: never an injured man
+
+The anchor is the one merc the whole formation hangs off *and* the one who walks nearest the player,
+so he is simultaneously the most visible man in the squad and the one whose death costs the most —
+he re-elects, which rebuilds the formation and makes every follower re-join. `UpdateFormationLeader`
+therefore elects in **three tiers**, nearest-to-player within each:
+
+1. fit and free;
+2. **hurt** (below `InjuredHealthPct`, the same floor as the HUD's injured buff and the camp
+   bed-rest bias, so "injured" means one thing across the mod);
+3. camp-busy — last, because he physically cannot walk yet, and an anchor that cannot walk stands
+   the entire squad.
+
+A **busy incumbent keeps the job** on the same terms as a hurt one. He used not to, and that was
+a live bug rather than a nicety: without `leaderStillOk` the "leader no longer eligible" branch
+fires every 150 ms tick, and since the busy fallback is *nearest busy man to the player* it picks
+a different man as the player moves. Every pick bumps the epoch, and every epoch bump rebuilds the
+formation. A squad in that state never settles into slots at all.
+
+A sitting leader who crosses the floor is **demoted, not evicted**: he keeps the job until there is
+a fit man to hand it to, and the handover is bounded by the same `FormationLeaderSwapCooldown` as a
+displacement swap. That bound is the point — health only falls during a fight, so without it a hard
+scrap would demote leader after leader as each one crosses the floor, and every demotion rebuilds
+the formation. The immediate, cooldown-free path above it stays reserved for a leader who is *dead
+or gone*, which is an emergency rather than a preference.
+
+**The wall rule is sized by the wall, not by a blanket radius.** `NavSuppressFormationFor`
+exists for one narrow case: a man who has to route *around* the palisade cannot be steered
+there by an engine formation, so he drops to slot following and the custom navmesh takes him.
+It was measuring that against `NavActiveRadius` (60 m, release at 75 m) when a palisade of 51
+segments encloses a circle of about 22 m — so a party deployed from a walled camp, standing
+inside it with the leader and the player who ordered them out, was suppressed to a man and
+stayed suppressed for its first 75 m. The whole sortie marched on the follow chain with no
+formation at all, which reads exactly like the formation system being broken.
+
+It now measures against `NavWallRadius()` — the furthest wall corner from the camp centre,
+cached against the wall tables — plus `NavWallPadding`, and it **exempts anyone on the same
+side of the wall as the anchor**, which is the real statement of the rule: there is nothing to
+route around when you and the shape you are joining are both inside the same palisade.
+
+**The anchor is never suppressed by the wall rule.** `NavSuppressFormationFor` takes any merc
+within `NavActiveRadius` (60 m) of a *walled* camp centre out of the formation until he is 75 m
+clear, so the engine formation does not drag him through the palisade. Applied to the leader that
+is fatal rather than cautious: `MakeFormation` runs only inside `follow.xml` behind
+`$isFormationLeader`, so suppressing the anchor means no formation object exists for **anyone** —
+every follower's `GetMemberFormation` comes back null and the whole squad drops to the follow
+chain. It bit exactly one case, and bit it every time: a party deployed from a walled camp, where
+the leader is elected nearest the player and the player is standing in his own camp when he gives
+the order. Followers are still suppressed while they are inside the walls and pick up slots as
+they clear them.
+
+The injury test reads `soul:GetState('health')` straight off the entity the loop already holds.
+`LogiIsInjured` answers the same question but scans `ActiveMercs` for the key, which at 150 ms over
+fifty men is O(squad²) a tick.
+
+### The follow-verification net must not fight a deep formation
+
+`DismountVerify` re-fires follow on a merc who has not moved 1 m since his anchor and is
+either behind the player's own drift (5 m) or simply `DismountVerifyFar` (22 m) away and
+stationary. That far test is shorter than the formations themselves:
+
+| Preset | Depth | Spots past 22 m |
+| --- | --- | --- |
+| `merc_column10` | 9.0 m | 0 |
+| `merc_column24` | 21.6 m | 0 |
+| `merc_column30` | 27.0 m | 5 |
+| `merc_column40` | 36.0 m | 15–17 |
+| `merc_column50` | 45.0 m | 25–27 |
+
+So the rear half of a *correctly formed* long column is beyond it, and whenever the player
+pauses those men are stationary because they are standing exactly where they were told to.
+Every 2 s for the whole 25 s window each of them was evicted and re-fired — which costs a man
+his slot and makes him re-acquire — so the squad churned instead of settling. Deploying 38 men
+into `merc_column40` made it unmissable: the log shows the "not following" count *diverging*,
+2 → 5 → 10 → 13 → 16 → **17**, matching the 17 spots at or past the 22 m line.
+
+The far test is now waived for a man holding a formation slot, and only for him: `FormationSlotAt`
+is stamped from `follow.xml` on every pass, so a claim newer than `FormationSlotFreshSecs`
+(2.5 s) is proof his tree is *running*. A genuinely stalled merc stops stamping, his claim
+expires, and the far test catches him again — the flag on its own would have been a blind spot.
+The player-drift half is never waived: if the player moves and a man does not, he is stuck
+whatever he believes about his slot.
+
+### Named companions ride at the front
+
+`FormationFollower` takes a `PreferredPositions` string naming a `<Spot>` in the preset, and our
+generated shapes name their spots by rank. Without it the engine drops each follower in any free
+spot, so the one man the player actually hired for himself was as likely to be at the back of forty
+as at the front. Heroes ask for the front-most band; everyone else passes `""` and fills in around
+them.
+
+Two things are derived rather than hardcoded, and both matter:
+
+- **The spot name is per shape** — `front` for column/line/square/wedge, `inner` for circle,
+  `rank1` mounted, and *nothing* for escort (two files flanking the subject; it has no front to be
+  at) or for the stock vanilla presets, whose spot names are not ours to guess. A name that does not
+  exist in the current formation is at best a silent fallback and at worst a failed node.
+- **The band's size is the minimum across the whole size ladder** (`FormationFrontSpots`: column 3,
+  wedge 4, square 5, line 6, circle 6, mounted 2), so the request can never exceed what the smallest
+  preset of that shape actually has. Ask for more front spots than exist and the overflow men fail
+  the node, drop to the time-boxed `CrimeFollower` fallback, and retry every 1.5 s for ever — which
+  is visible churn. Regenerate these alongside `tools/gen_formations.py` if the shapes change.
+
+Heroes are sorted by name and the first `slots` of them get the band, so the same men keep the same
+standing — re-ranking each pass would re-issue a different `PreferredPositions` every tick and make
+them swap places on the march. The **leader is skipped**: he is already the front-most man in the
+shape and holds no spot of his own, so he never consumes one.
+
+`UpdateFormationFront` runs once a second rather than on every 150 ms leader tick (`IsHero` costs a
+`GetName` per merc and nothing here changes fast), but recomputes at once when the epoch or the
+leader changes — the epoch is what carries a shape change, and the spot names are shape-specific.
+
+`merc_formation_status` prints `front=N/slots spot=<name>` so the assignment is checkable without a
+logging channel.
+
+
 ## Moddability: shipping your own presets
 
 **Likely: whole-file replacement only, and it has not been runtime-tested.**
@@ -740,6 +917,40 @@ If it works, the cost is real: you must copy all 63 vanilla formations into your
 
 **The conflict-free alternative is reusing an existing preset name.** `MakeFormation` takes only a name string, so any preset in the loaded catalogue is available to a mod's own tree with no level data and no file collision. `followNPC` (8 spots, ±0.7 m, ranks every 1.7 m) is close to what `UpdateFormationSlots` already builds by hand; `infantryMen20` and `cavalryRiders6` cover larger bodies; `longLine` and `nextToLeader` cover small escorts.
 
+
+## Turning horses off entirely (`merc_horses 0`)
+
+The company can be told to march on foot whatever the player is riding — from the console or
+from the quartermaster's **Mod settings**. The setting is saved (`MercHorses`).
+
+**The lever is `_G.PlayerMounted`, not the horse spawn.** That global is what the whole mod
+reads as "the squad is operating mounted", and it independently drives:
+
+| Reader | What it does while true |
+| --- | --- |
+| `FormationPresetName` | selects `merc_mounted<N>` — files 3.5 m, ranks 4 m, ~64 m deep at fifty men |
+| `FormationLeaderSwapMargin*` | widens the leader-swap margin from 8 m to 30 m |
+| `UpdateFormationLeader` | force-rebuilds the formation on a mounted/dismounted edge |
+| `FormationFrontSpot` | switches to the mounted band |
+| `MonitorDistanceAndTeleport` | **disables** the fall-behind teleport entirely |
+| the schedulers | skip the stuck-follower self-heal |
+| the loot sweep | cancels when the player mounts |
+
+So blocking only the spawn — or only `bt_data.playerIsMounted` — produces men on foot, in a
+64 m cavalry column, with catch-up teleport *and* the stuck-follower self-heal switched off,
+chasing a galloping player. That is a worse squad than the one that already exists.
+
+Both halves of the mount poll therefore moved out of `follow.xml`'s `code` attributes into
+`MercPlayerMountSeen` / `MercPlayerMountLost` (mercenaries_target_selection.lua), and the
+"seen" half holds the global false while the setting is off. Everything downstream follows:
+`MercMountState` yields `want = false`, so no horse is ever spawned; the formation picks a
+foot preset; and the orphan sweep's `elseif not _G.PlayerMounted` arm despawns any horse
+already standing, which is what makes the setting take effect mid-game instead of at the next
+dismount. Turning it off explicitly drops the global as well, so it does not wait for a poll.
+
+Two consequences worth knowing: catch-up teleport is now *armed* while the player rides, which
+is the only thing that lets men on foot keep up with a horse; and the loot sweep no longer
+auto-cancels when the player mounts (its distance check still ends it).
 
 ## Mounted mercs engaging late
 
@@ -884,6 +1095,25 @@ run otherwise leaves them winded and slowing.
 > "everyone except the leader runs 20 m away and then comes back" bug. It fired exactly when
 > the player's speed crossed the threshold, i.e. whenever he got a little ahead. Make the
 > followers faster; do not move the goalposts.
+
+**Mounted is the same fix, on the other entity.** `enum:movementSpeed` (confirmed against every
+vanilla BT file, including Warhorse's own `getSpeedFromDistance` gait ladder in
+`AI/move/moveUtils.xml`, which hard-clamps its index to `sprint`) tops out at `Sprint` for
+everyone — there is no `Gallop` tier hiding in the engine for horses. So a mounted merc who is
+already at `mountGait == 3` (see [above](#the-mounted-leader-matches-the-players-speed)) has
+nothing left in the node either, and `merc_keepup_buff` on the *rider's* soul does nothing while
+mounted: the horse carries him, so the horse's own speed is what has to move. `follow.xml`'s
+horse-lifecycle Lua now calls `mercenaries:ApplyKeepUpBuff(horseEnt, mercenaries.HorseKeepUpBuff)`
+on the merc's horse soul (both when an existing horse is found and right after a fresh one is
+spawned) — the same generic per-entity function the on-foot case uses, just pointed at
+`horseEnt`/`existingHorse` and a second, **horse-specific** buff (`merc_horse_keepup_buff`,
+`rms*1.6, mst*2.0`) instead of `merc_keepup_buff`. It is its own buff rather than a reuse of the
+on-foot one because 1.3x (the on-foot value) still left mounted mercs falling behind in testing —
+mounted and on-foot keep-up are tuned separately on purpose so raising one never silently changes
+the other. This is vanilla-consistent: `item_horse_shoe` and `item_bridle` apply the exact same
+`rms`/`mst` codes to a horse's own soul, confirming those stats are horse-readable, not
+human-only. If mercs still fall behind at a hard sprint, raise `rms` on `merc_horse_keepup_buff`
+in `buff__mercenaries.xml` further rather than touching `merc_keepup_buff`.
 
 ### The circle presets are offset forward on purpose
 
@@ -1055,3 +1285,78 @@ rider is a lone companion permanently following the player; here the same rider 
 formation *anchor*, and nothing may sit ahead of him. Widening his standoff slides the whole
 authored column back — `merc_mounted50`'s deepest rank is already 64 m — and pushes more of it
 past the 35 m de-target in `mercenary_scheduler.xml`.
+
+### The eviction race — a third of the squad freezing after "follow me"
+
+The symptom: with a big squad, "wait here" works, and on "follow me" everyone starts walking and
+then roughly a third stop again after a couple of seconds and never move again. It scales with
+squad size and is not reproducible at ten men.
+
+Evicting a stalled follow tree is **two steps in two independent scheduler arms**:
+
+| arm | what it does |
+| --- | --- |
+| re-fire arm (`$followStuck`) | consume the flag, clear `$isFollowingActive`, `AddInterrupt_teleport` to evict whatever is running |
+| follow arm (arm 4's `ContinuousSwitch`) | whenever `$isFollowingActive` is false, `AddInterrupt_attack` → `follow`, then latch it true |
+
+An interrupt is **not applied where it is queued** — the engine applies it on its own update.
+The two arms have independent, randomised timers, so the follow arm's tick can land inside that
+gap, and the order becomes:
+
+```
+queue teleport  ->  fire follow, latch = true  ->  teleport lands, evicts the follow we just fired
+```
+
+The latch now says "following" with nothing running, and the follow arm only ever retries on a
+**false** latch. He stands there for good. The 35 m self-heal cannot see him, because he stopped
+next to the player.
+
+The gap widens with squad size (more interrupts per engine update), which is why it only bites at
+forty or fifty men. Which mercs lose the race depends on the phase of their own randomised waits,
+which is why it is "about a third" rather than all or none.
+
+**Releasing a hold order was the mass trigger.** `HoldReleaseAll` used to raise `FollowStalled`
+on the **whole squad**, and that flag is exactly what drives the re-fire arm. But a man stood on
+his station is *idle*, so the scheduler's idle arm has already evicted his follow tree and
+cleared the latch — the moment the order drops he re-fires on his own, with no help. Flagging him
+too queued a **second** eviction about a second later, one that lands *after* he has started
+walking. Fifty of those in a two-second window is the bug.
+
+Three changes, in the order they matter:
+
+1. **`HoldReleaseAll` flags only the men who were actually under a nav order** (`mode == "hold"`
+   or `"escort"`). Those are the ones whose follow tree was evicted by the `nav_goto` interrupt
+   while the latch still said "following", so they genuinely cannot recover on their own.
+   Everyone else recovers through the ordinary idle→following transition. In stand-fast mode that
+   is usually the whole squad, so the flag count drops from fifty to nearly zero.
+2. **`refireBlock` closes the race itself.** Anything that queues an eviction stamps
+   `NoteFollowEviction`, and the follow arm will not fire `follow` while the stamp is live
+   (`~$isFollowingActive & ~$refireBlock`). The re-fire arm and the idle arm also set
+   `$refireBlock = true` inline in the same BT tick as the teleport, so the follow arm cannot see
+   a stale `false` in the 300 ms before `FollowGate` republishes it.
+
+   The stamp is **time-based and self-expiring in Lua**, and `FollowGate` clears the BT variable
+   *first* so any error leaves the gate open. Both of those are deliberate: a BT latch held
+   across a `Wait`, or a gate that can fail shut, is a merc who never follows again — the same
+   class of bug one level down.
+3. **Re-fires are staggered.** `FollowStalled` is now a queue: each raise takes the next
+   `FollowRefireStagger` slot, so a burst spreads out instead of landing in two frames.
+   `FollowStaggerSquad` does the same for the whole squad on an order release, capped at
+   `FollowStaggerTotal` so a small squad still moves off at once and a fifty-man company ripples
+   into motion over about a second and a half.
+
+**The verification window is the safety net**, and it is no longer dismount-only:
+`BeginFollowVerify` is opened by a dismount, by releasing hold/escort, by an explicit "follow me",
+by the end of a battle, by the end of a loot sweep, and by a **hire** — every moment where a batch
+of men must all pick up `follow` at once. Its bounds are unchanged (see above) plus two more — it
+stands down if a hold or escort order is re-issued inside the window, and it skips anyone on an
+active `nav_goto`.
+
+> **`archer_scheduler.xml` is a parallel copy of `mercenary_scheduler.xml` and needs every fix made
+> there.** The guard landed in the melee scheduler first and the archer one was left on the old,
+> unguarded evict-then-refire — so archers kept losing the race after everyone else had stopped.
+> It showed as "hire ten archers and they spawn but never follow": a hire fires ten `follow`
+> interrupts at once *and* grows the formation, which is exactly the burst that widens the gap.
+> Both files now carry `refireBlock`, `FollowGate`, and `NoteFollowEviction` on both eviction
+> sites. They are the only two schedulers with the `$isFollowingActive` latch — grep for it before
+> assuming a fix is complete.

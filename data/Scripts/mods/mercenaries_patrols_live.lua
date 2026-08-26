@@ -401,9 +401,8 @@ function mercenaries:PatrolLevelProbe()
     lLog("live set = " .. tostring(self._patrolRouteKey))
 end
 
-System.AddCCommand("merc_level_probe", "mercenaries:PatrolLevelProbe()",
+mercenaries:DevCommand("merc_level_probe", "mercenaries:PatrolLevelProbe()",
                    "Dump every level-name API's return plus distance to each recorded road network")
-
 
 -- ==== session escalation ====
 -- Settle a route's heat to the current time (exponential decay by half-life) and return
@@ -465,6 +464,16 @@ function mercenaries:PatrolPartySize()
     local n = 1
     pcall(function() n = 1 + (self:LogiAliveCount() or 0) end)
     return math.max(1, n)
+end
+
+-- True with zero living mercenaries. A gang sized for a party of one is still a gang - the
+-- PatrolMinMen floor puts at least 3 men on a totally solo player - so roaming patrols do
+-- not spawn at all while he has no mercs to back him up. Gangs already spawned before his
+-- mercs died are left alone; this only withholds new ones.
+function mercenaries:PatrolPlayerAlone()
+    local n = 0
+    pcall(function() n = self:LogiAliveCount() or 0 end)
+    return n <= 0
 end
 
 -- How far a gang is allowed to OUTNUMBER the party, scaled by how big the party is. A flat
@@ -645,8 +654,12 @@ end
 
 -- ==== spawning ====
 -- Decide who this gang is, at the moment it becomes real.
+-- Set by the merc_patrol_<group> commands for the length of one spawn, so a player can
+-- call for a specific gang instead of taking whatever the pool rolls.
+mercenaries.PatrolForceGroup = nil
+
 function mercenaries:PatrolRollIdentity(rec)
-    rec.group = self.PatrolGroupPool[math.random(1, #self.PatrolGroupPool)]
+    rec.group = self.PatrolForceGroup or self.PatrolGroupPool[math.random(1, #self.PatrolGroupPool)]
     rec.soul  = self:PatrolRollSoul(rec.group)
     rec.size  = self:PatrolBudgetFor(self:PatrolRollSize(rec.route))
 end
@@ -963,7 +976,8 @@ function mercenaries:PatrolTickOne(rec, pp, t)
         -- The grace is the same idea in time rather than distance - see PatrolLoadGraceSecs.
         -- Eligible, but the caller decides: it spawns the nearest few, not everyone.
         if d <= self.PatrolSpawnRange and d >= self.PatrolNoSpawnRange
-           and not self:PatrolInLoadGrace() then
+           and not self:PatrolInLoadGrace()
+           and not self:PatrolPlayerAlone() then
             return d
         end
     end
@@ -1283,13 +1297,11 @@ function mercenaries:PatrolStepIndex(rec, ptsCount, idx)
     return idx + 1
 end
 
-System.AddCCommand("merc_patrols_status", "mercenaries:LivePatrolStatus()",        "Where every roaming patrol is and what it is")
-System.AddCCommand("merc_patrols_arm",    "mercenaries:LivePatrolSetEnabled(%line)", "Roaming patrols on or off: merc_patrols_arm 0 | 1")
-System.AddCCommand("merc_patrols_here",   "mercenaries:LivePatrolHere()",          "Spawn the nearest patrol on top of you")
-System.AddCCommand("merc_patrols_clear",  "mercenaries:LivePatrolClear()",         "Remove every patrol and re-roll them")
-System.AddCCommand("merc_patrols_budget", "mercenaries:PatrolBudgetSet('%line')",
+mercenaries:DevCommand("merc_patrols_status", "mercenaries:LivePatrolStatus()",        "Where every roaming patrol is and what it is")
+mercenaries:DevCommand("merc_patrols_here",   "mercenaries:LivePatrolHere()",          "Spawn the nearest patrol on top of you")
+mercenaries:DevCommand("merc_patrols_budget", "mercenaries:PatrolBudgetSet('%line')",
                    "Population caps: merc_patrols_budget <maxMen> [maxGangs] [maxPerGang]")
-System.AddCCommand("merc_patrols_escalation", "mercenaries:PatrolEscalationStatus()",
+mercenaries:DevCommand("merc_patrols_escalation", "mercenaries:PatrolEscalationStatus()",
                    "Per-route session kill escalation: heat and the size multiplier it earns")
 
 -- One knob for the three caps, so the cost can be tuned in-game against a real scene

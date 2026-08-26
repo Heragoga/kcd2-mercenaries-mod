@@ -490,6 +490,14 @@ mercenaries.CampChatMercCooldownTicks = 60  -- per-merc: ~5 min between a merc's
 mercenaries.CampChatRadius = 4.0     -- max metres between two mercs to pair them
 mercenaries.CampMaxConcurrentChats = 2   -- most conversations running at once, camp-wide
 mercenaries.CampChatMercCooldown = {}    -- wuidStr -> remaining ticks of per-merc cooldown
+-- A raid ends for the whole squad within the same tick or two, so every survivor's
+-- MercTargetOf clears at once - without a cooldown here they'd all become chat-eligible
+-- on that same tick and pair up in a simultaneous wall of conversations. Randomized per
+-- merc so the squad settles back into idle chatter staggered, the way CampChatStaggered
+-- spreads out the very first conversations on camp start.
+mercenaries.CampChatPostCombatCooldownMin = 30   -- 5s ticks: ~2.5 min minimum before a merc chats again after a fight
+mercenaries.CampChatPostCombatCooldownMax = 90   -- 5s ticks: ~7.5 min maximum
+mercenaries.MercCampCombatFlag = {}      -- wuidStr -> true while a merc has a live combat target (falling edge triggers the cooldown above)
 mercenaries.CampChatStaggered = false    -- one-time per-camp cooldown seeding done?
 
 -- Our own two-NPC camp gossips (Decision Alias of each gossip_merc_*.xml, played
@@ -1108,7 +1116,6 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
     -- camp_actor.xml Moves the merc to before the StanceElement.
     return wuid, { x = soGroundPos.x, y = soGroundPos.y, z = soGroundPos.z }
 end
-
 
 -- Spawns a campfire via Game.SpawnPrefab against an invisible anchor entity.
 -- The anchor is the only piece tracked in CampEntities / swept by name prefix
@@ -2054,6 +2061,18 @@ function mercenaries:CampTakeParty(fraction)
         return
     end
     fraction = fraction or 0.5
+
+    -- Note who is mid camp-animation BEFORE their roles are torn down below - this reads
+    -- CampActivities/CampFurniture, and the split loop clears them. BreakMercCamp and
+    -- RecallMercs have always done this; deploying did not, and it is the one path where
+    -- it matters most. A man pulled out of the practice yard or off a bench keeps playing
+    -- his fragment for tens of seconds and cannot walk, and UpdateFormationLeader elects
+    -- the merc NEAREST THE PLAYER - who, since the player is standing in his own camp when
+    -- he deploys, is very often exactly that man. Anchor the formation on someone who
+    -- cannot move and the whole out-party is stood up behind him. See docs/camp.md,
+    -- "Leaving camp: who leads".
+    pcall(function() self:MarkCampBusyMercs() end)
+
     local function tierRank(t) if t == "strong" then return 0 elseif t == "medium" then return 1 else return 2 end end
 
     local list = {}
@@ -2064,7 +2083,8 @@ function mercenaries:CampTakeParty(fraction)
             -- "everybody you can spare" still spares.
             local isSmith = (ka and ka == self.CampForgeSmithWuid) or (kb and kb == self.CampForgeSmithWuid)
             if ka and not isSmith then
-                table.insert(list, { ka = ka, kb = kb, tier = self:GetTierFromName(name) or "weak" })
+                table.insert(list, { ka = ka, kb = kb, ent = ent,
+                                     tier = self:GetTierFromName(name) or "weak" })
             end
         end
     end
@@ -2105,10 +2125,55 @@ function mercenaries:CampTakeParty(fraction)
     if self.CampForgeSmithWuid then self.CampRoster[self.CampForgeSmithWuid] = true end
     if self.CampActorInvalidateAll then self:CampActorInvalidateAll() end
     self:SaveCampOutParty()
+
+    -- THE DEPLOYED MEN ARE NOT CAMP-BUSY. MarkCampBusyMercs ran before the split, when
+    -- they still held their roles, so it stamped them along with everyone else - and in a
+    -- standing camp CampSyncRoster has given every non-guard an occupation, so that is the
+    -- whole out-party. Leaving the stamp on is what stood the sortie up: the men left
+    -- behind (the guards among them) are camp members and therefore not formation-eligible,
+    -- so with the out-party marked busy too UpdateFormationLeader has no fit anchor at all
+    -- and falls through to the busy tier. Whole-company deploys escape it because the
+    -- guards come along, and guards are never stamped. The stayers keep their stamp.
+    for k in pairs(self.CampOutParty) do
+        if self.CampBusyUntil then self.CampBusyUntil[k] = nil end
+    end
+
+    -- A standing order outranks the formation squad-wide (see UpdateFormationRole's `off`
+    -- chain), and "I want to take some men with me" means following. BreakMercCamp and
+    -- RecallMercs both clear all five; this path cleared none, so an order given before
+    -- camping - or restored from the save - survived the deploy and switched the formation
+    -- off for the party that had just been handed to the player.
+    pcall(function() self:HoldEnd(true) end)
+    pcall(function() self:EscortEnd(true) end)
+    _G.MercIdle = false
+    _G.MercPersistentIdleFlag = false
+    self:SaveString("MercIdlePersistent", "0")
+
+    -- Force each deployed man off his camp behaviour. camp_actor is an infinite loop that
+    -- owns the interrupt slot once it has it, and a merc still unwinding a camp pose
+    -- swallows the follow interrupt the scheduler fires at him - while the scheduler
+    -- latches him "following" anyway, and its re-fire test is edge-triggered on the camp
+    -- role, so it never tries again. That is the same transition the loot sweep has to
+    -- force, and this is its cure: evict, stagger, verify (LootReleaseFinished).
+    local kicked = 0
+    for i, m in ipairs(list) do
+        if i <= takeN and m.ent then
+            if pcall(function() self:FollowStalled(m.ent) end) then kicked = kicked + 1 end
+        end
+    end
+    pcall(function() self:FollowStaggerSquad() end)
+    -- Safe for the men staying behind: DismountVerify skips anyone IsCampActor answers for.
+    pcall(function() self:BeginFollowVerify("camp deploy") end)
+
     self:CampFormationDirty("deploy")
     Game.SendInfoText('merc_info_camp_deployed', false, 0, 4)
-    System.LogAlways(string.format('[CampDeploy] deployed %d/%d mercs (best tier first), %d left in camp',
-        takeN, total, total - takeN))
+    -- SquadSize/leader are printed straight after CampFormationDirty's re-election, so the
+    -- log says whether the FORMATION actually saw the party that was just deployed. A
+    -- deploy of six that lands on squad=0 is the whole "they revert to the follow chain"
+    -- report in one line; merc_formation_status then breaks down which gate it was.
+    System.LogAlways(string.format(
+        '[CampDeploy] deployed %d/%d mercs (best tier first), %d left in camp, %d evicted from camp duty - formation squad=%d leader=%s',
+        takeN, total, total - takeN, kicked, self.SquadSize or 0, tostring(self.FormationLeader)))
 end
 
 -- Teleport a merc entity back into the camp (near the centre, jittered so a
@@ -2356,21 +2421,36 @@ function mercenaries:CampChatTick()
         end
         local list = {}
         for _, ent in pairs(self.ActiveMercs) do
-            if ent and self:IsAliveAndWell(ent, false) then
+            -- Named companions do everything else a merc does in camp - they sit, they
+            -- eat, they take a bed - but they are never paired into a conversation. The
+            -- gossip pool is written for anonymous sellswords and plays on the soul's
+            -- own voice. See IsHeroName.
+            if ent and self:IsAliveAndWell(ent, false) and not self:IsHero(ent) then
                 local wuid = ent.this and ent.this.id or ent.id
                 local wuidStr = tostring(wuid)
                 -- Deployed (sortie) mercs are following the player, not sitting in
                 -- camp - they must never be pulled into a full-stop conversation
                 -- (only monologs/barks for them). Skip them here.
-                if not chats[wuidStr] and not self.CampChatMercCooldown[wuidStr] and not self:IsCampOut(wuidStr) then
-                    local p = nil
-                    pcall(function() p = ent:GetWorldPos() end)
+                if not self:IsCampOut(wuidStr) then
                     local hasTarget = false
                     pcall(function() hasTarget = self.MercTargetOf and self.MercTargetOf[wuidStr] ~= nil end)
-                    local act = self.CampActivities[wuidStr]
-                    local isTraining = act and act.unstance == "noob_sword_training"
-                    if wuid and p and not hasTarget and not isTraining then
-                        table.insert(list, { wuid = wuid, p = p, tav = atTavern(wuidStr) })
+                    -- Track the combat flag for every eligible merc (even one already
+                    -- chatting or on cooldown) so the falling edge is never missed, then
+                    -- catch it the tick a target clears and seed the stagger cooldown.
+                    if hasTarget then
+                        self.MercCampCombatFlag[wuidStr] = true
+                    elseif self.MercCampCombatFlag[wuidStr] then
+                        self.MercCampCombatFlag[wuidStr] = nil
+                        self.CampChatMercCooldown[wuidStr] = math.random(self.CampChatPostCombatCooldownMin, self.CampChatPostCombatCooldownMax)
+                    end
+                    if not chats[wuidStr] and not self.CampChatMercCooldown[wuidStr] then
+                        local p = nil
+                        pcall(function() p = ent:GetWorldPos() end)
+                        local act = self.CampActivities[wuidStr]
+                        local isTraining = act and act.unstance == "noob_sword_training"
+                        if wuid and p and not hasTarget and not isTraining then
+                            table.insert(list, { wuid = wuid, p = p, tav = atTavern(wuidStr) })
+                        end
                     end
                 end
             end
@@ -3435,11 +3515,19 @@ function mercenaries:BreakMercCamp(silent)
     mercenaries:ClearMercCampChats()
     _G.MercReturnPending = {}
     self.CampChatMercCooldown = {}
+    self.MercCampCombatFlag = {}
     self.CampChatStaggered = false
     -- Clear any idle order so the squad follows again after camp comes down.
     -- (This is what was missing before: camp used to force the global idle flag
     -- on, and breaking camp left it on, so the whole squad stood around until an
     -- explicit "follow me" order. Camp no longer sets it, and we clear it here.)
+    --
+    -- The two globals alone are NOT enough any more: a hold order deliberately
+    -- leaves both false, so clearing them is a no-op and the sortie would stay
+    -- planted on its line after the camp came down - exactly the standing-around
+    -- this block exists to prevent.
+    pcall(function() self:HoldEnd(true) end)
+    pcall(function() self:EscortEnd(true) end)
     _G.MercIdle = false
     _G.MercPersistentIdleFlag = false
     self:SaveString("MercIdlePersistent", "0")
@@ -3485,7 +3573,16 @@ function mercenaries:RecallMercs()
     pcall(function() self:MarkCampBusyMercs() end)
 
     local ok, err = pcall(function()
-        local center, _ = self:GetSafeSpawnPosition(player, 3)
+        -- Indoors, take the player's own position verbatim and do NOT re-snap. Every
+        -- ground probe in this file fires from above, so under a roof both
+        -- GetSafeSpawnPosition and FindValidGround resolve to the ROOF and the recall
+        -- puts the squad on top of the building instead of in the room - the same
+        -- defect that made hiring at an innkeeper's look like nothing spawned (see
+        -- docs/spawning-npcs.md). "Come to me" means his floor by definition, and he
+        -- is standing on it, so his z needs no validating.
+        local indoors = self:CampDetectRoof(player:GetWorldPos()) and true or false
+        local center = nil
+        if not indoors then center = select(1, self:GetSafeSpawnPosition(player, 3)) end
         if not center then center = player:GetWorldPos() end
 
         local i = 0
@@ -3493,7 +3590,7 @@ function mercenaries:RecallMercs()
             if ent and self:IsAliveAndWell(ent, false) then
                 i = i + 1
                 local pos = self:CampRingPos(center, 2.0 + (i % 4), i, 12, 0)
-                pos = self:FindValidGround(pos, center.z)
+                if not indoors then pos = self:FindValidGround(pos, center.z) end
                 pcall(function() ent:SetPos(pos) end)
             end
         end
@@ -3521,7 +3618,14 @@ function mercenaries:RecallMercs()
     _G.MercInCamp = false
     mercenaries:ClearMercCampChats()
     self.CampChatMercCooldown = {}
+    self.MercCampCombatFlag = {}
     self.CampChatStaggered = false
+    -- A recall that leaves a hold order standing UNDOES ITSELF: the men are teleported
+    -- to a ring around the player just above, and the next hold poll sees each of them
+    -- off his mark and walks him straight back to it. Clearing the two legacy globals
+    -- cannot help - a hold order never sets them.
+    pcall(function() self:HoldEnd(true) end)
+    pcall(function() self:EscortEnd(true) end)
     _G.MercIdle = false
     _G.MercPersistentIdleFlag = false
     self:SaveString("MercIdlePersistent", "0")
@@ -3629,18 +3733,9 @@ function mercenaries:ClearAnyLeftoverCamp()
     self.CampCenter = nil
     self.ActivityTestEntities = {}
     self.CampChatMercCooldown = {}
+    self.MercCampCombatFlag = {}
     self.CampChatStaggered = false
     _G.MercCampMode = false
     _G.MercInCamp = false
     mercenaries:ClearMercCampChats()
 end
-
-System.AddCCommand("merc_camp_make", "mercenaries:SpawnMercCamp()", "Spawn a procedural camp and idle the squad in it")
-System.AddCCommand("merc_camp_break", "mercenaries:BreakMercCamp()", "Break camp and resume normal squad behaviour")
-System.AddCCommand("merc_camp_recall", "mercenaries:RecallMercs()", "Recall the whole squad to your position (does not break camp)")
-System.AddCCommand("merc_camp_take_all",     "mercenaries:CampTakeParty(1.0)",       "Deploy every merc the camp can spare (all but the forge smith); the camp stays pitched")
-System.AddCCommand("merc_camp_take_three_quarters", "mercenaries:CampTakeParty(0.75)",  "Deploy the best-equipped three quarters of the squad out of camp to follow you")
-System.AddCCommand("merc_camp_take_half",    "mercenaries:CampTakeParty(0.5)",       "Deploy the best-equipped half of the squad out of camp to follow you")
-System.AddCCommand("merc_camp_take_third",   "mercenaries:CampTakeParty(0.3333)",    "Deploy the best-equipped third of the squad out of camp to follow you")
-System.AddCCommand("merc_camp_take_quarter", "mercenaries:CampTakeParty(0.25)",      "Deploy the best-equipped quarter of the squad out of camp to follow you")
-System.AddCCommand("merc_camp_return_all",   "mercenaries:CampReturnAll()",          "Return every deployed merc to camp")

@@ -17,6 +17,8 @@
   <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>Just one.</Cell></Row>
   <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>Two.</Cell></Row>
   <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>Three.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_5</Cell><Cell>Five.</Cell><Cell>Five.</Cell></Row>
+  <Row><Cell>ui_mercenary_count_10</Cell><Cell>Ten.</Cell><Cell>Ten.</Cell></Row>
 
   <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>I want to hire some mercenaries.</Cell></Row>
   <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell></Row>
@@ -33,6 +35,8 @@
   <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>Just one.</Cell></Row>
   <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>I'll take two.</Cell></Row>
   <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>Give me three of them.</Cell></Row>
+  <Row><Cell>merc_henry_count_5</Cell><Cell>Give me five of them.</Cell><Cell>Give me five of them.</Cell></Row>
+  <Row><Cell>merc_henry_count_10</Cell><Cell>Give me ten of them.</Cell><Cell>Give me ten of them.</Cell></Row>
 
   <Row><Cell>ui_mercenary_management_hub</Cell><Cell>Company management.</Cell><Cell>Company management.</Cell></Row>
   <Row><Cell>merc_henry_management_hub_prompt</Cell><Cell>I want to check in on the company.</Cell><Cell>I want to check in on the company.</Cell></Row>
@@ -72,6 +76,8 @@
 
   <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>Mercenary hired.</Cell></Row>
   <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>Mercenaries hired.</Cell></Row>
+  <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>Your men are waiting for you outside.</Cell></Row>
+  <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Not enough groschen!</Cell></Row>
   <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>You have too many men already! Maximum of 5.</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>All mercenaries dismissed.</Cell></Row>
@@ -158,6 +164,36 @@
   <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell></Row>
   <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell></Row>
   <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>For Skalitz, and for you, Henry.</Cell></Row>
+  <Row><Cell>ui_merc_equip_pra</Cell><Cell>Prague</Cell><Cell>Prague</Cell></Row>
+  <Row><Cell>merc_henry_equip_pra</Cell><Cell>Wear the Prague colors.</Cell><Cell>Wear the Prague colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_pra</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_sig</Cell><Cell>Sigismund</Cell><Cell>Sigismund</Cell></Row>
+  <Row><Cell>merc_henry_equip_sig</Cell><Cell>Wear Sigismund's colors.</Cell><Cell>Wear Sigismund's colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_sig</Cell><Cell>As you say.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_kri</Cell><Cell>Order of the Red Star</Cell><Cell>Order of the Red Star</Cell></Row>
+  <Row><Cell>merc_henry_equip_kri</Cell><Cell>Wear the Red Star.</Cell><Cell>Wear the Red Star.</Cell></Row>
+  <Row><Cell>merc_test_equip_kri</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_ber</Cell><Cell>Bergov</Cell><Cell>Bergov</Cell></Row>
+  <Row><Cell>merc_henry_equip_ber</Cell><Cell>Wear the Bergov colors.</Cell><Cell>Wear the Bergov colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_ber</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_neb</Cell><Cell>Nebakov</Cell><Cell>Nebakov</Cell></Row>
+  <Row><Cell>merc_henry_equip_neb</Cell><Cell>Wear the Nebakov colors.</Cell><Cell>Wear the Nebakov colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_neb</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_sem</Cell><Cell>Semine</Cell><Cell>Semine</Cell></Row>
+  <Row><Cell>merc_henry_equip_sem</Cell><Cell>Wear the Semine colors.</Cell><Cell>Wear the Semine colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_sem</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_pis</Cell><Cell>Pisek</Cell><Cell>Pisek</Cell></Row>
+  <Row><Cell>merc_henry_equip_pis</Cell><Cell>Wear the Pisek colors.</Cell><Cell>Wear the Pisek colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_pis</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_teu</Cell><Cell>Teutonic Order</Cell><Cell>Teutonic Order</Cell></Row>
+  <Row><Cell>merc_henry_equip_teu</Cell><Cell>Wear the Teutonic cross.</Cell><Cell>Wear the Teutonic cross.</Cell></Row>
+  <Row><Cell>merc_test_equip_teu</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_rut</Cell><Cell>Ruthard</Cell><Cell>Ruthard</Cell></Row>
+  <Row><Cell>merc_henry_equip_rut</Cell><Cell>Wear Ruthard's colors.</Cell><Cell>Wear Ruthard's colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_rut</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
+  <Row><Cell>ui_merc_equip_pap</Cell><Cell>Papal Legate</Cell><Cell>Papal Legate</Cell></Row>
+  <Row><Cell>merc_henry_equip_pap</Cell><Cell>Wear the Legate's colors.</Cell><Cell>Wear the Legate's colors.</Cell></Row>
+  <Row><Cell>merc_test_equip_pap</Cell><Cell>Right away.</Cell><Cell>Right away.</Cell></Row>
 
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>(Nevermind)</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>Actually, nevermind.</Cell></Row>
@@ -339,6 +375,7 @@
   <Row><Cell>merc_info_wall_start</Cell><Cell>Wall started here. Pick the next corner.</Cell><Cell>Wall started here. Pick the next corner.</Cell></Row>
   <Row><Cell>merc_info_wall_done</Cell><Cell>Wall finished.</Cell><Cell>Wall finished.</Cell></Row>
   <Row><Cell>merc_info_raid</Cell><Cell>Raiders are coming!</Cell><Cell>Raiders are coming!</Cell></Row>
+  <Row><Cell>merc_info_raid_busy</Cell><Cell>A raid is already under way.</Cell><Cell>A raid is already under way.</Cell></Row>
   <Row><Cell>merc_info_wall_gate</Cell><Cell>Leave a gate - keep at least 5m clear of where the wall started.</Cell><Cell>Leave a gate - keep at least 5m clear of where the wall started.</Cell></Row>
   <Row><Cell>merc_info_wall_replaced</Cell><Cell>The old wall has been taken down.</Cell><Cell>The old wall has been taken down.</Cell></Row>
   <Row><Cell>merc_info_recalled</Cell><Cell>Squad recalled.</Cell><Cell>Squad recalled.</Cell></Row>
@@ -438,9 +475,6 @@
   <Row><Cell>ui_quartermaster_test</Cell><Cell>How goes it, quartermaster?</Cell><Cell>How goes it, quartermaster?</Cell></Row>
   <Row><Cell>merc_henry_quartermaster_test</Cell><Cell>How goes it, quartermaster?</Cell><Cell>How goes it, quartermaster?</Cell></Row>
   <Row><Cell>merc_quartermaster_test_response</Cell><Cell>Camp's in order, sir. Everything's where it should be.</Cell><Cell>Camp's in order, sir. Everything's where it should be.</Cell></Row>
-  <Row><Cell>ui_quartermaster_leave</Cell><Cell>Never mind. Carry on.</Cell><Cell>Never mind. Carry on.</Cell></Row>
-  <Row><Cell>merc_henry_quartermaster_leave</Cell><Cell>Never mind. Carry on.</Cell><Cell>Never mind. Carry on.</Cell></Row>
-  <Row><Cell>merc_quartermaster_leave_response</Cell><Cell>As you say, sir.</Cell><Cell>As you say, sir.</Cell></Row>
   <Row><Cell>merc_info_quartermaster_test</Cell><Cell>The quartermaster nods.</Cell><Cell>The quartermaster nods.</Cell></Row>
 
   <!-- Quartermaster logistics -->
@@ -642,6 +676,23 @@
   <Row><Cell>merc_n_heroes</Cell><Cell>| heroes:</Cell><Cell>| heroes:</Cell></Row>
   <Row><Cell>merc_n_health</Cell><Cell>| avg health:</Cell><Cell>| avg health:</Cell></Row>
   <Row><Cell>merc_n_injured</Cell><Cell>| injured:</Cell><Cell>| injured:</Cell></Row>
+
+  <Row><Cell>merc_n_form_shape</Cell><Cell>Formation:</Cell><Cell>Formation:</Cell></Row>
+  <Row><Cell>merc_form_column</Cell><Cell>Column</Cell><Cell>Column</Cell></Row>
+  <Row><Cell>merc_form_line</Cell><Cell>Line</Cell><Cell>Line</Cell></Row>
+  <Row><Cell>merc_form_square</Cell><Cell>Square</Cell><Cell>Square</Cell></Row>
+  <Row><Cell>merc_form_wedge</Cell><Cell>Wedge</Cell><Cell>Wedge</Cell></Row>
+  <Row><Cell>merc_form_circle</Cell><Cell>Circle</Cell><Cell>Circle</Cell></Row>
+  <Row><Cell>merc_form_escort</Cell><Cell>Escort</Cell><Cell>Escort</Cell></Row>
+  <Row><Cell>merc_form_vanilla</Cell><Cell>Vanilla</Cell><Cell>Vanilla</Cell></Row>
+  <Row><Cell>merc_form_control</Cell><Cell>Control (diagnostic)</Cell><Cell>Control (diagnostic)</Cell></Row>
+  <Row><Cell>merc_n_form_mode</Cell><Cell>Mode:</Cell><Cell>Mode:</Cell></Row>
+  <Row><Cell>merc_form_mode_relaxed</Cell><Cell>Relaxed</Cell><Cell>Relaxed</Cell></Row>
+  <Row><Cell>merc_form_mode_keepshape</Cell><Cell>Keep Shape</Cell><Cell>Keep Shape</Cell></Row>
+  <Row><Cell>merc_form_mode_movehistory</Cell><Cell>Move History</Cell><Cell>Move History</Cell></Row>
+  <Row><Cell>merc_n_form_reloc</Cell><Cell>Relocation:</Cell><Cell>Relocation:</Cell></Row>
+  <Row><Cell>merc_form_reloc_on</Cell><Cell>On</Cell><Cell>On</Cell></Row>
+  <Row><Cell>merc_form_reloc_off</Cell><Cell>Off</Cell><Cell>Off</Cell></Row>
 
   <Row><Cell>buff_merc_low_morale_name</Cell><Cell>Low Morale</Cell><Cell>Low Morale</Cell></Row>
   <Row><Cell>buff_merc_low_morale_desc</Cell><Cell>Your mercenaries are disgruntled. Their spirits are low and their loyalty is wearing thin.</Cell><Cell>Your mercenaries are disgruntled. Their spirits are low and their loyalty is wearing thin.</Cell></Row>
@@ -1056,23 +1107,28 @@
   <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>Nobody to escort.</Cell></Row>
   <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>Your men are under attack and holding their blades.</Cell></Row>
   <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>Fall in.</Cell></Row>
-  <Row><Cell>ui_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Let's talk about how the company runs.</Cell></Row>
+  <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell></Row>
   <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Let's talk about how the company runs.</Cell></Row>
   <Row><Cell>merc_qm_settings_hub</Cell><Cell>As you like. Nothing here's settled that can't be unsettled.</Cell><Cell>As you like. Nothing here's settled that can't be unsettled.</Cell></Row>
-  <Row><Cell>ui_qm_enc_hub</Cell><Cell>About trouble finding us on the road.</Cell><Cell>About trouble finding us on the road.</Cell></Row>
+  <Row><Cell>ui_qm_enc_hub</Cell><Cell>Random encounters: trouble finding us on the road.</Cell><Cell>Random encounters: trouble finding us on the road.</Cell></Row>
   <Row><Cell>ui_qm_enc_on</Cell><Cell>Let it come. Raids, patrols, ambushes and all.</Cell><Cell>Let it come. Raids, patrols, ambushes and all.</Cell></Row>
   <Row><Cell>ui_qm_enc_off</Cell><Cell>No more of it. We go looking for fights, they don't come to us.</Cell><Cell>No more of it. We go looking for fights, they don't come to us.</Cell></Row>
-  <Row><Cell>ui_qm_upkeep_hub</Cell><Cell>About feeding and paying the men.</Cell><Cell>About feeding and paying the men.</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_hub</Cell><Cell>Upkeep: feeding and paying the men.</Cell><Cell>Upkeep: feeding and paying the men.</Cell></Row>
   <Row><Cell>ui_qm_upkeep_off</Cell><Cell>Stop keeping accounts. They'll feed themselves.</Cell><Cell>Stop keeping accounts. They'll feed themselves.</Cell></Row>
   <Row><Cell>ui_qm_upkeep_lenient</Cell><Cell>Go easy. Stretch the stores, and be generous with the spoils.</Cell><Cell>Go easy. Stretch the stores, and be generous with the spoils.</Cell></Row>
   <Row><Cell>ui_qm_upkeep_standard</Cell><Cell>Keep it as it is.</Cell><Cell>Keep it as it is.</Cell></Row>
   <Row><Cell>ui_qm_upkeep_harsh</Cell><Cell>Run it lean. They'll eat more and the spoils will go further apart.</Cell><Cell>Run it lean. They'll eat more and the spoils will go further apart.</Cell></Row>
-  <Row><Cell>ui_qm_icons_hub</Cell><Cell>About the marks on my screen.</Cell><Cell>About the marks on my screen.</Cell></Row>
+  <Row><Cell>ui_qm_icons_hub</Cell><Cell>HUD icons: the marks on my screen.</Cell><Cell>HUD icons: the marks on my screen.</Cell></Row>
   <Row><Cell>ui_qm_icons_on</Cell><Cell>Keep reporting the company's state.</Cell><Cell>Keep reporting the company's state.</Cell></Row>
   <Row><Cell>ui_qm_icons_off</Cell><Cell>Spare me. I'll ask when I want to know.</Cell><Cell>Spare me. I'll ask when I want to know.</Cell></Row>
+  <Row><Cell>ui_qm_horses_hub</Cell><Cell>The men and horses.</Cell><Cell>The men and horses.</Cell></Row>
+  <Row><Cell>ui_qm_horses_on</Cell><Cell>Let them ride when I ride.</Cell><Cell>Let them ride when I ride.</Cell></Row>
+  <Row><Cell>ui_qm_horses_off</Cell><Cell>No horses. They go on foot.</Cell><Cell>No horses. They go on foot.</Cell></Row>
+  <Row><Cell>merc_info_horses_on</Cell><Cell>The men will ride when you do.</Cell><Cell>The men will ride when you do.</Cell></Row>
+  <Row><Cell>merc_info_horses_off</Cell><Cell>The men will march on foot.</Cell><Cell>The men will march on foot.</Cell></Row>
   <Row><Cell>merc_info_enc_on</Cell><Cell>Word is out. Expect company.</Cell><Cell>Word is out. Expect company.</Cell></Row>
   <Row><Cell>merc_info_enc_off</Cell><Cell>We'll keep our heads down.</Cell><Cell>We'll keep our heads down.</Cell></Row>
-  <Row><Cell>ui_qm_threat_hub</Cell><Cell>What sort of trouble should I expect?</Cell><Cell>What sort of trouble should I expect?</Cell></Row>
+  <Row><Cell>ui_qm_threat_hub</Cell><Cell>Difficulty: what sort of trouble should I expect?</Cell><Cell>Difficulty: what sort of trouble should I expect?</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_hub</Cell><Cell>What sort of trouble should I expect?</Cell><Cell>What sort of trouble should I expect?</Cell></Row>
   <Row><Cell>merc_qm_threat_hub</Cell><Cell>That depends on how loudly you want to advertise us. Say the word and I'll put it about accordingly.</Cell><Cell>That depends on how loudly you want to advertise us. Say the word and I'll put it about accordingly.</Cell></Row>
   <Row><Cell>ui_qm_threat_easy</Cell><Cell>Keep it quiet. Fewer of them, and poorly armed.</Cell><Cell>Keep it quiet. Fewer of them, and poorly armed.</Cell></Row>
@@ -1081,8 +1137,130 @@
   <Row><Cell>ui_qm_threat_extreme</Cell><Cell>Send their best, and let them come armoured.</Cell><Cell>Send their best, and let them come armoured.</Cell></Row>
   <Row><Cell>ui_qm_threat_impossible</Cell><Cell>I want odds no sane man would take.</Cell><Cell>I want odds no sane man would take.</Cell></Row>
   <Row><Cell>ui_qm_threat_horde</Cell><Cell>Bury us in bodies. Rabble, but endless.</Cell><Cell>Bury us in bodies. Rabble, but endless.</Cell></Row>
+  <Row><Cell>merc_info_difficulty</Cell><Cell>Difficulty:</Cell><Cell>Difficulty:</Cell></Row>
+  <Row><Cell>merc_diff_easy</Cell><Cell>Easy</Cell><Cell>Easy</Cell></Row>
+  <Row><Cell>merc_diff_medium</Cell><Cell>Medium</Cell><Cell>Medium</Cell></Row>
+  <Row><Cell>merc_diff_difficult</Cell><Cell>Difficult</Cell><Cell>Difficult</Cell></Row>
+  <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>Extreme</Cell></Row>
+  <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>Impossible</Cell></Row>
+  <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>Horde</Cell></Row>
   <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>Leave it as it stands.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>See that it's so.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Aye. I'll pass the word around.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_cancel</Cell><Cell>Never mind.</Cell><Cell>Never mind.</Cell></Row>
+  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/custom-gear.md) -->
+  <Row><Cell>ui_qm_deliver_gear</Cell><Cell>Gear for the company</Cell><Cell>Gear for the company</Cell></Row>
+  <Row><Cell>ui_merc_equip_custom</Cell><Cell>Our own kit</Cell><Cell>Our own kit</Cell></Row>
+  <Row><Cell>merc_henry_equip_custom</Cell><Cell>Wear the kit I left with the quartermaster.</Cell><Cell>Wear the kit I left with the quartermaster.</Cell></Row>
+  <Row><Cell>merc_test_equip_custom</Cell><Cell>The set from the stores. Aye, we'll change.</Cell><Cell>The set from the stores. Aye, we'll change.</Cell></Row>
+  <Row><Cell>ui_merc_gear_set</Cell><Cell>I want you to dress this way...</Cell><Cell>I want you to dress this way...</Cell></Row>
+  <Row><Cell>merc_henry_gear_set</Cell><Cell>I want the company dressed this way. Take this to the stores.</Cell><Cell>I want the company dressed this way. Take this to the stores.</Cell></Row>
+  <Row><Cell>merc_test_gear_set</Cell><Cell>Aye. The quartermaster'll cut the rest to match.</Cell><Cell>Aye. The quartermaster'll cut the rest to match.</Cell></Row>
+  <Row><Cell>ui_qm_gear_set</Cell><Cell>I want you to dress this way...</Cell><Cell>I want you to dress this way...</Cell></Row>
+  <Row><Cell>merc_henry_qm_gear_set</Cell><Cell>I want you to dress this way. Here - take a look at this.</Cell><Cell>I want you to dress this way. Here - take a look at this.</Cell></Row>
+  <Row><Cell>merc_qm_gear_set</Cell><Cell>Hand me a set and the whole company'll match it, archers and all. You'll get your own back - the men wear copies. Anything a harness needs underneath, I'll find.</Cell><Cell>Hand me a set and the whole company'll match it, archers and all. You'll get your own back - the men wear copies. Anything a harness needs underneath, I'll find.</Cell></Row>
+  <Row><Cell>merc_info_gear_chest</Cell><Cell>Put a set of kit in the chest, then close the window. The company will match it and you get every piece back.</Cell><Cell>Put a set of kit in the chest, then close the window. The company will match it and you get every piece back.</Cell></Row>
+  <Row><Cell>merc_info_gear_noted</Cell><Cell>Noted. Kit returned.</Cell><Cell>Noted. Kit returned.</Cell></Row>
+  <Row><Cell>merc_info_gear_chest_left</Cell><Cell>Some of it wouldn't come back out. It's still in the chest.</Cell><Cell>Some of it wouldn't come back out. It's still in the chest.</Cell></Row>
+  <Row><Cell>merc_info_gear_nochest</Cell><Cell>No room to set the chest down here.</Cell><Cell>No room to set the chest down here.</Cell></Row>
+  <Row><Cell>merc_info_gear_now</Cell><Cell>The company now wears:</Cell><Cell>The company now wears:</Cell></Row>
+  <Row><Cell>merc_info_gear_piece</Cell><Cell>a piece of kit</Cell><Cell>a piece of kit</Cell></Row>
+  <Row><Cell>merc_info_gear_empty</Cell><Cell>The company has no kit of its own - bare, with a sword.</Cell><Cell>The company has no kit of its own - bare, with a sword.</Cell></Row>
+  <Row><Cell>merc_info_gear_nobody</Cell><Cell>No quartermaster to hand it to. Make camp first.</Cell><Cell>No quartermaster to hand it to. Make camp first.</Cell></Row>
+  <Row><Cell>merc_info_gear_quest</Cell><Cell>Quest gear cannot be copied - it was left out of the pattern.</Cell><Cell>Quest gear cannot be copied - it was left out of the pattern.</Cell></Row>
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+  <Row><Cell>ui_mercenary_cat_lords</Cell><Cell>Lords and knights.</Cell><Cell>Lords and knights.</Cell></Row>
+  <Row><Cell>merc_henry_cat_lords</Cell><Cell>Tell me about lords and knights.</Cell><Cell>Tell me about lords and knights.</Cell></Row>
+  <Row><Cell>merc_provider_cat_lords</Cell><Cell>Here's who I can reach.</Cell><Cell>Here's who I can reach.</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_crowns</Cell><Cell>Crowns and courts.</Cell><Cell>Crowns and courts.</Cell></Row>
+  <Row><Cell>merc_henry_cat_crowns</Cell><Cell>Tell me about crowns and courts.</Cell><Cell>Tell me about crowns and courts.</Cell></Row>
+  <Row><Cell>merc_provider_cat_crowns</Cell><Cell>Here's who I can reach.</Cell><Cell>Here's who I can reach.</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_zizka</Cell><Cell>Zizka's company.</Cell><Cell>Zizka's company.</Cell></Row>
+  <Row><Cell>merc_henry_cat_zizka</Cell><Cell>Tell me about zizka's company.</Cell><Cell>Tell me about zizka's company.</Cell></Row>
+  <Row><Cell>merc_provider_cat_zizka</Cell><Cell>Here's who I can reach.</Cell><Cell>Here's who I can reach.</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_skalitz</Cell><Cell>Skalitz and old friends.</Cell><Cell>Skalitz and old friends.</Cell></Row>
+  <Row><Cell>merc_henry_cat_skalitz</Cell><Cell>Tell me about skalitz and old friends.</Cell><Cell>Tell me about skalitz and old friends.</Cell></Row>
+  <Row><Cell>merc_provider_cat_skalitz</Cell><Cell>Here's who I can reach.</Cell><Cell>Here's who I can reach.</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_rogues</Cell><Cell>Rogues and freeriders.</Cell><Cell>Rogues and freeriders.</Cell></Row>
+  <Row><Cell>merc_henry_cat_rogues</Cell><Cell>Tell me about rogues and freeriders.</Cell><Cell>Tell me about rogues and freeriders.</Cell></Row>
+  <Row><Cell>merc_provider_cat_rogues</Cell><Cell>Here's who I can reach.</Cell><Cell>Here's who I can reach.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_radzig</Cell><Cell>Racek Kobyla (3500 groschen).</Cell><Cell>Racek Kobyla (3500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_radzig</Cell><Cell>I'll take Racek Kobyla.</Cell><Cell>I'll take Racek Kobyla.</Cell></Row>
+  <Row><Cell>merc_provider_radzig</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_hanush</Cell><Cell>Sir Hanush of Leipa (3500 groschen).</Cell><Cell>Sir Hanush of Leipa (3500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_hanush</Cell><Cell>I'll take Sir Hanush of Leipa.</Cell><Cell>I'll take Sir Hanush of Leipa.</Cell></Row>
+  <Row><Cell>merc_provider_hanush</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_erik</Cell><Cell>Erik (3500 groschen).</Cell><Cell>Erik (3500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_erik</Cell><Cell>I'll take Erik.</Cell><Cell>I'll take Erik.</Cell></Row>
+  <Row><Cell>merc_provider_erik</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_aulitz</Cell><Cell>Sir Markvart von Aulitz (3000 groschen).</Cell><Cell>Sir Markvart von Aulitz (3000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_aulitz</Cell><Cell>I'll take Sir Markvart von Aulitz.</Cell><Cell>I'll take Sir Markvart von Aulitz.</Cell></Row>
+  <Row><Cell>merc_provider_aulitz</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_jobst</Cell><Cell>Jobst of Moravia (3000 groschen).</Cell><Cell>Jobst of Moravia (3000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_jobst</Cell><Cell>I'll take Jobst of Moravia.</Cell><Cell>I'll take Jobst of Moravia.</Cell></Row>
+  <Row><Cell>merc_provider_jobst</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_bergov</Cell><Cell>Sir Otto von Bergov (2500 groschen).</Cell><Cell>Sir Otto von Bergov (2500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_bergov</Cell><Cell>I'll take Sir Otto von Bergov.</Cell><Cell>I'll take Sir Otto von Bergov.</Cell></Row>
+  <Row><Cell>merc_provider_bergov</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_vavak</Cell><Cell>Oldrich Vavak (2500 groschen).</Cell><Cell>Oldrich Vavak (2500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_vavak</Cell><Cell>I'll take Oldrich Vavak.</Cell><Cell>I'll take Oldrich Vavak.</Cell></Row>
+  <Row><Cell>merc_provider_vavak</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_ruthard</Cell><Cell>Kunzlin Ruthard (2500 groschen).</Cell><Cell>Kunzlin Ruthard (2500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_ruthard</Cell><Cell>I'll take Kunzlin Ruthard.</Cell><Cell>I'll take Kunzlin Ruthard.</Cell></Row>
+  <Row><Cell>merc_provider_ruthard</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_samuel</Cell><Cell>Samuel (2500 groschen).</Cell><Cell>Samuel (2500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_samuel</Cell><Cell>I'll take Samuel.</Cell><Cell>I'll take Samuel.</Cell></Row>
+  <Row><Cell>merc_provider_samuel</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_oderin</Cell><Cell>Martin Oderin (2000 groschen).</Cell><Cell>Martin Oderin (2000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_oderin</Cell><Cell>I'll take Martin Oderin.</Cell><Cell>I'll take Martin Oderin.</Cell></Row>
+  <Row><Cell>merc_provider_oderin</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_istvan</Cell><Cell>Sir Istvan Toth (3000 groschen).</Cell><Cell>Sir Istvan Toth (3000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_istvan</Cell><Cell>I'll take Sir Istvan Toth.</Cell><Cell>I'll take Sir Istvan Toth.</Cell></Row>
+  <Row><Cell>merc_provider_istvan</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_chamberlain</Cell><Cell>The Chamberlain of Trosky (1500 groschen).</Cell><Cell>The Chamberlain of Trosky (1500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_chamberlain</Cell><Cell>I'll take The Chamberlain of Trosky.</Cell><Cell>I'll take The Chamberlain of Trosky.</Cell></Row>
+  <Row><Cell>merc_provider_chamberlain</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_sigismund</Cell><Cell>King Sigismund (5000 groschen).</Cell><Cell>King Sigismund (5000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_sigismund</Cell><Cell>I'll take King Sigismund.</Cell><Cell>I'll take King Sigismund.</Cell></Row>
+  <Row><Cell>merc_provider_sigismund</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_lichtenstein</Cell><Cell>Jan II of Lichtenstein (3000 groschen).</Cell><Cell>Jan II of Lichtenstein (3000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_lichtenstein</Cell><Cell>I'll take Jan II of Lichtenstein.</Cell><Cell>I'll take Jan II of Lichtenstein.</Cell></Row>
+  <Row><Cell>merc_provider_lichtenstein</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_brabant</Cell><Cell>Baron Vaquelin Brabant (2500 groschen).</Cell><Cell>Baron Vaquelin Brabant (2500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_brabant</Cell><Cell>I'll take Baron Vaquelin Brabant.</Cell><Cell>I'll take Baron Vaquelin Brabant.</Cell></Row>
+  <Row><Cell>merc_provider_brabant</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_musa</Cell><Cell>Musa of Mali (2500 groschen).</Cell><Cell>Musa of Mali (2500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_musa</Cell><Cell>I'll take Musa of Mali.</Cell><Cell>I'll take Musa of Mali.</Cell></Row>
+  <Row><Cell>merc_provider_musa</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_zacharias</Cell><Cell>Zacharias (2500 groschen).</Cell><Cell>Zacharias (2500 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_zacharias</Cell><Cell>I'll take Zacharias.</Cell><Cell>I'll take Zacharias.</Cell></Row>
+  <Row><Cell>merc_provider_zacharias</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_martin</Cell><Cell>Martin, Henry's father (2000 groschen).</Cell><Cell>Martin, Henry's father (2000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_martin</Cell><Cell>I'll take Martin, Henry's father.</Cell><Cell>I'll take Martin, Henry's father.</Cell></Row>
+  <Row><Cell>merc_provider_martin</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_bocek</Cell><Cell>Levej Bocek (1000 groschen).</Cell><Cell>Levej Bocek (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_bocek</Cell><Cell>I'll take Levej Bocek.</Cell><Cell>I'll take Levej Bocek.</Cell></Row>
+  <Row><Cell>merc_provider_bocek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_pisek</Cell><Cell>Petr of Pisek (1200 groschen).</Cell><Cell>Petr of Pisek (1200 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_pisek</Cell><Cell>I'll take Petr of Pisek.</Cell><Cell>I'll take Petr of Pisek.</Cell></Row>
+  <Row><Cell>merc_provider_pisek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_painter</Cell><Cell>The Painter (800 groschen).</Cell><Cell>The Painter (800 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_painter</Cell><Cell>I'll take The Painter.</Cell><Cell>I'll take The Painter.</Cell></Row>
+  <Row><Cell>merc_provider_painter</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_hertl</Cell><Cell>Hertl (1200 groschen).</Cell><Cell>Hertl (1200 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_hertl</Cell><Cell>I'll take Hertl.</Cell><Cell>I'll take Hertl.</Cell></Row>
+  <Row><Cell>merc_provider_hertl</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_pelcl</Cell><Cell>Pelcl (1000 groschen).</Cell><Cell>Pelcl (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_pelcl</Cell><Cell>I'll take Pelcl.</Cell><Cell>I'll take Pelcl.</Cell></Row>
+  <Row><Cell>merc_provider_pelcl</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_marek</Cell><Cell>Marek (1200 groschen).</Cell><Cell>Marek (1200 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_marek</Cell><Cell>I'll take Marek.</Cell><Cell>I'll take Marek.</Cell></Row>
+  <Row><Cell>merc_provider_marek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_cverk</Cell><Cell>Cverk (1000 groschen).</Cell><Cell>Cverk (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_cverk</Cell><Cell>I'll take Cverk.</Cell><Cell>I'll take Cverk.</Cell></Row>
+  <Row><Cell>merc_provider_cverk</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_volek</Cell><Cell>Volek (1000 groschen).</Cell><Cell>Volek (1000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>I'll take Volek.</Cell></Row>
+  <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
+<!-- end generated companions -->
 </Table>

@@ -28,6 +28,13 @@
             <Variable name="playerMounted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- The follow tree is running but going nowhere: evict it, then re-fire. -->
             <Variable name="followStuck"         type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <!-- No 'follow' interrupt while this is set. An eviction (the teleport fired by
+                 the idle arm or the re-fire arm) is applied by the ENGINE on its own update,
+                 not where it is queued, so a follow fired inside that gap is destroyed by it
+                 and the latch below is left claiming he is following with nothing running.
+                 Written by FollowGate from a self-expiring Lua stamp - see
+                 NoteFollowEviction in mercenaries_formation_handler.lua. -->
+            <Variable name="refireBlock"         type="_bool"                values="false"                             isPersistent="0" form="single" />
 
             <!-- campActive/campFurniture/campStanceCode: only used by the disabled camp sit/sleep block below. -->
             <Variable name="campActive"          type="_bool"                values="false"                             isPersistent="0" form="single" />
@@ -68,10 +75,8 @@
             <Variable name="barkRandom" type="_int" values="1" isPersistent="0" form="single" />
             <!-- barkAlias: context self-talk dialog (camp/travel/both) chosen for barkRandom 29+. -->
             <Variable name="barkAlias" type="_string" values="" isPersistent="0" form="single" />
-            <!-- barkReqAlias: order bark consumed from _G.MercBarkReq. hasMetaBark is the
-                 vanilla-shout alternative, whose metarole is spelled out in the node. -->
+            <!-- barkReqAlias: order bark consumed from _G.MercBarkReq. -->
             <Variable name="barkReqAlias" type="_string" values="" isPersistent="0" form="single" />
-            <Variable name="hasMetaBark" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="hasBarkReq" type="_bool" values="false" isPersistent="0" form="single" />
 
             <Variable name="wasInCombat" type="_bool" values="false" isPersistent="0" form="single" />
@@ -150,6 +155,7 @@
                                     <Sequence>
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                         <ExecuteLua code="data.isIdle = mercenaries:MercIsIdle(entity)" />
+                                        <ExecuteLua code="mercenaries:FollowGate(data, entity.this.id)" />
                                         <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
                                         <ExecuteLua code="mercenaries:MercLeashes(data)" />
 
@@ -213,7 +219,7 @@
                                                      other. idleTicks is an independent trigger and stays as it is. -->
                                                 <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; $deTargetDist | $idleTicks &gt; 55">
                                                     <Sequence>
-                                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
+                                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:MercDropClaim(entity.this.id) end)" />
                                                         <Expression expressions="$currentTarget = $__null" />
                                                     </Sequence>
                                                 </IfCondition>
@@ -334,7 +340,8 @@
                                         <Sequence>
                                             <IfCondition failOnCondition="false" condition="$isFollowingActive">
                                                 <Sequence>
-                                                    <Expression expressions="$isFollowingActive = false" />
+                                                    <Expression expressions="$isFollowingActive = false &#10; $refireBlock = true" />
+                                                    <ExecuteLua code="mercenaries:NoteFollowEviction(entity.this.id)" />
                                                     <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
                                                 </Sequence>
                                             </IfCondition>
@@ -362,7 +369,10 @@
                                             <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; (($isCampActor &amp; ~$firedCampActor) | (~$isCampActor &amp; $firedCampActor))">
                                                 <Expression expressions="$isFollowingActive = false" />
                                             </IfCondition>
-                                            <IfCondition failOnCondition="false" condition="~$isFollowingActive">
+                                            <!-- ~$refireBlock: never fire follow while an eviction of this merc's
+                                                 tree is still in flight, or the eviction lands on the behaviour we
+                                                 just started and the latch below pins him for good. -->
+                                            <IfCondition failOnCondition="false" condition="~$isFollowingActive &amp; ~$refireBlock">
                                                 <Sequence>
 
                                                     <SuppressFailure>
@@ -424,8 +434,8 @@
                                              self, nothing visibly moves) purely to evict it - which is
                                              why toggling idle cures a stuck merc by hand, the idle arm
                                              doing exactly this. Arm 4 then starts follow fresh. -->
-                                        <ExecuteLua code="mercenaries:ConsumeFollowRefire(entity.this.id)" />
-                                        <Expression expressions="$isFollowingActive = false" />
+                                        <ExecuteLua code="mercenaries:ConsumeFollowRefire(entity.this.id); mercenaries:NoteFollowEviction(entity.this.id)" />
+                                        <Expression expressions="$isFollowingActive = false &#10; $refireBlock = true" />
                                         <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
                                     </Sequence>
                                 </IfCondition>
@@ -461,11 +471,6 @@
                                 <IfCondition failOnCondition="false" condition="$hasBarkReq">
                                     <SuppressFailure>
                                         <Function_speech_schedulerMonolog alias="$barkReqAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                    </SuppressFailure>
-                                </IfCondition>
-                                <IfCondition failOnCondition="false" condition="$hasMetaBark">
-                                    <SuppressFailure>
-                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="'NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'" skipInLod="true" subtitlesDown="false" />
                                     </SuppressFailure>
                                 </IfCondition>
                                 <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />

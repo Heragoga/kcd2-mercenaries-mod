@@ -72,12 +72,32 @@ mercenaries.MeleePlayerLeashMax   = 70.0
 --
 -- EnemyAlertRadius is the number the comment names, and it sits inside the existing Max, so
 -- the per-merc scaling still does its job for very large columns.
+--
+-- ORDER MATTERS, and getting it wrong put the bug straight back at Raborsch. The floor used
+-- to be applied and then the Max clamp applied over it, which is only harmless while the
+-- floor is below the Max. It stopped being harmless the moment a siege raised
+-- EnemyAlertRadius to RaborschEngageRadius (160): the floor computed 160 and the very next
+-- line cut it back to 70, so the squad acquired targets out to 160 m while being forbidden to
+-- walk past 70 - the exact "handed a target he is not allowed to reach, so he draws, crosses
+-- his leash, disengages, re-acquires the same man and draws again" loop this floor exists to
+-- prevent. The Max bounds the SQUAD-SIZE SCALING; it was never meant to bound the acquisition
+-- floor. So clamp first, floor second, and the floor always wins.
 function mercenaries:MeleePlayerLeash()
     local squad = self.SquadSize or 0
     local d = self.MeleePlayerLeashBase + squad * self.MeleePlayerLeashPerMerc
+    if d > self.MeleePlayerLeashMax then d = self.MeleePlayerLeashMax end
     local floor = self.EnemyAlertRadius or 60.0
     if d < floor then d = floor end
-    if d > self.MeleePlayerLeashMax then d = self.MeleePlayerLeashMax end
+    return d
+end
+
+-- The TARGET leash, by the same rule. A flat 70 has the same defect as the player leash had:
+-- during a siege the squad is handed targets out to EnemyAlertRadius (160) and then told to
+-- disengage at 70. Read through this rather than the raw constant so the two cannot diverge.
+function mercenaries:MeleeTargetLeashNow()
+    local d = self.MeleeTargetLeash or 70.0
+    local floor = self.EnemyAlertRadius or 60.0
+    if d < floor then d = floor end
     return d
 end
 
@@ -112,7 +132,7 @@ mercenaries.ForcedTargetOf = {}
 -- the modules' OnFail so one cleanup works for both sides (and tower archers).
 function mercenaries:ClearCombatClaim(wuid)
     local k = tostring(wuid)
-    if self.MercTargetOf then self.MercTargetOf[k] = nil end
+    if self.MercDropClaim then self:MercDropClaim(k) end
     if self.EnemyTargetOf then self.EnemyTargetOf[k] = nil end
     if self.EnemyClaimWuid then self.EnemyClaimWuid[k] = nil end
     -- Combat ending is the one moment he should look again immediately, and it is also
@@ -121,6 +141,46 @@ function mercenaries:ClearCombatClaim(wuid)
     -- ForcedTargetOf is otherwise only cleared when the TARGET dies, so an
     -- encounter override outlived the NPC that held it.
     if self.ForcedTargetOf then self.ForcedTargetOf[k] = nil end
+end
+
+-- Should an NPC leaving a fight put his weapon away? Shared by combat_melee and
+-- combat_archer_dynamic - both end on their target's death and both used to sheathe
+-- unconditionally for anyone who was not an enemy.
+--
+--
+-- Not while the battle is still going on around him. combat_melee ends every time its
+-- TARGET dies - which in a big fight is every few seconds per man - and the OnFail
+-- sheathe then ran with enemies still swinging a few metres off, so he sheathed,
+-- re-acquired and drew again. Across a squad that is the "half of them keep drawing and
+-- sheathing in the middle of a battle" report; foe_combat never sheathes for the same
+-- reason, and the note there says so.
+--
+-- The weapon still goes away, just not here. The scheduler sheathes on idleTicks (~16s
+-- with nothing to do) and on crossing the player leash, which are the two cases the
+-- sheathe actually exists for - a man standing about in camp with his sword out.
+mercenaries.SheatheClearRange = 25.0
+
+function mercenaries:CombatMaySheathe(data, ent)
+    -- combat_melee publishes isEnemy; the archer module does not, so derive it there.
+    local isEnemy = data and data.isEnemy
+    if isEnemy == nil then
+        pcall(function() isEnemy = (self:SideOf(ent:GetName() or '') ~= "friend") end)
+    end
+    if isEnemy then return false end
+    local may = true
+    pcall(function()
+        local mp = ent and ent:GetPos()
+        if not mp then return end
+        local r2 = (self.SheatheClearRange or 25.0) ^ 2
+        for _, e in ipairs(self.CachedEnemies or {}) do
+            local ep = e.pos or (e.entity and e.entity:GetPos())
+            if ep and e.entity and self:IsCombatViable(e.entity) then
+                local dx, dy, dz = ep.x - mp.x, ep.y - mp.y, ep.z - mp.z
+                if (dx * dx + dy * dy + dz * dz) <= r2 then may = false return end
+            end
+        end
+    end)
+    return may
 end
 
 -- ---------------------------------------------------------------------------
@@ -206,12 +266,13 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
             distToTarget = math.sqrt(dx * dx + dy * dy + dz * dz)
         end
 
+        local tLeash = self:MeleeTargetLeashNow()
         if data.isArcher then
             if (_G.ArcherStance or "skirmish") ~= "melee" then data.disengage = true end
-            if distToTarget and distToTarget > (self.MeleeTargetLeash + 5.0) then data.disengage = true end
+            if distToTarget and distToTarget > (tLeash + 5.0) then data.disengage = true end
             if distToPlayer > (pLeash + 5.0) then data.disengage = true end
         else
-            if distToTarget and distToTarget > self.MeleeTargetLeash then data.disengage = true end
+            if distToTarget and distToTarget > tLeash then data.disengage = true end
             if distToPlayer > pLeash then data.disengage = true end
         end
     end)

@@ -33,7 +33,21 @@ mercenaries.WBTriggerRange   = 55.0   -- an attacker this close to camp starts s
 mercenaries.WBPlayerGateRange = 300.0
 mercenaries.WBStageTimeout   = 12.0   -- seconds before we start the fight regardless
 mercenaries.WBStageQuorum    = 0.9    -- once this share is in place, the rest get WBStageGrace
-mercenaries.WBStageGrace     = 2.0    -- ...and then the fight opens without the stragglers
+mercenaries.WBStageGrace     = 0.5    -- ...and then the fight opens without the stragglers
+-- Once the ATTACKERS alone are formed, they go in after this long - they do not wait on
+-- the defenders as well.
+--
+-- WBQuorumMet requires BOTH sides at quorum, so a raid that had marched in and drawn up
+-- at the gate still stood there until the company's own line formed, or until the whole
+-- WBStageAllowance ran out (12s + march budget: about a minute for a raid staged 120m
+-- out). That is the "raiders wait forever at the gate" report, and it was never the
+-- intent - the design rule is that the ATTACKING side has to be formed before it
+-- commits, which is exactly what the WBContact arm already says.
+--
+-- Opening early costs the defenders nothing they had: entering battle releases every
+-- staging assignment (WBSetPhase), so mercs still short of the wall simply walk the rest
+-- of the way and fight as they arrive.
+mercenaries.WBAttackerGrace  = 3.0
 mercenaries.WBStagedDist     = 3.0    -- close enough to a staging spot to count as ready
 mercenaries.WBLineSpacing    = 1.8    -- shoulder to shoulder along the line
 mercenaries.WBLineWidth      = 12     -- hard cap on men per rank; the gap width normally decides
@@ -242,7 +256,17 @@ function mercenaries:WBAttackersNearCamp()
     -- point is that it marches in from the horizon rather than appearing at the wall.
     -- Not once the fighting starts, though, or one survivor running for the hills would
     -- hold the camp at battle stations forever.
-    if self.WBPhase ~= "battle" then
+    --
+    -- ...and not once it has ALREADY been marshalled (WBRaidStaged). Without that latch
+    -- the machine loops: staging times out with the column still short of the camp, the
+    -- fight opens, the battle phase does not count the raid force so it sees an empty
+    -- field, it goes quiet back to idle - and idle counts the force again and marshals
+    -- the whole camp a second time. Round and round, so the raid never resolves, the
+    -- force never dies, and RaidBusy stays true for ever, which is what "the first raid
+    -- works and the second does nothing" actually was. After the first marshal they are
+    -- ordinary enemies: the sphere query below finds them when they are near the camp,
+    -- and their own AI walks them in.
+    if self.WBPhase ~= "battle" and not self.WBRaidStaged then
         for _, e in ipairs(self.WBRaidForce or {}) do
             if e and self:IsAliveAndWell(e, true) then
                 local k = wbKey(e)
@@ -605,6 +629,9 @@ function mercenaries:WBSetPhase(p)
     self.WBPhase = p
     wbLog("phase -> " .. p)
     if p == "battle" then
+        -- This raid force has had its march; from here it fights like anything else.
+        -- See WBAttackersNearCamp.
+        if self.WBRaidForce then self.WBRaidStaged = true end
         -- before the assignments are dropped: they are what says which gate is under attack
         pcall(function() self:WBForceGates() end)
         -- release everyone: wall rules off, fight normally. Men still short of the gap
@@ -747,7 +774,7 @@ function mercenaries.WBTick()
                 self:WBAssignPositions(attackers, defenders)
                 local n = self:WBDispatch()
                 self.WBStartedAt = nowT()
-                self.WBQuorumAt = nil
+                self.WBQuorumAt, self.WBAtkFormedAt = nil, nil
                 self.WBStageAllowed = self:WBStageAllowance()
                 self.WBBeat, self.WBNoAssign = {}, {}   -- counters are per staging
                 self:WBSetPhase("staging")
@@ -763,8 +790,20 @@ function mercenaries.WBTick()
             -- feeds in behind him one at a time: they gather at the gate, then go in.
             local atk = per.enemy
             local atkFormed = (atk.t == 0) or ((atk.r / atk.t) >= self.WBStageQuorum)
+            -- Timed from the moment they formed, not from staging start, so the clock
+            -- measures standing at the gate rather than the march in.
+            if atkFormed then
+                self.WBAtkFormedAt = self.WBAtkFormedAt or nowT()
+            else
+                self.WBAtkFormedAt = nil
+            end
+
             if atkFormed and self:WBContact() then
                 wbLog("contact - the fight is on")
+                self:WBSetPhase("battle")
+            elseif atkFormed and atk.t > 0 and self.WBAtkFormedAt
+                   and (nowT() - self.WBAtkFormedAt) > self.WBAttackerGrace then
+                wbLog("attackers formed up (" .. atk.r .. "/" .. atk.t .. ") - going in")
                 self:WBSetPhase("battle")
             elseif all then
                 wbLog("everyone in position (" .. ready .. "/" .. total .. ")")
@@ -812,7 +851,13 @@ function mercenaries:WBStatus()
     wbLog("staged: " .. tostring(ready) .. "/" .. tostring(total))
     wbLog("attackers near camp: " .. #self:WBAttackersNearCamp())
     if self.WBPhase == "staging" then
-        wbLog("elapsed: " .. string.format("%.0f", nowT() - self.WBStartedAt) .. "s of " .. self.WBStageTimeout .. "s")
+        -- The cap is the ALLOWANCE (flat timeout + march budget), not the flat timeout -
+        -- printing the latter made a 60s stage look like a 12s one that had overrun.
+        wbLog("elapsed: " .. string.format("%.0f", nowT() - self.WBStartedAt) .. "s of "
+              .. string.format("%.0f", self.WBStageAllowed or self.WBStageTimeout) .. "s")
+        wbLog("attackers formed for: " .. (self.WBAtkFormedAt
+              and (string.format("%.1f", nowT() - self.WBAtkFormedAt) .. "s of " .. self.WBAttackerGrace .. "s")
+              or "not yet"))
     end
     -- who is actually moving, and how far he still has to go
     for key, a in pairs(self.WBAssign) do
@@ -914,6 +959,8 @@ function mercenaries:WBRaid(line)
     if #force == 0 then wbLog("raid spawned nobody"); return end
 
     self.WBRaidForce = force
+    self.WBRaidStaged = false           -- this one has not had its march yet
+    self.WBRaidAt = nowT()              -- ...and this is when it landed; see RaidBusy
     self.WBOpenBearing = ang            -- unwalled camps form up facing this way
     self.WBGaps, self.WBGapsVersion = nil, nil
     self:WBSetPhase("idle")                                 -- make the next tick marshal them
@@ -938,7 +985,7 @@ function mercenaries:WBRaidClear()
     for _, e in ipairs(self.WBRaidForce or {}) do
         pcall(function() System.RemoveEntity(e.id) end)
     end
-    self.WBRaidForce = nil
+    self.WBRaidForce, self.WBRaidStaged, self.WBRaidAt = nil, false, nil
     self:WBSetPhase("idle")
     wbLog("raid force removed")
 end
@@ -978,11 +1025,9 @@ function mercenaries:WBSetLine(line)
         self.WBOutsideOffset, self.WBInsideOffset, self.WBColumnSpacing))
 end
 
-System.AddCCommand("merc_wb_status", "mercenaries:WBStatus()",   "Wall-battle phase, gaps and staging progress")
-System.AddCCommand("merc_wb_gaps",   "mercenaries:WBShowGaps('%line')", "Mark the battle lines at each gap: merc_wb_gaps [menPerSide]")
-System.AddCCommand("merc_wb_line",   "mercenaries:WBSetLine('%line')",  "Line shape: merc_wb_line [spacing] [maxPerRank] [rankDepth] [outOffset] [inOffset] [columnFile]")
-System.AddCCommand("merc_raid",       "mercenaries:WBRaid('%line')", "Raid the camp: merc_raid [count] [group] [distance] - spawns them in formation far out and marches them to a gate")
-System.AddCCommand("merc_raid_clear", "mercenaries:WBRaidClear()",   "Remove the current raid force")
-System.AddCCommand("merc_wb_start",  "mercenaries:WBStart()",    "Start watching for attacks on the walled camp")
-System.AddCCommand("merc_wb_battle", "mercenaries:WBSetPhase('battle')", "Force the battle phase (drops all wall rules)")
-System.AddCCommand("merc_wb_idle",   "mercenaries:WBSetPhase('idle')",   "Force back to idle")
+mercenaries:DevCommand("merc_wb_status", "mercenaries:WBStatus()",   "Wall-battle phase, gaps and staging progress")
+mercenaries:DevCommand("merc_wb_gaps",   "mercenaries:WBShowGaps('%line')", "Mark the battle lines at each gap: merc_wb_gaps [menPerSide]")
+mercenaries:DevCommand("merc_wb_line",   "mercenaries:WBSetLine('%line')",  "Line shape: merc_wb_line [spacing] [maxPerRank] [rankDepth] [outOffset] [inOffset] [columnFile]")
+mercenaries:DevCommand("merc_wb_start",  "mercenaries:WBStart()",    "Start watching for attacks on the walled camp")
+mercenaries:DevCommand("merc_wb_battle", "mercenaries:WBSetPhase('battle')", "Force the battle phase (drops all wall rules)")
+mercenaries:DevCommand("merc_wb_idle",   "mercenaries:WBSetPhase('idle')",   "Force back to idle")

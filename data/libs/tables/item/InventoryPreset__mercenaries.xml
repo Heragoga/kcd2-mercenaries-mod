@@ -294,5 +294,162 @@
             <PresetItem Name="arrow_hunting" Amount="40"/>
         </InventoryPreset>
 
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+        <InventoryPreset Name="inventory_merc_radzig" Health="1">
+            <ClothingPresetRef Name="UC_RadzigHelmet" />
+            <WeaponPresetRef Name="UC_Radzig" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_hanush" Health="1">
+            <ClothingPresetRef Name="merc_cc_hanush" />
+            <WeaponPresetRef Name="UC_Hanus" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_erik" Health="1">
+            <ClothingPresetRef Name="merc_cc_erik" />
+            <WeaponPresetRef Name="UC_Erik" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_aulitz" Health="1">
+            <ClothingPresetRef Name="UC_Aulitz" />
+            <WeaponPresetRef Name="UC_Aulitz" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_jobst" Health="1">
+            <ClothingPresetRef Name="merc_cc_jobst" />
+            <WeaponPresetRef Name="UC_Jobst" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_bergov" Health="1">
+            <ClothingPresetRef Name="merc_cc_bergov" />
+            <WeaponPresetRef Name="UC_Bergov_M44b_battle" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_vavak" Health="1">
+            <ClothingPresetRef Name="UC_VavakArmorHelmet" />
+            <WeaponPresetRef Name="UC_Vavak" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_ruthard" Health="1">
+            <ClothingPresetRef Name="merc_cc_ruthard" />
+            <WeaponPresetRef Name="UC_Ruthard_battle" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_samuel" Health="1">
+            <ClothingPresetRef Name="UC_SamuelArmor" />
+            <WeaponPresetRef Name="UC_Samuel_battleM48c" />
+            <InventoryPresetRef Name="pockets_soldiers_all" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_oderin" Health="1">
+            <ClothingPresetRef Name="merc_cc_oderin" />
+            <WeaponPresetRef Name="UC_Oderin_battle" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_istvan" Health="1">
+            <ClothingPresetRef Name="merc_cc_istvan" />
+            <WeaponPresetRef Name="UC_Istvan" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_chamberlain" Health="1">
+            <ClothingPresetRef Name="merc_cc_chamberlain" />
+            <WeaponPresetRef Name="UC_Chamberlain_battleM09" />
+            <InventoryPresetRef Name="pockets_burgher" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_sigismund" Health="1">
+            <ClothingPresetRef Name="merc_cc_sigismund" />
+            <WeaponPresetRef Name="merc_cc_wpn_sigismund" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_lichtenstein" Health="1">
+            <ClothingPresetRef Name="merc_cc_lichtenstein" />
+            <WeaponPresetRef Name="merc_cc_wpn_lichtenstein" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_brabant" Health="1">
+            <ClothingPresetRef Name="merc_cc_brabant" />
+            <WeaponPresetRef Name="UC_Brabant" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_musa" Health="1">
+            <ClothingPresetRef Name="merc_cc_musa" />
+            <WeaponPresetRef Name="merc_cc_wpn_musa" />
+            <InventoryPresetRef Name="pockets_soldiers_all" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_zacharias" Health="1">
+            <ClothingPresetRef Name="merc_cc_zacharias" />
+            <WeaponPresetRef Name="merc_cc_wpn_zacharias" />
+            <InventoryPresetRef Name="pockets_noble" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_martin" Health="1">
+            <ClothingPresetRef Name="UC_Father" />
+            <WeaponPresetRef Name="merc_cc_wpn_martin" />
+            <InventoryPresetRef Name="pockets_blacksmith" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_bocek" Health="1">
+            <ClothingPresetRef Name="merc_cc_bocek" />
+            <WeaponPresetRef Name="merc_cc_wpn_bocek" />
+            <InventoryPresetRef Name="pockets_soldiers_all" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_pisek" Health="1">
+            <ClothingPresetRef Name="merc_cc_pisek" />
+            <WeaponPresetRef Name="merc_cc_wpn_pisek" />
+            <InventoryPresetRef Name="pockets_soldiers_all" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_painter" Health="1">
+            <ClothingPresetRef Name="merc_cc_painter" />
+            <WeaponPresetRef Name="merc_cc_wpn_painter" />
+            <InventoryPresetRef Name="pockets_burgher" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_hertl" Health="1">
+            <ClothingPresetRef Name="tneb_hertl_M07" />
+            <WeaponPresetRef Name="tneb_Hertl_M07" />
+            <InventoryPresetRef Name="pockets_soldiers_all" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_pelcl" Health="1">
+            <ClothingPresetRef Name="merc_cc_pelcl" />
+            <WeaponPresetRef Name="tneb_Pecl_M07" />
+            <InventoryPresetRef Name="pockets_soldiers_all" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_marek" Health="1">
+            <ClothingPresetRef Name="tneb_Marek_M07" />
+            <WeaponPresetRef Name="tneb_Marek_M07" />
+            <InventoryPresetRef Name="pockets_villager" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_cverk" Health="1">
+            <ClothingPresetRef Name="merc_cc_cverk" />
+            <WeaponPresetRef Name="tneb_Cverk_M07" />
+            <InventoryPresetRef Name="pockets_soldiers_all" />
+        </InventoryPreset>
+
+        <InventoryPreset Name="inventory_merc_volek" Health="1">
+            <ClothingPresetRef Name="merc_cc_volek" />
+            <WeaponPresetRef Name="tneb_Volek_M07" />
+            <InventoryPresetRef Name="pockets_blacksmith" />
+        </InventoryPreset>
+<!-- end generated companions -->
     </InventoryPresets>
 </database>

@@ -258,27 +258,27 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="b6e1c2a4-3f8d-4c11-9a2e-7d5f8b3c1a90" weapon_preset_name="merc_weapon_swordshield_weak_3">
             <weapon_preset_item item_class_id="652db434-b7d6-448f-8671-10ca787ba1e2" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="a17f9d2b-6c4e-4a83-8b1f-3e9c7d2a5b64" weapon_preset_name="merc_weapon_swordshield_weak_4">
             <weapon_preset_item item_class_id="efa237c7-3905-4813-b9c3-a32b449c17ad" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="c3d8a1f5-2b7e-4f96-8c3a-1d6e9b4f7c22" weapon_preset_name="merc_weapon_swordshield_medium_3">
             <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="d4e9b2a6-3c8f-4a09-9d4b-2e7f0a5c8d33" weapon_preset_name="merc_weapon_swordshield_medium_4">
             <weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="e5fa3b7c-4d9a-4b12-8e5c-3f8a1b6d9e44" weapon_preset_name="merc_weapon_swordshield_strong_3">
             <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="f60b4c8d-5eab-4c23-9f6d-4a9b2c7e0f55" weapon_preset_name="merc_weapon_swordshield_strong_4">
             <weapon_preset_item item_class_id="b3f7a363-5526-45b1-a32b-422a0a8e4da4" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
 
         <!-- ==================== Axe and shield ==================== -->
@@ -292,11 +292,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="04cdf545-216f-40a9-8bbe-e3df62c6c9c4" weapon_preset_name="merc_weapon_axeshield_weak_3">
             <weapon_preset_item item_class_id="81494400-b654-4aa7-8f31-c95c689db5f6" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="8cadc064-2b10-4c83-b623-baa48ed00887" weapon_preset_name="merc_weapon_axeshield_weak_4">
             <weapon_preset_item item_class_id="53612e76-76fd-4dca-84b6-7905b986dc3b" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="75619084-5ad1-4b57-9367-3cf4b5564d4c" weapon_preset_name="merc_weapon_axeshield_medium_1">
             <weapon_preset_item item_class_id="c25fc705-c957-4c9a-a831-0f112e3b148d" />
@@ -308,11 +308,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="67b28c22-75ae-46c1-9fbb-74c4e5404bc8" weapon_preset_name="merc_weapon_axeshield_medium_3">
             <weapon_preset_item item_class_id="eeeb5a48-9a97-41a6-aee0-3e1b64fc2405" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="d5320f5a-4b3f-4b24-a396-642e82ede04e" weapon_preset_name="merc_weapon_axeshield_medium_4">
             <weapon_preset_item item_class_id="bd74ce18-2623-48ba-a1a1-c9b09bbb2827" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="a1bdde2f-5c26-4cc8-8f97-97e7e5120832" weapon_preset_name="merc_weapon_axeshield_strong_1">
             <weapon_preset_item item_class_id="0802c111-75aa-4b9c-9a3f-f30bac55fbc7" />
@@ -324,11 +324,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="4da2558e-7c3b-4e71-9a0f-4e0fb96e31f7" weapon_preset_name="merc_weapon_axeshield_strong_3">
             <weapon_preset_item item_class_id="214ffcdd-a7a7-4b7a-b484-f60c8d00b39b" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="a03246b9-5795-4b88-8a09-2558cd3f2b21" weapon_preset_name="merc_weapon_axeshield_strong_4">
             <weapon_preset_item item_class_id="0f0164d5-3746-4d07-a1ed-0f138225a6d9" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
 
         <!-- ==================== Mace and shield ==================== -->
@@ -342,11 +342,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="8cd52efe-5c75-4ca4-a73e-d742856de6ad" weapon_preset_name="merc_weapon_maceshield_weak_3">
             <weapon_preset_item item_class_id="9cc07405-4195-46ab-bf17-fd0fd99721bd" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="05de7ab9-82dd-44db-8dcf-c065a3f88f4f" weapon_preset_name="merc_weapon_maceshield_weak_4">
             <weapon_preset_item item_class_id="c64dcd8b-df93-4cb5-a80a-c71eb84ac6b0" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="65804416-c27f-4a7b-bae2-40cc77d3bbec" weapon_preset_name="merc_weapon_maceshield_medium_1">
             <weapon_preset_item item_class_id="00b0039b-daa4-4f32-ac7f-69a6a2e0add8" />
@@ -358,11 +358,11 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="e72434c6-0ce9-4a03-a9a1-a34586b5f141" weapon_preset_name="merc_weapon_maceshield_medium_3">
             <weapon_preset_item item_class_id="af6a6142-c6f7-4ae7-94a9-bb5be41ebecc" />
-            <weapon_preset_item item_class_id="310faab5-8502-47b2-adf8-22149d97d8b6" /> <!-- Kite shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="917c2ca3-dc44-46da-b35b-fb1afa66993b" /> <!-- Kite shield, red/white cross (vanilla, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="b5a967b8-4ed8-4814-b233-a7b4125375d2" weapon_preset_name="merc_weapon_maceshield_medium_4">
             <weapon_preset_item item_class_id="c67de991-e22a-4a19-8b68-9369919c41dd" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
         <weapon_preset weapon_preset_id="45ca9e2a-16a1-445c-8b25-040f60987283" weapon_preset_name="merc_weapon_maceshield_strong_1">
             <weapon_preset_item item_class_id="839992c8-657b-4d5e-97c9-96ff94430d72" />
@@ -374,7 +374,7 @@
         </weapon_preset>
         <weapon_preset weapon_preset_id="232574b9-4aef-42f2-8b78-8218d8702ddb" weapon_preset_name="merc_weapon_maceshield_strong_3">
             <weapon_preset_item item_class_id="65a211bd-2c7e-40a8-984f-66c8730444e4" />
-            <weapon_preset_item item_class_id="ff806e40-25fb-47de-934b-78c1bd97ef25" /> <!-- Skalitz wave shield (Skalitz group) -->
+            <weapon_preset_item item_class_id="6c7d5c42-e6ac-4828-9f47-0da8e0343c57" /> <!-- Skalitz kite shield (vanilla Shield_Kite_Skalitz, was a Kobyla Arms and Armour item) -->
         </weapon_preset>
 
         <!-- ==================== Archer sets (ranged mercs) ====================
@@ -479,5 +479,50 @@
             <weapon_preset_item item_class_id="e37bdf86-4cc8-4805-b04c-3b05964b9484" /> <!-- shortsword sidearm -->
         </weapon_preset>
 
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+		<!-- King Sigismund -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-00000000001f" weapon_preset_name="merc_cc_wpn_sigismund">
+			<weapon_preset_item item_class_id="00cca9e3-8ef2-46db-8cbf-86ec51930919" />
+			<weapon_preset_item item_class_id="3a640e5d-d8bd-4e8b-b61d-8cd5180e79e7" />
+		</weapon_preset>
+
+		<!-- Jan II of Lichtenstein -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-000000000020" weapon_preset_name="merc_cc_wpn_lichtenstein">
+			<weapon_preset_item item_class_id="23855649-1783-4e0d-95ad-d3478797b642" />
+		</weapon_preset>
+
+		<!-- Musa of Mali -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-000000000022" weapon_preset_name="merc_cc_wpn_musa">
+			<weapon_preset_item item_class_id="3e4fd2d2-2f28-486b-a686-a71fb5cd42f2" />
+		</weapon_preset>
+
+		<!-- Zacharias -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-000000000023" weapon_preset_name="merc_cc_wpn_zacharias">
+			<weapon_preset_item item_class_id="9afb8d78-6f8d-4311-a9b9-11727f211ff3" />
+			<weapon_preset_item item_class_id="3a640e5d-d8bd-4e8b-b61d-8cd5180e79e7" />
+		</weapon_preset>
+
+		<!-- Martin, Henry's father -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-000000000024" weapon_preset_name="merc_cc_wpn_martin">
+			<weapon_preset_item item_class_id="23855649-1783-4e0d-95ad-d3478797b642" />
+			<weapon_preset_item item_class_id="3a640e5d-d8bd-4e8b-b61d-8cd5180e79e7" />
+		</weapon_preset>
+
+		<!-- Levej Bocek -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-000000000025" weapon_preset_name="merc_cc_wpn_bocek">
+			<weapon_preset_item item_class_id="c67de991-e22a-4a19-8b68-9369919c41dd" />
+		</weapon_preset>
+
+		<!-- Petr of Pisek -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-000000000026" weapon_preset_name="merc_cc_wpn_pisek">
+			<weapon_preset_item item_class_id="9aa773b1-ede0-4ff5-bbd8-2595b36c8a1a" />
+		</weapon_preset>
+
+		<!-- The Painter -->
+		<weapon_preset weapon_preset_id="6d657263-0c0d-4b00-9000-000000000027" weapon_preset_name="merc_cc_wpn_painter">
+			<weapon_preset_item item_class_id="c164f346-0463-4116-b790-094b11274e5e" />
+			<weapon_preset_item item_class_id="3a640e5d-d8bd-4e8b-b61d-8cd5180e79e7" />
+		</weapon_preset>
+<!-- end generated companions -->
     </weapon_presets>
 </database>

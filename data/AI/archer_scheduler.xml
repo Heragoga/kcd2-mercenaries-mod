@@ -21,6 +21,11 @@
                  by the re-arm loop below. Without it an archer flagged as stalled kept the latch
                  set forever - the melee scheduler has had this since the same bug was found there. -->
             <Variable name="followStuck"         type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <!-- No 'follow' interrupt while this is set. Mirrors mercenary_scheduler.xml -
+                 see NoteFollowEviction in mercenaries_formation_handler.lua and
+                 docs/formations.md, "The eviction race". This file is a parallel copy of
+                 that scheduler and needs every fix made there. -->
+            <Variable name="refireBlock"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Which follow-family behaviour is running: camp_actor (true) or follow (false). -->
             <Variable name="firedCampActor"     type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Mirror of _G.PlayerMounted; keeps the self-heal from restarting a
@@ -85,6 +90,7 @@
                                     <Sequence>
                                         <ExecuteLua code="if _G.MercenariesDismissed then data.goFlee = true end" />
                                         <ExecuteLua code="data.isIdle = mercenaries:MercIsIdle(entity)" />
+                                        <ExecuteLua code="mercenaries:FollowGate(data, entity.this.id)" />
                                         <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
                                         <ExecuteLua code="data.stanceMode = mercenaries:GetArcherStanceCode()" />
                                         <ExecuteLua code="mercenaries:MercLeashes(data)" />
@@ -145,7 +151,7 @@
                                             <Sequence>
                                                 <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; $deTargetDist | $idleTicks &gt; 55 | $stanceMode == 2">
                                                     <Sequence>
-                                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries.MercTargetOf[tostring(entity.this.id)] = nil end)" />
+                                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:MercDropClaim(entity.this.id) end)" />
                                                         <Expression expressions="$currentTarget = $__null" />
                                                     </Sequence>
                                                 </IfCondition>
@@ -277,7 +283,8 @@
                                         <Sequence>
                                             <IfCondition failOnCondition="false" condition="$isFollowingActive">
                                                 <Sequence>
-                                                    <Expression expressions="$isFollowingActive = false" />
+                                                    <Expression expressions="$isFollowingActive = false &#10; $refireBlock = true" />
+                                                    <ExecuteLua code="mercenaries:NoteFollowEviction(entity.this.id)" />
                                                     <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
                                                 </Sequence>
                                             </IfCondition>
@@ -305,7 +312,10 @@
                                             <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; (($isCampActor &amp; ~$firedCampActor) | (~$isCampActor &amp; $firedCampActor))">
                                                 <Expression expressions="$isFollowingActive = false" />
                                             </IfCondition>
-                                            <IfCondition failOnCondition="false" condition="~$isFollowingActive">
+                                            <!-- ~$refireBlock: never fire follow while an eviction of this
+                                                 archer's tree is still in flight, or the eviction lands on the
+                                                 behaviour we just started and the latch pins him for good. -->
+                                            <IfCondition failOnCondition="false" condition="~$isFollowingActive &amp; ~$refireBlock">
                                                 <Sequence>
                                                     <SuppressFailure>
                                                         <Function_crime_getMrkev mrkev="$mrkev" nodeLabel="1235" />
@@ -356,8 +366,8 @@
                                 <ExecuteLua code="mercenaries:PollFollowRefire(data, entity.this.id)" />
                                 <IfCondition failOnCondition="false" condition="$followStuck &amp; ~$isIdle &amp; ~$inCombat &amp; ~$goFlee">
                                     <Sequence>
-                                        <ExecuteLua code="mercenaries:ConsumeFollowRefire(entity.this.id)" />
-                                        <Expression expressions="$isFollowingActive = false" />
+                                        <ExecuteLua code="mercenaries:ConsumeFollowRefire(entity.this.id); mercenaries:NoteFollowEviction(entity.this.id)" />
+                                        <Expression expressions="$isFollowingActive = false &#10; $refireBlock = true" />
                                         <AddInterrupt_teleport destination="$this.id" Target="$this.id" Host="$__land" Behavior="'teleport'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Instant" Aliveness="Alive" Privileged="false" FastForward="true" />
                                     </Sequence>
                                 </IfCondition>

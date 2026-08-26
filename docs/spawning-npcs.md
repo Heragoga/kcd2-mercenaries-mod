@@ -200,6 +200,80 @@ local backDir = { x = playerDir.x, y = playerDir.y, z = playerDir.z }
 
 ---
 
+## Spawning while the player is indoors
+
+`GetSafeSpawnPosition` is an **outdoor** helper and behaves badly inside a building. Two separate
+problems, both of which were live in the innkeeper hire path:
+
+1. **It never leaves the room.** It only probes ~5 m behind the player (`rayDistance = distance + 2`),
+   so in any room larger than that it just finds clear floor a few metres away — which is why men hired
+   from an innkeeper mustered in his taproom instead of the street.
+2. **Its ground snap can land them on the roof.** The snap starts `spawnPos.z + 5.0` and casts *down*.
+   Inside a building 5 m up is usually above the ceiling, so the first solid surface the ray meets is
+   the **roof**, and `spawnPos.z` comes back as the roof height. `FindValidGround` then inherits that
+   polluted `refZ`, so `CampValidateSpot` measures the rooftop against itself, finds no rise, and
+   validates it. The NPC really does spawn — over the player's head. From the player's chair that is
+   indistinguishable from "they didn't spawn at all".
+
+The cure is not to widen the rays (a tavern common room can exceed any sane ray budget). Decide
+*before* placement whether the player is indoors, and relocate the whole muster point. Every hire path
+goes through one helper:
+
+```lua
+local a = mercenaries:HireSpawnAnchor()          -- { pos, rot, outside, snap }
+local offsetPos = a.snap and mercenaries:FindValidGround(raw, a.pos.z) or raw
+```
+
+It resolves three cases:
+
+| Case | `pos` | `snap` |
+|---|---|---|
+| Player outdoors | `GetSafeSpawnPosition` as before | `true` |
+| Indoors, open ground within reach | the outdoor anchor | `true` |
+| Indoors, nothing open within reach (mine, keep, cellar) | in-room x/y, **the player's own z** | `false` |
+
+That third row is the one that is easy to get wrong. `snap = false` means "place them exactly here, do
+not ground-snap and do not validate" — because *both* `CampSnapToGround` and `CampValidateSpot` probe
+from above, so in an enclosed interior they find the roof, not the floor. The player's own z is the one
+height you know for certain is a real floor.
+
+`FindOutdoorSpawnAnchor` (`mercenaries_util.lua`) returns `pos, underRoof`: `nil, false` when the
+player is already outdoors, `pos, true` when it found open ground, `nil, true` when he is indoors with
+nowhere to go. Indoors it walks rings of bearings outward from `OutdoorAnchorMin` to `OutdoorAnchorMax`
+and keeps the first candidate that has open sky over it (`CampDetectRoof`) *and* ground a man can stand
+on (`CampValidateSpot`). Rejecting an indoor candidate costs **one** ray, so the inside-the-building
+half of the search is nearly free; only open-sky candidates pay the nine-ray footprint check, and those
+are capped by `OutdoorAnchorTries`.
+
+Two details that matter:
+
+- **The two probes use different reference heights, deliberately.** The *standability* check is
+  candidate-relative — hired upstairs the street is several metres below, and judging it against the
+  floor he is standing on rejects the whole street. The *roof* probe is player-relative, because the
+  question it answers is "is there still something over my head at this bearing", i.e. have we left the
+  building. That costs a slope bias: open ground more than `CampRoofDetectHeight` (3 m) **above** his
+  feet reads as roofed and is skipped. Err that way on purpose — it only drops some of the 16 bearings
+  per ring, whereas the tempting "fix" (snap first, then probe from the snapped height) is actively
+  wrong, because a snap taken indoors lands on the roof and would make a rooftop candidate look like
+  open sky. That is the bug the whole function exists to avoid.
+- **Half-step alternate rings** so samples never line up in spokes and re-probe the same wall all the
+  way out.
+- **Tell the player.** They are out of sight by design, so a hire indoors reads as nothing having
+  happened unless something says so (`merc_info_hired_outside`).
+
+Related: `CampDetectRoof` is the mod's only notion of "indoors" — a single downward ray from 50 m up,
+true when the first hit is `CampRoofDetectHeight`+ above the player's feet. A tree canopy passes
+through it, so open woodland is not a false positive. There is no engine `IsPointIndoors`.
+
+### Count what actually spawned
+
+`System.SpawnEntity` can succeed as a call and still leave `System.GetEntityByName` returning `nil`
+(position embedded in geometry, for one). A hire loop that only does `if ent then ... end` charges the
+player, bumps the count, and prints "hired" for men who never existed. Count the entities that came
+back, refund the difference, `Recount()`, and only claim success for what really arrived.
+
+---
+
 ## Notes
 
 - **`guidSharedSoulId` vs `sharedSoulGuid`** — these look interchangeable but they are not. The property key inside `System.SpawnEntity` is `guidSharedSoulId`. Using the wrong one produces an NPC with no soul, no inventory, no brain, and no visible errors.

@@ -387,13 +387,13 @@ function mercenaries:ProfTimerCheck()
          "  (frame-cached, NOT usable for durations)")
 end
 
-System.AddCCommand("merc_prof",        "mercenaries:ProfSet('%line')",      "Profiling on/off: merc_prof 1 | 0")
-System.AddCCommand("merc_prof_report", "mercenaries:ProfReport(true)",      "Dump profile sorted by worst spike")
-System.AddCCommand("merc_prof_total",  "mercenaries:ProfReport(false)",     "Dump profile sorted by total time")
-System.AddCCommand("merc_prof_reset",  "mercenaries:ProfReset()",           "Reset profiling counters")
-System.AddCCommand("merc_prof_hitch",  "mercenaries:ProfHitchSet('%line')", "Set hitch log threshold in ms")
-System.AddCCommand("merc_prof_timer",  "mercenaries:ProfTimerCheck()",      "Verify the profiling clock resolves sub-ms")
-System.AddCCommand("merc_gc",          "mercenaries:ProfGCSet('%line')",    "Stop/restart Lua GC to A/B it: merc_gc 0 | 1")
+mercenaries:DevCommand("merc_prof",        "mercenaries:ProfSet('%line')",      "Profiling on/off: merc_prof 1 | 0")
+mercenaries:DevCommand("merc_prof_report", "mercenaries:ProfReport(true)",      "Dump profile sorted by worst spike")
+mercenaries:DevCommand("merc_prof_total",  "mercenaries:ProfReport(false)",     "Dump profile sorted by total time")
+mercenaries:DevCommand("merc_prof_reset",  "mercenaries:ProfReset()",           "Reset profiling counters")
+mercenaries:DevCommand("merc_prof_hitch",  "mercenaries:ProfHitchSet('%line')", "Set hitch log threshold in ms")
+mercenaries:DevCommand("merc_prof_timer",  "mercenaries:ProfTimerCheck()",      "Verify the profiling clock resolves sub-ms")
+mercenaries:DevCommand("merc_gc",          "mercenaries:ProfGCSet('%line')",    "Stop/restart Lua GC to A/B it: merc_gc 0 | 1")
 
 -- ---------------------------------------------------------------------------
 -- What gets instrumented
@@ -479,7 +479,7 @@ function mercenaries:ProfInstrumentAll()
     self:ProfReset()
 end
 
-System.AddCCommand("merc_prof_instrument", "mercenaries:ProfInstrumentAll()",
+mercenaries:DevCommand("merc_prof_instrument", "mercenaries:ProfInstrumentAll()",
                    "Wrap BT hooks and timers with timing (done automatically at load)")
-System.AddCCommand("merc_prof_off",        "mercenaries:ProfUninstrumentAll()",
+mercenaries:DevCommand("merc_prof_off",        "mercenaries:ProfUninstrumentAll()",
                    "Remove method instrumentation entirely")

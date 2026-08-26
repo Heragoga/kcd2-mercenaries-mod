@@ -3,9 +3,30 @@ function mercenaries:EquipMercenary(ent, currentPreset)
     if not ent or not ent.actor then return end
     
     local name = ent:GetName() or ''
-    if string.find(name, 'MercenaryCustomCompanion') then
+    -- A named companion wears the gear his own character wears and nothing else - every
+    -- style, the custom uniform included. He carries the SpawnedFriend_ prefix like
+    -- everyone else, so this has to be an explicit check, and it has to come first.
+    --
+    -- GearHeroRestore is only ever work once: it puts his own look back if an earlier
+    -- build had already dressed him in the pattern, and after that finds nothing.
+    if self:IsHeroName(name) then
+        self:GearHeroRestore(ent)
         return
-    end    
+    end
+    -- Style 7 is not a preset pool at all: it is the set of items the player handed
+    -- over, worn piece by piece. See mercenaries_custom_gear.lua.
+    if currentPreset == self.CustomOutfitIndex then
+        self:GearApplyArmour(ent)
+        return
+    end
+    -- Any other style: the custom pieces must not be on him. Applying a preset over
+    -- them does NOT take them off - that is what the mash-up of livery and harness
+    -- was - so they are deleted. Done here rather than only when leaving style 7, so
+    -- it holds however this was reached, reload included. Squad only: enemies come
+    -- through this function too and have nothing to do with the player's uniform.
+    local mine = string.find(name, 'SpawnedFriend') ~= nil
+                 or string.find(name, self.StaticArcherNamePrefix or 'SpawnedTower_archer_', 1, true) == 1
+    if mine then self:GearRemoveCustom(ent) end
     local tier = "weak"
     
     -- Parse tier directly from their entity name
@@ -56,6 +77,13 @@ function mercenaries:ChangeMercOutfit(presetNumber, skipSave)
             end
         end
     end
+
+    -- The custom uniform carries the weapon as well, so switching into or out of it
+    -- has to re-arm the company - the weapon loadout on its own never changed.
+    if currentPreset == self.CustomOutfitIndex or self.MercPrevOutfit == self.CustomOutfitIndex then
+        self:ChangeMercWeapon(_G.MercCurrentWeapon or 1, true)
+    end
+    self.MercPrevOutfit = currentPreset
 end
 
 
@@ -88,26 +116,27 @@ mercenaries.ShieldWeaponTypes = { [2] = true, [3] = true, [5] = true }
 -- out on purpose; raise the max to 9 to put them back in the roll.
 mercenaries.RandomMeleeSetMin = 2
 mercenaries.RandomMeleeSetMax = 8
+-- The v3 ("kite") slot in each shield type used to hold a plain kite shield and
+-- v4 ("Skalitz wave") a Skalitz-decorated one, both items from the third-party
+-- "House of Kobyla Arms, Armour and Regalia" mod - a hidden dependency nobody
+-- shipping this mod noticed: hire a merc into one of those presets without that
+-- mod installed and he gets no shield at all, or a broken one. Both are now
+-- vanilla: v3 -> Shield_Kite_Cross_RW (plain, so it moved to the generic pool
+-- below and dropped out of this table), v4 -> the genuine vanilla
+-- Shield_Kite_Skalitz (still Skalitz-only, just no longer borrowed). See
+-- weapon_preset__mercenaries.xml for the item swap itself.
 mercenaries.SkalitzShieldPresets = {
-    -- Sword + shield (v3 kite / v4 Skalitz wave, all tiers)
-    ["b6e1c2a4-3f8d-4c11-9a2e-7d5f8b3c1a90"] = true,
+    -- Sword + shield, v4 (all tiers)
     ["a17f9d2b-6c4e-4a83-8b1f-3e9c7d2a5b64"] = true,
-    ["c3d8a1f5-2b7e-4f96-8c3a-1d6e9b4f7c22"] = true,
     ["d4e9b2a6-3c8f-4a09-9d4b-2e7f0a5c8d33"] = true,
-    ["e5fa3b7c-4d9a-4b12-8e5c-3f8a1b6d9e44"] = true,
     ["f60b4c8d-5eab-4c23-9f6d-4a9b2c7e0f55"] = true,
-    -- Axe + shield (v3 kite / v4 Skalitz wave, all tiers)
-    ["04cdf545-216f-40a9-8bbe-e3df62c6c9c4"] = true,
+    -- Axe + shield, v4 (all tiers)
     ["8cadc064-2b10-4c83-b623-baa48ed00887"] = true,
-    ["67b28c22-75ae-46c1-9fbb-74c4e5404bc8"] = true,
     ["d5320f5a-4b3f-4b24-a396-642e82ede04e"] = true,
-    ["4da2558e-7c3b-4e71-9a0f-4e0fb96e31f7"] = true,
     ["a03246b9-5795-4b88-8a09-2558cd3f2b21"] = true,
-    -- Mace + shield (v3 kite / v4 Skalitz wave; strong only has 3 variants,
-    -- so v3 is the Skalitz-group one there)
-    ["8cd52efe-5c75-4ca4-a73e-d742856de6ad"] = true,
+    -- Mace + shield, v4 (weak/medium); strong only has 3 variants and its v3 slot
+    -- is the Skalitz one there (no v4 exists for strong mace).
     ["05de7ab9-82dd-44db-8dcf-c065a3f88f4f"] = true,
-    ["e72434c6-0ce9-4a03-a9a1-a34586b5f141"] = true,
     ["b5a967b8-4ed8-4814-b233-a7b4125375d2"] = true,
     ["232574b9-4aef-42f2-8b78-8218d8702ddb"] = true
 }
@@ -119,7 +148,16 @@ function mercenaries:EquipMercenaryWeapon(ent, currentPreset, outfitPreset)
     if not ent or not ent.actor then return end
 
     local name = ent:GetName() or ''
-    if string.find(name, 'MercenaryCustomCompanion') then
+    -- Same as EquipMercenary: a named companion keeps his own weapon, whatever the
+    -- squad is carrying, the custom uniform included.
+    if self:IsHeroName(name) then
+        return
+    end
+    -- The custom uniform owns the weapon too, for every tier and for the archers.
+    -- Enemies come through here with outfitPreset nil and would otherwise inherit
+    -- the squad's, so GearWantsCustom checks who this actually is.
+    if self:GearWantsCustom(ent, outfitPreset) then
+        self:GearApplyWeapons(ent, self:IsArcherName(name))
         return
     end
     -- Archers keep their bow set no matter what melee loadout the squad
@@ -169,6 +207,13 @@ function mercenaries:EquipMercenaryWeapon(ent, currentPreset, outfitPreset)
         System.LogAlways('[Mercenary Jeff] Equipping weapon preset: ' .. finalPresetId .. ' on ' .. name)
         ent.actor:EquipWeaponPreset(finalPresetId)
     end
+
+    -- Which category actually got equipped - "random" only resolves it here, so a
+    -- caller upstream (EquipEnemy, matching the shield to the enemy's own faction
+    -- instead of the merc squad's) has no other way to find out. Every earlier
+    -- return in this function is a case the caller cannot act on anyway (archer,
+    -- custom companion, bad entity), so returning nil there is correct too.
+    return preset
 end
 
 -- Changes the weapon loadout of every active merc.

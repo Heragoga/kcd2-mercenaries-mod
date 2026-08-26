@@ -379,9 +379,13 @@ targets at all: `BanditCampSuppressed` short-circuits `FindEnemyTarget` (the foo
 `FindStaticArcherTarget` (the towers). The tower guard matters most — a watchtower reaches
 90 m and would otherwise open fire long before anything got near.
 
-The merc side needs no change: `IsValidEnemy` already ignores anyone whose **weapon is
-sheathed**, and `camp_actor` never draws one. So a calm camp is invisible to the squad and a
-woken one isn't, automatically and in both directions.
+The merc side needs its **own** copy of the gate, and the reason is worth spelling out because
+the obvious assumption is wrong: `IsValidEnemy` does *not* fall back on the weapon-drawn check
+here, because `UpdateEnemyCache` deliberately calls it with `skipWeaponCheck=true` so that a
+hostile who has drawn but not yet swung is still cached. Without the explicit suppression a merc
+could lock onto a still-docile bandit from `EnemyScanRadius` (18 m) — well outside the 10 m the
+camp itself would notice at — and stand there flapping his weapon at a man who would neither
+alert nor fight back.
 
 It wakes on any of:
 
@@ -390,6 +394,21 @@ It wakes on any of:
 | Someone within `BanditCampAlertRange` (10 m) | Player or any living merc, measured per bandit |
 | A bandit loses health | Any range — shooting a sleeper from a hilltop has to start a fight |
 | A bandit dies | Catches a kill the health poll didn't see |
+| **A bandit takes one of ours as his target** | Any range. The authoritative one — the other three are early warnings |
+
+The last trigger closes the hole the first three left: a camp could be mid-brawl and still read
+as asleep, which suppressed every one of its members out of the squad's target cache — so the
+mercs stood and watched. It is checked from two places. `BanditCampAlertTick` polls it once a
+second like the others, and the squad's own target cache calls `BanditCampAlertFor` the instant
+it sees a lock-on, which wakes the camp **that owns that man** without waiting for the tick.
+`BanditCampAlert` reads `self.BCQ`, so any caller from outside the monitor's per-slot pass has to
+bind the slot around it — the pointer is whatever the last bind left behind, and for a call
+arriving off the target selector that is usually the wrong camp. See
+[combat-target-selection.md](combat-target-selection.md), "An unalerted bandit camp cannot hide a
+fight it has started".
+
+Waking the camp rather than exempting the one man who is fighting is deliberate: the rest of them
+are in it too, and the squad is supposed to engage the camp.
 
 Alertness is per-standing-camp: walking far enough to unload the camp and coming back gives
 a calm one, since the men who saw you were the ones unloaded. `merc_banditcamp_alert` wakes

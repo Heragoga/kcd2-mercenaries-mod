@@ -698,7 +698,7 @@ function mercenaries:LogiWealthRaidReport()
         "[Logistics] wealth-raid chance: purse=%d floor=%d span=%d max=%.0f%% -> chance=%.1f%%",
         money, self.WealthRaidFloor, self.WealthRaidSpan, self.WealthRaidMaxChance * 100, chance * 100))
 end
-System.AddCCommand("merc_logi_wealth_raid_chance", "mercenaries:LogiWealthRaidReport()",
+mercenaries:DevCommand("merc_logi_wealth_raid_chance", "mercenaries:LogiWealthRaidReport()",
     "Log today's wealth-draws-raiders chance from the player's own purse")
 
 -- Lift starving the moment food is on hand again (ration is still only consumed
@@ -1012,6 +1012,11 @@ function mercenaries:LogiRebuildCampForUpgrade()
         -- from scratch rather than stacking a second set of props on the first.
         self:ClearAnyLeftoverCamp()
         self:SpawnMercCamp(origin, true)
+        -- Strictly after the rebuild, and for the same reason RestoreCampDelayed does it
+        -- there: SpawnMercCamp empties CampOutParty and gives everyone a camp role, so a
+        -- party that was out gets silently recalled and re-rostered unless it is put back
+        -- on top. Buying an upgrade should not end a sortie.
+        pcall(function() self:LoadCampOutParty() end)
     end)
 end
 

@@ -17,6 +17,8 @@
   <Row><Cell>ui_mercenary_count_1</Cell><Cell>Just one.</Cell><Cell>就一个。</Cell></Row>
   <Row><Cell>ui_mercenary_count_2</Cell><Cell>Two.</Cell><Cell>两个。</Cell></Row>
   <Row><Cell>ui_mercenary_count_3</Cell><Cell>Three.</Cell><Cell>三个。</Cell></Row>
+  <Row><Cell>ui_mercenary_count_5</Cell><Cell>Five.</Cell><Cell>五个。</Cell></Row>
+  <Row><Cell>ui_mercenary_count_10</Cell><Cell>Ten.</Cell><Cell>十个。</Cell></Row>
 
   <Row><Cell>merc_henry_hire_main</Cell><Cell>I want to hire some mercenaries.</Cell><Cell>我想雇佣一些佣兵。</Cell></Row>
   <Row><Cell>merc_provider_hire_main</Cell><Cell>There are some lads that are willing to help. How strong should they be?</Cell><Cell>有些小伙子愿意出力。你想要多强的？</Cell></Row>
@@ -33,6 +35,8 @@
   <Row><Cell>merc_henry_count_1</Cell><Cell>Just one.</Cell><Cell>就一个。</Cell></Row>
   <Row><Cell>merc_henry_count_2</Cell><Cell>I'll take two.</Cell><Cell>我要两个。</Cell></Row>
   <Row><Cell>merc_henry_count_3</Cell><Cell>Give me three of them.</Cell><Cell>给我三个。</Cell></Row>
+  <Row><Cell>merc_henry_count_5</Cell><Cell>Give me five of them.</Cell><Cell>给我五个人。</Cell></Row>
+  <Row><Cell>merc_henry_count_10</Cell><Cell>Give me ten of them.</Cell><Cell>给我十个人。</Cell></Row>
 
   <Row><Cell>ui_mercenary_management_hub</Cell><Cell>Company management.</Cell><Cell>队伍管理。</Cell></Row>
   <Row><Cell>merc_henry_management_hub_prompt</Cell><Cell>I want to check in on the company.</Cell><Cell>我想看看队伍的情况。</Cell></Row>
@@ -72,6 +76,8 @@
 
   <Row><Cell>merc_info_hired_single</Cell><Cell>Mercenary hired.</Cell><Cell>已雇佣一名佣兵。</Cell></Row>
   <Row><Cell>merc_info_hired_multiple</Cell><Cell>Mercenaries hired.</Cell><Cell>已雇佣佣兵。</Cell></Row>
+  <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>你的人在外面等你。</Cell></Row>
+  <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>这里没有他们的立足之地——去别处雇佣他们。</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>格罗申不够！</Cell></Row>
   <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>你手下的人已经太多了！最多 5 人。</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>所有佣兵已解散。</Cell></Row>
@@ -158,6 +164,36 @@
   <Row><Cell>ui_merc_equip_ska</Cell><Cell>Skalitz (requires House of Kobyla Arms, Armour and Regalia)</Cell><Cell>斯卡里茨（需要模组 House of Kobyla Arms, Armour and Regalia）</Cell></Row>
   <Row><Cell>merc_henry_equip_ska</Cell><Cell>Wear the Skalitz colors, for old times' sake.</Cell><Cell>穿上斯卡里茨的纹章色，看在往日情分上。</Cell></Row>
   <Row><Cell>merc_test_equip_ska</Cell><Cell>For Skalitz, and for you, Henry.</Cell><Cell>为了斯卡里茨，也为了你，亨利。</Cell></Row>
+  <Row><Cell>ui_merc_equip_pra</Cell><Cell>Prague</Cell><Cell>布拉格</Cell></Row>
+  <Row><Cell>merc_henry_equip_pra</Cell><Cell>Wear the Prague colors.</Cell><Cell>穿上布拉格的颜色。</Cell></Row>
+  <Row><Cell>merc_test_equip_pra</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_sig</Cell><Cell>Sigismund</Cell><Cell>西吉斯蒙德</Cell></Row>
+  <Row><Cell>merc_henry_equip_sig</Cell><Cell>Wear Sigismund's colors.</Cell><Cell>穿上西吉斯蒙德的颜色。</Cell></Row>
+  <Row><Cell>merc_test_equip_sig</Cell><Cell>As you say.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_kri</Cell><Cell>Order of the Red Star</Cell><Cell>红星骑士团</Cell></Row>
+  <Row><Cell>merc_henry_equip_kri</Cell><Cell>Wear the Red Star.</Cell><Cell>穿上这身颜色：红星骑士团。</Cell></Row>
+  <Row><Cell>merc_test_equip_kri</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_ber</Cell><Cell>Bergov</Cell><Cell>贝尔戈夫</Cell></Row>
+  <Row><Cell>merc_henry_equip_ber</Cell><Cell>Wear the Bergov colors.</Cell><Cell>穿上这身颜色：贝尔戈夫。</Cell></Row>
+  <Row><Cell>merc_test_equip_ber</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_neb</Cell><Cell>Nebakov</Cell><Cell>内巴科夫</Cell></Row>
+  <Row><Cell>merc_henry_equip_neb</Cell><Cell>Wear the Nebakov colors.</Cell><Cell>穿上这身颜色：内巴科夫。</Cell></Row>
+  <Row><Cell>merc_test_equip_neb</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_sem</Cell><Cell>Semine</Cell><Cell>塞米内</Cell></Row>
+  <Row><Cell>merc_henry_equip_sem</Cell><Cell>Wear the Semine colors.</Cell><Cell>穿上这身颜色：塞米内。</Cell></Row>
+  <Row><Cell>merc_test_equip_sem</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_pis</Cell><Cell>Pisek</Cell><Cell>皮塞克</Cell></Row>
+  <Row><Cell>merc_henry_equip_pis</Cell><Cell>Wear the Pisek colors.</Cell><Cell>穿上这身颜色：皮塞克。</Cell></Row>
+  <Row><Cell>merc_test_equip_pis</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_teu</Cell><Cell>Teutonic Order</Cell><Cell>条顿骑士团</Cell></Row>
+  <Row><Cell>merc_henry_equip_teu</Cell><Cell>Wear the Teutonic cross.</Cell><Cell>穿上这身颜色：条顿骑士团。</Cell></Row>
+  <Row><Cell>merc_test_equip_teu</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_rut</Cell><Cell>Ruthard</Cell><Cell>鲁特哈德</Cell></Row>
+  <Row><Cell>merc_henry_equip_rut</Cell><Cell>Wear Ruthard's colors.</Cell><Cell>穿上这身颜色：鲁特哈德。</Cell></Row>
+  <Row><Cell>merc_test_equip_rut</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
+  <Row><Cell>ui_merc_equip_pap</Cell><Cell>Papal Legate</Cell><Cell>教皇使节</Cell></Row>
+  <Row><Cell>merc_henry_equip_pap</Cell><Cell>Wear the Legate's colors.</Cell><Cell>穿上这身颜色：教皇使节。</Cell></Row>
+  <Row><Cell>merc_test_equip_pap</Cell><Cell>Right away.</Cell><Cell>马上。</Cell></Row>
 
   <Row><Cell>ui_merc_equip_can</Cell><Cell>(Nevermind)</Cell><Cell>（算了）</Cell></Row>
   <Row><Cell>merc_henry_equip_can</Cell><Cell>Actually, nevermind.</Cell><Cell>其实，算了。</Cell></Row>
@@ -339,6 +375,7 @@
   <Row><Cell>merc_info_wall_start</Cell><Cell>Wall started here. Pick the next corner.</Cell><Cell>墙体从这里开始。选择下一个拐角。</Cell></Row>
   <Row><Cell>merc_info_wall_done</Cell><Cell>Wall finished.</Cell><Cell>墙体完成。</Cell></Row>
   <Row><Cell>merc_info_raid</Cell><Cell>Raiders are coming!</Cell><Cell>掠夺者来袭！</Cell></Row>
+  <Row><Cell>merc_info_raid_busy</Cell><Cell>A raid is already under way.</Cell><Cell>突袭已在进行中。</Cell></Row>
   <Row><Cell>merc_info_wall_gate</Cell><Cell>Leave a gate - keep at least 5m clear of where the wall started.</Cell><Cell>留一个门——距墙体起点至少保持 5 米净空。</Cell></Row>
   <Row><Cell>merc_info_wall_replaced</Cell><Cell>The old wall has been taken down.</Cell><Cell>旧墙已被拆除。</Cell></Row>
   <Row><Cell>merc_info_recalled</Cell><Cell>Squad recalled.</Cell><Cell>分队已召回。</Cell></Row>
@@ -438,9 +475,6 @@
   <Row><Cell>ui_quartermaster_test</Cell><Cell>How goes it, quartermaster?</Cell><Cell>军需官，最近怎么样？</Cell></Row>
   <Row><Cell>merc_henry_quartermaster_test</Cell><Cell>How goes it, quartermaster?</Cell><Cell>军需官，最近怎么样？</Cell></Row>
   <Row><Cell>merc_quartermaster_test_response</Cell><Cell>Camp's in order, sir. Everything's where it should be.</Cell><Cell>营地井井有条，先生。一切都各就各位。</Cell></Row>
-  <Row><Cell>ui_quartermaster_leave</Cell><Cell>Never mind. Carry on.</Cell><Cell>没事，继续忙吧。</Cell></Row>
-  <Row><Cell>merc_henry_quartermaster_leave</Cell><Cell>Never mind. Carry on.</Cell><Cell>没事，继续忙吧。</Cell></Row>
-  <Row><Cell>merc_quartermaster_leave_response</Cell><Cell>As you say, sir.</Cell><Cell>听你的，先生。</Cell></Row>
   <Row><Cell>merc_info_quartermaster_test</Cell><Cell>The quartermaster nods.</Cell><Cell>军需官点了点头。</Cell></Row>
 
   <!-- Quartermaster logistics -->
@@ -567,7 +601,7 @@
   <Row><Cell>merc_info_gate_none</Cell><Cell>The camp has no gates to speak of.</Cell><Cell>营地没有什么门可言。</Cell></Row>
   <Row><Cell>merc_info_gate_opened</Cell><Cell>The gates stand open.</Cell><Cell>大门敞开着。</Cell></Row>
   <Row><Cell>merc_info_gate_closed</Cell><Cell>The gates are barred. No one is riding in tonight.</Cell><Cell>大门已经闩上。今晚没人能骑马进来。</Cell></Row>
-  <Row><Cell>merc_info_gate_forced</Cell><Cell>They're through the gate!</Cell><Cell>They're through the gate!</Cell></Row>
+  <Row><Cell>merc_info_gate_forced</Cell><Cell>They're through the gate!</Cell><Cell>他们冲破大门了！</Cell></Row>
   <Row><Cell>merc_info_wall_gate_done</Cell><Cell>The gate is hung and the palisade is finished.</Cell><Cell>门已装好，木栅栏也完工了。</Cell></Row>
   <Row><Cell>ui_qm_removeupg</Cell><Cell>Tear down all the camp's improvements.</Cell><Cell>拆除营地所有设施。</Cell></Row>
   <Row><Cell>merc_henry_qm_removeupg</Cell><Cell>Pull down everything we've built. I want the camp bare again.</Cell><Cell>把建好的东西全部拆掉。我要营地恢复原样。</Cell></Row>
@@ -580,9 +614,13 @@
   <Row><Cell>ui_qm_deploy</Cell><Cell>I want to take some men with me.</Cell><Cell>我想带一些人走。</Cell></Row>
   <Row><Cell>merc_henry_qm_deploy</Cell><Cell>I want to take some of the men out. The rest can hold the camp.</Cell><Cell>我要带一些弟兄出去。剩下的留守营地。</Cell></Row>
   <Row><Cell>merc_qm_deploy</Cell><Cell>Aye. I'll rouse the best-equipped first. How many do you want?</Cell><Cell>好。我先叫装备最好的。你要几个？</Cell></Row>
+  <Row><Cell>ui_qm_take_all</Cell><Cell>Everyone you can spare.</Cell><Cell>能腾出手的都带上。</Cell></Row>
+  <Row><Cell>ui_qm_take_threeqtr</Cell><Cell>Three quarters of them.</Cell><Cell>他们中的四分之三。</Cell></Row>
   <Row><Cell>ui_qm_take_half</Cell><Cell>Half of them.</Cell><Cell>一半。</Cell></Row>
   <Row><Cell>ui_qm_take_third</Cell><Cell>A third of them.</Cell><Cell>三分之一。</Cell></Row>
   <Row><Cell>ui_qm_take_quarter</Cell><Cell>A quarter of them.</Cell><Cell>四分之一。</Cell></Row>
+  <Row><Cell>merc_henry_qm_take_all</Cell><Cell>Every man you can spare, with me. Leave the camp standing.</Cell><Cell>能匀出人手的都跟我走。营地留着，别拆了。</Cell></Row>
+  <Row><Cell>merc_henry_qm_take_threeqtr</Cell><Cell>Three quarters of the company, with me.</Cell><Cell>全队四分之三的人，跟我走。</Cell></Row>
   <Row><Cell>merc_henry_qm_take_half</Cell><Cell>Half the company, with me.</Cell><Cell>半个队伍，跟我走。</Cell></Row>
   <Row><Cell>merc_henry_qm_take_third</Cell><Cell>A third of the company, with me.</Cell><Cell>三分之一的队伍，跟我走。</Cell></Row>
   <Row><Cell>merc_henry_qm_take_quarter</Cell><Cell>A quarter of the company, with me.</Cell><Cell>四分之一的队伍，跟我走。</Cell></Row>
@@ -638,6 +676,23 @@
   <Row><Cell>merc_n_heroes</Cell><Cell>| heroes:</Cell><Cell>| 精英：</Cell></Row>
   <Row><Cell>merc_n_health</Cell><Cell>| avg health:</Cell><Cell>| 平均生命值：</Cell></Row>
   <Row><Cell>merc_n_injured</Cell><Cell>| injured:</Cell><Cell>| 伤员：</Cell></Row>
+
+  <Row><Cell>merc_n_form_shape</Cell><Cell>Formation:</Cell><Cell>阵形：</Cell></Row>
+  <Row><Cell>merc_form_column</Cell><Cell>Column</Cell><Cell>纵队</Cell></Row>
+  <Row><Cell>merc_form_line</Cell><Cell>Line</Cell><Cell>横队</Cell></Row>
+  <Row><Cell>merc_form_square</Cell><Cell>Square</Cell><Cell>方阵</Cell></Row>
+  <Row><Cell>merc_form_wedge</Cell><Cell>Wedge</Cell><Cell>楔形</Cell></Row>
+  <Row><Cell>merc_form_circle</Cell><Cell>Circle</Cell><Cell>圆阵</Cell></Row>
+  <Row><Cell>merc_form_escort</Cell><Cell>Escort</Cell><Cell>护卫</Cell></Row>
+  <Row><Cell>merc_form_vanilla</Cell><Cell>Vanilla</Cell><Cell>原版</Cell></Row>
+  <Row><Cell>merc_form_control</Cell><Cell>Control (diagnostic)</Cell><Cell>对照组（诊断用）</Cell></Row>
+  <Row><Cell>merc_n_form_mode</Cell><Cell>Mode:</Cell><Cell>模式：</Cell></Row>
+  <Row><Cell>merc_form_mode_relaxed</Cell><Cell>Relaxed</Cell><Cell>松散</Cell></Row>
+  <Row><Cell>merc_form_mode_keepshape</Cell><Cell>Keep Shape</Cell><Cell>保持队形</Cell></Row>
+  <Row><Cell>merc_form_mode_movehistory</Cell><Cell>Move History</Cell><Cell>历史路径</Cell></Row>
+  <Row><Cell>merc_n_form_reloc</Cell><Cell>Relocation:</Cell><Cell>重新定位：</Cell></Row>
+  <Row><Cell>merc_form_reloc_on</Cell><Cell>On</Cell><Cell>开启</Cell></Row>
+  <Row><Cell>merc_form_reloc_off</Cell><Cell>Off</Cell><Cell>关闭</Cell></Row>
 
   <Row><Cell>buff_merc_low_morale_name</Cell><Cell>Low Morale</Cell><Cell>士气低落</Cell></Row>
   <Row><Cell>buff_merc_low_morale_desc</Cell><Cell>Your mercenaries are disgruntled. Their spirits are low and their loyalty is wearing thin.</Cell><Cell>你的佣兵心怀不满。他们情绪低落，忠诚正在消磨殆尽。</Cell></Row>
@@ -1033,4 +1088,179 @@
   <Row><Cell>char_bounty_leader_uiName</Cell><Cell>Camp Leader</Cell><Cell>营地头目</Cell></Row>
   <Row><Cell>char_bounty_leader_fullName</Cell><Cell>Bandit Leader</Cell><Cell>强盗首领</Cell></Row>
   <Row><Cell>char_bounty_leader_description</Cell><Cell>The head of a bandit camp.</Cell><Cell>一个强盗营地的头子。</Cell></Row>
+  <Row><Cell>ui_merc_wheel_fight</Cell><Cell>Fighting orders</Cell><Cell>作战命令</Cell></Row>
+  <Row><Cell>ui_merc_focus</Cell><Cell>Kill that one.</Cell><Cell>干掉那个。</Cell></Row>
+  <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>护送他。</Cell></Row>
+  <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>交战规则</Cell></Row>
+  <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>随意交战。</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>谁拔剑就跟谁打。</Cell></Row>
+  <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>只许还击。</Cell></Row>
+  <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>收起兵刃。</Cell></Row>
+  <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>进攻方式</Cell></Row>
+  <Row><Cell>ui_merc_aggro_tight</Cell><Cell>Keep your ranks.</Cell><Cell>保持队列。</Cell></Row>
+  <Row><Cell>ui_merc_aggro_balanced</Cell><Cell>As you see fit.</Cell><Cell>见机行事。</Cell></Row>
+  <Row><Cell>ui_merc_aggro_loose</Cell><Cell>Swarm them.</Cell><Cell>一拥而上。</Cell></Row>
+  <Row><Cell>merc_info_hold</Cell><Cell>Holding this ground.</Cell><Cell>坚守此地。</Cell></Row>
+  <Row><Cell>merc_info_focus</Cell><Cell>Target called.</Cell><Cell>目标已指定。</Cell></Row>
+  <Row><Cell>merc_info_focus_none</Cell><Cell>No target to call.</Cell><Cell>没有可指定的目标。</Cell></Row>
+  <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>正在护送。</Cell></Row>
+  <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>没有可护送的对象。</Cell></Row>
+  <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>弟兄们正遭受攻击，却按令收着兵刃。</Cell></Row>
+  <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>集合。</Cell></Row>
+  <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[模组设置] 调整队伍与模组的运作方式。</Cell></Row>
+  <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>说说这支队伍该怎么运作。</Cell></Row>
+  <Row><Cell>merc_qm_settings_hub</Cell><Cell>As you like. Nothing here's settled that can't be unsettled.</Cell><Cell>悉听尊便。这里定下的规矩，没有不能改的。</Cell></Row>
+  <Row><Cell>ui_qm_enc_hub</Cell><Cell>Random encounters: trouble finding us on the road.</Cell><Cell>随机遇敌：在路上找上我们的麻烦。</Cell></Row>
+  <Row><Cell>ui_qm_enc_on</Cell><Cell>Let it come. Raids, patrols, ambushes and all.</Cell><Cell>来就来吧。突袭、巡逻、伏击，什么都不怕。</Cell></Row>
+  <Row><Cell>ui_qm_enc_off</Cell><Cell>No more of it. We go looking for fights, they don't come to us.</Cell><Cell>不要再有这种事了。要打架我们自己去找，别让他们送上门来。</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_hub</Cell><Cell>Upkeep: feeding and paying the men.</Cell><Cell>维持：养活和发饱弟兄们。</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_off</Cell><Cell>Stop keeping accounts. They'll feed themselves.</Cell><Cell>别再记账了。让他们自己想办法糊口。</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_lenient</Cell><Cell>Go easy. Stretch the stores, and be generous with the spoils.</Cell><Cell>宽松些。省着用库存，缴获也多分点。</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_standard</Cell><Cell>Keep it as it is.</Cell><Cell>照旧就好。</Cell></Row>
+  <Row><Cell>ui_qm_upkeep_harsh</Cell><Cell>Run it lean. They'll eat more and the spoils will go further apart.</Cell><Cell>紧着来。他们吃得多些，缴获却要分得更开。</Cell></Row>
+  <Row><Cell>ui_qm_icons_hub</Cell><Cell>HUD icons: the marks on my screen.</Cell><Cell>界面图标：屏幕上的标记。</Cell></Row>
+  <Row><Cell>ui_qm_icons_on</Cell><Cell>Keep reporting the company's state.</Cell><Cell>继续汇报队伍的状况。</Cell></Row>
+  <Row><Cell>ui_qm_icons_off</Cell><Cell>Spare me. I'll ask when I want to know.</Cell><Cell>省省吧。我想知道的时候自会问。</Cell></Row>
+  <Row><Cell>ui_qm_horses_hub</Cell><Cell>The men and horses.</Cell><Cell>弟兄们和马匹。</Cell></Row>
+  <Row><Cell>ui_qm_horses_on</Cell><Cell>Let them ride when I ride.</Cell><Cell>我骑马时让他们也骑。</Cell></Row>
+  <Row><Cell>ui_qm_horses_off</Cell><Cell>No horses. They go on foot.</Cell><Cell>不要马匹。让他们徒步。</Cell></Row>
+  <Row><Cell>merc_info_horses_on</Cell><Cell>The men will ride when you do.</Cell><Cell>您骑马时弟兄们也会骑马。</Cell></Row>
+  <Row><Cell>merc_info_horses_off</Cell><Cell>The men will march on foot.</Cell><Cell>弟兄们将徒步行军。</Cell></Row>
+  <Row><Cell>merc_info_enc_on</Cell><Cell>Word is out. Expect company.</Cell><Cell>风声已经放出去了。做好迎客的准备。</Cell></Row>
+  <Row><Cell>merc_info_enc_off</Cell><Cell>We'll keep our heads down.</Cell><Cell>我们会低调行事。</Cell></Row>
+  <Row><Cell>ui_qm_threat_hub</Cell><Cell>Difficulty: what sort of trouble should I expect?</Cell><Cell>难度：我该预料什么样的麻烦？</Cell></Row>
+  <Row><Cell>merc_henry_qm_threat_hub</Cell><Cell>What sort of trouble should I expect?</Cell><Cell>我该料到会遇上什么样的麻烦？</Cell></Row>
+  <Row><Cell>merc_qm_threat_hub</Cell><Cell>That depends on how loudly you want to advertise us. Say the word and I'll put it about accordingly.</Cell><Cell>那要看你想把咱们的名声传多远。你说句话，我就照着去放风声。</Cell></Row>
+  <Row><Cell>ui_qm_threat_easy</Cell><Cell>Keep it quiet. Fewer of them, and poorly armed.</Cell><Cell>低调些。人少些，装备也差些。</Cell></Row>
+  <Row><Cell>ui_qm_threat_medium</Cell><Cell>A fair fight.</Cell><Cell>势均力敌。</Cell></Row>
+  <Row><Cell>ui_qm_threat_difficult</Cell><Cell>Make it hard work.</Cell><Cell>打得辛苦些。</Cell></Row>
+  <Row><Cell>ui_qm_threat_extreme</Cell><Cell>Send their best, and let them come armoured.</Cell><Cell>让他们派最强的人来，个个披甲。</Cell></Row>
+  <Row><Cell>ui_qm_threat_impossible</Cell><Cell>I want odds no sane man would take.</Cell><Cell>我要那种只有疯子才会应下的胜算。</Cell></Row>
+  <Row><Cell>ui_qm_threat_horde</Cell><Cell>Bury us in bodies. Rabble, but endless.</Cell><Cell>让尸体把我们埋了。乌合之众，但没完没了。</Cell></Row>
+  <Row><Cell>merc_info_difficulty</Cell><Cell>Difficulty:</Cell><Cell>难度:</Cell></Row>
+  <Row><Cell>merc_diff_easy</Cell><Cell>Easy</Cell><Cell>简单</Cell></Row>
+  <Row><Cell>merc_diff_medium</Cell><Cell>Medium</Cell><Cell>中等</Cell></Row>
+  <Row><Cell>merc_diff_difficult</Cell><Cell>Difficult</Cell><Cell>困难</Cell></Row>
+  <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>极难</Cell></Row>
+  <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>不可能</Cell></Row>
+  <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>蜂拥</Cell></Row>
+  <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>维持原样。</Cell></Row>
+  <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>照此办理。</Cell></Row>
+  <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>好嘞。我这就把话放出去。</Cell></Row>
+  <Row><Cell>merc_henry_qm_threat_cancel</Cell><Cell>Never mind.</Cell><Cell>算了，没事。</Cell></Row>
+  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/custom-gear.md) -->
+  <Row><Cell>ui_qm_deliver_gear</Cell><Cell>Gear for the company</Cell><Cell>为全队配发装备</Cell></Row>
+  <Row><Cell>ui_merc_equip_custom</Cell><Cell>Our own kit</Cell><Cell>咱们自己的行头</Cell></Row>
+  <Row><Cell>merc_henry_equip_custom</Cell><Cell>Wear the kit I left with the quartermaster.</Cell><Cell>穿上我留在军需官那里的装备。</Cell></Row>
+  <Row><Cell>merc_test_equip_custom</Cell><Cell>The set from the stores. Aye, we'll change.</Cell><Cell>库房里那套。好嘞，我们这就换上。</Cell></Row>
+  <Row><Cell>ui_merc_gear_set</Cell><Cell>I want you to dress this way...</Cell><Cell>我要你这样穿……</Cell></Row>
+  <Row><Cell>merc_henry_gear_set</Cell><Cell>I want the company dressed this way. Take this to the stores.</Cell><Cell>我要全队都这样穿。把这个带去库房。</Cell></Row>
+  <Row><Cell>merc_test_gear_set</Cell><Cell>Aye. The quartermaster'll cut the rest to match.</Cell><Cell>好嘞。剩下的军需官会照着裁。</Cell></Row>
+  <Row><Cell>ui_qm_gear_set</Cell><Cell>I want you to dress this way...</Cell><Cell>我要你这样穿……</Cell></Row>
+  <Row><Cell>merc_henry_qm_gear_set</Cell><Cell>I want you to dress this way. Here - take a look at this.</Cell><Cell>我要你这样穿。给，看看这个。</Cell></Row>
+  <Row><Cell>merc_qm_gear_set</Cell><Cell>Hand me a set and the whole company'll match it, archers and all. You'll get your own back - the men wear copies. Anything a harness needs underneath, I'll find.</Cell><Cell>把一套装备交给我，全队都会照着换上，弓箭手也不例外。你的东西会还给你——弟兄们穿的是仿制品。甲胄底下要用的东西，我会想办法。</Cell></Row>
+  <Row><Cell>merc_info_gear_chest</Cell><Cell>Put a set of kit in the chest, then close the window. The company will match it and you get every piece back.</Cell><Cell>把一套装备放进箱子，然后关上窗口。全队会照着换装，你的东西也会原样还给你。</Cell></Row>
+  <Row><Cell>merc_info_gear_noted</Cell><Cell>Noted. Kit returned.</Cell><Cell>记下了。装备已归还。</Cell></Row>
+  <Row><Cell>merc_info_gear_chest_left</Cell><Cell>Some of it wouldn't come back out. It's still in the chest.</Cell><Cell>有些东西拿不出来了，还留在箱子里。</Cell></Row>
+  <Row><Cell>merc_info_gear_nochest</Cell><Cell>No room to set the chest down here.</Cell><Cell>这里没地方放箱子。</Cell></Row>
+  <Row><Cell>merc_info_gear_now</Cell><Cell>The company now wears:</Cell><Cell>全队现在的装备是：</Cell></Row>
+  <Row><Cell>merc_info_gear_piece</Cell><Cell>a piece of kit</Cell><Cell>一件装备</Cell></Row>
+  <Row><Cell>merc_info_gear_empty</Cell><Cell>The company has no kit of its own - bare, with a sword.</Cell><Cell>全队没有自己的装备——只有一把剑，别无他物。</Cell></Row>
+  <Row><Cell>merc_info_gear_nobody</Cell><Cell>No quartermaster to hand it to. Make camp first.</Cell><Cell>没有军需官可以交付。先扎营吧。</Cell></Row>
+  <Row><Cell>merc_info_gear_quest</Cell><Cell>Quest gear cannot be copied - it was left out of the pattern.</Cell><Cell>任务装备无法复制——已被排除在样式之外。</Cell></Row>
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+  <Row><Cell>ui_mercenary_cat_lords</Cell><Cell>Lords and knights.</Cell><Cell>领主与骑士。</Cell></Row>
+  <Row><Cell>merc_henry_cat_lords</Cell><Cell>Tell me about lords and knights.</Cell><Cell>跟我说说领主和骑士的事。</Cell></Row>
+  <Row><Cell>merc_provider_cat_lords</Cell><Cell>Here's who I can reach.</Cell><Cell>这些是我能联系上的人。</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_crowns</Cell><Cell>Crowns and courts.</Cell><Cell>王室与宫廷。</Cell></Row>
+  <Row><Cell>merc_henry_cat_crowns</Cell><Cell>Tell me about crowns and courts.</Cell><Cell>跟我说说王室和宫廷的事。</Cell></Row>
+  <Row><Cell>merc_provider_cat_crowns</Cell><Cell>Here's who I can reach.</Cell><Cell>这些是我能联系上的人。</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_zizka</Cell><Cell>Zizka's company.</Cell><Cell>Zizka的队伍。</Cell></Row>
+  <Row><Cell>merc_henry_cat_zizka</Cell><Cell>Tell me about zizka's company.</Cell><Cell>跟我说说Zizka的队伍。</Cell></Row>
+  <Row><Cell>merc_provider_cat_zizka</Cell><Cell>Here's who I can reach.</Cell><Cell>这些是我能联系上的人。</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_skalitz</Cell><Cell>Skalitz and old friends.</Cell><Cell>Skalitz与老友。</Cell></Row>
+  <Row><Cell>merc_henry_cat_skalitz</Cell><Cell>Tell me about skalitz and old friends.</Cell><Cell>跟我说说Skalitz和老朋友的事。</Cell></Row>
+  <Row><Cell>merc_provider_cat_skalitz</Cell><Cell>Here's who I can reach.</Cell><Cell>这些是我能联系上的人。</Cell></Row>
+  <Row><Cell>ui_mercenary_cat_rogues</Cell><Cell>Rogues and freeriders.</Cell><Cell>无赖与自由骑手。</Cell></Row>
+  <Row><Cell>merc_henry_cat_rogues</Cell><Cell>Tell me about rogues and freeriders.</Cell><Cell>跟我说说那些无赖和自由骑手。</Cell></Row>
+  <Row><Cell>merc_provider_cat_rogues</Cell><Cell>Here's who I can reach.</Cell><Cell>这些是我能联系上的人。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_radzig</Cell><Cell>Racek Kobyla (3500 groschen).</Cell><Cell>拉切克·科比拉（3500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_radzig</Cell><Cell>I'll take Racek Kobyla.</Cell><Cell>我要拉切克·科比拉。</Cell></Row>
+  <Row><Cell>merc_provider_radzig</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_hanush</Cell><Cell>Sir Hanush of Leipa (3500 groschen).</Cell><Cell>莱帕的汉努什爵士（3500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_hanush</Cell><Cell>I'll take Sir Hanush of Leipa.</Cell><Cell>我要莱帕的汉努什爵士。</Cell></Row>
+  <Row><Cell>merc_provider_hanush</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_erik</Cell><Cell>Erik (3500 groschen).</Cell><Cell>埃里克（3500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_erik</Cell><Cell>I'll take Erik.</Cell><Cell>我要埃里克。</Cell></Row>
+  <Row><Cell>merc_provider_erik</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_aulitz</Cell><Cell>Sir Markvart von Aulitz (3000 groschen).</Cell><Cell>马克瓦特·冯·奥利茨爵士（3000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_aulitz</Cell><Cell>I'll take Sir Markvart von Aulitz.</Cell><Cell>我要马克瓦特·冯·奥利茨爵士。</Cell></Row>
+  <Row><Cell>merc_provider_aulitz</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_jobst</Cell><Cell>Jobst of Moravia (3000 groschen).</Cell><Cell>摩拉维亚的约布斯特（3000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_jobst</Cell><Cell>I'll take Jobst of Moravia.</Cell><Cell>我要摩拉维亚的约布斯特。</Cell></Row>
+  <Row><Cell>merc_provider_jobst</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_bergov</Cell><Cell>Sir Otto von Bergov (2500 groschen).</Cell><Cell>奥托·冯·贝尔戈夫爵士（2500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_bergov</Cell><Cell>I'll take Sir Otto von Bergov.</Cell><Cell>我要奥托·冯·贝尔戈夫爵士。</Cell></Row>
+  <Row><Cell>merc_provider_bergov</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_vavak</Cell><Cell>Oldrich Vavak (2500 groschen).</Cell><Cell>奥尔德日赫·瓦瓦克（2500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_vavak</Cell><Cell>I'll take Oldrich Vavak.</Cell><Cell>我要奥尔德日赫·瓦瓦克。</Cell></Row>
+  <Row><Cell>merc_provider_vavak</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_ruthard</Cell><Cell>Kunzlin Ruthard (2500 groschen).</Cell><Cell>昆兹林·鲁特哈德（2500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_ruthard</Cell><Cell>I'll take Kunzlin Ruthard.</Cell><Cell>我要昆兹林·鲁特哈德。</Cell></Row>
+  <Row><Cell>merc_provider_ruthard</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_samuel</Cell><Cell>Samuel (2500 groschen).</Cell><Cell>塞缪尔（2500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_samuel</Cell><Cell>I'll take Samuel.</Cell><Cell>我要塞缪尔。</Cell></Row>
+  <Row><Cell>merc_provider_samuel</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_oderin</Cell><Cell>Martin Oderin (2000 groschen).</Cell><Cell>马丁·奥德林（2000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_oderin</Cell><Cell>I'll take Martin Oderin.</Cell><Cell>我要马丁·奥德林。</Cell></Row>
+  <Row><Cell>merc_provider_oderin</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_istvan</Cell><Cell>Sir Istvan Toth (3000 groschen).</Cell><Cell>伊什特万·托特爵士（3000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_istvan</Cell><Cell>I'll take Sir Istvan Toth.</Cell><Cell>我要伊什特万·托特爵士。</Cell></Row>
+  <Row><Cell>merc_provider_istvan</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_chamberlain</Cell><Cell>The Chamberlain of Trosky (1500 groschen).</Cell><Cell>特罗斯基的执事官（1500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_chamberlain</Cell><Cell>I'll take The Chamberlain of Trosky.</Cell><Cell>我要特罗斯基的执事官。</Cell></Row>
+  <Row><Cell>merc_provider_chamberlain</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_sigismund</Cell><Cell>King Sigismund (5000 groschen).</Cell><Cell>西吉斯蒙德国王（5000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_sigismund</Cell><Cell>I'll take King Sigismund.</Cell><Cell>我要西吉斯蒙德国王。</Cell></Row>
+  <Row><Cell>merc_provider_sigismund</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_lichtenstein</Cell><Cell>Jan II of Lichtenstein (3000 groschen).</Cell><Cell>列支敦士登的扬二世（3000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_lichtenstein</Cell><Cell>I'll take Jan II of Lichtenstein.</Cell><Cell>我要列支敦士登的扬二世。</Cell></Row>
+  <Row><Cell>merc_provider_lichtenstein</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_brabant</Cell><Cell>Baron Vaquelin Brabant (2500 groschen).</Cell><Cell>瓦克兰·布拉班特男爵（2500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_brabant</Cell><Cell>I'll take Baron Vaquelin Brabant.</Cell><Cell>我要瓦克兰·布拉班特男爵。</Cell></Row>
+  <Row><Cell>merc_provider_brabant</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_musa</Cell><Cell>Musa of Mali (2500 groschen).</Cell><Cell>马里的穆萨（2500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_musa</Cell><Cell>I'll take Musa of Mali.</Cell><Cell>我要马里的穆萨。</Cell></Row>
+  <Row><Cell>merc_provider_musa</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_zacharias</Cell><Cell>Zacharias (2500 groschen).</Cell><Cell>扎卡里亚斯（2500 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_zacharias</Cell><Cell>I'll take Zacharias.</Cell><Cell>我要扎卡里亚斯。</Cell></Row>
+  <Row><Cell>merc_provider_zacharias</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_martin</Cell><Cell>Martin, Henry's father (2000 groschen).</Cell><Cell>马丁，亨利的父亲（2000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_martin</Cell><Cell>I'll take Martin, Henry's father.</Cell><Cell>我要马丁，亨利的父亲。</Cell></Row>
+  <Row><Cell>merc_provider_martin</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_bocek</Cell><Cell>Levej Bocek (1000 groschen).</Cell><Cell>列维伊·博切克（1000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_bocek</Cell><Cell>I'll take Levej Bocek.</Cell><Cell>我要列维伊·博切克。</Cell></Row>
+  <Row><Cell>merc_provider_bocek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_pisek</Cell><Cell>Petr of Pisek (1200 groschen).</Cell><Cell>皮塞克的彼得（1200 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_pisek</Cell><Cell>I'll take Petr of Pisek.</Cell><Cell>我要皮塞克的彼得。</Cell></Row>
+  <Row><Cell>merc_provider_pisek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_painter</Cell><Cell>The Painter (800 groschen).</Cell><Cell>画师（800 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_painter</Cell><Cell>I'll take The Painter.</Cell><Cell>我要那位画师。</Cell></Row>
+  <Row><Cell>merc_provider_painter</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_hertl</Cell><Cell>Hertl (1200 groschen).</Cell><Cell>赫特尔（1200 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_hertl</Cell><Cell>I'll take Hertl.</Cell><Cell>我要赫特尔。</Cell></Row>
+  <Row><Cell>merc_provider_hertl</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_pelcl</Cell><Cell>Pelcl (1000 groschen).</Cell><Cell>佩尔茨尔（1000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_pelcl</Cell><Cell>I'll take Pelcl.</Cell><Cell>我要佩尔茨尔。</Cell></Row>
+  <Row><Cell>merc_provider_pelcl</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_marek</Cell><Cell>Marek (1200 groschen).</Cell><Cell>马雷克（1200 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_marek</Cell><Cell>I'll take Marek.</Cell><Cell>我要马雷克。</Cell></Row>
+  <Row><Cell>merc_provider_marek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_cverk</Cell><Cell>Cverk (1000 groschen).</Cell><Cell>茨维尔克（1000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_cverk</Cell><Cell>I'll take Cverk.</Cell><Cell>我要茨维尔克。</Cell></Row>
+  <Row><Cell>merc_provider_cverk</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+  <Row><Cell>ui_mercenary_custom_volek</Cell><Cell>Volek (1000 groschen).</Cell><Cell>沃莱克（1000 格罗申）。</Cell></Row>
+  <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>我要沃莱克。</Cell></Row>
+  <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我这就带话给他。他会来的。</Cell></Row>
+<!-- end generated companions -->
 </Table>

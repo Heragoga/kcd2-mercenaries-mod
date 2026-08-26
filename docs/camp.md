@@ -167,11 +167,45 @@ So the leader is elected from the guards. `MarkCampBusyMercs` runs at the top of
 holding a `CampActivities` or `CampFurniture` record (i.e. everyone but the guards) into
 `CampBusyUntil` for `CampBusyRecoverSecs` (45 s). `UpdateFormationLeader` then works in two
 tiers: nearest non-busy merc wins, and the busy ones are only considered if there is nobody
-else at all. A busy incumbent loses the job immediately — `leaderStillOk` is never set for him,
-which is the same path a dead leader takes.
+else at all.
 
 It is a *preference*, not an exclusion: busy mercs still count toward `SquadSize`, still get
 formation slots, and are eligible to lead again the moment their stamp expires.
+
+### The partial deploy needed three more things
+
+`CampTakeParty` copied `MarkCampBusyMercs` from `BreakMercCamp`, but the mechanism it copies
+does not exist on that path, and the result was a sortie that never formed up at all.
+
+1. **The out-party must not stay stamped.** The stamp works for a camp that is coming down
+   because *every* merc becomes formation-eligible, guards included, and guards are never
+   stamped — so a guard anchors the squad. After a partial deploy the guards are usually the
+   men left behind, and men left behind are camp members and therefore ineligible. If the
+   "best tier first" cut takes no guard — which it does not correlate with — then every
+   eligible man is stamped busy and there is no fit anchor at all. `CampTakeParty` now clears
+   `CampBusyUntil` for the men it deploys, because it is about to take them off their camp
+   behaviour by force (below).
+2. **A busy incumbent now keeps the job.** He never set `leaderStillOk`, so the
+   "leader no longer eligible" branch re-elected the nearest busy man on *every* 150 ms tick,
+   and each swap bumps the epoch, rebuilds the formation and makes every follower re-acquire
+   a slot. He is demoted the same way a hurt leader is — as soon as a fit man exists.
+3. **camp_actor has to be evicted, not asked.** It is an infinite loop that owns the interrupt
+   slot, and a merc still unwinding a camp pose swallows the `follow` interrupt the scheduler
+   fires at him — while the scheduler latches `$isFollowingActive` anyway, and its re-fire
+   test is edge-triggered on the camp role, so it never tries again. The cure is the one the
+   loot sweep already uses (`LootReleaseFinished`): `FollowStalled` per deployed man, then
+   `FollowStaggerSquad` + `BeginFollowVerify`. The verify pass is safe for the men staying
+   behind — `DismountVerify` skips anyone `IsCampActor` answers for.
+
+`CampTakeParty` also clears the standing order state (`HoldEnd`, `EscortEnd`, `MercIdle`,
+`MercPersistentIdleFlag`) exactly as `BreakMercCamp` and `RecallMercs` do. A hold or a wait
+order switches the formation off *squad-wide* (`UpdateFormationRole`'s `off` chain), so an
+order given before camping — or restored from a save — used to survive the deploy and take
+the formation with it.
+
+Related, same symptom, different cause: **`LogiRebuildCampForUpgrade`** (buying an upgrade
+rebuilds the camp) now calls `LoadCampOutParty` after `SpawnMercCamp`, the way
+`RestoreCampDelayed` does. Without it the rebuild silently recalled a party that was out.
 
 ---
 

@@ -9,6 +9,7 @@
             <Ports>
                 <Port Name="quartermaster_test" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_deliver_food"  Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_gear_set"      Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_deliver_drink" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_buy_food"      Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_ask_food"      Direction="Out" Type="trigger" />
@@ -22,6 +23,8 @@
                 <Port Name="quartermaster_upkeep_harsh" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_icons_on" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_icons_off" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_horses_on" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_horses_off" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_threat_easy"       Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_threat_medium"     Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_threat_difficult"  Direction="Out" Type="trigger" />
@@ -51,17 +54,21 @@
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
 
                 <Port Name="hire_w1" Direction="Out" Type="trigger" />
-                <Port Name="hire_w2" Direction="Out" Type="trigger" />
                 <Port Name="hire_w3" Direction="Out" Type="trigger" />
+                <Port Name="hire_w5" Direction="Out" Type="trigger" />
+                <Port Name="hire_w10" Direction="Out" Type="trigger" />
                 <Port Name="hire_d1" Direction="Out" Type="trigger" />
-                <Port Name="hire_d2" Direction="Out" Type="trigger" />
                 <Port Name="hire_d3" Direction="Out" Type="trigger" />
+                <Port Name="hire_d5" Direction="Out" Type="trigger" />
+                <Port Name="hire_d10" Direction="Out" Type="trigger" />
                 <Port Name="hire_p1" Direction="Out" Type="trigger" />
-                <Port Name="hire_p2" Direction="Out" Type="trigger" />
                 <Port Name="hire_p3" Direction="Out" Type="trigger" />
+                <Port Name="hire_p5" Direction="Out" Type="trigger" />
+                <Port Name="hire_p10" Direction="Out" Type="trigger" />
                 <Port Name="hire_a1" Direction="Out" Type="trigger" />
-                <Port Name="hire_a2" Direction="Out" Type="trigger" />
                 <Port Name="hire_a3" Direction="Out" Type="trigger" />
+                <Port Name="hire_a5" Direction="Out" Type="trigger" />
+                <Port Name="hire_a10" Direction="Out" Type="trigger" />
                 <Port Name="hire_c1" Direction="Out" Type="trigger" />
                 <Port Name="hire_c2" Direction="Out" Type="trigger" />
                 <Port Name="hire_c3" Direction="Out" Type="trigger" />
@@ -80,6 +87,32 @@
                 <Port Name="hire_c16" Direction="Out" Type="trigger" />
                 <Port Name="hire_c17" Direction="Out" Type="trigger" />
                 <Port Name="hire_c18" Direction="Out" Type="trigger" />
+                <Port Name="hire_c19" Direction="Out" Type="trigger" />
+                <Port Name="hire_c20" Direction="Out" Type="trigger" />
+                <Port Name="hire_c21" Direction="Out" Type="trigger" />
+                <Port Name="hire_c22" Direction="Out" Type="trigger" />
+                <Port Name="hire_c23" Direction="Out" Type="trigger" />
+                <Port Name="hire_c24" Direction="Out" Type="trigger" />
+                <Port Name="hire_c25" Direction="Out" Type="trigger" />
+                <Port Name="hire_c26" Direction="Out" Type="trigger" />
+                <Port Name="hire_c27" Direction="Out" Type="trigger" />
+                <Port Name="hire_c28" Direction="Out" Type="trigger" />
+                <Port Name="hire_c29" Direction="Out" Type="trigger" />
+                <Port Name="hire_c30" Direction="Out" Type="trigger" />
+                <Port Name="hire_c31" Direction="Out" Type="trigger" />
+                <Port Name="hire_c32" Direction="Out" Type="trigger" />
+                <Port Name="hire_c33" Direction="Out" Type="trigger" />
+                <Port Name="hire_c34" Direction="Out" Type="trigger" />
+                <Port Name="hire_c35" Direction="Out" Type="trigger" />
+                <Port Name="hire_c36" Direction="Out" Type="trigger" />
+                <Port Name="hire_c37" Direction="Out" Type="trigger" />
+                <Port Name="hire_c38" Direction="Out" Type="trigger" />
+                <Port Name="hire_c39" Direction="Out" Type="trigger" />
+                <Port Name="hire_c40" Direction="Out" Type="trigger" />
+                <Port Name="hire_c41" Direction="Out" Type="trigger" />
+                <Port Name="hire_c42" Direction="Out" Type="trigger" />
+                <Port Name="hire_c43" Direction="Out" Type="trigger" />
+                <Port Name="hire_c44" Direction="Out" Type="trigger" />
             </Ports>
             <Text StringName="ui_quartermaster_root" />
             <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
@@ -124,15 +157,20 @@
                                                     <Triggers><Port Name="hire_w1" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
                                                 </Sequence>
-                                                <Sequence EndType="EndDialogue" Name="w2">
-                                                    <UiPrompt StringName="ui_mercenary_count_2" />
-                                                    <Triggers><Port Name="hire_w2" /></Triggers>
-                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_2" /></Response></Elements>
-                                                </Sequence>
                                                 <Sequence EndType="EndDialogue" Name="w3">
                                                     <UiPrompt StringName="ui_mercenary_count_3" />
                                                     <Triggers><Port Name="hire_w3" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="w5">
+                                                    <UiPrompt StringName="ui_mercenary_count_5" />
+                                                    <Triggers><Port Name="hire_w5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="w10">
+                                                    <UiPrompt StringName="ui_mercenary_count_10" />
+                                                    <Triggers><Port Name="hire_w10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_10" /></Response></Elements>
                                                 </Sequence>
                                                 
                                                 <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_w_cancel">
@@ -162,15 +200,20 @@
                                                     <Triggers><Port Name="hire_d1" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
                                                 </Sequence>
-                                                <Sequence EndType="EndDialogue" Name="d2">
-                                                    <UiPrompt StringName="ui_mercenary_count_2" />
-                                                    <Triggers><Port Name="hire_d2" /></Triggers>
-                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_2" /></Response></Elements>
-                                                </Sequence>
                                                 <Sequence EndType="EndDialogue" Name="d3">
                                                     <UiPrompt StringName="ui_mercenary_count_3" />
                                                     <Triggers><Port Name="hire_d3" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="d5">
+                                                    <UiPrompt StringName="ui_mercenary_count_5" />
+                                                    <Triggers><Port Name="hire_d5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="d10">
+                                                    <UiPrompt StringName="ui_mercenary_count_10" />
+                                                    <Triggers><Port Name="hire_d10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_10" /></Response></Elements>
                                                 </Sequence>
 
                                                 <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_d_cancel">
@@ -200,15 +243,20 @@
                                                     <Triggers><Port Name="hire_p1" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
                                                 </Sequence>
-                                                <Sequence EndType="EndDialogue" Name="p2">
-                                                    <UiPrompt StringName="ui_mercenary_count_2" />
-                                                    <Triggers><Port Name="hire_p2" /></Triggers>
-                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_2" /></Response></Elements>
-                                                </Sequence>
                                                 <Sequence EndType="EndDialogue" Name="p3">
                                                     <UiPrompt StringName="ui_mercenary_count_3" />
                                                     <Triggers><Port Name="hire_p3" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="p5">
+                                                    <UiPrompt StringName="ui_mercenary_count_5" />
+                                                    <Triggers><Port Name="hire_p5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="p10">
+                                                    <UiPrompt StringName="ui_mercenary_count_10" />
+                                                    <Triggers><Port Name="hire_p10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_10" /></Response></Elements>
                                                 </Sequence>
 
                                                 <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_p_cancel">
@@ -238,15 +286,20 @@
                                                     <Triggers><Port Name="hire_a1" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
                                                 </Sequence>
-                                                <Sequence EndType="EndDialogue" Name="a2">
-                                                    <UiPrompt StringName="ui_mercenary_count_2" />
-                                                    <Triggers><Port Name="hire_a2" /></Triggers>
-                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_2" /></Response></Elements>
-                                                </Sequence>
                                                 <Sequence EndType="EndDialogue" Name="a3">
                                                     <UiPrompt StringName="ui_mercenary_count_3" />
                                                     <Triggers><Port Name="hire_a3" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="a5">
+                                                    <UiPrompt StringName="ui_mercenary_count_5" />
+                                                    <Triggers><Port Name="hire_a5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="a10">
+                                                    <UiPrompt StringName="ui_mercenary_count_10" />
+                                                    <Triggers><Port Name="hire_a10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_10" /></Response></Elements>
                                                 </Sequence>
                                                 <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_archer_cancel">
                                                     <UiPrompt StringName="ui_mercenary_custom_cancel" />
@@ -268,177 +321,491 @@
                                         </Elements>
                                         <Decision Name="dec_custom">
                                             <Sequences>
-                                                
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_kubenka">
-                                                    <UiPrompt StringName="ui_mercenary_custom_kubenka" />
-                                                    <Triggers><Port Name="hire_c1" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_kubenka" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_kubenka" /></Response>
-                                                    </Elements>
-                                                </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_vasko">
-                                                    <UiPrompt StringName="ui_mercenary_custom_vasko" />
-                                                    <Triggers><Port Name="hire_c2" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_vasko" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_vasko" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                <Sequence EndType="Decision" Name="seq_cat_lords">
+                                    <UiPrompt StringName="ui_mercenary_cat_lords" />
+                                    <Elements>
+                                        <Response Role="HENRY"><Text StringName="merc_henry_cat_lords" /></Response>
+                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_cat_lords" /></Response>
+                                    </Elements>
+                                    <Decision Name="dec_cat_lords">
+                                        <Sequences>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_radzig">
+                                                <UiPrompt StringName="ui_mercenary_custom_radzig" />
+                                                <Triggers><Port Name="hire_c19" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_radzig" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_radzig" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_jasak">
-                                                    <UiPrompt StringName="ui_mercenary_custom_jasak" />
-                                                    <Triggers><Port Name="hire_c3" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_jasak" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_jasak" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_hanush">
+                                                <UiPrompt StringName="ui_mercenary_custom_hanush" />
+                                                <Triggers><Port Name="hire_c20" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_hanush" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_hanush" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_bartosch">
-                                                    <UiPrompt StringName="ui_mercenary_custom_bartosch" />
-                                                    <Triggers><Port Name="hire_c4" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_bartosch" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_bartosch" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_erik">
+                                                <UiPrompt StringName="ui_mercenary_custom_erik" />
+                                                <Triggers><Port Name="hire_c21" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_erik" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_erik" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_gnarly">
-                                                    <UiPrompt StringName="ui_mercenary_custom_gnarly" />
-                                                    <Triggers><Port Name="hire_c5" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_gnarly" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_gnarly" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_aulitz">
+                                                <UiPrompt StringName="ui_mercenary_custom_aulitz" />
+                                                <Triggers><Port Name="hire_c22" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_aulitz" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_aulitz" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_jan_posy">
-                                                    <UiPrompt StringName="ui_mercenary_custom_jan_posy" />
-                                                    <Triggers><Port Name="hire_c6" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_jan_posy" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_jan_posy" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_jobst">
+                                                <UiPrompt StringName="ui_mercenary_custom_jobst" />
+                                                <Triggers><Port Name="hire_c23" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_jobst" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_jobst" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_miroslav">
-                                                    <UiPrompt StringName="ui_mercenary_custom_miroslav" />
-                                                    <Triggers><Port Name="hire_c7" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_miroslav" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_miroslav" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_bergov">
+                                                <UiPrompt StringName="ui_mercenary_custom_bergov" />
+                                                <Triggers><Port Name="hire_c24" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_bergov" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_bergov" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_menhard">
-                                                    <UiPrompt StringName="ui_mercenary_custom_menhard" />
-                                                    <Triggers><Port Name="hire_c8" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_menhard" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_menhard" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_vavak">
+                                                <UiPrompt StringName="ui_mercenary_custom_vavak" />
+                                                <Triggers><Port Name="hire_c25" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_vavak" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_vavak" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_arne">
-                                                    <UiPrompt StringName="ui_mercenary_custom_arne" />
-                                                    <Triggers><Port Name="hire_c9" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_arne" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_arne" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_ruthard">
+                                                <UiPrompt StringName="ui_mercenary_custom_ruthard" />
+                                                <Triggers><Port Name="hire_c26" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_ruthard" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_ruthard" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_janek">
-                                                    <UiPrompt StringName="ui_mercenary_custom_janek" />
-                                                    <Triggers><Port Name="hire_c10" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_janek" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_janek" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_samuel">
+                                                <UiPrompt StringName="ui_mercenary_custom_samuel" />
+                                                <Triggers><Port Name="hire_c27" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_samuel" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_samuel" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_jaroslav">
-                                                    <UiPrompt StringName="ui_mercenary_custom_jaroslav" />
-                                                    <Triggers><Port Name="hire_c11" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_jaroslav" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_jaroslav" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_oderin">
+                                                <UiPrompt StringName="ui_mercenary_custom_oderin" />
+                                                <Triggers><Port Name="hire_c28" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_oderin" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_oderin" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_adder">
-                                                    <UiPrompt StringName="ui_mercenary_custom_adder" />
-                                                    <Triggers><Port Name="hire_c12" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_adder" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_adder" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_istvan">
+                                                <UiPrompt StringName="ui_mercenary_custom_istvan" />
+                                                <Triggers><Port Name="hire_c29" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_istvan" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_istvan" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_janosh">
-                                                    <UiPrompt StringName="ui_mercenary_custom_janosh" />
-                                                    <Triggers><Port Name="hire_c13" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_janosh" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_janosh" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_chamberlain">
+                                                <UiPrompt StringName="ui_mercenary_custom_chamberlain" />
+                                                <Triggers><Port Name="hire_c30" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_chamberlain" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_chamberlain" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_mathew">
-                                                    <UiPrompt StringName="ui_mercenary_custom_mathew" />
-                                                    <Triggers><Port Name="hire_c14" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_mathew" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_mathew" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="GoTo" GoToDecision="dec_custom" Name="seq_cat_lords_back">
+                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                            </Sequence>
+                                        </Sequences>
+                                    </Decision>
+                                </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_zizka">
-                                                    <UiPrompt StringName="ui_mercenary_custom_zizka" />
-                                                    <Triggers><Port Name="hire_c15" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_zizka" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_zizka" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                <Sequence EndType="Decision" Name="seq_cat_crowns">
+                                    <UiPrompt StringName="ui_mercenary_cat_crowns" />
+                                    <Elements>
+                                        <Response Role="HENRY"><Text StringName="merc_henry_cat_crowns" /></Response>
+                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_cat_crowns" /></Response>
+                                    </Elements>
+                                    <Decision Name="dec_cat_crowns">
+                                        <Sequences>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_capon">
+                                                <UiPrompt StringName="ui_mercenary_custom_capon" />
+                                                <Triggers><Port Name="hire_c18" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_capon" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_capon" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_devil">
-                                                    <UiPrompt StringName="ui_mercenary_custom_devil" />
-                                                    <Triggers><Port Name="hire_c16" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_devil" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_devil" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_sigismund">
+                                                <UiPrompt StringName="ui_mercenary_custom_sigismund" />
+                                                <Triggers><Port Name="hire_c31" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_sigismund" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_sigismund" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_godwin">
-                                                    <UiPrompt StringName="ui_mercenary_custom_godwin" />
-                                                    <Triggers><Port Name="hire_c17" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_godwin" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_godwin" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_lichtenstein">
+                                                <UiPrompt StringName="ui_mercenary_custom_lichtenstein" />
+                                                <Triggers><Port Name="hire_c32" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_lichtenstein" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_lichtenstein" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="EndDialogue" Name="seq_hire_capon">
-                                                    <UiPrompt StringName="ui_mercenary_custom_capon" />
-                                                    <Triggers><Port Name="hire_c18" /></Triggers>
-                                                    <Elements>
-                                                        <Response Role="HENRY"><Text StringName="merc_henry_capon" /></Response>
-                                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_capon" /></Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_brabant">
+                                                <UiPrompt StringName="ui_mercenary_custom_brabant" />
+                                                <Triggers><Port Name="hire_c33" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_brabant" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_brabant" /></Response>
+                                                </Elements>
+                                            </Sequence>
 
-                                                <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_custom_cancel">
-                                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
-                                                    <Elements>
-                                                        <Response Role="HENRY">
-                                                            <Text StringName="merc_henry_custom_cancel" />
-                                                        </Response>
-                                                    </Elements>
-                                                </Sequence>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_musa">
+                                                <UiPrompt StringName="ui_mercenary_custom_musa" />
+                                                <Triggers><Port Name="hire_c34" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_musa" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_musa" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_zacharias">
+                                                <UiPrompt StringName="ui_mercenary_custom_zacharias" />
+                                                <Triggers><Port Name="hire_c35" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_zacharias" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_zacharias" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="GoTo" GoToDecision="dec_custom" Name="seq_cat_crowns_back">
+                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                            </Sequence>
+                                        </Sequences>
+                                    </Decision>
+                                </Sequence>
+
+                                <Sequence EndType="Decision" Name="seq_cat_zizka">
+                                    <UiPrompt StringName="ui_mercenary_cat_zizka" />
+                                    <Elements>
+                                        <Response Role="HENRY"><Text StringName="merc_henry_cat_zizka" /></Response>
+                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_cat_zizka" /></Response>
+                                    </Elements>
+                                    <Decision Name="dec_cat_zizka">
+                                        <Sequences>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_kubenka">
+                                                <UiPrompt StringName="ui_mercenary_custom_kubenka" />
+                                                <Triggers><Port Name="hire_c1" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_kubenka" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_kubenka" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_adder">
+                                                <UiPrompt StringName="ui_mercenary_custom_adder" />
+                                                <Triggers><Port Name="hire_c12" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_adder" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_adder" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_janosh">
+                                                <UiPrompt StringName="ui_mercenary_custom_janosh" />
+                                                <Triggers><Port Name="hire_c13" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_janosh" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_janosh" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_zizka">
+                                                <UiPrompt StringName="ui_mercenary_custom_zizka" />
+                                                <Triggers><Port Name="hire_c15" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_zizka" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_zizka" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_devil">
+                                                <UiPrompt StringName="ui_mercenary_custom_devil" />
+                                                <Triggers><Port Name="hire_c16" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_devil" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_devil" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_godwin">
+                                                <UiPrompt StringName="ui_mercenary_custom_godwin" />
+                                                <Triggers><Port Name="hire_c17" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_godwin" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_godwin" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_hertl">
+                                                <UiPrompt StringName="ui_mercenary_custom_hertl" />
+                                                <Triggers><Port Name="hire_c40" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_hertl" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_hertl" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_pelcl">
+                                                <UiPrompt StringName="ui_mercenary_custom_pelcl" />
+                                                <Triggers><Port Name="hire_c41" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_pelcl" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_pelcl" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_marek">
+                                                <UiPrompt StringName="ui_mercenary_custom_marek" />
+                                                <Triggers><Port Name="hire_c42" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_marek" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_marek" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_cverk">
+                                                <UiPrompt StringName="ui_mercenary_custom_cverk" />
+                                                <Triggers><Port Name="hire_c43" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_cverk" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_cverk" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_volek">
+                                                <UiPrompt StringName="ui_mercenary_custom_volek" />
+                                                <Triggers><Port Name="hire_c44" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_volek" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_volek" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="GoTo" GoToDecision="dec_custom" Name="seq_cat_zizka_back">
+                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                            </Sequence>
+                                        </Sequences>
+                                    </Decision>
+                                </Sequence>
+
+                                <Sequence EndType="Decision" Name="seq_cat_skalitz">
+                                    <UiPrompt StringName="ui_mercenary_cat_skalitz" />
+                                    <Elements>
+                                        <Response Role="HENRY"><Text StringName="merc_henry_cat_skalitz" /></Response>
+                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_cat_skalitz" /></Response>
+                                    </Elements>
+                                    <Decision Name="dec_cat_skalitz">
+                                        <Sequences>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_vasko">
+                                                <UiPrompt StringName="ui_mercenary_custom_vasko" />
+                                                <Triggers><Port Name="hire_c2" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_vasko" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_vasko" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_bartosch">
+                                                <UiPrompt StringName="ui_mercenary_custom_bartosch" />
+                                                <Triggers><Port Name="hire_c4" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_bartosch" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_bartosch" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_arne">
+                                                <UiPrompt StringName="ui_mercenary_custom_arne" />
+                                                <Triggers><Port Name="hire_c9" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_arne" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_arne" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_janek">
+                                                <UiPrompt StringName="ui_mercenary_custom_janek" />
+                                                <Triggers><Port Name="hire_c10" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_janek" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_janek" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_jaroslav">
+                                                <UiPrompt StringName="ui_mercenary_custom_jaroslav" />
+                                                <Triggers><Port Name="hire_c11" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_jaroslav" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_jaroslav" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_martin">
+                                                <UiPrompt StringName="ui_mercenary_custom_martin" />
+                                                <Triggers><Port Name="hire_c36" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_martin" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_martin" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="GoTo" GoToDecision="dec_custom" Name="seq_cat_skalitz_back">
+                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                            </Sequence>
+                                        </Sequences>
+                                    </Decision>
+                                </Sequence>
+
+                                <Sequence EndType="Decision" Name="seq_cat_rogues">
+                                    <UiPrompt StringName="ui_mercenary_cat_rogues" />
+                                    <Elements>
+                                        <Response Role="HENRY"><Text StringName="merc_henry_cat_rogues" /></Response>
+                                        <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_cat_rogues" /></Response>
+                                    </Elements>
+                                    <Decision Name="dec_cat_rogues">
+                                        <Sequences>
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_jasak">
+                                                <UiPrompt StringName="ui_mercenary_custom_jasak" />
+                                                <Triggers><Port Name="hire_c3" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_jasak" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_jasak" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_gnarly">
+                                                <UiPrompt StringName="ui_mercenary_custom_gnarly" />
+                                                <Triggers><Port Name="hire_c5" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_gnarly" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_gnarly" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_jan_posy">
+                                                <UiPrompt StringName="ui_mercenary_custom_jan_posy" />
+                                                <Triggers><Port Name="hire_c6" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_jan_posy" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_jan_posy" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_miroslav">
+                                                <UiPrompt StringName="ui_mercenary_custom_miroslav" />
+                                                <Triggers><Port Name="hire_c7" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_miroslav" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_miroslav" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_menhard">
+                                                <UiPrompt StringName="ui_mercenary_custom_menhard" />
+                                                <Triggers><Port Name="hire_c8" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_menhard" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_menhard" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_mathew">
+                                                <UiPrompt StringName="ui_mercenary_custom_mathew" />
+                                                <Triggers><Port Name="hire_c14" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_mathew" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_mathew" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_bocek">
+                                                <UiPrompt StringName="ui_mercenary_custom_bocek" />
+                                                <Triggers><Port Name="hire_c37" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_bocek" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_bocek" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_pisek">
+                                                <UiPrompt StringName="ui_mercenary_custom_pisek" />
+                                                <Triggers><Port Name="hire_c38" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_pisek" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_pisek" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="EndDialogue" Name="seq_hire_painter">
+                                                <UiPrompt StringName="ui_mercenary_custom_painter" />
+                                                <Triggers><Port Name="hire_c39" /></Triggers>
+                                                <Elements>
+                                                    <Response Role="HENRY"><Text StringName="merc_henry_painter" /></Response>
+                                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_provider_painter" /></Response>
+                                                </Elements>
+                                            </Sequence>
+
+                                            <Sequence EndType="GoTo" GoToDecision="dec_custom" Name="seq_cat_rogues_back">
+                                                <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                            </Sequence>
+                                        </Sequences>
+                                    </Decision>
+                                </Sequence>
+
+                                <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_custom_cancel">
+                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                    <Elements>
+                                        <Response Role="HENRY">
+                                            <Text StringName="merc_henry_custom_cancel" />
+                                        </Response>
+                                    </Elements>
+                                </Sequence>
 
                                             </Sequences>
                                         </Decision>
@@ -453,6 +820,20 @@
 
                                 </Sequences>
                             </Decision>
+                        </Sequence>
+
+                        <!-- ===== The company's uniform =====
+                             Hand him a set of gear and the whole company copies it. Top level
+                             rather than under Supplies: it is how the squad is dressed, not a
+                             ration. The port only says "he asked" - the chest and the reading of
+                             it are all Lua, in mercenaries_custom_gear.lua. -->
+                        <Sequence EndType="EndDialogue" Name="seq_qm_gear_set">
+                            <UiPrompt StringName="ui_qm_gear_set" />
+                            <Triggers><Port Name="quartermaster_gear_set" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY"><Text StringName="merc_henry_qm_gear_set" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_gear_set" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
                         </Sequence>
 
                         <!-- ===== Supplies ===== -->
@@ -836,6 +1217,37 @@
                                     </Sequences>
                                 </Decision>
                             </Sequence>
+                            <Sequence EndType="Decision" Name="seq_qm_horses_hub">
+                                <UiPrompt StringName="ui_qm_horses_hub" />
+                                <Elements>
+                                    <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                    <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                </Elements>
+                                <Decision Name="dec_qm_horses">
+                                    <Sequences>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_horses_on">
+                                        <UiPrompt StringName="ui_qm_horses_on" />
+                                        <Triggers><Port Name="quartermaster_horses_on" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="EndDialogue" Name="seq_qm_horses_off">
+                                        <UiPrompt StringName="ui_qm_horses_off" />
+                                        <Triggers><Port Name="quartermaster_horses_off" /></Triggers>
+                                        <Elements>
+                                            <Response Role="HENRY"><Text StringName="merc_henry_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                            <Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_threat_set" /><Commands><CameraCommand /></Commands></Response>
+                                        </Elements>
+                                    </Sequence>
+                                    <Sequence EndType="GoTo" GoToDecision="dec_qm_settings" Name="seq_qm_horses_hub_cancel">
+                                            <UiPrompt StringName="ui_qm_threat_cancel" />
+                                            <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_threat_cancel" /><Commands><CameraCommand /></Commands></Response></Elements>
+                                        </Sequence>
+                                    </Sequences>
+                                </Decision>
+                            </Sequence>
                             <Sequence EndType="Decision" Name="seq_qm_icons_hub">
                                 <UiPrompt StringName="ui_qm_icons_hub" />
                                 <Elements>
@@ -898,15 +1310,6 @@
                                 <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_wages" /><Commands><CameraCommand /></Commands></Response>
                                 <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_upg" /><Commands><CameraCommand /></Commands></Response>
                                 <Response Role="role_mercenary_quartermaster"><Text StringName="merc_logi_tut_end" /><Commands><CameraCommand /></Commands></Response>
-                            </Elements>
-                        </Sequence>
-
-                        <!-- ===== Leave ===== -->
-                        <Sequence EndType="EndDialogue" Name="seq_quartermaster_leave">
-                            <UiPrompt StringName="ui_quartermaster_leave" />
-                            <Elements>
-                                <Response Role="HENRY"><Text StringName="merc_henry_quartermaster_leave" /><Commands><CameraCommand /></Commands></Response>
-                                <Response Role="role_mercenary_quartermaster"><Text StringName="merc_quartermaster_leave_response" /><Commands><CameraCommand /></Commands></Response>
                             </Elements>
                         </Sequence>
 

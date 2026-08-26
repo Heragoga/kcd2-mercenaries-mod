@@ -66,5 +66,33 @@
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_knight_1" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_knight_2" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_heinrich_1" />
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_radzig" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_hanush" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_erik" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_aulitz" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_jobst" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_bergov" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_vavak" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_ruthard" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_samuel" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_oderin" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_istvan" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_chamberlain" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_sigismund" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_lichtenstein" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_brabant" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_musa" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_zacharias" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_martin" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_bocek" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_pisek" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_painter" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_hertl" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_pelcl" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_marek" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_cverk" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_volek" />
+<!-- end generated companions -->
 	</skald_character2professions>
 </database>

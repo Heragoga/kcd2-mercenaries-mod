@@ -12,6 +12,7 @@ mercenaries.HoldActive   = false
 mercenaries.HoldAnchor   = nil    -- {x,y,z} the order was given at
 mercenaries.HoldFacing   = nil    -- unit {x,y}: the way the player was looking
 mercenaries.HoldStations = {}     -- [wuidStr] = {x,y,z}
+mercenaries.HoldMembers  = nil    -- [wuidStr] = true, whom the standing order binds
 
 -- How far a holding man may leave his own station to take a fight. This is the whole
 -- point of the order: the squad stops chasing. Measured from his STATION, not from
@@ -54,12 +55,20 @@ end
 -- ==== who is eligible ====
 -- The men actually out with the player. Anyone holding the camp keeps holding it:
 -- a hold order is for the sortie, not for the cooks.
+-- Men hired AFTER the order was given are deliberately not in it. HoldMembers is
+-- snapshotted at HoldBegin, and without it a hire during a standing "wait here" was a
+-- silent trap: the new man is in ActiveMercs, so the next station rebuild stamps him a
+-- stand-fast station ON HIS SPAWN POINT, MercIsIdle goes true, and the scheduler's idle
+-- arm parks him there for good. He reads as "he spawned and never followed me", and no
+-- later order fixes it short of re-issuing follow. Nobody told HIM to wait.
 function mercenaries:HoldRoster()
     local out = {}
+    local members = self.HoldMembers
     pcall(function()
         for _, ent in pairs(self.ActiveMercs or {}) do
             local wuid = ent and (ent.this and ent.this.id or ent.id)
             if wuid and self:IsAliveAndWell(ent, false)
+               and (members == nil or members[tostring(wuid)])
                and not self:IsMercInCampProper(wuid)
                and not self:IsCampActor(wuid) then
                 table.insert(out, { ent = ent, wuid = wuid, key = tostring(wuid) })
@@ -79,10 +88,50 @@ function mercenaries:HoldIsArcher(rec)
 end
 
 -- ==== the shape ====
--- A square block of melee centred on the anchor, archers in two files on its flanks.
--- Every man gets one exact point; nothing is left to the engine to arrange, which is
--- what made the first version read as a scatter rather than a formation.
+-- STAND FAST is the default: every man's station is the ground he is already standing
+-- on when the order is given. Nobody walks anywhere, which is the whole point of
+-- "wait here" - the previous behaviour marched the entire squad into a square block
+-- centred on the player and shuffled the archers out to the flanks, so giving the
+-- order made everyone move at the moment you wanted them to stop.
+--
+-- The leash and the defend-yourself rules are untouched: HoldLeash still lets a man
+-- step off his mark to fight what comes to him and walks him back afterwards.
+--
+-- The old block is kept behind HoldFormUp for anyone who wants a drawn-up line
+-- (merc_hold_formup 1); HoldBuildStationsBlock below is that code, unchanged.
+mercenaries.HoldFormUp = false
+
 function mercenaries:HoldBuildStations()
+    if self.HoldFormUp then return self:HoldBuildStationsBlock() end
+
+    -- A man who ALREADY has a station keeps it. This is not an optimisation, it is the
+    -- difference between working and not: unlike the block - which is a fixed lattice
+    -- off a fixed anchor, so redrawing it lands every man on the same point again -
+    -- stand-fast stations are wherever the men happened to be, and a rebuild is
+    -- triggered whenever anyone lacks one (see HoldStationOf). Re-stamping the whole
+    -- roster there would move the station of every man who had stepped off his mark to
+    -- fight, to wherever the fight had taken him, and he would never walk back. The
+    -- ground each man was told to hold is set once, when he is first given the order.
+    local st = self.HoldStations or {}
+    local added, kept = 0, 0
+    for _, r in ipairs(self:HoldRoster()) do
+        if st[r.key] then
+            kept = kept + 1
+        else
+            local p
+            pcall(function() p = r.ent:GetWorldPos() end)
+            if p then
+                st[r.key] = { x = p.x, y = p.y, z = p.z }
+                added = added + 1
+            end
+        end
+    end
+    self.HoldStations = st
+    holdLog(string.format("standing fast: %d man/men hold the ground they are on (%d kept)",
+        added + kept, kept))
+end
+
+function mercenaries:HoldBuildStationsBlock()
     local a = self.HoldAnchor
     local f = self.HoldFacing
     if not (a and f) then return end
@@ -156,6 +205,20 @@ function mercenaries:HoldBegin(pos, facing)
     self.HoldActive = true
     self.EscortEnt  = nil
     self._holdBuiltAt, self._escRoster = nil, nil
+    -- Cleared so a re-issued order re-stamps on the ground they are standing on NOW.
+    -- HoldBuildStations deliberately keeps stations it already has (see the note
+    -- there), which is right for its mid-order rebuilds and wrong for a fresh order:
+    -- without this, giving "wait here" a second time somewhere else would silently
+    -- hold them to the first spot.
+    self.HoldStations = {}
+    -- Whom this order binds, fixed for its lifetime. See HoldRoster.
+    self.HoldMembers = {}
+    pcall(function()
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w then self.HoldMembers[tostring(w)] = true end
+        end
+    end)
     self:HoldBuildStations()
 
     -- The engine formation and the straggler sweep both pull men back to the player,
@@ -171,6 +234,7 @@ function mercenaries:HoldEnd(silent)
     self.HoldActive   = false
     self.HoldAnchor   = nil
     self.HoldStations = {}
+    self.HoldMembers  = nil
     self:HoldReleaseAll()
     if not silent then
         Game.SendInfoText('merc_info_following', false, 0, 3)
@@ -181,17 +245,42 @@ end
 -- A nav order leaves the scheduler still believing follow is running, so the men
 -- stand where they were released. FollowStalled is the existing one-shot signal for
 -- exactly that: it evicts the stale tree and re-fires follow.
+--
+-- ONLY THE MEN WHO WERE ACTUALLY UNDER A NAV ORDER GET IT. It used to be raised on the
+-- whole squad, and that is what broke "follow me" after "wait here" at forty or fifty
+-- men. A man stood on his station is idle, so the scheduler's idle arm has already
+-- evicted his follow tree and cleared the latch, and he re-fires by himself the moment
+-- the order drops. Flagging him as well queued a SECOND eviction about a second later -
+-- one that lands after he has started walking - and whenever that eviction was applied
+-- just after the re-fire had set the latch, he was left latched "following" with
+-- nothing running and stood there for good. That is the third of the squad that used
+-- to freeze. See NoteFollowEviction in mercenaries_formation_handler.lua.
+--
+-- The two things everyone still gets are harmless and are what make the release safe at
+-- scale: a staggered start, so fifty follow interrupts do not land in the same half
+-- second, and a verification window that re-fires anyone who demonstrably fails to
+-- start walking.
 function mercenaries:HoldReleaseAll()
+    local total, navMen = 0, 0
     pcall(function()
         for _, ent in pairs(self.ActiveMercs or {}) do
-            local k = navKeyOf(ent)
-            if k and self.NavGoto and self.NavGoto[k] then
-                local m = self.NavGoto[k].mode
-                if m == "hold" or m == "escort" then self.NavGoto[k] = nil end
+            total = total + 1
+            local k   = navKeyOf(ent)
+            local rec = k and self.NavGoto and self.NavGoto[k] or nil
+            local m   = rec and rec.mode
+            if m == "hold" or m == "escort" then
+                self.NavGoto[k] = nil
+                navMen = navMen + 1
+                pcall(function() self:FollowStalled(ent) end)
             end
-            pcall(function() self:FollowStalled(ent) end)
         end
     end)
+
+    local spread = 0
+    pcall(function() spread = self:FollowStaggerSquad() or 0 end)
+    pcall(function() self:BeginFollowVerify("order released") end)
+
+    holdLog(string.format("released %d man/men over %.1fs (%d re-fire follow)", total, spread, navMen))
 end
 
 -- Is this man standing on his mark?
@@ -270,6 +359,9 @@ function mercenaries:EscortBegin(ent)
     self.EscortEnt  = ent
     self.HoldActive = false
     self.HoldStations = {}
+    -- Escort takes the LIVE roster: the column is being formed now, so a man hired
+    -- during it belongs in it.
+    self.HoldMembers = nil
     self._holdBuiltAt, self._escRoster = nil, nil
     local nm = "him"
     pcall(function() nm = ent:GetName() or nm end)
@@ -431,8 +523,13 @@ function mercenaries:HoldStatus()
     end
 end
 
-System.AddCCommand("merc_hold",        "mercenaries:HoldBegin()",   "Hold this ground: the squad forms a line here and stops chasing")
-System.AddCCommand("merc_hold_end",    "mercenaries:HoldEnd()",     "Release a hold order and resume following")
-System.AddCCommand("merc_escort",      "mercenaries:EscortBegin()", "Escort whoever you are looking at, in column")
-System.AddCCommand("merc_escort_end",  "mercenaries:EscortEnd()",   "Stop escorting")
-System.AddCCommand("merc_hold_status", "mercenaries:HoldStatus()",  "Report the hold/escort order state")
+function mercenaries:HoldFormUpSet(v)
+    self.HoldFormUp = (tostring(v or ''):match('1') ~= nil)
+    holdLog("hold shape = " .. (self.HoldFormUp and "drawn-up block" or "stand fast (default)"))
+    -- Re-draw immediately if an order is already standing, so the change is visible
+    -- now rather than at whatever the next rebuild happens to be.
+    if self.HoldActive then self:HoldBuildStations() end
+end
+
+mercenaries:DevCommand("merc_hold_formup", "mercenaries:HoldFormUpSet('%line')", "Hold shape: 1 = draw up in a block, 0 = stand fast where they are (default)")
+mercenaries:DevCommand("merc_hold_status", "mercenaries:HoldStatus()",  "Report the hold/escort order state")

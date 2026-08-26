@@ -201,7 +201,7 @@
 
                                 <OnFail canSkip="1">
                                     <Sequence>
-                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() if mercenaries:CombatMaySheathe(data, entity) then entity.human:DrawWeapon(false) end end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
                                         <!-- Inside the crime_interruptAttack context = counted as $inCombat by
                                              every scheduler. 300ms matches the CombatScanLoop. See combat_melee.xml. -->
                                         <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />

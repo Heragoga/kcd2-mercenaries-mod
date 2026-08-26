@@ -683,5 +683,240 @@
             </operations>
         </rule>
 
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+        <rule name="inventory_mercenary_radzig" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_radzig" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_radzig" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_hanush" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_hanush" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_hanush" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_erik" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_erik" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_erik" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_aulitz" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_aulitz" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_aulitz" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_jobst" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_jobst" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_jobst" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_bergov" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_bergov" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_bergov" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_vavak" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_vavak" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_vavak" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_ruthard" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_ruthard" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_ruthard" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_samuel" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_samuel" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_samuel" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_oderin" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_oderin" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_oderin" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_istvan" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_istvan" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_istvan" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_chamberlain" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_chamberlain" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_chamberlain" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_sigismund" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_sigismund" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_sigismund" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_lichtenstein" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_lichtenstein" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_lichtenstein" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_brabant" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_brabant" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_brabant" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_musa" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_musa" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_musa" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_zacharias" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_zacharias" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_zacharias" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_martin" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_martin" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_martin" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_bocek" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_bocek" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_bocek" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_pisek" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_pisek" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_pisek" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_painter" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_painter" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_painter" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_hertl" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_hertl" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_hertl" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_pelcl" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_pelcl" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_pelcl" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_marek" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_marek" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_marek" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_cverk" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_cverk" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_cverk" />
+            </operations>
+        </rule>
+
+        <rule name="inventory_mercenary_volek" Mode="and">
+            <selectors>
+                <hasName name="soul_merc_volek" />
+            </selectors>
+            <operations>
+                <setInventory preset="inventory_merc_volek" />
+            </operations>
+        </rule>
+<!-- end generated companions -->
 </rules>
 </storm>

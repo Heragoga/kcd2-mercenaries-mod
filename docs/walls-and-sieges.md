@@ -201,8 +201,18 @@ Whichever comes first:
   gather, then go in. A lone attacker is his own quorum, so an ordinary enemy walking up to
   the camp still starts a fight the moment he is in reach. Everyone still short of their
   slot is then released and walks in under their own behaviour, like any other fight
-- both lines formed (per-side quorum) plus `WBStageGrace`
-- the staging allowance expiring
+- **the attacking side alone formed**, held for `WBAttackerGrace` (3 s). This is the one that
+  normally fires. `WBQuorumMet` tests *both* sides, so a raid that had marched in and drawn up at
+  the gate used to stand there until the company's own line formed, or until the whole staging
+  allowance ran out — `WBStageTimeout` plus the march budget, about a minute for a raid staged
+  120 m out. That was the "raiders wait forever at the gate" bug, and it was never the intent: the
+  rule is that the *attacking* side must be formed before it commits, which is exactly what the
+  contact arm above already says. Opening early costs the defenders nothing they had, because
+  entering `battle` releases every staging assignment anyway — mercs still short of the wall walk
+  the rest of the way and fight as they arrive. The clock starts when they *form*, not when staging
+  starts, so it measures standing at the gate rather than the march in
+- both lines formed (per-side quorum) plus `WBStageGrace` (0.5 s)
+- the staging allowance expiring — `WBStageTimeout` + `far / WBMarchSpeed`, the safety net only
 
 The quartermaster is a defender. He is not in `ActiveMercs`, so before that he was the one
 man with no muster point and no combat lock, and charged through the wall alone.
@@ -232,6 +242,28 @@ out of the way entirely.
 Everything after the spawn is the normal path — the force counts as attackers, staging
 assigns it that gap, it marches in column and the fight opens when both lines are formed.
 
+**A raid force is marshalled exactly once.** `WBSetPhase("battle")` sets `WBRaidStaged`, and
+`WBAttackersNearCamp` stops counting the force from the raid roster after that; from then on it is
+found the ordinary way, by the `WBTriggerRange` sphere query, if it is near the camp.
+
+Without that latch the machine **loops**, and the log reads like this:
+
+```
+staging timed out at 18/35 - starting anyway
+phase -> battle
+phase -> idle
+14 attacker(s), 21 defender(s) over 1 contested gap(s)
+phase -> staging
+```
+
+Staging times out with the column still short of the camp → the fight opens → the `battle` phase
+does not count the raid force, so it sees an empty field → it goes quiet back to `idle` → and `idle`
+counts the force again and marshals the whole camp a second time. Round and round: the raid never
+resolves, the force never dies, and `RaidBusy` stays true for ever.
+
+That is what **"the first `merc_raid_now` works and the second does nothing"** actually was — the
+second was refused with `a raid is already under way`, by a raid that could never end.
+
 ### Scheduled raids (`mercenaries_raids.lua`)
 
 `RaidTick` fires a raid roughly every `RaidDaysBetween` days (2, ± `RaidDayJitter` so it is
@@ -240,6 +272,16 @@ not clockwork), and only when:
 - the camp is pitched **and the player is standing in it** (`RaidCampRange`, 45 m) — a raid
   nobody is there to fight is just a band of men standing in a field
 - no fight is already under way (`WBPhase` is idle and no raid force is still alive)
+
+A raid force that has been standing for `RaidStaleSecs` (5 min) is **cleared** by `RaidBusy` rather
+than merely ignored. Something wedged, or a few raiders broke off and wandered — either way it must
+not stop the company ever being raided again, and leaving the stale band standing while a fresh one
+marches in would stack two raids on the camp.
+
+`merc_raid_now` does **not** defer to any of this: it clears whatever is still standing and launches
+a fresh raid. The command exists to make a raid happen, and refusing is not that. The *scheduled*
+path still defers to `RaidBusy`, because a raid landing on top of the one the player is fighting is
+not something the clock should be able to do on its own.
 
 Barred gates used to stand the raid watch down; they no longer do. `RaidSealed` survives
 only as a line in `merc_raid_status`.

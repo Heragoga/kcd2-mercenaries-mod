@@ -87,9 +87,8 @@ function mercenaries:InnPropsClear()
     self.InnPropEnts = {}
 end
 
-System.AddCCommand("merc_inn_props",       "mercenaries:InnPropsSpawn()", "Spawn all inn candidate props in a labelled grid to eye them")
-System.AddCCommand("merc_inn_props_clear", "mercenaries:InnPropsClear()", "Remove the inn prop grid")
-
+mercenaries:DevCommand("merc_inn_props",       "mercenaries:InnPropsSpawn()", "Spawn all inn candidate props in a labelled grid to eye them")
+mercenaries:DevCommand("merc_inn_props_clear", "mercenaries:InnPropsClear()", "Remove the inn prop grid")
 
 -- Inn composition + live tuner. Same frame as the hunting station: fwd = toward
 -- look dir, lat = +left, up = height; rotation is Euler degrees to SetAngles
@@ -249,14 +248,13 @@ function mercenaries:InnDump()
     end
 end
 
-System.AddCCommand("merc_inn_spawn", "mercenaries:SpawnInnStation()",        "Spawn the inn composition in front of you")
-System.AddCCommand("merc_inn_clear", "mercenaries:InnStationClear()",        "Remove the inn station")
-System.AddCCommand("merc_inn_list",  "mercenaries:InnList()",                "List the inn pieces with their indices")
-System.AddCCommand("merc_inn_sel",   "mercenaries:InnSel(%1)",               "Select an inn piece to tune (index from merc_inn_list)")
-System.AddCCommand("merc_inn_move",  "mercenaries:InnMove(%1, %2, %3)",      "Nudge selected piece: merc_inn_move <dFwd> <dLat> <dUp>")
-System.AddCCommand("merc_inn_rot",   "mercenaries:InnRot('%1', '%2', '%3')", "Set selected piece rotation (deg): merc_inn_rot <x> <y> <z>  (z=yaw)")
-System.AddCCommand("merc_inn_dump",  "mercenaries:InnDump()",                "Print the tuned layout to the log for baking in")
-
+mercenaries:DevCommand("merc_inn_spawn", "mercenaries:SpawnInnStation()",        "Spawn the inn composition in front of you")
+mercenaries:DevCommand("merc_inn_clear", "mercenaries:InnStationClear()",        "Remove the inn station")
+mercenaries:DevCommand("merc_inn_list",  "mercenaries:InnList()",                "List the inn pieces with their indices")
+mercenaries:DevCommand("merc_inn_sel",   "mercenaries:InnSel(%1)",               "Select an inn piece to tune (index from merc_inn_list)")
+mercenaries:DevCommand("merc_inn_move",  "mercenaries:InnMove(%1, %2, %3)",      "Nudge selected piece: merc_inn_move <dFwd> <dLat> <dUp>")
+mercenaries:DevCommand("merc_inn_rot",   "mercenaries:InnRot('%1', '%2', '%3')", "Set selected piece rotation (deg): merc_inn_rot <x> <y> <z>  (z=yaw)")
+mercenaries:DevCommand("merc_inn_dump",  "mercenaries:InnDump()",                "Print the tuned layout to the log for baking in")
 
 -- ==== Camp inn / tavern station (the actual upgrade) ====
 -- Built near camp when the inn upgrade is owned, on the flattest ring spot clear
@@ -399,4 +397,4 @@ function mercenaries:InnRebuild()
     self:DespawnCampInn()
     self:SpawnCampInn(self.CampCenter)
 end
-System.AddCCommand("merc_inn_rebuild", "mercenaries:InnRebuild()", "Rebuild the camp tavern in place")
+mercenaries:DevCommand("merc_inn_rebuild", "mercenaries:InnRebuild()", "Rebuild the camp tavern in place")

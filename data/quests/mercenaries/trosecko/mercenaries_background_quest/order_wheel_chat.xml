@@ -50,11 +50,22 @@
                 <Port Name="order_camp_break" Direction="Out" Type="trigger" />
 
                 <Port Name="order_equip_generic" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_custom" Direction="Out" Type="trigger" />
                 <Port Name="order_equip_bandits" Direction="Out" Type="trigger" />
                 <Port Name="order_equip_cumans" Direction="Out" Type="trigger" />
                 <Port Name="order_equip_leipa" Direction="Out" Type="trigger" />
                 <Port Name="order_equip_kuttenberg" Direction="Out" Type="trigger" />
                 <Port Name="order_equip_skalitz" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_prague" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_sigismund" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_krizovnik" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_bergov" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_nebakov" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_semine" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_pisek" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_teuton" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_ruthard" Direction="Out" Type="trigger" />
+                <Port Name="order_equip_papal" Direction="Out" Type="trigger" />
 
                 <Port Name="order_weapon_random" Direction="Out" Type="trigger" />
                 <Port Name="order_weapon_swordshield" Direction="Out" Type="trigger" />
@@ -285,7 +296,9 @@
                                                     <UiPrompt StringName="ui_mercenary_change_equipment" />
                                                     <Elements><Response Role="role_mercenary_test" /></Elements>
 
-                                                    <!-- 6 outfits, paginated 3+3. -->
+                                                    <!-- 7 outfits, paginated 3+3+1. The wheel holds four slots and the
+                                                         fourth is always "more", so Custom coming second pushes
+                                                         Skalitz onto a third page. -->
                                                     <Decision Name="dec_wheel_outfit" Priority="General" TimeLimit="0">
                                                         <Sequences>
                                                             <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_equip_generic">
@@ -293,14 +306,14 @@
                                                                 <Triggers><Port Name="order_equip_generic" /></Triggers>
                                                                 <Elements><Response Role="role_mercenary_test" /></Elements>
                                                             </Sequence>
-                                                            <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_bandits">
-                                                                <UiPrompt StringName="ui_merc_equip_ban" />
-                                                                <Triggers><Port Name="order_equip_bandits" /></Triggers>
+                                                            <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_custom">
+                                                                <UiPrompt StringName="ui_merc_equip_custom" />
+                                                                <Triggers><Port Name="order_equip_custom" /></Triggers>
                                                                 <Elements><Response Role="role_mercenary_test" /></Elements>
                                                             </Sequence>
-                                                            <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_equip_cumans">
-                                                                <UiPrompt StringName="ui_merc_equip_cum" />
-                                                                <Triggers><Port Name="order_equip_cumans" /></Triggers>
+                                                            <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_equip_bandits">
+                                                                <UiPrompt StringName="ui_merc_equip_ban" />
+                                                                <Triggers><Port Name="order_equip_bandits" /></Triggers>
                                                                 <Elements><Response Role="role_mercenary_test" /></Elements>
                                                             </Sequence>
                                                             <Sequence EndType="Decision" ChatPosition="Fourth" Name="seq_wheel_outfit_more">
@@ -309,20 +322,120 @@
 
                                                                 <Decision Name="dec_wheel_outfit_more" Priority="General" TimeLimit="0">
                                                                     <Sequences>
-                                                                        <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_equip_leipa">
+                                                                        <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_equip_cumans">
+                                                                            <UiPrompt StringName="ui_merc_equip_cum" />
+                                                                            <Triggers><Port Name="order_equip_cumans" /></Triggers>
+                                                                            <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                        </Sequence>
+                                                                        <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_leipa">
                                                                             <UiPrompt StringName="ui_merc_equip_lei" />
                                                                             <Triggers><Port Name="order_equip_leipa" /></Triggers>
                                                                             <Elements><Response Role="role_mercenary_test" /></Elements>
                                                                         </Sequence>
-                                                                        <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_kuttenberg">
+                                                                        <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_equip_kuttenberg">
                                                                             <UiPrompt StringName="ui_merc_equip_kut" />
                                                                             <Triggers><Port Name="order_equip_kuttenberg" /></Triggers>
                                                                             <Elements><Response Role="role_mercenary_test" /></Elements>
                                                                         </Sequence>
-                                                                        <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_equip_skalitz">
-                                                                            <UiPrompt StringName="ui_merc_equip_ska" />
-                                                                            <Triggers><Port Name="order_equip_skalitz" /></Triggers>
+                                                                        <Sequence EndType="Decision" ChatPosition="Fourth" Name="seq_wheel_outfit_more2">
+                                                                            <UiPrompt StringName="ui_merc_wheel_more" />
                                                                             <Elements><Response Role="role_mercenary_test" /></Elements>
+
+                                                                            <Decision Name="dec_wheel_outfit_more2" Priority="General" TimeLimit="0">
+                                                                                <Sequences>
+                                                                                    <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_equip_skalitz">
+                                                                                        <UiPrompt StringName="ui_merc_equip_ska" />
+                                                                                        <Triggers><Port Name="order_equip_skalitz" /></Triggers>
+                                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                    </Sequence>
+                                                                                    <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_prague">
+                                                                                        <UiPrompt StringName="ui_merc_equip_pra" />
+                                                                                        <Triggers><Port Name="order_equip_prague" /></Triggers>
+                                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                    </Sequence>
+                                                                                    <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_equip_sigismund">
+                                                                                        <UiPrompt StringName="ui_merc_equip_sig" />
+                                                                                        <Triggers><Port Name="order_equip_sigismund" /></Triggers>
+                                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                    </Sequence>
+                                                                                    <Sequence EndType="Decision" ChatPosition="Fourth" Name="seq_wheel_outfit_more3">
+                                                                                        <UiPrompt StringName="ui_merc_wheel_more" />
+                                                                                        <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                        <Decision Name="dec_wheel_outfit_more3" Priority="General" TimeLimit="0">
+                                                                                            <Sequences>
+                                                                                                <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_equip_krizovnik">
+                                                                                                    <UiPrompt StringName="ui_merc_equip_kri" />
+                                                                                                    <Triggers><Port Name="order_equip_krizovnik" /></Triggers>
+                                                                                                    <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                </Sequence>
+                                                                                                <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_bergov">
+                                                                                                    <UiPrompt StringName="ui_merc_equip_ber" />
+                                                                                                    <Triggers><Port Name="order_equip_bergov" /></Triggers>
+                                                                                                    <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                </Sequence>
+                                                                                                <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_equip_nebakov">
+                                                                                                    <UiPrompt StringName="ui_merc_equip_neb" />
+                                                                                                    <Triggers><Port Name="order_equip_nebakov" /></Triggers>
+                                                                                                    <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                </Sequence>
+                                                                                                <Sequence EndType="Decision" ChatPosition="Fourth" Name="seq_wheel_outfit_more4">
+                                                                                                    <UiPrompt StringName="ui_merc_wheel_more" />
+                                                                                                    <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                    <Decision Name="dec_wheel_outfit_more4" Priority="General" TimeLimit="0">
+                                                                                                        <Sequences>
+                                                                                                            <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_equip_semine">
+                                                                                                                <UiPrompt StringName="ui_merc_equip_sem" />
+                                                                                                                <Triggers><Port Name="order_equip_semine" /></Triggers>
+                                                                                                                <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                            </Sequence>
+                                                                                                            <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_pisek">
+                                                                                                                <UiPrompt StringName="ui_merc_equip_pis" />
+                                                                                                                <Triggers><Port Name="order_equip_pisek" /></Triggers>
+                                                                                                                <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                            </Sequence>
+                                                                                                            <Sequence EndType="EndDialogue" ChatPosition="Third" Name="seq_wheel_equip_teuton">
+                                                                                                                <UiPrompt StringName="ui_merc_equip_teu" />
+                                                                                                                <Triggers><Port Name="order_equip_teuton" /></Triggers>
+                                                                                                                <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                            </Sequence>
+                                                                                                            <Sequence EndType="Decision" ChatPosition="Fourth" Name="seq_wheel_outfit_more5">
+                                                                                                                <UiPrompt StringName="ui_merc_wheel_more" />
+                                                                                                                <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                                <Decision Name="dec_wheel_outfit_more5" Priority="General" TimeLimit="0">
+                                                                                                                    <Sequences>
+                                                                                                                        <Sequence EndType="EndDialogue" ChatPosition="First" Name="seq_wheel_equip_ruthard">
+                                                                                                                            <UiPrompt StringName="ui_merc_equip_rut" />
+                                                                                                                            <Triggers><Port Name="order_equip_ruthard" /></Triggers>
+                                                                                                                            <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                                        </Sequence>
+                                                                                                                        <Sequence EndType="EndDialogue" ChatPosition="Second" Name="seq_wheel_equip_papal">
+                                                                                                                            <UiPrompt StringName="ui_merc_equip_pap" />
+                                                                                                                            <Triggers><Port Name="order_equip_papal" /></Triggers>
+                                                                                                                            <Elements><Response Role="role_mercenary_test" /></Elements>
+                                                                                                                        </Sequence>
+                                                                                                                        <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_outfit_more5_cancel">
+                                                                                                                            <Elements><Response Role="HENRY" /></Elements>
+                                                                                                                        </Sequence>
+                                                                                                                    </Sequences>
+                                                                                                                </Decision>
+                                                                                                            </Sequence>
+                                                                                                            <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_outfit_more4_cancel">
+                                                                                                                <Elements><Response Role="HENRY" /></Elements>
+                                                                                                            </Sequence>
+                                                                                                        </Sequences>
+                                                                                                    </Decision>
+                                                                                                </Sequence>
+                                                                                                <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_outfit_more3_cancel">
+                                                                                                    <Elements><Response Role="HENRY" /></Elements>
+                                                                                                </Sequence>
+                                                                                            </Sequences>
+                                                                                        </Decision>
+                                                                                    </Sequence>
+                                                                                    <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_outfit_more2_cancel">
+                                                                                        <Elements><Response Role="HENRY" /></Elements>
+                                                                                    </Sequence>
+                                                                                </Sequences>
+                                                                            </Decision>
                                                                         </Sequence>
                                                                         <Sequence EndType="EndDialogue" ChatPosition="Refusal" Name="seq_wheel_outfit_more_cancel">
                                                                             <Elements><Response Role="HENRY" /></Elements>

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
-	<perks version="1">
-		<perk autolearnable="false"  perk_id="12a34567-0ee3-41ed-ab54-3303b049019a" visibility="0" />
-		<!-- Heinrich's boss buff perk (grants heinrich_imba_buff). -->
-		<perk autolearnable="false"  perk_id="12a34568-0ee3-41ed-ab54-3303b049019b" visibility="0" />
-	</perks>
-</database>

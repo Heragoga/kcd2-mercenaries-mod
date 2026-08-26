@@ -61,7 +61,6 @@
             <Variable name="hasChatAlias" type="_bool" values="false" isPersistent="0" form="single" />
             <!-- Order bark: RequestBark queues an alias in _G.MercBarkReq[wuid]; the bark loop below plays it once. -->
             <Variable name="barkReqAlias" type="_string" values="" isPersistent="0" form="single" />
-            <Variable name="hasMetaBark" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="hasBarkReq" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="polylog_participants" type="_wuid" values="" isPersistent="0" form="array" />
             <Variable name="polylog_participantsMetaroles" type="soulToMetaroles" values="" isPersistent="0" form="array" />
@@ -182,11 +181,6 @@
                                 <IfCondition failOnCondition="false" condition="$hasBarkReq">
                                     <SuppressFailure>
                                         <Function_speech_schedulerMonolog alias="$barkReqAlias" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="" skipInLod="false" subtitlesDown="false" />
-                                    </SuppressFailure>
-                                </IfCondition>
-                                <IfCondition failOnCondition="false" condition="$hasMetaBark">
-                                    <SuppressFailure>
-                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$__player" metarole="'NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'" skipInLod="true" subtitlesDown="false" />
                                     </SuppressFailure>
                                 </IfCondition>
                                 <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />
