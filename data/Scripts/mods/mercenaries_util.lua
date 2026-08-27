@@ -128,19 +128,46 @@ end
 
 mercenaries:DevCommand("merc_render_pin", "mercenaries:RenderPinSet('%line')",
                    "Pin merc renderer view distance so they are never distance-culled: merc_render_pin 1 | 0")
+-- Runtime NPCs whose RECORDS live in plain Lua and therefore die with every load, while the
+-- ENTITIES are serialised into the save and come back without them. Nothing else ever removes
+-- one of these: DespawnMerc fires only for a roster member who dies THIS session, the patrol
+-- sweep is a 600m box, and the quartermaster sweep a 200m one. Measured across one playline:
+-- 10 -> 41 -> 50 SpawnedFriend entities baked into consecutive saves of a squad that never
+-- exceeded 8 - plus up to 27 patrolmen - every one of them respawned on every load as a full,
+-- unmanaged NPC. That is the population the whole 2026-08 lag hunt could not see, because
+-- neither MercCount nor ActiveMercs counts them. Swept once per load, from the full-class scan
+-- this function already pays for. Their owners respawn what is genuinely wanted right after:
+-- camp restore brings back the quartermaster and tower archers at +4s, patrols re-roll fresh.
+mercenaries.LoadSweepPrefixes = {
+    "SpawnedPatrolman_", "SpawnedPatrol_", "SpawnedTower_archer_",
+    "MercQuartermaster_", "SpawnedEnemy_", "SpawnedRenegade_", "SpawnedFoe_",
+}
+
+function mercenaries:IsLoadSweepName(name)
+    if not name or name == "" then return false end
+    for _, p in ipairs(self.LoadSweepPrefixes) do
+        if string.find(name, p, 1, true) then return true end
+    end
+    return false
+end
+
 function mercenaries:RebuildMercCache()
     self.ActiveMercs = {}
-     if _G.MercenariesDismissed then
-        System.LogAlways('[Mercenary Jeff] Mercs dismissed, skipping cache rebuild.')
-        return
+    -- Dismissed no longer skips the scan: the scan is also the load sweep, and a dismissed
+    -- company is exactly the case with the most stale entities to remove - SetState pays the
+    -- men off but the engine has already saved them, so they came back with this load.
+    local dismissed = _G.MercenariesDismissed
+    if dismissed then
+        System.LogAlways('[Mercenary Jeff] Mercs dismissed - rebuilding nothing, sweeping instead.')
     end
+    local stale = {}
     local ents = System.GetEntitiesByClass('NPC')
     if ents then
         for _, e in pairs(ents) do
             local name = e and e:GetName() or ""
             if string.find(name, 'SpawnedFriend') or string.find(name, 'MercenaryCustomCompanion') then
                 -- Only cache entities that are actually alive
-                if self:IsAliveAndWell(e, true) then
+                if not dismissed and self:IsAliveAndWell(e, true) then
                     self.ActiveMercs[name] = e
                     mercenaries:EnsureMercIsAlwaysRendered(e)
                     -- Restore the interaction button that was injected at hire time.
@@ -148,9 +175,23 @@ function mercenaries:RebuildMercCache()
                     self:InjectInteraction(e)
                     self:EquipMercenary(e, _G.MercCurrentOutfit or 1)
                     self:EquipMercenaryWeapon(e, _G.MercCurrentWeapon or 1)
+                else
+                    -- A corpse from a previous session, or a man who was paid off before the
+                    -- save was written. Neither has any owner left to remove him.
+                    stale[#stale + 1] = e.id
                 end
+            elseif self._loadSweep and self:IsLoadSweepName(name) then
+                stale[#stale + 1] = e.id
             end
         end
+    end
+    self._loadSweep = false
+    if #stale > 0 then
+        for _, id in ipairs(stale) do
+            pcall(function() System.RemoveEntity(id) end)
+        end
+        System.LogAlways('[Mercenary Jeff] load sweep: removed ' .. #stale ..
+                         ' stale mod NPC(s) the save carried with no record behind them')
     end
     -- Always recount after rebuild so MercCount reflects reality
     local c = 0
@@ -159,8 +200,14 @@ function mercenaries:RebuildMercCache()
     System.LogAlways('[Mercenary Jeff] Merc cache rebuilt. Active mercs: ' .. tostring(_G.MercCount))
 end
 function mercenaries.RebuildMercCacheDelayed()
+    -- Armed only on the LOAD path: a mid-session rebuild (if one is ever added) must not
+    -- delete live encounters, only the load may treat recordless NPCs as stale.
+    mercenaries._loadSweep = true
     mercenaries:RebuildMercCache()
     mercenaries:Recount()
+    -- The roster is only now known, so this is the first moment a torch left burning by the
+    -- previous session can be taken off anyone. See CampTorchOnLoad.
+    if mercenaries.CampTorchOnLoad then pcall(function() mercenaries:CampTorchOnLoad() end) end
 end
 
 function mercenaries:PruneMercCache()
@@ -206,13 +253,37 @@ function mercenaries:PruneCombatClaims()
     -- pruning of its own - a claim on a dead enemy is released by the OnFail of the merc
     -- holding it, and that merc is alive by construction.
     if self.MercSetClaim then
-        local live = {}
+        local live, ents = {}, {}
         for _, ent in pairs(self.ActiveMercs or {}) do
             local w = ent and (ent.this and ent.this.id or ent.id)
-            if w and self:IsAliveAndWell(ent, true) then live[tostring(w)] = true end
+            if w and self:IsAliveAndWell(ent, true) then
+                live[tostring(w)] = true
+                ents[tostring(w)] = ent
+            end
         end
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
         for k in pairs(self.MercTargetOf or {}) do
-            if not live[k] then self:MercSetClaim(k, nil) end
+            if not live[k] then
+                self:MercSetClaim(k, nil)
+            else
+                -- A LIVING merc can hold a claim for ever too. OnFail is the only thing that
+                -- releases one, and it does not run when his tree is evicted by another
+                -- interrupt, swallowed by camp_actor, or simply replaced by the load of a
+                -- save. That single orphaned entry is enough to hold EnemyAlerted true - see
+                -- the MercTargetOf clause in UpdateEnemyCache - which pins the shared scan at
+                -- EnemyAlertRadius for the rest of the session.
+                --
+                -- Time-boxed rather than immediate: a merc crossing open ground to a target
+                -- is legitimately not in combat danger yet, and evicting him there would
+                -- cancel every long approach. MercClaimGraceSecs is well past any of them.
+                local at = (self.MercClaimAt or {})[k]
+                if at and (now - at) > (self.MercClaimGraceSecs or 45.0) then
+                    local fighting = false
+                    pcall(function() fighting = ents[k].soul:IsInCombatDanger() end)
+                    if not fighting then self:MercSetClaim(k, nil) end
+                end
+            end
         end
     end
 end

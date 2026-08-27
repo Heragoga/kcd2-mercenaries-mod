@@ -20,6 +20,16 @@ mercenaries.LivePatrolsEnabled = true
 mercenaries.PatrolSpawnRange   = 250.0   -- spawn the gang when the player is this close...
 mercenaries.PatrolNoSpawnRange = 200.0   -- ...but never closer than this
 mercenaries.PatrolDespawnRange = 330.0   -- ...and take it away again out here (hysteresis)
+-- The line nothing may EVER cross, whatever the band above says. The band is tested on the
+-- gang's notional point up to a tick (3s) before the men are actually created, and only for
+-- the LEAD man - a player riding at the gang closes most of a 50m band in that time, and the
+-- rest of the column is laid out BEHIND the lead, which can be his side of it. So the floor
+-- is re-tested inside PatrolSpawnGang against a freshly read player position, and again for
+-- every man's final ground-snapped spot. See docs/patrols.md, "Never in your lap".
+mercenaries.PatrolMinPlayerDist = 100.0
+-- What a player with no mercenaries meets: a handful of men, never a company.
+mercenaries.PatrolSoloMinMen   = 3
+mercenaries.PatrolSoloMaxMen   = 5
 mercenaries.PatrolFreshMinDist = 450.0   -- a newly rolled record starts at least this far off
 mercenaries.PatrolFreshTries   = 8       -- ...best of this many random start points
 -- Nothing spawns for this long after a load. Loading in is the one moment the player has no
@@ -39,7 +49,7 @@ mercenaries.PatrolMaxMen       = 16
 -- typically has 3 gang slots in range and up to 9. At a 20-merc squad (gangs of ~26) that
 -- is a median of 78 extra full NPCs and a worst case over 200 - each one a behaviour tree,
 -- a navigation agent and an assembled character. Gangs still scale with the party; only
--- the total is bounded. merc_patrols_arm 0 turns the whole system off.
+-- the total is bounded. merc_patrols 0 turns the whole system off.
 mercenaries.PatrolMaxLiveMen   = 36
 -- ...and a ceiling on how many GANGS can be live at once, which is the one that bites at a
 -- road junction: the recorded networks have positions where 9 (Kuttenberg) and 12 (Trosky)
@@ -49,6 +59,11 @@ mercenaries.PatrolMaxLiveGangs = 3
 -- clothing/weapon equips per man; letting three gangs land on one frame is a visible hitch
 -- even when the steady-state population is fine.
 mercenaries.PatrolSpawnPerTick = 1
+-- Ground-search budget for the men BEHIND the lead, in CampValidateSpot candidates. The
+-- whole gang is placed in one frame, so this is the one number that bounds that frame's
+-- raycast cost; see the note at the call site in PatrolSpawnGang. 40 (the FindValidGround
+-- default) is for a single placement with a frame to itself, not for sixteen of them.
+mercenaries.PatrolGroundTries = 6
 -- Total lingering corpses across every wiped gang. Bodies are deliberately lootable for a
 -- while, but a hotspot could stack several full gangs of ragdolls with nothing bounding the
 -- sum while fresh gangs kept spawning alongside them.
@@ -77,7 +92,15 @@ mercenaries.PatrolLiveTickMs   = 3000
 -- enough that the FIRST man reacts while there is still a fight to have.
 mercenaries.PatrolDetectRange  = 25.0
 mercenaries.PatrolAlertSecs    = 45.0    -- ...once one of them makes contact, the gang joins in for this long
-mercenaries.PatrolTwoAtPoints  = 150     -- routes at least this long carry two gangs
+-- Routes at least this long (METRES of road, not points) carry two gangs. It used to be a
+-- point count, PatrolTwoAtPoints = 150, which is only a proxy for length while every map is
+-- recorded at the same marker spacing - and they are not. The recorder drops a marker every
+-- AT LEAST PatrolRouteStep (10 m), so riding faster spaces them further apart: measured,
+-- Kuttenberg averages 11.1 m between points and Trosky 15.9 m. The same 150-point bar
+-- therefore meant 1665 m on one map and 2385 m on the other. 1650 m is the Kuttenberg
+-- equivalent of the old rule, so this is a correctness fix, not a rebalance.
+mercenaries.PatrolTwoAtMetres  = 1650
+mercenaries.PatrolTwoAtPoints  = 150     -- legacy fallback, used only if a set was not measured
 mercenaries.PatrolPairSpacing  = 0.4     -- ...started this far apart along the route (fraction)
 -- Route sets, keyed by LEVEL. Each entry lists the level-name substrings that select it and
 -- the table holding its routes. The two maps' coordinates OVERLAP, so a merged list would
@@ -115,11 +138,37 @@ mercenaries.PatrolEscalationPerKill  = 0.05   -- size bonus per patrolman killed
 mercenaries.PatrolEscalationHalfLife = 900.0  -- seconds for a route's heat to decay by half
 mercenaries.PatrolRouteHeat = {}   -- [route] = { kills = <decayed float>, at = <last touched> }
 
+-- Measure a route set once, when it goes live: each route's length in metres and its OWN
+-- mean marker spacing. Both are read back per tick, and neither can be assumed from the
+-- point count - the recorder's 10 m step is a minimum, not a guarantee (see PatrolTwoAtMetres).
+-- Idempotent and cheap: a few thousand points, only on a set switch.
+function mercenaries:PatrolMeasureRoutes(data)
+    for _, r in ipairs(data or {}) do
+        if not r.len then
+            local L, n = 0, 0
+            local pts = r.pts or {}
+            for i = 1, #pts - 1 do
+                local a, b = pts[i], pts[i + 1]
+                L = L + math.sqrt((b.x - a.x) ^ 2 + (b.y - a.y) ^ 2)
+                n = n + 1
+            end
+            r.len   = L
+            r.stepM = (n > 0) and (L / n) or 10.0
+        end
+    end
+    local total = 0
+    for _, r in ipairs(data or {}) do total = total + (r.len or 0) end
+    return total
+end
+
 -- How many gangs walk this route. A 2km road with one patrol on it feels empty, and the
--- two start half a route apart so they are not shadowing each other.
+-- two start half a route apart so they are not shadowing each other - so the test is the
+-- road's LENGTH, which is what that sentence is about. Falls back to the old point count
+-- for any set that was never measured.
 function mercenaries:PatrolCountFor(i)
     local r = self.PatrolRouteData and self.PatrolRouteData[i]
     if not r then return 0 end
+    if r.len then return (r.len >= self.PatrolTwoAtMetres) and 2 or 1 end
     return (#r.pts >= self.PatrolTwoAtPoints) and 2 or 1
 end
 
@@ -308,7 +357,11 @@ function mercenaries:PatrolRoutesForLevel()
         end
         self._patrolRouteKey = chosen.key
         self.PatrolRouteData = data
-        lLog("route set = " .. chosen.key .. " (" .. tostring(#data) .. " routes) for level '" .. n .. "'")
+        local km = self:PatrolMeasureRoutes(data) / 1000.0
+        local slots = 0
+        for i = 1, #data do slots = slots + self:PatrolCountFor(i) end
+        lLog(string.format("route set = %s (%d routes, %.1f km of road, %d gang slots) for level '%s'",
+                           chosen.key, #data, km, slots, n))
     end
     return true
 end
@@ -466,10 +519,10 @@ function mercenaries:PatrolPartySize()
     return math.max(1, n)
 end
 
--- True with zero living mercenaries. A gang sized for a party of one is still a gang - the
--- PatrolMinMen floor puts at least 3 men on a totally solo player - so roaming patrols do
--- not spawn at all while he has no mercs to back him up. Gangs already spawned before his
--- mercs died are left alone; this only withholds new ones.
+-- True with zero living mercenaries. This used to withhold roaming patrols entirely, which
+-- emptied the roads for exactly the player who is out there alone. It now sizes them
+-- instead: a solo player meets PatrolSoloMinMen..PatrolSoloMaxMen men (see PatrolRollSize),
+-- which is an encounter he can fight or run from rather than a company that ends him.
 function mercenaries:PatrolPlayerAlone()
     local n = 0
     pcall(function() n = self:LogiAliveCount() or 0 end)
@@ -506,6 +559,14 @@ function mercenaries:PatrolRollSize(route)
     local ceil_ = self.PatrolMaxMen
     pcall(function() ceil_ = self:DifficultyCeil(self.PatrolMaxMen) end)
     if n > ceil_ then n = ceil_ end
+    -- LAST, so neither the difficulty tier nor a hot route's escalation can push a gang
+    -- past what a man with nobody behind him is meant to meet.
+    if self:PatrolPlayerAlone() then
+        local lo = self.PatrolSoloMinMen or 3
+        local hi = math.max(lo, self.PatrolSoloMaxMen or 5)
+        if n < lo then n = lo end
+        if n > hi then n = hi end
+    end
     return n
 end
 
@@ -664,9 +725,35 @@ function mercenaries:PatrolRollIdentity(rec)
     rec.size  = self:PatrolBudgetFor(self:PatrolRollSize(rec.route))
 end
 
-function mercenaries:PatrolSpawnGang(rec)
+-- How far from the player a single spot is, or nil when there is no player to measure
+-- against (in which case nothing is refused - see PatrolSpotClear).
+function mercenaries:PatrolPlayerDist(q)
+    if not (q and player) then return nil end
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return nil end
+    local dx, dy = q.x - pp.x, q.y - pp.y
+    return math.sqrt(dx * dx + dy * dy)
+end
+
+-- Is this spot outside the hard floor? Reads the player's position NOW rather than
+-- trusting the one the tick sampled before it sorted its candidates.
+function mercenaries:PatrolSpotClear(q, floor)
+    local d = self:PatrolPlayerDist(q)
+    if not d then return true end
+    return d >= (floor or self.PatrolMinPlayerDist or 0)
+end
+
+-- `force` is the console's own door (merc_patrols_here, merc_patrol_<group>), which exists
+-- precisely to put a gang on top of you. Nothing in the tick passes it.
+function mercenaries:PatrolSpawnGang(rec, force)
     local p = self:PatrolPointOf(rec)
     if not p then return false end
+    -- The band test in PatrolTickOne ran up to a tick ago, on the point rather than on the
+    -- men. Re-test here, or a player who rode 40m at the gang in those 3s gets it in his lap.
+    if not force and not self:PatrolSpotClear(p) then
+        return false
+    end
     self:PatrolRollIdentity(rec)
     -- The roll is clamped to whatever budget is left, which can be nothing if another gang
     -- took it since this record was picked. A one- or two-man "gang" is worse than none, so
@@ -708,16 +795,46 @@ function mercenaries:PatrolSpawnGang(rec)
 
     local lead = { x = p.x, y = p.y, z = p.z }
     if self.FindValidGround then lead = self:FindValidGround(lead, p.z) end
+    -- FindValidGround may have walked the lead a few metres off the route point the test
+    -- above cleared, so the man who is actually about to exist is tested too.
+    if not force and not self:PatrolSpotClear(lead) then
+        rec.size = nil
+        return false
+    end
     local L = one(lead, true)
     if not L then return false end
     table.insert(rec.men, L)
 
+    -- The column is laid out BEHIND the lead, which is his side of it as often as not, so
+    -- every man is measured in his own right. A man inside the floor is simply left out:
+    -- the gang is one shorter, which nobody can see, where a man materialising at the
+    -- player's shoulder is the whole complaint.
+    local dropped = 0
     for i = 1, rec.size - 1 do
         local back, lat = self:PatrolSlot(i, rec.size - 1)
         local q = { x = lead.x - fx * back + rx * lat, y = lead.y - fy * back + ry * lat, z = lead.z }
-        if self.FindValidGround then q = self:FindValidGround(q, lead.z) end
-        local e = one(q, false)
-        if e then table.insert(rec.men, e) end
+        -- Budgeted, unlike the lead man's search above. A gang is spawned ENTIRELY within one
+        -- tick, so the raycasts of every follower land in a single frame: at the default
+        -- maxTries of 40 (up to 9 rays each via CampValidateSpot) a 16-man gang could ask for
+        -- thousands of synchronous rays before the frame ended, which is the hitch behind
+        -- "enemies appeared right in front of me while I was riding". These men are being
+        -- placed a couple of metres behind a lead whose ground is already validated, so the
+        -- hopeless case is not worth 40 tries - and exhausting the budget falls through to
+        -- the same plain ground snap an exhausted spiral did, with PatrolSpotClear below
+        -- still deciding whether the man exists at all. See docs/performance.md.
+        if self.FindValidGround then
+            q = self:FindValidGround(q, lead.z, nil, nil, self.PatrolGroundTries)
+        end
+        if force or self:PatrolSpotClear(q) then
+            local e = one(q, false)
+            if e then table.insert(rec.men, e) end
+        else
+            dropped = dropped + 1
+        end
+    end
+    if dropped > 0 then
+        lLog(string.format("route %d: %d man/men left out - inside the %.0fm floor",
+            rec.route, dropped, self.PatrolMinPlayerDist or 0))
     end
 
     self:PatrolIndexGang(rec)
@@ -821,10 +938,28 @@ end
 -- Each patrol advances along its route whether or not it is spawned, so it is always
 -- roughly where it ought to be. Spawned ones are steered by the patrol tester's own
 -- machinery (PatrolPoints/PatrolLeader) - see PatrolDrive.
-function mercenaries.LivePatrolTick()
+-- MEASURED: 63 firings in a 20.7s window where 7 were due, in a session with exactly one
+-- load, one "roaming patrols armed" line and no watchdog re-arm - about nine chains driving
+-- one tick. LootSweepTick, the one chain that had already been given an identity, was exact
+-- (20 firings, 20 due) in the same window. So duplicate chains are real and the arming latch
+-- alone does not stop them.
+--
+-- Same device as LootSweepArm: the generation rides in the FUNCTION NAME, because a chain
+-- carries no other state of its own and a time-based duplicate guard is known to retire the
+-- only chain there is (see MasterTick). A chain that is not the current slot stops without
+-- re-arming, so the extras drain away within one period.
+--
+-- This is not a bookkeeping nicety. Every extra chain is another pass over the whole route
+-- set AND another chance per period to spawn a gang - and a gang spawn is NPC creation,
+-- ground raycasts and character assembly, which is engine time the Lua profiler cannot see.
+mercenaries.LivePatrolSlot = 0
+
+-- The WORK. Called from the master scheduler's "patrols" slot, which is the only tick in the
+-- mod proven to exist exactly once (measured: 108ms observed against 100ms armed, in the same
+-- session where this chain was running five times over). Nothing here arms a timer.
+function mercenaries.LivePatrolBody()
     local self = mercenaries
-    -- Stamped OUTSIDE the pcall and before any guard, so it means "the timer fired", not
-    -- "the tick did work". The watchdog is asking whether the timer is alive.
+    -- Stamped before any guard, so it means "the tick ran", not "the tick did work".
     self._liveTickAt = nowT()
     pcall(function()
         -- PatrolRouteData is deliberately NOT part of this guard: it is set by the level check
@@ -880,7 +1015,19 @@ function mercenaries.LivePatrolTick()
             end
         end
     end)
-    Script.SetTimerForFunction(mercenaries.PatrolLiveTickMs, "mercenaries.LivePatrolTick")
+end
+
+-- Legacy chain, used only when the master scheduler is off (merc_sched 0). The slot rides in
+-- the function name so a chain from a previous arm retires on its next firing; see
+-- LootSweepArm. Under the scheduler neither of these is ever armed.
+function mercenaries.LivePatrolTick0() mercenaries.LivePatrolBeat(0) end
+function mercenaries.LivePatrolTick1() mercenaries.LivePatrolBeat(1) end
+
+function mercenaries.LivePatrolBeat(slot)
+    local self = mercenaries
+    if not self.LivePatrolRunning or self.LivePatrolSlot ~= slot then return end
+    mercenaries.LivePatrolBody()
+    Script.SetTimerForFunction(self.PatrolLiveTickMs, "mercenaries.LivePatrolTick" .. slot)
 end
 
 function mercenaries:PatrolTickOne(rec, pp, t)
@@ -967,17 +1114,33 @@ function mercenaries:PatrolTickOne(rec, pp, t)
         local dt = t - (rec.moveAt or t)
         rec.moveAt = t
         local r = self:PatrolRouteOf(rec)
-        local stepM = 10.0            -- the recorder's spacing
-        local steps = math.floor((dt * self.PatrolGhostSpeed) / stepM)
-        if steps > 0 then self:PatrolAdvance(rec, steps) end
+        -- This route's OWN mean marker spacing, not a hard-coded 10 m. PatrolAdvance steps by
+        -- one INDEX, so dividing the creep by the wrong step scales the ghost's real ground
+        -- speed by (actual spacing / step): on Trosky, whose markers average 15.9 m, a
+        -- hard-coded 10 drifted the notional patrol at 2.23 m/s instead of PatrolGhostSpeed's
+        -- 1.4 - 59% too fast, which is 59% less time spent inside the 200-250m spawn band.
+        local stepM = (r and r.stepM) or 10.0
+        -- The remainder has to CARRY. A 3s tick at PatrolGhostSpeed covers 4.2m of a 10m
+        -- step, so flooring one tick's travel on its own is always 0 and moveAt is stamped
+        -- every pass regardless - the notional patrol never moved at all, and every gang sat
+        -- on the point it was rolled at for the whole session.
+        rec.creep = (rec.creep or 0) + dt * self.PatrolGhostSpeed
+        local steps = math.floor(rec.creep / stepM)
+        if steps > 0 then
+            rec.creep = rec.creep - steps * stepM
+            self:PatrolAdvance(rec, steps)
+            -- Re-measure against the point the men would actually appear at, not the one
+            -- the gang stood on before it crept.
+            local q = self:PatrolPointOf(rec)
+            if q then d = math.sqrt((pp.x - q.x) ^ 2 + (pp.y - q.y) ^ 2) end
+        end
 
         -- The floor matters as much as the range: a gang must never appear on top of the
         -- player. Inside it the record just stays notional until the gap opens again.
         -- The grace is the same idea in time rather than distance - see PatrolLoadGraceSecs.
         -- Eligible, but the caller decides: it spawns the nearest few, not everyone.
         if d <= self.PatrolSpawnRange and d >= self.PatrolNoSpawnRange
-           and not self:PatrolInLoadGrace()
-           and not self:PatrolPlayerAlone() then
+           and not self:PatrolInLoadGrace() then
             return d
         end
     end
@@ -1007,11 +1170,25 @@ function mercenaries:PatrolSyncIndex(rec, lp, force)
     rec.idx = best
 end
 
+-- MEASURED: nine arms inside the first two seconds of a single load, from two call sites that
+-- can each run once - so the caller was never the real problem and the latch was never going to
+-- hold. Under the master scheduler this arms NOTHING: the "patrols" slot owns the cadence, and
+-- however many times this is called there is exactly one tick. The private chain survives only
+-- for merc_sched 0.
+--
+-- (The previous log showed one arm line for nine arms because CryEngine collapses consecutive
+-- identical lines; the slot number in the message is what made them distinct and visible.)
 function mercenaries:LivePatrolStart()
     if self.LivePatrolRunning then return end
     self.LivePatrolRunning = true
-    Script.SetTimerForFunction(self.PatrolLiveTickMs, "mercenaries.LivePatrolTick")
-    lLog("roaming patrols armed (" .. #(self.PatrolRouteData or {}) .. " route(s))")
+    if self.SchedEnabled then
+        lLog("roaming patrols armed (" .. #(self.PatrolRouteData or {}) .. " route(s)), on the master tick")
+        return
+    end
+    self.LivePatrolSlot = 1 - (self.LivePatrolSlot or 0)
+    Script.SetTimerForFunction(self.PatrolLiveTickMs, "mercenaries.LivePatrolTick" .. self.LivePatrolSlot)
+    lLog("roaming patrols armed (" .. #(self.PatrolRouteData or {}) .. " route(s)), legacy slot " ..
+         tostring(self.LivePatrolSlot))
 end
 
 -- Watchdog. LivePatrolRunning is a latch, and a latch plus a timer that can die (level
@@ -1027,8 +1204,11 @@ function mercenaries:LivePatrolWatchdog()
     self:PatrolIndexRebuild()
     local now = nowT()
     local last = self._liveTickAt
+    -- Under the master scheduler there is no private chain to resurrect, and the scheduler has
+    -- a watchdog of its own. Re-arming here is how a second chain was born.
+    if self.SchedEnabled then return end
     if last and (now - last) < self.PatrolTickStaleSecs then return end
-    if last then lLog("tick stalled - re-arming") end
+    lLog("tick stalled - re-arming (last stamp " .. tostring(last) .. ")")
     self.LivePatrolRunning = false
     self:LivePatrolStart()
 end
@@ -1086,12 +1266,21 @@ end
 function mercenaries:LivePatrolStatus()
     local party = self:PatrolPartySize()
     local left  = self:PatrolLoadGraceLeft()
+    local lo = self.PatrolMinMen
+    local hi = math.max(self.PatrolMinMen,
+                        math.min(self.PatrolMaxMen,
+                                 math.floor(party * self:PatrolMaxMultFor(party) + 0.5)))
+    local solo = self:PatrolPlayerAlone()
+    if solo then
+        lo = self.PatrolSoloMinMen or lo
+        hi = math.max(lo, self.PatrolSoloMaxMen or hi)
+    end
     lLog("enabled: " .. tostring(self.LivePatrolsEnabled) ..
          ", party strength " .. party ..
-         string.format(" (gangs %d-%d men)", self.PatrolMinMen,
-                       math.max(self.PatrolMinMen,
-                                math.min(self.PatrolMaxMen,
-                                         math.floor(party * self:PatrolMaxMultFor(party) + 0.5)))) ..
+         string.format(" (gangs %d-%d men%s)", lo, hi, solo and ", alone" or "") ..
+         string.format(", band %.0f-%.0fm, floor %.0fm",
+                       self.PatrolNoSpawnRange or 0, self.PatrolSpawnRange or 0,
+                       self.PatrolMinPlayerDist or 0) ..
          (left and string.format(", load grace %.0fs left", left) or ""))
     lLog(string.format("live: %d men in %d gang(s), %d corpse(s)  |  caps: %d men, %d gangs, %d per gang",
         self:PatrolLiveMenCount(), self:PatrolLiveGangCount(), self:PatrolCorpseCount(),
@@ -1138,7 +1327,7 @@ function mercenaries:LivePatrolHere()
     best.deadAt = nil
     self:PatrolDespawnGang(best)
     self:PatrolSyncIndex(best, pp, true)   -- forced: this gang is deliberately re-seated on the player
-    if not self:PatrolSpawnGang(best) then
+    if not self:PatrolSpawnGang(best, true) then
         lLog("nothing spawned - population budget is full (merc_patrols_status shows the caps)")
     end
 end
@@ -1303,6 +1492,23 @@ mercenaries:DevCommand("merc_patrols_budget", "mercenaries:PatrolBudgetSet('%lin
                    "Population caps: merc_patrols_budget <maxMen> [maxGangs] [maxPerGang]")
 mercenaries:DevCommand("merc_patrols_escalation", "mercenaries:PatrolEscalationStatus()",
                    "Per-route session kill escalation: heat and the size multiplier it earns")
+mercenaries:DevCommand("merc_patrols_floor", "mercenaries:PatrolFloorSet('%line')",
+                   "How near a gang may ever be created: merc_patrols_floor <metres> [bandFloor] [bandCeil]")
+
+-- The distance knobs, tunable in-game for the same reason as the caps below. The first
+-- number is the hard floor no gang may ever be created inside; the other two are the band
+-- the tick prefers to place one in. No argument reports.
+function mercenaries:PatrolFloorSet(v)
+    local a, b, c = string.match(tostring(v or ""), "(%d+)%s*(%d*)%s*(%d*)")
+    if a then
+        self.PatrolMinPlayerDist = tonumber(a)
+        if b and b ~= "" then self.PatrolNoSpawnRange = tonumber(b) end
+        if c and c ~= "" then self.PatrolSpawnRange   = tonumber(c) end
+    end
+    lLog(string.format("floor %.0fm, band %.0f-%.0fm, despawn %.0fm",
+        self.PatrolMinPlayerDist or 0, self.PatrolNoSpawnRange or 0,
+        self.PatrolSpawnRange or 0, self.PatrolDespawnRange or 0))
+end
 
 -- One knob for the three caps, so the cost can be tuned in-game against a real scene
 -- rather than by editing and repackaging. merc_patrols_budget with no argument reports.

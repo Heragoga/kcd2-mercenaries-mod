@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kcd_mod>
+  <info>
+    <name>Easy Smithing</name>
+    <modid>easysmithing</modid>
+    <description>Makes it easier to forge weapons by reducing the amount of hammering required.</description>
+    <author>JustAnOrdinaryGuy</author>
+    <version>1.2</version>
+    <created_on>2025-02-11</created_on>
+    <modifies_level>false</modifies_level>
+  </info>
+</kcd_mod>

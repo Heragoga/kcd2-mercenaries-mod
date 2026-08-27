@@ -41,6 +41,12 @@ function mercenaries:SaverMap(force)
                     -- removing. The last one wins, matching the old scan order.
                     self.SaverIds[tag]    = ent.id
                     self.SaverValues[tag] = val
+                    -- Repair entities already baked into saves by older builds: they were
+                    -- spawned with BasicEntity's default physics (see spawnTag) and came
+                    -- back from the save as live rigid bodies. One DestroyPhysics per tag,
+                    -- once per session, and the clump is inert for the rest of it - and
+                    -- gone from the save entirely once each tag is next rewritten.
+                    pcall(function() ent:DestroyPhysics() end)
                 end
             end
         end
@@ -73,9 +79,20 @@ local function spawnTag(self, tag, dataString)
             class = "BasicEntity",
             name = name,
             position = { x = 0, y = 0, z = -100 },
+            -- The entity exists only to CARRY A NAME, but BasicEntity's class defaults gave
+            -- every one a pyramid mesh and bPhysicalize+bRigidBody - so all ~58 tags were
+            -- LIVE RIGID BODIES stacked on the same point, mutually interpenetrating and
+            -- therefore never allowed to sleep, simulated by the physics thread forever.
+            -- Worse: BasicEntity is a VANILLA class, so the clump loads and simulates from
+            -- an old save even with the mod uninstalled, and survives a resave. See
+            -- SaverMap for the repair of entities already baked into saves.
+            properties = { Physics = { bPhysicalize = false, bRigidBody = false } },
         })
     end)
     if ent and ent.id then self.SaverIds[tag] = ent.id end
+    -- Belt and braces: if the properties table was ignored (SpawnEntity property handling
+    -- differs by class), strip the physics off the live entity directly.
+    if ent then pcall(function() ent:DestroyPhysics() end) end
     self.SaverValues[tag] = tostring(dataString)
     if self.SaverLog then
         sLog("Successfully saved state [" .. tostring(tag) .. "]: " .. tostring(dataString))

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kcd_mod>
+	<info>
+		<name>Sorted Inventory - Prefix Style</name>
+		<modid>soin</modid>
+		<description>All items renamed for improved sorting and categorization.</description>
+		<author>dvcons</author>
+		<version>25.6.1</version>
+		<created_on>2026-01-30</created_on>
+		<modifies_level>false</modifies_level>
+	</info>
+</kcd_mod>

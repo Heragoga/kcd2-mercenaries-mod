@@ -18,7 +18,7 @@ rendered, raycasts it fires, cvars it raises.
 
 | tunable | file | default | what it costs |
 |---|---|---|---|
-| `LivePatrolsEnabled` | `mercenaries_patrols_live.lua` | true | the whole patrol system; `merc_patrols_arm 0` |
+| `LivePatrolsEnabled` | `mercenaries_patrols_live.lua` | true | the whole patrol system; `merc_patrols 0` |
 | `PatrolMaxLiveMen` | same | 36 | living patrolmen, all gangs |
 | `PatrolMaxLiveGangs` | same | 3 | concurrent gangs |
 | `PatrolMaxMen` | same | 16 | one gang |
@@ -139,6 +139,315 @@ Fixing it means a signature change across every caller, so it is left deliberate
 Also unconsolidated: static archers in `hostile`/`mod_enemies` mode and the quartermaster each
 run their **own** box query (~90m and 30m) once a second, bypassing the shared scan and
 repeating the same per-NPC validation.
+
+## State that outlives the level
+
+A separate failure mode from anything above, and the one that made the lag reports look
+undebuggable: **the mod's plain Lua tables survive a save load; the things they describe do
+not.** Behaviour trees, spawned entities and sieges all die with the level. The tables that
+remember them are untouched. Where such a table gates a *radius* or a *cvar*, a fresh load
+then pays a battle's costs with no battle on — for the rest of the session, cured only by
+restarting the game.
+
+That profile explains every property of the reports at once: intermittent, unreproducible,
+worse after save-scumming, immune to bisecting the mod by file (it is cross-module state, not
+one module), and location-correlated (a wide sweep is free in a field and expensive in
+Kuttenberg).
+
+Four were found and fixed. Each releases on load and re-establishes itself within a tick if it
+is genuinely still warranted, so the reset can be unconditional:
+
+| state | held by | what it cost | released by |
+|---|---|---|---|
+| `StaticArchers` non-empty | nothing prunes it, ever | shared NPC scan pinned at 90 m — ~25× the area of the 18 m default — anywhere, for ever, after one tower was placed once | `StaticArcherWidenRadius` asks the archers themselves and drops records whose entity is gone |
+| `MercTargetOf` orphan | `combat_melee`'s OnFail never ran (tree evicted, or the save was loaded mid-fight) | one entry holds `EnemyAlerted` true, pinning the sweep at 60 m | `TargetingOnLoad`; plus `PruneCombatClaims` evicts a claim older than `MercClaimGraceSecs` whose holder is not in combat |
+| `EnemyAlertRadius` = 160, `SiegePeace` | the Raborsch siege, restored only on the strike path | the widest sweep in the mod, running in a city | `RaborschOnLoad` |
+| `LodBoostPinned` | same siege, same single release path | ~22 global cvars re-pushed every 300 ms, `e_ViewDistRatio` 50 → 200 | `LodBoostOnLoad`, plus `LodBoostTick` unpinning a siege pin with no siege standing |
+
+**The scan radius is the number to look at.** `merc_dev` then `merc_perf_status` prints it live
+along with how many NPCs came back: `npcScan=N npc(s) r=R`. In town with the squad out, `r`
+should read 18. Anything else is one of the rows above.
+
+**Why `e_ViewDistRatio` matters more in Kuttenberg than anywhere else.** `LodBoostReassert`
+exists to defeat `CVarOverride.xml`, and the file it is defeating is
+`performanceDemandingArea.cfg` — which clamps exactly these cvars, for exactly these places.
+Holding that clamp open is defensible for the duration of a siege and indefensible the rest of
+the time, which is what the pin check now enforces.
+
+## The 2026-08-27 profile: measured, and not the Lua
+
+First release-build profile of the stutter. `window=32.9s`, squad of 8, Kuttenberg.
+
+```
+~mastertick gap      198 calls   avg 104.818ms   max 183.00   (scheduled 100ms)
+~heartbeat gap        77 calls   avg 267.286ms   max 340.01   (scheduled 250ms)
+mastertick gaps over 1.3x schedule: 26 of 198
+```
+
+**The stutter is in the data.** 198 gaps covering 20.75s of ticking carry 954ms of excess over
+schedule, and 26 of them are more than 30% late. That is ~1.25 late ticks per second at ~37ms
+of lost main thread each, worst case 83ms — "light stutters every second or so", quantified.
+The independent 250ms heartbeat sees the same lateness, so it is the main thread, not the
+scheduler.
+
+**None of it is this mod's Lua.** The largest single row is `slot:monitor` at 3.01ms max.
+`~bt hooks per window` peaks at 4ms. **Zero hitches** at a 6ms threshold, across every row.
+Total mod time is ~1.2% of the window. GC is not it either: the heap is flat (129,014KB →
+129,108KB across two reports) while 7.4MB was allocated and reclaimed.
+
+Two things that look alarming in that log and are not: the 9,383ms / 9,545ms `STALL` lines in
+the second report are the pause menu and the console being open — `Script.SetTimerForFunction`
+does not fire while the game is paused, so both gauges record the whole pause as one gap. The
+stall detector cannot currently tell a pause from a freeze.
+
+### The one anomaly, and how it was visible
+
+| chain | firings in the window | due | verdict |
+|---|---|---|---|
+| `timer.LootSweepTick` | 20 | 20 | exact |
+| `timer.LivePatrolTick` | 63 | ~7 | **~9 chains** |
+
+A controlled comparison inside a single log: the session had exactly one load, one
+`roaming patrols armed` line and no watchdog re-arm, and `LootSweepTick` — the one chain that
+had just been given a slot identity — was dead on schedule in the same window while the patrol
+tick fired nine times too often.
+
+So **duplicate timer chains are real, and an arming latch does not prevent them.** That
+settles the assumption in `mercenaries_scheduler.lua` the other way from how it was written.
+
+Why it matters more than its 8ms of Lua suggests: an extra chain does not make the tick
+slower, it makes it *more frequent* — another pass over the route set, and another chance per
+period to spawn a gang. A gang spawn is NPC creation, ground raycasts and character assembly:
+engine time, on the main thread, that a Lua profiler cannot see. That is the shape of a cost
+that reports as "the stall is outside this mod".
+
+`LivePatrolTick` now uses the same two-slot device as `LootSweepArm`, and the profile report
+prints observed period against armed period for every standalone chain, naming a duplicate
+outright — so this class of fault is visible in one line from now on instead of by arithmetic.
+
+## The mod is not the stutter — measured, 2026-08-27
+
+Four release-build sessions, ~15 profile windows. The metric is
+`mastertick gaps over 1.3x schedule`: a 100ms timer arriving more than 130ms late, i.e. a
+frame that lost 30ms or more. It tracks the reported "light stutter about once a second".
+
+| condition | ratio |
+|---|---|
+| 8 mercs, patrols on, 5 duplicate patrol chains | 15.5 – 18.7% |
+| **0 mercs** (slots gated off — no `slot:mercpos` row at all), patrols on | **16.4 – 17.6%** |
+| duplicate chains fixed, 8 mercs | 16.9% |
+| **patrols OFF** | **20.4 – 25.8%** |
+
+Three independent negatives:
+
+- **Squad size does nothing.** Eight men and none give the same ratio, and the average tick
+  gap is flat at ~106ms against 100ms armed either way. The whole per-merc axis — enemy
+  scans, BT polls, render pinning, formation, target claims — is not it.
+- **Fixing the duplicate patrol/raid chains did nothing** to the ratio (17.7% → 16.9%),
+  though it did cut the NPC population, which was a real win on its own merits.
+- **Disabling patrols made it WORSE** (20–26% against 15–19%). Turning off the mod's largest
+  subsystem cannot make the mod's cost go up. The metric is dominated by something that
+  varies between sessions and is not this mod.
+
+In every one of those windows the mod's Lua measured **~0.5% of wall time** with, at most,
+two or three hitches over 6ms in a two-minute session.
+
+This is the same conclusion the 2026-08 hunt reached and it should not be re-litigated a
+third time. The rules at the top of that section stand, and one is worth restating: **the
+symptom persists with the mod uninstalled** — which the users who fixed theirs by verifying
+files, updating drivers and re-saving without mods independently confirm.
+
+### If it is chased again, use an engine profiler
+
+A Lua profiler cannot see engine frame time, which is where every measurement above says the
+cost is. These cvars exist in `WHGame.dll` (release build, 1.5.6) and are the right instrument:
+
+| cvar | use |
+|---|---|
+| `r_DisplayInfo` | on-screen frame breakdown |
+| `r_Stats` | renderer statistics |
+| `profile` | engine profiler |
+| `sys_enable_budgetmonitoring` | budget overruns |
+
+### A note on the duplicate-chain heuristic
+
+It now needs 8 samples before flagging a row. A 20s chain in a 30s window fires once or
+twice, so a single warm-up firing read as "2.0x TOO OFTEN" for `RaidTick` while the same
+chain measured a clean 20101ms over a long window. The check is for standing rates.
+
+## Why a subsystem may not own its own timer
+
+Second profile, 111.3s window, with the observed-vs-armed column added:
+
+```
+timer.LivePatrolBeat  181 calls   every 615ms, armed at 3000   <-- 4.9x TOO OFTEN
+timer.RaidTick         17 calls   every 6545ms, armed at 20000 <-- 3.1x TOO OFTEN
+timer.LootSweepTick   109 calls   (exact)
+~mastertick gap      1028 calls   avg 108.168ms, armed at 100  (exact)
+mastertick gaps over 1.3x schedule: 182 of 1028
+```
+
+Per chain the interval is right; there are simply five patrol chains and three raid chains.
+The slot device did its job - the log shows nine `roaming patrols armed` lines alternating
+slot 0/1, so four chains on the dead slot retired and five on the live one survived, which is
+the 4.9x exactly - but it cannot help when `LivePatrolStart` is called **nine times inside the
+first two seconds of a single load**, because each call flips the slot.
+
+Two lessons, one of them about the log rather than the code:
+
+- **CryEngine collapses consecutive identical log lines.** The previous session showed *one*
+  `roaming patrols armed` line for what must have been nine arms. Putting the slot number in
+  the message made the lines distinct and the burst appeared. A repeated event that logs an
+  unchanging string is invisible here; give any such line a varying field.
+- **A private self-arming chain has no way to count itself.** Both call sites of
+  `LivePatrolStart` can each run once per load, the watchdog logs when it re-arms and did not,
+  and `OnGameplayStarted` ran once (one `master tick armed`, epoch 1) - yet there were nine
+  arms. Rather than keep hunting the caller, the cadence moved to something that cannot be
+  duplicated without duplicating the master tick, which is measured correct and already has a
+  watchdog.
+
+`patrols` and `raids` are now scheduler slots. The private chains survive only for
+`merc_sched 0`, and the watchdog's strike-3 fallback hands them back explicitly.
+
+This is worth far more than the 29ms of patrol Lua it removes. Five chains is five times the
+chances per period to spawn a **gang**, and a gang spawn is NPC creation, ground raycasts and
+character assembly. It also multiplies the standing NPC population, and per another KCD2
+combat modder *"one of the biggest lag spikes is changing targets"* - which scales with how
+many hostiles are alive near the player. All of that is main-thread engine time that reports,
+correctly, as "the stall is outside this mod".
+
+### What the same profile still says about the Lua
+
+Unchanged and now on a longer window: mod Lua is ~0.5% of 111.3s, and the whole session
+produced **three** hitches over 6ms - `mon.MonitorInventory` at 36.01ms once,
+`bt.WBCombatPoll` at 8.00ms, `bt.PickCombatTarget` at 6.01ms. GC is healthy (36 collections,
+26.2MB freed against 20.1MB allocated, heap shrinking). Meanwhile 182 of 1028 master ticks
+were more than 30% late. The stutter is real and it is not in this mod's script.
+
+## Chains that cannot be counted
+
+`Script.SetTimerForFunction` chains are *believed* to die with the level. That belief was never
+measured, and its only stated evidence was circular — `LootSweepLoop` re-armed itself with no
+guard at either end, so "it does not double" was an observation nobody was in a position to
+make. A time-based duplicate guard is not the answer either: one was tried on the master tick
+and retired the only chain there was, because after a hitch the engine fires queued timers back
+to back.
+
+The device that does work is to carry the generation in the **function name**. Consecutive
+loads alternate between two entry points (`LootSweepLoop0` / `LootSweepLoop1`,
+`GearKeepTick0` / `GearKeepTick1`) and each retires the moment it is not the current slot, so a
+chain from the previous load stops on its next firing whether or not the engine kept it. Any
+new self-arming chain should do the same rather than inherit the assumption.
+
+## Two costs that were not state
+
+- **The custom-uniform keep pass** re-equipped the whole armour pattern on four mercs **every
+  second, for ever**, because there is no "is he wearing it" query and it re-equips blind.
+  `EquipInventoryItem` on a KCD2 character is attachment work. Now 5 s, which still fully
+  re-asserts a twenty-man company about every 25 seconds.
+- **A patrol gang is spawned entirely within one tick**, and each of the men behind the lead ran
+  an unbudgeted `FindValidGround` — up to 40 candidates at up to 9 rays each. A 16-man gang
+  could therefore ask for thousands of synchronous raycasts before the frame ended. That is the
+  hitch behind "enemies appeared right in front of me while I was riding at full speed".
+  `PatrolGroundTries` bounds the followers at 6; the lead man keeps the full search.
+
+## FINAL VERDICT — 2026-08-27, RESOLVED: the Windows power plan
+
+**Root cause: the machine's power plan was "Power saver."** On the Threadripper PRO 5975WX
+(32 cores, 4 CCDs) that parks cores and clamps clocks; the game's main thread bounced across
+half-asleep cores, and because parking decisions differ per boot the severity varied by
+session — the "yesterday smooth, today broken" that no game-side change could ever affect.
+Switching to High performance (`powercfg /setactive 8c5e7fda-...`) fixed it live, standing in
+Kuttenberg. Secondary finding, still open: RAM configured at 2133 MT/s (DOCP/XMP off) — crowd
+simulation is memory-latency-bound, so enabling the rated profile should recover more.
+
+The experiment that cornered it: a save from a MOD-FREE playthrough (playline1 — verified
+byte-level: zero saver tags, zero merc entities, zero Kleinkrieg state, no Local Hero perk),
+loaded on a vanilla install, lagged identically in Kuttenberg — ~27fps at LOWEST settings,
+CPU-bound on an RTX 5080. That correctly exonerated the mod; the outer cause then had to be
+machine state, and a live audit found it (after ruling out WHEA/PCIe errors, TDRs, a 16.8GB
+degenerate NVIDIA DXCache — cleared, no effect — drivers, and resident GPU compute apps).
+
+**Support checklist for any future "the mod lags" report, in order:**
+1. `powercfg /getactivescheme` — anything but High performance/Balanced on a desktop is the
+   suspect. Free, instant, applies live.
+2. RAM at rated speed? (Task Manager → Performance → Memory, or BIOS.)
+3. Mod-free save + vanilla install + same spot + fps counter. Only if THAT is smooth does
+   mod code enter the conversation.
+4. The frame histogram (`merc_dev`, `merc_prof 1`, play, `merc_prof_report`) — judge on
+   frame buckets, never on timer lateness.
+
+The "worked before this update" memory dates from an older game build; the game moved to
+1.5.6 (build June 2026) and Steam forums record per-patch performance regressions (1.2, 1.3,
+and a Kuttenberg-specific stutter tied to the Local Hero perk — which the MAIN playthrough's
+save474 carries and playline1 never did; a Lethean Water respec is the community fix).
+
+What this makes of the user reports: "removed the mod and it still lags" was the truth all
+along, for the same reason. The mod's real cost rides ON TOP of a Kuttenberg baseline that is
+already marginal, so it can tip a borderline machine — which the fixes below shrank measurably
+(long-frame events 2.3/sec -> 0.7/sec in the same test spot) — but the baseline is the game's.
+
+Rules this hunt adds to the ones above:
+1. The FIRST test for any "mod lag" report is a mod-free save on a vanilla install at the
+   same spot. Four days of profiling never beat that one number.
+2. A timer-lateness metric is frame-rate quantisation, not a stutter metric. Use the
+   profiler's frame histogram (ProfFrameSample) - it measures frames.
+3. Save-file name-string counts are NOT entity counts (50 strings = 9 entities); only
+   GetEntitiesByClass at runtime is authoritative.
+
+## The save-residue leak (real, fixed, but NOT the lag)
+
+### The original (now demoted) residue write-up
+
+### saves accumulate the mod's NPCs
+
+Counted straight out of one playline's save files (zlib-inflated, `SpawnedFriend` names):
+
+| save | baked mercs | patrolmen | tower archers | live roster at the time |
+|---|---|---|---|---|
+| save478 | 10 | 0 | 0 | ~8 |
+| save480 | 41 | 27 | 0 | ~8 |
+| save483 | 50 | 0 | 6 | 8 |
+
+Every load respawned all of them as full NPC entities. **Nothing ever removed one**: dismiss
+set a flag and left the entities alive (and `RebuildMercCache` then *skipped* its scan, so
+they were never even looked at again); `DespawnMerc`'s only caller sees current-roster deaths
+only; the patrol sweep was a 600m box and the quartermaster sweep 200m. Neither `MercCount`
+nor `ActiveMercs` counts any of this, which is why four sessions of profiling and every
+squad-size A/B measured "8 mercs" while ~60 unmanaged NPCs stood in the world.
+
+It also resolves the with/without-mod paradox that wrecked every earlier test: the residue
+rides in the SAVE, so removing the mod changes nothing (the orphans load anyway, now with
+unresolvable souls), while a fresh playthrough or a load-and-resave-without-mods is clean —
+exactly the two fixes users kept reporting.
+
+Fixed twice over, in `mercenaries_util.lua` / `mercenaries.lua`:
+
+- **Load sweep**: `RebuildMercCache` (the one full-class scan, on load) now removes every
+  mod-prefixed NPC that did not just make it onto the roster — previous-session corpses,
+  paid-off men, recordless patrolmen/tower archers/quartermasters/enemies. Owners that want
+  them back (camp restore, patrols) respawn fresh ones seconds later. Log line:
+  `load sweep: removed N stale mod NPC(s)`.
+- **Dismiss despawns**: paid-off men leave the world after 15s; if the player saves inside
+  that window the load sweep catches them next time.
+
+## A save carries the mod after the mod is gone
+
+Decompressing a real save (`save483.whs`, 481 zlib streams, 15.7 MB inflated) found 50
+`SpawnedFriend_*`, 6 `SpawnedTower_archer_*` and 43 saver-tag entities — the saver tags all
+distinct, so that mechanism does **not** leak. The 56 NPCs do persist. Load that save without
+the mod and those entities remain while the 222 soul rows, 11 brains and 102 skald characters
+that define them are gone.
+
+The practical consequence is a rule about testing, not a bug to fix:
+
+> **"I removed the mod and it still lags" is not evidence until the save has been loaded and
+> re-saved without the mod.** Until then the save is still full of the mod.
+
+Two users independently reported that exact sequence — uninstall, load, save, reinstall — as
+what fixed them. It is also the reason the corrupted-files verdict above should be read as *a*
+cause, not *the* cause: the test that pointed at it was run on a save that still contained the
+mod.
 
 ## What changed
 

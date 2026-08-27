@@ -262,10 +262,15 @@ end
 
 -- Place a gate. `open` defaults to closed, which is the state a player who has just
 -- paid for a gate expects to see.
-function mercenaries:GateBuild(pos, yaw, open)
+-- `noSnap` takes the z as given instead of re-reading the ground. The defence restore
+-- passes it: the saved z was already snapped when the gate was first hung, and snapping
+-- it again fires the ray through whatever static geometry now stands there (the palisade
+-- the gate is butted against, a camp prop) rather than the terrain, so the gate rose a
+-- little further out of the ground on every rebuild until it was out of sight.
+function mercenaries:GateBuild(pos, yaw, open, noSnap)
     if not pos then return nil end
     local p = pos
-    if self.CampSnapToGround then p = self:CampSnapToGround({ x = pos.x, y = pos.y, z = pos.z }) end
+    if self.CampSnapToGround and not noSnap then p = self:CampSnapToGround({ x = pos.x, y = pos.y, z = pos.z }) end
     local g = { x = p.x, y = p.y, z = p.z, yaw = yaw or 0, open = (open == true) }
     table.insert(self.Gates, g)
     gateSpawnEnt(self, g)
@@ -414,6 +419,43 @@ end
 function mercenaries:GateRefresh()
     for _, g in ipairs(self.Gates or {}) do gateSpawnEnt(self, g) end
     self:GateTouched()
+end
+
+-- A gate's prop is a spawned, deliberately non-serialised entity, but the gate RECORD is
+-- plain Lua state that outlives it. Anything that takes the entity away without going
+-- through this module - a save load, a level change, a sweep of dynamic entities - leaves
+-- a camp with a gate on its books and nothing standing in the gap, and nothing else ever
+-- puts it back. Run from the low-priority tick: at most GateMax records, one GetEntity
+-- each, every 5s.
+function mercenaries:GateWatchdog()
+    local gs = self.Gates or {}
+    if #gs == 0 then return end
+    local rebuilt = 0
+    for _, g in ipairs(gs) do
+        local e
+        if g.ent then pcall(function() e = System.GetEntity(g.ent) end) end
+        -- By NAME as well as by id: entity ids are recycled, and a live id that now belongs
+        -- to something else would read as "the gate is fine" for ever.
+        if e then
+            local n = ""
+            pcall(function() n = e:GetName() or "" end)
+            if string.sub(n, 1, 13) ~= "MercGateProp_" then e = nil end
+        end
+        if e then
+            -- a re-created entity comes back at the default view distance
+            pcall(function() e:SetViewDistUnlimited() end)
+            pcall(function() e:SetViewDistRatio(255) end)
+            e.mercGateOpen = g.open
+        else
+            g.ent = nil
+            pcall(function() gateSpawnEnt(self, g) end)
+            if g.ent then rebuilt = rebuilt + 1 end
+        end
+    end
+    if rebuilt > 0 then
+        System.LogAlways("[Gate] " .. rebuilt .. " gate(s) had lost their prop - hung again")
+        self:GateTouched()
+    end
 end
 
 function mercenaries:GateSetStyle(v)

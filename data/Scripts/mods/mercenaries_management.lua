@@ -149,11 +149,24 @@ function mercenaries:AddPlayerStatusBuff(key, quiet)
     if self.PlayerStatusBuffInst[i] then self:RemovePlayerStatusBuff(i, true) end
 
     local ok, inst = pcall(function() return player.soul:AddBuff(def.guid) end)
-    if not ok or not inst then
-        System.LogAlways('[Mercenary Jeff] AddBuff failed for ' .. def.name .. ': ' .. tostring(inst))
+    if not ok then
+        System.LogAlways('[Mercenary Jeff] AddBuff errored for ' .. def.name .. ': ' .. tostring(inst))
         return
     end
-    self.PlayerStatusBuffInst[i] = inst
+    -- A nil return is NOT a failure, and treating it as one is a per-tick loop.
+    --
+    -- These buffs are saved with the game, and PlayerStatusBuffInst is not: load a save in
+    -- which the squad was already injured or already starving and the soul carries the buff
+    -- while this table is empty. AddBuff then declines to add a second copy and answers nil.
+    -- The old code logged and returned without recording anything, so SetStatusBuff saw
+    -- has=false on the next evaluation and asked again - for ever, one engine call and one
+    -- line of file I/O per tick each. That is where the 34 "AddBuff failed for injured" and
+    -- 25 "for starvation_strong" lines in a single session came from.
+    --
+    -- `true` is the sentinel for "on, instance unknown". RemovePlayerStatusBuff already ends
+    -- in RemoveAllBuffsByGuid, which is what actually takes an untracked one off, so nothing
+    -- downstream needs the real id.
+    self.PlayerStatusBuffInst[i] = inst or true
     if not quiet then
         System.LogAlways('[Mercenary Jeff] buff ' .. i .. ' on: ' .. def.name .. ' - ' .. def.note)
     end
@@ -168,7 +181,9 @@ function mercenaries:RemovePlayerStatusBuff(key, quiet)
 
     local inst = self.PlayerStatusBuffInst[i]
     self.PlayerStatusBuffInst[i] = nil
-    if inst then
+    -- `true` is the "on, instance unknown" sentinel from AddPlayerStatusBuff; there is
+    -- nothing to hand RemoveBuff, and the RemoveAllBuffsByGuid below is what takes it off.
+    if inst and inst ~= true then
         pcall(function() player.soul:RemoveBuff(inst) end)
     end
     -- Catches instances we lost track of (script reload, save/load, expiry).

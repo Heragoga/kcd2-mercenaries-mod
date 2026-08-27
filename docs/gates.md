@@ -86,6 +86,34 @@ shut and torn down with the entity on every swing, so an open gate is walkable.
 `merc_gate_colliders 1` makes the crates visible to check the span actually covers the
 opening; `merc_gate_status` reports the count per gate.
 
+## Staying up
+
+A gate's mesh is a spawned, deliberately non-serialised entity, but the gate **record** is
+plain Lua state that outlives it. Anything that removes the entity without going through this
+module - a save load, a level change, a sweep of dynamic entities - leaves the camp with a gate
+on its books and nothing standing in the gap, and until now nothing ever put it back. That is
+the "the gate disappeared after a while" bug. Three things now hold it up:
+
+* **`GateWatchdog`** (low-priority tick, 5 s, at most `GateMax` records) asks
+  `System.GetEntity` whether each record's prop still exists and hangs it again if it does not.
+  Live gates get their view distance re-pinned in the same pass, since a re-created entity
+  comes back at the engine default.
+* **The restore is no longer allowed to lose a race.** `DefArmRestore` sets
+  `DefRestorePending` alongside the 1500 ms `DefRestoreDelayed` timer, and that flag does two
+  jobs: `DefSave` **refuses to write** while it is set - otherwise a gate command in the window
+  between the camp going up and its defences coming back saved the *empty* world over
+  `QMGates` and the gates were gone for good - and `DefWatchdog` runs the restore by hand if
+  the timer never fired (a timer chain dies with the level it was armed in, see `SchedOnLoad`).
+* **A restored gate is not ground-snapped again.** `GateBuild` takes a `noSnap` argument and
+  `DefRestore` passes it. The saved z was snapped when the gate was first hung; re-snapping
+  fires `CampSnapToGround`'s ray from `z + 5` through whatever static geometry now stands at
+  that spot - the palisade the gate is butted against, a camp prop - rather than the terrain,
+  so the gate climbed a little further out of the ground on every rebuild.
+
+`DefRestore` also clears the gate list before rebuilding it, exactly as it already did for
+`WallRuns`: `GateBuild` appends, so a restore that ran with gates still on the books stacked a
+second copy of every one of them.
+
 ## How sealing works
 
 `GateBlockSegments` returns one segment per **shut** gate, laid across the opening

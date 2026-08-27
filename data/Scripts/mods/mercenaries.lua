@@ -117,6 +117,11 @@ mercenaries.EnemyScanRadius = 18
 mercenaries.EnemyAlertRadius   = 60
 mercenaries.EnemyAlertHoldSecs = 20.0
 mercenaries.EnemyAlerted       = false
+-- The shipped value, kept separately because the siege OVERWRITES EnemyAlertRadius with its
+-- own (160m) and only puts it back on the path where the siege is struck. Anything that has
+-- to restore the field - TargetingOnLoad - restores it from here, not from whatever the
+-- field happens to hold. See docs/performance.md.
+mercenaries.EnemyAlertRadiusDefault = 60
 
 -- Max number of mercs allowed to already be closer to a given enemy before
 -- another merc will look for a different target instead of piling on.
@@ -886,6 +891,17 @@ function mercenaries:SetState(state)
         self:SaveString("MercenariesDismissed", "1")
         self:LogiUpdateStatusBuffs()   -- clear the HUD icons now, not on the next tick
         Game.SendInfoText('merc_info_dismissed', false, 0, 3)
+        -- Paid-off men must eventually LEAVE THE WORLD. This never happened: the flag was
+        -- set, the cache skipped them, and the entities walked around for the rest of the
+        -- session - and, saved, into every session after it (the save-residue leak, see
+        -- RebuildMercCache). A short delay so the dismissal doesn't read as a vanishing
+        -- act; if the player saves inside it, the timer dies but the load sweep catches
+        -- them on the next load - flag and sweep back each other up.
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            if ent and ent.id then
+                Script.SetTimerForFunction(15000, "mercenaries.DespawnMerc", ent.id)
+            end
+        end
     elseif state == "wait" then
         -- NOT a toggle. Every menu that fires this token - the order wheel and the
         -- E-dialog both - shows "Follow me" and "Wait here" as two separate, statically
@@ -1363,6 +1379,11 @@ function mercenaries:LowPriorityMonitorLoopBody()
 
     -- Quartermaster logistics: tiredness / food / drink / wages upkeep.
     mercenaries:ProfCall("low.LogiTick", "LogiTick")
+
+    -- The camp's defences: put the layout back if its restore timer died with a level
+    -- change, and re-hang any gate whose prop has been swept out from under its record.
+    mercenaries:ProfCall("low.DefWatchdog", "DefWatchdog")
+    mercenaries:ProfCall("low.GateWatchdog", "GateWatchdog")
 end
 
 function mercenaries.LowPriorityMonitorLoop()
@@ -1380,6 +1401,18 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- with the level we just left, so the latches guarding them have to be cleared or
     -- they lock the timers out for the rest of the session. See SchedOnLoad.
     if self.SchedOnLoad then self:SchedOnLoad() end
+
+    -- ...and the same asymmetry one level up. Timers are not the only thing that dies with
+    -- the level: so do the behaviour trees, the spawned entities and the siege. What does
+    -- NOT die is every plain Lua table describing them, and three of those decide how wide
+    -- the mod's hot loops sweep - the combat claims that hold EnemyAlerted open, the siege's
+    -- 160m alert radius and SiegePeace, and the pinned global LOD cvars. Left over, they
+    -- make a fresh load pay a battle's costs with no battle on. Each module releases its own
+    -- and every one of them is re-established from the live world within a tick if it is
+    -- genuinely still warranted. See docs/performance.md.
+    if self.RaborschOnLoad  then pcall(function() self:RaborschOnLoad()  end) end
+    if self.TargetingOnLoad then pcall(function() self:TargetingOnLoad() end) end
+    if self.LodBoostOnLoad  then pcall(function() self:LodBoostOnLoad()  end) end
 
     -- Saver entities belong to the save just loaded, so the tag map must be rebuilt
     -- before the LoadString calls below read from it.
@@ -1527,7 +1560,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     end
     -- Post-battle loot sweep. Own tick: it must keep watching CachedEnemies drain
     -- even with no squad orders pending. See docs/loot-sweep.md.
-    Script.SetTimerForFunction(1000, "mercenaries.LootSweepLoop")
+    -- One chain per load, and the previous load's chain retires itself. It used to be armed
+    -- here unconditionally and re-arm itself unconditionally - the only loop in the mod with
+    -- no guard at either end. See the note above LootSweepArm.
+    pcall(function() mercenaries:LootSweepArm() end)
     -- Scheduled raids on the camp. Safe to arm with no camp: the tick does nothing
     -- until one is pitched and the player is standing in it.
     pcall(function() mercenaries:RaidStart() end)

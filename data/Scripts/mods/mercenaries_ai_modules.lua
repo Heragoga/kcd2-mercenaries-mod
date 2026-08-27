@@ -107,6 +107,15 @@ end
 -- target is dropped rather than the other way round.
 function mercenaries:MercLeashes(bt_data)
     bt_data.deTargetDist = self:MeleePlayerLeash() + 8.0
+    -- Gates the one BT node that asks the ENGINE what the player is fighting. That node
+    -- reports "Cannot find host NPC" on every poll of every merc - the player is not an NPC
+    -- host, so it cannot resolve him - which at a 300ms poll and twenty men is dozens of
+    -- failed engine lookups a second, and in the dev build dozens of log lines a second on
+    -- top. The AI log channel is off in the release build, so the visible half is dev-only;
+    -- the failed call is not. Reading the flag the combat scan has already computed costs a
+    -- table lookup, and outside a fight there is no player target to ask about anyway.
+    -- See PlayerCombatTargetProbe for whether the node has ever actually answered.
+    bt_data.playerFighting = (_G.MercSquadThreat == true)
 end
 
 function mercenaries:SideOf(name)

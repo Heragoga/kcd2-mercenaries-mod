@@ -1953,13 +1953,20 @@ end
 -- never rides along into a sortie. inventory:RemoveItem deletes the conjured
 -- instance, taking it out of the guard's hand along with it (see the note on
 -- CampNightTorchTick above - there is no proven weapon un-equip call here).
-function mercenaries:CampStripAllTorches()
-    if not next(self.CampGuardTorch or {}) then return end
+-- `force` ignores the latch and asks the INVENTORY instead. The latch is plain Lua and does
+-- not survive a load, while the torch does - it is a real item, equipped, saved with the merc.
+-- So a squad that was lit at night and is reloaded in daylight has torches in hand and an
+-- empty latch, and neither branch of CampNightTorchTick fires: `night and not has` is false
+-- because it is day, `(not night) and has` is false because the latch is empty. The torches
+-- then burn in daylight for the rest of the save. Eight moving, shadow-casting fire lights
+-- that nothing will ever take away is a standing GPU cost with no gameplay behind it.
+function mercenaries:CampStripAllTorches(force)
+    if not force and not next(self.CampGuardTorch or {}) then return end
     local ok, err = pcall(function()
         for _, ent in pairs(self.ActiveMercs or {}) do
             if ent and ent.inventory then
                 local ka, kb = self:CampMercKeys(ent)
-                if (ka and self.CampGuardTorch[ka]) or (kb and self.CampGuardTorch[kb]) then
+                if force or (ka and self.CampGuardTorch[ka]) or (kb and self.CampGuardTorch[kb]) then
                     local id
                     pcall(function() id = ent.inventory:FindItem(self.CampTorchItemGUID) end)
                     if id then pcall(function() ent.inventory:RemoveItem(id, -1) end) end
@@ -1971,6 +1978,14 @@ function mercenaries:CampStripAllTorches()
         System.LogAlways('[Mercenaries] CampStripAllTorches error: ' .. tostring(err))
     end
     self.CampGuardTorch = {}
+end
+
+-- Called once per load, after the merc cache is rebuilt. Reconciles the latch with reality by
+-- taking every torch off: the tick puts them straight back the same night, and the cost of
+-- being wrong in this direction is one dark evening rather than a permanent daylight bonfire.
+function mercenaries:CampTorchOnLoad()
+    self.CampGuardTorch = {}
+    pcall(function() self:CampStripAllTorches(true) end)
 end
 
 -- All-hands alarm: UpdateEnemyCache's own sweep is centred on the PLAYER
@@ -3424,7 +3439,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- back if this is the same spot they were built at, otherwise leave them behind
         -- and start bare. Deferred so the camp props are all down first.
         pcall(function()
-            if self.DefRestore then Script.SetTimerForFunction(1500, "mercenaries.DefRestoreDelayed") end
+            if self.DefArmRestore then self:DefArmRestore() end
         end)
 
         if not silent then Game.SendInfoText('merc_info_camp_made', false, 0, 4) end

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<kcd_mod>
+	<info>
+		<name>magdalenaToRosaRuthard</name>
+		<modid>magdalenatorosaruthard</modid>
+		<description>Replaces the Legacy of the Forge DLC NPC Magdalena with Rosa Ruthard. All of Magdalena’s voice lines have been converted to Rosa’s voice. Cosmetic-only (no quest changes).</description>
+		<author>ALX</author>
+		<version>1.0.0</version>
+		<created_on>24.10.2025</created_on>
+		<modifies_level>false</modifies_level>
+	</info>
+</kcd_mod>

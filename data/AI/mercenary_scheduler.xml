@@ -63,6 +63,11 @@
             <Variable name="foundTarget"         type="_bool"                values="false"                             isPersistent="0" form="single" />
 
             <Variable name="playerCombatTarget"  type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <!-- Gate for the GetTarget on the PLAYER below. Written by MercLeashes off the
+                 combat scan's own threat flag - see the note there: the node cannot resolve
+                 the player as an NPC host, so unguarded it is a failed engine lookup on every
+                 poll of every merc. -->
+            <Variable name="playerFighting"      type="_bool"                values="false"                             isPersistent="0" form="single" />
 
             <Variable name="dialogRequest"       type="dialogModule:onDialogRequest" values=""                          isPersistent="0" form="single" />
 
@@ -167,7 +172,9 @@
                                                 <Sequence>
                                                     <Expression expressions="$playerCombatTarget = $__null" />
                                                     <SuppressFailure>
-                                                        <GetTarget ReferenceNPC="$playerWUID" TargetVarOut="$playerCombatTarget" />
+                                                        <IfCondition failOnCondition="false" condition="$playerFighting">
+                                                            <GetTarget ReferenceNPC="$playerWUID" TargetVarOut="$playerCombatTarget" />
+                                                        </IfCondition>
                                                     </SuppressFailure>
 
                                                     <!-- Pass 1: whoever has locked onto the player or onto this merc. -->

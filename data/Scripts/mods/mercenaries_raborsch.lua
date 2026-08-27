@@ -818,7 +818,7 @@ function mercenaries:SpawnRaborsch()
     -- PINNED, not merely switched on: LodBoostTick would otherwise turn it off again within
     -- the second, because it sizes the crowd from CachedEnemies - built around the player and
     -- excluding everyone suppressed, which during the build is every archer on the field.
-    pcall(function() if self.LodBoostPin then self:LodBoostPin(true) end end)
+    pcall(function() if self.LodBoostPin then self:LodBoostPin(true, "siege") end end)
 
     local layout = self.RaborschLayouts[site.layout] or {}
     local manned, seen = self:RaborschArcherKeep(layout), 0
@@ -1189,3 +1189,25 @@ mercenaries:DevCommand("merc_raborsch_defenders", "mercenaries:RaborschDefenders
 mercenaries:DevCommand("merc_raborsch_status", "mercenaries:RaborschStatus()", "What is standing")
 mercenaries:DevCommand("merc_raborsch_go",     "mercenaries.RaborschRelease()","Let the two lines shoot, without waiting")
 mercenaries:DevCommand("merc_raborsch_alert",  "mercenaries:RaborschAlert('console')", "Set the whole siege on the player now")
+
+-- ---------------------------------------------------------------------------
+-- LOAD RESET.
+--
+-- The siege reaches into three pieces of GLOBAL state - SiegePeace (which makes IsValidEnemy
+-- refuse every suppressed actor), EnemyAlertRadius (18m -> 160m, the widest sweep in the mod)
+-- and the swarm ceiling - and it puts all three back on exactly one path: RaborschStrike.
+-- Every other way a siege can end leaves them set, and they are plain Lua, so they outlive
+-- the level. Loading a save from before the siege is the ordinary way to hit that: the siege
+-- is gone from the world and the 160m sweep is still running, three times a second, wherever
+-- the player goes next.
+--
+-- Released unconditionally here rather than conditionally, because it is self-healing in one
+-- direction only: RaborschMonitor re-forces all three at 1Hz while the siege is genuinely
+-- still standing and alerted, so a real siege loses them for at most a tick.
+function mercenaries:RaborschOnLoad()
+    self.SiegePeace = false
+    if self._rabSavedAlertR then
+        self.EnemyAlertRadius, self._rabSavedAlertR = self._rabSavedAlertR, nil
+    end
+    self:RaborschRestoreSwarmCeiling()
+end

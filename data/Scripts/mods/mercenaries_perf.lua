@@ -195,11 +195,17 @@ function mercenaries:PerfScanNpcs()
     -- the rest of the session - even after that archer was gone, and even with the player
     -- nowhere near it. A 90m circle covers ~25x the area of an 18m one, so in a crowded
     -- city that is the difference between a handful of NPCs per pass and hundreds, each one
-    -- then run through IsValidEnemy. The wide radius is honoured only while static archers
-    -- actually exist. See docs/performance.md "Costs that scale with NPC density".
+    -- then run through IsValidEnemy. See docs/performance.md "Costs that scale with NPC
+    -- density".
+    --
+    -- "While static archers exist" was the second version of that bug, not the fix for it:
+    -- StaticArchers is a plain Lua table that nothing prunes on load, so one tower placed
+    -- once still held the scan at 90m for the rest of the session - anywhere, including a
+    -- city the tower was fifty kilometres from. StaticArcherWidenRadius asks the archers
+    -- themselves instead, and drops the records whose entity is gone.
     local r = self.EnemyAlerted and (self.EnemyAlertRadius or 0) or (self.EnemyScanRadius or 18)
-    if next(self.StaticArchers or {}) ~= nil then
-        r = math.max(r, self.StaticArcherRange or 0)
+    if self.StaticArcherWidenRadius then
+        r = math.max(r, self:StaticArcherWidenRadius(pp) or 0)
     end
     -- The entry tables and the list are reused between passes for the same reason as
     -- PerfScanMercs: this rebuilt one table per nearby NPC every 300ms.

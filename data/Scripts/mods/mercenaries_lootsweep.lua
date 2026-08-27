@@ -156,9 +156,43 @@ function mercenaries:LootTaskDone(mercWuid)
     self.LootActivities[k] = nil
 end
 
-function mercenaries.LootSweepLoop()
-    pcall(function() mercenaries:LootSweepTick() end)
-    Script.SetTimerForFunction(1000, "mercenaries.LootSweepLoop")
+-- ---------------------------------------------------------------------------
+-- The tick chain.
+--
+-- This was the one self-arming loop in the mod with no guard at EITHER end: armed
+-- unconditionally on every OnGameplayStarted and re-arming itself unconditionally. That is
+-- only safe if Script.SetTimerForFunction chains really do die with the level - which the
+-- scheduler asserts but has never measured, and which this loop was itself cited as the
+-- proof of. Circular, and if it is wrong every load adds a live chain.
+--
+-- Made not to matter, without a timing heuristic. A time-based duplicate guard was tried on
+-- the master tick and killed the only chain there was (after a hitch the engine fires queued
+-- timers back to back, two land close together, and the survivor retires itself - see
+-- MasterTick). So the generation is carried in the FUNCTION NAME instead: consecutive loads
+-- alternate between the two entry points below, and each one retires the moment it is not
+-- the current slot. A chain from the previous load therefore stops on its next firing
+-- whether or not the engine would have dropped it, and a chain from THIS load never sees a
+-- slot it does not own.
+mercenaries.LootSweepArmed = false
+mercenaries.LootSweepSlot  = 0
+
+local function lootBeat(slot)
+    local self = mercenaries
+    if not self.LootSweepArmed or self.LootSweepSlot ~= slot then return end
+    pcall(function() self:LootSweepTick() end)
+    Script.SetTimerForFunction(1000, "mercenaries.LootSweepLoop" .. slot)
+end
+
+function mercenaries.LootSweepLoop0() lootBeat(0) end
+function mercenaries.LootSweepLoop1() lootBeat(1) end
+
+-- Called once per load. Flips the slot, which is what retires the outgoing chain.
+function mercenaries:LootSweepArm()
+    if self.LootSweepArmed and self._lootArmedGen == self.SchedLoadGen then return end
+    self._lootArmedGen  = self.SchedLoadGen
+    self.LootSweepArmed = true
+    self.LootSweepSlot  = 1 - (self.LootSweepSlot or 0)
+    Script.SetTimerForFunction(1000, "mercenaries.LootSweepLoop" .. self.LootSweepSlot)
 end
 
 -- Who was on loot duty last tick, so LootReleaseFinished can spot the men who came off it.

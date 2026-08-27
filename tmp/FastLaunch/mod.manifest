@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kcd_mod>
+  <info>
+    <name>Fast Launch</name>
+    <description>Skips startup videos.</description>
+    <author>instanity</author>
+    <version>1.0</version>
+  </info>
+</kcd_mod>

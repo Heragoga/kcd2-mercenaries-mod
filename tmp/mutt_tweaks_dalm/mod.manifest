@@ -1,0 +1,15 @@
+<kcd_mod>
+	<info>
+		<name>Mutt Tweaks</name>
+		<modid>mutt_tweaks_dalm</modid>
+		<description>Mutt has a few mesh tweaks!</description>
+		<author>christeeenith</author>
+		<version>1.0</version>
+		<created_on>2026-03-10</created_on>
+	</info>
+	<supports>
+    <version>1.*.*</version>
+	</supports>
+</kcd_mod>
+
+ 

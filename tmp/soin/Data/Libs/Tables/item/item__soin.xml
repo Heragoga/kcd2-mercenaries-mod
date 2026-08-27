@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!-- Version: 5.0.1 -->
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          name="barbora"
+          xsi:noNamespaceSchemaLocation="item.xsd">
+	<ItemClasses version="8">
+		<!-- ui_nm_shieldKite_bergov_soin -->
+		<MeleeWeapon Attack="0"
+		             AttackModStab="0"
+		             AttackModSlash="0"
+		             AttackModSmash="0"
+		             Class="8"
+		             SubClass="10"
+		             Defense="225"
+		             MaxStatus="42"
+		             StrReq="0"
+		             AgiReq="0"
+		             IsBreakable="true"
+		             BrokenItemClassId="0017bb74-7092-498e-98ac-d95af5998784"
+		             Visibility="1"
+		             Conspicuousness="1"
+		             Charisma="5"
+		             SocialClassId="0"
+		             WealthLevel="0"
+		             MaxQuality="1"
+		             UiSound="ui_inv_item_weapon_shield"
+		             Clothing="Shield_Heater_Bergov"
+		             IconId="shieldHeater_bergov_A"
+		             UIInfo="ui_in_shieldHeater"
+		             UIName="ui_nm_shieldKite_bergov_soin"
+		             Weight="9"
+		             Price="683"
+		             FadeCoef="1"
+		             VisibilityCoef="0.707106769"
+		             Id="98498cc2-8514-4412-afb4-9585a6c13df1"
+		             Name="shieldHeater_bergov_A"/>
+	</ItemClasses>
+</database>

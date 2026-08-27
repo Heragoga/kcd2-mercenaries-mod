@@ -115,6 +115,46 @@ mercenaries.StaticArchers = {}
 -- [wuidStr] = targetWuidStr, cleared by combat_archer_static's OnFail
 mercenaries.StaticArcherTargetOf = {}
 
+-- How wide the SHARED player-centred NPC scan has to be for a tower archer's own targets to
+-- be inside it, or 0 for "do not widen it at all". Called from PerfScanNpcs every pass.
+--
+-- Two things this exists to stop, both of which read as "the mod is heavy in cities":
+--   * a record outliving its entity. Nothing prunes StaticArchers on load, so a table that
+--     is merely NON-EMPTY is no evidence an archer exists - and the previous test was
+--     exactly that. One tower placed once pinned the scan at 90m for the session.
+--   * an archer who exists but is nowhere near. He reaches StaticArcherRange around HIMSELF;
+--     widening a scan centred on a player a mile away buys him nothing and costs the whole
+--     difference between an 18m sweep and a 90m one (~25x the area, and in a crowd that is
+--     hundreds of NPCs through IsValidEnemy three times a second).
+-- Uncovered archers are not left blind: PerfNpcsNear answers nil for anything it does not
+-- cover, and FindStaticArcherTarget falls back to its own query around the archer.
+function mercenaries:StaticArcherWidenRadius(playerPos)
+    local reach = self.StaticArcherRange or 0
+    if reach <= 0 or not playerPos then return 0 end
+    local want, reach2 = 0, reach * reach
+    for ws, rec in pairs(self.StaticArchers) do
+        local p
+        if rec and rec.ent then pcall(function() p = rec.ent:GetPos() end) end
+        if not p then
+            -- Clearing the key being visited is defined behaviour for pairs(). The anchor
+            -- goes with him: it is an invisible static entity and nothing else would ever
+            -- find it again once its archer is off the books.
+            self.StaticArchers[ws] = nil
+            if self.StaticArcherTargetOf then self.StaticArcherTargetOf[ws] = nil end
+            if self.StaticArcherPending  then self.StaticArcherPending[ws]  = nil end
+            local anchorId = self.StaticArcherAnchors and self.StaticArcherAnchors[ws]
+            if anchorId then
+                pcall(function() System.RemoveEntity(anchorId) end)
+                self.StaticArcherAnchors[ws] = nil
+            end
+        elseif want == 0 then
+            local dx, dy = p.x - playerPos.x, p.y - playerPos.y
+            if (dx * dx + dy * dy) <= reach2 then want = reach end
+        end
+    end
+    return want
+end
+
 -- Placement. SetPos is the mod's teleport everywhere else (it is what puts the
 -- forge smith on his off-navmesh bench), but putting a NPC on a tower deck needs
 -- care:

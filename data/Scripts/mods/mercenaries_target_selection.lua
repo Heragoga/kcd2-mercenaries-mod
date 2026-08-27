@@ -505,6 +505,26 @@ function mercenaries:IsWithinAggroRange(ent)
     return ok and result or false
 end
 
+-- Did the engine EVER answer "what is the player fighting"?
+--
+-- Three behaviour trees ask, with <GetTarget ReferenceNPC="$playerWUID">, and every poll of
+-- every merc answers "[GetTarget]:Cannot find host NPC" - the node resolves an NPC by WUID
+-- and the player is not one. So bt_data.playerCombatTarget is expected to be nil for ever,
+-- and the branch in PickCombatTarget that reads it is expected to be unreachable.
+--
+-- Expected, not proven, which is why the node was gated rather than deleted. This fires once
+-- per session the first time the value is ever non-nil. If the line never appears, the branch
+-- is dead and both it and the node can go; if it does, the node works under some condition
+-- worth finding and the gate is the right shape after all.
+mercenaries._pctProbed = false
+
+function mercenaries:PlayerCombatTargetProbe()
+    if self._pctProbed then return end
+    self._pctProbed = true
+    System.LogAlways("[Mercenary Jeff] GetTarget on the PLAYER answered for the first time - " ..
+                     "the player-target branch is reachable after all (see PlayerCombatTargetProbe)")
+end
+
 -- THE one place MercTargetOf is written, so TargetLoad is always maintained with it.
 --
 -- TargetLoad used to be rebuilt only once per UpdateEnemyCache pass (300ms) and
@@ -516,6 +536,13 @@ end
 -- battle. It also flaps: a merc whose target dies is refused a new one, sheathes, and
 -- is handed one again a tick later. Counting the claim as it is made fixes both.
 -- UpdateEnemyCache still recounts from scratch each pass, which corrects any drift.
+-- [myWuidStr] = when the claim was made. A claim is normally released by combat_melee's
+-- OnFail; PruneCombatClaims uses this to evict the ones where that never ran.
+mercenaries.MercClaimAt = {}
+-- How long a claim may stand without its holder ever being in combat danger. Longer than any
+-- legitimate approach across open ground, short enough that an orphan cannot outlive a fight.
+mercenaries.MercClaimGraceSecs = 45.0
+
 function mercenaries:MercSetClaim(myWuidStr, targetWuidStr)
     local prev = self.MercTargetOf[myWuidStr]
     if prev == targetWuidStr then return end
@@ -526,6 +553,11 @@ function mercenaries:MercSetClaim(myWuidStr, targetWuidStr)
     self.MercTargetOf[myWuidStr] = targetWuidStr
     if targetWuidStr then
         self.TargetLoad[targetWuidStr] = (self.TargetLoad[targetWuidStr] or 0) + 1
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        self.MercClaimAt[myWuidStr] = now
+    else
+        self.MercClaimAt[myWuidStr] = nil
     end
 end
 
@@ -690,6 +722,7 @@ function mercenaries:PickCombatTarget(bt_data, myWuid)
         if not self:EngageAllowsInitiative() then return end
 
         if bt_data.playerCombatTarget then
+            self:PlayerCombatTargetProbe()
             local targetWuidStr = tostring(bt_data.playerCombatTarget)
             if targetWuidStr ~= "" and targetWuidStr ~= tostring(bt_data.playerWUID) then
                 local targetEnt = XGenAIModule.GetEntityByWUID(bt_data.playerCombatTarget)
@@ -903,4 +936,42 @@ end
 function mercenaries:AutoDismountSet(v)
     self.AutoDismount = (tostring(v or ''):match('1') ~= nil)
     System.LogAlways('[Mercenary Jeff] dismount-to-fight ' .. (self.AutoDismount and 'ON' or 'OFF'))
+end
+
+-- ---------------------------------------------------------------------------
+-- LOAD RESET.
+--
+-- Everything below is plain Lua and therefore OUTLIVES the level it belongs to, while the
+-- behaviour trees that maintain it do not. That asymmetry is how a session acquires a
+-- permanently widened enemy sweep:
+--
+--   * a merc holding a combat claim at the moment the game is saved keeps his MercTargetOf
+--     entry across the load, but the combat_melee tree whose OnFail would release it is
+--     gone. UpdateEnemyCache reads `next(MercTargetOf) ~= nil` as "somebody is fighting us"
+--     and refreshes _alertAt on every pass, so EnemyAlerted never times out;
+--   * EnemyAlerted then holds the shared scan at EnemyAlertRadius (60m, or the siege's
+--     160m) instead of EnemyScanRadius (18m) for the rest of the session, everywhere,
+--     including a city with several hundred NPCs inside that circle. Three sweeps a second,
+--     each candidate through IsWeaponDrawn and IsValidEnemy.
+--
+-- Nothing is lost by clearing it: every table here is rebuilt from the world within one
+-- CombatScan pass, and a fight that is genuinely still on re-raises the alert immediately.
+-- See docs/performance.md.
+function mercenaries:TargetingOnLoad()
+    self.CachedEnemies  = {}
+    self.MaybeEnemies   = {}
+    self.MercTargetOf   = {}
+    self.TargetLoad     = {}
+    self.MercClaimAt    = {}
+    self.EnemyTargetOf  = {}
+    self.EnemyClaimWuid = {}
+    -- ForcedTargetOf is deliberately NOT cleared. It is not bookkeeping - it is a siege or
+    -- an encounter saying who a specific man is to fight, it plays no part in the alert
+    -- latch, and PruneCombatClaims already drops the entries whose enemy is gone. Wiping it
+    -- would leave the besiegers of a siege reloaded mid-battle standing with no orders.
+    self.EnemyAlerted   = false
+    self._alertAt       = nil
+    self.EnemyAlertRadius = self.EnemyAlertRadiusDefault or 60
+    _G.MercSquadThreat    = false
+    _G.MercDismountThreat = false
 end

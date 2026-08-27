@@ -180,12 +180,21 @@ function mercenaries.RaidTick()
 
         if self:RaidLaunch() then self:RaidScheduleNext(day) end
     end)
-    Script.SetTimerForFunction(mercenaries.RaidTickMs, "mercenaries.RaidTick")
+    -- Re-armed only when this is the legacy private chain. Under the master scheduler the
+    -- "raids" slot calls RaidTick and owns the cadence - measured at 3x its armed interval
+    -- when it drove itself, the same fault the patrol tick had. See docs/performance.md.
+    if not mercenaries.SchedEnabled then
+        Script.SetTimerForFunction(mercenaries.RaidTickMs, "mercenaries.RaidTick")
+    end
 end
 
 function mercenaries:RaidStart()
     if self.RaidRunning then return end
     self.RaidRunning = true
+    if self.SchedEnabled then
+        raidLog("watching for raid days (on the master tick)")
+        return
+    end
     Script.SetTimerForFunction(self.RaidTickMs, "mercenaries.RaidTick")
     raidLog("watching for raid days")
 end

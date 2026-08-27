@@ -147,6 +147,74 @@ end
 -- Called from MasterTick. The gap between consecutive ticks should be ~MasterTickMs; far
 -- over means the main thread stalled, and whatever ran on the PREVIOUS tick is the
 -- suspect - that tick's work is what occupied the gap being measured.
+-- ---------------------------------------------------------------------------
+-- FRAME TIMES.
+--
+-- Everything above measures how late a Lua TIMER was, which is a proxy for frame pacing and
+-- turned out to be a bad one: Script.SetTimerForFunction fires on a frame boundary, so a
+-- 100ms timer lands on the first frame past 100ms and its lateness is dominated by the frame
+-- rate rather than by any hitch. At 4K the "mastertick gaps over 1.3x schedule" figure sat at
+-- 16-25% whether the squad was eight men or none, and whether patrols were on or off - it was
+-- never measuring the stutter.
+--
+-- This measures the frames themselves. System.GetFrameID counts rendered frames; dividing the
+-- real elapsed time by the frames drawn in it gives the mean frame time over that tick, and a
+-- tick in which very few frames were drawn IS the hitch. Buckets rather than an average,
+-- because the whole complaint is about the tail.
+mercenaries.ProfFrameBuckets = { 16.7, 25, 33, 50, 100 }
+mercenaries.ProfFrameHist    = nil
+mercenaries.ProfFrames       = 0
+mercenaries.ProfFrameMaxMs   = 0
+
+function mercenaries:ProfFrameReset()
+    self.ProfFrameHist   = { 0, 0, 0, 0, 0, 0 }
+    self.ProfFrames      = 0
+    self.ProfFrameMaxMs  = 0
+    self._profLastFrameId = nil
+end
+
+function mercenaries:ProfFrameSample(gapMs)
+    local id
+    pcall(function() id = System.GetFrameID() end)
+    if not id then return end
+    local prev = self._profLastFrameId
+    self._profLastFrameId = id
+    if not prev or not self.ProfFrameHist then return end
+    local frames = id - prev
+    if frames <= 0 or gapMs <= 0 then return end
+    -- Mean frame time across this tick. One long frame inside a tick of otherwise quick ones
+    -- is averaged down, so this UNDER-reports spikes - it can prove a hitch, never hide behind
+    -- one.
+    local ms = gapMs / frames
+    self.ProfFrames = self.ProfFrames + frames
+    if ms > self.ProfFrameMaxMs then self.ProfFrameMaxMs = ms end
+    local b = #self.ProfFrameBuckets + 1
+    for i, edge in ipairs(self.ProfFrameBuckets) do
+        if ms <= edge then b = i break end
+    end
+    self.ProfFrameHist[b] = (self.ProfFrameHist[b] or 0) + frames
+end
+
+function mercenaries:ProfFrameReport()
+    local h = self.ProfFrameHist
+    if not (h and self.ProfFrames > 0) then
+        pLog("frames: no samples (System.GetFrameID unavailable, or profiling just started)")
+        return
+    end
+    local n = self.ProfFrames
+    local edges, parts = self.ProfFrameBuckets, {}
+    for i = 1, #edges + 1 do
+        local lo = (i == 1) and 0 or edges[i - 1]
+        local label = (i > #edges) and (">" .. edges[#edges] .. "ms")
+                                    or ("<=" .. edges[i] .. "ms")
+        parts[#parts + 1] = string.format("%s %.1f%%", label, (h[i] or 0) * 100.0 / n)
+    end
+    pLog("frames: " .. n .. " sampled, worst tick mean " ..
+         string.format("%.1fms", self.ProfFrameMaxMs) .. "  |  " .. table.concat(parts, "  "))
+    pLog("  the last two buckets are the stutter. If they are ~0 the frames are fine and the")
+    pLog("  timer lateness above is frame-rate quantisation, not a hitch.")
+end
+
 function mercenaries:ProfTickGap()
     if not self.ProfEnabled then return end
     local now  = clock()
@@ -157,6 +225,7 @@ function mercenaries:ProfTickGap()
     local gapMs = (now - prev) * 1000.0
     local sched = self.MasterTickMs or 50
     self:ProfRecord("~mastertick gap", gapMs)
+    self:ProfFrameSample(gapMs)
     if gapMs > sched * (self.ProfElevatedMul or 1.3) then
         local e = stat("~mastertick gap")
         e.elevated = (e.elevated or 0) + 1
@@ -287,13 +356,33 @@ function mercenaries:ProfReport(sortByMax)
     pLog("included in the caller's, and they never raise a hitch.")
     pLog(string.format("%-32s %7s %9s %8s %8s %6s %9s",
                        "name", "calls", "total ms", "avg ms", "max ms", "hitch", "period ms"))
+    -- Observed period for the standalone timer chains, next to the number they were armed
+    -- with. This is how a duplicate chain is SEEN: a duplicated chain does not run slower or
+    -- cost more per call, it just fires more often than it was scheduled to, and nothing else
+    -- in this report says so. LivePatrolTick was found this way - 63 firings where 7 were due,
+    -- while LootSweepTick sat exactly on 1000ms in the same window. See docs/performance.md.
+    local scheduled = self.ProfTimerSchedule or {}
     for _, r in ipairs(rows) do
         local s = r.s
         if s.n > 0 then
             local period = (s.periodN > 0) and (s.periodSum / s.periodN) or 0
+            local note = s.nested and "  (nest)" or ""
+            local want = scheduled[r.name]
+            -- At least 8 samples before calling a duplicate. A 20s chain in a 30s window
+            -- fires once or twice, so one early extra firing reads as "2x TOO OFTEN" - which
+            -- is exactly what RaidTick did in a short window while reading a clean 20101ms
+            -- over a long one. The heuristic is for standing rates, not for warm-up.
+            if want and span > 0 and s.n >= 8 then
+                local seen = (span * 1000.0) / s.n
+                local ratio = (self[want] or 0) > 0 and (self[want] / seen) or 0
+                note = note .. string.format("  every %.0fms, armed at %s", seen, tostring(self[want]))
+                if ratio >= 1.6 then
+                    note = note .. string.format("  <-- %.1fx TOO OFTEN, duplicate chain(s)", ratio)
+                end
+            end
             pLog(string.format("%-32s %7d %9.1f %8.3f %8.2f %6d %9.0f%s",
                                string.sub(r.name, 1, 32), s.n, s.total, s.total / s.n, s.max,
-                               s.hitches, period, s.nested and "  (nest)" or ""))
+                               s.hitches, period, note))
         end
     end
     local gap = self.ProfStats["~mastertick gap"]
@@ -301,6 +390,7 @@ function mercenaries:ProfReport(sortByMax)
         pLog(string.format("mastertick gaps over %.1fx schedule: %d of %d",
                            self.ProfElevatedMul, gap.elevated, gap.n))
     end
+    self:ProfFrameReport()
     pLog(string.format("GC: %d collection(s), %.0fKB freed, %.0fKB allocated, heap %.0fKB",
                        self._profGcCount or 0, self._profGcFreedKb or 0,
                        self._profAllocKb or 0, self._profLastKb or 0))
@@ -327,6 +417,7 @@ function mercenaries:ProfReset()
     self._profLastGcAt    = nil
     self._profGcCount     = 0
     self._profGcFreedKb   = 0
+    self:ProfFrameReset()
     self._profAllocKb     = 0
     self._profBtMs        = 0
     self._profDepth       = 0
@@ -419,9 +510,19 @@ mercenaries.ProfBtHooks = {
     "GetArcherStanceCode", "GetQuartermasterPost", "PerfEntityByName",
 }
 
+-- What each of those chains was ARMED with, so the report can print observed period against
+-- intended and name a duplicate outright. Value is the field holding the interval.
+mercenaries.ProfTimerSchedule = {
+    ["timer.LivePatrolBody"] = "PatrolLiveTickMs",
+    ["timer.RaidTick"]       = "RaidTickMs",
+    ["timer.WBTick"]         = "WBTickMs",
+    ["timer.RouteTick"]      = "RouteTickMs",
+    ["timer.FoeLoop"]        = "FoeTickMs",
+}
+
 -- Timers still running outside the master scheduler. Each is a candidate heartbeat.
 mercenaries.ProfTimerFns = {
-    "LootSweepLoop", "RaidTick", "LivePatrolTick", "WBTick", "RouteTick",
+    "LootSweepTick", "RaidTick", "LivePatrolBody", "WBTick", "RouteTick",
     "StaticArcherPinTick", "StaticArcherPlaceTick", "HideOthersTick", "AnimPollTick",
     "CampForgeMonitor", "CampAlchemyMonitor", "FoeLoop",
     "ForgeCensusStep", "ForgeRigStep",

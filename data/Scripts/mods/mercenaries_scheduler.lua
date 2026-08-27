@@ -166,6 +166,11 @@ function mercenaries:SchedArmLegacy()
     Script.SetTimerForFunction(300,  "mercenaries.CombatScanLoop")
     Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
     Script.SetTimerForFunction(self.FormationTickMs or 150, "mercenaries.FormationLoop")
+    -- Patrols and raids are slots now, so they died with the master tick. Hand them back
+    -- their private chains, which is what SchedEnabled=false above has just re-enabled.
+    self.LivePatrolRunning, self.RaidRunning = false, false
+    pcall(function() self:LivePatrolStart() end)
+    pcall(function() self:RaidStart() end)
     schLog("legacy timers armed")
 end
 
@@ -173,12 +178,17 @@ end
 -- LOAD GENERATION. Call this at the top of OnGameplayStarted, before anything arms
 -- a timer.
 --
--- Script.SetTimerForFunction chains DO NOT survive a save load - the engine drops
--- them with the level - but this table is plain Lua and survives everything, so any
--- latch guarding a timer has to be reset per load or it locks the timer out for the
--- rest of the session. That is not a theory: LootSweepLoop is armed unconditionally on
--- every load and re-arms itself unconditionally, so if timers survived it would double
--- every single load, and it does not.
+-- Script.SetTimerForFunction chains are BELIEVED not to survive a save load - the engine
+-- drops them with the level - but this table is plain Lua and survives everything, so any
+-- latch guarding a timer has to be reset per load or it locks the timer out for the rest of
+-- the session.
+--
+-- Believed, not measured. The argument used to be "LootSweepLoop re-arms itself with no
+-- guard at all, so if timers survived it would double every load, and it does not" - which
+-- is circular (nothing was watching it) and was the only evidence there was. LootSweepArm
+-- no longer relies on the answer: consecutive loads alternate between two entry points, so
+-- a chain from the previous load retires on its next firing either way. Anything else added
+-- here should do the same rather than inherit the assumption.
 --
 -- Getting this wrong killed the whole mod on the second save loaded in one session.
 -- SchedRunning was still true from the first, SchedStart refused to arm, the master
@@ -202,6 +212,14 @@ mercenaries.TimerLatches = {
     "SchedRunning", "_schedWatchdogArmed",
     "LivePatrolRunning", "RaidRunning", "WBRunning",
     "FoeLoopArmed", "GearTickArmed", "_profHbArmed",
+    -- The custom-uniform chains. GearArmKeep and GearArmFinish are called on demand (the
+    -- next time the squad is dressed), so a latch left set from the previous load meant the
+    -- keep pass simply never came back for the rest of the session and gear stopped being
+    -- re-asserted - silent, and indistinguishable from the feature not working.
+    "GearKeepArmed", "GearFinishArmed",
+    -- Not a latch in the same sense: LootSweepArm is idempotent per load on its own. Cleared
+    -- here so the arm is unambiguous rather than depending on the generation compare alone.
+    "LootSweepArmed",
 }
 
 function mercenaries:SchedOnLoad()
@@ -307,5 +325,26 @@ function mercenaries:SchedRegisterAll()
     self:SchedRegister("lowpriority", {
         periodMs = 5000,
         fn = function(s) s:LowPriorityMonitorLoopBody() end,
+    })
+
+    -- Roaming patrols and camp raids used to drive themselves. Both were MEASURED running
+    -- several times over - the patrol tick at 615ms against an armed 3000ms (five chains) and
+    -- the raid tick at 6545ms against 20000ms (three) - in a session where this scheduler's own
+    -- tick was exactly right at 108ms against 100ms. A private self-arming chain has no way to
+    -- count itself; a slot cannot be duplicated without duplicating the master tick, which the
+    -- watchdog already covers. So they moved here. See docs/performance.md.
+    --
+    -- This matters far past the Lua: an extra patrol chain is another chance per period to
+    -- spawn a GANG, and a gang spawn is NPC creation, ground raycasts and character assembly -
+    -- main-thread engine time no Lua profiler can see.
+    self:SchedRegister("patrols", {
+        periodMs = mercenaries.PatrolLiveTickMs or 3000,
+        gate = function(s) return s.LivePatrolsEnabled and player ~= nil end,
+        fn = function(s) if s.LivePatrolBody then mercenaries.LivePatrolBody() end end,
+    })
+
+    self:SchedRegister("raids", {
+        periodMs = mercenaries.RaidTickMs or 20000,
+        fn = function(s) if s.RaidTick then mercenaries.RaidTick() end end,
     })
 end

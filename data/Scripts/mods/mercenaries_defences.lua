@@ -63,6 +63,14 @@ end
 function mercenaries:DefSave()
     local o = self.CampBuildOrigin
     if not o then return end
+    -- Nothing is standing yet (the camp has just gone up and DefRestore has not run), or
+    -- only half of it is (a restore in progress): saving either would write that incomplete
+    -- world over the layout it is about to become. One gate command in that window and the
+    -- camp's gates were gone for good.
+    if self.DefRestorePending or self.DefRestoring then
+        System.LogAlways("[Defences] save skipped - restore still pending")
+        return
+    end
 
     self:SaveString("QMDefX", tostring(o.x))
     self:SaveString("QMDefY", tostring(o.y))
@@ -152,9 +160,51 @@ function mercenaries:DefSweepTowerArchers()
 end
 
 -- ==== restore ====
+-- Restoring has to wait for the camp props to be down, so it runs off a timer, and a
+-- timer chain dies with the level it was armed in (see SchedOnLoad). The pending flag is
+-- what lets DefWatchdog notice that the restore never happened - and what stops DefSave
+-- writing the empty world over the saved layout in the meantime.
+mercenaries.DefRestoreDelayMs   = 1500
+mercenaries.DefRestoreGraceSecs = 10.0
+
+function mercenaries:DefArmRestore()
+    self.DefRestorePending = true
+    self.DefRestoreArmedAt = nil
+    pcall(function() self.DefRestoreArmedAt = System.GetCurrTime() end)
+    Script.SetTimerForFunction(self.DefRestoreDelayMs, "mercenaries.DefRestoreDelayed")
+end
+
+-- Low-priority tick (5s). A defence set that is never restored looks exactly like one
+-- that was thrown away, so this runs the restore by hand once the timer is plainly late.
+function mercenaries:DefWatchdog()
+    if self.DefRestoring then return end
+    if not self.DefRestorePending then return end
+    if not self.CampBuildOrigin then self.DefRestorePending = false; return end
+    -- No clock is not a reason to sit on a blocked DefSave for ever: with no way to time
+    -- the wait, the first watchdog pass that sees a pending restore just runs it.
+    local now
+    pcall(function() now = System.GetCurrTime() end)
+    if now and self.DefRestoreArmedAt
+       and (now - self.DefRestoreArmedAt) < self.DefRestoreGraceSecs then return end
+    System.LogAlways("[Defences] restore timer never fired - restoring now")
+    pcall(function() self:DefRestore() end)
+end
+
 -- Called after the camp itself is back up. Rebuilds only when the anchor matches, so
 -- a camp pitched somewhere new starts bare.
+--
+-- The body is wrapped so DefSave is held off for the WHOLE rebuild and released whatever
+-- happens inside it: the tower and cart restores each call DefSave themselves, and a save
+-- taken while only half the set is back writes that half over the other.
 function mercenaries:DefRestore()
+    self.DefRestorePending = false
+    self.DefRestoring = true
+    local ok, err = pcall(function() self:DefRestoreBody() end)
+    self.DefRestoring = false
+    if not ok then System.LogAlways("[Defences] restore error: " .. tostring(err)) end
+end
+
+function mercenaries:DefRestoreBody()
     if not self.CampBuildOrigin then return end
     if not self:DefBelongToCurrentCamp() then
         self:DefForget()
@@ -193,8 +243,12 @@ function mercenaries:DefRestore()
         pcall(function() self:WallRebuild() end)
     end
 
+    -- Cleared first, exactly as WallRuns is above: GateBuild APPENDS, so a restore that
+    -- runs with gates still on the books stacks a second copy of every one of them.
+    pcall(function() self:GateClearAll() end)
     for _, g in ipairs(unpackPoses(self:LoadString("QMGates"))) do
-        pcall(function() self:GateBuild({ x = g.x, y = g.y, z = g.z }, g.yaw, g.open == 1) end)
+        -- noSnap: the saved z was ground-snapped when the gate was hung. See GateBuild.
+        pcall(function() self:GateBuild({ x = g.x, y = g.y, z = g.z }, g.yaw, g.open == 1, true) end)
     end
 
     -- The tower PERSISTS but the archer on it does not, and the two disagree: the
@@ -219,6 +273,10 @@ function mercenaries:DefRestore()
 end
 
 function mercenaries.DefRestoreDelayed()
+    -- DefWatchdog may have got there first when the timer ran long. A second full restore
+    -- would stack a duplicate tower and cart on the first, so the pending flag is the
+    -- claim: whoever clears it has done the work.
+    if not mercenaries.DefRestorePending then return end
     pcall(function() mercenaries:DefRestore() end)
 end
 

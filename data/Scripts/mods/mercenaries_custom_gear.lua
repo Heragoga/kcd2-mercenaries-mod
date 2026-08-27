@@ -379,9 +379,17 @@ mercenaries.GearRedrawPreset = "00000000-0000-0000-0000-000000000006"  -- generi
 -- This is deliberately NOT a re-dress: no base preset, no purge, nothing deleted. It
 -- can only ever add a piece that has gone missing, so unlike a full run it cannot
 -- itself be the thing that loses one.
-mercenaries.GearKeepTickMs = 1000
+-- 5s, not 1s. There is no "is he wearing it" query, so every pass re-equips the WHOLE
+-- pattern on GearKeepPerTick mercs blind, and EquipInventoryItem on a KCD2 character is
+-- attachment work, not a table write. At 1s with the default budget of 4 that was a dozen
+-- or more equips a second, for ever, on any squad wearing the custom uniform - a repair pass
+-- running at the cadence of a combat loop. At 5s a twenty-man company is still fully
+-- re-asserted about every 25 seconds, which is far inside the time it takes anyone to
+-- notice a missing piece. See docs/performance.md.
+mercenaries.GearKeepTickMs = 5000
 mercenaries.GearKeepPerTick = 4
 mercenaries.GearKeepArmed = false
+mercenaries.GearKeepSlot = 0
 mercenaries.GearKeepList = nil
 mercenaries.GearKeepIdx = 1
 
@@ -436,18 +444,27 @@ function mercenaries:GearApplyArmour(ent)
     end
 end
 
+-- GearKeepArmed is cleared per load (see TimerLatches), so this can arm once per load. The
+-- slot is what makes that safe: it names the entry point, so the previous load's chain - if
+-- the engine kept it - retires on its next firing instead of running alongside this one.
+-- Same device as LootSweepArm; the reasoning is written out there.
 function mercenaries:GearArmKeep()
     if self.GearKeepArmed then return end
     self.GearKeepArmed = true
-    Script.SetTimerForFunction(self.GearKeepTickMs, "mercenaries.GearKeepTick")
+    self.GearKeepSlot  = 1 - (self.GearKeepSlot or 0)
+    Script.SetTimerForFunction(self.GearKeepTickMs, "mercenaries.GearKeepTick" .. self.GearKeepSlot)
 end
 
-function mercenaries.GearKeepTick()
+function mercenaries.GearKeepTick0() mercenaries.GearKeepBeat(0) end
+function mercenaries.GearKeepTick1() mercenaries.GearKeepBeat(1) end
+
+function mercenaries.GearKeepBeat(slot)
     local self = mercenaries
+    if not self.GearKeepArmed or self.GearKeepSlot ~= slot then return end
     -- Re-armed first and unconditionally: this loop has to survive the squad being off
     -- the custom uniform for a while and come back when it returns
     -- (reference_settimerforfunction_third_arg).
-    Script.SetTimerForFunction(self.GearKeepTickMs, "mercenaries.GearKeepTick")
+    Script.SetTimerForFunction(self.GearKeepTickMs, "mercenaries.GearKeepTick" .. slot)
 
     if (_G.MercCurrentOutfit or 1) ~= self.CustomOutfitIndex then return end
     if next(self.GearDressing) ~= nil then return end   -- a full run is mid-flight

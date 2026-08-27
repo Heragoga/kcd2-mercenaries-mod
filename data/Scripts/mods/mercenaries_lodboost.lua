@@ -351,11 +351,31 @@ function mercenaries:LodBoostTick()
         return
     end
 
-    -- Pinned: somebody has told us there is a battle on. Never argue with them.
+    -- Pinned: somebody has told us there is a battle on. Never argue with them - but do ask
+    -- whether the thing that pinned it still exists.
+    --
+    -- The pin is set when the Raborsch siege is built and released ONLY on the path where
+    -- the siege is struck. Reach the end of that siege any other way - load a save from
+    -- before it, die, walk away - and LodBoostPinned stays true with no siege standing, so
+    -- every cvar in LodBoostCvars is re-pushed three times a second for the rest of the
+    -- session. That includes e_ViewDistRatio at 200 against a measured 50, and it is
+    -- deliberately fighting the game's own CVarOverride: performanceDemandingArea.cfg
+    -- clamps exactly these numbers, and the dense areas it clamps them for are cities.
+    -- A pin nobody is holding is the difference between "the mod is heavy in Kuttenberg"
+    -- and not. See docs/performance.md.
     if self.LodBoostPinned then
-        if not self.LodBoostActive then self:LodBoostOn() end
-        self:LodBoostReassert()
-        return
+        local held = true
+        if self.LodBoostPinReason == "siege" then
+            pcall(function() held = (self.RBQ and self.RBQ.active) and true or false end)
+        end
+        if not held then
+            self:LodBoostPin(false)
+            lbLog("boost was pinned by a siege that is no longer standing - unpinned")
+        else
+            if not self.LodBoostActive then self:LodBoostOn() end
+            self:LodBoostReassert()
+            return
+        end
     end
 
     local crowd = self:LodBoostCrowd()
@@ -375,14 +395,47 @@ end
 -- Put the engine back if the mod is torn down mid-fight; leaving global cvars raised would
 -- outlive the mod itself.
 -- Hold the boost on regardless of what the crowd count thinks.
-function mercenaries:LodBoostPin(on)
+-- `reason` names who is holding it, so LodBoostTick can check that they still exist. "siege"
+-- is checked against RBQ.active; anything else (the console) is taken on trust and held until
+-- it is released by hand.
+function mercenaries:LodBoostPin(on, reason)
     self.LodBoostPinned = (on == true)
     if self.LodBoostPinned then
+        self.LodBoostPinReason = reason or "console"
         self:LodBoostOn()
-        lbLog("boost PINNED on")
+        lbLog("boost PINNED on by " .. self.LodBoostPinReason)
     else
+        self.LodBoostPinReason = nil
         lbLog("boost unpinned - the crowd count decides again")
     end
+end
+
+-- Every field below is plain Lua and survives the level it was set in; the siege that set
+-- them does not. Released unconditionally on load, because both are self-healing upward:
+-- LodBoostTick re-raises the boost inside 300ms if the crowd is genuinely there, and
+-- RaborschMonitor re-pins at 1Hz while a siege really is standing. Left alone, a save loaded
+-- from before a siege carries the siege's global cvars for the rest of the session.
+function mercenaries:LodBoostOnLoad()
+    self.LodBoostPinned    = false
+    self.LodBoostPinReason = nil
+    self._lodLastFoeAt     = nil
+
+    -- Deliberately NOT LodBoostOff(). _lodSaved holds what was live in the level we just
+    -- LEFT, and the level we just entered has already applied its own CVarOverride set -
+    -- so replaying the old numbers over it would be the same overreach in the other
+    -- direction. Only a cvar still sitting at OUR boosted value is ours to hand back.
+    if self.LodBoostActive then
+        for _, e in ipairs(self.LodBoostCvars) do
+            local prev = (self._lodSaved or {})[e[1]]
+            if prev ~= nil and cvarSame(getCVar(e[1]), e[2]) then setCVar(e[1], prev) end
+        end
+        self._lodSaved      = nil
+        self.LodBoostActive = false
+        self:LodRatioReset()
+        lbLog("boost state dropped on load")
+    end
+    self._lodRatioBand = nil
+    self._lodRatioAt   = nil
 end
 
 -- PER-ENTITY render pin. The cvars above are GLOBAL; an entity's own max view distance is

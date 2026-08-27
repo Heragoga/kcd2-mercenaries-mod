@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kcd_mod>
+	<info>
+		<name>No speed limits</name>
+		<modid>nospeedlimits</modid>
+		<description>Disables the speed limit of horses in settlements</description>
+		<author>Aravzil</author>
+		<version>1.4.2</version>
+		<created_on>2025-12-02</created_on>
+	</info>
+	<supports>
+		<version>1.5.2</version>
+	</supports>
+</kcd_mod>

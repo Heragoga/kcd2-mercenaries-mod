@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<kcd_mod>
+    <info>
+        <name>keepcrossbowcooked</name>
+        <modid>keepcrossbowcooked</modid>
+        <description>This edits the speed and persistance of salvo. This is the 90x version that has been offset</description>
+        <author>Rubbermonkey</author>
+        <version>2</version>
+        <created_on>2025</created_on>
+        <modifies_level>false</modifies_level>
+    </info>
+</kcd_mod>

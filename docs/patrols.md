@@ -65,14 +65,45 @@ Switching sets **clears `LivePatrols`**: records are keyed `"route:slot"` and a 
 means a different road on each map, so carrying them across a level change would march one
 map's gangs along the other's indices.
 
-Long routes carry two gangs, so Kuttenberg alone has 37 patrols.
+Long routes carry two gangs, so Kuttenberg has 37 gang slots and Trosky 24.
+
+### Why Trosky feels emptier
+
+Measured from the two route tables: **Kuttenberg 40.5 km of recorded road across a 3.8 x 3.9 km
+footprint; Trosky 20.4 km across 2.2 x 2.2 km** - on levels that are both 4096 x 4096 m. A patrol
+can only ever be met near a recorded route, so the half of the Trosky map nobody has ridden with
+the recorder is a permanent dead zone, and that is the bulk of the difference. It is a content
+gap, not a bug: the gangs-per-kilometre-of-road figures are already close (Kuttenberg one gang
+per 1.09 km, Trosky one per 0.85 km), and a matched-exposure simulation of the spawn pipeline
+puts Trosky slightly ahead. Recording more Trosky road with `merc_route_*` is the remedy; roughly
+doubling it would match Kuttenberg's encounter rate.
+
+Two things were genuinely miscalibrated for Trosky, and both are fixed:
+
+* **The two-gang test is now a length in metres** (`PatrolTwoAtMetres`, 1650 m), not a point
+  count. `PatrolRouteStep` (10 m) is the recorder's *minimum* marker spacing, not a guarantee -
+  ride faster and the markers space out. Measured, Kuttenberg averages **11.1 m** between points
+  and Trosky **15.9 m**, so the old `#pts >= 150` bar meant 1665 m on one map and 2385 m on the
+  other. 1650 m is the Kuttenberg equivalent, so this changes Kuttenberg not at all (37 slots
+  before and after) and gives Trosky 22 -> 24.
+* **The ghost steps by index, so it must divide by that route's own spacing.** `PatrolTickOne`
+  used a hard-coded `stepM = 10.0`, which scales the notional patrol's real ground speed by
+  (actual spacing / 10): Trosky's ghosts drifted at **2.23 m/s instead of `PatrolGhostSpeed`'s
+  1.4** - 59% too fast, hence 37% less time inside the 200-250 m spawn band on every approach.
+  `PatrolMeasureRoutes` now stamps `len` and `stepM` on every route when a set goes live, and the
+  set's road length and slot count are logged with it.
 
 | Command | Use |
 | --- | --- |
 | `merc_patrols_status` | where every patrol is, its group, size and state |
 | `merc_patrols_here` | spawn the nearest patrol on top of you |
-| `merc_patrols_arm 0\|1` | turn roaming patrols off or on |
-| `merc_patrols_clear` | remove them all and re-roll |
+| `merc_patrols 0\|1` | turn roaming patrols off or on |
+| `merc_patrols_floor <m> [bandFloor] [bandCeil]` | the hard never-nearer-than distance, and the band |
+| `merc_patrols_budget <men> [gangs] [perGang]` | the three population caps |
+
+> There is no `merc_patrols_arm` and no `merc_patrols_clear`, whatever older notes said. The
+> switch is `merc_patrols 0\|1` (registered in `mercenaries_commands.lua`, not here), and the
+> only route to `LivePatrolClear` is `merc_enemy_clear`, which sweeps every spawned enemy.
 
 **Hostility is faction, not code.** `patrolFaction` is hostile to `player`,
 `mercenariesFaction` and `enemiesFaction` (the mod's bandits), and **deliberately silent
@@ -85,6 +116,13 @@ tester and does not work; faction is the only thing the engine actually respects
 flat `PatrolPartyMin` (0.5x); **the ceiling scales with the party** (`PatrolMaxMultFor`),
 ramping from `PatrolPartyMaxSolo` (1.2x at a party of one) to `PatrolPartyMax` (2.0x at
 `PatrolPartyMaxAt`, 20, and above).
+
+**A player with no mercenaries still meets patrols.** Being alone used to withhold them
+entirely, which emptied the roads for exactly the player who is out there on his own. It now
+sizes them instead: `PatrolPlayerAlone` clamps the roll to
+`PatrolSoloMinMen`..`PatrolSoloMaxMen` (**3‥5**), applied *after* the difficulty tier and any
+route escalation so neither can push past it. Three to five men is a fight a lone Henry can
+take or run from.
 
 It used to be a flat 0.5x‥3x with a floor of five men, and that is a mugging rather than an
 encounter at the sizes players actually ride around at: a lone rider always met exactly five,
@@ -135,7 +173,7 @@ mounted player crossing a busy junction quickly may only trigger one or two gang
 behaviour would have spawned everything in range. Raise `PatrolSpawnPerTick` if roads feel empty
 in transit.
 
-Tune any of it live with `merc_patrols_budget <men> [gangs] [perGang]`; `merc_patrols_arm 0`
+Tune any of it live with `merc_patrols_budget <men> [gangs] [perGang]`; `merc_patrols 0`
 switches the system off entirely.
 
 **Strength and identity are both in the soul.** There is one soul per **group** per tier —
@@ -148,7 +186,10 @@ mismatch straight back.
 
 **Only nearby patrols exist.** Eight routes of 1-2 km would be hundreds of NPCs, so each
 patrol keeps a *notional* index that creeps along its route on a timer whether or not it is
-spawned (`PatrolGhostSpeed`). Men appear within `PatrolSpawnRange` and are removed beyond
+spawned (`PatrolGhostSpeed`). The creep **carries its remainder** (`rec.creep`): a 3 s tick at
+1.4 m/s covers 4.2 m of the recorder's 10 m spacing, so flooring one tick's travel on its own
+is always zero - and since `moveAt` is stamped every pass regardless, the notional patrol never
+moved at all and every gang sat on the point it was rolled at for the whole session. Men appear within `PatrolSpawnRange` and are removed beyond
 `PatrolDespawnRange`, so a patrol turns up roughly where it should be rather than where you
 last left it. While spawned, the notional index tracks the real leader.
 
@@ -158,10 +199,29 @@ A gang materialises only inside a **band**, never on top of the player:
 
 | Knob | Value | Meaning |
 | --- | --- | --- |
-| `PatrolNoSpawnRange` | 200 m | never spawn closer than this |
+| `PatrolMinPlayerDist` | 100 m | the hard floor — no man of any gang is ever created inside it |
+| `PatrolNoSpawnRange` | 200 m | the band: never *eligible* closer than this |
 | `PatrolSpawnRange` | 250 m | ...and no further than this |
 | `PatrolDespawnRange` | 330 m | remove them out here (hysteresis) |
 | `PatrolFreshMinDist` | 450 m | where a newly rolled record starts |
+
+**The band is not the guarantee; `PatrolMinPlayerDist` is.** The band is tested in
+`PatrolTickOne`, which runs for every record first and only then sorts and spawns
+`PatrolSpawnPerTick` of them — so the test is up to a tick (3 s) old by the time the men
+exist, and a galloping player eats most of a 50 m band in that time. It is also tested on the
+*notional point*, while the column is laid out **behind** the lead man, which is as often as
+not the player's side of it, and `FindValidGround` can walk each man a few metres further.
+
+So the floor is re-tested where it actually matters:
+
+* `PatrolSpawnGang` re-reads the player's position (never the tick's sample) and refuses the
+  whole gang if the route point is inside the floor;
+* the lead man is tested again after `FindValidGround` has placed him;
+* **every** other man is tested on his own final spot, and one inside the floor is simply left
+  out. A gang one man short is invisible; a man appearing at your shoulder is the complaint.
+
+`force` bypasses all of it, and only the console passes it — `merc_patrols_here` and
+`merc_patrol_<group>` exist precisely to put a gang on top of you.
 
 The floor is what stops "I load a save and get jumped". In normal play the floor never bites —
 a ghost walking toward a standing player crosses 250 m before it reaches 200 m and spawns at
