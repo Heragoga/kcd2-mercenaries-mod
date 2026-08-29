@@ -143,6 +143,25 @@ Also unconsolidated: static archers in `hostile`/`mod_enemies` mode and the quar
 run their **own** box query (~90m and 30m) once a second, bypassing the shared scan and
 repeating the same per-NPC validation.
 
+## Fast travel: the follow watch against a frozen world
+
+A fast travel spends its whole duration on the map screen, and there the behaviour trees stop
+running. The follow watch reads "nobody moved and nobody stamped a slot claim" as a squad-wide
+stall and re-fires, escalates and rebuilds against it, on every sample, for the whole journey.
+One session measured 3,163 follow re-fires, 527 escalations and 59 `MakeFormation` rebuilds,
+with 131 of the 133 sampling passes inside the map screen and 2 outside it. Each escalation is
+a 10-ray safe-position sweep plus a `SetPos`, so this is engine time on the main thread while
+the game is streaming a route across the map.
+
+Fixed by two stand-downs in `DismountVerify`, keyed on a behaviour-tree liveness heartbeat and
+on the share of the squad indicted in one pass. Full account in
+[formations.md](formations.md), "The watch must never run against a frozen world".
+
+| tunable | file | default |
+|---|---|---|
+| `FollowWatchBtStaleSecs` | `mercenaries_formation_handler.lua` | 2.5 s with no `MercIsIdle` call = trees frozen |
+| `FollowWatchSystemicFrac` / `FollowWatchSystemicMin` | same | 0.5 of the squad / 5 men flagged at once = the world, not the men |
+
 ## State that outlives the level
 
 A separate failure mode from anything above, and the one that made the lag reports look

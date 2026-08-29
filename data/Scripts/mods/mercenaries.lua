@@ -1433,6 +1433,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     if self.PerfDefaultsApply then pcall(function() self:PerfDefaultsApply() end) end
     if self.CrimeWatchOnLoad then pcall(function() self:CrimeWatchOnLoad() end) end
     if self.TownWatchOnLoad  then pcall(function() self:TownWatchOnLoad()  end) end
+    if self.FollowWatchOnLoad then pcall(function() self:FollowWatchOnLoad() end) end
 
     -- Saver entities belong to the save just loaded, so the tag map must be rebuilt
     -- before the LoadString calls below read from it.

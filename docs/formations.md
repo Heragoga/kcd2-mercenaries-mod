@@ -924,6 +924,52 @@ the state is gone by the time anyone goes looking. `merc_follow_why` prints the 
 the whole squad on demand plus each man's streak and suppression; `merc_follow_reset` clears
 them.
 
+### The watch must never run against a frozen world
+
+**This is what made fast travel drag.** A KCD2 fast travel spends its entire duration on the
+map screen, and on the map screen the behaviour trees stop running. No merc moves, and no
+merc stamps `FormationSlotAt` — so `FormationSlotFresh` goes false squad-wide and the
+far-but-stationary test indicts every man in the rear of the column, on every 2 s sample, for
+as long as the map is up.
+
+From one session's `kcd.log`, squad of ~35:
+
+| | before the map opened | while the map was open |
+| --- | --- | --- |
+| sampling passes that flagged anyone | 2 | 131 |
+| escalations (`stalled 3x`) | 0 | 527 |
+| `MakeFormation` rebuilds | — | 59 |
+| follow re-fires (sum of the `N merc(s)` lines) | — | 3,163 |
+
+None of that is Lua time. A tier-3 escalation is a 10-ray `GetSafeSpawnPosition` sweep plus a
+`SetPos`, per man; a re-fire is a behaviour-tree eviction; a shrink rebuild re-seats every
+follower. Hundreds of each, on the main thread, while the game is streaming a route across the
+map.
+
+Two stand-downs, because the freeze has two shapes:
+
+* **The trees are not ticking.** `FollowWatchWorldFrozen` proves this two independent ways,
+  because the exact pause semantics of the map screen are not worth relying on. Both
+  schedulers call `MercIsIdle` per merc every ~600 ms, so it stamps `BtHeartbeatAt`; no stamp
+  inside `FollowWatchBtStaleSecs` (2.5 s) means the trees are frozen. Second, and the one the
+  logs actually show: if the squad holds engine-formation slots and **not one** of them has a
+  fresh `FormationSlotAt`, every follow tree in the company stopped in the same instant. One
+  fresh claim anywhere disproves it. The scheduler's `Wait` is `timeType="GameTime"`, so a
+  stopped clock is exactly what stops the stamps.
+* **The trees tick but the men are not simulated.** No heartbeat evidence, so fall back to the
+  shape of the answer: a pass indicting `FollowWatchSystemicFrac` (half) of the squad, and at
+  least `FollowWatchSystemicMin` (5) men, is describing the world and not the men. Candidates
+  are therefore collected first and acted on afterwards — the count is not known until the
+  sweep finishes.
+
+Both drop `_dvPos`, so the squad re-anchors from where it stands when the world comes back
+rather than being compared against where it stood before it stopped. Both are one-pass
+stand-downs: a genuinely stuck man is picked up on the next sample 4 s later.
+
+`FollowWatchOnLoad` clears the heartbeat, the anchors and the streaks on a save load, for the
+reason in [performance.md](performance.md) — the tables outlive the trees and the entities they
+describe, and left alone they describe a world that no longer exists.
+
 ### Named companions ride at the front
 
 `FormationFollower` takes a `PreferredPositions` string naming a `<Spot>` in the preset, and our

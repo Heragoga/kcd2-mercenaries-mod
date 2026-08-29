@@ -615,6 +615,61 @@ end
 --     the player does. This is the case the old rule could never see, because a
 --     player standing still watching a stranded merc is exactly when it is most
 --     obvious and least detectable by player movement.
+-- ---------------------------------------------------------------------------
+-- "THE WHOLE WORLD STOPPED" IS NOT "THIS MAN STOPPED".
+--
+-- The watch judges a merc from positions, and positions cannot tell the two apart. On
+-- the map screen - which is where a fast travel spends its ENTIRE duration - the
+-- behaviour trees stop running: nobody moves, and nobody stamps a slot claim, so
+-- FormationSlotFresh goes false squad-wide and the far-but-stationary test flags every
+-- man in the rear of the column, every sample, for as long as the map is up.
+--
+-- Measured from one session's kcd.log: 3,163 follow re-fires, 527 escalations and 59
+-- MakeFormation rebuilds, of which 131 of the 133 sampling passes fell inside the map
+-- screen and 2 outside it. That is not Lua time - a tier-3 escalation is a 10-ray
+-- GetSafeSpawnPosition sweep plus a SetPos, per man - which is why fast travel dragged.
+--
+-- Two independent stand-downs, because the freeze has two shapes:
+--   * the trees are not ticking at all -> the heartbeat goes stale (map screen, a load)
+--   * the trees ARE ticking but the world is not simulating the men -> no heartbeat
+--     evidence, so fall back to the shape of the answer: a pass that indicts half the
+--     squad at once is describing the world, not the men.
+-- Both drop the anchors, so the squad is judged afresh from where it stands when the
+-- world comes back rather than against where it stood before it stopped.
+mercenaries.FollowWatchBtStaleSecs  = 2.5   -- no MercIsIdle call in this long = trees frozen
+mercenaries.FollowWatchSystemicFrac = 0.5   -- this share of the squad flagged at once...
+mercenaries.FollowWatchSystemicMin  = 5     -- ...and at least this many men, is systemic
+mercenaries.FollowWatchSystemicLog  = 15.0  -- seconds between systemic stand-down log lines
+
+function mercenaries:FollowWatchWorldFrozen()
+    local at = self.BtHeartbeatAt
+    if at and (fhNow() - at) > (self.FollowWatchBtStaleSecs or 2.5) then return true end
+    -- Second, independent read of the same fact, and the one the logs actually show: if
+    -- the squad holds engine-formation slots and NOT ONE of them has been stamped
+    -- recently, every follow tree in the company stopped in the same instant. That is
+    -- the world, not thirty separate failures. One fresh claim anywhere disproves it.
+    local inSlot = 0
+    for k, v in pairs(self.FormationInSlot or {}) do
+        if v then
+            if self:FormationSlotFresh(k) then return false end
+            inSlot = inSlot + 1
+        end
+    end
+    return inSlot >= (self.FollowWatchSystemicMin or 5)
+end
+
+-- The heartbeat and the anchors are plain Lua tables, so they survive the load that
+-- kills the trees and moves every merc. Left alone they describe a world that no longer
+-- exists, which is the same false-stall storm one level up. Cleared here; both
+-- re-establish themselves within a scheduler poll.
+function mercenaries:FollowWatchOnLoad()
+    self.BtHeartbeatAt   = nil
+    self._dvPos          = nil
+    self._dvUntil        = nil
+    self._dvSysLoggedAt  = nil
+    self.FollowStallStreak = {}
+end
+
 function mercenaries:DismountVerify()
     -- A standing order re-issued inside the window: the men are MEANT to be still.
     if self.HoldActive or self.EscortEnt then self._dvUntil, self._dvPos = nil, nil; return end
@@ -626,6 +681,8 @@ function mercenaries:DismountVerify()
     -- BeginFollowVerify tested these before opening a window; the continuous watch has no
     -- such caller, so they belong here too.
     if _G.MercIdle or _G.MercenariesDismissed then self._dvPos = nil; return end
+    -- Nothing moved because nothing is running. See the block comment above.
+    if self:FollowWatchWorldFrozen() then self._dvPos = nil; return end
 
     local pp
     pcall(function() pp = player and player:GetWorldPos() end)
@@ -633,7 +690,10 @@ function mercenaries:DismountVerify()
 
     local leader = self.FormationLeader and tostring(self.FormationLeader) or nil
     self._dvPos = self._dvPos or {}
-    local n = 0
+    -- Indicted first, acted on afterwards: the count is what decides whether this pass
+    -- is describing the men or the world, and it is not known until the sweep is done.
+    local cand, squad = {}, 0
+    for _ in pairs(self.ActiveMercs or {}) do squad = squad + 1 end
 
     for _, ent in pairs(self.ActiveMercs or {}) do
         local k = fhKey(ent)
@@ -676,22 +736,7 @@ function mercenaries:DismountVerify()
                                 or (self.MercTargetOf or {})[tostring(w)] ~= nil
                         end)
                         if not busy then
-                            self:FollowStalled(ent)
-                            -- ESCALATE ONLY ON A DEAD TREE. A re-fire is cheap and harmless,
-                            -- so everyone judged stuck gets one - but the escalation takes a
-                            -- man out of the formation, and doing that to somebody who is
-                            -- fine is far worse than the stall it is meant to cure. A FRESH
-                            -- slot claim is positive proof his tree is running (follow.xml
-                            -- stamps it every pass), and the drift test alone flags the front
-                            -- ranks of a deep column whenever the player pauses - the first
-                            -- version escalated four healthy men in one session on exactly
-                            -- that, one of them the man who had just been elected leader.
-                            -- The leader is never escalated at all: he owns MakeFormation, so
-                            -- suppressing him takes the whole formation down with him.
-                            if not self:FormationSlotFresh(k) and k ~= leader then
-                                pcall(function() self:FollowEscalate(ent, k) end)
-                            end
-                            n = n + 1
+                            cand[#cand + 1] = { ent = ent, k = k }
                         end
                         -- Re-anchor either way, so one stall is one reset.
                         self._dvPos[k] = { x = mp.x, y = mp.y, px = pp.x, py = pp.y }
@@ -701,10 +746,42 @@ function mercenaries:DismountVerify()
         end
     end
 
-    if n > 0 then
-        System.LogAlways('[MercForm] ' .. tostring(n) .. ' merc(s) were not following (' ..
-                         tostring(self._dvReason or 'dismount') .. ') - re-firing follow on them')
+    if #cand == 0 then return end
+
+    -- Half the company indicted on one sample is not half the company failing; it is the
+    -- world not running under them. Everyone has already been re-anchored, so standing
+    -- down here costs one pass and the genuinely stuck are picked up on the next.
+    local systemic = math.max(self.FollowWatchSystemicMin or 5,
+                              squad * (self.FollowWatchSystemicFrac or 0.5))
+    if #cand >= systemic then
+        local now = fhNow()
+        if not self._dvSysLoggedAt or (now - self._dvSysLoggedAt) >= (self.FollowWatchSystemicLog or 15.0) then
+            self._dvSysLoggedAt = now
+            System.LogAlways('[MercForm] ' .. tostring(#cand) .. ' of ' .. tostring(squad) ..
+                             ' merc(s) flagged at once - the world is not running under them, standing down')
+        end
+        return
     end
+    self._dvSysLoggedAt = nil
+
+    for _, c in ipairs(cand) do
+        self:FollowStalled(c.ent)
+        -- ESCALATE ONLY ON A DEAD TREE. A re-fire is cheap and harmless, so everyone
+        -- judged stuck gets one - but the escalation takes a man out of the formation,
+        -- and doing that to somebody who is fine is far worse than the stall it is meant
+        -- to cure. A FRESH slot claim is positive proof his tree is running (follow.xml
+        -- stamps it every pass), and the drift test alone flags the front ranks of a deep
+        -- column whenever the player pauses - the first version escalated four healthy men
+        -- in one session on exactly that, one of them the man who had just been elected
+        -- leader. The leader is never escalated at all: he owns MakeFormation, so
+        -- suppressing him takes the whole formation down with him.
+        if not self:FormationSlotFresh(c.k) and c.k ~= leader then
+            pcall(function() self:FollowEscalate(c.ent, c.k) end)
+        end
+    end
+
+    System.LogAlways('[MercForm] ' .. tostring(#cand) .. ' merc(s) were not following (' ..
+                     tostring(self._dvReason or 'dismount') .. ') - re-firing follow on them')
 end
 
 -- Opens the verification window. Resets nobody by itself - see the block comment.

@@ -310,6 +310,11 @@ end
 -- into a BT variable. An error here would fail the ExecuteLua, and its Sequence, and
 -- the arm - which in a failureMode="Any" Parallel takes the whole tree with it.
 function mercenaries:MercIsIdle(ent)
+    -- Behaviour-tree liveness heartbeat. Both schedulers call this per merc every
+    -- ~600ms, so a recent stamp is positive proof the trees are actually running -
+    -- which is the one thing the follow watch cannot tell from positions alone.
+    -- See FollowWatchWorldFrozen and docs/formations.md.
+    self.BtHeartbeatAt = System.GetCurrTime()
     if _G.MercIdle then return true end
     local ok, idle = pcall(function()
         if not self.HoldActive then return false end
