@@ -12,9 +12,9 @@
                 <Decision Name="dec_ack_1" Priority="General" Alias="merc_bark_ack_1">
                     <Sequences>
                         <Sequence EndType="EndDialogue" Name="seq_ack_1">
-                            <DesignName StringName="lore_event_tab_jasne_ohUi" Text="Right you are." />
+                            <DesignName StringName="smlo_smlouvani_ale_samozr_nexs" Text="But of course." />
                             <Elements>
-                                <Response Role="role_mercenary_test"><Text StringName="lore_event_tab_jasne_ohUi"/></Response>
+                                <Response Role="role_mercenary_test"><Text StringName="smlo_smlouvani_ale_samozr_nexs"/></Response>
                             </Elements>
                         </Sequence>
                     </Sequences>

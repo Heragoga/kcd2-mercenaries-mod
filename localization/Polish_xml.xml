@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Wszyscy najemnicy odprawieni.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Najemnicy czekają.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Najemnicy podążają.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Specjalny towarzysz wynajęty.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Ten towarzysz jest już na twoich usługach!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Wezmę Volka.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Wyślę wiadomość. Przyjdzie.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Chodź ze mną.</Cell><Cell>Chodź ze mną.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Zostań i pilnuj obozu.</Cell><Cell>Zostań i pilnuj obozu.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Rozebrać jedno z ulepszeń.</Cell><Cell>Rozebrać jedno z ulepszeń.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Jedna z rzeczy, które zbudowaliśmy, musi zniknąć. Tylko jedna.</Cell><Cell>Jedna z rzeczy, które zbudowaliśmy, musi zniknąć. Tylko jedna.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>No dobrze, a która?</Cell><Cell>No dobrze, a która?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Ta. Rozbierz ją.</Cell><Cell>Ta. Rozbierz ją.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Tak jest. Zaraz zniknie - reszta zostanie na miejscu.</Cell><Cell>Tak jest. Zaraz zniknie - reszta zostanie na miejscu.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Wóz z jedzeniem.</Cell><Cell>Wóz z jedzeniem.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>Karczma.</Cell><Cell>Karczma.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Stanowisko myśliwego.</Cell><Cell>Stanowisko myśliwego.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>Przenośna kuźnia.</Cell><Cell>Przenośna kuźnia.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Stół alchemika.</Cell><Cell>Stół alchemika.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Plac ćwiczebny.</Cell><Cell>Plac ćwiczebny.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>Dom.</Cell><Cell>Dom.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Wieże łuczników.</Cell><Cell>Wieże łuczników.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Wozy dla łuczników.</Cell><Cell>Wozy dla łuczników.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>Palisada.</Cell><Cell>Palisada.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Bramy.</Cell><Cell>Bramy.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Nic takiego w tym obozie nie stoi.</Cell><Cell>Nic takiego w tym obozie nie stoi.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Ustalmy, kto wyrusza ze mną.</Cell><Cell>Ustalmy, kto wyrusza ze mną.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Gdy zabieram ludzi z obozu, chcę mieć za plecami tych, których trzeba.</Cell><Cell>Gdy zabieram ludzi z obozu, chcę mieć za plecami tych, których trzeba.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Powiedz mi, jak ich chcesz, a odtąd tak będę ich dobierał.</Cell><Cell>Powiedz mi, jak ich chcesz, a odtąd tak będę ich dobierał.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Właśnie tak ich chcę.</Cell><Cell>Właśnie tak ich chcę.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Zapisane. Taki oddział dostaniesz następnym razem, gdy zabierzesz ludzi.</Cell><Cell>Zapisane. Taki oddział dostaniesz następnym razem, gdy zabierzesz ludzi.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Łucznicy: taki sam skład jak w całej kompanii.</Cell><Cell>Łucznicy: taki sam skład jak w całej kompanii.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Łucznicy: żadnych. Tylko piechota.</Cell><Cell>Łucznicy: żadnych. Tylko piechota.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Łucznicy: jedna czwarta oddziału.</Cell><Cell>Łucznicy: jedna czwarta oddziału.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Łucznicy: połowa oddziału.</Cell><Cell>Łucznicy: połowa oddziału.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Łucznicy: wszyscy, jakich mamy.</Cell><Cell>Łucznicy: wszyscy, jakich mamy.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Piechota: najpierw najlepsi.</Cell><Cell>Piechota: najpierw najlepsi.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Piechota: mieszanka wszystkich.</Cell><Cell>Piechota: mieszanka wszystkich.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Piechota: najpierw najzieleńsi.</Cell><Cell>Piechota: najpierw najzieleńsi.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Skład oddziału: tylu łuczników, ilu ma kompania.</Cell><Cell>Skład oddziału: tylu łuczników, ilu ma kompania.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Skład oddziału: bez łuczników, tylko piechota.</Cell><Cell>Skład oddziału: bez łuczników, tylko piechota.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Skład oddziału: jedna czwarta łuczników.</Cell><Cell>Skład oddziału: jedna czwarta łuczników.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Skład oddziału: połowa łuczników.</Cell><Cell>Skład oddziału: połowa łuczników.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Skład oddziału: wszyscy łucznicy kompanii.</Cell><Cell>Skład oddziału: wszyscy łucznicy kompanii.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Skład oddziału: najpierw idą najlepsi ludzie.</Cell><Cell>Skład oddziału: najpierw idą najlepsi ludzie.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Skład oddziału: mieszanka wszystkich.</Cell><Cell>Skład oddziału: mieszanka wszystkich.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Skład oddziału: najpierw idą najzieleńsi ludzie.</Cell><Cell>Skład oddziału: najpierw idą najzieleńsi ludzie.</Cell></Row>
 </Table>

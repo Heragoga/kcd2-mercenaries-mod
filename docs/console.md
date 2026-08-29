@@ -93,6 +93,8 @@ Weapon: `merc_archer_bow`, `merc_archer_crossbow`, `merc_archer_handcannon`.
 | `merc_camp_recall` | Call every man to you without breaking camp |
 | `merc_camp_deploy_all` / `merc_camp_deploy_half` | Take the company (or its best half) out with you |
 | `merc_camp_return_all` | Send every deployed man back |
+| `merc_camp_remove [1-11]` | Take ONE camp improvement down; no argument lists them |
+| `merc_camp_party [1-8]` | Set what a deployed party is made of (archer share, which foot); no argument lists them and prints what is set |
 | `merc_gate_open` / `merc_gate_close` | Work the camp gates |
 
 ## Enemies
@@ -135,6 +137,7 @@ See docs/walls-and-sieges.md.
 | `merc_upkeep <mode>` | off, lenient, standard, harsh |
 | `merc_encounters <0/1>` | Random raids, patrols and ambushes |
 | `merc_patrols <0/1>` | Roaming road patrols |
+| `merc_patrols_pace <gap> [postFight] [standingCap]` | **dev** — how often a roaming gang may appear at all, in seconds. No argument reports. See docs/patrols.md, "Pacing" |
 | `merc_status_icons <0/1>` | Squad status icons on the player HUD |
 | `merc_autodismount <0/1>` | Mercs get off their horses to fight |
 | `merc_horses <0/1>` | Let the company use horses at all. Off = they march on foot whatever you ride. Saved; also in the quartermaster's Mod settings |

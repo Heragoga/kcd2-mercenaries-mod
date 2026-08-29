@@ -27,6 +27,9 @@ function mercenaries:IsFormationEligible(ent, wuid)
     if self:IsMercInCampProper(wuid) then return false end
     if self:CampActorGet(wuid) then return false end
     if self.NpcFormations and self.NpcFormations[tostring(wuid)] then return false end
+    -- Stalled repeatedly while in formation: keep him out of it for a while so his follow
+    -- tree takes the plain-chain arm instead (see FollowEscalate).
+    if self.FollowFormationSuppressed and self:FollowFormationSuppressed(wuid) then return false end
     return true
 end
 
@@ -411,6 +414,12 @@ mercenaries.DismountVerifyMoved  = 1.0   -- a merc covering less than this has n
 mercenaries.DismountVerifyPlayer = 5.0   -- ...judged stuck once the player has covered this much
 mercenaries.DismountVerifyFar    = 22.0  -- ...or if he is simply this far away and stationary
 
+-- How often the same sampler runs OUTSIDE those windows. The four triggers above only cover
+-- the moments a stall was known to be likely, and the scheduler's own self-heal needs the
+-- merc 35m away - so a man who halts beside the player was watched by nothing. 0 disables
+-- the continuous watch. See docs/formations.md, "When a merc stops following".
+mercenaries.FollowWatchEvery = 4.0
+
 -- THE FAR TEST DOES NOT APPLY TO A MAN HOLDING A FORMATION SLOT. 22m is shorter than the
 -- formation itself: merc_column40 is 36m deep, so the rear half of a CORRECTLY formed column
 -- is beyond it, and when the player pauses those men are stationary because they are standing
@@ -459,9 +468,134 @@ function mercenaries:DismountWatch()
                 self._dvNextAt = now + self.DismountVerifyEvery
                 self:DismountVerify()
             end
+        -- ...and the same sampler, always, at a slower cadence.
+        elseif (self.FollowWatchEvery or 0) > 0
+               and (not self._dvNextAt or now >= self._dvNextAt) then
+            self._dvNextAt = now + self.FollowWatchEvery
+            self._dvReason = "the follow watch"
+            self:DismountVerify()
         end
     end)
     if not ok then System.LogAlways('[MercForm] DismountWatch error') end
+end
+
+-- ---------------------------------------------------------------------------
+-- WHEN RE-FIRING DOES NOT WORK.
+--
+-- The eviction+re-fire above cures a merc whose follow tree DIED. It cannot cure one
+-- whose tree is alive and running an arm that produces no movement, because a re-fire
+-- restarts that same tree into that same state - so the log fills with "N mercs were
+-- not following" for the same man every few seconds and he never takes a step. That is
+-- the reported bug, and its tell is exactly that repetition.
+--
+-- So repeated failure ESCALATES rather than repeats. Each tier changes something the
+-- next re-fire will read, instead of asking the same question again:
+--
+--   tier 1  evict + re-fire                 (what already happened)
+--   tier 2  drop him out of the ENGINE FORMATION for a while. follow.xml dispatches on
+--           $useFormation, so this puts the re-fired tree down a completely different
+--           arm - the plain CrimeFollower chain instead of FormationFollower. If the
+--           stall has anything to do with the formation (a stale handle, a slot he
+--           cannot reach, a chain parked behind another stalled man) that is the cure;
+--           if it does not, he still follows, just out of shape for half a minute.
+--   tier 3  put him beside the player by hand. MonitorDistanceAndTeleport would do it
+--           on its own, but only past its distance gate - and a man stalled AT the
+--           player's heel is never far enough for it to see, which is exactly why this
+--           bug slips through every other net in the mod.
+--
+-- The streak resets the moment he is seen to move, so a merc who recovers at tier 1
+-- never reaches tier 2 and normal play never touches any of it.
+mercenaries.FollowStallStreak       = {}   -- [k] = consecutive stalls with no movement between
+mercenaries.FollowFormationOffUntil = {}   -- [k] = keep him off the engine formation until this time
+mercenaries.FollowEscalateFormAt    = 3    -- stalls before dropping him from the formation
+mercenaries.FollowEscalateTeleAt    = 5    -- ...and before hauling him to the player
+mercenaries.FollowFormationOffSecs  = 30.0
+
+-- Read by IsFormationEligible, so one flag takes him out of BOTH the slot chain and his
+-- own $useFormation in the same pass.
+function mercenaries:FollowFormationSuppressed(wuid)
+    if not wuid then return false end
+    local k = tostring(wuid)
+    -- He was elected while suppressed (or elected since): the formation hangs off him, so
+    -- honouring the suppression now would take the shape down for everybody.
+    if self.FormationLeader and tostring(self.FormationLeader) == k then
+        self.FollowFormationOffUntil[k] = nil
+        return false
+    end
+    local until_ = self.FollowFormationOffUntil[k]
+    if not until_ then return false end
+    if fhNow() >= until_ then
+        self.FollowFormationOffUntil[k] = nil
+        System.LogAlways("[MercForm] " .. k .. " back in the formation (stall suppression expired)")
+        return false
+    end
+    return true
+end
+
+-- Everything that decides WHICH arm of follow.xml a merc is in, on one line. Printed at
+-- the first escalation: without it the next report of this bug is another guess, because
+-- the state is gone by the time anyone goes looking.
+function mercenaries:FollowStallReport(ent, k)
+    local f = {}
+    local function add(n, v) f[#f + 1] = n .. "=" .. tostring(v) end
+    pcall(function()
+        local w = ent.this and ent.this.id or ent.id
+        local d = (self.FormationSlots or {})[k]
+        add("inSlotChain", d ~= nil)
+        add("isLeader", self.FormationLeader and tostring(self.FormationLeader) == k)
+        add("leader", self.FormationLeader)
+        add("inFormation", (self.FormationInSlot or {})[k])
+        add("slotFresh", self:FormationSlotFresh(k))
+        add("slot", d and d.slot)
+        add("chainTarget", d and d.followTarget)
+        add("campActor", self:IsCampActor(w))
+        add("campOut", self:IsCampOut(w))
+        add("navGoto", self:IsNavGotoActive(ent))
+        add("target", (self.MercTargetOf or {})[tostring(w)])
+        add("mounted", ent.human and ent.human:IsMounted())
+        add("playerMounted", _G.PlayerMounted)
+        add("hold", self.HoldActive)
+        add("escort", self.EscortEnt ~= nil)
+    end)
+    System.LogAlways("[MercForm] STALL " .. tostring(ent and ent.GetName and ent:GetName())
+                     .. " :: " .. table.concat(f, " "))
+end
+
+-- Record one stall and act on the streak. Returns the streak length.
+function mercenaries:FollowEscalate(ent, k)
+    local n = (self.FollowStallStreak[k] or 0) + 1
+    self.FollowStallStreak[k] = n
+
+    if n == self.FollowEscalateFormAt then
+        self:FollowStallReport(ent, k)
+        self.FollowFormationOffUntil[k] = fhNow() + self.FollowFormationOffSecs
+        -- Deliberately NOT a CampFormationDirty: that nulls the leader and re-elects,
+        -- which drops the WHOLE squad onto the chain to fix one man. UpdateFormationSlots
+        -- rebuilds from scratch every pass and UpdateFormationRole publishes per merc, so
+        -- he leaves the formation on his own next tick and the chain re-packs itself.
+        System.LogAlways("[MercForm] " .. k .. " stalled " .. n ..
+                         "x - dropping him out of the formation onto the follow chain")
+    elseif n >= self.FollowEscalateTeleAt then
+        self:FollowStallReport(ent, k)
+        self.FollowStallStreak[k] = 0          -- one haul per streak, then judge him afresh
+        local moved = false
+        pcall(function()
+            local base = self:GetSafeSpawnPosition(player, 10)
+            if not base then return end
+            local tp = self:FindValidGround({
+                x = base.x + (math.random() - 0.5) * 3.0,
+                y = base.y + (math.random() - 0.5) * 3.0,
+                z = base.z,
+            }, base.z)
+            tp = self:TeleportKeepBehindLeader(tp) or tp
+            ent:SetPos(tp)
+            pcall(function() self:NoteTeleport(ent) end)
+            moved = true
+        end)
+        System.LogAlways("[MercForm] " .. k .. " stalled " .. n .. "x - " ..
+                         (moved and "hauled him to the player" or "found nowhere to haul him to"))
+    end
+    return n
 end
 
 -- One sample of the verification window.
@@ -484,6 +618,14 @@ end
 function mercenaries:DismountVerify()
     -- A standing order re-issued inside the window: the men are MEANT to be still.
     if self.HoldActive or self.EscortEnt then self._dvUntil, self._dvPos = nil, nil; return end
+    -- A wall battle owns everyone: wbLocked freezes the schedulers, so follow trees
+    -- legitimately stop stamping their slots - and on the fortified-camp probe the watch
+    -- read that as 44 stalls and HAULED 18 men to the player mid-battle. Stand down for
+    -- the battle and let the men re-anchor fresh afterwards.
+    if self.WBPhase and self.WBPhase ~= "idle" then self._dvPos = nil; return end
+    -- BeginFollowVerify tested these before opening a window; the continuous watch has no
+    -- such caller, so they belong here too.
+    if _G.MercIdle or _G.MercenariesDismissed then self._dvPos = nil; return end
 
     local pp
     pcall(function() pp = player and player:GetWorldPos() end)
@@ -507,8 +649,10 @@ function mercenaries:DismountVerify()
                 local moved = math.sqrt(dx * dx + dy * dy)
 
                 if moved >= self.DismountVerifyMoved then
-                    -- He is following. Re-anchor here.
+                    -- He is following. Re-anchor here, and forget any escalation - the
+                    -- streak only means anything while it is unbroken.
                     self._dvPos[k] = { x = mp.x, y = mp.y, px = pp.x, py = pp.y }
+                    self.FollowStallStreak[k] = nil
                 else
                     local qx, qy = pp.x - a.px, pp.y - a.py
                     local drift  = math.sqrt(qx * qx + qy * qy)
@@ -523,12 +667,30 @@ function mercenaries:DismountVerify()
                         -- following by design, and re-firing follow would fight the walk.
                         local busy = false
                         pcall(function()
-                            busy = self:IsCampActor(ent.this and ent.this.id or ent.id)
+                            local w = ent.this and ent.this.id or ent.id
+                            busy = self:IsCampActor(w)
                                 or self:IsNavGotoActive(ent)
                                 or ent.soul:HasScriptContext("crime_interruptAttack")
+                                -- Committed to an enemy: the approach to one is legitimately
+                                -- slow. Only reachable now the watch runs outside a window.
+                                or (self.MercTargetOf or {})[tostring(w)] ~= nil
                         end)
                         if not busy then
                             self:FollowStalled(ent)
+                            -- ESCALATE ONLY ON A DEAD TREE. A re-fire is cheap and harmless,
+                            -- so everyone judged stuck gets one - but the escalation takes a
+                            -- man out of the formation, and doing that to somebody who is
+                            -- fine is far worse than the stall it is meant to cure. A FRESH
+                            -- slot claim is positive proof his tree is running (follow.xml
+                            -- stamps it every pass), and the drift test alone flags the front
+                            -- ranks of a deep column whenever the player pauses - the first
+                            -- version escalated four healthy men in one session on exactly
+                            -- that, one of them the man who had just been elected leader.
+                            -- The leader is never escalated at all: he owns MakeFormation, so
+                            -- suppressing him takes the whole formation down with him.
+                            if not self:FormationSlotFresh(k) and k ~= leader then
+                                pcall(function() self:FollowEscalate(ent, k) end)
+                            end
                             n = n + 1
                         end
                         -- Re-anchor either way, so one stall is one reset.
@@ -540,8 +702,8 @@ function mercenaries:DismountVerify()
     end
 
     if n > 0 then
-        System.LogAlways('[MercForm] ' .. tostring(n) .. ' merc(s) were not following after "' ..
-                         tostring(self._dvReason or 'dismount') .. '" - re-firing follow on them')
+        System.LogAlways('[MercForm] ' .. tostring(n) .. ' merc(s) were not following (' ..
+                         tostring(self._dvReason or 'dismount') .. ') - re-firing follow on them')
     end
 end
 
@@ -602,3 +764,44 @@ function mercenaries:CalculateFormationTarget(bt_data, myWuid)
         System.LogAlways('[Mercenary Jeff] CalculateFormationTarget Error: ' .. tostring(err))
     end
 end
+
+-- Print the follow state of every merc on demand, plus any stall streak and suppression
+-- currently in force. The same line FollowStallReport prints on an escalation, but for
+-- the whole squad and without having to wait for one - the first thing to run when
+-- somebody reports a merc standing still.
+function mercenaries:FollowStallStatus()
+    System.LogAlways('[MercForm] leader=' .. tostring(self.FormationLeader)
+                     .. ' epoch=' .. tostring(self.FormationEpoch)
+                     .. ' squad=' .. tostring(self.SquadSize)
+                     .. ' off=' .. tostring(self._formationOffReason or 'no - formation is on'))
+    local n = 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        local k = ent and (ent.this and ent.this.id or ent.id)
+        if k then
+            k = tostring(k)
+            n = n + 1
+            local streak = self.FollowStallStreak[k]
+            local off    = self.FollowFormationOffUntil[k]
+            self:FollowStallReport(ent, k)
+            if streak or off then
+                System.LogAlways('[MercForm]     stallStreak=' .. tostring(streak or 0)
+                                 .. ' formationSuppressed=' .. tostring(off ~= nil))
+            end
+        end
+    end
+    System.LogAlways('[MercForm] ' .. n .. ' merc(s) reported')
+end
+
+-- Clear every stall streak and suppression by hand (after fixing something, or to
+-- re-test from a clean slate).
+function mercenaries:FollowStallReset()
+    self.FollowStallStreak       = {}
+    self.FollowFormationOffUntil = {}
+    self.FollowStuck             = {}
+    System.LogAlways('[MercForm] stall streaks and formation suppressions cleared')
+end
+
+mercenaries:DevCommand("merc_follow_why", "mercenaries:FollowStallStatus()",
+                   "Print every merc's follow state, stall streak and formation suppression")
+mercenaries:DevCommand("merc_follow_reset", "mercenaries:FollowStallReset()",
+                   "Clear all follow stall streaks and formation suppressions")

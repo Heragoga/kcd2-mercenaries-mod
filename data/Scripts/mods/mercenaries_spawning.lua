@@ -801,6 +801,47 @@ mercenaries.EnemyGroups = {
         },
     },
 
+    -- The town watch. Turned out by mercenaries_townwatch.lua when the company starts
+    -- murdering people in a settlement - never spawned by an encounter or a raid.
+    --
+    -- Kuttenberg livery on every man (Waffenrock02/09_mKuttenberg, one Coat04), kettle
+    -- hats throughout - the town-watch helm - over a mail coif, short mail and a
+    -- gambeson. The senior half add brigandine arms. Budget ~1050-1250, deliberately
+    -- between the bandits and Sigismund's soldiers: a municipal watch, not an army.
+    --
+    -- No archers. A town watch that opens fire into a crowded street is neither what
+    -- they did nor something the spawn points could place safely.
+    townguard = {
+        label = "Town watch",
+        -- Sword, axe and mace, all with shields (2/3/5) plus bare mace and axe. Kite
+        -- shields in Kuttenberg's own livery.
+        weapons = { 2, 2, 3, 5, 7, 8 },
+        shields = {
+            "a18df8ed-8a4a-47fa-a9fc-bbf8a7f72d68",  -- shieldKite_kuttenberg_A
+            "23d3d037-6eb4-46dd-b294-10b0951b85f8",  -- shieldKite_kuttenberg_B
+        },
+        clothing = {
+            "6d657263-e00a-4c00-9000-000000000001", "6d657263-e00a-4c00-9000-000000000002",
+            "6d657263-e00a-4c00-9000-000000000003", "6d657263-e00a-4c00-9000-000000000004",
+            "6d657263-e00a-4c00-9000-000000000005", "6d657263-e00a-4c00-9000-000000000006",
+            "6d657263-e00a-4c00-9000-000000000007", "6d657263-e00a-4c00-9000-000000000008",
+            "6d657263-e00a-4c00-9000-000000000009", "6d657263-e00a-4c00-9000-00000000000a",
+        },
+        melee = {
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0001", tier = "medium" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0002", tier = "medium" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0003", tier = "medium" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0004", tier = "medium" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0005", tier = "medium" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0006", tier = "strong" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0007", tier = "strong" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0008", tier = "strong" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b0009", tier = "strong" },
+            { guid = "7c9a1e50-0b21-5a01-9e10-4d1f0a7b000a", tier = "strong" },
+        },
+        archers = {},
+    },
+
     -- Heinrich: a single, absurdly overpowered boss - essentially a late-game
     -- player. Henry's own look (henry head/hair/body), his final plate armour,
     -- St. George's sword, maxed combat_level (1.0) and 2x health. Spawn one.
@@ -995,6 +1036,11 @@ function mercenaries:SpawnEnemyGroup(groupKey, amount)
         return
     end
 
+    -- A burst this size is about to blow the stock AI-LOD budgets; arm the boost BEFORE the
+    -- men exist rather than after CachedEnemies notices them. The bench measured the gap:
+    -- 64 hidden-flips during a battle, clustered at its start. See LodBoostPrime.
+    if self.LodBoostPrime then pcall(function() self:LodBoostPrime(amount + (_G.MercCount or 0)) end) end
+
     local ok, err = pcall(function()
         local spawnPos, playerRot = self:GetSafeSpawnPosition(player, 8)
         if not spawnPos then return end
@@ -1038,6 +1084,8 @@ mercenaries.RenegadeTierToGroup = { weak = "looter", medium = "bandit", strong =
 function mercenaries:SpawnRenegade(amount, _outfit, tier, _weapon)
     self:SpawnEnemyGroup(self.RenegadeTierToGroup[tier or "strong"] or "bandit", amount or 1)
 end
+
+-- (LodBoostPrime is called from SpawnEnemyGroup below - see mercenaries_lodboost.lua.)
 
 -- Flat pool of enemy melee souls, used by SpawnTestBattle's enemy line.
 mercenaries.RenegadeSouls = {}

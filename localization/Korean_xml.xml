@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>모든 용병이 해고되었습니다.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>용병 대기 중.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>용병 동행 중.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>특별한 동료가 고용되었습니다.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>이 동료는 이미 고용된 상태입니다!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>볼레크를 데려가겠소.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>기별을 넣겠습니다. 곧 올 것입니다.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>나와 함께 가자.</Cell><Cell>나와 함께 가자.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>남아서 진영을 지켜라.</Cell><Cell>남아서 진영을 지켜라.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>시설 중 하나를 철거한다.</Cell><Cell>시설 중 하나를 철거한다.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>우리가 지은 것 중 하나를 없애야겠다. 딱 하나만.</Cell><Cell>우리가 지은 것 중 하나를 없애야겠다. 딱 하나만.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>그럼 어느 것을 말씀입니까?</Cell><Cell>그럼 어느 것을 말씀입니까?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>저것. 철거해라.</Cell><Cell>저것. 철거해라.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>알겠습니다. 곧 치우겠습니다 - 나머지는 그대로 둡니다.</Cell><Cell>알겠습니다. 곧 치우겠습니다 - 나머지는 그대로 둡니다.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>식량 수레.</Cell><Cell>식량 수레.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>주막.</Cell><Cell>주막.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>사냥꾼의 초소.</Cell><Cell>사냥꾼의 초소.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>이동식 대장간.</Cell><Cell>이동식 대장간.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>연금술 작업대.</Cell><Cell>연금술 작업대.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>훈련장.</Cell><Cell>훈련장.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>집.</Cell><Cell>집.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>궁수 망루.</Cell><Cell>궁수 망루.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>궁수용 수레.</Cell><Cell>궁수용 수레.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>목책.</Cell><Cell>목책.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>문.</Cell><Cell>문.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>이 진영에는 그런 것이 없다.</Cell><Cell>이 진영에는 그런 것이 없다.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>누가 나와 함께 출정할지 정하자.</Cell><Cell>누가 나와 함께 출정할지 정하자.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>진영에서 사람을 데리고 나갈 때는, 제대로 된 자들을 곁에 두고 싶다.</Cell><Cell>진영에서 사람을 데리고 나갈 때는, 제대로 된 자들을 곁에 두고 싶다.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>어떻게 구성하길 원하시는지 말씀해 주십시오. 앞으로 그렇게 뽑겠습니다.</Cell><Cell>어떻게 구성하길 원하시는지 말씀해 주십시오. 앞으로 그렇게 뽑겠습니다.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>그걸로 하겠다.</Cell><Cell>그걸로 하겠다.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>알겠습니다. 다음에 사람을 데리고 나가실 때 그 편성을 드리겠습니다.</Cell><Cell>알겠습니다. 다음에 사람을 데리고 나가실 때 그 편성을 드리겠습니다.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>궁수: 부대와 같은 비율.</Cell><Cell>궁수: 부대와 같은 비율.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>궁수: 없음. 보병만.</Cell><Cell>궁수: 없음. 보병만.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>궁수: 부대의 4분의 1.</Cell><Cell>궁수: 부대의 4분의 1.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>궁수: 부대의 절반.</Cell><Cell>궁수: 부대의 절반.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>궁수: 우리가 가진 전부.</Cell><Cell>궁수: 우리가 가진 전부.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>보병: 가장 뛰어난 자부터.</Cell><Cell>보병: 가장 뛰어난 자부터.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>보병: 온갖 부류를 섞어서.</Cell><Cell>보병: 온갖 부류를 섞어서.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>보병: 가장 미숙한 자부터.</Cell><Cell>보병: 가장 미숙한 자부터.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>부대 편성: 부대에 있는 만큼의 궁수.</Cell><Cell>부대 편성: 부대에 있는 만큼의 궁수.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>부대 편성: 궁수 없음, 보병만.</Cell><Cell>부대 편성: 궁수 없음, 보병만.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>부대 편성: 궁수 4분의 1.</Cell><Cell>부대 편성: 궁수 4분의 1.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>부대 편성: 궁수 절반.</Cell><Cell>부대 편성: 궁수 절반.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>부대 편성: 부대의 모든 궁수.</Cell><Cell>부대 편성: 부대의 모든 궁수.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>부대 편성: 가장 뛰어난 자부터 나간다.</Cell><Cell>부대 편성: 가장 뛰어난 자부터 나간다.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>부대 편성: 온갖 부류를 섞음.</Cell><Cell>부대 편성: 온갖 부류를 섞음.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>부대 편성: 가장 미숙한 자부터 나간다.</Cell><Cell>부대 편성: 가장 미숙한 자부터 나간다.</Cell></Row>
 </Table>

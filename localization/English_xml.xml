@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>All mercenaries dismissed.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Mercenaries waiting.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Mercenaries following.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Special companion hired.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>This companion is already in your service!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>I'll take Volek.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>I'll send word. He'll come.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Come with me.</Cell><Cell>Come with me.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Stay and hold the camp.</Cell><Cell>Stay and hold the camp.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Take one of the improvements down.</Cell><Cell>Take one of the improvements down.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>One of the things we've built has to go. Just the one.</Cell><Cell>One of the things we've built has to go. Just the one.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>Which one, then?</Cell><Cell>Which one, then?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>That one. Pull it down.</Cell><Cell>That one. Pull it down.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Aye. It'll be gone directly - the rest stays where it stands.</Cell><Cell>Aye. It'll be gone directly - the rest stays where it stands.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>The food cart.</Cell><Cell>The food cart.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>The tavern.</Cell><Cell>The tavern.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>The hunter's station.</Cell><Cell>The hunter's station.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>The portable smithy.</Cell><Cell>The portable smithy.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>The alchemy bench.</Cell><Cell>The alchemy bench.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>The practice yard.</Cell><Cell>The practice yard.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>The house.</Cell><Cell>The house.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>The archer towers.</Cell><Cell>The archer towers.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>The archer carts.</Cell><Cell>The archer carts.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>The palisade.</Cell><Cell>The palisade.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>The gates.</Cell><Cell>The gates.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>There's nothing of the sort standing in this camp.</Cell><Cell>There's nothing of the sort standing in this camp.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Let's settle who marches out with me.</Cell><Cell>Let's settle who marches out with me.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>When I take men out of camp, I want the right sort at my back.</Cell><Cell>When I take men out of camp, I want the right sort at my back.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Tell me how you want them and I'll pick them that way from now on.</Cell><Cell>Tell me how you want them and I'll pick them that way from now on.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>That's how I want them.</Cell><Cell>That's how I want them.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Noted. That's the company you'll get next time you take men out.</Cell><Cell>Noted. That's the company you'll get next time you take men out.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Archers: the same mix as the company.</Cell><Cell>Archers: the same mix as the company.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Archers: none. Foot only.</Cell><Cell>Archers: none. Foot only.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Archers: a quarter of the party.</Cell><Cell>Archers: a quarter of the party.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Archers: half the party.</Cell><Cell>Archers: half the party.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Archers: every one we have.</Cell><Cell>Archers: every one we have.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Foot: the best men first.</Cell><Cell>Foot: the best men first.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Foot: a mix of all sorts.</Cell><Cell>Foot: a mix of all sorts.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Foot: the greenest first.</Cell><Cell>Foot: the greenest first.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Party make-up: as many archers as the company has.</Cell><Cell>Party make-up: as many archers as the company has.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Party make-up: no archers, foot only.</Cell><Cell>Party make-up: no archers, foot only.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Party make-up: a quarter archers.</Cell><Cell>Party make-up: a quarter archers.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Party make-up: half archers.</Cell><Cell>Party make-up: half archers.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Party make-up: every archer in the company.</Cell><Cell>Party make-up: every archer in the company.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Party make-up: the best men go first.</Cell><Cell>Party make-up: the best men go first.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Party make-up: a mix of all sorts.</Cell><Cell>Party make-up: a mix of all sorts.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Party make-up: the greenest men go first.</Cell><Cell>Party make-up: the greenest men go first.</Cell></Row>
 </Table>

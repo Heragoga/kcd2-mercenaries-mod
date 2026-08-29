@@ -1394,6 +1394,22 @@
                     <Edge From="qm_drink_handler.OnAccept" To="Exec" />
                     <Constant Name="Amount" Value="1" />
                 </EventFunction>
+                <!-- "Take this food for the men", asked of any merc instead of the
+                     quartermaster. The panel above needs his inventory and so needs a camp;
+                     these two hand over everything edible the player carries (potions are not
+                     in FoodItemClasses/DrinkItemClasses) and need nothing but a merc to talk to. -->
+                <EventFunction Name="exec_merc_give_food" PositionY="-1200" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be68d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_give_food" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_merc_give_drink" PositionY="-1240" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be69d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="dismissal_dialog.mercenary_give_drink" To="Exec" />
+                </EventFunction>
                 <EventFunction Name="exec_qm_buy_food" PositionY="-280" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be6ad" />
                     <Constant Name="Amount" Value="1" />
@@ -1492,6 +1508,122 @@
                     <Constant Name="Amount" Value="1" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_archercart" To="Exec" />
+                </EventFunction>
+                <!-- Remove-one and party composition: one ItemClass each, the AMOUNT granted
+                     is the option the player picked. -->
+                <EventFunction Name="exec_qm_rm_cart" PositionY="1000" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_cart" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_inn" PositionY="1020" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_inn" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_hunter" PositionY="1040" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_hunter" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_smithy" PositionY="1060" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="4" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_smithy" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_alchemy" PositionY="1080" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_alchemy" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_practice" PositionY="1100" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="6" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_practice" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_house" PositionY="1120" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="7" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_house" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_tower" PositionY="1140" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="8" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_tower" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_archercart" PositionY="1160" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="9" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_archercart" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_wall" PositionY="1180" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_wall" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_gate" PositionY="1200" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="11" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_gate" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_arch_same" PositionY="1220" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_arch_same" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_arch_none" PositionY="1240" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_arch_none" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_arch_qtr" PositionY="1260" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_arch_qtr" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_arch_half" PositionY="1280" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="4" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_arch_half" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_arch_all" PositionY="1300" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_arch_all" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_foot_best" PositionY="1320" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="6" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_foot_best" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_foot_mix" PositionY="1340" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="7" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_foot_mix" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_comp_foot_green" PositionY="1360" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />
+                    <Constant Name="Amount" Value="8" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_comp_foot_green" To="Exec" />
                 </EventFunction>
                 <EventFunction Name="exec_qm_removeupg" PositionY="240" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be7fd" />

@@ -7,6 +7,9 @@
 		<task name="equipment" class="equipment">
 			<source path="equipment\mercenariesequipment.xml" />
 		</task>
+		<task name="contexts" class="contexts">
+			<source path="contexts\mercenariescontexts.xml" />
+		</task>
 		<task name="appearance" class="appearance">
 			<source path="appearance\mercenariesappearance.xml" />
 			<source path="appearance\enemiesappearance.xml" />

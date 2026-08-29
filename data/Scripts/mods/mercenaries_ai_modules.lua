@@ -105,6 +105,50 @@ end
 -- leash so the two cannot disagree - one sheathing him while the other still wants him
 -- fighting is exactly the draw/sheathe loop. A little wider, so combat ends before the
 -- target is dropped rather than the other way round.
+-- ---------------------------------------------------------------------------
+-- BEHAVIOUR LOD
+--
+-- Every merc runs the full acquisition pass on every poll, whether or not there is anything
+-- in the world to acquire. That cost scales with squad size and is paid hardest exactly where
+-- it is least useful: fifty men standing in a peaceful market. This is the one lever in the
+-- mod that scales DOWN with squad size instead of up.
+--
+-- The gate is deliberately SQUAD-WIDE and pessimistic, not per-merc-distance. Distance would
+-- be the obvious proxy - a man forty metres back cannot see much - but it is the wrong one: a
+-- merc at the back is exactly who gets jumped first, and a distance gate would blind him. What
+-- actually makes the pass pointless is that there is NOTHING TO FIND, and the mod already
+-- computes that squad-wide, every 300ms, authoritatively:
+--
+--   * CachedEnemies empty  - ScanForEnemies reads that very table, so with it empty the whole
+--     acquisition block is provably a no-op: the enemies array comes back empty, the For loop
+--     never iterates, and PickCombatTarget has nothing to pick from.
+--   * EnemyAlerted false   - nothing armed has been seen recently anywhere near the squad.
+--   * this merc not in combat, not holding a claim, and no forced/focus target.
+--
+-- Even then it is not skipped outright: MercCheapSkip lets a FULL pass through every Nth poll
+-- (see the BT), so anything the squad-wide signals could miss - a town guard turning on one
+-- man with nothing yet cached - is still picked up within a couple of seconds instead of
+-- never. That is the difference between an optimisation and a merc who stands and watches.
+mercenaries.BehaviourLodOn   = true
+mercenaries.MercCheapSkip    = 3      -- full passes: 1 in (this + 1)
+
+function mercenaries:MercCheapMode(bt_data, myWuid)
+    if not self.BehaviourLodOn then bt_data.cheapMode = false; return end
+    local cheap = true
+    -- Anything at all going on squad-wide takes every man back to full rate.
+    if self.EnemyAlerted then cheap = false end
+    if cheap and next(self.CachedEnemies or {}) ~= nil then cheap = false end
+    if cheap and next(self.MaybeEnemies or {}) ~= nil then cheap = false end
+    if cheap and _G.MercFocusTarget then cheap = false end
+    if cheap and bt_data.inCombat == true then cheap = false end
+    if cheap and myWuid then
+        local k = tostring(myWuid)
+        if (self.MercTargetOf or {})[k] or (self.ForcedTargetOf or {})[k] then cheap = false end
+    end
+    bt_data.cheapMode = cheap
+    bt_data.cheapEvery = self.MercCheapSkip or 3
+end
+
 function mercenaries:MercLeashes(bt_data)
     bt_data.deTargetDist = self:MeleePlayerLeash() + 8.0
     -- Gates the one BT node that asks the ENGINE what the player is fighting. That node
@@ -527,4 +571,28 @@ function mercenaries:ClearNpcFormation(memberWuids)
     for _, w in ipairs(memberWuids) do
         self.NpcFormations[tostring(w)] = nil
     end
+end
+
+function mercenaries:BehaviourLodSet(on)
+    self.BehaviourLodOn = (on == true)
+    System.LogAlways("[MercBTLod] behaviour LOD " ..
+        (self.BehaviourLodOn and ("ON - 1 full acquisition pass in " .. ((self.MercCheapSkip or 3) + 1) ..
+                                  " while the squad has nothing to fight")
+                             or "OFF - full acquisition pass every poll, every merc"))
+end
+
+function mercenaries:BehaviourLodStatus()
+    local hot = {}
+    if self.EnemyAlerted then hot[#hot+1] = "alerted" end
+    if next(self.CachedEnemies or {}) ~= nil then hot[#hot+1] = "#CachedEnemies>0" end
+    if next(self.MaybeEnemies or {}) ~= nil then hot[#hot+1] = "#MaybeEnemies>0" end
+    if _G.MercFocusTarget then hot[#hot+1] = "focus target" end
+    local claims = 0
+    for _ in pairs(self.MercTargetOf or {}) do claims = claims + 1 end
+    System.LogAlways("[MercBTLod] enabled=" .. tostring(self.BehaviourLodOn) ..
+        "  fullPassEvery=" .. tostring((self.MercCheapSkip or 3) + 1) ..
+        "  squad=" .. (#hot > 0 and ("HOT (" .. table.concat(hot, ", ") .. ")") or "quiet - mercs are cheap") ..
+        "  claims=" .. claims)
+    System.LogAlways("[MercBTLod] quiet means CachedEnemies/MaybeEnemies are empty and no alert - " ..
+                     "the acquisition pass reads those tables, so with them empty it can find nothing.")
 end

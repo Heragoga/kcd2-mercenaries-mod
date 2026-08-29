@@ -355,7 +355,7 @@
                                                 <CrimeFollower Target="$playerWUID" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                             </MoveParamsDecorator>
                                         </SuppressFailure>
-                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
+                                        <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="'2s'" />
                                     </Parallel>
                                   </Sequence>
                                 </IfCondition>
@@ -413,8 +413,14 @@
                                                  never retry GetMemberFormation - one epoch bump would strand the
                                                  whole squad in chain-follow permanently. The Parallel ends when
                                                  the Wait does (successMode="Any"), so he keeps moving but
-                                                 re-attempts the formation every ~1.5s. Same idiom as the mount
-                                                 branch below. -->
+                                                 re-attempts the formation. 4s, not the 1.5s this shipped with:
+                                                 every box expiry destroys and rebuilds the engine follower (a
+                                                 fresh path/avoidance registration against every NPC in a town),
+                                                 and at 1.5s a squad's fallback churn was ~3 rebuilds/sec - a
+                                                 measured contributor to the mid-range "5 mercs cost 40fps in
+                                                 towns" report. Mode changes are NOT waiting on this box: the
+                                                 enclosing ContinuousSwitch aborts the arm the moment its guard
+                                                 flips, exactly as the 10s box on the mounted twin relies on. -->
                                             <Sequence>
                                             <Expression expressions="$inFormation = false" />
                                             <Parallel successMode="Any" failureMode="Any">
@@ -423,7 +429,7 @@
                                                         <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                                     </MoveParamsDecorator>
                                                 </SuppressFailure>
-                                                <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
+                                                <Wait duration="'4s'" timeType="GameTime" doFail="false" variation="'1500ms'" />
                                             </Parallel>
                                             </Sequence>
                                         </Selector>
@@ -433,7 +439,10 @@
 
                                 <!-- Follow chain. Time-boxed for the same reason as the formation fallback
                                      above: CrimeFollower never returns, so a bare one here would pin the merc
-                                     in chain-follow and he could never be reclaimed into a formation. -->
+                                     in chain-follow and he could never be reclaimed into a formation. 10s to
+                                     match the mounted arm - target changes and mode flips are handled by the
+                                     ContinuousSwitch guard ($followTarget == $previousTarget is IN the guard),
+                                     so the box is a belt-and-braces refresh, not the dispatch mechanism. -->
                                 <IfCondition failOnCondition="false" condition="~$useFormation &amp; (~$horseSpawned | $mountAbandoned) &amp; ~$goFlee &amp; $followTarget == $previousTarget">
                                   <Sequence>
                                     <Expression expressions="$inFormation = false" />
@@ -443,7 +452,7 @@
                                                 <CrimeFollower Target="$followTarget" Mode="Default" Role="Main" RelativeSpeedLimit="Dash" DisableGhosting="false" BlockWay="false"/>
                                             </MoveParamsDecorator>
                                         </SuppressFailure>
-                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
+                                        <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="'2s'" />
                                     </Parallel>
                                   </Sequence>
                                 </IfCondition>

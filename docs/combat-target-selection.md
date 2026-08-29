@@ -239,6 +239,37 @@ Narrow on four counts at once, and each one is load-bearing:
 - `IsOwnSide` plus the whole of `IsValidEnemy` still apply, so it can never turn the squad on
   itself, on a named companion, or on someone fleeing or immortality-protected.
 
+#### ...but a fight has two sides, and only one of them is ours
+
+"Armed, and standing within `FightGroupRange` of a man who is fighting us" describes the
+**other** side of that fight exactly as well as it describes his friends. A caravan's guards
+drawing steel on the bandits mobbing them are armed, and they are right next to a confirmed
+attacker — so the second pass admitted them with the relationship floor waived, and the squad
+fell on the caravan. That is the "mercenaries attack random people, like from random
+encounters or caravans, without an order" report. No stance was involved: this pass runs on
+every stance, including the default one.
+
+`StandsWith(ent, attacker)` is the extra gate, and it asks the candidate what he thinks of
+**our enemy** — the one question that separates the two cases:
+
+| `cand.soul:GetRelationship(attacker, "Current")` | Means | Verdict |
+| --- | --- | --- |
+| `<= -1` | he is fighting the same men we are | **never** a target |
+| `> 0` | he is allied with our enemy — he is in the band | take him |
+| `0`, or no answer | neither, or the engine declined | fall back to the soul id |
+
+The soul fallback is what keeps the pass doing its original job: a base-game bandit camp is
+ten generic bandits off **one roster entry**, so a shared soul id is real proof of a shared
+band where the relationship table has nothing to say. `attackers` therefore carries
+`{ x, y, z, wuid, soul }` rather than a bare position.
+
+An armed neutral in neither camp is now left alone, where before he was swept in for standing
+too close to a brawl. Nothing is lost: if he draws on us he comes back through the lock-on
+path in his own right, which is a stronger proof than proximity ever was.
+
+> The aggressive stance (`merc_engage_aggressive`) still takes any armed NPC, relationship
+> waived, by design — that is what the stance is. It is opt-in and it is not this bug.
+
 ### An unalerted bandit camp cannot hide a fight it has started
 
 `IsValidEnemy` refuses every member of a bandit camp that has not alerted (`BanditCampSuppressed`).

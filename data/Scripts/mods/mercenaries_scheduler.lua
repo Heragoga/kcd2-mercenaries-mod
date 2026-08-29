@@ -347,4 +347,20 @@ function mercenaries:SchedRegisterAll()
         periodMs = mercenaries.RaidTickMs or 20000,
         fn = function(s) if s.RaidTick then mercenaries.RaidTick() end end,
     })
+
+    -- Ungated by ActiveMercs: the player murdering a guard on his own is exactly the
+    -- case worth catching. One sphere query per second, same shape as combatscan's.
+    self:SchedRegister("crimewatch", {
+        periodMs = 1000,
+        gate = function(s) return s.CrimeWatchEnabled and player ~= nil end,
+        fn = function(s) s:CrimeWatchTick() end,
+    })
+
+    -- Reads what crimewatch published, so it runs a beat behind it rather than beside it.
+    -- Its own TWTickSecs throttles the real work; 1000ms here just keeps the two in step.
+    self:SchedRegister("townwatch", {
+        periodMs = 1000,
+        gate = function(s) return s.TWEnabled and player ~= nil end,
+        fn = function(s) s:TownWatchTick() end,
+    })
 end

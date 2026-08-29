@@ -870,6 +870,60 @@ expires, and the far test catches him again — the flag on its own would have b
 The player-drift half is never waived: if the player moves and a man does not, he is stuck
 whatever he believes about his slot.
 
+### When re-firing does not work: the escalation
+
+The eviction-and-re-fire above cures a merc whose follow tree **died**. It cannot cure one
+whose tree is alive and running an arm that produces no movement — a re-fire restarts that
+same tree into that same state. The symptom is unmistakable once you know it: the log fills
+with `N merc(s) were not following` for the same man every few seconds and he never takes a
+step. Repeating a cure that is not working is not a cure.
+
+So a *streak* of failed re-fires escalates instead. The streak resets the instant he is seen
+to move, so a merc who recovers at the first re-fire never reaches tier 2 and normal play
+never touches any of this.
+
+| Stalls | What changes |
+| --- | --- |
+| 1–2 | evict + re-fire (unchanged) |
+| 3 | **drop him out of the engine formation** for `FollowFormationOffSecs` (30 s) |
+| 5 | **teleport him to the player**, then judge him afresh |
+
+**Only a man with no fresh slot claim is ever escalated, and never the leader.** The first
+version escalated on the same signal that triggers the cheap re-fire, and a session's log
+showed why that is wrong: of five stall reports, four read `inFormation=true slotFresh=true`
+— positive proof their trees were running — and one of the four was the man who had just
+been elected to anchor the formation. Suppressing him took the shape down for everybody
+(`rebuild #5 … leader=nil`, `formation OFF (no leader)`, then six shrink rebuilds in a row).
+A re-fire is cheap and harmless, so everyone judged stuck still gets one; the escalation
+costs a man his place in the formation, so it now demands the stronger evidence — a stale
+`FormationSlotAt` stamp, meaning his tree has stopped reporting at all. `FollowFormationSuppressed`
+additionally releases anyone who is the current leader, in case he is elected while suppressed.
+
+The player-drift test on its own is not that evidence: it flags the front ranks of a deep
+column every time the player pauses or turns, which is exactly what those four were.
+
+Tier 2 is the interesting one. `follow.xml` dispatches on `$useFormation`, so taking a man
+out of the formation sends his *next* re-fire down a completely different arm — the plain
+`CrimeFollower` chain instead of `FormationFollower`. If the stall has anything to do with
+the formation (a stale handle, a slot he cannot path to, a chain parked behind another
+stalled man) that is the cure; if it does not, he still follows, just out of shape for half
+a minute. It runs through `IsFormationEligible`, so one flag removes him from both the slot
+chain and his own `$useFormation` in the same pass. It deliberately does **not** call
+`CampFormationDirty` — that nulls the leader and re-elects, dropping the whole squad onto the
+chain to fix one man; `UpdateFormationSlots` rebuilds from scratch every pass anyway, so he
+leaves on his own next tick and the chain re-packs itself.
+
+Tier 3 exists because `MonitorDistanceAndTeleport` only hauls a man in past its distance
+gate, and a merc stalled **at the player's heel** is never far enough for it to see. That is
+precisely why this bug slipped through every other net in the mod.
+
+`FollowStallReport` prints the full dispatch state — `inSlotChain`, `isLeader`, `leader`,
+`inFormation`, `slotFresh`, `slot`, `chainTarget`, `campActor`, `campOut`, `navGoto`,
+`target`, `mounted`, `playerMounted`, `hold`, `escort` — on the first escalation, because
+the state is gone by the time anyone goes looking. `merc_follow_why` prints the same line for
+the whole squad on demand plus each man's streak and suppression; `merc_follow_reset` clears
+them.
+
 ### Named companions ride at the front
 
 `FormationFollower` takes a `PreferredPositions` string naming a `<Spot>` in the preset, and our
@@ -1285,6 +1339,40 @@ rider is a lone companion permanently following the player; here the same rider 
 formation *anchor*, and nothing may sit ahead of him. Widening his standoff slides the whole
 authored column back — `merc_mounted50`'s deepest rank is already 64 m — and pushes more of it
 past the 35 m de-target in `mercenary_scheduler.xml`.
+
+### When a merc stops following
+
+`FollowStalled` → `PollFollowRefire` → fire `teleport` to evict, then let arm 4 start `follow`
+fresh, is the working cure. The problem was never the cure; it was **noticing**.
+
+Two things could notice, and between them they left a hole big enough to be the most-reported
+bug in the mod:
+
+* the scheduler's own self-heal (`mercenary_scheduler.xml`, arm 6) needs
+  `$distanceToPlayer > 35.0`. It cannot see a man who halts *beside* the player, and 35 m is
+  not negotiable — see "The follow-verification net must not fight a deep formation" above;
+* `DismountVerify` can see exactly that man, but it only ran inside a **25 s window** opened
+  by `BeginFollowVerify`, and only four things open one: a dismount, a battle ending, a hold
+  released, an escort ordered.
+
+So a merc who stalled at any other moment — and he can stall at any moment, from any cause —
+was watched by nothing at all, for the rest of the session. The player's only cure was to
+toggle idle by hand, which is precisely what the eviction does, done manually.
+
+`FollowWatchEvery` (4 s, 0 disables) runs the same sampler continuously when no window is
+open. Same per-merc anchors, same exemptions, slower cadence — a stall nobody has noticed yet
+is not urgent. Cost is one `GetWorldPos` per merc per sample.
+
+Two gates moved into `DismountVerify` itself, because the continuous path has no
+`BeginFollowVerify` to check them for it:
+
+* `_G.MercIdle` / `_G.MercenariesDismissed` — a squad that is *meant* to be standing;
+* a merc holding a claim in `MercTargetOf`, added to the existing `busy` test. He is committed
+  to an enemy, and the approach across open ground to one is legitimately slow. This could not
+  come up before: all four window triggers fire when no fight is on.
+
+`DismountWatch` returns early while the player is mounted, so the continuous watch inherits
+the mounted exemption for free — re-firing follow at a rider throws him off his horse.
 
 ### The eviction race — a third of the squad freezing after "follow me"
 

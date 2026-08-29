@@ -16,7 +16,9 @@
 				<Relation target="foeFaction" reputation="-1" />
 			</Relations>
 		</Faction>
-		<Faction Name="enemiesFaction">
+		<!-- Labels="publicEnemy" on every hostile faction is what makes their bodies free
+		     to loot and their deaths not a crime - see docs/public-enemy.md. -->
+		<Faction Name="enemiesFaction" Labels="publicEnemy">
             <Relations>
                 <Relation target="player"              reputation="-1" />
                 <Relation target="mercenariesFaction"  reputation="-1" />
@@ -38,23 +40,23 @@
 				<Relation target="players_friends" reputation="1" />
 			</Relations>
 		</Faction>
-		<!-- Roaming patrols. Hostile to the player, to his mercenaries and to the mod's
-		     bandit groups - and deliberately silent about every other faction, so
-		     civilians and quest NPCs fall through to the default neutral relation
-		     rather than being dragged into a war they have nothing to do with. -->
 		<!-- The rewritten hostile AI (docs/foe-ai.md). Its own faction so nothing it does
 		     can disturb enemiesFaction: hostile only to the player and to his mercs,
 		     archers and companions, silent about everything else so civilians and quest
 		     NPCs fall through to neutral. The player's mercs need the matching -1 above,
 		     or their own target selection (which gates on relationship == -1 to the
 		     player) never sees a foe as a valid enemy. -->
-		<Faction Name="foeFaction">
+		<Faction Name="foeFaction" Labels="publicEnemy">
 			<Relations>
 				<Relation target="player" reputation="-1" />
 				<Relation target="mercenariesFaction" reputation="-1" />
 			</Relations>
 		</Faction>
-		<Faction Name="patrolFaction">
+		<!-- Roaming patrols. Hostile to the player, to his mercenaries and to the mod's
+		     bandit groups - and deliberately silent about every other faction, so
+		     civilians and quest NPCs fall through to the default neutral relation
+		     rather than being dragged into a war they have nothing to do with. -->
+		<Faction Name="patrolFaction" Labels="publicEnemy">
 			<Relations>
 				<Relation target="player" reputation="-1" />
 				<Relation target="mercenariesFaction" reputation="-1" />

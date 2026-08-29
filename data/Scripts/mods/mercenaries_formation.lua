@@ -31,6 +31,17 @@ mercenaries.FormationShape = "column"
 -- leader turns, and a ladder that jumps 60% in one step jumps that lever arm with it.
 mercenaries.FormationSizes = { 6, 10, 14, 18, 24, 30, 40, 50 }
 
+-- Master switch for the ENGINE formation system (MakeFormation / FormationFollower). Off, the
+-- squad falls through to follow.xml's `~$useFormation` arm - a plain CrimeFollower chain, which
+-- is exactly what v1.6 and the bodyguards reference mod use and neither of them has this cost.
+--
+-- This is the A/B for "is the engine formation the per-merc cost in a crowd": nothing else
+-- changes, the men still exist, still render, still fight, still run every other tick. Both
+-- halves of the teardown are automatic - the leader's MakeFormation subtree has an EndFormation
+-- Cleanup guarded on $useFormation, and every follower's epoch-watch loop fails on ~$useFormation
+-- - so flipping this is safe mid-march and reversible. See docs/performance.md.
+mercenaries.FormationEnabled  = true
+
 mercenaries.FormationLeader   = nil
 mercenaries.FormationEpoch    = 0
 mercenaries.FormationName     = nil
@@ -547,7 +558,8 @@ function mercenaries:UpdateFormationRole(bt_data, myWuid)
         -- A hold or escort order routes every man individually through nav_goto; an
         -- engine formation running alongside it would be a second set of destinations
         -- pulling the same NPCs somewhere else.
-        if self.HoldActive then off = "hold order"
+        if not self.FormationEnabled then off = "disabled"
+        elseif self.HoldActive then off = "hold order"
         elseif self.EscortEnt then off = "escort order"
         elseif _G.MercenariesDismissed then off = "dismissed"
         elseif _G.MercIdle then off = "idle"
@@ -707,6 +719,47 @@ function mercenaries:SetFormationRelocate(on)
     self.FormationRelocate = on and true or false
     Game.SendInfoText("@merc_n_form_reloc @" .. (self.FormationRelocate and "merc_form_reloc_on" or "merc_form_reloc_off"), false, 0, 3)
     System.LogAlways('[MercForm] AllowRelocation = ' .. tostring(self.FormationRelocate))
+end
+
+-- Takes a REAL BOOLEAN, not a console string: the commands bake `true`/`false` into their
+-- bodies (mercenaries_commands.lua) because %line substitution has proved unreliable here and
+-- a toggle that silently no-ops is a debugging trap, not a feature.
+function mercenaries:FormationEnabledSet(on)
+    on = (on == true)
+    if on == (self.FormationEnabled and true or false) then
+        System.LogAlways('[MercForm] engine formation already ' .. (on and "ON" or "OFF"))
+        self:FormationEnabledStatus()
+        return
+    end
+    self.FormationEnabled = on
+    -- Followers watch the epoch and the leader's subtree re-evaluates on it, so bumping makes
+    -- the change land on the CURRENT squad within a tick instead of at the next rebuild.
+    self.FormationEpoch = (self.FormationEpoch or 0) + 1
+    System.LogAlways('[MercForm] engine formation ' ..
+        (on and "ON" or "OFF - squad reverts to the plain CrimeFollower chain") ..
+        ' (epoch ' .. tostring(self.FormationEpoch) .. ')')
+    self:FormationEnabledStatus()
+end
+
+-- Proves whether the toggle actually took, and - when the formation is off for some OTHER
+-- reason - names which one, so "the command did nothing" can never again be ambiguous.
+function mercenaries:FormationEnabledStatus()
+    local inSlot, followers = 0, 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        local w = ent and (ent.this and ent.this.id or ent.id)
+        if w and tostring(w) ~= tostring(self.FormationLeader) then
+            followers = followers + 1
+            if (self.FormationInSlot or {})[tostring(w)] then inSlot = inSlot + 1 end
+        end
+    end
+    System.LogAlways(string.format(
+        '[MercForm] FormationEnabled=%s  offReason=%s  leader=%s  inFormationSlot=%d/%d',
+        tostring(self.FormationEnabled), tostring(self._formationOffReason or "none"),
+        tostring(self.FormationLeader), inSlot, followers))
+    if self.FormationEnabled and inSlot == 0 and followers > 0 then
+        System.LogAlways('[MercForm] NOTE: nobody is in a slot even though it is enabled - ' ..
+                         'the squad is ALREADY on the follow chain, so turning it off changes nothing.')
+    end
 end
 
 function mercenaries:MonitorFormationTokens(p)

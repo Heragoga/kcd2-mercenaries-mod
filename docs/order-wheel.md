@@ -95,10 +95,35 @@ An `EventFunction` accepts any number of `Exec` edges; vanilla does the same thi
 
 ---
 
+## Hardcore mode
+
+Hardcore replaced the whole wheel with a single **"Ask for directions"**. Nothing was wrong
+with the wheel: hardcore's own chat was winning a clash with it.
+
+`Libs/Storm/roles/world/hardcoreMode.xml` hands `MUZ_UKAZUJE_CESTU` (or `ZENA_UKAZUJE_CESTU`)
+to **every** `isPublicFriend` NPC while the game mode is hardcore, which makes
+`open_world/hardcore_mode/hrac_se_vyptava_na_cestu_muzu.xml` a candidate chat on our
+mercenaries too. It is also `Type="chat"`, `Initiator="Player"`, `ClashPriority="OpenWorld"` -
+the same class of dialogue as the wheel - and only one chat can open, so the wheel lost.
+Raising our `ClashPriority` is not the fix; vanilla ships an opt-out for exactly this.
+
+Both halves of the opt-out are in the mod:
+
+| Where | What |
+|---|---|
+| [`libs/Storm/contexts/mercenariescontexts.xml`](../data/libs/Storm/contexts/mercenariescontexts.xml) | Adds the entity context `hardcoreMode_disableDirectionsChat` to every `mercenariesFaction` soul. The directions dialogue reads it through its `chat_disabled` port (`open_world/hardcore_mode.xml`) and its only sequence then fails its entry condition. Needs `<task name="contexts" class="contexts">` in `storm__mercenaries.xml` - an operation under the wrong task silently does nothing. |
+| `mercenaries:StripDirectionsChat` in [`mercenaries_orders.lua`](../data/Scripts/mods/mercenaries_orders.lua) | Takes the metarole itself off the man (`soul:RemoveMetaRoleByName`), from `InjectInteraction` - so it runs at hire and on every cache rebuild, including after a load. |
+
+`merc_wheel_status` (dev command) prints, per merc, whether he still carries the directions
+metarole and whether the disable context stuck.
+
+---
+
 ## Gotchas
 
 * The chat key is shared with follow-with-focus. In `BasicAIActions:GetChatActions`, if `user.actor:CanFollow(npc)` is true the follow hint takes the slot and the chat hint never appears.
 * A `Refusal` sequence with no `UiPrompt` ends the whole chat — it does not step back one level. Use `EndType="GoTo"` with a `GoToDecision` if you want a real "back".
+* Two player chats of the same `ClashPriority` on one NPC do not merge - one of them simply does not open. If the wheel vanishes, look for another dialogue that has become eligible on mercs rather than at the wheel itself.
 * Keep the quest copies in sync: `kutnohorsko/` and `trosecko/` are hand-mirrored.
 
 ---
@@ -109,3 +134,4 @@ An `EventFunction` accepts any number of `Exec` edges; vanilla does the same thi
 * `Quests/Final/Barbora/open_world/dog/chat.xml` — its port consumers
 * `Quests/Testing/tv/light/chat_broken/playerchat.xml` — the minimum viable player chat
 * `Scripts/Entities/AI/Shared/BasicAIActions.lua` — `GetChatActions`, `CanChat`, `DoChat`
+* `Quests/Final/Barbora/open_world/hardcore_mode.xml` — the directions chat and its `chat_disabled` wiring

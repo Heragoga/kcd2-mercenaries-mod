@@ -94,6 +94,25 @@ ceiling exactly as authored, so the default tier changes nothing.
 
 ---
 
+## Frequency
+
+A tier's third axis, and the one that was missing until 2.1.1. `PatrolQuietByTier`, in
+`mercenaries_patrols_live.lua`, multiplies both of the roaming-patrol quiet clocks:
+
+| Tier | × | gap between gangs | after a wipe |
+| --- | --- | --- | --- |
+| easy | 2.0 | 6 min | 16 min |
+| medium | 1.0 | 3 min | 8 min |
+| difficult | 0.85 | 2.5 min | 6.8 min |
+| extreme | 0.7 | 2.1 min | 5.6 min |
+| impossible | 0.6 | 1.8 min | 4.8 min |
+| horde | 0.35 | 1 min | 2.8 min |
+
+Size is not the only axis a difficulty has. A player who picks "easy" usually wants to be
+**left alone**; before this he got the same rate of encounters as everyone else, just in worse
+armour. `merc_difficulty_status` now prints the resulting rate alongside the count ceilings.
+The full mechanism is in [patrols.md](patrols.md), "Pacing".
+
 ## Armour quality
 
 There is **no per-item quality metadata anywhere in this mod** — `EquipEnemy` picked

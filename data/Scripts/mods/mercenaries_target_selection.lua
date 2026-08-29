@@ -136,6 +136,23 @@ function mercenaries:IsRecentAttacker(wuid)
     return true
 end
 
+-- Is this man on the SAME SIDE as the one confirmed to be fighting us? Hostile to him
+-- means he is fighting our enemy too and is never a target; allied means he is in the
+-- band; neither answer available falls back to a shared soul, which is what a base-game
+-- camp is. See docs/combat-target-selection.md, "The fight group".
+function mercenaries:StandsWith(ent, a)
+    if not (a and ent and ent.soul) then return false end
+    local rel
+    pcall(function() rel = ent.soul:GetRelationship(a.wuid, "Current") end)
+    if rel ~= nil then
+        if rel <= -1.0 then return false end
+        if rel > 0 then return true end
+    end
+    local id
+    pcall(function() id = tostring(ent.soul:GetId()) end)
+    return (id ~= nil) and (a.soul ~= nil) and (id == a.soul)
+end
+
 -- Is this WUID the player or one of the squad? OurWuids is rebuilt once per enemy-cache
 -- pass; anything asking earlier than that reads an empty set and simply says no.
 function mercenaries:IsOneOfOurs(wuid)
@@ -189,12 +206,32 @@ function mercenaries:UpdateEnemyCache()
             -- Read once and handed down: EngageCacheAccepts needs it for the lock-on
             -- gate and the cache entry needs it for the alert, and it is an engine call.
             local armed = (ent.human == nil) or ent.human:IsWeaponDrawn()
+            -- UNARMED and not a confirmed attacker: nothing downstream can accept him, so
+            -- stop after the one call above instead of paying the full acceptance chain.
+            --   * LockedOntoUs returns false outright for armed == false;
+            --   * the aggressive stance's own IsValidEnemy call keeps its weapon gate, so
+            --     it rejects him anyway - just ~6 engine calls later;
+            --   * `maybe` (the fight-group second pass) only ever takes ARMED candidates;
+            --   * the alert only ever rises from ARMED cache entries.
+            -- The one path this closes is an unarmed NPC sitting at the -1 relationship
+            -- floor entering the cache as a non-threat - and he enters on the very next
+            -- 300ms pass the moment he draws, or immediately via `confirmed` if he lands
+            -- a blow. In a town this is the whole cost: ~10 engine calls per bystander
+            -- per pass became 1. See docs/performance.md.
+            if not armed and not self:IsRecentAttacker(entWuid) then return end
             -- The engagement stance can widen this: see EngageCacheAccepts.
             local accept, viaLockOn =
                 self:EngageCacheAccepts(ent, playerWuid, armed, self:IsRecentAttacker(entWuid))
             if accept then
                 table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid, armed = armed, pos = pos })
-                if viaLockOn and pos then table.insert(attackers, pos) end
+                -- Identity, not just a position: StandsWith has to ask a candidate what
+                -- he thinks of THIS man.
+                if viaLockOn and pos then
+                    local sid
+                    pcall(function() sid = tostring(ent.soul:GetId()) end)
+                    table.insert(attackers, { x = pos.x, y = pos.y, z = pos.z,
+                                              wuid = entWuid, soul = sid })
+                end
             elseif armed and pos then
                 table.insert(maybe, { entity = ent, wuid = entWuid, pos = pos })
             end
@@ -243,6 +280,8 @@ function mercenaries:UpdateEnemyCache()
         --     non-empty, which is almost never;
         --   * ARMED only, which is the same drawn-weapon proof the aggressive stance
         --     leans on - a bystander in a market is not swept up by a brawl beside him;
+        --   * and ON THAT MAN'S SIDE, or the pass claims the people our enemy is himself
+        --     fighting - a caravan's guards, a random encounter's travellers (StandsWith);
         --   * within FightGroupRange of a confirmed attacker, not of the player, so it
         --     grows from the fight rather than from wherever the player happens to be;
         --   * IsOwnSide plus the whole of IsValidEnemy still apply, so it can never turn
@@ -251,12 +290,14 @@ function mercenaries:UpdateEnemyCache()
         if #attackers > 0 and #maybe > 0 then
             local r2 = (self.FightGroupRange or 20.0) ^ 2
             for _, m in ipairs(maybe) do
-                local near = false
+                -- WHO he is near, not merely that he is near someone.
+                local with = nil
                 for _, a in ipairs(attackers) do
                     local dx, dy, dz = m.pos.x - a.x, m.pos.y - a.y, m.pos.z - a.z
-                    if (dx * dx + dy * dy + dz * dz) <= r2 then near = true break end
+                    if (dx * dx + dy * dy + dz * dz) <= r2 then with = a break end
                 end
-                if near and not self:IsOwnSide(m.entity)
+                if with and not self:IsOwnSide(m.entity)
+                   and self:StandsWith(m.entity, with)
                    and self:IsValidEnemy(m.entity, player, playerWuid, true, false) then
                     table.insert(self.CachedEnemies,
                                  { entity = m.entity, wuid = m.wuid, armed = true, pos = m.pos })
@@ -431,6 +472,17 @@ end
 -- this merc (cheap math, no soul API) and keep the 8 nearest, nearest-first.
 -- Bounded insertion instead of a full sort - each candidate is only ever
 -- compared against the current top 8, never against the whole list.
+-- How many nearest cached enemies the BT runs its GetTarget node over, per merc, per poll.
+-- 8 was the shipped value; 4 halves the densest engine-call site in the mod during a fight.
+mercenaries.ScanMaxCandidates = 4
+
+function mercenaries:ScanCandidatesSet(n)
+    self.ScanMaxCandidates = tonumber(n) or 4
+    System.LogAlways("[Mercenary Jeff] target-scan candidates per merc per poll = " ..
+        tostring(self.ScanMaxCandidates) ..
+        " (each one is an engine GetTarget; combat only, invisible in a peaceful bench)")
+end
+
 function mercenaries:ScanForEnemies(bt_data, myWuid)
     local ok, err = pcall(function()
         bt_data.enemiesArray = {}
@@ -441,8 +493,17 @@ function mercenaries:ScanForEnemies(bt_data, myWuid)
         local myPos = me:GetPos()
         if not myPos then return end
 
-        -- Cap candidates: each one the BT checks costs an engine GetTarget call.
-        local maxCandidates = 8
+        -- Cap candidates: each one the BT checks costs an engine GetTarget call, per merc,
+        -- per poll. At 50 mercs against a crowd that is the single densest engine-call site
+        -- in the mod - and it is COMBAT-ONLY, so it never shows up in a peaceful bench.
+        --
+        -- 4, not 8. The list is sorted NEAREST FIRST, and this feeds two things: the lock-on
+        -- detection (EvaluateCombatTarget -> NoteAttacker, which learns who is fighting us)
+        -- and nothing else - PickCombatTarget re-reads the full cache itself and is not
+        -- capped by this. So the only thing a lower cap can cost is noticing an attacker who
+        -- is 5th-nearest or further, and he is picked up on the next poll as the melee moves.
+        -- A tunable field rather than a local so it can be A/B'd live: merc_scan_lean/full.
+        local maxCandidates = self.ScanMaxCandidates or 4
         local nearWuid, nearDist, count = {}, {}, 0
 
         -- Cached enemies first, then the armed candidates the cache refused. The BT runs

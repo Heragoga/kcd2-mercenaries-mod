@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Усіх найманців звільнено.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Найманці чекають.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Найманці йдуть слідом.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Особливого товариша найнято.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Цей товариш уже у тебе на службі!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Візьму Волека.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Пошлю звістку. Він прийде.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Ходімо зі мною.</Cell><Cell>Ходімо зі мною.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Залишся і стережи табір.</Cell><Cell>Залишся і стережи табір.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Знести одну з будов.</Cell><Cell>Знести одну з будов.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Одну з тих споруд, що ми звели, треба прибрати. Лише одну.</Cell><Cell>Одну з тих споруд, що ми звели, треба прибрати. Лише одну.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>І яку ж саме?</Cell><Cell>І яку ж саме?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Оцю. Знеси її.</Cell><Cell>Оцю. Знеси її.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Гаразд. Зараз же зникне - решта лишиться на місці.</Cell><Cell>Гаразд. Зараз же зникне - решта лишиться на місці.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Віз із харчами.</Cell><Cell>Віз із харчами.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>Корчма.</Cell><Cell>Корчма.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Місце мисливця.</Cell><Cell>Місце мисливця.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>Похідна кузня.</Cell><Cell>Похідна кузня.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Алхімічний стіл.</Cell><Cell>Алхімічний стіл.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Навчальний двір.</Cell><Cell>Навчальний двір.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>Будинок.</Cell><Cell>Будинок.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Вежі лучників.</Cell><Cell>Вежі лучників.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Вози для лучників.</Cell><Cell>Вози для лучників.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>Частокіл.</Cell><Cell>Частокіл.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Ворота.</Cell><Cell>Ворота.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Нічого такого в цьому таборі немає.</Cell><Cell>Нічого такого в цьому таборі немає.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Вирішімо, хто вирушить зі мною.</Cell><Cell>Вирішімо, хто вирушить зі мною.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Коли беру людей із табору, хочу мати за спиною тих, кого треба.</Cell><Cell>Коли беру людей із табору, хочу мати за спиною тих, кого треба.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Скажи мені, яких хочеш, і відтепер добиратиму саме так.</Cell><Cell>Скажи мені, яких хочеш, і відтепер добиратиму саме так.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Таких я і хочу.</Cell><Cell>Таких я і хочу.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Записано. Такий загін отримаєш наступного разу, коли візьмеш людей.</Cell><Cell>Записано. Такий загін отримаєш наступного разу, коли візьмеш людей.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Лучники: та сама частка, що й у всій роті.</Cell><Cell>Лучники: та сама частка, що й у всій роті.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Лучники: жодного. Лише піхота.</Cell><Cell>Лучники: жодного. Лише піхота.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Лучники: чверть загону.</Cell><Cell>Лучники: чверть загону.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Лучники: половина загону.</Cell><Cell>Лучники: половина загону.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Лучники: усі, які в нас є.</Cell><Cell>Лучники: усі, які в нас є.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Піхота: спершу найкращі.</Cell><Cell>Піхота: спершу найкращі.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Піхота: усякого потроху.</Cell><Cell>Піхота: усякого потроху.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Піхота: спершу найзеленіші.</Cell><Cell>Піхота: спершу найзеленіші.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Склад загону: стільки лучників, скільки їх у роті.</Cell><Cell>Склад загону: стільки лучників, скільки їх у роті.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Склад загону: без лучників, лише піхота.</Cell><Cell>Склад загону: без лучників, лише піхота.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Склад загону: чверть лучників.</Cell><Cell>Склад загону: чверть лучників.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Склад загону: половина лучників.</Cell><Cell>Склад загону: половина лучників.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Склад загону: усі лучники роти.</Cell><Cell>Склад загону: усі лучники роти.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Склад загону: спершу йдуть найкращі воїни.</Cell><Cell>Склад загону: спершу йдуть найкращі воїни.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Склад загону: усякого потроху.</Cell><Cell>Склад загону: усякого потроху.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Склад загону: спершу йдуть найзеленіші воїни.</Cell><Cell>Склад загону: спершу йдуть найзеленіші воїни.</Cell></Row>
 </Table>

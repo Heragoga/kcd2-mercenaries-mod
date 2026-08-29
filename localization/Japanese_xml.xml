@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>傭兵全員を解雇した。</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>傭兵たちが待機中。</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>傭兵たちが追従中。</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>特別な仲間を雇った。</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>この仲間はすでに雇っている！</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>ヴォレクを雇おう。</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>使いを送っておく。来てくれるはずだ。</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>共に来い。</Cell><Cell>共に来い。</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>ここに残り、野営地を守れ。</Cell><Cell>ここに残り、野営地を守れ。</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>設備を一つ、取り壊す。</Cell><Cell>設備を一つ、取り壊す。</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>作った物を一つ、取り壊さねばならん。一つだけだ。</Cell><Cell>作った物を一つ、取り壊さねばならん。一つだけだ。</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>では、どれを?</Cell><Cell>では、どれを?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>あれだ。取り壊せ。</Cell><Cell>あれだ。取り壊せ。</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>承知した。すぐに片付けよう。他はそのままだ。</Cell><Cell>承知した。すぐに片付けよう。他はそのままだ。</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>食料の荷車。</Cell><Cell>食料の荷車。</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>酒場。</Cell><Cell>酒場。</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>猟師の詰所。</Cell><Cell>猟師の詰所。</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>移動鍛冶場。</Cell><Cell>移動鍛冶場。</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>錬金台。</Cell><Cell>錬金台。</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>訓練場。</Cell><Cell>訓練場。</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>家屋。</Cell><Cell>家屋。</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>弓兵の櫓。</Cell><Cell>弓兵の櫓。</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>弓兵の荷車。</Cell><Cell>弓兵の荷車。</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>柵。</Cell><Cell>柵。</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>門。</Cell><Cell>門。</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>この野営地には、その手の物はない。</Cell><Cell>この野営地には、その手の物はない。</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>誰を連れて出るか、決めよう。</Cell><Cell>誰を連れて出るか、決めよう。</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>野営地から人を連れ出す時は、しかるべき者を後ろに置きたい。</Cell><Cell>野営地から人を連れ出す時は、しかるべき者を後ろに置きたい。</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>どう組みたいか言ってくれ。以後、その通りに選ぼう。</Cell><Cell>どう組みたいか言ってくれ。以後、その通りに選ぼう。</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>それで良い。</Cell><Cell>それで良い。</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>承知した。次に人を連れ出す時は、その編成にしよう。</Cell><Cell>承知した。次に人を連れ出す時は、その編成にしよう。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>弓兵：全体と同じ割合。</Cell><Cell>弓兵：全体と同じ割合。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>弓兵：なし。歩兵のみ。</Cell><Cell>弓兵：なし。歩兵のみ。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>弓兵：一行の四分の一。</Cell><Cell>弓兵：一行の四分の一。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>弓兵：一行の半分。</Cell><Cell>弓兵：一行の半分。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>弓兵：抱える者全員。</Cell><Cell>弓兵：抱える者全員。</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>歩兵：最も優れた者から。</Cell><Cell>歩兵：最も優れた者から。</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>歩兵：あらゆる者を取り混ぜて。</Cell><Cell>歩兵：あらゆる者を取り混ぜて。</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>歩兵：最も未熟な者から。</Cell><Cell>歩兵：最も未熟な者から。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>編成：弓兵は全体と同じ割合。</Cell><Cell>編成：弓兵は全体と同じ割合。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>編成：弓兵なし、歩兵のみ。</Cell><Cell>編成：弓兵なし、歩兵のみ。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>編成：弓兵は四分の一。</Cell><Cell>編成：弓兵は四分の一。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>編成：弓兵は半分。</Cell><Cell>編成：弓兵は半分。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>編成：抱える弓兵全員。</Cell><Cell>編成：抱える弓兵全員。</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>編成：最も優れた者から出す。</Cell><Cell>編成：最も優れた者から出す。</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>編成：あらゆる者を取り混ぜる。</Cell><Cell>編成：あらゆる者を取り混ぜる。</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>編成：最も未熟な者から出す。</Cell><Cell>編成：最も未熟な者から出す。</Cell></Row>
 </Table>

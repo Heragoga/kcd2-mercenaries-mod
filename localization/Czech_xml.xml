@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Všichni žoldáci propuštěni.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Žoldáci čekají.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Žoldáci tě následují.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Speciální společník najmut.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Tento společník už je ve tvých službách!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Vezmu si Volka.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Pošlu vzkaz. Přijde.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Pojď se mnou.</Cell><Cell>Pojď se mnou.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Zůstaň a hlídej tábor.</Cell><Cell>Zůstaň a hlídej tábor.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Zbořit jedno z vylepšení.</Cell><Cell>Zbořit jedno z vylepšení.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Jedna z těch věcí, co jsme postavili, musí pryč. Jen jedna.</Cell><Cell>Jedna z těch věcí, co jsme postavili, musí pryč. Jen jedna.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>A která tedy?</Cell><Cell>A která tedy?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Tahle. Zboř ji.</Cell><Cell>Tahle. Zboř ji.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Zajisté. Hned to zmizí - zbytek zůstane stát.</Cell><Cell>Zajisté. Hned to zmizí - zbytek zůstane stát.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Vozík s jídlem.</Cell><Cell>Vozík s jídlem.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>Krčma.</Cell><Cell>Krčma.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Lovecké stanoviště.</Cell><Cell>Lovecké stanoviště.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>Přenosná kovárna.</Cell><Cell>Přenosná kovárna.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Alchymistický stůl.</Cell><Cell>Alchymistický stůl.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Cvičiště.</Cell><Cell>Cvičiště.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>Dům.</Cell><Cell>Dům.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Lučištnické věže.</Cell><Cell>Lučištnické věže.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Vozy pro lučištníky.</Cell><Cell>Vozy pro lučištníky.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>Palisáda.</Cell><Cell>Palisáda.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Brány.</Cell><Cell>Brány.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Nic takového v tomhle táboře nestojí.</Cell><Cell>Nic takového v tomhle táboře nestojí.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Ujasněme si, kdo se mnou vytáhne do pole.</Cell><Cell>Ujasněme si, kdo se mnou vytáhne do pole.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Když beru muže z tábora, chci mít za zády ty pravé.</Cell><Cell>Když beru muže z tábora, chci mít za zády ty pravé.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Řekni mi, jak je chceš, a od teď je tak budu vybírat.</Cell><Cell>Řekni mi, jak je chceš, a od teď je tak budu vybírat.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Takhle je chci.</Cell><Cell>Takhle je chci.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Zapsáno. Tohle je společnost, kterou dostaneš, až příště vezmeš muže s sebou.</Cell><Cell>Zapsáno. Tohle je společnost, kterou dostaneš, až příště vezmeš muže s sebou.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Lučištníci: stejný poměr jako v celé společnosti.</Cell><Cell>Lučištníci: stejný poměr jako v celé společnosti.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Lučištníci: žádní. Jen pěší.</Cell><Cell>Lučištníci: žádní. Jen pěší.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Lučištníci: čtvrtina družiny.</Cell><Cell>Lučištníci: čtvrtina družiny.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Lučištníci: polovina družiny.</Cell><Cell>Lučištníci: polovina družiny.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Lučištníci: všichni, co jich máme.</Cell><Cell>Lučištníci: všichni, co jich máme.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Pěší: nejdřív ti nejlepší.</Cell><Cell>Pěší: nejdřív ti nejlepší.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Pěší: mix všech druhů.</Cell><Cell>Pěší: mix všech druhů.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Pěší: nejdřív ti nejzelenější.</Cell><Cell>Pěší: nejdřív ti nejzelenější.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Složení družiny: tolik lučištníků, kolik jich má společnost.</Cell><Cell>Složení družiny: tolik lučištníků, kolik jich má společnost.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Složení družiny: žádní lučištníci, jen pěší.</Cell><Cell>Složení družiny: žádní lučištníci, jen pěší.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Složení družiny: čtvrtina lučištníků.</Cell><Cell>Složení družiny: čtvrtina lučištníků.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Složení družiny: polovina lučištníků.</Cell><Cell>Složení družiny: polovina lučištníků.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Složení družiny: všichni lučištníci ze společnosti.</Cell><Cell>Složení družiny: všichni lučištníci ze společnosti.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Složení družiny: nejdřív jdou nejlepší muži.</Cell><Cell>Složení družiny: nejdřív jdou nejlepší muži.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Složení družiny: mix všech druhů.</Cell><Cell>Složení družiny: mix všech druhů.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Složení družiny: nejdřív jdou nejzelenější muži.</Cell><Cell>Složení družiny: nejdřív jdou nejzelenější muži.</Cell></Row>
 </Table>

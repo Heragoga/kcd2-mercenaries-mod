@@ -50,6 +50,16 @@ consuming a ration only at the evening tally. Drink is optional — having it ju
 feeds morale. Deliver any vanilla food/drink item (generated `FoodItemClasses` /
 `DrinkItemClasses`), or buy food (100 gr → 5).
 
+### Two ways to hand supplies over
+
+| Where | What it does |
+|---|---|
+| **Quartermaster** → *Supplies* → "Here, take this food/drink for the men." | Opens the vanilla item-selection panel (`CreateItemDelivery`) so you pick exactly what and how much. Needs a camp standing — the panel delivers into his inventory, and `LogiPanelFood`/`LogiPanelDrink` count what he received. |
+| **Any merc** → *Company management* → the same two lines | No panel, no camp, no quartermaster: `LogiDeliverFood`/`LogiDeliverDrink` take **everything** edible/drinkable you are carrying straight out of your pack. Potions are in neither `FoodItemClasses` nor `DrinkItemClasses`, so Saviour Schnapps and the decoctions are safe. |
+
+The merc-side pair reuses the quartermaster's own tokens (`be68d` / `be69d`) and his
+lines, so nothing new was added to the 16 localisation tables.
+
 The **first camp you pitch** stocks `StartingSupplyDays` (3) days of food and
 drink for the squad size at that moment (`LogiGrantStartingSupplies`, called from
 `SpawnMercCamp`). A saved flag (`QMStartSupplies`) makes it once-only, so upgrade
@@ -162,13 +172,29 @@ raises a squad-wide *training level* that feeds the combat number — so a cheap
 hired, low-wage squad becomes effective over time, which is the intended
 "save on recruitment" payoff.
 
+### Taking one back down
+
+*Camp upgrades → "Take one of the improvements down."* removes a single upgrade instead
+of the whole layout (`LogiRemoveUpgrade`; the older "tear it all down" option is still
+there). Eleven entries, listed in `UpgRemovable`, covering the stations above plus the
+placed defences (archer towers, archer carts, palisade, gates). No refund — it undoes a
+layout, it does not sell. The stations come down by clearing their flag and rebuilding
+the camp; the defences are cleared out of the world **and** out of the saved layout, or
+the next restore would put them straight back. See
+[camp.md → Taking one improvement down](camp.md#taking-one-improvement-down) for the
+mechanics, and for why a rebuild no longer moves the upgrades that stay.
+
+Console: `merc_camp_remove` (no argument lists the eleven).
+
 ## Dialog / persistence
 
 The dialog (`quartermaster_dialog.xml`, both region quests) exposes Supplies,
 Wages & war chest, Camp upgrades, a **status** readout (food / drink / wage
 runway / morale, all bucketed since `SendInfoText` can't print raw numbers), and
 a **tutorial**. Each leaf → Out port → token → `mercenaries.lua` → the matching
-`Logi*` function. State is stored field-by-field via `SaveString`/`LoadString`
+`Logi*` function. The two supply hand-overs are mirrored onto every merc's
+`dismissal_dialog.xml` (`mercenary_give_food` / `mercenary_give_drink`) so the
+squad can be fed with no camp pitched. State is stored field-by-field via `SaveString`/`LoadString`
 (de-duplicated; tiredness quantised); `lastTick` is not persisted (reset on load
 so a reload doesn't count as elapsed time).
 

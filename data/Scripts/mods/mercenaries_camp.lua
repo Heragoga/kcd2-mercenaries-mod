@@ -340,6 +340,13 @@ mercenaries.CampSitSOOffset = { right = 0.2, forward = 0, z = 0 }
 -- correct side is now one of the two, where before it was arbitrary.
 mercenaries.CampSitFacingFixDeg = 180
 
+-- Degrees added to a BED smart object's facing, and to it alone, so the sleeper lies
+-- along the bed rather than across it - see SpawnCampFurnitureSO for why the mesh and
+-- the smart object need different numbers. 90 undoes the quarter turn the direction
+-- vector introduces; +/-90 both lay him along the frame and differ only in which end
+-- his head is at, so merc_camp_bed_yaw re-pitches the camp with a new value to check.
+mercenaries.CampBedSOYawFixDeg = 90
+
 -- (The per-merc activity spot radius moved outside the tent circle - see
 -- CampActivityOutsideGap in the schedule section below.)
 
@@ -1067,6 +1074,24 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
     -- callers can nudge it (soPosOverride) when the SO helper's authored pose
     -- doesn't land centred on our particular prop - see the sitter stool.
     local soGroundPos = soPosOverride and self:CampSnapToGround(soPosOverride) or groundPos
+
+    -- BEDS ONLY: the sleeper lies across the bed instead of along it, because the two
+    -- halves of this function do not share a facing convention. The prop is turned with
+    -- SetAngles (a yaw), the smart object with SpawnEntity's `orientation` (a forward
+    -- DIRECTION VECTOR, whose zero is the entity's own forward axis, a quarter turn off
+    -- the yaw zero) - so an SO handed the same number as its mesh ends up a quarter turn
+    -- from it. Nothing caught it before the bed because every seat this function spawns is
+    -- a round stool or a log: symmetric meshes, on which a rotated smart object is
+    -- invisible, and whose facing (CampSitFacingFixDeg, InnSeatYawFixDeg) was tuned by eye
+    -- against the SO alone. The bed is the first asymmetric mesh here, so it is the first
+    -- place the mismatch shows. Correcting it inside the seat path would move every seat
+    -- that was tuned around it, so the fix is scoped to the bed SOs - which are the ones
+    -- with a mesh to disagree with.
+    local soAngleZ = angleZ
+    local isBedSO = soProps and (soProps.sWH_AI_EntityCategory == "Bed"
+                                 or soProps.soclass_SmartObjectHelpers == "Bed_1Place_Low")
+    if isBedSO then soAngleZ = angleZ + math.rad(self.CampBedSOYawFixDeg or 0) end
+
     local wuid = nil
     local ok, err = pcall(function()
         -- Orientation MUST be set at spawn time and MUST be a forward DIRECTION
@@ -1081,7 +1106,7 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
             class = "StanceSmartObject",
             name = (namePrefix or "MercCampProp") .. "_SO_" .. tostring(math.random(100000, 999999)),
             position = soGroundPos,
-            orientation = { x = math.cos(angleZ), y = math.sin(angleZ), z = 0 },
+            orientation = { x = math.cos(soAngleZ), y = math.sin(soAngleZ), z = 0 },
             properties = {
                 guidSmartObjectType = soProps.guidSmartObjectType,
                 soclass_SmartObjectHelpers = soProps.soclass_SmartObjectHelpers,
@@ -1094,7 +1119,7 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
         })
 
         if soEnt then
-            pcall(function() soEnt:SetAngles({ x = 0, y = 0, z = angleZ }) end)
+            pcall(function() soEnt:SetAngles({ x = 0, y = 0, z = soAngleZ }) end)
             -- Attach the SO to the visual mesh the way the vanilla furniture
             -- prefabs do (EntityLinks Name="attachable" -> the prop entity, see
             -- references chairattable layer) - the sit helper then follows the
@@ -1502,23 +1527,123 @@ end
 -- on looping regardless.
 --
 -- Called every cycle from camp_actor.xml. True = drop out of the camp behaviour now.
+-- ==== Standing up before fighting ====
+-- A camp merc who was sitting or lying when a fight started kept the pose and then moved
+-- around still in it. The cause is a race between two trees that never talked to each other:
+--
+--   camp_actor holds its pose INSIDE a StanceElement and polls $campYield every ~500ms;
+--   when the poll fails, the element unwinds and the engine plays the stand-up fragment.
+--   That is the only clean way out of a stance - there is no "force standing" node in the
+--   engine or in vanilla (the sleeping halberdier guard leaves his pose the same way).
+--
+--   The scheduler, meanwhile, polls for targets every ~600ms and fires combat_melee in the
+--   SAME pass it claims one, with IgnorePriorityOnPreviousInterrupt - which REPLACES the
+--   running camp_actor outright. Win that race, and the StanceElement never gets to unwind:
+--   the pose is torn off rather than ended, and he fights in it.
+--
+-- So the scheduler now waits for him to stand. CampActorYield stamps CampPoseAt while he is
+-- mid-pose; CampPoseHold reports that to the scheduler, which withholds the combat interrupt
+-- (and its optimistic $inCombat, so the branch simply retries) until the stamp clears. He
+-- already has a target by then, so $campYield is true and camp_actor is unwinding on its own
+-- - the wait is only as long as the stand-up takes.
+--
+-- Bounded on both sides, because a merc who cannot fight is worse than one who fights
+-- seated: the stamp expires by itself if camp_actor stops running (CampPoseFreshSecs), and
+-- CampPoseMaxHoldSecs caps the whole wait however fresh the stamps are.
+mercenaries.CampPoseAt          = {}     -- [wuidStr] = when he was last seen inside a pose
+mercenaries.CampPoseHoldFrom    = {}     -- [wuidStr] = when we started making combat wait
+mercenaries.CampPoseFreshSecs   = 2.5    -- a stamp older than this means the tree is gone
+mercenaries.CampPoseMaxHoldSecs = 4.0    -- never hold combat off longer than this, whatever
+
+-- Does this merc have a fight on? Shared by CampActorYield (should he leave his pose)
+-- and CampPoseHold (is combat actually waiting on him).
+function mercenaries:CampHasFightTarget(ws)
+    local has = false
+    pcall(function()
+        has = (self.EnemyTargetOf and self.EnemyTargetOf[ws] ~= nil)
+           or (self.ForcedTargetOf and self.ForcedTargetOf[ws] ~= nil)
+           or (self.MercTargetOf  and self.MercTargetOf[ws]  ~= nil)
+    end)
+    return has
+end
+
+-- Called from both schedulers' acquisition pass. Sets bt_data.campPoseHold.
+--
+-- The STAMP is kept up for as long as he is in a pose (so there is no window where a
+-- target is claimed before camp_actor has reported in), but the HOLD CLOCK only runs
+-- while combat is actually waiting on him. The first version started the clock for every
+-- man sitting peacefully in camp: it expired 4s later, logged, restarted, and did that
+-- forever - 341 "would not leave his pose" lines in one session - and, far worse, meant
+-- the cap had usually already blown by the time a fight really started, so the gate was
+-- spent exactly when it was needed.
+function mercenaries:CampPoseHold(bt_data, myWuid)
+    bt_data.campPoseHold = false
+    local ok = pcall(function()
+        local ws = tostring(myWuid)
+        local at = self.CampPoseAt[ws]
+        if not at then
+            self.CampPoseHoldFrom[ws] = nil
+            return
+        end
+        -- Nobody is waiting on him: he is just sitting there. Leave the clock unstarted.
+        if not self:CampHasFightTarget(ws) then
+            self.CampPoseHoldFrom[ws] = nil
+            return
+        end
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        if (now - at) > self.CampPoseFreshSecs then
+            -- camp_actor stopped reporting: either it ended or it is gone. Either way
+            -- there is nothing left to wait for.
+            self.CampPoseAt[ws] = nil
+            self.CampPoseHoldFrom[ws] = nil
+            return
+        end
+        local from = self.CampPoseHoldFrom[ws]
+        if not from then
+            self.CampPoseHoldFrom[ws] = now
+            from = now
+        end
+        if (now - from) >= self.CampPoseMaxHoldSecs then
+            System.LogAlways("[Camp] " .. ws .. " would not leave his pose in " ..
+                             tostring(self.CampPoseMaxHoldSecs) .. "s - letting him fight anyway")
+            self.CampPoseAt[ws] = nil
+            self.CampPoseHoldFrom[ws] = nil
+            return
+        end
+        bt_data.campPoseHold = true
+    end)
+    if not ok then bt_data.campPoseHold = false end
+end
+
 function mercenaries:CampActorYield(data, entity)
     data.campYield = false
     local w = entity and entity.this and entity.this.id
     if not w then return end
     local ws = tostring(w)
 
+    -- HEARTBEAT: is he inside a Stance/Unstance element right now? camp_actor raises
+    -- $inCampAnim around every pose, and this is the only place Lua gets to read it, so
+    -- the scheduler learns "do not tear him out yet" from here. A STAMP rather than a
+    -- flag, because a flag set on entry would never be cleared if the tree were torn
+    -- down - which is the very failure being prevented. See CampPoseHold.
+    --
+    -- `== true`, not truthiness: a BT bool read back through `data` is not necessarily a
+    -- Lua boolean, and 0 is TRUE in Lua. UpdateFormationRole compares `inFormation == true`
+    -- for the same reason.
+    if data.inCampAnim == true then
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        self.CampPoseAt[ws] = now
+    else
+        self.CampPoseAt[ws] = nil
+    end
+
     -- No longer a camp actor at all (his role was stripped, or a siege has started).
     if not self:IsCampActor(ws) then data.campYield = true; return end
 
     -- Or he has a fight on: a target of his own, one handed to him, or one he is claiming.
-    local hasTarget = false
-    pcall(function()
-        hasTarget = (self.EnemyTargetOf and self.EnemyTargetOf[ws] ~= nil)
-                 or (self.ForcedTargetOf and self.ForcedTargetOf[ws] ~= nil)
-                 or (self.MercTargetOf  and self.MercTargetOf[ws]  ~= nil)
-    end)
-    if hasTarget then data.campYield = true end
+    if self:CampHasFightTarget(ws) then data.campYield = true end
 end
 
 -- Forced dialogue AT THE PLAYER, run from camp_actor exactly the way the two-NPC gossip is.
@@ -1892,6 +2017,14 @@ end
 mercenaries.CampNightTorchEnabled = true
 mercenaries.CampTorchItemGUID = "4cea28a0-0814-405a-bf24-4fd711f7eb63"  -- torch_weapon (item.xml)
 mercenaries.CampGuardTorch = {}   -- [wuidStr] = true while that guard holds the conjured torch
+-- How many may burn at once. Every lit torch is a MOVING, SHADOW-CASTING dynamic light with
+-- a fire emitter - on the author's 5080 that is invisible, on a mid-range card a fistful of
+-- them in a town at night is milliseconds of GPU per frame, scaling 1:1 with squad size. The
+-- verified user report ("4-5 mercs cost 40-50fps in dense areas", weaker hardware hit
+-- hardest) is consistent with exactly this shape. Two torches light a marching column enough
+-- to read as "the company carries light" without turning the squad into a chandelier; camp
+-- guards get priority for them. merc_torches N to taste, 0 = none (and strips).
+mercenaries.CampTorchMax = 2
 
 -- EVERY living merc, not just the camp guards, and with or without a camp standing:
 -- a company on a road after dark should be carrying light too, which is what the
@@ -1899,16 +2032,29 @@ mercenaries.CampGuardTorch = {}   -- [wuidStr] = true while that guard holds the
 -- the camp one for exactly that reason; `night` is worked out here when the caller
 -- does not pass it.
 function mercenaries:CampNightTorchTick(night)
-    if not self.CampNightTorchEnabled then return end
+    if not self.CampNightTorchEnabled or (self.CampTorchMax or 0) <= 0 then return end
     if _G.MercenariesDismissed then return end
     if night == nil then night = self:CampIsNight() end
     local ok, err = pcall(function()
+        -- Count what already burns, and strip anything past the cap (the cap can be
+        -- lowered mid-night by merc_torches).
+        local burning = 0
+        for _ in pairs(self.CampGuardTorch) do burning = burning + 1 end
+
+        -- Two passes so camp guards get the lit torches first: a guard on a dark
+        -- perimeter is the man the feature exists for; the marching column shares
+        -- whatever the cap has left.
+        local passes = { true, false }
+        for _, guardsOnly in ipairs(passes) do
         for _, ent in pairs(self.ActiveMercs or {}) do
             if ent and self:IsAliveAndWell(ent, false) then
                 local ka = self:CampMercKeys(ent)
                 if ka then
+                    local isGuard = false
+                    pcall(function() isGuard = self:IsCampGuard(ka) and true or false end)
                     local has = self.CampGuardTorch[ka]
-                    if night and not has and ent.inventory and ent.actor then
+                    if night and not has and burning < self.CampTorchMax
+                       and (isGuard == guardsOnly) and ent.inventory and ent.actor then
                         local id
                         pcall(function() id = ent.inventory:FindItem(self.CampTorchItemGUID) end)
                         if not id then
@@ -1917,21 +2063,35 @@ function mercenaries:CampNightTorchTick(night)
                         end
                         if id then
                             local eq = pcall(function() ent.actor:EquipInventoryItem(id) end)
-                            if eq then self.CampGuardTorch[ka] = true end
+                            if eq then self.CampGuardTorch[ka] = true; burning = burning + 1 end
                         end
-                    elseif (not night) and has and ent.inventory then
+                    elseif has and ((not night) or burning > self.CampTorchMax) and ent.inventory then
                         local id
                         pcall(function() id = ent.inventory:FindItem(self.CampTorchItemGUID) end)
                         if id then pcall(function() ent.inventory:RemoveItem(id, -1) end) end
                         self.CampGuardTorch[ka] = nil
+                        burning = burning - 1
                     end
                 end
             end
+        end
         end
     end)
     if not ok then
         System.LogAlways('[Mercenaries] CampNightTorchTick error: ' .. tostring(err))
     end
+end
+
+function mercenaries:CampTorchMaxSet(v)
+    local n = tonumber(tostring(v or ''):match('%d+'))
+    if not n then
+        System.LogAlways('[Mercenaries] merc_torches <n> - lit torches at night, 0 = none (now: '
+                         .. tostring(self.CampTorchMax) .. ')')
+        return
+    end
+    self.CampTorchMax = n
+    if n == 0 then pcall(function() self:CampStripAllTorches(true) end) end
+    System.LogAlways('[Mercenaries] night torches capped at ' .. n)
 end
 
 -- Called from MonitorCamp every 5s tick: lamps toggle only on an actual
@@ -2088,8 +2248,6 @@ function mercenaries:CampTakeParty(fraction)
     -- "Leaving camp: who leads".
     pcall(function() self:MarkCampBusyMercs() end)
 
-    local function tierRank(t) if t == "strong" then return 0 elseif t == "medium" then return 1 else return 2 end end
-
     local list = {}
     for name, ent in pairs(self.ActiveMercs) do
         if ent and self:IsAliveAndWell(ent, false) then
@@ -2098,8 +2256,9 @@ function mercenaries:CampTakeParty(fraction)
             -- "everybody you can spare" still spares.
             local isSmith = (ka and ka == self.CampForgeSmithWuid) or (kb and kb == self.CampForgeSmithWuid)
             if ka and not isSmith then
-                table.insert(list, { ka = ka, kb = kb, ent = ent,
-                                     tier = self:GetTierFromName(name) or "weak" })
+                table.insert(list, { ka = ka, kb = kb, ent = ent, name = name,
+                                     tier = self:GetTierFromName(name) or "weak",
+                                     archer = self:IsArcherName(name) or false })
             end
         end
     end
@@ -2108,7 +2267,7 @@ function mercenaries:CampTakeParty(fraction)
     local takeN = math.floor(total * fraction + 0.5)
     if takeN < 1 then takeN = 1 end
     if takeN > total then takeN = total end
-    table.sort(list, function(a, b) return tierRank(a.tier) < tierRank(b.tier) end)
+    list = self:CampPickParty(list, takeN)
 
     -- Rebuild BOTH sides from scratch: the top takeN are the sortie, the rest hold the camp.
     -- The deployed men drop their camp assignment so they stop the activity and follow;
@@ -2189,6 +2348,190 @@ function mercenaries:CampTakeParty(fraction)
     System.LogAlways(string.format(
         '[CampDeploy] deployed %d/%d mercs (best tier first), %d left in camp, %d evicted from camp duty - formation squad=%d leader=%s',
         takeN, total, total - takeN, kicked, self.SquadSize or 0, tostring(self.FormationLeader)))
+end
+
+-- ==== What the party is made of ====
+-- The deploy menu used to sort the whole company strong -> weak and take the top slice,
+-- which meant a player could never take an archer out with him: archers are a separate
+-- hire and never rank above a strong foot soldier, so any fraction short of "everyone"
+-- left every one of them in camp. The quartermaster now takes two standing orders - how
+-- much of the party should be archers, and whether the foot should be the best men or the
+-- greenest - and CampPickParty fills the slots to match.
+--
+-- Both settings live in LogiState so they persist, and both apply to every fraction.
+mercenaries.CampArcherShare = {   -- deployArchers -> share of the party, nil = same mix as the company
+    same = nil, none = 0.0, quarter = 0.25, half = 0.5, all = 1.0,
+}
+
+-- One token, one handler: the AMOUNT the dialog grants is the option index.
+mercenaries.CampCompositionOptions = {
+    { field = "deployArchers", value = "same",    text = 'merc_info_comp_arch_same' },
+    { field = "deployArchers", value = "none",    text = 'merc_info_comp_arch_none' },
+    { field = "deployArchers", value = "quarter", text = 'merc_info_comp_arch_quarter' },
+    { field = "deployArchers", value = "half",    text = 'merc_info_comp_arch_half' },
+    { field = "deployArchers", value = "all",     text = 'merc_info_comp_arch_all' },
+    { field = "deployPick",    value = "best",    text = 'merc_info_comp_foot_best' },
+    { field = "deployPick",    value = "mixed",   text = 'merc_info_comp_foot_mixed' },
+    { field = "deployPick",    value = "green",   text = 'merc_info_comp_foot_green' },
+}
+
+function mercenaries:CampSetComposition(which)
+    local opt = self.CampCompositionOptions[tonumber(which) or 0]
+    if not opt then
+        System.LogAlways("[CampDeploy] composition: no option at index " .. tostring(which))
+        return
+    end
+    local L = self:LogiState()
+    L[opt.field] = opt.value
+    self:LogiSave()
+    Game.SendInfoText(opt.text, false, 0, 4)
+    System.LogAlways("[CampDeploy] composition: " .. opt.field .. " = " .. opt.value)
+end
+
+-- Reorder `list` so its first `takeN` entries are the party the player asked for. The
+-- return is the whole list, still complete - CampTakeParty needs the tail to re-roster
+-- the men who stay - just resorted so the cut lands in the right place.
+function mercenaries:CampPickParty(list, takeN)
+    local L = self:LogiState()
+    local pick  = L.deployPick or "best"
+    local share = L.deployArchers or "same"
+
+    local function tierRank(t) if t == "strong" then return 0 elseif t == "medium" then return 1 else return 2 end end
+    -- "mixed" wants a spread of tiers rather than a block of one, so it is ordered by a
+    -- shuffle instead of by tier; "green" is "best" read backwards (keep the veterans in
+    -- camp and blood the new men).
+    local order
+    if pick == "green" then
+        order = function(a, b) return tierRank(a.tier) > tierRank(b.tier) end
+    elseif pick == "mixed" then
+        order = nil
+    else
+        order = function(a, b) return tierRank(a.tier) < tierRank(b.tier) end
+    end
+
+    local archers, foot = {}, {}
+    for _, m in ipairs(list) do
+        table.insert(m.archer and archers or foot, m)
+    end
+    local function arrange(t)
+        if order then table.sort(t, order)
+        else
+            for i = #t, 2, -1 do
+                local j = math.random(i); t[i], t[j] = t[j], t[i]
+            end
+        end
+        return t
+    end
+    arrange(archers); arrange(foot)
+
+    -- How many of the slots go to archers. "same" keeps the company's own ratio, which is
+    -- the least surprising default and on its own fixes "I can never take an archer".
+    local wantArchers
+    local frac = self.CampArcherShare[share]
+    if share == "same" or frac == nil then
+        wantArchers = math.floor(takeN * (#archers / math.max(1, #list)) + 0.5)
+    else
+        wantArchers = math.floor(takeN * frac + 0.5)
+    end
+    wantArchers = math.max(0, math.min(wantArchers, #archers, takeN))
+    -- Whatever the archers cannot fill, the foot does, and the other way round.
+    local wantFoot = math.min(takeN - wantArchers, #foot)
+    wantArchers = math.min(#archers, takeN - wantFoot)
+
+    local out = {}
+    for i = 1, wantArchers do table.insert(out, archers[i]) end
+    for i = 1, wantFoot do table.insert(out, foot[i]) end
+    for i = wantArchers + 1, #archers do table.insert(out, archers[i]) end
+    for i = wantFoot + 1, #foot do table.insert(out, foot[i]) end
+    System.LogAlways(string.format(
+        "[CampDeploy] composition: archers=%s foot=%s -> %d archer(s) + %d foot of %d",
+        share, pick, wantArchers, wantFoot, takeN))
+    return out
+end
+
+-- ==== Picking your party man by man ====
+-- The Deploy menu only ever takes a FRACTION, best tier first, so a player who wanted
+-- one particular man - an archer, say, who is never "best" by tier - had no way to ask
+-- for him. These two are that way: walk up to a man and tell him, and only him, to come
+-- along or to stay. Neither touches the camp, so the tents keep standing either way.
+--
+-- The deploy half does by hand what CampTakeParty does in bulk for the men it takes:
+-- drop the camp role, release the shared seat/bed spot, clear the busy stamp, and EVICT
+-- the camp behaviour rather than asking it to stop (camp_actor owns the interrupt slot -
+-- see docs/camp.md, "The partial deploy needed three more things").
+function mercenaries:CampDeployOne(ent)
+    if not self.CampActive then
+        Game.SendInfoText('merc_info_camp_not_active', false, 0, 3)
+        return false
+    end
+    local ka, kb = self:CampMercKeys(ent)
+    if not ka then return false end
+    if self:IsCampOut(ka) then return false end
+
+    for _, k in ipairs({ ka, kb }) do
+        if k then
+            self.CampOutParty[k] = true
+            if self.CampRoster then self.CampRoster[k] = nil end
+            if self.CampActivities then self.CampActivities[k] = nil end
+            if self.CampFurniture then self.CampFurniture[k] = nil end
+            if self.CampBusyUntil then self.CampBusyUntil[k] = nil end
+            if self.CampPatrollers then self.CampPatrollers[k] = nil end
+            pcall(function() self:ReleaseSpot(self.CampSeats, k) end)
+            pcall(function() self:ReleaseSpot(self.CampBeds, k) end)
+        end
+    end
+
+    -- A standing hold/wait order switches the formation off squad-wide, and asking a man
+    -- to come with you means following - the same clear CampTakeParty does.
+    pcall(function() self:HoldEnd(true) end)
+    pcall(function() self:EscortEnd(true) end)
+    _G.MercIdle = false
+    _G.MercPersistentIdleFlag = false
+    self:SaveString("MercIdlePersistent", "0")
+
+    if self.CampActorInvalidateAll then self:CampActorInvalidateAll() end
+    pcall(function() self:FollowStalled(ent) end)
+    pcall(function() self:FollowStaggerSquad() end)
+    pcall(function() self:BeginFollowVerify("camp deploy one") end)
+    self:SaveCampOutParty()
+    -- NO CampFormationDirty here. It nulls the leader and forces a re-election, and one
+    -- session of picking men out one at a time did that seven times - every rebuild drops
+    -- the squad onto the chain until everyone re-slots, which then reads as a squad full of
+    -- stalled mercs. UpdateFormationLeader grows the preset the moment `followers > cap`,
+    -- so a single man joining is picked up on the next pass for free.
+    System.LogAlways("[CampDeploy] " .. tostring(ent and ent.GetName and ent:GetName()) .. " joined the party")
+    return true
+end
+
+-- The reverse: this man alone goes back to camp life. Teleported in only if he is
+-- actually away from it - told to stay while standing in the middle of the camp, he just
+-- picks up a camp role where he is, with no blink.
+function mercenaries:CampStayOne(ent)
+    if not self.CampActive then return false end
+    local ka, kb = self:CampMercKeys(ent)
+    if not ka then return false end
+    if not self:IsCampOut(ka) then return false end
+
+    for _, k in ipairs({ ka, kb }) do
+        if k then self.CampOutParty[k] = nil end
+    end
+    self:CampAdmitToCamp(ent, ka)
+
+    local far = true
+    pcall(function()
+        local c, ep = self.CampCenter, ent:GetWorldPos()
+        if c and ep then
+            local dx, dy = ep.x - c.x, ep.y - c.y
+            far = (dx * dx + dy * dy) > (self.CampJoinRadius * self.CampJoinRadius)
+        end
+    end)
+    if far then self:CampTeleportToCamp(ent, ka) end
+
+    if self.CampActorInvalidateAll then self:CampActorInvalidateAll() end
+    self:SaveCampOutParty()
+    -- Same as CampDeployOne: the shrink is noticed on its own, no rebuild needed.
+    System.LogAlways("[CampDeploy] " .. tostring(ent and ent.GetName and ent:GetName()) .. " stayed in camp")
+    return true
 end
 
 -- Teleport a merc entity back into the camp (near the centre, jittered so a
@@ -2685,6 +3028,53 @@ end
 -- position, and the camp goes back exactly where it stood.
 mercenaries.CampBuildOrigin = nil
 
+-- Upgrade tiles are saved as well as the anchor, because they are NOT reproducible
+-- from it. A tile is handed out from the grid cells the tent clusters did not take,
+-- so it depends on the cluster count - which depends on how many men were alive and
+-- cached at the moment the camp was laid out. Rebuild with one man fewer (or a merc
+-- cache that is still filling four seconds after a load) and every station moves to
+-- a different cell. That is the "upgrades shuffle around after a reload" report.
+--
+-- Stored as "anchorX,anchorY|name:x,y,z,ang;...". The anchor rides along so tiles
+-- from the last pitch are discarded rather than dragged to a camp somewhere new,
+-- the same rule mercenaries_defences.lua applies to walls and towers.
+mercenaries.CampTileAnchorEps = 2.0
+
+function mercenaries:CampPackStationTiles()
+    local o = self.CampBuildOrigin
+    if not o then return nil end
+    local out = {}
+    for name, t in pairs(self.CampStationTiles or {}) do
+        table.insert(out, string.format("%s:%.2f,%.2f,%.2f,%.4f", name, t.x, t.y, t.z or o.z, t.ang or 0))
+    end
+    table.sort(out)   -- stable string, so SaveString can skip an unchanged rewrite
+    return string.format("%.2f,%.2f|%s", o.x, o.y, table.concat(out, ";"))
+end
+
+-- The saved tiles, but only if they belong to the camp being pitched now.
+function mercenaries:CampLoadStationTiles(origin)
+    local raw = self:LoadString("MercCampTiles")
+    if not (raw and origin) then return {} end
+    local head, body = string.match(raw, "^([^|]*)|(.*)$")
+    if not head then return {} end
+    local ax, ay = string.match(head, "([^,]+),([^,]+)")
+    ax, ay = tonumber(ax), tonumber(ay)
+    if not (ax and ay) then return {} end
+    local dx, dy = origin.x - ax, origin.y - ay
+    if (dx * dx + dy * dy) > (self.CampTileAnchorEps * self.CampTileAnchorEps) then return {} end
+    local out = {}
+    for chunk in string.gmatch(body or "", "[^;]+") do
+        local name, rest = string.match(chunk, "^([^:]+):(.*)$")
+        if name then
+            local x, y, z, a = string.match(rest, "([^,]+),([^,]+),([^,]+),([^,]+)")
+            if x then
+                out[name] = { x = tonumber(x), y = tonumber(y), z = tonumber(z), ang = tonumber(a) }
+            end
+        end
+    end
+    return out
+end
+
 function mercenaries:SaveCampState()
     local o = self.CampBuildOrigin
     if self.CampActive and o then
@@ -2693,6 +3083,8 @@ function mercenaries:SaveCampState()
         self:SaveString("MercCampY", tostring(o.y))
         self:SaveString("MercCampZ", tostring(o.z))
         self:SaveString("MercCampAng", tostring(o.ang))
+        local tiles = self:CampPackStationTiles()
+        if tiles then self:SaveString("MercCampTiles", tiles) end
     else
         self:SaveString("MercCampActive", "0")
     end
@@ -2721,6 +3113,79 @@ function mercenaries.RestoreCampDelayed()
     -- Strictly after the rebuild: SpawnMercCamp empties CampOutParty and gives everyone a
     -- camp role, so the deployed party has to be put back on top of that, not before it.
     pcall(function() self:LoadCampOutParty() end)
+end
+
+-- ==== Where the camp gets pitched ====
+-- The tent used to land wherever GetSafeSpawnPosition put it - about 7m BEHIND the
+-- player, out of sight, so the camp was near enough impossible to aim. It is pitched
+-- on the conversation partner instead: whoever the player just told to make camp is
+-- standing exactly where the player wants the camp, and he walks into his own tent
+-- rather than being teleported out of it.
+--
+-- The look-at prompt has the entity in hand and calls CampSetAnchorEnt; the Skald
+-- dialog path has no such handle (a token arrives, the partner is not named), so the
+-- partner is resolved by geometry: the nearest living squad member in front of the
+-- player. Both are best-effort - no partner means the old behaviour.
+mercenaries.CampPartnerMaxDist  = 7.0    -- a conversation partner is no further than this
+mercenaries.CampPartnerMinDot   = 0.0    -- ... and no further round than 90 degrees off the player's facing
+mercenaries.CampAnchorHoldSecs  = 20.0   -- how long an explicitly-set anchor entity stays valid
+
+-- Remember the merc a camp order was given to. Called by the look-at prompt, which
+-- knows exactly who was asked; the timestamp keeps a stale press from anchoring a
+-- camp made minutes later from the console.
+function mercenaries:CampSetAnchorEnt(ent)
+    self.CampAnchorEnt = ent
+    self.CampAnchorAt  = nil
+    pcall(function() self.CampAnchorAt = System.GetCurrTime() end)
+end
+
+-- The spot the player's conversation partner is standing on, or nil.
+function mercenaries:CampTalkPartnerPos()
+    if not player then return nil end
+    local pp, pdir
+    pcall(function() pp = player:GetWorldPos() end)
+    pcall(function() pdir = player:GetDirectionVector() end)
+    if not pp then return nil end
+
+    -- 1. The merc the order was actually given to (look-at prompt).
+    local e = self.CampAnchorEnt
+    if e then
+        local now; pcall(function() now = System.GetCurrTime() end)
+        local fresh = (not now) or (not self.CampAnchorAt)
+                      or ((now - self.CampAnchorAt) <= self.CampAnchorHoldSecs)
+        self.CampAnchorEnt, self.CampAnchorAt = nil, nil
+        if fresh and self:IsAliveAndWell(e, true) then
+            local ep; pcall(function() ep = e:GetWorldPos() end)
+            if ep then return { x = ep.x, y = ep.y, z = ep.z } end
+        end
+    end
+
+    -- 2. Dialog path: the nearest living squad member the player is facing. A
+    -- conversation partner stands close and roughly ahead, so that is the whole test.
+    local dl = pdir and math.sqrt(pdir.x * pdir.x + pdir.y * pdir.y) or 0
+    local fx, fy = 0, 0
+    if dl > 0.0001 then fx, fy = pdir.x / dl, pdir.y / dl end
+    local maxD, best, bestScore = self.CampPartnerMaxDist, nil, nil
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if ent and self:IsAliveAndWell(ent, true) then
+            local ep; pcall(function() ep = ent:GetWorldPos() end)
+            if ep then
+                local dx, dy = ep.x - pp.x, ep.y - pp.y
+                local d = math.sqrt(dx * dx + dy * dy)
+                if d > 0.05 and d <= maxD then
+                    local dot = (dl > 0.0001) and ((dx / d) * fx + (dy / d) * fy) or 1.0
+                    if dot >= self.CampPartnerMinDot then
+                        -- Nearest wins, with a small bonus for being dead ahead so a man
+                        -- squarely in front beats one a step closer off to the side.
+                        local score = d - dot
+                        if not bestScore or score < bestScore then bestScore, best = score, ep end
+                    end
+                end
+            end
+        end
+    end
+    if best then return { x = best.x, y = best.y, z = best.z } end
+    return nil
 end
 
 -- Build the physical camp layout and teleport the squad in. Tent recipients (up
@@ -2753,7 +3218,12 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         if atOrigin then
             center = { x = atOrigin.x, y = atOrigin.y, z = atOrigin.z }
         else
-            center = self:GetSafeSpawnPosition(player, 7)
+            -- "Make camp here" is said TO somebody, and that somebody is standing on
+            -- the spot the player picked out - so the player tent goes exactly where
+            -- he stands. GetSafeSpawnPosition (7m BEHIND the player) is only the
+            -- fallback for the console command, where nobody was asked.
+            center = self:CampTalkPartnerPos()
+            if not center then center = self:GetSafeSpawnPosition(player, 7) end
             if not center then
                 Game.SendInfoText('merc_info_camp_no_spot', false, 0, 3)
                 return
@@ -2883,13 +3353,26 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- lines up with the tent's entrance. "right" is perpendicular to it.
         -- A rebuild/restore reuses the saved angle so the layout comes back
         -- identical rather than swinging to wherever the player is now looking.
+        -- Measured from the anchor TOWARD the player rather than from the player's
+        -- look direction: both give the same axis back when the camp is pitched
+        -- behind the player (the old behaviour), but only this one still points the
+        -- tent's entrance at the player when the anchor is the man he is talking to,
+        -- who stands in FRONT of him. The camp then grows away past that man instead
+        -- of swallowing the player.
         local forward
         if atOrigin then
             forward = { x = math.cos(atOrigin.ang), y = math.sin(atOrigin.ang) }
         else
-            local playerDir = player:GetDirectionVector()
-            local dirLen = math.sqrt(playerDir.x * playerDir.x + playerDir.y * playerDir.y)
-            forward = dirLen > 0.0001 and { x = playerDir.x / dirLen, y = playerDir.y / dirLen } or { x = 0, y = 1 }
+            local pp = player:GetWorldPos()
+            local dx, dy = pp.x - center.x, pp.y - center.y
+            local dl = math.sqrt(dx * dx + dy * dy)
+            if dl > 0.5 then
+                forward = { x = dx / dl, y = dy / dl }
+            else
+                local playerDir = player:GetDirectionVector()
+                local dirLen = math.sqrt(playerDir.x * playerDir.x + playerDir.y * playerDir.y)
+                forward = dirLen > 0.0001 and { x = playerDir.x / dirLen, y = playerDir.y / dirLen } or { x = 0, y = 1 }
+            end
         end
         local right = { x = -forward.y, y = forward.x }
         local spacing = self.CampClusterSpacing
@@ -3004,6 +3487,38 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         local candidateOffsets = self:CampGridOffsets(math.max(self.CampMaxProbeCells, numClusters))
         local clusterCenters = {}
         local usedCell = {}
+
+        -- Tiles this camp handed out the last time it stood, reserved BEFORE anything else
+        -- claims a cell. An upgrade's tile is drawn from the cells the tent clusters did
+        -- not take, so where it lands depends on the cluster count - which depends on how
+        -- many men were alive and cached when the camp was laid out. Rebuild four seconds
+        -- after a load, off a merc cache that is still filling, and every station moved:
+        -- that is the "upgrades shuffle around after a reload" report. Restoring them first
+        -- pins them, and the clusters below route around them instead of over them.
+        self.CampStationTiles = {}
+        local reusedStations = 0
+        do
+            local savedTiles = {}
+            pcall(function() savedTiles = self:CampLoadStationTiles(center) or {} end)
+            for _, name in ipairs(stationNames) do
+                local t = savedTiles[name]
+                if t and t.x and t.y then
+                    self.CampStationTiles[name] = { x = t.x, y = t.y, z = t.z or center.z, ang = t.ang or 0 }
+                    reusedStations = reusedStations + 1
+                    -- Which grid cell it sits in. Compared on the RAW cell centre, not
+                    -- gridCellPos - that ground-snaps, and a raycast per candidate cell per
+                    -- station is a burst of them for an answer only x/y is needed for.
+                    local bestKey, bestD
+                    for _, off in ipairs(candidateOffsets) do
+                        local cx = center.x + right.x * off[1] * spacing + forward.x * off[2] * spacing
+                        local cy = center.y + right.y * off[1] * spacing + forward.y * off[2] * spacing
+                        local d = (cx - t.x) ^ 2 + (cy - t.y) ^ 2
+                        if not bestD or d < bestD then bestD, bestKey = d, off[1] .. "," .. off[2] end
+                    end
+                    if bestKey and bestD and bestD <= (spacing * spacing) then usedCell[bestKey] = true end
+                end
+            end
+        end
         for _, off in ipairs(candidateOffsets) do
             if #clusterCenters >= numClusters then break end
             local raw = gridCellPos(off[1], off[2])
@@ -3046,8 +3561,9 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- Each faces outward from the camp centre. Anything that can't get a
         -- validated tile takes the next free cell raw, then falls back to its own
         -- flat-patch scan if it got nothing at all.
-        self.CampStationTiles = {}
-        local placedStations = 0
+        -- Anything the last pitch already placed kept its tile above; only a station with
+        -- no saved tile - a newly bought one - draws a fresh cell here.
+        local placedStations = reusedStations
         local function claimStationTile(name, requireValid)
             for _, off in ipairs(candidateOffsets) do
                 local key = off[1] .. "," .. off[2]
@@ -3074,12 +3590,15 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
             return false
         end
         for _, name in ipairs(stationNames) do
-            if claimStationTile(name, true) or claimStationTile(name, false) then
-                placedStations = placedStations + 1
+            if not self.CampStationTiles[name] then
+                if claimStationTile(name, true) or claimStationTile(name, false) then
+                    placedStations = placedStations + 1
+                end
             end
         end
         if #stationNames > 0 then
-            System.LogAlways(string.format("[Camp] %d/%d upgrade tiles reserved", placedStations, #stationNames))
+            System.LogAlways(string.format("[Camp] %d/%d upgrade tiles reserved (%d kept from the last pitch)",
+                placedStations, #stationNames, reusedStations))
         end
 
         for _, cPos in ipairs(clusterCenters) do
@@ -3393,6 +3912,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
 
         self.CampCenter = center
         self.CampActive = true
+        self.CampStationRetries = 0
         self.CampOutParty = {}   -- fresh camp: everyone starts in it
         _G.MercCampMode = true
         -- "A camp exists" flag. The schedulers/follow BT and the formation &
@@ -3558,9 +4078,56 @@ end
 -- every CampRotateTicks ticks (~3 min), every scheduled merc advances one
 -- step through CampRoleCycle and walks to their next occupation - see
 -- RotateCampRoles / ApplyCampRole.
+-- A station can fail to build and say nothing. The forge and the alchemy bench each
+-- BORROW a vanilla Smithery/AlchemyTable out of the nearest settlement, and right after
+-- a save load - RestoreCampDelayed rebuilds the camp four seconds in - the level around
+-- the camp may not have streamed those in yet, so the borrow finds nothing and the
+-- upgrade the player paid for simply is not there. That is the other half of "upgrades
+-- come back invisible": not misplaced, never built.
+--
+-- So every camp tick for the first minute, anything the player owns but that is not
+-- standing gets another go. Each spawner already no-ops when its station exists, and the
+-- tile it was reserved is still held, so a late build lands exactly where it belonged.
+mercenaries.CampStationRetryMax = 12     -- 5s ticks: a minute of streaming grace
+mercenaries.CampStationRetries  = 0
+
+function mercenaries:CampStationRetryTick()
+    if not (self.CampActive and self.CampCenter) then return end
+    if (self.CampStationRetries or 0) >= self.CampStationRetryMax then return end
+    local L
+    pcall(function() L = self:LogiState() end)
+    if not L then return end
+
+    local missing = {}
+    local function want(owned, built, name, fn)
+        if owned and not built and fn then
+            table.insert(missing, name)
+            pcall(fn, self, self.CampCenter)
+        end
+    end
+    want(L.hasSmithy, self.CampForge, "forge", self.SpawnCampForge)
+    want(L.hasAlchemy, self.CampAlchemy, "alchemy", self.SpawnCampAlchemy)
+    want((L.hunterSpots or 0) > 0, self.CampHunt, "hunt", self.SpawnCampHunt)
+    want(L.innActive, self.CampInn, "inn", self.SpawnCampInn)
+    want((L.foodCartDays or 0) > 0, self.CampFoodCart, "cart", self.SpawnCampFoodCart)
+
+    if #missing == 0 then
+        -- everything owned is standing: stop asking
+        self.CampStationRetries = self.CampStationRetryMax
+        return
+    end
+    self.CampStationRetries = (self.CampStationRetries or 0) + 1
+    if self.CampStationRetries >= self.CampStationRetryMax then
+        System.LogAlways("[Camp] gave up rebuilding: " .. table.concat(missing, ", ")
+            .. " (no settlement near enough to borrow from?)")
+    end
+end
+
 function mercenaries:MonitorCamp()
     if not self.CampActive then return end
     self.CampTicks = (self.CampTicks or 0) + 1
+    -- Retry any upgrade that failed to build (see above); self-limiting.
+    self:CampStationRetryTick()
     -- Who is in camp, and does everyone in it have something to do (see CampSyncRoster).
     self:CampSyncRoster()
     -- Per-merc role timers (see RotateCampRoles) - checked every tick.
@@ -3754,3 +4321,110 @@ function mercenaries:ClearAnyLeftoverCamp()
     _G.MercInCamp = false
     mercenaries:ClearMercCampChats()
 end
+
+-- ==== camp tuning / diagnostics ====
+
+-- Re-pitch the standing camp on the same anchor with a new bed smart-object yaw, so the
+-- sleeping pose can be checked without a rebuild-by-hand. +/-90 both lie the merc along
+-- the bed; the sign decides which end his head is at.
+function mercenaries:CampBedYawSet(line)
+    local a = self:CmdArgs(line)
+    local v = tonumber(a[1])
+    if v == nil then
+        System.LogAlways("[Camp] bed SO yaw fix is " .. tostring(self.CampBedSOYawFixDeg) .. " deg; usage: merc_camp_bed_yaw <degrees>")
+        return
+    end
+    self.CampBedSOYawFixDeg = v
+    System.LogAlways("[Camp] bed SO yaw fix -> " .. tostring(v) .. " deg")
+    if self.CampActive then
+        pcall(function() self:LogiRebuildCampForUpgrade() end)
+    end
+end
+
+-- Print where a camp would go, and which upgrade tiles it would reuse. The whole of
+-- issues "the tent lands behind me" and "the upgrades move after a reload" is readable
+-- from this without pitching anything.
+function mercenaries:CampAnchorReport()
+    local p = self:CampTalkPartnerPos()
+    if p then
+        System.LogAlways(string.format("[Camp] conversation partner at %.2f, %.2f, %.2f - the tent would go there", p.x, p.y, p.z))
+    else
+        System.LogAlways("[Camp] no conversation partner in range - the tent would fall back behind the player")
+    end
+    local o = self.CampBuildOrigin or self:LoadCampOrigin()
+    if o then
+        System.LogAlways(string.format("[Camp] saved anchor %.2f, %.2f ang %.3f", o.x, o.y, o.ang or 0))
+        local t = self:CampLoadStationTiles(o)
+        local n = 0
+        for name, v in pairs(t) do
+            n = n + 1
+            System.LogAlways(string.format("[Camp]   tile %-8s %.2f, %.2f", name, v.x, v.y))
+        end
+        if n == 0 then System.LogAlways("[Camp]   no saved upgrade tiles for this anchor") end
+    else
+        System.LogAlways("[Camp] no saved camp anchor")
+    end
+    for _, name in ipairs(self:CampActiveStations()) do
+        local s = self.CampStationTiles and self.CampStationTiles[name]
+        System.LogAlways(string.format("[Camp]   live %-8s %s", name,
+            s and string.format("%.2f, %.2f", s.x, s.y) or "NO TILE"))
+    end
+end
+
+mercenaries:DevCommand("merc_camp_bed_yaw", "mercenaries:CampBedYawSet('%line')",
+                   "Set the bed smart-object yaw fix in degrees and re-pitch the camp")
+mercenaries:DevCommand("merc_camp_anchor", "mercenaries:CampAnchorReport()",
+                   "Report the camp anchor, the conversation partner and the saved upgrade tiles")
+
+-- Console front ends for the two quartermaster menus that are driven by an option index
+-- (see LogiRemoveUpgrade / CampSetComposition). With no argument they print the list, so
+-- the numbers never have to be remembered.
+function mercenaries:CmdRemoveUpgrade(line)
+    local n = tonumber((self:CmdArgs(line))[1])
+    if not n then
+        System.LogAlways("[MercCmd] merc_camp_remove <n>:")
+        for i, u in ipairs(self.UpgRemovable or {}) do
+            System.LogAlways(string.format("  %2d  %s", i, u.label))
+        end
+        return
+    end
+    self:LogiRemoveUpgrade(n)
+end
+
+function mercenaries:CmdComposition(line)
+    local n = tonumber((self:CmdArgs(line))[1])
+    if not n then
+        local L = self:LogiState()
+        System.LogAlways(string.format("[MercCmd] party is now: archers=%s, foot=%s",
+            tostring(L.deployArchers), tostring(L.deployPick)))
+        for i, o in ipairs(self.CampCompositionOptions or {}) do
+            System.LogAlways(string.format("  %2d  %s = %s", i, o.field, o.value))
+        end
+        return
+    end
+    self:CampSetComposition(n)
+end
+
+-- Pull the nearest man out of camp / send him back, the console twin of the look-at
+-- prompt (which needs the player to be looking at somebody).
+function mercenaries:CmdCampJoinNearest(stay)
+    if not player then return end
+    local pp = player:GetWorldPos()
+    local best, bd
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if ent and self:IsAliveAndWell(ent, true) then
+            local ep; pcall(function() ep = ent:GetWorldPos() end)
+            if ep then
+                local d = (ep.x - pp.x) ^ 2 + (ep.y - pp.y) ^ 2
+                if not bd or d < bd then bd, best = d, ent end
+            end
+        end
+    end
+    if not best then System.LogAlways("[CampDeploy] nobody nearby"); return end
+    if stay then self:CampStayOne(best) else self:CampDeployOne(best) end
+end
+
+mercenaries:DevCommand("merc_camp_join_nearest", "mercenaries:CmdCampJoinNearest(false)",
+                   "Take the nearest man out of camp with you")
+mercenaries:DevCommand("merc_camp_stay_nearest", "mercenaries:CmdCampJoinNearest(true)",
+                   "Send the nearest man back to camp")

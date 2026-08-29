@@ -524,6 +524,39 @@ under the player's feet. Tower archers are adopted into the camp as they arrive 
 ground is clear, each is swapped for an identical archer at the foot of his tower
 (`AlxBringArchersDown`), because there is no way to walk one down a ladder.
 
+### A load may never report progress
+
+**The save being loaded is the only authority on where the arc is.** Everything Lua holds about
+the arc describes the session that saved, and that session can be several beats ahead of the save
+the player just picked — reloading an earlier save is exactly how a player rewinds a beat.
+
+This was a real bug: a reload skipped the current objective. `AlxOnLoad` tears the previous
+session's camp down through `AlxTearDown`, and `AlxTearDown` carries the "the player walked away
+without looting the body" safety net — it grants the beat's document and fires its doc token so
+the beat cannot become uncompletable. On a load that net fired against the *newly loaded* quest
+state: kill Vávra, die to a straggler, reload the save from before the fight, and beat 2's "search
+his body" closed itself the instant the level came up. On beats 7 and 8, where the doc token
+**increments `alx_beat`**, it skipped the whole beat. `AlxTearDown(C, onLoad)` now takes the flag
+and `AlxOnLoad` passes it; the wake token rebuilds the camp with its leader and his document a
+moment later regardless.
+
+Three things follow the same rule:
+
+- **`AlxSweepStaleTokens`**, first thing in `AlxOnLoad`. Lua→Skald bridge tokens are real items
+  that live about two ticks in the player's pack, and a save can catch one in flight. The sweep
+  used to be a queue of *this session's* pending signals, so a token that came back in a save had
+  nothing left to remove it and re-fired its trigger on every load after that. It is now a static
+  list (`AlxBridgeTokens`) swept with the seen-latch idiom `BanditCampSweepTokens` uses, plus the
+  outright sweep on load.
+- **`AlxBeat6Live` / `AlxBeat6Done`** are cleared on load. They are session flags; the wake token
+  sets them again if beat 6 is genuinely the live one.
+- **`AlxGrantBeat6Items`** returns early if both documents are already in the pack. Until
+  `AlxLodging.chest` is placed, beat 6 grants its items directly, and the wake token re-runs that
+  on every load — which was a fresh purse of coin each time.
+
+The sibling contract loop keeps the same rule: `BanditCampRestoreSlot` now **clears** its slot
+when the save carries no contract, instead of returning and leaving this session's one live.
+
 ### Named leaders wear their own gear
 
 `beat.leaderClothingPreset` (and `leaderWeaponPreset`) equip one exact preset and skip the random

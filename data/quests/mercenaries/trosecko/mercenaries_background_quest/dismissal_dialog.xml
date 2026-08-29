@@ -37,6 +37,8 @@
 
                 <Port Name="mercenary_open_heal_menu" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_status_report" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_give_food" Direction="Out" Type="trigger" />
+                <Port Name="mercenary_give_drink" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_camp_make" Direction="Out" Type="trigger" />
                 <Port Name="mercenary_camp_break" Direction="Out" Type="trigger" />
 
@@ -231,6 +233,39 @@
                                             </Response>
                                         </Elements>
                                         <Triggers><Port Name="mercenary_status_report" /></Triggers>
+                                    </Sequence>
+
+                                    <!-- Supplies handed to any merc in the field. Same two
+                                         actions the quartermaster offers, same tokens, so a squad
+                                         with no camp standing can still be fed. -->
+                                    <Sequence EndType="EndDialogue" Name="seq_merc_give_food">
+                                        <UiPrompt StringName="ui_qm_deliver_food" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_qm_deliver_food" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_qm_deliver_food" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_give_food" /></Triggers>
+                                    </Sequence>
+
+                                    <Sequence EndType="EndDialogue" Name="seq_merc_give_drink">
+                                        <UiPrompt StringName="ui_qm_deliver_drink" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_qm_deliver_drink" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                            <Response Role="role_mercenary_test">
+                                                <Text StringName="merc_qm_deliver_drink" />
+                                                <Commands><CameraCommand /></Commands>
+                                            </Response>
+                                        </Elements>
+                                        <Triggers><Port Name="mercenary_give_drink" /></Triggers>
                                     </Sequence>
 
                                     <Sequence EndType="Decision" Name="seq_camp_hub">

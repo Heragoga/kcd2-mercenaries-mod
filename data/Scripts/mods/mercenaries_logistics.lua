@@ -184,6 +184,7 @@ function mercenaries:LogiState()
             foodCartDays = 0, innDays = 0, hunterSpots = 0,
             hasSmithy = false, hasAlchemy = false, hasPracticeYard = false, hasHouse = false, trainLevel = 0,
             hasTower = false, hasArcherCart = false,
+            deployArchers = "same", deployPick = "best",
             lastUpkeepDay = nil, lastTick = nil,
             -- runtime combat tracking
             lastAliveCount = nil, selfRemoved = 0, desertProgress = 0,
@@ -331,6 +332,10 @@ function mercenaries:LogiSave()
     self:LogiSaveField("QMTrainLevel", L.trainLevel)
     self:LogiSaveField("QMTower", L.hasTower and 1 or 0)
     self:LogiSaveField("QMArcherCart", L.hasArcherCart and 1 or 0)
+    -- Deploy composition (see CampSetComposition): saved so the party you asked for is
+    -- still the party you get after a reload.
+    self:LogiSaveField("QMDeployArchers", L.deployArchers or "same")
+    self:LogiSaveField("QMDeployPick",    L.deployPick or "best")
 
     local batch = self._logiPending
     self._logiPending = nil
@@ -362,6 +367,8 @@ function mercenaries:LogiLoad()
     L.trainLevel      = num("QMTrainLevel", 0)
     L.hasTower        = num("QMTower", 0) == 1
     L.hasArcherCart   = num("QMArcherCart", 0) == 1
+    L.deployArchers   = self:LoadString("QMDeployArchers") or "same"
+    L.deployPick      = self:LoadString("QMDeployPick") or "best"
     L.innActive       = L.innDays > 0
     L.lastTick = self:LogiNow()          -- not persisted (see comment in LogiTick)
     L.lastAliveCount = self:LogiAliveCount()
@@ -978,15 +985,21 @@ function mercenaries:LogiWithdrawCoffer()
         Game.SendInfoText('merc_logi_coffer_empty', false, 0, 3)
         return
     end
-    -- Only clear the coffer if the money actually landed in the purse - never
-    -- zero it on a failed payout, or the coin would just vanish. GiveMoney verifies by
-    -- reading the purse back (mercenaries_util.lua).
+    -- Deduct exactly what LANDED, never what was asked. The purse stops accepting
+    -- created money at ~10000 (see GiveMoney), so a fat coffer pays out in parts: the
+    -- player gets what fits, the coffer keeps the rest for the next withdrawal. The old
+    -- code zeroed the coffer on any purse movement at all, which VANISHED the remainder
+    -- of a large withdrawal.
     local taken = L.coffer
-    local ok = self:GiveMoney(L.coffer)
-    if ok then
-        self:LogiAdjust("coffer", -taken, "withdrawn by player")
+    local ok, got = self:GiveMoney(L.coffer)
+    if (got or 0) > 0 then
+        self:LogiAdjust("coffer", -got, "withdrawn by player")
         self:LogiSave()
-        self:LogiInfo("@merc_n_ctake " .. taken)
+        self:LogiInfo("@merc_n_ctake " .. got)
+        if got < taken then
+            System.LogAlways('[Logistics] purse full: withdrew ' .. got .. ' of ' .. taken ..
+                             '; ' .. (taken - got) .. ' stays in the coffer')
+        end
     else
         System.LogAlways('[Logistics] payout failed; coffer kept at ' .. tostring(L.coffer))
         Game.SendInfoText('merc_logi_coffer_empty', false, 0, 3)
@@ -1049,6 +1062,105 @@ function mercenaries:LogiRemoveAllUpgrades()
     self:LogiRebuildCampForUpgrade()
     Game.SendInfoText('merc_logi_upg_removed', false, 0, 4)
     System.LogAlways("[Logistics] all upgrades removed")
+end
+
+-- Take ONE upgrade down instead of the lot. The quartermaster's "remove a single
+-- improvement" menu grants one token whose AMOUNT is the index into this table, so a
+-- whole sub-menu costs one item GUID and one handler (the count-as-selector trick
+-- ChangeMercOutfit uses) - see the exec_qm_rm_* nodes in the region quests.
+--
+-- Two kinds of upgrade need two kinds of teardown. The STATIONS (cart, tavern, hunter,
+-- forge, bench, yard, house) are built by SpawnMercCamp out of the LogiState flags, so
+-- clearing the flag and rebuilding the camp is the whole removal - and now that upgrade
+-- tiles persist, the ones that stay keep their exact spots. The DEFENCES (towers, archer
+-- carts, wall, gates) are placed by hand and saved against the pitch, so they have to be
+-- pulled out of the world AND out of the saved layout, or the next rebuild puts them back.
+--
+-- No refund, same as LogiRemoveAllUpgrades: this is for undoing a layout, not selling.
+mercenaries.UpgRemovable = {
+    { key = "cart",       label = "food cart" },
+    { key = "inn",        label = "tavern" },
+    { key = "hunter",     label = "hunter's station" },
+    { key = "smithy",     label = "portable smithy" },
+    { key = "alchemy",    label = "alchemy bench" },
+    { key = "practice",   label = "practice yard" },
+    { key = "house",      label = "house" },
+    { key = "tower",      label = "archer towers" },
+    { key = "archercart", label = "archer carts" },
+    { key = "wall",       label = "palisade" },
+    { key = "gate",       label = "gates" },
+}
+
+function mercenaries:LogiRemoveUpgrade(which)
+    local spec = self.UpgRemovable[tonumber(which) or 0]
+    if not spec then
+        System.LogAlways("[Logistics] remove: no upgrade at index " .. tostring(which))
+        return
+    end
+    local L = self:LogiState()
+    local k = spec.key
+    local had, rebuild = false, false
+
+    if k == "cart" then
+        had = (L.foodCartDays or 0) > 0
+        L.foodCartDays = 0
+        pcall(function() self:DespawnCampFoodCart() end)
+        rebuild = true
+    elseif k == "inn" then
+        had = (L.innActive == true) or (L.innDays or 0) > 0
+        L.innDays, L.innActive = 0, false
+        rebuild = true
+    elseif k == "hunter" then
+        had = (L.hunterSpots or 0) > 0
+        L.hunterSpots = 0
+        rebuild = true
+    elseif k == "smithy" then
+        had = L.hasSmithy == true
+        L.hasSmithy = false
+        rebuild = true
+    elseif k == "alchemy" then
+        had = L.hasAlchemy == true
+        L.hasAlchemy = false
+        rebuild = true
+    elseif k == "practice" then
+        had = L.hasPracticeYard == true
+        L.hasPracticeYard = false
+        rebuild = true
+    elseif k == "house" then
+        had = L.hasHouse == true
+        L.hasHouse = false
+        rebuild = true
+    elseif k == "tower" then
+        had = (L.hasTower == true) or ((self.TowerStations and #self.TowerStations or 0) > 0)
+        L.hasTower = false
+        pcall(function() self:TowerStationClearAll() end)
+    elseif k == "archercart" then
+        had = (L.hasArcherCart == true) or ((self.ArcherCarts and #self.ArcherCarts or 0) > 0)
+        L.hasArcherCart = false
+        pcall(function() self:ClearArcherCarts() end)
+    elseif k == "wall" then
+        had = (self.WallRuns and #self.WallRuns or 0) > 0
+        pcall(function() self:WallClearAll() end)
+    elseif k == "gate" then
+        had = (self:GateCount() or 0) > 0
+        pcall(function() self:GateClearAll() end)
+    end
+
+    if not had then
+        Game.SendInfoText('merc_logi_upg_none', false, 0, 3)
+        System.LogAlways("[Logistics] nothing to remove: " .. spec.label)
+        return
+    end
+
+    pcall(function() self:LogiApplyBuffs() end)
+    self:LogiSave()
+    -- A defence removal has to be written back to the saved layout right away, or the
+    -- next restore rebuilds what was just torn down.
+    if not rebuild then pcall(function() self:DefSave() end) end
+    if rebuild then self:LogiRebuildCampForUpgrade() end
+
+    Game.SendInfoText('merc_logi_upg_removed', false, 0, 4)
+    System.LogAlways("[Logistics] removed upgrade: " .. spec.label)
 end
 
 function mercenaries:LogiBuyFoodCart()

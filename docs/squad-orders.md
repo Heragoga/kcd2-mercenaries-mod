@@ -306,6 +306,60 @@ Barks that **do** work are alias-based: `RequestBark` / `OrderBarkSome` name one
 mod's own dialogs from `BarkPools`. `BarkPoll` is the single shared consumer, used by
 `follow.xml`, `camp_actor.xml` and `mercenary_scheduler.xml`.
 
+### The idle-bark loop must never run on game time alone
+
+The monolog loop in `mercenary_scheduler.xml` paces itself with
+`Wait duration="'1200s'" timeType="GameTime"` — about twenty *in-game* minutes between one
+man's barks, which is exactly right during normal play and completely wrong the moment the
+world clock stops running at 1:1.
+
+**Sleeping and waiting run game time at an enormous ratio** (the mod's own wait/sleep test is
+`Calendar.GetWorldTimeRatio() > 20`, and a night's sleep is far above that). A 1200 s game-time
+wait then expires in a fraction of a real second, so every merc's loop free-runs and the squad
+fires `schedulerMonolog` calls as fast as the tree will step. It shows up in the log as a solid
+block of `Going to play random line …` with nothing else interleaved — 61 of them in one burst,
+and 37 in an earlier session. Both were sessions where the player slept; **barks appear in no
+other run at all**, which is what identifies the trigger.
+
+Two guards now, because one was not enough:
+
+* `~$isIdle` on the bark branch. `MercIsIdle` reads the same `_G.MercIdle` the wait/sleep
+  detector sets, and the log shows `Waiting/Sleeping detected! Temp idling mercs.` immediately
+  before the burst — so the flag was already true and simply was not being consulted.
+* `MercBarkDue`, a **real-time** floor per merc (`BarkRealMinSecs` 240 s + jitter, stamped from
+  `System.GetCurrTime`, which is real seconds — the main-quest handler calls it
+  `currentRealTime`). No clock ratio and no missed idle flag can make the loop spin through
+  this. The slot is claimed on the *check*, not on the bark, so a man the speaking lock turns
+  away has still had his turn and the squad cannot queue up on one lock.
+
+**The general trap**: any long `timeType="GameTime"` wait collapses to nothing during a time
+skip. An audit found eight ≥30 s in the AI trees; the other seven are harmless (a death-check
+poll, a despawn delay, and the quartermaster's/Aleksej's 45 s turn-to-face arm — they just
+cycle faster for one NPC), but check the list before adding another.
+
+### A borrowed line must be borrowed from the right actor
+
+A bark plays only if a `.ogg` named `<voiceAbbrev>_<StringName>.ogg` exists for the
+speaking soul's voice, and merc souls carry exactly three voices: `jcom`, `phos2`,
+`sbar`. [`tools/prefix_ogg.bat`](../tools/prefix_ogg.bat) satisfies that by copying one
+extracted vanilla take three times, once under each prefix — which makes the line *play*,
+but makes every merc play **the actor who recorded it**, whoever that was.
+
+`merc_bark_ack_1` — the camp make/break acknowledgement — was `lore_event_tab_jasne_ohUi`
+("Definitely."), whose only vanilla recording is by **`jber`**, an actress (her other
+lines are the bathhouse women, the `deve_devecka` servant girls and Viktorka). Every
+mercenary in the company said it in her voice. It now points at
+`smlo_smlouvani_ale_samozr_nexs` ("But of course."), which `jcom`, `phos2` and `sbar` each
+recorded *themselves* — three genuinely different files, so each merc sounds like himself
+and no borrowed actor can leak in.
+
+**So: before shipping a borrowed line, check whether all three merc voices actually
+recorded it.** If the three `.ogg`s are byte-identical, they are one actor's take under
+three names, and that actor may be anyone. Of the current pools, `merc_bark_wait_1/2` and
+`merc_bark_moveout_1` have genuine per-voice takes; `merc_bark_ack_2`, `merc_bark_ack_3`
+(phos2/sbar) and both `merc_bark_follow_*` are still single-source copies — male ones
+(`jmil`, `dbro`, `drus`, `jelm`), so they are not wrong, just uniform.
+
 ---
 
 ## Adding another order

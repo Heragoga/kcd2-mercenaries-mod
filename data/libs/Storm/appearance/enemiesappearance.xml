@@ -845,5 +845,117 @@
                 <setBeard name="m_beard_00" />
             </operations>
         </rule>
+    <!-- BEGIN generated townguard (tools/gen_townguards.py) -->
+        <rule name="appearance_soul_enemy_townguard_1">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_1" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_005" />
+                <setHair name="m_hair_008_dark_brown" />
+                <setBeard name="m_beard_08" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_2">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_2" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="m_head_016" />
+                <setHair name="m_hair_011_light_brown" />
+                <setBeard name="m_beard_02" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_3">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_3" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_02" />
+                <setHead name="m_head_019" />
+                <setHair name="m_hair_009_dark_brown" />
+                <setBeard name="m_beard_10" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_4">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_4" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_024" />
+                <setHair name="m_hair_004_dark_grey" />
+                <setBeard name="m_beard_17" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_5">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_5" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_033" />
+                <setHair name="m_hair_008_dark_brown" />
+                <setBeard name="m_beard_09" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_6">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_6" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_03" />
+                <setHead name="m_head_037" />
+                <setHair name="m_hair_002_black" />
+                <setBeard name="m_beard_01" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_7">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_7" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="m_head_044" />
+                <setHair name="m_hair_009_black" />
+                <setBeard name="m_beard_11" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_8">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_8" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_tan_04" />
+                <setHead name="m_head_059" />
+                <setHair name="m_hair_008_dark_brown" />
+                <setBeard name="m_beard_04" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_9">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_9" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="m_head_063" />
+                <setHair name="m_hair_004_dark_grey" />
+                <setBeard name="m_beard_19" />
+            </operations>
+        </rule>
+        <rule name="appearance_soul_enemy_townguard_10">
+            <selectors>
+                <hasName Name="soul_enemy_townguard_10" />
+            </selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="m_head_069" />
+                <setHair name="m_hair_009_dark_brown" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+<!-- END generated townguard -->
     </rules>
 </storm>

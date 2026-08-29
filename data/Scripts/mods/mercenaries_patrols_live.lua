@@ -26,7 +26,9 @@ mercenaries.PatrolDespawnRange = 330.0   -- ...and take it away again out here (
 -- rest of the column is laid out BEHIND the lead, which can be his side of it. So the floor
 -- is re-tested inside PatrolSpawnGang against a freshly read player position, and again for
 -- every man's final ground-snapped spot. See docs/patrols.md, "Never in your lap".
-mercenaries.PatrolMinPlayerDist = 100.0
+-- 150, not 100: a galloping horse covers ~50m in the 3s between the band test and the men
+-- being created, and 100m of open road reads as "that just appeared". See docs/patrols.md.
+mercenaries.PatrolMinPlayerDist = 150.0
 -- What a player with no mercenaries meets: a handful of men, never a company.
 mercenaries.PatrolSoloMinMen   = 3
 mercenaries.PatrolSoloMaxMen   = 5
@@ -59,6 +61,24 @@ mercenaries.PatrolMaxLiveGangs = 3
 -- clothing/weapon equips per man; letting three gangs land on one frame is a visible hitch
 -- even when the steady-state population is fine.
 mercenaries.PatrolSpawnPerTick = 1
+
+-- Encounter pacing. The caps above bound how many gangs may STAND in the world at once;
+-- these bound how OFTEN a new one may appear. Without them a freed gang slot was refilled
+-- on the next 3s tick, which at a junction is an endless conveyor. See docs/patrols.md,
+-- "Pacing".
+mercenaries.PatrolQuietSecs     = 180.0   -- floor on the gap between any two gangs
+mercenaries.PatrolPostFightSecs = 480.0   -- ...and the longer silence a wipe buys
+-- How many gangs a player who has not travelled PatrolAnchorRadius may meet before the
+-- road falls silent until he does. Bounds standing still (a camp); never limits travel.
+mercenaries.PatrolAnchorCap    = 2
+mercenaries.PatrolAnchorRadius = 500.0
+-- No gang spawns this close to the camp: raids are what visits the camp, not the roads.
+mercenaries.PatrolCampClearance = 350.0
+-- Multiplies both quiet clocks per difficulty tier; >1 is longer silences.
+mercenaries.PatrolQuietByTier = {
+    easy = 2.0, medium = 1.0, difficult = 0.85,
+    extreme = 0.7, impossible = 0.6, horde = 0.35,
+}
 -- Ground-search budget for the men BEHIND the lead, in CampValidateSpot candidates. The
 -- whole gang is placed in one frame, so this is the one number that bounds that frame's
 -- raycast cost; see the note at the call site in PatrolSpawnGang. 40 (the FindValidGround
@@ -74,6 +94,9 @@ mercenaries.PatrolMaxCorpses   = 12
 -- accumulates corpses with nothing to stop it. At most a pile or two is ever fresh, and
 -- they age out. The walked-away and timeout rules are unaffected either way.
 mercenaries.PatrolCorpseGraceSecs = 30.0
+-- Seconds after a gang dies before its ragdolls are frozen. Long enough for the bodies to
+-- finish falling and settle naturally; after that they are static scenery that still loots.
+mercenaries.PatrolCorpseFreezeSecs = 5.0
 -- Size as a multiple of the player's fighting strength. The CEILING scales with the party:
 -- see PatrolMaxMultFor.
 mercenaries.PatrolPartyMin     = 0.5
@@ -754,6 +777,10 @@ function mercenaries:PatrolSpawnGang(rec, force)
     if not force and not self:PatrolSpotClear(p) then
         return false
     end
+    -- The ghost still creeps through the camp; it just never becomes men inside it.
+    if not force and self:PatrolNearCamp(p) then
+        return false
+    end
     self:PatrolRollIdentity(rec)
     -- The roll is clamped to whatever budget is left, which can be nothing if another gang
     -- took it since this record was picked. A one- or two-man "gang" is worse than none, so
@@ -898,6 +925,73 @@ function mercenaries:PatrolCorpseCount()
     return n
 end
 
+-- The difficulty tier's effect on how OFTEN, as opposed to how many.
+function mercenaries:PatrolQuietMult()
+    local tier = "medium"
+    pcall(function() tier = self:DifficultyLoad() or "medium" end)
+    return (self.PatrolQuietByTier or {})[tier] or 1.0
+end
+
+-- Push the "no gang before" clock out. Only ever moves it forward, so a plain spawn cannot
+-- shorten the longer silence a wipe has already paid for.
+function mercenaries:PatrolQuietFor(secs, why)
+    local until_ = nowT() + (secs or 0) * self:PatrolQuietMult()
+    if until_ <= (self._patrolQuietUntil or 0) then return end
+    self._patrolQuietUntil = until_
+    if why then
+        lLog(string.format("the roads are quiet for %.0fs (%s)", until_ - nowT(), why))
+    end
+end
+
+function mercenaries:PatrolQuietLeft()
+    local until_ = self._patrolQuietUntil
+    if not until_ then return nil end
+    local now  = nowT()
+    local left = until_ - now
+    if left <= 0 then return nil end
+    -- Longer than any silence that could have been bought means the clock moved.
+    local most = math.max(self.PatrolQuietSecs or 0, self.PatrolPostFightSecs or 0)
+                 * math.max(1, self:PatrolQuietMult())
+    if left > most then self._patrolQuietUntil = nil; return nil end
+    return left
+end
+
+-- The standing-player anchor, re-seated once the player has travelled PatrolAnchorRadius
+-- from where it was last set. Moving through the world clears the count constantly.
+function mercenaries:PatrolAnchorTouch(pp)
+    local a = self._patrolAnchor
+    if not a then
+        self._patrolAnchor = { x = pp.x, y = pp.y, n = 0 }
+        return self._patrolAnchor
+    end
+    local dx, dy = pp.x - a.x, pp.y - a.y
+    if (dx * dx + dy * dy) >= (self.PatrolAnchorRadius or 500.0) ^ 2 then
+        a.x, a.y, a.n = pp.x, pp.y, 0
+    end
+    return a
+end
+
+-- Is the camp close enough to this spot that a gang appearing here would walk into it?
+function mercenaries:PatrolNearCamp(q)
+    if not (self.CampActive and self.CampCenter and q) then return false end
+    local r = self.PatrolCampClearance or 0
+    if r <= 0 then return false end
+    local dx, dy = q.x - self.CampCenter.x, q.y - self.CampCenter.y
+    return (dx * dx + dy * dy) < (r * r)
+end
+
+-- May ANY gang be created right now? PatrolBudgetFor asks whether there is ROOM for one;
+-- this asks whether it is TIME for one.
+function mercenaries:PatrolMayEncounter(pp)
+    if self:PatrolQuietLeft() then return false end
+    local cap = self.PatrolAnchorCap or 0
+    if cap > 0 and pp then
+        local a = self:PatrolAnchorTouch(pp)
+        if (a.n or 0) >= cap then return false end
+    end
+    return true
+end
+
 -- What this gang is allowed to be, given what is already out there. Returns 0 when there
 -- is no room for even a minimum gang, and the caller simply does not spawn it.
 function mercenaries:PatrolBudgetFor(want)
@@ -967,6 +1061,24 @@ function mercenaries.LivePatrolBody()
         if not (self.LivePatrolsEnabled and player) then return end
         -- The quartermaster's master switch for uninvited trouble.
         if self.EncountersOn and not self:EncountersOn() then return end
+        -- Not while he is asleep, waiting out the clock, in a conversation or already in
+        -- a fight he did not pick. A patrol that spawns in those moments is an ambush the
+        -- player never had a chance to see coming - and one that spawns during a quest
+        -- battle joins a fight that is not ours. Standing patrols are untouched: this only
+        -- stops NEW ones being raised, so anything already on the road keeps walking.
+        if self.PlayerBusyForSpawns then
+            local busy, why = self:PlayerBusyForSpawns()
+            if busy then
+                if why ~= self._patrolHeldWhy then
+                    self._patrolHeldWhy = why
+                    System.LogAlways("[Patrol] holding spawns - player is " .. tostring(why))
+                end
+                return
+            elseif self._patrolHeldWhy then
+                self._patrolHeldWhy = nil
+                System.LogAlways("[Patrol] spawns released")
+            end
+        end
         local pp; pcall(function() pp = player:GetWorldPos() end)
         if not pp then return end
         local t = nowT()
@@ -1004,14 +1116,22 @@ function mercenaries.LivePatrolBody()
                 end
             end
         end
-        if #wants > 0 then
+        -- Checked before the sort, so a quiet road costs nothing.
+        if #wants > 0 and self:PatrolMayEncounter(pp) then
             table.sort(wants, function(a, b) return a.d < b.d end)
             local placed = 0
             local perTick = self.PatrolSpawnPerTick or 1
             for _, w in ipairs(wants) do
                 if placed >= perTick then break end
                 if self:PatrolBudgetFor(self.PatrolMinMen or 3) <= 0 then break end
-                if self:PatrolSpawnGang(w.rec) then placed = placed + 1 end
+                -- Here rather than inside PatrolSpawnGang, so the console's forced spawn
+                -- (merc_patrols_here) does not silence the road behind it.
+                if self:PatrolSpawnGang(w.rec) then
+                    placed = placed + 1
+                    self:PatrolQuietFor(self.PatrolQuietSecs, "a gang has taken the road")
+                    local a = self._patrolAnchor
+                    if a then a.n = (a.n or 0) + 1 end
+                end
             end
         end
     end)
@@ -1045,6 +1165,25 @@ function mercenaries:PatrolTickOne(rec, pp, t)
             end
             local far   = (dist == nil) or (dist > self.PatrolDespawnRange)
             local fresh = (t - (rec.corpsesAt or 0)) < (self.PatrolCorpseGraceSecs or 0)
+            -- A ragdoll is a 20-30 part ARTICULATED physics body, and a wiped gang leaves a
+            -- pile of them touching each other - CryPhysics' worst case, since interpenetrating
+            -- bodies never settle - right where the player is standing, for PatrolCorpseSecs.
+            -- Freezing costs nothing anyone can see: they have finished falling. Looting reads
+            -- SOUL state, not physics (LootCaptureBodies/IsCorpse), so they stay lootable, and
+            -- the sweep still removes them on the same schedule. EnablePhysics(0) is the call
+            -- the tower hold-test proved works on a live entity in this codebase.
+            if not rec.corpsesFrozen
+               and (t - (rec.corpsesAt or t)) >= (self.PatrolCorpseFreezeSecs or 5.0) then
+                rec.corpsesFrozen = true
+                local n = 0
+                for _, e in ipairs(rec.corpses or {}) do
+                    if e then
+                        if pcall(function() e:AwakePhysics(0) end) then n = n + 1 end
+                        pcall(function() e:EnablePhysics(0) end)
+                    end
+                end
+                if n > 0 then lLog("route " .. tostring(rec.route) .. ": froze " .. n .. " corpse ragdoll(s)") end
+            end
             local over  = (self.PatrolMaxCorpses or 0) > 0
                           and self:PatrolCorpseCount() > self.PatrolMaxCorpses
                           and not fresh
@@ -1092,10 +1231,12 @@ function mercenaries:PatrolTickOne(rec, pp, t)
             -- record, so the fight you just won can be looted. Swept above.
             rec.corpses  = rec.men
             rec.corpsesAt = t
+            rec.corpsesFrozen = false
             rec.men      = {}
             self:PatrolIndexClear(rec)
             rec.spawned  = false
             rec.deadAt   = t
+            self:PatrolQuietFor(self.PatrolPostFightSecs, "a gang has been wiped out")
             lLog("route " .. rec.route .. ": patrol wiped out - back in " ..
                  self.PatrolRespawnDays .. " day(s)")
             return
@@ -1239,6 +1380,10 @@ end
 
 function mercenaries:ClearAnyLeftoverPatrols()
     self._patrolGraceUntil = nowT() + self.PatrolLoadGraceSecs
+    -- Both pacing clocks are stamped from System.GetCurrTime, which does not survive the
+    -- level we just left, so neither may cross a load. The grace above covers the gap.
+    self._patrolQuietUntil = nil
+    self._patrolAnchor     = nil
     local swept = 0
     pcall(function()
         local pp; pcall(function() pp = player and player:GetWorldPos() end)
@@ -1285,6 +1430,17 @@ function mercenaries:LivePatrolStatus()
     lLog(string.format("live: %d men in %d gang(s), %d corpse(s)  |  caps: %d men, %d gangs, %d per gang",
         self:PatrolLiveMenCount(), self:PatrolLiveGangCount(), self:PatrolCorpseCount(),
         self.PatrolMaxLiveMen or 0, self.PatrolMaxLiveGangs or 0, self.PatrolMaxMen or 0))
+    local q = self:PatrolQuietLeft()
+    local a = self._patrolAnchor
+    lLog(string.format("pacing: %s  |  gap %.0fs, post-fight %.0fs (x%.2f for %s)  |  standing here: %d/%d gang(s)",
+        q and string.format("QUIET for %.0fs more", q) or "a gang may spawn now",
+        self.PatrolQuietSecs or 0, self.PatrolPostFightSecs or 0,
+        self:PatrolQuietMult(), tostring(self.Difficulty),
+        a and (a.n or 0) or 0, self.PatrolAnchorCap or 0))
+    if self.CampActive and self.CampCenter then
+        lLog(string.format("camp is up: no gang spawns within %.0fm of it",
+                           self.PatrolCampClearance or 0))
+    end
     lLog("level '" .. levelName() .. "' -> " ..
          (self:PatrolLevelAllowed() and "patrols allowed" or "WRONG LEVEL, no patrols"))
     for i, rec in pairs(self.LivePatrols) do
@@ -1494,6 +1650,8 @@ mercenaries:DevCommand("merc_patrols_escalation", "mercenaries:PatrolEscalationS
                    "Per-route session kill escalation: heat and the size multiplier it earns")
 mercenaries:DevCommand("merc_patrols_floor", "mercenaries:PatrolFloorSet('%line')",
                    "How near a gang may ever be created: merc_patrols_floor <metres> [bandFloor] [bandCeil]")
+mercenaries:DevCommand("merc_patrols_pace", "mercenaries:PatrolPaceSet('%line')",
+                   "How OFTEN a gang may turn up: merc_patrols_pace <gapSecs> [postFightSecs] [standingCap]")
 
 -- The distance knobs, tunable in-game for the same reason as the caps below. The first
 -- number is the hard floor no gang may ever be created inside; the other two are the band
@@ -1522,4 +1680,21 @@ function mercenaries:PatrolBudgetSet(v)
     lLog(string.format("caps: %d men total, %d gangs, %d per gang  (live now: %d men in %d gang(s), %d corpse(s))",
         self.PatrolMaxLiveMen or 0, self.PatrolMaxLiveGangs or 0, self.PatrolMaxMen or 0,
         self:PatrolLiveMenCount(), self:PatrolLiveGangCount(), self:PatrolCorpseCount()))
+end
+
+-- The pacing knobs, alongside the distance and population ones. No argument reports.
+function mercenaries:PatrolPaceSet(v)
+    local a, b, c = string.match(tostring(v or ""), "(%d+)%s*(%d*)%s*(%d*)")
+    if a then
+        self.PatrolQuietSecs = tonumber(a)
+        if b and b ~= "" then self.PatrolPostFightSecs = tonumber(b) end
+        if c and c ~= "" then self.PatrolAnchorCap     = tonumber(c) end
+        self._patrolQuietUntil = nil   -- or a change means waiting out the one it replaced
+    end
+    local q = self:PatrolQuietLeft()
+    lLog(string.format("gap %.0fs, post-fight %.0fs, standing cap %d per %.0fm  (x%.2f for %s)  |  %s",
+        self.PatrolQuietSecs or 0, self.PatrolPostFightSecs or 0,
+        self.PatrolAnchorCap or 0, self.PatrolAnchorRadius or 0,
+        self:PatrolQuietMult(), tostring(self.Difficulty),
+        q and string.format("quiet for %.0fs more", q) or "a gang may spawn now"))
 end

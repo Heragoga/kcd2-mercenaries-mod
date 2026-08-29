@@ -16,6 +16,10 @@ function mercenaries:InjectInteraction(entity)
     pcall(function() injected = XGenAIModule.GetMyWUID(entity) end)
     entity._mercWuid = injected
 
+    -- In hardcore mode the vanilla "ask for directions" chat would otherwise replace the
+    -- whole order wheel on this man. See mercenaries_orders.lua and docs/order-wheel.md.
+    self:StripDirectionsChat(entity)
+
     local function mercWuid(self)
         local w = self._mercWuid
         if w == nil then
@@ -30,6 +34,8 @@ function mercenaries:InjectInteraction(entity)
         local barkWuid = self.this and self.this.id or self.id   -- entity id, matches the BT bark lookup
 
         if not mercenaries.CampActive then
+            -- Pitch the camp on the man who was asked, not behind the player.
+            mercenaries:CampSetAnchorEnt(self)
             mercenaries:SpawnMercCamp()
             mercenaries:RequestBark(barkWuid, "merc_bark_ack")
         elseif wuid and mercenaries:IsCampOut(wuid) then
@@ -37,6 +43,23 @@ function mercenaries:InjectInteraction(entity)
         else
             mercenaries:BreakMercCamp()
             mercenaries:RequestBark(barkWuid, "merc_bark_ack")
+        end
+    end
+
+    -- Camp up: pull THIS man out of it, or send him back - the camp keeps standing
+    -- either way. It is the only way to pick a particular man (the quartermaster's
+    -- Deploy menu takes a fraction, best tier first, so archers never make the cut).
+    entity.CampJoinToggle = function(self, user)
+        local barkWuid = self.this and self.this.id or self.id
+        local wuid = mercWuid(self)
+        if wuid and mercenaries:IsCampOut(wuid) then
+            if mercenaries:CampStayOne(self) then
+                mercenaries:RequestBark(barkWuid, "merc_bark_wait")
+            end
+        else
+            if mercenaries:CampDeployOne(self) then
+                mercenaries:RequestBark(barkWuid, "merc_bark_follow")
+            end
         end
     end
 
@@ -85,6 +108,23 @@ function mercenaries:InjectInteraction(entity)
                     :func(self.CampContextAction)
                     :interaction(inr_loot)
             ) then return output end
+
+            -- Join me / stay in camp: only while a camp is standing, and never for the
+            -- quartermaster's own men or anyone the camp does not own.
+            if mercenaries.CampActive and wuid then
+                local joinText = mercenaries:IsCampOut(wuid)
+                    and "ui_mercenary_camp_stay_action" or "ui_mercenary_camp_join_action"
+                if AddInteractorAction(
+                    output, firstFast,
+                    Action()
+                        :hint(joinText)
+                        :hintType(AHT_HOLD)
+                        :action("use")
+                        :uiOrder(5)
+                        :func(self.CampJoinToggle)
+                        :interaction(inr_loot)
+                ) then return output end
+            end
 
             -- Wait / follow toggle: sortie mercs only.
             if inSortie then

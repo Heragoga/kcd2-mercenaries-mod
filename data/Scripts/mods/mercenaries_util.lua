@@ -59,20 +59,32 @@ end
 -- merc_render_lod <n>  - pin mesh detail to a fixed ratio (higher drops detail sooner).
 -- merc_render_lod      - or 0/off: hand mesh LOD back to the engine. This is the default and
 --                        the state that looked right in game.
+-- Applies LIVE in both directions, which is what makes it usable as an A/B. Clearing it used
+-- to be a no-op until respawn ("cannot be un-applied"), which is wrong: 100 IS the entity
+-- default ratio, so writing 100 restores engine behaviour on a live NPC. Never 0 - that is the
+-- MINIMUM and is what sabotaged the original render experiment (see the note at the top).
 function mercenaries:RenderLodSet(v)
-    local n = tonumber(tostring(v or ''):match('%d+'))
+    local raw = tostring(v or ''):gsub('%s+', '')
+    if raw == '' then
+        System.LogAlways('[Mercenary Jeff] merc_render_lod <n> - mesh detail, higher drops detail sooner. ' ..
+            '100 = engine default, 130 mild, 180 aggressive, 255 puppet-grade. 0/off = hand back to the engine. ' ..
+            '(now: ' .. (self.RenderLodRatio and tostring(self.RenderLodRatio) or 'engine default') .. ')')
+        return
+    end
+    local n = tonumber(raw:match('%d+'))
     if n == 0 then n = nil end
     self.RenderLodRatio = n
+    local applied = (n or 100)
+    local ok = 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if pcall(function() ent:SetLodRatio(applied) end) then ok = ok + 1 end
+    end
     System.LogAlways('[Mercenary Jeff] merc mesh LOD = ' ..
-        (n and tostring(n) or 'engine default') ..
-        ' (fixed; never scaled from a live count - that caused pop-in). ' ..
-        'Reference: 100 is default, 255 was puppet-grade.')
-    -- A cleared ratio cannot be un-applied on live entities; it takes effect on respawn.
-    if n then self:RefreshRenderPins() end
+        (n and tostring(n) or 'engine default (100)') .. ' on ' .. ok .. ' merc(s). ' ..
+        'Higher drops detail sooner; watch the frame buckets, not the fps counter.')
 end
 
-mercenaries:DevCommand("merc_render_lod", "mercenaries:RenderLodSet('%line')",
-                   "Fixed merc mesh detail, or 0 for engine default: merc_render_lod 130")
+-- Registered at PLAYER tier in mercenaries_commands.lua (no merc_dev needed).
 
 -- Movement speed + stamina, so the squad can stay with a sprinting player. Dash is the
 -- highest RelativeSpeedLimit the engine has, so raising actual movement speed is the only
@@ -126,8 +138,7 @@ function mercenaries:RenderPinSet(v)
     end
 end
 
-mercenaries:DevCommand("merc_render_pin", "mercenaries:RenderPinSet('%line')",
-                   "Pin merc renderer view distance so they are never distance-culled: merc_render_pin 1 | 0")
+-- Registered at PLAYER tier in mercenaries_commands.lua (no merc_dev needed).
 -- Runtime NPCs whose RECORDS live in plain Lua and therefore die with every load, while the
 -- ENTITIES are serialised into the save and come back without them. Nothing else ever removes
 -- one of these: DespawnMerc fires only for a roster member who dies THIS session, the patrol
@@ -724,12 +735,27 @@ function mercenaries:GiveMoney(amount)
 
     local before = 0
     pcall(function() before = player.inventory:GetMoney() or 0 end)
-    pcall(function() player.inventory:CreateItem(self.MoneyItemClass, 1, amount) end)
-    local after = before
-    pcall(function() after = player.inventory:GetMoney() or 0 end)
 
-    if after > before then return true, after - before end
-    System.LogAlways("[Mercenaries] GiveMoney: purse did not move for " .. tostring(amount) ..
-                     " groschen - check MoneyItemClass")
-    return false, 0
+    -- ONE CreateItem does not reliably mint a large sum: the torture run asked for
+    -- 60000 and the purse moved by only a fraction (a stack cap somewhere below the
+    -- engine), silently - the verification here read "purse moved" and called that
+    -- success. So the sum is created in chunks, the purse read back after each, and
+    -- the loop keeps going until the target is reached or the purse stops moving.
+    local target, tries = before + amount, 0
+    local now = before
+    while now < target and tries < 100 do
+        tries = tries + 1
+        local need = target - now
+        pcall(function() player.inventory:CreateItem(self.MoneyItemClass, 1, math.min(need, 1000)) end)
+        local after = now
+        pcall(function() after = player.inventory:GetMoney() or after end)
+        if after <= now then break end   -- not moving: stop rather than spin
+        now = after
+    end
+
+    local got = now - before
+    if got >= amount then return true, got end
+    System.LogAlways("[Mercenaries] GiveMoney: asked " .. tostring(amount) .. ", purse took only "
+                     .. tostring(got) .. " (" .. tostring(tries) .. " chunk(s)) - check MoneyItemClass")
+    return got > 0, got
 end

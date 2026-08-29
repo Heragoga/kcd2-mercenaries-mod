@@ -441,6 +441,10 @@ mercenaries.RaborschArcherMin   = 4      -- a siege with no archers on it is not
 function mercenaries:RaborschArcherCount(slots)
     local n = math.floor(self:RaborschSquadSize() * self.RaborschArcherRatio + 0.5)
     if n < self.RaborschArcherMin then n = self.RaborschArcherMin end
+    -- Low spec halves the field. A 190-NPC siege measured 10-15fps on a two-core CPU and the
+    -- SAME siege from slightly further away measured 30-50: it is bodies x proximity, and no
+    -- LOD, cloth or AI-budget cvar touched it. See EncounterScale.
+    if self.ScaleEncounterCount then n = self:ScaleEncounterCount(n) end
     if n > slots then n = slots end
     return n
 end
@@ -516,6 +520,7 @@ function mercenaries:RaborschRecruitCount()
                          - self:RaborschSquadSize() * self.RaborschRecruitPerMerc + 0.5)
     if n < self.RaborschRecruitMin then n = self.RaborschRecruitMin end
     if n > self.RaborschRecruitMax then n = self.RaborschRecruitMax end
+    if self.ScaleEncounterCount then n = self:ScaleEncounterCount(n) end
     return n
 end
 
@@ -523,6 +528,7 @@ function mercenaries:RaborschFootCount()
     local n = math.floor(self:RaborschSquadSize() * self.RaborschFootRatio + 0.5)
     if n < self.RaborschFootMin then n = self.RaborschFootMin end
     if n > self.RaborschFootMax then n = self.RaborschFootMax end
+    if self.ScaleEncounterCount then n = self:ScaleEncounterCount(n) end
     return n
 end
 

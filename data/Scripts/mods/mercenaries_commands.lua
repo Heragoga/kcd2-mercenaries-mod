@@ -348,6 +348,7 @@ mercenaries.CmdHelpSections = {
                       "merc_archer_bow", "merc_archer_crossbow", "merc_archer_handcannon" } },
     { "CAMP",       { "merc_camp_make", "merc_camp_break", "merc_camp_recall",
                       "merc_camp_deploy_all", "merc_camp_deploy_half", "merc_camp_return_all",
+                      "merc_camp_remove", "merc_camp_party",
                       "merc_gate_open", "merc_gate_close" } },
     { "FIGHTS",     { "merc_battle", "merc_raborsch", "merc_raborsch_clear", "merc_clear_enemies", "merc_raid_now" } },
     { "OPTIONS",    { "merc_difficulty", "merc_upkeep", "merc_encounters", "merc_patrols",
@@ -462,6 +463,10 @@ cmd("merc_camp_recall",     "mercenaries:RecallMercs()", "Call every man to you 
 cmd("merc_camp_deploy_all", "mercenaries:CampTakeParty(1.0)",     "Take everyone the camp can spare")
 cmd("merc_camp_deploy_half","mercenaries:CampTakeParty(0.5)",    "Take the best-equipped half out with you")
 cmd("merc_camp_return_all", "mercenaries:CampReturnAll()",   "Send every deployed man back to camp")
+cmd("merc_camp_remove",     "mercenaries:CmdRemoveUpgrade('%line')",
+    "Take one camp improvement down: merc_camp_remove [1-11] (no argument lists them)")
+cmd("merc_camp_party",      "mercenaries:CmdComposition('%line')",
+    "Set what a deployed party is made of: merc_camp_party [1-8] (no argument lists them)")
 cmd("merc_gate_open",       "mercenaries:GateSetAllOpen(true)",     "Open the camp gates")
 cmd("merc_gate_close",      "mercenaries:GateSetAllOpen(false)",    "Shut the camp gates")
 
@@ -494,6 +499,38 @@ cmd("merc_upkeep",       "mercenaries:UpkeepSet('%line')",     "Company survival
 cmd("merc_encounters",   "mercenaries:EncountersSet(tonumber('%line') ~= 0)", "Random raids, patrols and ambushes: 0 | 1")
 cmd("merc_patrols",      "mercenaries:LivePatrolSetEnabled(%line)", "Roaming road patrols: 0 | 1")
 cmd("merc_status_icons", "mercenaries:StatusIconsSet(tonumber('%line') ~= 0)","Squad status icons on your HUD: 0 | 1")
+cmd("merc_torches",      "mercenaries:CampTorchMaxSet('%line')", "Lit torches carried at night, 0 = none (each is a shadow-casting light): merc_torches 2")
+-- Performance experiment knobs. Player-tier on purpose: these are what a user with a weaker
+-- machine is told to try, and merc_dev should not stand between them and a playable framerate.
+-- NO ARGUMENT. %line substitution has now failed twice on this console for these toggles,
+-- and a toggle that silently does nothing is worse than no toggle: bake the value in.
+cmd("merc_formation_off", "mercenaries:FormationEnabledSet(false)", "Engine formation OFF - squad reverts to the plain follow chain")
+cmd("merc_formation_on",  "mercenaries:FormationEnabledSet(true)",  "Engine formation back ON")
+cmd("merc_formation_status", "mercenaries:FormationEnabledStatus()", "Is the engine formation on, and if not, why")
+cmd("merc_render_lod",   "mercenaries:RenderLodSet('%line')",  "Merc mesh detail, higher = coarser sooner (100 default, 0 = engine): merc_render_lod 150")
+cmd("merc_render_pin",   "mercenaries:RenderPinSet('%line')",  "Never distance-cull mercs: merc_render_pin 1 | 0")
+-- Simulation budget. Player-tier and no-argument for the same reason as merc_formation_off:
+-- these are what a weak-CPU user is told to try, and they must not silently no-op.
+cmd("merc_sim_trim",   "mercenaries:SimTierApply('trim')",   "Perf: stop simulating cloth that is far or tiny (visually free)")
+cmd("merc_sim_lean",   "mercenaries:SimTierApply('lean')",   "Perf: simulate cloth only close and large")
+cmd("merc_sim_off",    "mercenaries:SimTierApply('off')",    "Perf: cloth/socket SIMULATION off, skinning stays - best fps for least ugliness")
+cmd("merc_sim_normal", "mercenaries:SimTierApply('normal')", "Simulation back to engine defaults")
+cmd("merc_sim_status", "mercenaries:SimTierApply('')",       "Show simulation tiers and live cvar values")
+cmd("merc_lowspec_on",     "mercenaries:LowSpecSet(true)",  "Weak CPU preset: cut AI detail budget, no battle LOD boost, lean cloth, no torches")
+cmd("merc_lowspec_off",    "mercenaries:LowSpecSet(false)", "Undo the weak-CPU preset")
+cmd("merc_lowspec_status", "mercenaries:LowSpecStatus()",   "What the weak-CPU preset is currently doing")
+cmd("merc_detail_floor_off", "mercenaries:LodDetailFloorSet(true)",  "Battle: stop pinning every character to max detail - they LOD by distance, still fully visible")
+cmd("merc_detail_floor_on",  "mercenaries:LodDetailFloorSet(false)", "Battle: pin every character to max detail again (default)")
+cmd("merc_encounter_scale_half", "mercenaries:EncounterScaleSet(0.5)", "Spawn half the bodies in sieges/raids")
+cmd("merc_encounter_scale_full", "mercenaries:EncounterScaleSet(1.0)", "Full authored encounter populations (default)")
+cmd("merc_lod_boost_off",  "mercenaries:LodBoostSet(false)","Battle LOD boost fully off - WARNING: far ranks of a siege stop rendering. Prefer merc_lowspec_on")
+cmd("merc_lod_boost_on",   "mercenaries:LodBoostSet(true)", "Battle AI LOD boost back on")
+cmd("merc_btlod_on",     "mercenaries:BehaviourLodSet(true)",  "Behaviour LOD ON (default): idle mercs poll target acquisition less often")
+cmd("merc_btlod_off",    "mercenaries:BehaviourLodSet(false)", "Behaviour LOD OFF - every merc runs the full acquisition pass every poll")
+cmd("merc_btlod_status", "mercenaries:BehaviourLodStatus()",   "Is behaviour LOD on, and is the squad currently cheap or hot")
+cmd("merc_scan_lean",  "mercenaries:ScanCandidatesSet(4)", "Combat: 4 target candidates per merc per poll (default)")
+cmd("merc_scan_full",  "mercenaries:ScanCandidatesSet(8)", "Combat: 8 candidates - the old value, for A/B")
+cmd("merc_scan_tiny",  "mercenaries:ScanCandidatesSet(2)", "Combat: 2 candidates - cheapest, watch for missed attackers")
 cmd("merc_autodismount", "mercenaries:AutoDismountSet('%line')","Mercs get off their horses to fight: 0 | 1")
 cmd("merc_horses",       "mercenaries:HorsesSet(tonumber('%line') ~= 0)", "Let the company use horses at all: 0 | 1 (saved)")
 cmd("merc_lod_quality",  "mercenaries:LodQualitySet('%line')", "Mesh detail in big battles: crisp | balanced | performance")

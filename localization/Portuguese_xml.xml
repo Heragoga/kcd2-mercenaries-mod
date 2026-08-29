@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Todos os mercenários dispensados.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Mercenários aguardando.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Mercenários seguindo.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Companheiro especial contratado.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Este companheiro já está ao seu serviço!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Vou levar o Volek.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Vou mandar aviso. Ele virá.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Venha comigo.</Cell><Cell>Venha comigo.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Fique e defenda o acampamento.</Cell><Cell>Fique e defenda o acampamento.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Derrubar uma das melhorias.</Cell><Cell>Derrubar uma das melhorias.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Uma das coisas que construímos tem que sumir. Só uma.</Cell><Cell>Uma das coisas que construímos tem que sumir. Só uma.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>Qual delas, então?</Cell><Cell>Qual delas, então?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Essa. Derrube-a.</Cell><Cell>Essa. Derrube-a.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Certo. Vai sumir já - o resto fica onde está.</Cell><Cell>Certo. Vai sumir já - o resto fica onde está.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>O carroção de comida.</Cell><Cell>O carroção de comida.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>A taverna.</Cell><Cell>A taverna.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>O posto do caçador.</Cell><Cell>O posto do caçador.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>A forja portátil.</Cell><Cell>A forja portátil.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>A bancada de alquimia.</Cell><Cell>A bancada de alquimia.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>O pátio de treino.</Cell><Cell>O pátio de treino.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>A casa.</Cell><Cell>A casa.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>As torres dos arqueiros.</Cell><Cell>As torres dos arqueiros.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Os carroções dos arqueiros.</Cell><Cell>Os carroções dos arqueiros.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>A paliçada.</Cell><Cell>A paliçada.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Os portões.</Cell><Cell>Os portões.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Não há nada do tipo neste acampamento.</Cell><Cell>Não há nada do tipo neste acampamento.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Vamos decidir quem marcha comigo.</Cell><Cell>Vamos decidir quem marcha comigo.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Quando levo homens para fora do acampamento, quero os certos ao meu lado.</Cell><Cell>Quando levo homens para fora do acampamento, quero os certos ao meu lado.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Diga como os quer e vou escolhê-los assim daqui em diante.</Cell><Cell>Diga como os quer e vou escolhê-los assim daqui em diante.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>É assim que os quero.</Cell><Cell>É assim que os quero.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Anotado. Essa será a companhia da próxima vez que levar homens.</Cell><Cell>Anotado. Essa será a companhia da próxima vez que levar homens.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Arqueiros: a mesma proporção da companhia.</Cell><Cell>Arqueiros: a mesma proporção da companhia.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Arqueiros: nenhum. Só infantaria.</Cell><Cell>Arqueiros: nenhum. Só infantaria.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Arqueiros: um quarto do grupo.</Cell><Cell>Arqueiros: um quarto do grupo.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Arqueiros: metade do grupo.</Cell><Cell>Arqueiros: metade do grupo.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Arqueiros: todos os que temos.</Cell><Cell>Arqueiros: todos os que temos.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Infantaria: os melhores primeiro.</Cell><Cell>Infantaria: os melhores primeiro.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Infantaria: uma mistura de todo tipo.</Cell><Cell>Infantaria: uma mistura de todo tipo.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Infantaria: os mais novatos primeiro.</Cell><Cell>Infantaria: os mais novatos primeiro.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Composição do grupo: tantos arqueiros quanto a companhia tiver.</Cell><Cell>Composição do grupo: tantos arqueiros quanto a companhia tiver.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Composição do grupo: sem arqueiros, só infantaria.</Cell><Cell>Composição do grupo: sem arqueiros, só infantaria.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Composição do grupo: um quarto de arqueiros.</Cell><Cell>Composição do grupo: um quarto de arqueiros.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Composição do grupo: metade de arqueiros.</Cell><Cell>Composição do grupo: metade de arqueiros.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Composição do grupo: todos os arqueiros da companhia.</Cell><Cell>Composição do grupo: todos os arqueiros da companhia.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Composição do grupo: os melhores homens vão primeiro.</Cell><Cell>Composição do grupo: os melhores homens vão primeiro.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Composição do grupo: uma mistura de todo tipo.</Cell><Cell>Composição do grupo: uma mistura de todo tipo.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Composição do grupo: os mais novatos vão primeiro.</Cell><Cell>Composição do grupo: os mais novatos vão primeiro.</Cell></Row>
 </Table>

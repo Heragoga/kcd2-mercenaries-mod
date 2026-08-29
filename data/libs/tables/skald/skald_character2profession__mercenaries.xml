@@ -94,5 +94,8 @@
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_cverk" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_volek" />
 <!-- end generated companions -->
-	</skald_character2professions>
+	<!-- BEGIN generated townguard (tools/gen_townguards.py) -->
+        <skald_character2profession profession_name="pocestny" skald_character_name="char_enemy_townguard_1" />
+<!-- END generated townguard -->
+    </skald_character2professions>
 </database>

@@ -464,26 +464,61 @@ mercenaries.AlxDownToken = {
 -- the arc carrying a fistful of sacks of nails. One tick's grace: OnAcquire is documented as
 -- synchronous, but MonitorInventory and this tick share a pass, so a same-tick delete would be
 -- betting on that.
-mercenaries.AlxPendingSweep = {}
+--
+-- Swept off a STATIC list rather than a queue of pending signals, the way BanditCampSweepTokens
+-- does. A queue only knows about the tokens this session issued, so one that a save caught in
+-- flight came back on load with nothing left to remove it - and sat in the pack re-firing its
+-- trigger on every load after that.
+mercenaries.AlxTokenSeen = {}
+
+function mercenaries:AlxBridgeTokens()
+    if self._alxSweepTokens then return self._alxSweepTokens end
+    local t = { self.TokenIDAlxB6Done }
+    for _, cls in pairs(self.AlxDownToken) do table.insert(t, cls) end
+    for _, cls in pairs(self.AlxDocToken)  do table.insert(t, cls) end
+    self._alxSweepTokens = t
+    return t
+end
 
 function mercenaries:AlxSignalToken(cls)
     if not cls then return end
     pcall(function() player.inventory:CreateItem(cls, 1, 1) end)
-    table.insert(self.AlxPendingSweep, { cls = cls, ticks = 0 })
+    self.AlxTokenSeen[cls] = false
 end
 
 function mercenaries:AlxSweepTokens()
-    for i = #self.AlxPendingSweep, 1, -1 do
-        local e = self.AlxPendingSweep[i]
-        e.ticks = e.ticks + 1
-        if e.ticks >= 2 then
-            pcall(function()
-                local c = player.inventory:GetCountOfClass(e.cls)
-                if c and c > 0 then player.inventory:DeleteItemOfClass(e.cls, c) end
-            end)
-            table.remove(self.AlxPendingSweep, i)
-        end
+    if not (player and player.inventory) then return end
+    for _, cls in ipairs(self:AlxBridgeTokens()) do
+        pcall(function()
+            local c = player.inventory:GetCountOfClass(cls)
+            if c and c > 0 then
+                if self.AlxTokenSeen[cls] then
+                    player.inventory:DeleteItemOfClass(cls, c)
+                    self.AlxTokenSeen[cls] = nil
+                else
+                    self.AlxTokenSeen[cls] = true   -- first tick seen: let it live one more
+                end
+            else
+                self.AlxTokenSeen[cls] = nil
+            end
+        end)
     end
+end
+
+-- On load, straight out. A token still in the pack belongs to the session that saved, and Skald
+-- restored its own state with that signal already counted; leaving it in fires the trigger a
+-- second time and walks the arc on a beat.
+function mercenaries:AlxSweepStaleTokens()
+    if not (player and player.inventory) then return end
+    self.AlxTokenSeen = {}
+    local n = 0
+    for _, cls in ipairs(self:AlxBridgeTokens()) do
+        pcall(function()
+            local c = player.inventory:GetCountOfClass(cls)
+            if c and c > 0 then player.inventory:DeleteItemOfClass(cls, c); n = n + c end
+        end)
+    end
+    if n > 0 then aLog("load: swept " .. n .. " stale bridge token(s) out of the pack") end
 end
 
 -- The seven documents, BY CLASS GUID. They were referenced by Name ("merc_alx_doc1") and every
@@ -1368,21 +1403,29 @@ end
 
 -- Take it all away: men, props, towers, carts. The bodies go too - by the time this runs the
 -- fight is long over.
-function mercenaries:AlxDespawnCamp()
+function mercenaries:AlxDespawnCamp(onLoad)
     local C = self.AlxCamp
     if not C then return end
     self.AlxCamp = nil
-    self:AlxTearDown(C)
+    self:AlxTearDown(C, onLoad)
 end
 
-function mercenaries:AlxTearDown(C)
+-- onLoad: the world is being reloaded, not cleaned up. NOTHING here may report progress in that
+-- case - see the document fallback below.
+function mercenaries:AlxTearDown(C, onLoad)
     if not C then return end
 
     -- The document rides on the leader's body, and the body goes with the camp. Walk away without
     -- looting him and the beat would be uncompletable, so it is handed over instead. Same
     -- safety net BanditCampGrantLetterFallback is for the Kleinkrieg letter.
+    --
+    -- NEVER on a load. This camp is the one the PREVIOUS session was standing in, and the save
+    -- being loaded may be from long before the leader fell - so granting the document and firing
+    -- its token here closed the objective the player had just reloaded to replay, and on beats 7
+    -- and 8 (where the doc token increments alx_beat) skipped the whole beat. The wake token
+    -- rebuilds the camp with its leader and his document a moment later anyway.
     local doc = self.AlxDocToken[C.beat]
-    if doc and C.leaderNoted and not C.docNoted then
+    if doc and C.leaderNoted and not C.docNoted and not onLoad then
         local beat = self.AlxBeats[C.beat] or {}
         C.docNoted = true
         self:AlxGiveItem(player.inventory, beat.doc, "the document")
@@ -1440,11 +1483,19 @@ end
 -- Dropped wholesale on load. Nothing about a camp is save data: the quest re-issues the spawn
 -- token on the level's own OnWake if its beat is still live, and AlxSpawnBeat sweeps the site
 -- before it rebuilds.
+--
+-- WHERE THE ARC IS IS SKALD'S, AND THE SAVE JUST LOADED IS THE ONLY AUTHORITY ON IT. Nothing in
+-- here may signal a beat forward: every table this touches describes the session that saved,
+-- which may be several beats ahead of the save being loaded.
 function mercenaries:AlxOnLoad()
+    self:AlxSweepStaleTokens()
+    -- Session flags for beat 6, not save data. Left standing, a tick after loading an earlier
+    -- save could read the beat as live and hand its documents in again.
+    self.AlxBeat6Live, self.AlxBeat6Done = false, false
     for i = #self.AlxSpent, 1, -1 do
         local sp = self.AlxSpent[i]
         table.remove(self.AlxSpent, i)
-        pcall(function() self:AlxTearDown(sp) end)
+        pcall(function() self:AlxTearDown(sp, true) end)
         if sp.site then pcall(function() self:AlxSweepSite(sp.site) end) end
     end
     local C = self.AlxCamp
@@ -1455,7 +1506,7 @@ function mercenaries:AlxOnLoad()
         -- standing"), so the reissued token rebuilds a siege-less camp forever after.
         local site = C.site
         aLog("load: taking the previous session's camp down")
-        self:AlxDespawnCamp()
+        self:AlxDespawnCamp(true)
         -- ...and again by name and radius, because every id in that table came from before the
         -- load and may resolve to nothing (or to something else entirely).
         if site then self:AlxSweepSite(site) end
@@ -1726,6 +1777,16 @@ end
 -- same coin and flavour roll the chest would have held, straight to the player, on top of the
 -- two required documents.
 function mercenaries:AlxGrantBeat6Items()
+    -- The beat-6 token is reissued on every level wake while the beat is live, and on this path
+    -- there is no chest standing to check, so the pack is the guard: without it a reload is free
+    -- coin and a second copy of both documents.
+    local has3, has4 = 0, 0
+    pcall(function() has3 = player.inventory:GetCountOfClass(self.AlxDocs.doc3) or 0 end)
+    pcall(function() has4 = player.inventory:GetCountOfClass(self.AlxDocs.doc4) or 0 end)
+    if has3 > 0 and has4 > 0 then
+        aLog("beat 6: both documents are already in the pack - granted nothing")
+        return
+    end
     self:AlxGiveItem(player.inventory, self.AlxDocs.doc3, "doc3")
     self:AlxGiveItem(player.inventory, self.AlxDocs.doc4, "doc4")
     self:GiveMoney(math.random(self.AlxChestCoin[1], self.AlxChestCoin[2]))

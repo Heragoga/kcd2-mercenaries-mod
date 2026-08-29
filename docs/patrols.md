@@ -109,7 +109,10 @@ Two things were genuinely miscalibrated for Trosky, and both are fixed:
 `mercenariesFaction` and `enemiesFaction` (the mod's bandits), and **deliberately silent
 about everyone else** — civilians and quest NPCs fall through to the default neutral
 relation rather than being dragged into a war. Gating combat in Lua was tried for the
-tester and does not work; faction is the only thing the engine actually respects.
+tester and does not work; faction is the only thing the engine actually respects. It is
+also labelled `publicEnemy`, so a dead patrolman is looted rather than robbed; that label does
+*not* make the town watch join in — see [Public enemies and stolen loot](public-enemy.md) for
+why bystanders ignore a patrol and what it would take to change that.
 
 **Size** is a multiple of the player's strength — himself plus his living mercs — clamped to
 `PatrolMinMen`..`PatrolMaxMen` (3..50) and rolled per patrol. The floor of the multiple is a
@@ -141,6 +144,125 @@ headcount at which hiring one more merc doubles what walks down the road.
 
 `merc_patrols_status` prints the party strength, the size range it currently implies, and the
 live population against the caps.
+
+## Pacing
+
+The population caps above answer *how many gangs may stand in the world at once*. Until
+2.1.1 nothing answered **how often a new one may appear**, and that is a different question
+with a much worse failure mode.
+
+A gang's slot frees the instant its last man dies (`rec.spawned = false`). The next 3 s tick
+then finds the whole spawn band eligible again and puts the nearest waiting gang on the road.
+The recorded networks have junctions where 9 (Kuttenberg) and 12 (Trosky) gang slots sit
+inside the band together, and each of those is a route slot that has never spawned and is
+therefore not on any respawn cooldown. So:
+
+> Kill one, another walks in. Kill that one, another walks in. Kill *those* two and two more
+> arrive. Nothing was being exceeded — the caps held at 3 gangs and 36 men the whole time.
+
+That is the "endless waves of enemies" report, and it is worth being precise about why it
+appeared when it did: it is a **consequence of the ghost-creep fix**. Before that fix an
+unspawned patrol never actually moved (`rec.creep` did not carry its remainder), so a player
+standing still met whatever happened to be near him and then nothing else, forever. Once
+gangs genuinely walk their routes, a standing player has gangs drifting *into* his band for
+as long as he stands there. The movement is correct. What was missing is that a road has to
+be allowed to go quiet.
+
+Three limits, because there are three distinct failures:
+
+| Knob | Default | Answers |
+| --- | --- | --- |
+| `PatrolQuietSecs` | 180 s | floor on the gap between **any** two gangs |
+| `PatrolPostFightSecs` | 480 s | the longer silence a **wipe** buys — winning has to be worth something |
+| `PatrolAnchorCap` | 2 | gangs a player who has not travelled may meet at all |
+| `PatrolAnchorRadius` | 500 m | ...how far he must go for that count to reset |
+| `PatrolCampClearance` | 350 m | no gang ever spawns this close to the camp |
+
+`PatrolMayEncounter` is checked in `LivePatrolBody` **before** the candidate sort, so a quiet
+road costs nothing per tick. It is deliberately separate from `PatrolBudgetFor`: that one asks
+whether there is *room* for a gang, this one asks whether it is *time* for one.
+
+**The anchor is what covers standing still.** Two clocks alone still hand a stationary player
+a gang every quiet period for ever, and standing still for hours is exactly what a camp is.
+`PatrolAnchorTouch` keeps a point and a count; travelling `PatrolAnchorRadius` from it re-seats
+both. A player moving through the world clears his own count constantly and never notices the
+cap exists.
+
+**The camp is not a patrol route.** A camp pitched beside a road had gangs walking into it all
+day, dying to the garrison, and being replaced — "endless waves of enemies spawn near the
+camp". `PatrolNearCamp` refuses the spawn while `CampActive`; the notional gang still creeps
+straight through, it just never becomes men. Uninvited trouble at the camp is what
+[raids](walls-and-sieges.md) are for, on their own two-day clock.
+
+**Both clocks are session-only.** They are stamped from `System.GetCurrTime`, which does not
+survive the level you just left, so `ClearAnyLeftoverPatrols` drops them on load —
+`PatrolLoadGraceSecs` covers the gap. `PatrolQuietLeft` also discards a deadline longer than
+any silence that could have been bought, which is the same clock-went-backwards guard
+`RaidTick` uses.
+
+Tune it live with `merc_patrols_pace <gapSecs> [postFightSecs] [standingCap]`;
+`merc_patrols_status` prints the current state, including how long the roads are quiet for and
+how many gangs the current anchor has already spent.
+
+### Frequency is a difficulty setting
+
+`PatrolQuietByTier` multiplies both clocks:
+
+| Tier | × | gap | after a wipe |
+| --- | --- | --- | --- |
+| easy | 2.0 | 6 min | 16 min |
+| medium | 1.0 | 3 min | 8 min |
+| difficult | 0.85 | 2.5 min | 6.8 min |
+| extreme | 0.7 | 2.1 min | 5.6 min |
+| impossible | 0.6 | 1.8 min | 4.8 min |
+| horde | 0.35 | 1 min | 2.8 min |
+
+Before this the tier scaled only how *big* a gang was and how well it was dressed. A player
+who picks "easy" usually wants to be left alone, and all he got was the same rate of
+encounters in worse armour — which is why the endless-wave reports came in from easy as
+readily as from anywhere else. See [difficulty.md](difficulty.md).
+
+## Not while he is busy
+
+Pacing and distance stop a patrol landing *in the player's lap*; they do nothing about
+landing on him at a moment he cannot react. A patrol raised while he is asleep, waiting out
+the clock, mid-conversation or already fighting a quest battle is a fight he never chose and
+often never saw start. `LivePatrolBody` now asks `PlayerBusyForSpawns`
+([mercenaries_main_quest_handler.lua](../data/Scripts/mods/mercenaries_main_quest_handler.lua))
+before any per-record work, alongside the existing `LivePatrolsEnabled`/`EncountersOn` gates,
+and returns early if the answer is yes. Standing patrols are untouched — only *new* ones are
+held back, so anything already on the road keeps walking.
+
+This is deliberately **not** `_G.MercIdle`. That flag is about what the squad does and is
+narrow on purpose; widening it would idle the men every time the player opened a
+conversation. This is about what the world is allowed to do *to* the player, which is a
+different and more cautious question.
+
+| Probe | State | Confidence |
+| --- | --- | --- |
+| `player.player:IsLaying()` | sleeping | confirmed — the camp bed watcher already uses it |
+| `Calendar.GetWorldTimeRatio() > 20` | waiting, sleeping, jail | confirmed proxy — there is **no** `IsWaiting` binding; the main-quest handler has used this for as long as it has existed |
+| `player.human:IsInDialog()` | in a conversation | vanilla uses it (`TriggerBase.lua`); ours is the first call in this mod |
+| `player.soul:IsInCombatDanger()` | in a fight | confirmed, used in four other places |
+| `mercenaries.RBQ.active` | the siege of Raborsch | ours |
+| `Game.QueryBattleStatus() >= 0.5` | a battle in progress | documented (0 quiet … 1 full combat), unproven here — opportunistic, and only trusted when it answers with a number |
+| fast-travel detection | a level transition | the main-quest handler's own ghost-movement heuristic |
+
+There is **no** Lua-readable "a main-quest scene is running" flag. The 12 main-quest battles
+set `crime_global_battleInProgress` via `SetGameContextPreset`, but that is an XML-authoring
+fact (see [quest-override-battles.md](quest-override-battles.md)) with no reader exposed to
+mod Lua, and the `Quest.*` scriptbind has no global table in the runtime Lua state at all.
+`IsInCombatDanger` is the honest stand-in: it catches the player being in a scripted fight,
+which is what actually matters here. Every probe is `pcall`-wrapped and reads as *not busy*
+on failure, so a binding that turns out not to exist quietly leaves the old behaviour alone
+rather than erroring.
+
+`SpawnGuardClearSecs` (6 s) holds the gate shut past the last busy reading, so nothing walks
+out of the bushes on the frame he wakes up. `merc_spawnguard` prints the verdict and what
+every individual probe answers — run it while asleep, in dialogue and mid-fight to confirm
+coverage rather than assuming it.
+
+---
 
 ## Population caps
 
@@ -199,7 +321,7 @@ A gang materialises only inside a **band**, never on top of the player:
 
 | Knob | Value | Meaning |
 | --- | --- | --- |
-| `PatrolMinPlayerDist` | 100 m | the hard floor — no man of any gang is ever created inside it |
+| `PatrolMinPlayerDist` | 150 m | the hard floor — no man of any gang is ever created inside it |
 | `PatrolNoSpawnRange` | 200 m | the band: never *eligible* closer than this |
 | `PatrolSpawnRange` | 250 m | ...and no further than this |
 | `PatrolDespawnRange` | 330 m | remove them out here (hysteresis) |
@@ -219,6 +341,15 @@ So the floor is re-tested where it actually matters:
 * the lead man is tested again after `FindValidGround` has placed him;
 * **every** other man is tested on his own final spot, and one inside the floor is simply left
   out. A gang one man short is invisible; a man appearing at your shoulder is the complaint.
+
+...and `PatrolNearCamp` refuses the whole gang on the same pass, so the camp clearance
+cannot be crossed by a gang that merely cleared the player floor.
+
+**The floor was raised from 100 m to 150 m.** 100 m of open Bohemian road is inside the
+distance at which a man reads "that just appeared", and the floor is what a *rider* meets —
+a galloping horse covers ~50 m in the 3 s between the band test and the men being created,
+so the floor is the only number standing between a mounted player and a gang in his lap.
+That is the "enemies spawned in front of me" report. The band itself is unchanged.
 
 `force` bypasses all of it, and only the console passes it — `merc_patrols_here` and
 `merc_patrol_<group>` exist precisely to put a gang on top of you.

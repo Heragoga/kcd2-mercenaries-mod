@@ -3047,7 +3047,22 @@ function mercenaries:BanditCampRestoreSlot()
     local S0 = self.BCQ
     local blob
     pcall(function() blob = self:LoadString(self:BanditCampSaveTag(S0)) end)
-    if not blob or blob == "none" then return end
+    -- No contract in the save. CLEAR the slot rather than returning: this session may have one
+    -- running, and the loaded save is the only authority on that - leaving it would keep the
+    -- hand-in offered and rebuild a camp for a contract nobody in this save ever took. The table
+    -- itself is kept, because self.BCQ points at it.
+    if not blob or blob == "none" then
+        if not S0.active then return end
+        -- Its camp goes first, while the site is still known: by name and radius, because every
+        -- entity id in the slot came from before the load.
+        self:ClearAnyLeftoverBanditCamp()
+        local fresh = newCampState(S0.key)
+        fresh.kind = S0.kind
+        for k in pairs(S0) do S0[k] = nil end
+        for k, v in pairs(fresh) do S0[k] = v end
+        qLog("no contract in this save - the previous session's was dropped")
+        return
+    end
 
     local f = {}
     for part in string.gmatch(blob, "([^|]+)") do table.insert(f, part) end

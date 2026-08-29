@@ -52,6 +52,29 @@
                 <Port Name="quartermaster_take_half"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_third"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_take_quarter" Direction="Out" Type="trigger" />
+                <!-- Remove ONE improvement, and the deploy composition. Every option below
+                     grants the SAME token with a different Amount, and that amount is the
+                     option index Lua reads (LogiRemoveUpgrade / CampSetComposition) - so a
+                     whole sub-menu costs one item GUID rather than one per entry. -->
+                <Port Name="quartermaster_rm_cart" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_inn" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_hunter" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_smithy" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_alchemy" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_practice" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_house" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_tower" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_archercart" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_wall" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_gate" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_arch_same" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_arch_none" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_arch_qtr" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_arch_half" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_arch_all" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_foot_best" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_foot_mix" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_comp_foot_green" Direction="Out" Type="trigger" />
 
                 <Port Name="hire_w1" Direction="Out" Type="trigger" />
                 <Port Name="hire_w3" Direction="Out" Type="trigger" />
@@ -974,6 +997,75 @@
                                         <Triggers><Port Name="quartermaster_gate" /></Triggers>
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_gate" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_gate" /></Response></Elements>
                                     </Sequence>
+                                    <!-- Take ONE improvement down. Every option shares one Henry line and one
+                                         quartermaster reply; only the prompt differs. -->
+                                    <Sequence EndType="Decision" Name="seq_qm_removeone">
+                                        <UiPrompt StringName="ui_qm_removeone" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_removeone" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_removeone" /></Response></Elements>
+                                        <Decision Name="dec_qm_removeone">
+                                            <Sequences>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_cart">
+                                                    <UiPrompt StringName="ui_qm_rm_cart" />
+                                                    <Triggers><Port Name="quartermaster_rm_cart" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_inn">
+                                                    <UiPrompt StringName="ui_qm_rm_inn" />
+                                                    <Triggers><Port Name="quartermaster_rm_inn" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_hunter">
+                                                    <UiPrompt StringName="ui_qm_rm_hunter" />
+                                                    <Triggers><Port Name="quartermaster_rm_hunter" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_smithy">
+                                                    <UiPrompt StringName="ui_qm_rm_smithy" />
+                                                    <Triggers><Port Name="quartermaster_rm_smithy" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_alchemy">
+                                                    <UiPrompt StringName="ui_qm_rm_alchemy" />
+                                                    <Triggers><Port Name="quartermaster_rm_alchemy" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_practice">
+                                                    <UiPrompt StringName="ui_qm_rm_practice" />
+                                                    <Triggers><Port Name="quartermaster_rm_practice" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_house">
+                                                    <UiPrompt StringName="ui_qm_rm_house" />
+                                                    <Triggers><Port Name="quartermaster_rm_house" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_tower">
+                                                    <UiPrompt StringName="ui_qm_rm_tower" />
+                                                    <Triggers><Port Name="quartermaster_rm_tower" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_archercart">
+                                                    <UiPrompt StringName="ui_qm_rm_archercart" />
+                                                    <Triggers><Port Name="quartermaster_rm_archercart" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_wall">
+                                                    <UiPrompt StringName="ui_qm_rm_wall" />
+                                                    <Triggers><Port Name="quartermaster_rm_wall" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_gate">
+                                                    <UiPrompt StringName="ui_qm_rm_gate" />
+                                                    <Triggers><Port Name="quartermaster_rm_gate" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="GoTo" GoToDecision="dec_qm_upgrades" Name="seq_qm_removeone_back">
+                                                    <UiPrompt StringName="ui_qm_back" />
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
+                                                </Sequence>
+                                            </Sequences>
+                                        </Decision>
+                                    </Sequence>
                                     <!-- Two-step: choosing this only ASKS. The port (and so the
                                          teardown) fires from the confirm branch, never from here. -->
                                     <Sequence EndType="Decision" Name="seq_qm_removeupg">
@@ -1043,6 +1135,60 @@
                                         <UiPrompt StringName="ui_qm_take_quarter" />
                                         <Triggers><Port Name="quartermaster_take_quarter" /></Triggers>
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_take_quarter" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_take" /></Response></Elements>
+                                    </Sequence>
+                                    <!-- What a deployed party is made of. These are standing settings rather
+                                         than a deploy: they change who the take-N options above pick. -->
+                                    <Sequence EndType="Decision" Name="seq_qm_comp">
+                                        <UiPrompt StringName="ui_qm_comp" />
+                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp" /></Response></Elements>
+                                        <Decision Name="dec_qm_comp">
+                                            <Sequences>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_arch_same">
+                                                    <UiPrompt StringName="ui_qm_comp_arch_same" />
+                                                    <Triggers><Port Name="quartermaster_comp_arch_same" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_arch_none">
+                                                    <UiPrompt StringName="ui_qm_comp_arch_none" />
+                                                    <Triggers><Port Name="quartermaster_comp_arch_none" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_arch_qtr">
+                                                    <UiPrompt StringName="ui_qm_comp_arch_qtr" />
+                                                    <Triggers><Port Name="quartermaster_comp_arch_qtr" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_arch_half">
+                                                    <UiPrompt StringName="ui_qm_comp_arch_half" />
+                                                    <Triggers><Port Name="quartermaster_comp_arch_half" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_arch_all">
+                                                    <UiPrompt StringName="ui_qm_comp_arch_all" />
+                                                    <Triggers><Port Name="quartermaster_comp_arch_all" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_foot_best">
+                                                    <UiPrompt StringName="ui_qm_comp_foot_best" />
+                                                    <Triggers><Port Name="quartermaster_comp_foot_best" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_foot_mix">
+                                                    <UiPrompt StringName="ui_qm_comp_foot_mix" />
+                                                    <Triggers><Port Name="quartermaster_comp_foot_mix" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_comp_foot_green">
+                                                    <UiPrompt StringName="ui_qm_comp_foot_green" />
+                                                    <Triggers><Port Name="quartermaster_comp_foot_green" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_comp_set" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_comp_set" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="GoTo" GoToDecision="dec_qm_deploy" Name="seq_qm_comp_back">
+                                                    <UiPrompt StringName="ui_qm_back" />
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_back" /></Response></Elements>
+                                                </Sequence>
+                                            </Sequences>
+                                        </Decision>
                                     </Sequence>
                                     <Sequence EndType="GoTo" GoToDecision="dec_quartermaster" Name="seq_qm_deploy_back">
                                         <UiPrompt StringName="ui_qm_back" />

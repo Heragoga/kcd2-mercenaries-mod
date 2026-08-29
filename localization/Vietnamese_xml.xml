@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Tất cả lính đánh thuê đã được cho nghỉ.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Lính đánh thuê đang chờ.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Lính đánh thuê đang theo sau.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Đã thuê bạn đồng hành đặc biệt.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Bạn đồng hành này đã đang phục vụ ngài rồi!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Ta sẽ chọn Volek.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Ta sẽ gửi tin. Hắn sẽ đến.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Đi cùng ta.</Cell><Cell>Đi cùng ta.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Ở lại giữ trại.</Cell><Cell>Ở lại giữ trại.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Phá bỏ một công trình trong trại.</Cell><Cell>Phá bỏ một công trình trong trại.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Một trong những thứ ta đã dựng phải dỡ đi. Chỉ một thứ thôi.</Cell><Cell>Một trong những thứ ta đã dựng phải dỡ đi. Chỉ một thứ thôi.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>Vậy thì thứ nào đây?</Cell><Cell>Vậy thì thứ nào đây?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Thứ đó. Dỡ nó xuống.</Cell><Cell>Thứ đó. Dỡ nó xuống.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Vâng. Sẽ dỡ ngay - còn lại vẫn giữ nguyên chỗ cũ.</Cell><Cell>Vâng. Sẽ dỡ ngay - còn lại vẫn giữ nguyên chỗ cũ.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Xe lương thực.</Cell><Cell>Xe lương thực.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>Quán rượu.</Cell><Cell>Quán rượu.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Trạm thợ săn.</Cell><Cell>Trạm thợ săn.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>Lò rèn di động.</Cell><Cell>Lò rèn di động.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Bàn luyện kim.</Cell><Cell>Bàn luyện kim.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Sân tập luyện.</Cell><Cell>Sân tập luyện.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>Ngôi nhà.</Cell><Cell>Ngôi nhà.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Tháp cung thủ.</Cell><Cell>Tháp cung thủ.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Xe cung thủ.</Cell><Cell>Xe cung thủ.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>Hàng rào gỗ.</Cell><Cell>Hàng rào gỗ.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Cổng trại.</Cell><Cell>Cổng trại.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Trong trại này chẳng có thứ đó.</Cell><Cell>Trong trại này chẳng có thứ đó.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Hãy quyết xem ai sẽ theo ta ra trận.</Cell><Cell>Hãy quyết xem ai sẽ theo ta ra trận.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Khi ta dẫn người rời trại, ta muốn có đúng người sau lưng mình.</Cell><Cell>Khi ta dẫn người rời trại, ta muốn có đúng người sau lưng mình.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Nói cho ta biết ngài muốn thế nào, từ nay ta sẽ chọn theo đó.</Cell><Cell>Nói cho ta biết ngài muốn thế nào, từ nay ta sẽ chọn theo đó.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Ta muốn như vậy đấy.</Cell><Cell>Ta muốn như vậy đấy.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Đã rõ. Lần sau dẫn quân ra trận, đó sẽ là đội hình của ngài.</Cell><Cell>Đã rõ. Lần sau dẫn quân ra trận, đó sẽ là đội hình của ngài.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Cung thủ: theo đúng tỷ lệ của cả đội.</Cell><Cell>Cung thủ: theo đúng tỷ lệ của cả đội.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Cung thủ: không có. Chỉ bộ binh thôi.</Cell><Cell>Cung thủ: không có. Chỉ bộ binh thôi.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Cung thủ: một phần tư đội quân.</Cell><Cell>Cung thủ: một phần tư đội quân.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Cung thủ: một nửa đội quân.</Cell><Cell>Cung thủ: một nửa đội quân.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Cung thủ: dẫn hết những gì ta có.</Cell><Cell>Cung thủ: dẫn hết những gì ta có.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Bộ binh: người giỏi nhất trước tiên.</Cell><Cell>Bộ binh: người giỏi nhất trước tiên.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Bộ binh: đủ mọi loại người.</Cell><Cell>Bộ binh: đủ mọi loại người.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Bộ binh: lính mới trước tiên.</Cell><Cell>Bộ binh: lính mới trước tiên.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Thành phần đội quân: cung thủ theo đúng tỷ lệ của cả đội.</Cell><Cell>Thành phần đội quân: cung thủ theo đúng tỷ lệ của cả đội.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Thành phần đội quân: không cung thủ, chỉ bộ binh.</Cell><Cell>Thành phần đội quân: không cung thủ, chỉ bộ binh.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Thành phần đội quân: một phần tư là cung thủ.</Cell><Cell>Thành phần đội quân: một phần tư là cung thủ.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Thành phần đội quân: một nửa là cung thủ.</Cell><Cell>Thành phần đội quân: một nửa là cung thủ.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Thành phần đội quân: toàn bộ cung thủ của đội.</Cell><Cell>Thành phần đội quân: toàn bộ cung thủ của đội.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Thành phần đội quân: người giỏi nhất ra trận trước.</Cell><Cell>Thành phần đội quân: người giỏi nhất ra trận trước.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Thành phần đội quân: đủ mọi loại người.</Cell><Cell>Thành phần đội quân: đủ mọi loại người.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Thành phần đội quân: lính mới ra trận trước.</Cell><Cell>Thành phần đội quân: lính mới ra trận trước.</Cell></Row>
 </Table>

@@ -82,6 +82,11 @@ mercenaries.TokenIDQMRemoveUpg       = "679a655e-189d-4519-b437-ccc4b92be7fd"
 mercenaries.TokenIDQMWall            = "679a655e-189d-4519-b437-ccc4b92be80d"
 mercenaries.TokenIDQMGate            = "679a655e-189d-4519-b437-ccc4b92bec0d"
 mercenaries.TokenIDQMGates           = "679a655e-189d-4519-b437-ccc4b92bec1d"
+-- Two menus that would otherwise need a GUID per option use the COUNT as the selector
+-- instead: every option grants the same item, with a different Amount (the trick
+-- ChangeMercOutfit/ChangeMercWeapon already use). One token, one item row, one handler.
+mercenaries.TokenIDQMRemoveOne       = "679a655e-189d-4519-b437-ccc4b92bef1d"
+mercenaries.TokenIDQMComposition     = "679a655e-189d-4519-b437-ccc4b92bef2d"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
 mercenaries.TokenIDQMTakeAll         = "679a655e-189d-4519-b437-ccc4b92bee3d"
@@ -1130,11 +1135,13 @@ function mercenaries:MonitorInventory()
     end
 
     -- quartermaster logistics actions
+    -- The count is passed on: most handlers ignore it, the count-as-selector menus
+    -- (LogiRemoveUpgrade, CampSetComposition) read it as "which option was picked".
     local function tok(id, fn)
         local c = p:GetCountOfClass(id)
         if c and c > 0 then
             p:DeleteItemOfClass(id, c)
-            fn()
+            fn(c)
         end
     end
     tok(self.TokenIDQMDeliverFood,   function() self:LogiDeliverFood() end)
@@ -1156,6 +1163,8 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMTower,         function() self:LogiBuyTower() end)
     tok(self.TokenIDQMArcherCart,    function() self:LogiBuyArcherCart() end)
     tok(self.TokenIDQMRemoveUpg,     function() self:LogiRemoveAllUpgrades() end)
+    tok(self.TokenIDQMRemoveOne,     function(n) self:LogiRemoveUpgrade(n) end)
+    tok(self.TokenIDQMComposition,   function(n) self:CampSetComposition(n) end)
     tok(self.TokenIDQMWall,          function() self:LogiBuyWall() end)
     tok(self.TokenIDQMGate,          function() self:LogiBuyGate() end)
     tok(self.TokenIDQMGates,         function() self:LogiToggleGates() end)
@@ -1370,6 +1379,10 @@ function mercenaries:LowPriorityMonitorLoopBody()
     -- Re-pin renderer view distance; anything that rebuilds an entity can drop it.
     mercenaries:ProfCall("low.RefreshRenderPins", "RefreshRenderPins")
 
+    -- Three cvar READS. Writes nothing unless a level context has stomped the shipped
+    -- simulation defaults; see PerfDefaultsVerify for why this is not on a fast tick.
+    mercenaries:ProfCall("low.PerfDefaultsVerify", "PerfDefaultsVerify")
+
     -- Roaming patrols run on their own timer; re-arm it if it has died (level change).
     mercenaries:ProfCall("low.LivePatrolWatchdog", "LivePatrolWatchdog")
 
@@ -1413,6 +1426,13 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     if self.RaborschOnLoad  then pcall(function() self:RaborschOnLoad()  end) end
     if self.TargetingOnLoad then pcall(function() self:TargetingOnLoad() end) end
     if self.LodBoostOnLoad  then pcall(function() self:LodBoostOnLoad()  end) end
+    -- The bench's timer chain died with the level; the latch must not outlive it.
+    self.BenchRunning, self._benchState = false, nil
+    -- Once per load: mod.cfg applies these at LAUNCH, but a level load re-applies that
+    -- level's own cvar context on top. One pass here, then PerfDefaultsVerify only reads.
+    if self.PerfDefaultsApply then pcall(function() self:PerfDefaultsApply() end) end
+    if self.CrimeWatchOnLoad then pcall(function() self:CrimeWatchOnLoad() end) end
+    if self.TownWatchOnLoad  then pcall(function() self:TownWatchOnLoad()  end) end
 
     -- Saver entities belong to the save just loaded, so the tag map must be rebuilt
     -- before the LoadString calls below read from it.
@@ -1490,6 +1510,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
         System.ExecuteCommand("bind f4 merc_camp_recall")
     end)
     System.LogAlways("[Mercenaries] Recall keybind F4: " .. (okBind and "OK" or "FAILED - use merc_camp_recall console command"))
+    -- Bench triggers, for the external harness (F10 quits the game when done).
+    if self.BenchBindKeys then pcall(function() self:BenchBindKeys() end) end
+    if self.TortureBindKeys then pcall(function() self:TortureBindKeys() end) end
 
     -- F5-F11 ARE NOT BOUND. Four in-game editors want them - the bandit camp builder
     -- (docs/bandit-camps.md), the siege builder, the Aleksej lodging editor and the patrol
@@ -1544,6 +1567,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Put a saved camp back up - after the cache above, since it hands out tents
     -- from ActiveMercs (see RestoreCampDelayed).
     Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
+    -- NO torture hook here. Phase B once armed itself from this event and auto-quit
+    -- the USER'S game whenever their newest save carried a torture stamp (they hit
+    -- Continue, phase B ran, the game closed - reported as "the mod keeps crashing").
+    -- Phase B now runs only when F8 is pressed on a stamped save (mercenaries_torture.lua).
     -- One master tick drives these four instead of four independent timers, so they
     -- are phase-offset, gated and backed off when idle. merc_sched 0 restores the
     -- legacy timers at the next load. See docs/performance.md.
@@ -1632,6 +1659,11 @@ Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
 Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lootsweep.lua")
+-- Watch-only: who the company kills in a settlement, and how the town feels about the
+-- player. Reads the combat tables the modules above fill in, so it loads after them.
+Script.LoadScript("Scripts/mods/mercenaries_crimewatch.lua")
+-- After it: the watchdog hands every attributed kill to TownWatchNoteKill.
+Script.LoadScript("Scripts/mods/mercenaries_townwatch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_hide_others.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lodboost.lua")
 Script.LoadScript("Scripts/mods/mercenaries_banditcamp.lua")
@@ -1646,6 +1678,8 @@ Script.LoadScript("Scripts/mods/mercenaries_raborsch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_aleksej.lua")
 -- Last: every slot body it registers must already be defined.
 Script.LoadScript("Scripts/mods/mercenaries_scheduler.lua")
+Script.LoadScript("Scripts/mods/mercenaries_bench.lua")
+Script.LoadScript("Scripts/mods/mercenaries_torture.lua")
 
 -- Prints every merc console command with a one-line description.
 function mercenaries:PrintHelp()

@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Все наемники распущены.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Наемники ждут.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Наемники следуют за вами.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Особый спутник нанят.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Этот спутник уже на вас работает!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Возьму Волека.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Пошлю весточку. Он придёт.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Идём со мной.</Cell><Cell>Идём со мной.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Останься и стереги лагерь.</Cell><Cell>Останься и стереги лагерь.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Снести одно из строений.</Cell><Cell>Снести одно из строений.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Одну из построек надо убрать. Только одну.</Cell><Cell>Одну из построек надо убрать. Только одну.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>И какую же?</Cell><Cell>И какую же?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Вот эту. Снеси её.</Cell><Cell>Вот эту. Снеси её.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Слушаюсь. Сейчас же уберём - остальное останется как есть.</Cell><Cell>Слушаюсь. Сейчас же уберём - остальное останется как есть.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Повозка с провизией.</Cell><Cell>Повозка с провизией.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>Таверна.</Cell><Cell>Таверна.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Место охотника.</Cell><Cell>Место охотника.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>Походная кузница.</Cell><Cell>Походная кузница.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Алхимический стол.</Cell><Cell>Алхимический стол.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Учебный двор.</Cell><Cell>Учебный двор.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>Дом.</Cell><Cell>Дом.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Башни лучников.</Cell><Cell>Башни лучников.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Повозки для лучников.</Cell><Cell>Повозки для лучников.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>Частокол.</Cell><Cell>Частокол.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Ворота.</Cell><Cell>Ворота.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>В этом лагере такого нет.</Cell><Cell>В этом лагере такого нет.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Решим, кто выступит со мной.</Cell><Cell>Решим, кто выступит со мной.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Когда я беру людей из лагеря, хочу, чтобы за спиной были нужные.</Cell><Cell>Когда я беру людей из лагеря, хочу, чтобы за спиной были нужные.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Скажи, каких хочешь, и впредь буду отбирать так.</Cell><Cell>Скажи, каких хочешь, и впредь буду отбирать так.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Вот таких я и хочу.</Cell><Cell>Вот таких я и хочу.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Понял. Именно такой отряд получишь в следующий раз.</Cell><Cell>Понял. Именно такой отряд получишь в следующий раз.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Лучники: та же доля, что и во всей роте.</Cell><Cell>Лучники: та же доля, что и во всей роте.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Лучники: ни одного. Только пехота.</Cell><Cell>Лучники: ни одного. Только пехота.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Лучники: четверть отряда.</Cell><Cell>Лучники: четверть отряда.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Лучники: половина отряда.</Cell><Cell>Лучники: половина отряда.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Лучники: все, что у нас есть.</Cell><Cell>Лучники: все, что у нас есть.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Пехота: сперва лучшие.</Cell><Cell>Пехота: сперва лучшие.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Пехота: всякого понемногу.</Cell><Cell>Пехота: всякого понемногу.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Пехота: сперва самые необстрелянные.</Cell><Cell>Пехота: сперва самые необстрелянные.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Состав отряда: столько лучников, сколько их в роте.</Cell><Cell>Состав отряда: столько лучников, сколько их в роте.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Состав отряда: без лучников, только пехота.</Cell><Cell>Состав отряда: без лучников, только пехота.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Состав отряда: четверть лучников.</Cell><Cell>Состав отряда: четверть лучников.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Состав отряда: половина лучников.</Cell><Cell>Состав отряда: половина лучников.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Состав отряда: все лучники роты.</Cell><Cell>Состав отряда: все лучники роты.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Состав отряда: сперва идут лучшие бойцы.</Cell><Cell>Состав отряда: сперва идут лучшие бойцы.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Состав отряда: всякого понемногу.</Cell><Cell>Состав отряда: всякого понемногу.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Состав отряда: сперва идут самые необстрелянные.</Cell><Cell>Состав отряда: сперва идут самые необстрелянные.</Cell></Row>
 </Table>

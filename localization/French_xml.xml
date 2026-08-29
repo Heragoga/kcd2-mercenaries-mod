@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Tous les mercenaires ont été renvoyés.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Les mercenaires attendent.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Les mercenaires vous suivent.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Compagnon spécial engagé.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Ce compagnon est déjà à votre service !</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Je prends Volek.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Je ferai passer le mot. Il viendra.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Viens avec moi.</Cell><Cell>Viens avec moi.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Reste et tiens le camp.</Cell><Cell>Reste et tiens le camp.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Fais démonter une des améliorations.</Cell><Cell>Fais démonter une des améliorations.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Il faut se défaire d'une des choses que nous avons bâties. Une seule.</Cell><Cell>Il faut se défaire d'une des choses que nous avons bâties. Une seule.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>Laquelle donc ?</Cell><Cell>Laquelle donc ?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Celle-là. Démonte-la.</Cell><Cell>Celle-là. Démonte-la.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Fort bien. Ce sera fait sur-le-champ – le reste restera en place.</Cell><Cell>Fort bien. Ce sera fait sur-le-champ – le reste restera en place.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Le chariot à vivres.</Cell><Cell>Le chariot à vivres.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>La taverne.</Cell><Cell>La taverne.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Le poste du chasseur.</Cell><Cell>Le poste du chasseur.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>La forge portative.</Cell><Cell>La forge portative.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>L'établi d'alchimie.</Cell><Cell>L'établi d'alchimie.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Le terrain d'exercice.</Cell><Cell>Le terrain d'exercice.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>La maison.</Cell><Cell>La maison.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Les tours d'archers.</Cell><Cell>Les tours d'archers.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Les chariots d'archers.</Cell><Cell>Les chariots d'archers.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>La palissade.</Cell><Cell>La palissade.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Les portes.</Cell><Cell>Les portes.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Il n'y a rien de tel dans ce camp.</Cell><Cell>Il n'y a rien de tel dans ce camp.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Réglons qui marchera avec moi.</Cell><Cell>Réglons qui marchera avec moi.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Quand j'emmène des hommes hors du camp, je veux les bons dans mon dos.</Cell><Cell>Quand j'emmène des hommes hors du camp, je veux les bons dans mon dos.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Dis-moi comment tu les veux, et je les choisirai ainsi désormais.</Cell><Cell>Dis-moi comment tu les veux, et je les choisirai ainsi désormais.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Voilà comment je les veux.</Cell><Cell>Voilà comment je les veux.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Bien noté. Voilà la troupe que tu auras la prochaine fois que tu emmèneras des hommes.</Cell><Cell>Bien noté. Voilà la troupe que tu auras la prochaine fois que tu emmèneras des hommes.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Archers : le même mélange que la compagnie.</Cell><Cell>Archers : le même mélange que la compagnie.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Archers : aucun. Fantassins seulement.</Cell><Cell>Archers : aucun. Fantassins seulement.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Archers : un quart de la troupe.</Cell><Cell>Archers : un quart de la troupe.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Archers : la moitié de la troupe.</Cell><Cell>Archers : la moitié de la troupe.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Archers : tous ceux que nous avons.</Cell><Cell>Archers : tous ceux que nous avons.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Fantassins : les meilleurs d'abord.</Cell><Cell>Fantassins : les meilleurs d'abord.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Fantassins : un mélange de toutes sortes.</Cell><Cell>Fantassins : un mélange de toutes sortes.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Fantassins : les plus verts d'abord.</Cell><Cell>Fantassins : les plus verts d'abord.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Composition de la troupe : autant d'archers que la compagnie en compte.</Cell><Cell>Composition de la troupe : autant d'archers que la compagnie en compte.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Composition de la troupe : aucun archer, fantassins seulement.</Cell><Cell>Composition de la troupe : aucun archer, fantassins seulement.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Composition de la troupe : un quart d'archers.</Cell><Cell>Composition de la troupe : un quart d'archers.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Composition de la troupe : la moitié d'archers.</Cell><Cell>Composition de la troupe : la moitié d'archers.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Composition de la troupe : tous les archers de la compagnie.</Cell><Cell>Composition de la troupe : tous les archers de la compagnie.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Composition de la troupe : les meilleurs d'abord.</Cell><Cell>Composition de la troupe : les meilleurs d'abord.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Composition de la troupe : un mélange de toutes sortes.</Cell><Cell>Composition de la troupe : un mélange de toutes sortes.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Composition de la troupe : les plus verts d'abord.</Cell><Cell>Composition de la troupe : les plus verts d'abord.</Cell></Row>
 </Table>

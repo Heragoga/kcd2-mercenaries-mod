@@ -40,6 +40,7 @@
             <!-- isCampActor: this archer has any camp role (guard/sitter/sleeper). Camp
                  actors are excluded from the idle branch and run camp_actor.xml; the rest run follow.xml. patrol* here are unused leftovers. -->
             <Variable name="isCampActor"         type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="campPoseHold"       type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolActive"        type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="patrolWaypoint"      type="_wuid"                values=""                                  isPersistent="0" form="single" />
             <Variable name="patrolLongPause"     type="_bool"                values="false"                             isPersistent="0" form="single" />
@@ -57,6 +58,13 @@
             <Variable name="playerFighting"      type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="foundTarget"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <Variable name="idleTicks"           type="_int"                 values="0"                                 isPersistent="0" form="single" />
+            <!-- Behaviour LOD: cheapMode says the squad has nothing to find (set by
+                 MercCheapMode); cheapSkip counts polls skipped so a FULL pass still runs
+                 every cheapEvery+1 polls. See mercenaries_ai_modules.lua. -->
+            <Variable name="cheapMode"           type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="cheapSkip"           type="_int"                 values="0"                                 isPersistent="0" form="single" />
+            <Variable name="cheapEvery"          type="_int"                 values="3"                                 isPersistent="0" form="single" />
+            <Variable name="doAcquire"           type="_bool"                values="true"                              isPersistent="0" form="single" />
 
             <Variable name="stanceMode"          type="_int"                 values="0"                                 isPersistent="0" form="single" />
             <Variable name="enemiesArray"        type="_wuid"                values=""                                  isPersistent="0" form="array"  />
@@ -87,9 +95,10 @@
                         <Loop count="-1">
                             <Sequence>
 
-                                <!-- 300ms: reaction time to a new threat. idleTicks thresholds below
+                                <!-- 600ms: reaction time to a new threat; halved from 300ms with the merc
+                                     scheduler, see the note there. idleTicks thresholds below
                                      are scaled to it (55 ticks ~ 16s). -->
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
+                                <Wait duration="'600ms'" timeType="GameTime" doFail="false" variation="'240ms'" />
 
                                 <AtomicDecorator>
                                     <Sequence>
@@ -97,8 +106,22 @@
                                         <ExecuteLua code="data.isIdle = mercenaries:MercIsIdle(entity)" />
                                         <ExecuteLua code="mercenaries:FollowGate(data, entity.this.id)" />
                                         <ExecuteLua code="data.isCampActor = mercenaries:IsCampActor(entity.this.id)" />
+                                        <ExecuteLua code="mercenaries:CampPoseHold(data, entity.this.id)" />
                                         <ExecuteLua code="data.stanceMode = mercenaries:GetArcherStanceCode()" />
                                         <ExecuteLua code="mercenaries:MercLeashes(data)" />
+                                        <!-- BEHAVIOUR LOD. cheapMode means the squad-wide caches say there is
+                                             nothing to acquire; cheapSkip then lets a FULL pass through every
+                                             cheapEvery+1 polls so nothing the caches could miss is missed for
+                                             long. Not cheap -> doAcquire is true every poll, exactly as before. -->
+                                        <ExecuteLua code="mercenaries:MercCheapMode(data, entity.this.id)" />
+                                        <IfElseCondition failOnCondition="false" condition="$cheapMode &amp; $cheapSkip &lt; $cheapEvery" saveVersion="2">
+                                            <Then canSkip="1">
+                                                <Expression expressions="$cheapSkip = $cheapSkip + 1 &#10; $doAcquire = false" />
+                                            </Then>
+                                            <Else canSkip="1">
+                                                <Expression expressions="$cheapSkip = 0 &#10; $doAcquire = true" />
+                                            </Else>
+                                        </IfElseCondition>
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
@@ -107,7 +130,7 @@
                                              except "hold" (2), which means don't acquire at all.
                                              See docs/combat-target-selection.md. -->
                                         <SuppressFailure>
-                                            <IfCondition failOnCondition="false" condition="~$inCombat &amp; $stanceMode ~= 2">
+                                            <IfCondition failOnCondition="false" condition="~$inCombat &amp; $stanceMode ~= 2 &amp; $doAcquire">
                                                 <Sequence>
                                                     <Expression expressions="$playerCombatTarget = $__null" />
                                                     <SuppressFailure>
@@ -136,7 +159,17 @@
                                             </IfCondition>
                                         </SuppressFailure>
 
-                                        <SuppressFailure><GetTarget ReferenceNPC="$this.id" TargetVarOut="$mercTarget" /></SuppressFailure>
+                                        <!-- This is the one engine call that must NOT be skipped on the squad-wide
+                                             caches alone: it is how the mod learns a man is being attacked by
+                                             something the caches never saw - a town guard turning on him with
+                                             nothing yet hostile in CachedEnemies. So it rides the SAME cheapSkip
+                                             counter as the acquisition block rather than a gate of its own: on a
+                                             cheap poll it is skipped, on the full pass every cheapEvery+1 polls it
+                                             runs. Worst case he learns he is being hit ~2.4s late instead of never,
+                                             and any hit that lands sets inCombat, which clears cheapMode outright. -->
+                                        <IfCondition failOnCondition="false" condition="$doAcquire">
+                                            <SuppressFailure><GetTarget ReferenceNPC="$this.id" TargetVarOut="$mercTarget" /></SuppressFailure>
+                                        </IfCondition>
 
                                         <!-- idleTicks = "how long have I had nothing to do". It must NOT tick
                                              while in combat: acquisition is gated on ~inCombat, so playerTarget
@@ -146,8 +179,8 @@
                                             <Then canSkip="1"><Expression expressions="$idleTicks = $idleTicks + 1" /></Then>
                                             <Else canSkip="1"><Expression expressions="$idleTicks = 0" /></Else>
                                         </IfElseCondition>
-                                        <IfCondition failOnCondition="false" condition="$idleTicks &gt; 66">
-                                            <Expression expressions="$idleTicks = 66" />
+                                        <IfCondition failOnCondition="false" condition="$idleTicks &gt; 33">
+                                            <Expression expressions="$idleTicks = 33" />
                                         </IfCondition>
                                     </Sequence>
                                 </AtomicDecorator>
@@ -156,7 +189,7 @@
                                     <EntityContextCheck context="crime_interruptAttack" target="$this.id" saveVersion="2">
                                         <Then canSkip="1">
                                             <Sequence>
-                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; $deTargetDist | $idleTicks &gt; 55 | $stanceMode == 2">
+                                                <IfCondition failOnCondition="false" condition="$distanceToPlayer &gt; $deTargetDist | $idleTicks &gt; 27 | $stanceMode == 2">
                                                     <Sequence>
                                                         <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end); pcall(function() mercenaries:MercDropClaim(entity.this.id) end)" />
                                                         <Expression expressions="$currentTarget = $__null" />
@@ -186,12 +219,12 @@
 
                                                             <!-- Stance picks the combat behaviour: 0 skirmish, 1 melee (2 hold disengages above). -->
                                                             <IfCondition failOnCondition="false" condition="$stanceMode == 1">
-                                                                <IfCondition failOnCondition="false" condition="~$wbLocked"><!-- wbLockedWrapped -->
+                                                                <IfCondition failOnCondition="false" condition="~$wbLocked &amp; ~$campPoseHold"><!-- wbLockedWrapped; campPoseHold = he is still standing up out of a camp pose -->
                                                                     <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_melee'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                                                 </IfCondition>
                                                             </IfCondition>
                                                             <IfCondition failOnCondition="false" condition="$stanceMode == 0">
-                                                                <IfCondition failOnCondition="false" condition="~$wbLocked"><!-- wbLockedWrapped -->
+                                                                <IfCondition failOnCondition="false" condition="~$wbLocked &amp; ~$campPoseHold"><!-- wbLockedWrapped; campPoseHold = he is still standing up out of a camp pose -->
                                                                     <AddInterrupt_attack attackData="$attackData" Target="$this.id" Host="$mrkev" Behavior="'combat_archer_dynamic'" Priority="160" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                                                 </IfCondition>
                                                             </IfCondition>
@@ -200,12 +233,12 @@
                                                                  and IgnorePriorityOnPreviousInterrupt would replace the
                                                                  combat we just started (its OnFail sheathes + drops the
                                                                  target, leaving the archer stood there disarmed). -->
-                                                            <Expression expressions="$inCombat = true" />
+                                                            <IfCondition failOnCondition="false" condition="~$campPoseHold"><Expression expressions="$inCombat = true" /></IfCondition>
                                                         </Sequence>
                                                     </Then>
                                                     <Else canSkip="1">
                                                         <AtomicDecorator>
-                                                            <IfCondition failOnCondition="false" condition="$idleTicks &gt; 55">
+                                                            <IfCondition failOnCondition="false" condition="$idleTicks &gt; 27">
                                                                 <Sequence>
                                                                     <Expression expressions="$currentTarget = $__null" />
                                                                     <ExecuteLua code="
@@ -239,7 +272,7 @@
                                         <Expression expressions="$inCombat = false" />
                                     </Else>
                                 </EntityContextCheck>
-                                <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
+                                <Wait duration="'600ms'" timeType="GameTime" doFail="false" variation="'240ms'" />
                             </Sequence>
                         </Loop>
 

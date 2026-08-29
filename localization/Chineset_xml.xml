@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>所有傭兵已解散。</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>傭兵們正在等候。</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>傭兵們正在跟隨。</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>特殊夥伴已僱用。</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>這位夥伴已經在為你效力了!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>我要沃萊克。</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>我會派人送信去。他會來的。</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>跟我來。</Cell><Cell>跟我來。</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>留下,守住營地。</Cell><Cell>留下,守住營地。</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>拆掉一處營地設施。</Cell><Cell>拆掉一處營地設施。</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>咱們建的東西,得拆掉一樣。就一樣。</Cell><Cell>咱們建的東西,得拆掉一樣。就一樣。</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>拆哪一個?</Cell><Cell>拆哪一個?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>就那個。拆了它。</Cell><Cell>就那個。拆了它。</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>遵命。這就去辦——其餘的都留著不動。</Cell><Cell>遵命。這就去辦——其餘的都留著不動。</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>食物車。</Cell><Cell>食物車。</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>酒館。</Cell><Cell>酒館。</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>獵人營地。</Cell><Cell>獵人營地。</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>移動鐵匠鋪。</Cell><Cell>移動鐵匠鋪。</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>煉金台。</Cell><Cell>煉金台。</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>練兵場。</Cell><Cell>練兵場。</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>房舍。</Cell><Cell>房舍。</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>弓箭手塔樓。</Cell><Cell>弓箭手塔樓。</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>弓箭手戰車。</Cell><Cell>弓箭手戰車。</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>柵欄。</Cell><Cell>柵欄。</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>大門。</Cell><Cell>大門。</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>營地裡沒有這種東西。</Cell><Cell>營地裡沒有這種東西。</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>咱們定下誰跟我出征。</Cell><Cell>咱們定下誰跟我出征。</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>我帶人出營時,身後得是靠得住的人。</Cell><Cell>我帶人出營時,身後得是靠得住的人。</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>說說你想要什麼樣的,往後我就照這個挑。</Cell><Cell>說說你想要什麼樣的,往後我就照這個挑。</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>就照這個來。</Cell><Cell>就照這個來。</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>記下了。下次你帶隊出營,就是這個陣容。</Cell><Cell>記下了。下次你帶隊出營,就是這個陣容。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>弓箭手:與全隊比例相同。</Cell><Cell>弓箭手:與全隊比例相同。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>弓箭手:一個不帶。只帶步兵。</Cell><Cell>弓箭手:一個不帶。只帶步兵。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>弓箭手:佔隊伍四分之一。</Cell><Cell>弓箭手:佔隊伍四分之一。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>弓箭手:佔隊伍一半。</Cell><Cell>弓箭手:佔隊伍一半。</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>弓箭手:能帶的全帶上。</Cell><Cell>弓箭手:能帶的全帶上。</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>步兵:精銳優先。</Cell><Cell>步兵:精銳優先。</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>步兵:什麼樣的都要。</Cell><Cell>步兵:什麼樣的都要。</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>步兵:新兵優先。</Cell><Cell>步兵:新兵優先。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>隊伍編成:弓箭手比例與全隊相同。</Cell><Cell>隊伍編成:弓箭手比例與全隊相同。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>隊伍編成:不帶弓箭手,只有步兵。</Cell><Cell>隊伍編成:不帶弓箭手,只有步兵。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>隊伍編成:四分之一是弓箭手。</Cell><Cell>隊伍編成:四分之一是弓箭手。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>隊伍編成:一半是弓箭手。</Cell><Cell>隊伍編成:一半是弓箭手。</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>隊伍編成:全隊弓箭手悉數出動。</Cell><Cell>隊伍編成:全隊弓箭手悉數出動。</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>隊伍編成:精銳優先出戰。</Cell><Cell>隊伍編成:精銳優先出戰。</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>隊伍編成:各色人等混編。</Cell><Cell>隊伍編成:各色人等混編。</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>隊伍編成:新兵優先出戰。</Cell><Cell>隊伍編成:新兵優先出戰。</Cell></Row>
 </Table>

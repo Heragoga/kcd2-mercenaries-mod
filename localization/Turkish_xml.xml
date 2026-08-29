@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Tüm paralı askerler gönderildi.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Paralı askerler bekliyor.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Paralı askerler takip ediyor.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Özel yoldaş tutuldu.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Bu yoldaş zaten senin hizmetinde!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Volek'i alacağım.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Haber gönderirim. Gelir.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Benimle gel.</Cell><Cell>Benimle gel.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Kal ve kampı koru.</Cell><Cell>Kal ve kampı koru.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>İyileştirmelerden birini kaldır.</Cell><Cell>İyileştirmelerden birini kaldır.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>İnşa ettiğimiz şeylerden biri gitmeli. Sadece biri.</Cell><Cell>İnşa ettiğimiz şeylerden biri gitmeli. Sadece biri.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>Hangisi peki?</Cell><Cell>Hangisi peki?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Şu. Onu yık.</Cell><Cell>Şu. Onu yık.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Peki. Hemen kaldırılır - gerisi yerinde kalır.</Cell><Cell>Peki. Hemen kaldırılır - gerisi yerinde kalır.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Yemek arabası.</Cell><Cell>Yemek arabası.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>Meyhane.</Cell><Cell>Meyhane.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Avcının durağı.</Cell><Cell>Avcının durağı.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>Seyyar demirci ocağı.</Cell><Cell>Seyyar demirci ocağı.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Simya tezgahı.</Cell><Cell>Simya tezgahı.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Talim alanı.</Cell><Cell>Talim alanı.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>Ev.</Cell><Cell>Ev.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Okçu kuleleri.</Cell><Cell>Okçu kuleleri.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Okçu arabaları.</Cell><Cell>Okçu arabaları.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>Palanka.</Cell><Cell>Palanka.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Kapılar.</Cell><Cell>Kapılar.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Bu kampta böyle bir şey yok.</Cell><Cell>Bu kampta böyle bir şey yok.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Benimle kimin yola çıkacağına karar verelim.</Cell><Cell>Benimle kimin yola çıkacağına karar verelim.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Kamptan adam çıkardığımda, arkamda doğru adamları istiyorum.</Cell><Cell>Kamptan adam çıkardığımda, arkamda doğru adamları istiyorum.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Nasıl istediğini söyle, bundan sonra öyle seçerim.</Cell><Cell>Nasıl istediğini söyle, bundan sonra öyle seçerim.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Onları böyle istiyorum.</Cell><Cell>Onları böyle istiyorum.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Not edildi. Bir dahaki sefere adam çıkardığında birlik böyle olacak.</Cell><Cell>Not edildi. Bir dahaki sefere adam çıkardığında birlik böyle olacak.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Okçular: birlikteki oranın aynısı.</Cell><Cell>Okçular: birlikteki oranın aynısı.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Okçular: hiç yok. Sadece piyade.</Cell><Cell>Okçular: hiç yok. Sadece piyade.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Okçular: grubun dörtte biri.</Cell><Cell>Okçular: grubun dörtte biri.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Okçular: grubun yarısı.</Cell><Cell>Okçular: grubun yarısı.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Okçular: elimizdeki hepsi.</Cell><Cell>Okçular: elimizdeki hepsi.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Piyade: en iyi adamlar önce.</Cell><Cell>Piyade: en iyi adamlar önce.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Piyade: her türden karışık.</Cell><Cell>Piyade: her türden karışık.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Piyade: en toylar önce.</Cell><Cell>Piyade: en toylar önce.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Birlik yapısı: birlikteki kadar okçu.</Cell><Cell>Birlik yapısı: birlikteki kadar okçu.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Birlik yapısı: okçu yok, sadece piyade.</Cell><Cell>Birlik yapısı: okçu yok, sadece piyade.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Birlik yapısı: dörtte biri okçu.</Cell><Cell>Birlik yapısı: dörtte biri okçu.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Birlik yapısı: yarısı okçu.</Cell><Cell>Birlik yapısı: yarısı okçu.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Birlik yapısı: birlikteki tüm okçular.</Cell><Cell>Birlik yapısı: birlikteki tüm okçular.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Birlik yapısı: en iyi adamlar önce gider.</Cell><Cell>Birlik yapısı: en iyi adamlar önce gider.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Birlik yapısı: her türden karışık.</Cell><Cell>Birlik yapısı: her türden karışık.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Birlik yapısı: en toy adamlar önce gider.</Cell><Cell>Birlik yapısı: en toy adamlar önce gider.</Cell></Row>
 </Table>

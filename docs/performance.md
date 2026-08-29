@@ -25,7 +25,10 @@ rendered, raycasts it fires, cvars it raises.
 | `PatrolSpawnPerTick` | same | 1 | gangs appearing per 3s tick |
 | `PatrolMaxCorpses` / `PatrolCorpseSecs` | same | 12 / 180s | lingering ragdolls |
 | `RenderPin` | `mercenaries_util.lua` | true | every merc never distance-culled or LOD-reduced; `merc_render_pin 0` |
-| `LodBoostMinCrowd` + `LodBoostRequireFoes` | `mercenaries_lodboost.lua` | 70, true | raises the engine AI-LOD budget globally while a real fight is on |
+| `LodBoostMinCrowd` + `LodBoostRequireFoes` | `mercenaries_lodboost.lua` | 70, true | raises the engine AI-LOD budget globally while a real fight is on — and **only** then; density alone must never arm it |
+| `PatrolQuietSecs` / `PatrolPostFightSecs` | `mercenaries_patrols_live.lua` | 180 s / 480 s | how often a roaming gang may appear at all — see [patrols.md](patrols.md), "Pacing" |
+| `PatrolCampClearance` | `mercenaries_patrols_live.lua` | 350 m | no roaming gang spawns this close to the camp |
+| `FollowWatchEvery` | `mercenaries_formation_handler.lua` | 4 s | continuous stall watch; one `GetWorldPos` per merc per sample |
 | `TowerMaxCount` | `mercenaries_tower.lua` | 999 | ~8 always-rendered meshes per tower — effectively uncapped |
 | `RaidEnabled` | `mercenaries_raids.lua` | true | a camp raid every ~2 in-game days |
 | `SchedEnabled` | `mercenaries_scheduler.lua` | true | `merc_sched 0` falls back to the legacy timers |
@@ -394,6 +397,347 @@ Rules this hunt adds to the ones above:
    profiler's frame histogram (ProfFrameSample) - it measures frames.
 3. Save-file name-string counts are NOT entity counts (50 strings = 9 entities); only
    GetEntitiesByClass at runtime is authoritative.
+
+## THE GRID — the suite across three hardware tiers — 2026-08-28 (overnight)
+
+Full 12-scenario suite (tools/autobench.ps1, `-Cores N` restricts affinity), field save,
+observer hovering 14m up looking down, devmode god. fps / hidden-flips per cell:
+
+| scenario | full cores | 8 cores | 2 cores |
+|---|---|---|---|
+| baseline | 139.1 / 0 | 149.6 / 0 | 108.1 / 0 |
+| army50 (50 mercs) | 114.1 / 0 | 121.6 / 0 | 62.6 / 0 |
+| formations (cycling shapes) | 157.4 / 0 | 158.6 / 0 | 102.7 / 0 |
+| camp + raid + breakcamp | ~150 / 0 | ~150 / 0-4 | ~100 / 0 |
+| bigbattle (35 hostiles) | 83.8 / 0 | 73.7 / 0 | 41.1 / 0, nothing past 33ms |
+| aftermath | 110.0 / 0 | 94.9 / 0 | 55.4 / 0 |
+| patrol (16-man gang) | 89.8 / 0 | 75.0 / 0 | 39.8 / 0 |
+| raborsch (siege, ~29-man company) | 133.6 / 0 | 100.0 / 0 | 54.4 / 0 |
+| boostcycle (forced pin/unpin) | 144.8 / 0 | 137.9 / 0 | 71.3 / 0 |
+
+Read against the pre-fix era: the same class of 2-core siege/battle measured 10-17fps by hand,
+and the pre-fix bench measured 64/86/182 hidden-flips. After the cumulative work (cloth trio
+defaults, 600ms target polls, behaviour LOD, 4-candidate scans, follower-churn timeboxes,
+corpse freeze, population-aware LOD boost + spawn priming): zero flips at every tier, and the
+2-core battle holds 41fps with no frame over 33ms.
+
+Caveats, honestly: the field save is not Kuttenberg (city NPC density is the one axis this
+save cannot exercise - make a Kuttenberg save the bench target and adjust -DownsToSave to
+cover it), and the suite's siege scaled to the post-battle company (~29), smaller than the
+50-man manual benches. The 4 breakcamp flips at 8 cores are camp-teardown transients, not
+reproduced at other tiers - watch, don't chase.
+
+Rerun everything: `powershell -ExecutionPolicy Bypass -File toolsutobench.ps1 [-Cores N]`.
+In game: F9 = bench, F10 = bench + quit (harness mode). This suite is the regression harness
+for every future release: any change that reintroduces pop-in or a frame-time tail shows up
+as a changed cell.
+
+## POP-IN: root-caused and fixed by the automated bench — 2026-08-28
+
+"They pop in and out of existence" is now a measured, attributed, fixed defect - found by the
+closed-loop bench (tools/autobench.ps1 + mercenaries_bench.lua: launches the game, navigates
+the menu with verified scancode input, loads the field save, runs a scripted scenario chain,
+and polls every tracked NPC 4x/sec for IsHidden / IsSlotCharacter(0) / GetViewDistRatio,
+logging every transition with distance and classification).
+
+The measurement (run 2 of the bench, 50 mercs + 35 enemies, full cores):
+
+| scenario | fps | hidden flips | char flips | vdr flips |
+|---|---|---|---|---|
+| baseline | 104.5 | 0 | 0 | 0 |
+| army50 | 84.0 | 0 | 0 | 0 |
+| bigbattle | 37.2 | **64** | 0 | 0 |
+| aftermath | 25.6 | **86** | 0 | 0 |
+| boostcycle (pin/unpin every 10s) | 25.6 | **182** | 0 | 0 |
+
+**Every flip was a HIDDEN flip** - not skin streaming (char), not view distance (vdr). The
+engine HIDES whatever exceeds the AI-LOD budgets, and the flips cluster on LOD-boost
+transitions. Mechanism: the boost raises WH_AI_LOD_MaxCountDetail/MaxCountLOD (70/400 ->
+260/600) for battles, but its OFF decision keyed on CachedEnemies - which drains the moment
+fighting stops, while ~100 NPCs and corpses still stand. Budgets collapse under the standing
+population -> the engine hides the overflow in front of the player. Every arm/disarm is a
+hide/unhide wave; battle START flipped too (the gap before CachedEnemies fills and arms it).
+
+The fix (mercenaries_lodboost.lua, mercenaries_spawning.lua):
+- **The budgets may never collapse below the standing population.** LodBoostTick now counts
+  the real population (one 120m box query, run only while the boost is up or the cheap crowd
+  estimate is near arming) and refuses to drop the boost until population < LodBoostPopRelease
+  (50), however long the enemy cache has been empty.
+- ~~**Population arms the boost by itself** at LodBoostPopThreshold (65) - no combat
+  required.~~ **Reverted — see "The AI-LOD cvar boost must never arm in a town" below.**
+- **Spawn bursts arm it BEFORE the men exist**: SpawnEnemyGroup calls LodBoostPrime(n) so the
+  budgets are already up when a 35-man encounter appears, closing the battle-start gap.
+
+Verification criterion for the suite: bigbattle/aftermath hidden-flips ~0 against the 64/86
+baseline.
+
+### The AI-LOD cvar boost must never arm in a town
+
+`LodBoostPopThreshold` counted **every NPC in a 120 m box**, and armed the boost on that count
+alone. A market square in Kuttenberg clears 65 of them with nobody fighting anybody, so simply
+walking into town:
+
+* raised `e_ViewDistRatio` to 200 over the 50 the city's own `performanceDemandingArea.cfg`
+  had just set, and `e_ViewDistRatioCustom` to 200 over 60;
+* pinned `e_CharRenderLodMin` / `e_CharLodMin` to 0 — **every** character held at its highest
+  detail mesh regardless of distance — and `e_LodFaceAreaTargetSizeCharacterWH` 5× below stock;
+* opened `WH_AI_LOD_MaxCountDetail` to 260 and `MaxDetailDistance` to 250, so up to 260 NPCs
+  ran full AI simulation;
+* and re-pushed all of it every 300 ms, *deliberately* fighting `CVarOverride` — whose dense
+  areas are cities — for as long as the player stayed. `LodBoostPopRelease` (50) then held it
+  there, because a town never falls below 50 either.
+
+That is the user report **"very choppy in towns, despite my fps counter stating 120-144
+frames, no matter the quality settings"**. Both halves of that sentence are explained: it is
+not a framerate a counter shows (it is frame *pacing*, against an engine being argued with
+three times a second), and the quality settings genuinely do not matter, because the mod is
+overriding them.
+
+**Arming and releasing were never the same question.** Only the release one was ever about how
+many people are about — "the budgets must never collapse below the standing population" is a
+statement about *dropping* the boost, and that clause already lives in the `elseif` branch.
+The arm clause was pure crowd-density, and it is gone:
+
+```lua
+if crowd >= self.LodBoostMinCrowd then          -- was: ... or pop >= LodBoostPopThreshold
+```
+
+`crowd` is `MercCount + #CachedEnemies` with `LodBoostRequireFoes`, so it is zero without a
+fight, whatever the town holds. `LodBoostPopThreshold` is deleted; `LodBoostPopRelease` stays
+and does its real job.
+
+**The release hold had the same hole through a different door.** `LodBoostPrime` arms the
+boost before a spawn burst of 10+ NPCs, which in a town is a town-watch muster — a real
+fight, so arming is right. But the hold clause *restamped* `_lodLastFoeAt` every tick that
+population was above the release line, so once armed in a town it could never come down.
+The hold no longer restamps and is bounded by `LodBoostPopHoldMax` (240 s with no foes in
+the cache) — chosen to clear `PatrolCorpseSecs` (180 s) with margin, since covering a
+battle's standing bodies is the whole point of the hold. It is a bound on the pathological
+case, not a tuning.
+
+Second win, free: `pop` is now computed only while the boost is already up, since the OFF
+decision is its sole consumer. A peaceful town no longer runs a 120 m NPC box query three
+times a second either.
+
+**Diagnosing it.** `merc_dev` then `merc_lod_status` in a quiet town: the boost must read
+inactive. If it does not, something armed it — check `LodBoostPinned` (the siege pin) and
+`CachedEnemies` before assuming density.
+
+## Behaviour LOD for the squad — 2026-08-28
+
+The one lever in the mod that scales DOWN with squad size instead of up, and the answer to
+"what is left once the cvar space is exhausted" (73 trials over 23 cvars, controlled, found
+nothing - see below).
+
+Every merc ran the full target-acquisition pass on every poll whether or not the world
+contained anything to acquire: `ScanForEnemies`, a `For` over up to 8 candidates each doing an
+engine `GetTarget`, `PickCombatTarget`, plus an unconditional `GetTarget` on himself. Fifty men
+standing in a peaceful market paid all of it, forever.
+
+`MercCheapMode` (mercenaries_ai_modules.lua) publishes `$cheapMode` per merc; the scheduler
+counts skipped polls in `$cheapSkip` and lets a FULL pass through every `cheapEvery+1` (4th).
+Both the acquisition block and the self-`GetTarget` ride that one counter.
+
+**The gate is squad-wide and pessimistic, not per-merc distance.** Distance is the obvious
+proxy and the wrong one - the man forty metres back is exactly who gets jumped first, and a
+distance gate blinds him. What makes the pass pointless is that there is nothing to find, and
+the mod already computes that authoritatively every 300ms: `ScanForEnemies` READS
+`CachedEnemies`/`MaybeEnemies`, so with both empty the whole block is provably a no-op - the
+array comes back empty, the `For` never iterates, `PickCombatTarget` has nothing to pick.
+Any of alerted / cached enemies / maybe-enemies / focus target / in combat / holding a claim /
+forced target takes the whole squad back to full rate.
+
+The one call that genuinely needed care is the self-`GetTarget`: it is how the mod learns a man
+is being attacked by something the caches never saw (a town guard turning on him). It is not
+gated on the caches alone - it rides the same skip counter, so worst case he notices ~2.4s
+late rather than never, and any hit that lands sets `inCombat`, which clears cheapMode outright.
+
+`merc_btlod_off` / `_on` / `_status` for A/B. **Expect this to do nothing in a battle** - in
+combat cheapMode is false by construction. It targets the reported scenario (mercs in a town),
+not Raborsch.
+
+## Equipment hygiene — what was safe to cut, and what was not — 2026-08-28
+
+Brief was "hygiene, do not reduce visual quality", so the bar was: only remove what provably
+cannot render.
+
+**Done.** 24 entries out of `clothing_preset__mercenaries.xml`, zero visual change:
+- 2 EXACT duplicate `<Guid>` entries (same item listed twice in one preset - a no-op).
+- 22 uses of 7 DEAD GUIDs that no item table defines. Verified against the game's own
+  `Data/Tables.pak`, not just the reference dump, so they are not DLC items my extract was
+  missing. They resolve to nothing, so they cannot draw. No preset was left empty.
+  (590 presets, 6805 -> 6781 items.)
+
+**NOT done, deliberately - the 378 "same-slot collisions" are not safe to cut.** The sweep
+reported 60.6% of merc presets carrying two items on one slot vs 9.5% in vanilla, and that
+replicates (352/590 here). But the slot map in `mercenaries_gear_data.lua` is COARSE: the
+generator folds several ArmorTypes into one slot id (Coat/Waffenrock/Habit all -> 7). The
+engine's real rule is `armor_archetype2body_subpart.is_exclusive` per archetype+subpart, so
+two items sharing a coarse slot may be legitimately layered. Cutting on the coarse signal
+would strip visible pieces - exactly what the brief forbids. Resolving this properly means
+modelling archetype -> body_layer/body_subpart exclusivity; worth doing, not worth guessing.
+
+**NOT done - the double-dress, because the risk is documented.** Every merc IS dressed twice:
+the Storm rule in `libs/Storm/equipment/mercenariesequipment.xml` (108 rules) applies a vanilla
+`<ClothingPresetRef>` + `<WeaponPresetRef>` at spawn, and `SpawnMercenary` immediately applies
+the mod's own preset over it. A whole wasted character assembly per spawn - real, and it would
+help the "lag when I hire" reports. But `reference_equipping_npcs` records that ORDER IS
+EVERYTHING here: a vanilla clothing preset must land before any per-piece
+`EquipInventoryItem` or nothing equips at all. The mod's own `EquipMercenary` should satisfy
+that, but "should" is not good enough for a change that silently un-dresses the whole company,
+and it is spawn-burst cost rather than the sustained per-frame cost. Needs a deliberate test,
+not a drive-by edit.
+
+## Round 2: what is left after the cloth win — 2026-08-28
+
+A second 13-agent sweep across the areas the cvar tuner never covers (animation/skinning, job
+threading, per-character asset layers, ragdoll physics, AI perception) plus a fresh
+bodyguards-vs-mod comparison. Two things shipped straight away; the rest is a ranked queue.
+
+**Shipped: target-poll rate halved.** `mercenary_scheduler.xml` and `archer_scheduler.xml` ran
+their acquisition arm - including an unconditional engine `<GetTarget>` - on a 300ms poll. The
+bodyguards reference mod runs the same node at 1s +-300ms and carries companions with no
+reported cost. At 50 mercs, 300ms is ~167 engine calls/sec scaling with squad size, paid
+whether or not anything is happening. Now 600ms +-240ms (2 polls per file).
+
+**The trap in that change**, and why it is not a one-number edit: `idleTicks` is counted in
+POLLS, not seconds, and the file's own comment says the thresholds are scaled to the rate
+(55 ticks ~ 16s). Halving the rate without halving the counts silently doubles every idle
+timeout - the sheathe-weapon, drop-claim and re-fire-follow behaviours. Thresholds moved 66->33
+and 55->27 in both files, so they still mean ~20s and ~16s.
+
+**Shipped: corpse ragdolls freeze after 5s.** A wiped gang leaves up to 12 ragdolls - 20-30
+part articulated bodies, touching each other, which is CryPhysics' never-settles worst case -
+lingering for `PatrolCorpseSecs` (180s) exactly where the player just fought. They now get
+`AwakePhysics(0)` + `EnablePhysics(0)` once they have finished falling. Looting reads SOUL
+state (`LootCaptureBodies`/`IsCorpse`), not physics, so they stay lootable and the sweep still
+clears them on the same schedule. `EnablePhysics(0)` is the call the tower hold-test already
+proved works on a live entity here.
+
+### Queue, in order (all verified to exist in the DLL, none benched)
+
+| lever | why | how |
+|---|---|---|
+| `sys_job_system_max_worker` | help text: *"Defaults to 16 threads on PC... Set to 0 to create as many threads as cores are available"*. Absent from every cfg, so it is at the compiled default. 16 job workers + main + render + physics + 2 anim threads timeslicing 2 cores is exactly the 32-cores-fine / 2-cores-broken shape | set 0, **relaunch** - it is read at System::Init and cannot be tuned live |
+| `wh_ca_AnimationComputationJobBatchSize` | *"Sets the size of job batches that are used for animation calculations"* - animation LOD is a DIFFERENT system from the mesh LOD already benched flat | add to TweakDefs, let `merc_opt` bench it |
+| `ca_UseJointMasking` | *"Use Joint Masking to speed up motion decoding"* - CPU skeleton work, not render | read current value first; if already 1 there is no win |
+| `ca_DrawAttachmentsMergedForShadows` | one shadow submission per character instead of one per worn piece | check for shadow seams at helmet/pauldron |
+| clothing piece count | mercs wear 15-43% more pieces than vanilla's own tier-matched presets; weak-tier mercs already exceed vanilla STRONG-tier. Every piece is a skin attachment to skin per frame | trim the presets - fixes per-character cost WITHOUT cutting NPC count |
+
+**Do not automate:** `wh_ai_perception_perceived_states_parallel_update` and
+`wh_ai_hearing_parallelUpdate` are forced to 0 by the shipped `system.cfg:210` with Warhorse's
+own comment `-- this crashes too much >:[[[`. Possibly a real win, absolutely not something to
+put inside an unattended multi-trial descent, and not to ship silently even if it benches well.
+
+## SHIPPED: the simulation defaults, found by auto-tune — 2026-08-28
+
+`merc_opt` runs a coordinate descent over the 18-cvar tweak bench, measuring real frames
+(`System.GetFrameID`) in 5s windows with a 1s settle, and only accepting a step that beats a
+visual-cost-weighted threshold. Run in the siege of Raborsch on a CPU restricted to two cores:
+
+```
+baseline 21.6 fps  ->  29.3 fps   (+35.7%)   46 trials, 3 passes
+  wh_ca_ClothBudgetMaxFramesToSkip   4 -> 20     (+7.0%, +2.8%, +13.7% over three steps)
+  wh_ca_PendulumMaxLodToSimulate     2 -> 1      (+3.0%)
+  ca_ClothBypassSimulation           0 -> 1      (+5.4%)
+```
+
+**Every winner is a SIMULATION cut. Not one detail cut survived.** View distance, the
+character LOD floor, uberlod swap distance, outfit-unload hysteresis, attachment culling and
+item view distance were each tried in both directions across three passes and came back
+negative or inside noise. That closes the render-side question the whole 2.1 investigation
+had been circling, and it is why `merc_render_lod 200` "worked": it was buying a simulation
+cut via the LOD gate (`wh_ca_PendulumMaxLodToSimulate`), and paying for it in ugliness.
+
+Shipped in `mod.cfg` - the documented place for persistent cvars, and the one that survives
+CVarOverride re-application. `mod.cfg` does the actual work; the Lua side only backs it up:
+
+| when | what |
+|---|---|
+| launch | `mod.cfg` sets all three (engine, free) |
+| per load | `PerfDefaultsApply` once - a level load re-applies that level's cvar context over the top |
+| every 5s | `PerfDefaultsVerify` - three READS, no writes unless something actually moved |
+
+An earlier build re-asserted these every 300ms off the boost tick. That was wrong twice over
+and was pulled: writing a character cvar can make the engine re-evaluate every character, and
+if a level context re-applies its own value each frame the two fight and re-initialise cloth
+on every pass - a "keep it applied" guard that costs more than the setting saves. The verify
+is read-only in the normal case, and logs the FIRST time it ever has to repair anything, so
+we learn whether `mod.cfg` alone was sufficient rather than assuming either way.
+
+`merc_perf_defaults_off` opts out and persists per save; `merc_perf_defaults_status` shows
+live values against wanted.
+
+Honest caveats:
+- `ca_ClothBypassSimulation` is GLOBAL and has a visible cost - garments still deform with
+  the body (wrap skinning) but stop swinging independently, on vanilla NPCs too. It is the
+  one shipped item a purist would object to, which is why the opt-out is one command.
+- A live siege is a noisy bench: identical configurations drifted +-3-5% between passes
+  (`clothoff` read -0.2% then +5.4%; `facearea` -1.0% then +2.4% then +3.8%). The three
+  shipped winners cleared their bar repeatedly and in the same direction; anything that won
+  once was not trusted. `facearea` may be a real small win that never cleared its 7% visual
+  bar - worth a manual check.
+
+## Bench results on core-restricted hardware — 2026-08-28
+
+Measured by running the release build pinned to 2 logical cores (`$p.ProcessorAffinity`), 50
+mercs, Kuttenberg. This is the first data on the axis users actually report.
+
+| knob | effect | reading |
+|---|---|---|
+| 32 cores, 50 mercs, formation, full view | stable 60fps | **not GPU-bound.** Kills every render-side theory |
+| looking away / up | +10fps | cost is occluded when off-screen: per-character CPU |
+| `merc_render_lod 200` | +10fps, ugly | works by pushing LOD past a SIMULATION gate, not by drawing less |
+| `merc_sim_off` vs `normal` | 30 vs 20-25fps | cloth/socket simulation is worth ~5fps of ~25 |
+| `merc_sim_lean` | best feel | the tier to ship |
+| **`merc_formation_off`** | **WORSE** | the engine formation is an OPTIMISATION, not a cost - 50 independent CrimeFollowers each pathfind and avoid alone; the formation solves slots once. Candidate A from the comparative sweep is REFUTED |
+| Raborsch siege, 2 cores | ~15fps under EVERY knob incl. LOD 200 | nothing mesh- or cloth-side reaches it |
+
+**Why LOD ever helped** - the engine's own help text, out of WHGame.dll:
+`wh_ca_PendulumMaxLodToSimulate` = *"Disable simulation of pendulums if animation lod of the
+character is higher than this value."* Simulation is gated on LOD INDEX. Raising mesh LOD was
+buying a simulation cut and paying for it in ugliness. The direct lever is
+`ca_ClothBypassSimulation` = *"if this is 1 actual cloth simulation is disabled (WRAP SKINNING
+STILL WORKS)"* - garments still deform with the body, they just stop swinging. Shipped as
+`merc_sim_trim | lean | off | normal` (KCD2 has a whole `wh_ca_Cloth*` budget subsystem:
+distance cutoffs, screen-size thresholds, adaptive budgets, frame skipping).
+
+**Why the siege is immovable** - it is the one scene where the mod PINS the AI-LOD boost
+(`RaborschStandUp` -> `LodBoostPin`), forcing `WH_AI_LOD_MaxCountDetail` 70 -> 260,
+`MaxDetailDistance` 120 -> 250, fake-move interval 1s -> 0.05s. That is 260 NPCs in full AI
+simulation - pure CPU, and untouchable by mesh LOD or cloth sim, which is exactly why every
+knob failed there. Right trade on a strong CPU, backwards on a weak one.
+
+`merc_lowspec_on` goes the other way: boost off, Detail budget cut BELOW stock (40/70m), cloth
+lean, torches off. Deliberately manual - core count is a poor proxy for single-thread speed,
+and silently degrading a strong machine's siege is worse than a command nobody runs.
+
+## The v2.1 per-merc density cost — user-reported, triaged 2026-08-28
+
+A Nexus report with a real differential: v2.1, 4-5 mercs = -40-50fps in NPC-dense towns on
+mid-range hardware; v1.6.1 carried ~20 mercs for free; the 32-core dev box loses ~10fps at 50.
+A 13-agent comparative sweep (bodyguards reference mod vs v1.6 vs HEAD, verified adversarially
+at an 8-core/16.6ms budget) ranked the causes; the sum only reaches the reported 6-10ms/frame
+AT NIGHT or with the (since-fixed) alert latch stuck - or as coincident bursts.
+
+Shipped from that ranking:
+
+| fix | where | mechanism |
+|---|---|---|
+| follower churn 6.7x down | `follow.xml` foot arms | the 1.5s teardown boxes were re-registering each merc's engine follower (fresh path + avoidance vs every town NPC) ~3.3x/sec squad-wide; leader/chain boxes now 10s (matching the mounted twin - the ContinuousSwitch guard, not the box, handles mode flips), formation-reacquire fallback 4s |
+| unarmed pre-filter | `consider()` in target_selection | a town bystander cost ~10 engine calls per 300ms pass through the accept chain (skipWeaponCheck=true bypassed the early weapon gate BY DESIGN, for camps); unarmed + not-a-confirmed-attacker now exits after the 1 IsWeaponDrawn call. Re-entry: next pass once drawn, or instantly via `confirmed` |
+| night torches capped | `CampNightTorchTick` | every merc got a moving SHADOW-CASTING light + fire emitter at night, scaling 1:1 with squad size - invisible on a 5080, ms/frame on mid-range GPUs. Cap `CampTorchMax` = 2, camp guards first; `merc_torches N`, 0 = none |
+
+NOT yet touched, pending measurement: the engine formation system itself (MakeFormation /
+FormationFollower, absent from both fast trees) - its native cost is invisible to Lua and needs
+the core-restricted bench below before any redesign.
+
+**Mid-range bench on the dev box** (honest emulation, no fake sleeps): launch, then
+`$p = Get-Process KingdomCome; $p.ProcessorAffinity = 0xFFFF` (16 logical = 8 cores; Task
+Manager checkboxes are LOGICAL cpus - 4 boxes is 2 cores). Fixed town loop, frame-bucket
+histogram per condition (`merc_prof_reset` / report): 0 mercs, 5 mercs day, 5 mercs NIGHT,
+old pak vs new pak. The night leg is the torch hypothesis' direct test; ask reporters "is it
+worse at night?" - one word of theirs outranks an hour of profiling.
 
 ## The save-residue leak (real, fixed, but NOT the lag)
 

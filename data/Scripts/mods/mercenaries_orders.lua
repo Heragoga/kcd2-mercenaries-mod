@@ -539,3 +539,75 @@ for _, k in ipairs(mercenaries.AggroOrder) do
         "Anti-swarm preset: " .. (mercenaries.AggroPresets[k].label or k))
 end
 mercenaries:DevCommand("merc_orders_status", "mercenaries:OrderStatus()", "Report the squad's combat orders")
+
+-- ==== Idle-bark pacing ====
+-- The bark loop in mercenary_scheduler.xml paces itself with `Wait 1200s GameTime`, which
+-- is ~20 in-game minutes and exactly right during normal play. It is NOT right while the
+-- world clock is racing: sleeping or waiting runs game time at a huge ratio (the mod's own
+-- wait/sleep test is `GetWorldTimeRatio() > 20`, and a night's sleep is far above that), so
+-- the wait expires in a fraction of a real second and every merc in the squad free-runs his
+-- monolog loop. Forty men doing that is dozens of schedulerMonolog calls a second.
+--
+-- The scheduler now also refuses to bark while the squad is idle, which covers sleep and
+-- wait directly. This is the floor underneath that: a REAL-time minimum between one merc's
+-- barks, so no clock ratio and no missed idle flag can make the loop spin. System.GetCurrTime
+-- is real seconds - the same clock the eviction and camp-busy windows use.
+mercenaries.BarkRealMinSecs  = 240      -- real seconds a merc must wait between his own barks
+mercenaries.BarkRealJitter   = 180      -- ...plus up to this, so the squad does not sync up
+mercenaries.BarkNextAt       = {}       -- [wuidStr] = earliest real time he may bark again
+
+function mercenaries:MercBarkDue(bt_data, myWuid)
+    bt_data.barkDue = false
+    pcall(function()
+        local k   = tostring(myWuid)
+        local now = System.GetCurrTime() or 0
+        local due = self.BarkNextAt[k]
+        if due and now < due then return end
+        -- Claimed on the CHECK, not on the bark: a merc the speaking lock turns away has
+        -- still had his turn, which is what stops the whole squad queueing on one lock.
+        self.BarkNextAt[k] = now + self.BarkRealMinSecs + math.random(0, self.BarkRealJitter)
+        bt_data.barkDue = true
+    end)
+end
+
+-- ==== Hardcore mode vs the order wheel ====
+-- Hardcore gives every friendly man the MUZ_UKAZUJE_CESTU metarole (vanilla
+-- Libs/Storm/roles/world/hardcoreMode.xml), which makes its "ask for directions" chat a
+-- candidate on our mercs too. Two Type="chat" dialogues of the same ClashPriority cannot
+-- both show, and that one wins - the wheel is replaced by a single "Ask for directions".
+-- Taking the metarole off the man leaves the wheel as the only chat he has. Storm does the
+-- same thing declaratively with hardcoreMode_disableDirectionsChat
+-- (libs/Storm/contexts/mercenariescontexts.xml); this is the runtime half, so a man who is
+-- already in the world when the rule has not run is covered too. See docs/order-wheel.md.
+mercenaries.DirectionsChatRoles = { "MUZ_UKAZUJE_CESTU", "ZENA_UKAZUJE_CESTU" }
+
+function mercenaries:StripDirectionsChat(entity)
+    if not (entity and entity.soul) then return end
+    for _, role in ipairs(self.DirectionsChatRoles) do
+        pcall(function()
+            if entity.soul:HasMetaRoleByName(role) then
+                entity.soul:RemoveMetaRoleByName(role)
+            end
+        end)
+    end
+end
+
+function mercenaries:WheelChatStatus()
+    local n, blocked = 0, 0
+    for name, ent in pairs(self.ActiveMercs or {}) do
+        if ent and ent.soul then
+            local muz, zena, ctx
+            pcall(function() muz  = ent.soul:HasMetaRoleByName("MUZ_UKAZUJE_CESTU") end)
+            pcall(function() zena = ent.soul:HasMetaRoleByName("ZENA_UKAZUJE_CESTU") end)
+            pcall(function() ctx  = ent.soul:HasScriptContext("hardcoreMode_disableDirectionsChat") end)
+            n = n + 1
+            if muz or zena then blocked = blocked + 1 end
+            System.LogAlways(string.format("[MercOrders] %-44s directionsRole=%s/%s disableCtx=%s",
+                name, tostring(muz), tostring(zena), tostring(ctx)))
+        end
+    end
+    System.LogAlways(string.format("[MercOrders] wheel check: %d merc(s), %d still carrying the directions chat", n, blocked))
+end
+
+mercenaries:DevCommand("merc_wheel_status", "mercenaries:WheelChatStatus()",
+    "Whether the hardcore directions chat is still on the men (it hides the order wheel)")

@@ -130,7 +130,10 @@ echo ============================================================
 echo  Packaging complete!
 echo  Output: %OUT_DIR%
 echo ============================================================
-start "" "C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
+:: Game launch removed: the autobench harness (toolsutobench.ps1) owns launching now,
+:: and a packager-launched instance sat un-automated in the main menu while the harness
+:: stalled behind it. Launch manually or via the harness.
+:: start "" "C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
 goto :end
 
 :error

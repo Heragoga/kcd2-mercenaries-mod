@@ -377,7 +377,6 @@
 				<Guid>86183abd-43c5-4762-8a0c-12f4a8057fe7</Guid>
                 
                 <Guid>5a4b0838-0aec-4d13-9f12-3e6a406b5305</Guid> <!-- helmet -->
-				<Guid>5529d943-fec2-4c23-90b5-dae43e8049cd</Guid> <!-- waffenrock -->
 				<Guid>d20252f7-51f0-4f8e-857c-b086fcec15be</Guid> <!-- Mail hood -->
 
 
@@ -399,7 +398,6 @@
 				<Guid>5866cdf9-181d-4a50-85d4-a6f704986e72</Guid>
 				<Guid>bac734ab-52ff-447b-8307-f1256ad60987</Guid>
                 <Guid>5a4b0838-0aec-4d13-9f12-3e6a406b5305</Guid> <!-- helmet -->
-				<Guid>d20252f7-51f0-4f8e-857c-b086fcec15be</Guid> <!-- Mail hood -->
 
 
 			</Items>
@@ -417,8 +415,6 @@
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
-                <Guid>61877793-794d-4f0f-8ccd-b3d7d03e9b80</Guid> <!-- Waffenrock -->
-                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
                 <Guid>921a52ca-5fbe-4013-aa3b-745fa11077b8</Guid> <!-- Helmet: KettleHat04_m05_B4 -->
             </Items>
         </clothing_preset>
@@ -432,10 +428,7 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
-                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
-                <Guid>f964c4c9-2929-443f-bfcd-78dcdb55ee0b</Guid> <!-- Waffenrock (alt) -->
-                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
                 <Guid>868581d6-f9ab-4ae2-b074-9200e7d054bd</Guid> <!-- Helmet: KettleHat01_m01_E1 (alt) -->
             </Items>
         </clothing_preset>
@@ -451,7 +444,6 @@
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
-                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
                 <Guid>921a52ca-5fbe-4013-aa3b-745fa11077b8</Guid> <!-- Helmet: KettleHat04_m05_B4 -->
             </Items>
         </clothing_preset>
@@ -465,9 +457,7 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
-                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
-                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
                 <Guid>868581d6-f9ab-4ae2-b074-9200e7d054bd</Guid> <!-- Helmet: KettleHat01_m01_E1 (alt) -->
             </Items>
         </clothing_preset>
@@ -485,8 +475,6 @@
                 <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>16798160-94ae-4cd3-8f7c-f06c96f9f44b</Guid> <!-- Waffenrock -->
-                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
                 <Guid>8b2cb8f5-31e8-4ee3-b4bc-b50c06f7ff4c</Guid> <!-- Helmet: BascinetOpen08_m01_B3 -->
             </Items>
         </clothing_preset>
@@ -501,10 +489,7 @@
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
                 <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
-                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>5b3d2485-1c83-48f4-afc7-ae62f97b99a7</Guid> <!-- Waffenrock (alt) -->
-                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood -->
                 <Guid>25bd008c-f308-4521-8a4f-a1feeb76ea3c</Guid> <!-- Helmet: KettleHat03_m01_B3 (alt) -->
             </Items>
         </clothing_preset>
@@ -521,7 +506,6 @@
                 <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
                 <Guid>8b2cb8f5-31e8-4ee3-b4bc-b50c06f7ff4c</Guid> <!-- Helmet: BascinetOpen08_m01_B3 -->
             </Items>
         </clothing_preset>
@@ -536,9 +520,7 @@
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
                 <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
-                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
                 <Guid>25bd008c-f308-4521-8a4f-a1feeb76ea3c</Guid> <!-- Helmet: KettleHat03_m01_B3 (alt) -->
             </Items>
         </clothing_preset>
@@ -556,7 +538,6 @@
                 <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>16798160-94ae-4cd3-8f7c-f06c96f9f44b</Guid> <!-- Waffenrock -->
                 <Guid>d8c9ae5a-ac99-479b-9529-277814dd629f</Guid> <!-- Helmet: BascinetVisor02_m03_D3 -->
             </Items>
         </clothing_preset>
@@ -571,9 +552,7 @@
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
                 <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
-                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>5b3d2485-1c83-48f4-afc7-ae62f97b99a7</Guid> <!-- Waffenrock (alt) -->
                 <Guid>fb95090e-ab36-4e5e-9447-99653eaa4873</Guid> <!-- Helmet: BascinetVisor01_m05_C3 (alt) -->
             </Items>
         </clothing_preset>
@@ -590,7 +569,6 @@
                 <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
                 <Guid>d8c9ae5a-ac99-479b-9529-277814dd629f</Guid> <!-- Helmet: BascinetVisor02_m03_D3 -->
             </Items>
         </clothing_preset>
@@ -605,9 +583,7 @@
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
                 <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
-                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar (alt) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>96263fa2-3e63-4a80-9a8a-68817388d7ac</Guid> <!-- Hood: Plain Red Skalitz Hood -->
                 <Guid>fb95090e-ab36-4e5e-9447-99653eaa4873</Guid> <!-- Helmet: BascinetVisor01_m05_C3 (alt) -->
             </Items>
         </clothing_preset>
@@ -9167,5 +9143,142 @@
 			</Items>
 		</clothing_preset>
 <!-- end generated companions -->
+    <!-- BEGIN generated townguard (tools/gen_townguards.py) -->
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000001" clothing_preset_name="enemy_townguard_01" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.58" ConditionVariation="0.08">
+            <Items>
+                <Guid>6eda54cb-f9e9-4291-a497-e183a53d259e</Guid>
+                <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid>
+                <Guid>38102e92-9a28-4d57-85c4-716b97a0ecb8</Guid>
+                <Guid>100b9146-1c41-4136-9991-ff80983f1955</Guid>
+                <Guid>343b563d-95f0-4ec2-9247-ebbde648d7ec</Guid>
+                <Guid>b128bc50-58da-494a-ba3d-c47d2d044e7c</Guid>
+                <Guid>be916959-2459-4a31-81fc-4b00090c3f42</Guid>
+                <Guid>8aae6517-dd6d-4ed1-88d0-eccff5273846</Guid>
+                <Guid>a67fc79d-fe99-4ea7-bd60-f619d229c5cd</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000002" clothing_preset_name="enemy_townguard_02" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.60" ConditionVariation="0.08">
+            <Items>
+                <Guid>81e27f41-709f-47c8-96b3-8f8c9619d2fa</Guid>
+                <Guid>c15d6593-c1eb-470b-a2e8-823c21336b04</Guid>
+                <Guid>b80a30ee-43d9-4d73-b064-b7c366320070</Guid>
+                <Guid>d2440b7a-a40b-4a2c-bf7d-61febcf5cfda</Guid>
+                <Guid>2bac4905-4946-4a17-b728-8f059b588eb6</Guid>
+                <Guid>51d9a001-eb09-4db8-98f0-d23b794c530d</Guid>
+                <Guid>cf672182-1c7a-404a-9af9-1b08e20d81e3</Guid>
+                <Guid>8db59cbb-55da-437d-894f-865dd281677d</Guid>
+                <Guid>4d6a1362-6bd2-4827-bdb1-33cfece59fec</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000003" clothing_preset_name="enemy_townguard_03" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.62" ConditionVariation="0.08">
+            <Items>
+                <Guid>81bfb39f-d6da-4299-9776-98a93360dcff</Guid>
+                <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid>
+                <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid>
+                <Guid>46b051c4-d4e2-4f3a-8b88-e3f64dae4618</Guid>
+                <Guid>4cbd42bc-9953-4c98-a778-f310ad909d72</Guid>
+                <Guid>b128bc50-58da-494a-ba3d-c47d2d044e7c</Guid>
+                <Guid>cde6db6c-302f-4484-a774-bc5d2264a0df</Guid>
+                <Guid>be92b571-d8ec-4bee-a62e-6259fa88446c</Guid>
+                <Guid>dcbc377e-ce87-45d6-8bd1-f7e21d84fd7c</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000004" clothing_preset_name="enemy_townguard_04" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.65" ConditionVariation="0.08">
+            <Items>
+                <Guid>2dc6bb39-979e-462d-9f65-0c9376c6426c</Guid>
+                <Guid>c15d6593-c1eb-470b-a2e8-823c21336b04</Guid>
+                <Guid>a5aeba9c-2e4b-4710-a6cb-5233aadab516</Guid>
+                <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid>
+                <Guid>c8a799c5-3fda-45d0-9bde-2cbf92d83914</Guid>
+                <Guid>51d9a001-eb09-4db8-98f0-d23b794c530d</Guid>
+                <Guid>8a8e914e-d384-4e7b-ae5e-534f48679c85</Guid>
+                <Guid>1b735ceb-6884-4d3f-a785-d0fddbd31653</Guid>
+                <Guid>dea34002-3f44-4a25-891e-8674b075fed6</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000005" clothing_preset_name="enemy_townguard_05" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.67" ConditionVariation="0.08">
+            <Items>
+                <Guid>0a46c96b-11fa-4627-8a89-786a4577a441</Guid>
+                <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid>
+                <Guid>0364c89d-ac13-44ef-94d5-22b4047e7a26</Guid>
+                <Guid>e1c454dd-9834-4da0-940e-da2a27b0b795</Guid>
+                <Guid>cbf60764-576b-4102-b0d1-d196e1b87fd6</Guid>
+                <Guid>b128bc50-58da-494a-ba3d-c47d2d044e7c</Guid>
+                <Guid>b5bfc0d3-b4e2-421c-ae14-4bce9f1f54be</Guid>
+                <Guid>fbea7771-4176-4faf-808e-05777a946fa0</Guid>
+                <Guid>66cc653b-8dd6-48ad-93d2-b0918fe74ae8</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000006" clothing_preset_name="enemy_townguard_06" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.69" ConditionVariation="0.08">
+            <Items>
+                <Guid>cc672cc6-b8a8-4604-bf1d-6f42716fab59</Guid>
+                <Guid>c15d6593-c1eb-470b-a2e8-823c21336b04</Guid>
+                <Guid>38102e92-9a28-4d57-85c4-716b97a0ecb8</Guid>
+                <Guid>100b9146-1c41-4136-9991-ff80983f1955</Guid>
+                <Guid>359700c7-14ec-413d-924d-b0a682ecb22b</Guid>
+                <Guid>86055ea8-0e06-47f2-a976-e5453bdf84d1</Guid>
+                <Guid>51d9a001-eb09-4db8-98f0-d23b794c530d</Guid>
+                <Guid>be916959-2459-4a31-81fc-4b00090c3f42</Guid>
+                <Guid>8aae6517-dd6d-4ed1-88d0-eccff5273846</Guid>
+                <Guid>a67fc79d-fe99-4ea7-bd60-f619d229c5cd</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000007" clothing_preset_name="enemy_townguard_07" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.71" ConditionVariation="0.08">
+            <Items>
+                <Guid>21269950-9319-4e8e-ad07-4ef68c15a006</Guid>
+                <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid>
+                <Guid>b80a30ee-43d9-4d73-b064-b7c366320070</Guid>
+                <Guid>d2440b7a-a40b-4a2c-bf7d-61febcf5cfda</Guid>
+                <Guid>cb3e9e80-7a1e-4021-8dc9-46defbdcd069</Guid>
+                <Guid>86055ea8-0e06-47f2-a976-e5453bdf84d1</Guid>
+                <Guid>b128bc50-58da-494a-ba3d-c47d2d044e7c</Guid>
+                <Guid>cf672182-1c7a-404a-9af9-1b08e20d81e3</Guid>
+                <Guid>8db59cbb-55da-437d-894f-865dd281677d</Guid>
+                <Guid>4d6a1362-6bd2-4827-bdb1-33cfece59fec</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000008" clothing_preset_name="enemy_townguard_08" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.73" ConditionVariation="0.08">
+            <Items>
+                <Guid>3e63ce59-84b0-4220-870e-0c185892d1d4</Guid>
+                <Guid>c15d6593-c1eb-470b-a2e8-823c21336b04</Guid>
+                <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid>
+                <Guid>46b051c4-d4e2-4f3a-8b88-e3f64dae4618</Guid>
+                <Guid>88c42663-ca9b-4fea-8f62-84488ba8cb1d</Guid>
+                <Guid>86055ea8-0e06-47f2-a976-e5453bdf84d1</Guid>
+                <Guid>51d9a001-eb09-4db8-98f0-d23b794c530d</Guid>
+                <Guid>cde6db6c-302f-4484-a774-bc5d2264a0df</Guid>
+                <Guid>be92b571-d8ec-4bee-a62e-6259fa88446c</Guid>
+                <Guid>dcbc377e-ce87-45d6-8bd1-f7e21d84fd7c</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-000000000009" clothing_preset_name="enemy_townguard_09" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.76" ConditionVariation="0.08">
+            <Items>
+                <Guid>3437c616-a14c-4ba2-a382-f4898765eeff</Guid>
+                <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid>
+                <Guid>a5aeba9c-2e4b-4710-a6cb-5233aadab516</Guid>
+                <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid>
+                <Guid>dd0d1adc-8bb0-4352-b9c9-6b46eac72533</Guid>
+                <Guid>86055ea8-0e06-47f2-a976-e5453bdf84d1</Guid>
+                <Guid>b128bc50-58da-494a-ba3d-c47d2d044e7c</Guid>
+                <Guid>8a8e914e-d384-4e7b-ae5e-534f48679c85</Guid>
+                <Guid>1b735ceb-6884-4d3f-a785-d0fddbd31653</Guid>
+                <Guid>dea34002-3f44-4a25-891e-8674b075fed6</Guid>
+            </Items>
+        </clothing_preset>
+        <clothing_preset clothing_preset_id="6d657263-e00a-4c00-9000-00000000000a" clothing_preset_name="enemy_townguard_10" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.78" ConditionVariation="0.08">
+            <Items>
+                <Guid>ac551bf3-6d8a-4531-983e-1ca104b523e6</Guid>
+                <Guid>c15d6593-c1eb-470b-a2e8-823c21336b04</Guid>
+                <Guid>0364c89d-ac13-44ef-94d5-22b4047e7a26</Guid>
+                <Guid>e1c454dd-9834-4da0-940e-da2a27b0b795</Guid>
+                <Guid>217b1ae7-3ac5-447c-8b48-05c99ceb4cea</Guid>
+                <Guid>86055ea8-0e06-47f2-a976-e5453bdf84d1</Guid>
+                <Guid>51d9a001-eb09-4db8-98f0-d23b794c530d</Guid>
+                <Guid>b5bfc0d3-b4e2-421c-ae14-4bce9f1f54be</Guid>
+                <Guid>fbea7771-4176-4faf-808e-05777a946fa0</Guid>
+                <Guid>66cc653b-8dd6-48ad-93d2-b0918fe74ae8</Guid>
+            </Items>
+        </clothing_preset>
+<!-- END generated townguard -->
     </clothing_presets>
 </database>

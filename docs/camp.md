@@ -8,6 +8,8 @@ This was built as an experimental feature, not a fully-realized one — see [Kno
 
 ## How it works
 
+**Where it lands**: the player tent goes **exactly where the man you asked is standing**, not behind you. "Make camp here" is said *to* somebody, and that somebody is standing on the spot you picked out, so he is the anchor — `CampTalkPartnerPos` resolves him from the look-at prompt (which has the entity in hand, via `CampSetAnchorEnt`) or, on the dialog path, as the nearest living squad member in front of the player. `merc_camp_make` from the console with nobody nearby still falls back to the old `GetSafeSpawnPosition(player, 7)` — about 7m *behind* you, which was the whole "I can't tell where it's going to land" problem. The grid's `forward` axis is now measured from the anchor **toward the player** rather than from the player's look direction: the two are the same thing when the camp is pitched behind you, but only the first still opens the tent's entrance at you when the anchor is in front. So the camp grows away past the man you spoke to. `merc_camp_anchor` prints who would be picked without pitching anything.
+
 **Trigger**: any merc's dialog → "Company management." → "Camp." → "Make camp here." / "Break camp." This lives in its own management/logistics hub, separate from the day-to-day squad orders (Wait/Follow/Dismiss). Console: `merc_camp_make` / `merc_camp_break`.
 
 **Recall**: press **F4** to bring the whole squad to your current position immediately, from anywhere, and resume following — this does **not** break camp; the tents and fire stay standing, just empty, until you explicitly break camp. Console: `merc_camp_recall`. Rebind any time with `bind <key> merc_camp_recall`. The bind is (re-)applied every load via `System.ExecuteCommand("bind f4 merc_camp_recall")` in `OnGameplayStarted`, the same pattern the bodyguards reference mod uses for its own hotkeys (`references/bodyguards/data/Scripts/mods/kcdcompanion.lua`).
@@ -97,6 +99,17 @@ half leaves a quarter out:
 | A third of them | `0.3333` | `merc_camp_take_third` |
 | A quarter of them | `0.25` | `merc_camp_take_quarter` |
 
+**What the party is made of.** The fractions above used to sort the whole company strong -> weak and take the top slice, which meant a player could never take an archer with him: archers are a separate hire and never rank above a strong foot soldier, so any fraction short of *everyone* left every one of them in camp. The quartermaster now holds two standing orders, set from *Deploy -> "Let's settle who marches out with me"*, and `CampPickParty` fills the slots to match:
+
+| Setting | Options | Default |
+|---|---|---|
+| Archers in the party | the same mix as the company / none / a quarter / half / every one we have | same mix as the company |
+| Which foot | the best men first / a mix of all sorts / the greenest first | the best men first |
+
+Both are saved (`QMDeployArchers` / `QMDeployPick` in `LogiState`) and apply to every fraction. "The same mix as the company" is the default because it is the least surprising and on its own fixes the complaint. "A mix" is ordered by a shuffle rather than by tier, so the party is a spread instead of a block of one tier; "the greenest first" is "best" read backwards — keep the veterans holding the camp and blood the new men. Whatever the archer share cannot fill, the foot fills, and the other way round, so asking for half archers when you own three still deploys a full party. Console: `merc_camp_party` (no argument lists the options and prints what is set).
+
+For picking *one particular man* rather than a proportion, see the look-at prompt below.
+
 `CampReturnAll` sends the whole sortie back (the look-at prompt and `merc_camp_return_all`):
 each man barks, keeps running for ~2 s, then teleports in (`ProcessReturnPending`).
 
@@ -135,7 +148,7 @@ Membership is written under **both** WUID spaces (`CampMercKeys`): this file wri
 
 ## Look-at prompts on a merc
 
-Looking at a merc shows up to two mod prompts alongside the vanilla ones (`InjectInteraction`, [mercenaries_lookatinteraction.lua](../data/Scripts/mods/mercenaries_lookatinteraction.lua)). The standard vanilla actions (Talk, Pickpocket, …) are preserved by calling through to `BasicAIActions.GetActions`; prompts only draw when the merc is conscious and alive. The looked-at merc barks an acknowledgment on each action.
+Looking at a merc shows up to three mod prompts alongside the vanilla ones (`InjectInteraction`, [mercenaries_lookatinteraction.lua](../data/Scripts/mods/mercenaries_lookatinteraction.lua)). The standard vanilla actions (Talk, Pickpocket, …) are preserved by calling through to `BasicAIActions.GetActions`; prompts only draw when the merc is conscious and alive. The looked-at merc barks an acknowledgment on each action.
 
 **1. Camp option** (always shown) — decided live at press time from `CampActive` and whether *this* merc is currently deployed out of camp (`IsCampOut`):
 
@@ -145,7 +158,9 @@ Looking at a merc shows up to two mod prompts alongside the vanilla ones (`Injec
 | Camp up, merc in camp | Break camp | `BreakMercCamp` |
 | Camp up, merc deployed | Back to camp | `CampReturnAll` (returns the whole sortie) |
 
-**2. Wait / Follow toggle** — only for a merc "in a sortie" (deployed out of camp, or the whole squad when there's no camp; `IsMercInSortie`). It flips the global sortie wait order (`SetSortieWait` / `_G.MercPersistentIdleFlag`); mercs left in camp ignore it. Hidden for a camped merc. It uses the `use_other` hold action (the way `references/CompanionMerchant` drives its second prompt — `alch_use` rendered a blank entry).
+**2. Come with me / Stay and hold the camp** — shown only while a camp is standing. This is the *one-man* deploy: `CampDeployOne` pulls this merc, and only this merc, out of camp to follow you; `CampStayOne` puts him back. The camp keeps standing either way. It exists because the quartermaster's Deploy menu can only take a *fraction*, best tier first — so before this there was no way to ask for one particular man, and archers (a separate hire, never "best" by tier) could not be taken out at all short of emptying the camp. `CampDeployOne` repeats by hand what `CampTakeParty` does in bulk for the men it takes — drop the camp role, release the shared seat/bed spot, clear the busy stamp, and **evict** `camp_actor` with `FollowStalled` rather than asking it to stop (see [The partial deploy needed three more things](#the-partial-deploy-needed-three-more-things)). `CampStayOne` only teleports him in if he is actually away from the camp, so telling a man to stay while you are both standing in it doesn't make him blink. Console twins: `merc_camp_join_nearest` / `merc_camp_stay_nearest`.
+
+**3. Wait / Follow toggle** — only for a merc "in a sortie" (deployed out of camp, or the whole squad when there's no camp; `IsMercInSortie`). It flips the global sortie wait order (`SetSortieWait` / `_G.MercPersistentIdleFlag`); mercs left in camp ignore it. Hidden for a camped merc. It uses the `use_other` hold action (the way `references/CompanionMerchant` drives its second prompt — `alch_use` rendered a blank entry).
 
 Bark requests key off the entity id (`self.this.id`), which is what the follow-BT bark lookup expects — not the AI WUID.
 
@@ -206,6 +221,71 @@ the formation with it.
 Related, same symptom, different cause: **`LogiRebuildCampForUpgrade`** (buying an upgrade
 rebuilds the camp) now calls `LoadCampOutParty` after `SpawnMercCamp`, the way
 `RestoreCampDelayed` does. Without it the rebuild silently recalled a party that was out.
+
+---
+
+## Upgrades stay where you put them
+
+Two separate faults made bought upgrades "shuffle around the camp after a reload, or come back invisible", and the archer towers/carts were unaffected by both because they persist their own world positions (`DefSave`/`DefRestore`, [mercenaries_defences.lua](../data/Scripts/mods/mercenaries_defences.lua)).
+
+**Moved.** An upgrade claims a grid tile out of the cells the tent clusters did not take, so where it lands depends on how many clusters there are — which depends on how many men were alive **and in `ActiveMercs`** when the camp was laid out. `RestoreCampDelayed` rebuilds the camp four seconds after a load, off a merc cache that is still filling, so a rebuild routinely saw a different squad size than the original pitch did and re-dealt the whole grid. The tiles are now saved with the anchor (`MercCampTiles`, `CampPackStationTiles` / `CampLoadStationTiles`) as `anchorX,anchorY|name:x,y,z,ang;…`, and `SpawnMercCamp` seeds `CampStationTiles` from that before claiming anything: a station that already has a tile keeps it, and only a newly bought one draws a fresh cell. The anchor rides along so tiles from the last pitch are discarded rather than dragged to a camp somewhere new — the same rule the defences apply. This also means **buying an upgrade no longer reshuffles the ones already standing**, which it always did (a purchase rebuilds the whole camp).
+
+**Invisible.** The forge and the alchemy bench each *borrow* a vanilla `Smithery`/`AlchemyTable` out of the nearest settlement. Four seconds after a load the level around the camp may not have streamed those in yet, the borrow finds nothing, and the upgrade is never built — it logs one line and gives up. `CampStationRetryTick` (on the 5s camp tick, for `CampStationRetryMax` = 12 ticks) retries anything owned but not standing; each spawner already no-ops when its station exists, and the reserved tile is still held, so a late build lands exactly where it belonged. After a minute it logs what it could not raise and stops asking.
+
+`merc_camp_anchor` prints the saved anchor, the saved tiles and the live ones side by side.
+
+---
+
+## Taking one improvement down
+
+The quartermaster's only teardown option used to be *all of them*, so removing one archer cart meant losing the forge, the tavern and the walls with it. *Camp upgrades -> "Take one of the improvements down."* now lists all eleven (`UpgRemovable`, [mercenaries_logistics.lua](../data/Scripts/mods/mercenaries_logistics.lua)); console `merc_camp_remove` with no argument prints the list.
+
+Two kinds of upgrade need two kinds of teardown. The **stations** (cart, tavern, hunter, forge, bench, yard, house) are built by `SpawnMercCamp` from the `LogiState` flags, so clearing the flag and rebuilding the camp is the whole removal — and because tiles now persist, everything that stays keeps its exact spot. The **defences** (towers, archer carts, wall, gates) are placed by hand and saved against the pitch, so they are cleared from the world *and* from the saved layout (`DefSave` right after), or the next restore would put back what was just pulled down. No refund either way — this is for undoing a layout, not selling.
+
+The whole sub-menu costs **one** item GUID: every option grants the same token with a different `Amount`, and that amount is the option index Lua reads (`LogiRemoveUpgrade`). The party-composition menu above works the same way. `tools/check_dialogs.py` enforces that the amounts form a clean 1..N run matching the Lua table — it is what caught the two new tokens colliding with the Aleksej beat-spawn GUIDs.
+
+---
+
+## Standing up before fighting
+
+A camp merc who was sitting or lying when a fight started kept the pose and then moved
+around still in it. Two trees that never talked to each other were racing:
+
+* **`camp_actor`** holds its pose *inside* a `StanceElement` and polls `$campYield` every
+  ~500 ms. When that poll fails, the element unwinds and the engine plays the stand-up
+  fragment. That is the **only** clean way out of a stance — there is no "force standing"
+  node in the engine or anywhere in vanilla (the sleeping halberdier guard in
+  `references/AI/special/halberdierGuard/halberdierGuard_sleeping.xml` leaves his pose the
+  same way, by ending the element that owns it).
+* **The scheduler** polls for targets every ~600 ms and fires `combat_melee` in the *same
+  pass* it claims one, with `IgnorePriorityOnPreviousInterrupt` — which **replaces** the
+  running `camp_actor` outright. Win that race and the `StanceElement` never gets to
+  unwind: the pose is torn off rather than ended, and he fights in it.
+
+The `UnstanceElement`-wraps-the-hold rule already in [ai-modules.md](ai-modules.md) fixes
+the *voluntary* exit. It cannot fix this one, because nothing voluntary happens — the tree
+is destroyed from outside.
+
+So the scheduler now waits for him to stand. `CampActorYield` stamps `CampPoseAt` while
+`$inCampAnim` is raised (a **stamp**, not a flag: a flag set on entry would never be
+cleared if the tree were torn down, which is the very failure being prevented).
+`CampPoseHold` reports that to both schedulers as `$campPoseHold`, which withholds the
+combat interrupt *and* its optimistic `$inCombat`, so the branch simply retries next pass.
+He already has a target by then, so `$campYield` is true and `camp_actor` is unwinding on
+its own — the wait is only as long as the stand-up takes.
+
+The **stamp** is kept up for as long as he is in a pose, but the **hold clock** only runs
+while combat is actually waiting on him (`CampHasFightTarget`). The first version started
+the clock for every man sitting peacefully in camp: it expired 4 s later, logged, restarted,
+and did that forever — 341 `would not leave his pose` lines in a four-minute session — and,
+far worse, meant the cap had usually already blown by the time a fight really started, so the
+gate was spent exactly when it was needed.
+
+Bounded on both sides, because a merc who cannot fight is worse than one who fights seated:
+the stamp expires by itself if `camp_actor` stops reporting (`CampPoseFreshSecs`, 2.5 s),
+and `CampPoseMaxHoldSecs` (4 s) caps the whole wait however fresh the stamps are and logs
+when it fires. Only the three combat fires are gated — `follow` and `camp_actor` are
+untouched.
 
 ---
 
@@ -395,9 +475,13 @@ This is the breadth-first "no sharp edge from where I stand" test from the spec,
 
 ## Positioning the bed under a tent
 
-`CampBedOffset` is currently `{ right = 0, forward = 0, z = 0, rotationDeg = 180 }`, against `tent_small_forest_a.cgf` (and by extension its four same-footprint siblings, `CampTentVariants`).
+`CampBedOffset` is `{ right = 0, forward = 0, z = 0, rotationDeg = 90 }`, against `tent_small_forest_a.cgf` (and by extension its four same-footprint siblings, `CampTentVariants`). (This paragraph used to claim 180 — the code has read 90 since the feature's first commit and the bump was never actually made. The value stands; the doc was wrong.)
 
-**A real bug was found here and got fixed**: `rotationDeg` was validated at 90 in isolation and looked right *there* — but the real camp spawn code (`SpawnMercCamp`) was discarding the rotated angle `CampRelativeOffset` returns and spawning the bed at the tent's raw, un-rotated facing regardless of `rotationDeg`'s value. So every camp so far had shown the bed at an *effective* `rotationDeg` of 0, not 90 — meaning "still not oriented correctly, rotate another 90" was reacting to that 0-rotation bug, not to 90 being insufficient. Both are addressed now: the bug's fixed (the bed actually rotates), and the value's bumped to 180 per the explicit ask. Since the bug means 90 was never really seen live, there's a real chance 180 overshoots what would otherwise have looked right — check in-game and say so if it needs to come back down.
+**The sleeper lay across the bed, not along it, and that was a different bug.** `SpawnCampFurnitureSO` turns the visual prop with `SetAngles` (a yaw) and the smart object with `SpawnEntity`'s `orientation` (a forward **direction vector**, whose zero is the entity's own forward axis — a quarter turn off the yaw zero). Handing both the same number therefore leaves the smart object a quarter turn from its own mesh, which is exactly the reported "he's rotated 90 degrees". Nothing caught it before the bed because every *seat* this function spawns is a round trunk stool or a log: symmetric meshes, on which a rotated smart object is invisible, and whose facing (`CampSitFacingFixDeg`, `InnSeatYawFixDeg`) was tuned by eye against the smart object alone. The bed is the first asymmetric mesh here, so it is the first place the mismatch shows.
+
+Correcting it inside the shared seat path would move every seat that was tuned around it, so the fix is scoped to bed smart objects — the ones with a mesh to disagree with. `CampBedSOYawFixDeg` (90) is added to the SO's facing and to nothing else, and it is keyed off the SO properties (`sWH_AI_EntityCategory == "Bed"`), so every bed the mod spawns gets it: camp, Aleksej's camps, the bandit camps, the siege and Raborsch. `+90` and `-90` both lay the man **along** the frame and differ only in which end his head is at — `merc_camp_bed_yaw <deg>` sets the value and re-pitches the standing camp, so the sign can be settled in one look.
+
+**A real bug was found here and got fixed**: `rotationDeg` was validated at 90 in isolation and looked right *there* — but the real camp spawn code (`SpawnMercCamp`) was discarding the rotated angle `CampRelativeOffset` returns and spawning the bed at the tent's raw, un-rotated facing regardless of `rotationDeg`'s value. So every camp so far had shown the bed at an *effective* `rotationDeg` of 0, not 90 — meaning "still not oriented correctly, rotate another 90" was reacting to that 0-rotation bug, not to 90 being insufficient. That bug is fixed (the bed actually rotates now), and the value stayed at 90 — the intended bump to 180 was written up but never made. Since the sleeper's own facing turned out to be a separate problem (above), leave `rotationDeg` alone until the smart-object yaw is confirmed.
 
 `right`/`forward` are in the *tent's own local space* (not world axes — "forward" is the direction the tent faces), `z` is a world-space vertical offset, and `rotationDeg` is relative to the tent's own facing. Tell me new values and they get hardcoded into `CampBedOffset`.
 

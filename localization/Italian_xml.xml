@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Tutti i mercenari sono stati congedati.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>I mercenari attendono.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>I mercenari vi seguono.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Compagno speciale assoldato.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Questo compagno è già al vostro servizio!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Prendo Volek.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Manderò un messaggio. Verrà.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Vieni con me.</Cell><Cell>Vieni con me.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Resta a tenere il campo.</Cell><Cell>Resta a tenere il campo.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Abbatti uno dei miglioramenti.</Cell><Cell>Abbatti uno dei miglioramenti.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Una delle cose che abbiamo costruito deve sparire. Una sola.</Cell><Cell>Una delle cose che abbiamo costruito deve sparire. Una sola.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>Quale, dunque?</Cell><Cell>Quale, dunque?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Quella. Abbattila.</Cell><Cell>Quella. Abbattila.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Sissignore. Sparirà subito – il resto resta dov'è.</Cell><Cell>Sissignore. Sparirà subito – il resto resta dov'è.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Il carro delle vettovaglie.</Cell><Cell>Il carro delle vettovaglie.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>La taverna.</Cell><Cell>La taverna.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>La postazione del cacciatore.</Cell><Cell>La postazione del cacciatore.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>La fucina portatile.</Cell><Cell>La fucina portatile.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Il banco d'alchimia.</Cell><Cell>Il banco d'alchimia.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Il campo d'addestramento.</Cell><Cell>Il campo d'addestramento.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>La casa.</Cell><Cell>La casa.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Le torri degli arcieri.</Cell><Cell>Le torri degli arcieri.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>I carri degli arcieri.</Cell><Cell>I carri degli arcieri.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>La palizzata.</Cell><Cell>La palizzata.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>I cancelli.</Cell><Cell>I cancelli.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Non c'è nulla del genere in questo campo.</Cell><Cell>Non c'è nulla del genere in questo campo.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Decidiamo chi marcia con me.</Cell><Cell>Decidiamo chi marcia con me.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Quando porto uomini fuori dal campo, voglio i giusti alle mie spalle.</Cell><Cell>Quando porto uomini fuori dal campo, voglio i giusti alle mie spalle.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Dimmi come li vuoi e d'ora in poi li sceglierò così.</Cell><Cell>Dimmi come li vuoi e d'ora in poi li sceglierò così.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>Così li voglio.</Cell><Cell>Così li voglio.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Segnato. Questo è il drappello che avrai la prossima volta che porterai fuori degli uomini.</Cell><Cell>Segnato. Questo è il drappello che avrai la prossima volta che porterai fuori degli uomini.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Arcieri: lo stesso miscuglio della compagnia.</Cell><Cell>Arcieri: lo stesso miscuglio della compagnia.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Arcieri: nessuno. Solo fanti.</Cell><Cell>Arcieri: nessuno. Solo fanti.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Arcieri: un quarto del drappello.</Cell><Cell>Arcieri: un quarto del drappello.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Arcieri: metà del drappello.</Cell><Cell>Arcieri: metà del drappello.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Arcieri: tutti quelli che abbiamo.</Cell><Cell>Arcieri: tutti quelli che abbiamo.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Fanti: i migliori per primi.</Cell><Cell>Fanti: i migliori per primi.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Fanti: un miscuglio di ogni sorta.</Cell><Cell>Fanti: un miscuglio di ogni sorta.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Fanti: i più verdi per primi.</Cell><Cell>Fanti: i più verdi per primi.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Composizione del drappello: tanti arcieri quanti ne ha la compagnia.</Cell><Cell>Composizione del drappello: tanti arcieri quanti ne ha la compagnia.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Composizione del drappello: nessun arciere, solo fanti.</Cell><Cell>Composizione del drappello: nessun arciere, solo fanti.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Composizione del drappello: un quarto di arcieri.</Cell><Cell>Composizione del drappello: un quarto di arcieri.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Composizione del drappello: metà arcieri.</Cell><Cell>Composizione del drappello: metà arcieri.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Composizione del drappello: tutti gli arcieri della compagnia.</Cell><Cell>Composizione del drappello: tutti gli arcieri della compagnia.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Composizione del drappello: i migliori per primi.</Cell><Cell>Composizione del drappello: i migliori per primi.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Composizione del drappello: un miscuglio di ogni sorta.</Cell><Cell>Composizione del drappello: un miscuglio di ogni sorta.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Composizione del drappello: i più verdi per primi.</Cell><Cell>Composizione del drappello: i più verdi per primi.</Cell></Row>
 </Table>

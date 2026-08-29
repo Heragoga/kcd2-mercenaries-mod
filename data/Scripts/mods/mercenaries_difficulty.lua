@@ -1,10 +1,11 @@
 -- One global difficulty setting, read by everything that fields hostiles: camp
 -- raids, roaming patrols, and the bounty / Kleinkrieg contracts.
 --
--- A tier says two things. `countMult` is how badly the player is allowed to be
+-- A tier says three things. `countMult` is how badly the player is allowed to be
 -- outnumbered - a CAP relative to his own strength, not a flat headcount, so the
 -- same setting means the same thing to a four-man company and a fifty-man one.
--- `quality` biases the wardrobe the enemy is dressed from.
+-- `quality` biases the wardrobe the enemy is dressed from. PatrolQuietByTier, over in
+-- mercenaries_patrols_live.lua, scales how OFTEN the roads produce a gang at all.
 --
 -- Every system keeps its own notion of "the player's strength", because they
 -- disagree for good reasons: a raid is fought by the whole company including the
@@ -382,6 +383,11 @@ function mercenaries:DifficultyStatus()
         self:DifficultyCeil(self.RaidMaxCount or 14),
         self:DifficultyCeil(self.PatrolMaxMen or 16),
         self:DifficultyCeil(self.PatrolMaxLiveMen or 36)))
+    if self.PatrolQuietMult then
+        local m = self:PatrolQuietMult()
+        diffLog(string.format("roads: a gang at most every %.0fs, %.0fs after a fight (x%.2f)",
+            (self.PatrolQuietSecs or 0) * m, (self.PatrolPostFightSecs or 0) * m, m))
+    end
     local parts = {}
     for _, k in ipairs(self.DifficultyOrder) do
         table.insert(parts, k .. (k == self.Difficulty and " <-" or ""))

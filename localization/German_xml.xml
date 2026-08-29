@@ -83,6 +83,9 @@
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Alle Söldner entlassen.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Söldner warten.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Söldner folgen.</Cell></Row>
+  <Row><Cell>merc_info_townwatch_out</Cell><Cell>The town watch is turning out against you!</Cell><Cell>The town watch is turning out against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave2</Cell><Cell>The town has mustered against you!</Cell><Cell>The town has mustered against you!</Cell></Row>
+  <Row><Cell>merc_info_townwatch_wave3</Cell><Cell>The whole town is up in arms!</Cell><Cell>The whole town is up in arms!</Cell></Row>
   
   <Row><Cell>merc_info_hired_special</Cell><Cell>Special companion hired.</Cell><Cell>Besonderer Gefährte angeheuert.</Cell></Row>
   <Row><Cell>merc_info_already_hired</Cell><Cell>This companion is already in your service!</Cell><Cell>Dieser Gefährte steht bereits in Euren Diensten!</Cell></Row>
@@ -1263,4 +1266,46 @@
   <Row><Cell>merc_henry_volek</Cell><Cell>I'll take Volek.</Cell><Cell>Ich nehme Volek.</Cell></Row>
   <Row><Cell>merc_provider_volek</Cell><Cell>I'll send word. He'll come.</Cell><Cell>Ich lasse Bescheid geben. Er wird kommen.</Cell></Row>
 <!-- end generated companions -->
+
+  <!-- Camp polish: per-merc deploy, single-upgrade removal, party composition -->
+  <Row><Cell>ui_mercenary_camp_join_action</Cell><Cell>Komm mit mir.</Cell><Cell>Komm mit mir.</Cell></Row>
+  <Row><Cell>ui_mercenary_camp_stay_action</Cell><Cell>Bleib und halte das Lager.</Cell><Cell>Bleib und halte das Lager.</Cell></Row>
+  <Row><Cell>ui_qm_removeone</Cell><Cell>Reiß eine der Verbesserungen ab.</Cell><Cell>Reiß eine der Verbesserungen ab.</Cell></Row>
+  <Row><Cell>merc_henry_qm_removeone</Cell><Cell>Eines von dem, was wir gebaut haben, muss weg. Nur das eine.</Cell><Cell>Eines von dem, was wir gebaut haben, muss weg. Nur das eine.</Cell></Row>
+  <Row><Cell>merc_qm_removeone</Cell><Cell>Welches denn?</Cell><Cell>Welches denn?</Cell></Row>
+  <Row><Cell>merc_henry_qm_rm</Cell><Cell>Das da. Reiß es ab.</Cell><Cell>Das da. Reiß es ab.</Cell></Row>
+  <Row><Cell>merc_qm_rm</Cell><Cell>Gewiss. Es wird gleich verschwinden – der Rest bleibt stehen.</Cell><Cell>Gewiss. Es wird gleich verschwinden – der Rest bleibt stehen.</Cell></Row>
+  <Row><Cell>ui_qm_rm_cart</Cell><Cell>Der Essenswagen.</Cell><Cell>Der Essenswagen.</Cell></Row>
+  <Row><Cell>ui_qm_rm_inn</Cell><Cell>Die Taverne.</Cell><Cell>Die Taverne.</Cell></Row>
+  <Row><Cell>ui_qm_rm_hunter</Cell><Cell>Der Jägerposten.</Cell><Cell>Der Jägerposten.</Cell></Row>
+  <Row><Cell>ui_qm_rm_smithy</Cell><Cell>Die fahrbare Schmiede.</Cell><Cell>Die fahrbare Schmiede.</Cell></Row>
+  <Row><Cell>ui_qm_rm_alchemy</Cell><Cell>Die Alchemistenbank.</Cell><Cell>Die Alchemistenbank.</Cell></Row>
+  <Row><Cell>ui_qm_rm_practice</Cell><Cell>Der Übungsplatz.</Cell><Cell>Der Übungsplatz.</Cell></Row>
+  <Row><Cell>ui_qm_rm_house</Cell><Cell>Das Haus.</Cell><Cell>Das Haus.</Cell></Row>
+  <Row><Cell>ui_qm_rm_tower</Cell><Cell>Die Bogenschützentürme.</Cell><Cell>Die Bogenschützentürme.</Cell></Row>
+  <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Die Bogenschützenkarren.</Cell><Cell>Die Bogenschützenkarren.</Cell></Row>
+  <Row><Cell>ui_qm_rm_wall</Cell><Cell>Die Palisade.</Cell><Cell>Die Palisade.</Cell></Row>
+  <Row><Cell>ui_qm_rm_gate</Cell><Cell>Die Tore.</Cell><Cell>Die Tore.</Cell></Row>
+  <Row><Cell>merc_logi_upg_none</Cell><Cell>Da steht nichts dergleichen in diesem Lager.</Cell><Cell>Da steht nichts dergleichen in diesem Lager.</Cell></Row>
+  <Row><Cell>ui_qm_comp</Cell><Cell>Lass uns klären, wer mit mir auszieht.</Cell><Cell>Lass uns klären, wer mit mir auszieht.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp</Cell><Cell>Wenn ich Männer aus dem Lager führe, will ich die Richtigen im Rücken haben.</Cell><Cell>Wenn ich Männer aus dem Lager führe, will ich die Richtigen im Rücken haben.</Cell></Row>
+  <Row><Cell>merc_qm_comp</Cell><Cell>Sag mir, wie du sie haben willst, und ich wähle sie von nun an so aus.</Cell><Cell>Sag mir, wie du sie haben willst, und ich wähle sie von nun an so aus.</Cell></Row>
+  <Row><Cell>merc_henry_qm_comp_set</Cell><Cell>So will ich sie haben.</Cell><Cell>So will ich sie haben.</Cell></Row>
+  <Row><Cell>merc_qm_comp_set</Cell><Cell>Verstanden. Das ist der Trupp, den du bekommst, wenn du das nächste Mal Männer ausziehst.</Cell><Cell>Verstanden. Das ist der Trupp, den du bekommst, wenn du das nächste Mal Männer ausziehst.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_same</Cell><Cell>Bogenschützen: die gleiche Mischung wie die Kompanie.</Cell><Cell>Bogenschützen: die gleiche Mischung wie die Kompanie.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_none</Cell><Cell>Bogenschützen: keine. Nur Fußvolk.</Cell><Cell>Bogenschützen: keine. Nur Fußvolk.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_qtr</Cell><Cell>Bogenschützen: ein Viertel des Trupps.</Cell><Cell>Bogenschützen: ein Viertel des Trupps.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_half</Cell><Cell>Bogenschützen: die Hälfte des Trupps.</Cell><Cell>Bogenschützen: die Hälfte des Trupps.</Cell></Row>
+  <Row><Cell>ui_qm_comp_arch_all</Cell><Cell>Bogenschützen: jeder, den wir haben.</Cell><Cell>Bogenschützen: jeder, den wir haben.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_best</Cell><Cell>Fußvolk: die besten Männer zuerst.</Cell><Cell>Fußvolk: die besten Männer zuerst.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_mix</Cell><Cell>Fußvolk: eine Mischung aus allen Sorten.</Cell><Cell>Fußvolk: eine Mischung aus allen Sorten.</Cell></Row>
+  <Row><Cell>ui_qm_comp_foot_green</Cell><Cell>Fußvolk: die Grünsten zuerst.</Cell><Cell>Fußvolk: die Grünsten zuerst.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_same</Cell><Cell>Truppzusammensetzung: so viele Bogenschützen, wie die Kompanie hat.</Cell><Cell>Truppzusammensetzung: so viele Bogenschützen, wie die Kompanie hat.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_none</Cell><Cell>Truppzusammensetzung: keine Bogenschützen, nur Fußvolk.</Cell><Cell>Truppzusammensetzung: keine Bogenschützen, nur Fußvolk.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_quarter</Cell><Cell>Truppzusammensetzung: ein Viertel Bogenschützen.</Cell><Cell>Truppzusammensetzung: ein Viertel Bogenschützen.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_half</Cell><Cell>Truppzusammensetzung: die Hälfte Bogenschützen.</Cell><Cell>Truppzusammensetzung: die Hälfte Bogenschützen.</Cell></Row>
+  <Row><Cell>merc_info_comp_arch_all</Cell><Cell>Truppzusammensetzung: jeder Bogenschütze der Kompanie.</Cell><Cell>Truppzusammensetzung: jeder Bogenschütze der Kompanie.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Truppzusammensetzung: die besten Männer zuerst.</Cell><Cell>Truppzusammensetzung: die besten Männer zuerst.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Truppzusammensetzung: eine Mischung aus allen Sorten.</Cell><Cell>Truppzusammensetzung: eine Mischung aus allen Sorten.</Cell></Row>
+  <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Truppzusammensetzung: die Grünsten zuerst.</Cell><Cell>Truppzusammensetzung: die Grünsten zuerst.</Cell></Row>
 </Table>
