@@ -617,6 +617,16 @@ function mercenaries:IsSpotNearTower(pos, radius)
             if (dx * dx + dy * dy) < (radius * radius) then return true end
         end
     end
+    -- Towers that are SAVED but not yet rebuilt claim their ground too. On a load the
+    -- camp places clusters and station tiles before DefRestore runs, so the live list
+    -- above is empty at exactly the moment this check matters most (the tents-on-the-
+    -- tower overlap report). Only consulted while nothing live is standing.
+    if #(self.TowerStations or {}) == 0 and self.DefSavedTowerSpots then
+        for _, p in ipairs(self:DefSavedTowerSpots() or {}) do
+            local dx, dy = pos.x - p.x, pos.y - p.y
+            if (dx * dx + dy * dy) < (radius * radius) then return true end
+        end
+    end
     return false
 end
 

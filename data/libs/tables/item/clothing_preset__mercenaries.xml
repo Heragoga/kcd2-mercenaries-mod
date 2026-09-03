@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="us-ascii"?>
+﻿<?xml version="1.0" encoding="us-ascii"?>
 <database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
 	<clothing_presets version="2">
        <!--  <clothing_preset clothing_preset_id="8226a072-6767-6767-b061-6702aa31d258" clothing_preset_name="clothing_preset_riddler_charly" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="2" Condition="0.85">
@@ -415,6 +415,8 @@
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
+                <Guid>61877793-794d-4f0f-8ccd-b3d7d03e9b80</Guid> <!-- Waffenrock: Skalitz surcoat A (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
                 <Guid>921a52ca-5fbe-4013-aa3b-745fa11077b8</Guid> <!-- Helmet: KettleHat04_m05_B4 -->
             </Items>
         </clothing_preset>
@@ -428,8 +430,11 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
+                <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
-                <Guid>868581d6-f9ab-4ae2-b074-9200e7d054bd</Guid> <!-- Helmet: KettleHat01_m01_E1 (alt) -->
+                <Guid>f964c4c9-2929-443f-bfcd-78dcdb55ee0b</Guid> <!-- Waffenrock: Skalitz surcoat B (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
+                <Guid>868581d6-f9ab-4ae2-b074-9200e7d054bd</Guid> <!-- Helmet: KettleHat01_m01_E1 -->
             </Items>
         </clothing_preset>
 
@@ -442,9 +447,11 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
-                <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
+                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar: Skalitz mail collar (Kobyla) -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
-                <Guid>921a52ca-5fbe-4013-aa3b-745fa11077b8</Guid> <!-- Helmet: KettleHat04_m05_B4 -->
+                <Guid>61877793-794d-4f0f-8ccd-b3d7d03e9b80</Guid> <!-- Waffenrock: Skalitz surcoat A (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
+                <Guid>868581d6-f9ab-4ae2-b074-9200e7d054bd</Guid> <!-- Helmet: KettleHat01_m01_E1 -->
             </Items>
         </clothing_preset>
 
@@ -457,8 +464,11 @@
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>33d6b02e-35fc-4b79-aa3f-25f42fc4dae6</Guid> <!-- Coif: CoifSmall01_m04_C2 -->
+                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar: Skalitz mail collar (Kobyla) -->
                 <Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid> <!-- Sleeves: ArmPlate01_m03_C2 -->
-                <Guid>868581d6-f9ab-4ae2-b074-9200e7d054bd</Guid> <!-- Helmet: KettleHat01_m01_E1 (alt) -->
+                <Guid>f964c4c9-2929-443f-bfcd-78dcdb55ee0b</Guid> <!-- Waffenrock: Skalitz surcoat B (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
+                <Guid>921a52ca-5fbe-4013-aa3b-745fa11077b8</Guid> <!-- Helmet: KettleHat04_m05_B4 -->
             </Items>
         </clothing_preset>
 
@@ -475,6 +485,8 @@
                 <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
+                <Guid>16798160-94ae-4cd3-8f7c-f06c96f9f44b</Guid> <!-- Waffenrock: Skalitz surcoat C (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
                 <Guid>8b2cb8f5-31e8-4ee3-b4bc-b50c06f7ff4c</Guid> <!-- Helmet: BascinetOpen08_m01_B3 -->
             </Items>
         </clothing_preset>
@@ -484,13 +496,16 @@
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
                 <Guid>f44e20f0-c31b-4dc7-91a9-140c9d367ab8</Guid> <!-- Legs: LegsPadded01_m08_C3 -->
-                <Guid>8a30d58f-67f7-49db-90c4-38d6523899a7</Guid> <!-- Leg armor: LegsBrigandine04_m02_A5 (alt) -->
+                <Guid>195dd5c2-7608-42c2-93d6-962bc17883cb</Guid> <!-- Leg armor: LegsBrigandine01_m08_D2 -->
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
-                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
+                <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
+                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar: Skalitz mail collar (Kobyla) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>25bd008c-f308-4521-8a4f-a1feeb76ea3c</Guid> <!-- Helmet: KettleHat03_m01_B3 (alt) -->
+                <Guid>5b3d2485-1c83-48f4-afc7-ae62f97b99a7</Guid> <!-- Waffenrock: Skalitz surcoat D (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
+                <Guid>25bd008c-f308-4521-8a4f-a1feeb76ea3c</Guid> <!-- Helmet: KettleHat03_m01_B3 -->
             </Items>
         </clothing_preset>
 
@@ -499,14 +514,16 @@
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
                 <Guid>f44e20f0-c31b-4dc7-91a9-140c9d367ab8</Guid> <!-- Legs: LegsPadded01_m08_C3 -->
-                <Guid>195dd5c2-7608-42c2-93d6-962bc17883cb</Guid> <!-- Leg armor: LegsBrigandine01_m08_D2 -->
+                <Guid>8a30d58f-67f7-49db-90c4-38d6523899a7</Guid> <!-- Leg armor: LegsBrigandine04_m02_A5 -->
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
-                <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
+                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>8b2cb8f5-31e8-4ee3-b4bc-b50c06f7ff4c</Guid> <!-- Helmet: BascinetOpen08_m01_B3 -->
+                <Guid>16798160-94ae-4cd3-8f7c-f06c96f9f44b</Guid> <!-- Waffenrock: Skalitz surcoat C (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
+                <Guid>25bd008c-f308-4521-8a4f-a1feeb76ea3c</Guid> <!-- Helmet: KettleHat03_m01_B3 -->
             </Items>
         </clothing_preset>
 
@@ -515,13 +532,16 @@
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
                 <Guid>f44e20f0-c31b-4dc7-91a9-140c9d367ab8</Guid> <!-- Legs: LegsPadded01_m08_C3 -->
-                <Guid>8a30d58f-67f7-49db-90c4-38d6523899a7</Guid> <!-- Leg armor: LegsBrigandine04_m02_A5 (alt) -->
+                <Guid>8a30d58f-67f7-49db-90c4-38d6523899a7</Guid> <!-- Leg armor: LegsBrigandine04_m02_A5 -->
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
-                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
+                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 -->
+                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar: Skalitz mail collar (Kobyla) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>25bd008c-f308-4521-8a4f-a1feeb76ea3c</Guid> <!-- Helmet: KettleHat03_m01_B3 (alt) -->
+                <Guid>5b3d2485-1c83-48f4-afc7-ae62f97b99a7</Guid> <!-- Waffenrock: Skalitz surcoat D (Kobyla) -->
+                <Guid>18aa14c1-acbf-453b-bfc5-2c55d29a96fd</Guid> <!-- Hood: Plain red Skalitz hood (Kobyla) -->
+                <Guid>8b2cb8f5-31e8-4ee3-b4bc-b50c06f7ff4c</Guid> <!-- Helmet: BascinetOpen08_m01_B3 -->
             </Items>
         </clothing_preset>
 
@@ -538,6 +558,7 @@
                 <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
+                <Guid>16798160-94ae-4cd3-8f7c-f06c96f9f44b</Guid> <!-- Waffenrock: Skalitz surcoat C (Kobyla) -->
                 <Guid>d8c9ae5a-ac99-479b-9529-277814dd629f</Guid> <!-- Helmet: BascinetVisor02_m03_D3 -->
             </Items>
         </clothing_preset>
@@ -547,13 +568,15 @@
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
                 <Guid>f44e20f0-c31b-4dc7-91a9-140c9d367ab8</Guid> <!-- Legs: LegsPadded01_m08_C3 -->
-                <Guid>1b94661c-7de9-4a15-a870-110eb771ac8d</Guid> <!-- Leg armor: LegsPlate02_m03_B4 (alt) -->
+                <Guid>4c211401-3edc-4f85-b489-206b229420fb</Guid> <!-- Leg armor: LegsPlate05_m04_C3 -->
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
-                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
+                <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
+                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar: Skalitz mail collar (Kobyla) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>fb95090e-ab36-4e5e-9447-99653eaa4873</Guid> <!-- Helmet: BascinetVisor01_m05_C3 (alt) -->
+                <Guid>5b3d2485-1c83-48f4-afc7-ae62f97b99a7</Guid> <!-- Waffenrock: Skalitz surcoat D (Kobyla) -->
+                <Guid>fb95090e-ab36-4e5e-9447-99653eaa4873</Guid> <!-- Helmet: BascinetVisor01_m05_C3 -->
             </Items>
         </clothing_preset>
 
@@ -562,14 +585,15 @@
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
                 <Guid>f44e20f0-c31b-4dc7-91a9-140c9d367ab8</Guid> <!-- Legs: LegsPadded01_m08_C3 -->
-                <Guid>4c211401-3edc-4f85-b489-206b229420fb</Guid> <!-- Leg armor: LegsPlate05_m04_C3 -->
+                <Guid>1b94661c-7de9-4a15-a870-110eb771ac8d</Guid> <!-- Leg armor: LegsPlate02_m03_B4 -->
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
-                <Guid>5d85d44c-0f91-477d-95a3-61bde2d0164b</Guid> <!-- Chest: Cuirass05_m04_B3 -->
+                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 -->
                 <Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid> <!-- Collar: CollarChain01_m04_C1 -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>d8c9ae5a-ac99-479b-9529-277814dd629f</Guid> <!-- Helmet: BascinetVisor02_m03_D3 -->
+                <Guid>16798160-94ae-4cd3-8f7c-f06c96f9f44b</Guid> <!-- Waffenrock: Skalitz surcoat C (Kobyla) -->
+                <Guid>fb95090e-ab36-4e5e-9447-99653eaa4873</Guid> <!-- Helmet: BascinetVisor01_m05_C3 -->
             </Items>
         </clothing_preset>
 
@@ -578,13 +602,15 @@
                 <Guid>d87e0065-4eae-429f-917a-df1db1b7285a</Guid> <!-- Boots: BootsAnkle02_m01_B -->
                 <Guid>c8abe6d0-fbd8-49b2-a8e4-94e892aca6fa</Guid> <!-- Gloves: Gloves05_m02_B2 -->
                 <Guid>f44e20f0-c31b-4dc7-91a9-140c9d367ab8</Guid> <!-- Legs: LegsPadded01_m08_C3 -->
-                <Guid>1b94661c-7de9-4a15-a870-110eb771ac8d</Guid> <!-- Leg armor: LegsPlate02_m03_B4 (alt) -->
+                <Guid>1b94661c-7de9-4a15-a870-110eb771ac8d</Guid> <!-- Leg armor: LegsPlate02_m03_B4 -->
                 <Guid>a6f4fcf5-9d0a-45c4-8641-b9689415983b</Guid> <!-- Gambeson: GambesonLong01_m04_C3 -->
                 <Guid>b1b9a304-4f2c-4e43-8f2c-166abf25243c</Guid> <!-- Chainmail: MailShort01_m01_C4 -->
                 <Guid>cd17455c-b023-4977-8205-4f2685370b5e</Guid> <!-- Coif: CoifMail01_m04_C2 -->
-                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 (alt) -->
+                <Guid>355ac165-5e2d-4664-bd16-eccec7ec03b3</Guid> <!-- Chest: Brigandine03_m05_A4 -->
+                <Guid>1a8b1d97-f280-43db-aa5a-68ed064647db</Guid> <!-- Collar: Skalitz mail collar (Kobyla) -->
                 <Guid>d89df714-7b5e-41a0-a3f6-d9538a97e630</Guid> <!-- Sleeves: ArmPlate02_m01_C3 -->
-                <Guid>fb95090e-ab36-4e5e-9447-99653eaa4873</Guid> <!-- Helmet: BascinetVisor01_m05_C3 (alt) -->
+                <Guid>5b3d2485-1c83-48f4-afc7-ae62f97b99a7</Guid> <!-- Waffenrock: Skalitz surcoat D (Kobyla) -->
+                <Guid>d8c9ae5a-ac99-479b-9529-277814dd629f</Guid> <!-- Helmet: BascinetVisor02_m03_D3 -->
             </Items>
         </clothing_preset>
 

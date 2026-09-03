@@ -30,6 +30,9 @@ mercenaries.FormationShape = "column"
 -- rotation about the anchor, so a spot d metres out swings 2*d*sin(theta/2) when the
 -- leader turns, and a ladder that jumps 60% in one step jumps that lever arm with it.
 mercenaries.FormationSizes = { 6, 10, 14, 18, 24, 30, 40, 50 }
+-- Evaluations of a still-growing squad to sit through before the shape is re-dealt.
+-- See the note at the grow branch in FormationRebuildCheck.
+mercenaries.FormationSettleTicks = 3
 
 -- Master switch for the ENGINE formation system (MakeFormation / FormationFollower). Off, the
 -- squad falls through to follow.xml's `~$useFormation` arm - a plain CrimeFollower chain, which
@@ -65,6 +68,37 @@ mercenaries.FormationLeaderSwapSecs     = 3.0
 -- ...and after any swap, no further displacement swap for this long, so a rebuild
 -- always gets time to settle.
 mercenaries.FormationLeaderSwapCooldown = 6.0
+-- THE LEADER MUST STAY NEAR THE FRONT. The distance margin above is a fine tie-break, but
+-- at fifty horses the leader was regularly found boxed in mid-pack and stuck there, and a
+-- stuck anchor stands the whole squad (2026-09-03). Two rules on top of the margin:
+--   rank  - a leader with this many fit men closer to the player than him is replaced
+--           after the same hold time, whatever the metre gap - "one of the nearest", as
+--           asked, rather than "not too far behind the nearest".
+--   stuck - the player has covered FormationLeaderStuckPlayer while the leader covered
+--           less than FormationLeaderStuckMove, for FormationLeaderStuckSecs: replaced
+--           IMMEDIATELY (no margin, no hold, no cooldown), and the old leader is hauled to
+--           just behind the player so he is not left wedged wherever he stopped.
+-- Rank is OFF (0). Riders overtake each other constantly, so at fifty horses any rank rule
+-- is a swap generator, and every swap is a rebuild every rider has to re-join. "The leader
+-- should not be constantly changed" (2026-09-03).
+mercenaries.FormationLeaderMaxRank      = 0
+-- Stuck, second version. The first (3 s, 1.5 m vs 6 m, immediate swap) fired on every
+-- freshly elected mounted leader before he had so much as started - mount, WaitAction,
+-- riders re-acquiring - and handed the job to the next man, who was then in the same
+-- state: five "leader stuck" rebuilds in a row (2026-09-03). So:
+--   * a grace after ANY rebuild or swap, during which nobody is stuck;
+--   * a long window, longer still mounted, and the player must be well away as well as
+--     moving - riding a circle beside a parked leader is not him being stuck;
+--   * the FIRST response is a haul only, no swap and no rebuild. Only a second stuck
+--     inside the swap window hands the job over, and never more than once a cooldown.
+mercenaries.FormationLeaderStuckGraceSecs   = 15.0
+mercenaries.FormationLeaderStuckSecs        = 8.0
+mercenaries.FormationLeaderStuckSecsMounted = 12.0
+mercenaries.FormationLeaderStuckMove        = 2.0
+mercenaries.FormationLeaderStuckPlayer      = 15.0
+mercenaries.FormationLeaderStuckFar         = 20.0
+mercenaries.FormationLeaderStuckSwapWindow  = 40.0
+mercenaries.FormationLeaderStuckCooldown    = 20.0
 
 -- KeepShape on foot: it is the only mode that holds an authored shape. Relaxed
 -- drifts and MoveHistory replays the leader's path, so both blur the geometry.
@@ -72,6 +106,8 @@ mercenaries.FormationLeaderSwapCooldown = 6.0
 -- formation uses KeepShape, and rigid geometry is not something a horse can hold.
 mercenaries.FormationModeCode = 1
 mercenaries.FormationRelocate = false
+-- Shape-specific mode defaults, applied while no mode is pinned. See UpdateFormationRole.
+mercenaries.FormationShapeMode = { line = 0 }   -- 0 Relaxed
 mercenaries.FormationModeNames = { [0] = "Relaxed", [1] = "KeepShape", [2] = "MoveHistory" }
 mercenaries.FormationModeLocKeys = { [0] = "merc_form_mode_relaxed", [1] = "merc_form_mode_keepshape", [2] = "merc_form_mode_movehistory" }
 
@@ -109,6 +145,33 @@ function mercenaries:FormationPresetName(size)
     return "merc_" .. shape .. tostring(pick)
 end
 
+-- Put a stuck (ex-)leader just behind the player. The same recipe the stall ladder's haul
+-- uses. A MOUNTED man is dismounted first: SetPos does not bring the horse, and a rider
+-- moved without it is stranded beside a horse that is somewhere else (mercenaries_teleport.lua).
+-- The horse lifecycle re-mounts him on the spot - instantly, now that it ForceMounts.
+function mercenaries:LeaderUnstick(ent)
+    if not ent then return end
+    local moved = false
+    pcall(function()
+        if ent.human and ent.human.IsMounted and ent.human:IsMounted() then
+            pcall(function() ent.human:ForceDismount() end)
+        end
+        local base = self:GetSafeSpawnPosition(player, 8)
+        if not base then return end
+        local tp = self:FindValidGround({
+            x = base.x + (math.random() - 0.5) * 3.0,
+            y = base.y + (math.random() - 0.5) * 3.0,
+            z = base.z,
+        }, base.z)
+        tp = self:TeleportKeepBehindLeader(tp) or tp
+        ent:SetPos(tp)
+        pcall(function() self:NoteTeleport(ent) end)
+        moved = true
+    end)
+    System.LogAlways("[MercForm] stuck leader " .. tostring(ent and ent.GetName and ent:GetName()) ..
+                     (moved and " hauled to just behind the player" or " - found nowhere to haul him to"))
+end
+
 -- Once per FormationTickMs. Picks the leader and the preset, and bumps the epoch
 -- only when something real changed.
 function mercenaries:UpdateFormationLeader()
@@ -126,6 +189,9 @@ function mercenaries:UpdateFormationLeader()
     local busyBest, busyBestD = nil, nil
     -- Constant across every iteration; rebuilding it per-merc was pure waste.
     local leaderStr = self.FormationLeader and tostring(self.FormationLeader) or nil
+    -- Distances of every FIT man, for the rank rule (FormationLeaderMaxRank).
+    local fitDists = {}
+    local leaderEnt = nil
 
     for _, ent in pairs(self.ActiveMercs) do
         local wuid = ent and (ent.this and ent.this.id or ent.id)
@@ -168,10 +234,12 @@ function mercenaries:UpdateFormationLeader()
                 hurt = (hp ~= nil) and (hp < (self.InjuredHealthPct or 50))
             end)
 
+            if leaderStr and tostring(wuid) == leaderStr then leaderEnt = ent end
             if not busy and not hurt then
                 if leaderStr and tostring(wuid) == leaderStr then
                     leaderStillOk, leaderD = true, d
                 end
+                fitDists[#fitDists + 1] = d
                 if not bestD or d < bestD then best, bestD = wuid, d end
             elseif not busy then
                 -- Still a usable anchor, just not a preferred one: he keeps the job while
@@ -232,8 +300,57 @@ function mercenaries:UpdateFormationLeader()
     local margin  = mounted and self.FormationLeaderSwapMarginMounted
                             or  self.FormationLeaderSwapMargin
 
+    -- Rank: how many fit men stand closer to the player than the leader does. Off at 0.
+    local outranked = false
+    local maxRank = self.FormationLeaderMaxRank or 0
+    if maxRank > 0 and leaderStillOk and leaderD then
+        local closer = 0
+        for _, d in ipairs(fitDists) do if d < leaderD then closer = closer + 1 end end
+        outranked = closer >= maxRank
+    end
+
+    -- Stuck: the leader's own ground covered against the player's, over a window that
+    -- starts only after the grace. Anchors re-set whenever he moves, the leader changes,
+    -- or the epoch does (a rebuild is a fresh start for him too).
+    local stuck, stuckWhy = false, nil
+    if leaderStillOk and leaderEnt and pp then
+        local lp
+        pcall(function() lp = leaderEnt:GetWorldPos() end)
+        local a = self._leadStuckAnchor
+        if lp then
+            if not a or a.who ~= leaderStr or a.epoch ~= self.FormationEpoch then
+                self._leadStuckAnchor = { who = leaderStr, epoch = self.FormationEpoch,
+                                          x = lp.x, y = lp.y, px = pp.x, py = pp.y, at = now,
+                                          graceUntil = now + (self.FormationLeaderStuckGraceSecs or 15.0) }
+            elseif now < (a.graceUntil or 0) then
+                -- Freshly elected or freshly rebuilt: he is allowed to be standing still.
+                a.x, a.y, a.px, a.py, a.at = lp.x, lp.y, pp.x, pp.y, now
+            else
+                local lm = math.sqrt((lp.x - a.x) ^ 2 + (lp.y - a.y) ^ 2)
+                local pm = math.sqrt((pp.x - a.px) ^ 2 + (pp.y - a.py) ^ 2)
+                local need = mounted and (self.FormationLeaderStuckSecsMounted or 12.0)
+                                      or (self.FormationLeaderStuckSecs or 8.0)
+                if lm >= (self.FormationLeaderStuckMove or 2.0) then
+                    a.x, a.y, a.px, a.py, a.at = lp.x, lp.y, pp.x, pp.y, now
+                elseif pm >= (self.FormationLeaderStuckPlayer or 15.0)
+                       and leaderD >= (self.FormationLeaderStuckFar or 20.0)
+                       and (now - a.at) >= need then
+                    stuck = true
+                    stuckWhy = string.format("leader moved %.1fm while the player moved %.0fm over %.0fs, %.0fm apart%s",
+                                             lm, pm, now - a.at, leaderD, mounted and ", mounted" or "")
+                end
+            end
+        end
+    else
+        self._leadStuckAnchor = nil
+    end
+    -- One stuck action per cooldown, whatever kind.
+    if stuck and self._leadStuckActAt and (now - self._leadStuckActAt) < (self.FormationLeaderStuckCooldown or 20.0) then
+        stuck = false
+    end
+
     local ahead = leaderStillOk and bestD and leaderD
-                  and (leaderD - bestD) > margin
+                  and ((leaderD - bestD) > margin or outranked)
                   and tostring(best or '') ~= tostring(self.FormationLeader or '')
 
     if ahead then
@@ -257,6 +374,29 @@ function mercenaries:UpdateFormationLeader()
         self.FormationLeader = best
         self._leadSwapAt = now
         self._leadChallenger, self._leadChallengeAt = nil, nil
+    elseif stuck then
+        -- An anchor that is not moving while the player is. The least that fixes it is a
+        -- haul: put him behind the player and let him carry on leading - no swap, no
+        -- rebuild, nobody re-joins anything. Only if he is stuck AGAIN inside the swap
+        -- window is the job handed over, because then the haul did not cure him.
+        self._leadStuckActAt = now
+        local again = self._leadStuckHauledAt and (now - self._leadStuckHauledAt) < (self.FormationLeaderStuckSwapWindow or 40.0)
+        if again and fitBest and tostring(fitBest) ~= tostring(self.FormationLeader or '') then
+            reason = "leader stuck"
+            System.LogAlways("[MercForm] leader stuck twice inside " .. tostring(self.FormationLeaderStuckSwapWindow or 40) ..
+                             "s - handing the job over (" .. tostring(stuckWhy) .. ")")
+            local old = leaderEnt
+            self.FormationLeader = fitBest
+            self._leadSwapAt = now
+            self._leadChallenger, self._leadChallengeAt = nil, nil
+            self._leadStuckAnchor, self._leadStuckHauledAt = nil, nil
+            pcall(function() self:LeaderUnstick(old) end)
+        else
+            System.LogAlways("[MercForm] leader stuck - hauling him, keeping him as leader (" .. tostring(stuckWhy) .. ")")
+            self._leadStuckHauledAt = now
+            self._leadStuckAnchor = nil
+            pcall(function() self:LeaderUnstick(leaderEnt) end)
+        end
     elseif leaderHurt and fitBest and tostring(fitBest) ~= tostring(self.FormationLeader or '')
            and not cooling then
         -- Hand the job to a fit man. Bounded by the SAME cooldown as a displacement
@@ -296,8 +436,39 @@ function mercenaries:UpdateFormationLeader()
     -- down, so hovering on a boundary cannot oscillate. Without any shrink at all, a
     -- squad that peaks at 24 and then loses 8 keeps the 24-spot template and
     -- scatters the survivors across it.
+    -- A GROWING squad settles before the shape is re-dealt. Hiring fifty men one at a time
+    -- crosses six size boundaries (6, 10, 14, 18, 24, 30, 40, 50) and each crossing rebuilt
+    -- the formation, and every rebuild makes every follower re-acquire a slot. For an
+    -- ARCHER that is fatal rather than untidy: FormationFollower is his only locomotion
+    -- (see archer_scheduler.xml), so a man dropped out of it mid-rebuild simply stands
+    -- where he is. Measured 2026-09-03, one mass hire: 104 archer stalls against 2 for
+    -- foot, "a lot just stood around, the formation never assembled". So a grow waits for
+    -- the count to stop moving - unless there is no formation at all, which must not wait.
+    local settling = false
+    if self.FormationName and followers > cap then
+        if followers ~= (self._formLastFollowers or -1) then
+            self._formLastFollowers = followers
+            self._formSettleTicks = 0
+            settling = true
+        else
+            self._formSettleTicks = (self._formSettleTicks or 0) + 1
+            settling = (self._formSettleTicks < (self.FormationSettleTicks or 3))
+        end
+        if settling and not self._formSettleNoted then
+            self._formSettleNoted = true
+            System.LogAlways(string.format(
+                "[MercForm] the squad is still growing (%d followers, shape seats %d) - holding the rebuild until it settles",
+                followers, cap))
+        end
+    else
+        self._formLastFollowers, self._formSettleTicks, self._formSettleNoted = followers, 0, false
+    end
+
     local want = nil
-    if followers > cap or not self.FormationName then
+    if settling then
+        want = nil
+    elseif followers > cap or not self.FormationName then
+        self._formSettleNoted = false
         want = self.FormationSizes[#self.FormationSizes]
         for _, n in ipairs(self.FormationSizes) do
             if followers <= n then want = n break end
@@ -541,7 +712,18 @@ function mercenaries:UpdateFormationRole(bt_data, myWuid)
         -- preference into whatever shape he re-joins - and the spot names are per-shape.
         bt_data.preferredSpot     = ""
         bt_data.formationEpoch    = self.FormationEpoch or 0
-        bt_data.formationModeCode = self.FormationModeCode or 1
+        -- Per-shape default, unless the player pinned a mode by hand. A LINE is wide and
+        -- shallow: under KeepShape the men at its ends have to sweep an arc of half-width
+        -- times the turn angle every time the player turns, and at fifty they cannot -
+        -- "they get lost at the back" (2026-09-03). Relaxed is the engine's loose mode
+        -- (vanilla's formationData default), so the ends lag the turn instead of chasing
+        -- a rigidly rotated spot. merc_form_keepshape pins it back.
+        local modeCode = self.FormationModeCode or 1
+        if not self.FormationModePinned then
+            local sm = (self.FormationShapeMode or {})[self.FormationShape]
+            if sm ~= nil then modeCode = sm end
+        end
+        bt_data.formationModeCode = modeCode
         bt_data.formationRelocate = self.FormationRelocate or false
         -- Derived, never hardcoded, so it always names a preset that exists for the
         -- current shape and ladder.

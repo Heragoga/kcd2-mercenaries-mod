@@ -321,11 +321,17 @@ A gang materialises only inside a **band**, never on top of the player:
 
 | Knob | Value | Meaning |
 | --- | --- | --- |
-| `PatrolMinPlayerDist` | 150 m | the hard floor — no man of any gang is ever created inside it |
-| `PatrolNoSpawnRange` | 200 m | the band: never *eligible* closer than this |
-| `PatrolSpawnRange` | 250 m | ...and no further than this |
-| `PatrolDespawnRange` | 330 m | remove them out here (hysteresis) |
+| `PatrolMinPlayerDist` | 250 m | the hard floor — no man of any gang is ever created inside it |
+| `PatrolNoSpawnRange` | 300 m | the band: never *eligible* closer than this |
+| `PatrolSpawnRange` | 400 m | ...and no further than this |
+| `PatrolDespawnRange` | 500 m | remove them out here (hysteresis) |
 | `PatrolFreshMinDist` | 450 m | where a newly rolled record starts |
+
+(The whole ladder was pushed out from 150/200/250/330 after users watched gangs
+materialise in view; `PatrolMaxLiveGangs` is now hard-capped at **1** — one patrol on
+the road at a time, difficulty tiers scale size and frequency instead — and a
+sleep/wait/fast-travel transition despawns whatever is standing and arms
+`PatrolTravelGraceSecs` of quiet on the other side.)
 
 **The band is not the guarantee; `PatrolMinPlayerDist` is.** The band is tested in
 `PatrolTickOne`, which runs for every record first and only then sorts and spawns
@@ -701,4 +707,28 @@ on the navmesh", so `merc_patrol_wp` runs the dropped point through `FindValidGr
 `pLog` and `pKey` are declared at the very top of `mercenaries_patrol.lua` on purpose. A
 `local function` is only in scope for code written *after* it, so a helper added above them
 gets `attempt to call global 'pKey' (a nil value)` at runtime, not at load.
+
+## The day cap and the jump detector (2026-09-03)
+
+Two reports from a hand-run test: a gang spawned the moment a fast travel ended and killed a
+man, and six gangs turned up in one day's ride across the map.
+
+**Jumps.** Fast travel runs on the map screen with Lua frozen, so `PlayerBusyForSpawns` never
+sees the world-time ratio spike - it only reads the quiet world on arrival, with the quiet
+clock long expired. `PatrolJumped` compares each tick with the previous one: more than
+`PatrolJumpDist` (250 m) or `PatrolJumpHours` (0.5 h) between two consecutive ticks is a fast
+travel, a sleep, a wait or a teleport whatever the probe said. It takes standing gangs down
+and arms `PatrolTravelGraceSecs` (now 90 s, was 30).
+
+**The player has to be going somewhere.** `PatrolPlayerMoving` requires 4 m covered within
+the last 5 s before a gang may be put on the road. That closes the window a gang came through
+twice on 2026-09-03: the tick landed while the player was picking a fast-travel destination on
+the map, which is before a crossing exists to be detected at all.
+`Calendar.IsWorldTimePaused()` was tried first and answers false for the map screen; Henry
+standing still is the signal that does work. See [travel-detection.md](travel-detection.md).
+
+**Per day.** The quiet clocks pace in real seconds, and a day's ride is long enough in real
+seconds for six gangs. `PatrolMaxPerDay` (2) counts by `Calendar.GetWorldDay()` and is saved
+(`PatrolDayLog`), so a reload does not refill the day. `merc_patrols_perday` sets it, 0 lifts
+it. `PatrolQuietSecs` went from 180 to 600 s as well.
 

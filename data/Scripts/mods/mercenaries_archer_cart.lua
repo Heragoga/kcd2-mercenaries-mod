@@ -218,6 +218,14 @@ function mercenaries:IsSpotNearCart(pos, radius)
             if (dx * dx + dy * dy) < (radius * radius) then return true end
         end
     end
+    -- Carts saved but not yet rebuilt (the load window before DefRestore) claim their
+    -- ground too - same reasoning as IsSpotNearTower.
+    if #(self.ArcherCarts or {}) == 0 and self.DefSavedCartSpots then
+        for _, p in ipairs(self:DefSavedCartSpots() or {}) do
+            local dx, dy = pos.x - p.x, pos.y - p.y
+            if (dx * dx + dy * dy) < (radius * radius) then return true end
+        end
+    end
     return false
 end
 

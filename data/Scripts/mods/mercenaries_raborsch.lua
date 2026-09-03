@@ -1216,4 +1216,13 @@ function mercenaries:RaborschOnLoad()
         self.EnemyAlertRadius, self._rabSavedAlertR = self._rabSavedAlertR, nil
     end
     self:RaborschRestoreSwarmCeiling()
+    -- The RECORD dies with the load too. RBQ is plain Lua, so it outlives the level -
+    -- but the siege's entities do not, and this used to keep active=true across a load.
+    -- SpawnRaborsch's "already standing" guard then refused to rebuild for the rest of
+    -- the session: the player walked up to an EMPTY castle, and the death-checks read
+    -- the zero-man "siege" as a victory. The global load sweep (RebuildMercCache,
+    -- SpawnedEnemy_* prefixes) removes whatever men the save serialised; this drops the
+    -- bookkeeping to match. The quest's wake token re-issues the spawn if beat 8 is live.
+    self.RBQ = { active = false }
+    self.RaborschFootKeys = {}
 end

@@ -216,6 +216,10 @@ function mercenaries.RebuildMercCacheDelayed()
     mercenaries._loadSweep = true
     mercenaries:RebuildMercCache()
     mercenaries:Recount()
+    -- ActiveMercs now holds whatever the engine really restored, which is the only moment
+    -- the roster can tell how many men the world is short. See mercenaries_roster.lua.
+    if mercenaries.RosterOnLoad then pcall(function() mercenaries:RosterOnLoad() end) end
+    mercenaries:Recount()
     -- The roster is only now known, so this is the first moment a torch left burning by the
     -- previous session can be taken off anyone. See CampTorchOnLoad.
     if mercenaries.CampTorchOnLoad then pcall(function() mercenaries:CampTorchOnLoad() end) end
@@ -743,9 +747,20 @@ function mercenaries:GiveMoney(amount)
     -- the loop keeps going until the target is reached or the purse stops moving.
     local target, tries = before + amount, 0
     local now = before
-    while now < target and tries < 100 do
+    -- Half a groschen of slack: GetMoney answers a FLOAT, and minting 275 into an empty
+    -- purse read back as 274.99. A strict `now < target` then spent one more pass minting
+    -- a 0.01 fraction - which creates nothing - and the quest test's floor()ed read called
+    -- a full payment "274 of 275". Within half a coin is paid.
+    -- Every hand-in in every torture session paid exactly one groschen short (275 asked,
+    -- 274.1 landed) - not the half-coin float noise the comment above already covers, a
+    -- whole coin. GetMoney drifts to a float baseline (274.1, not 274 or 275), so the FINAL
+    -- chunk's `need` is a fraction under 1 - and CreateItem mints a coin STACK, an integer
+    -- count, so a sub-1 request silently creates nothing. `after <= now` then reads as
+    -- "purse stopped moving" and the loop gives up one coin short. Rounding the request up
+    -- guarantees every chunk, including the last, asks for a whole coin.
+    while (target - now) > 0.5 and tries < 100 do
         tries = tries + 1
-        local need = target - now
+        local need = math.ceil(target - now)
         pcall(function() player.inventory:CreateItem(self.MoneyItemClass, 1, math.min(need, 1000)) end)
         local after = now
         pcall(function() after = player.inventory:GetMoney() or after end)

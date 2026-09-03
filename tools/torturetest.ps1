@@ -1,15 +1,34 @@
 # Closed-loop FUNCTIONAL test harness. Launches KCD2, loads the test save from the main
-# menu, presses F8 (merc_torture_auto - the in-game campaign in mercenaries_torture.lua),
-# then - when the campaign logs "SAVED - awaiting reload" - drives the Escape-menu
-# save+reload by keystroke (the user's own recipe), waits for phase B to verify the
-# reloaded world, and parses kcd.log for the verdicts.
+# menu, TYPES merc_torture_auto into the devmode console (the in-game campaign in
+# mercenaries_torture.lua), then - when the campaign logs "SAVED - awaiting reload" -
+# relaunches and resumes, arms phase B the same way, and parses kcd.log for the verdicts.
+#
+# Nothing here is fired by an F-key any more. A run tapped F8 after a clean
+# "dev binds applied" and NOTHING happened - the game's own bindings shadow the F-keys -
+# and because the plan is what arms god mode, Henry stood unprotected and was killed. Every
+# trigger is a typed console command now, and every one is PROVEN to have started (see
+# Start-Torture) before the harness commits to a long wait.
 #
 #   powershell -ExecutionPolicy Bypass -File tools\torturetest.ps1
+#
+# Three runs live here now:
+#   -Plan campaign   (default) the two-phase camp campaign, exactly as before
+#   -Plan field      the single-session FIELD plan - walking, following at 5/12/24, a fight
+#                    in the open, camp, patrol pressure and a raid. Typed into the console
+#                    as merc_torture_field_auto; no save, no relaunch, no phase B.
+#   -Plan field_aggro  ...plus the base-game-NPC fight. BANDIT SAVES ONLY.
+#   -Plan quest      the multi-session QUEST plan - a whole Kleinkrieg playthrough across REAL
+#                    saves and REAL relaunches. Typed in as merc_torture_quest_auto; the Lua
+#                    side picks the stage off the TortureStage stamp in the loaded save, so the
+#                    same command runs Q1 on a fresh save and Q2/Q3 after each relaunch. The
+#                    harness loops SAVED -> relaunch -> Continue -> retype until COMPLETE, at
+#                    most -QuestMaxRelaunches (4) times. Meant for a KUTTENBERG save.
+#   -SaveFile save492.whs   name the save instead of counting menu downs
 #
 # Menu recipe knobs (override if the save list shifts):
 #   -DownsToLoad 2       downs at the MAIN menu to reach the load-game entry
 #   -DownsToSave 26      downs inside the main-menu save list (the in-field save moved
-#                        one deeper than the old bench save's 25)
+#                        one deeper than the old bench save's 25). -SaveFile computes this.
 #   In-field reload, per the user: escape, down, enter (save), wait, enter,
 #   then one down, enter, enter (into the save list), downs to the newest save, enter.
 param(
@@ -19,7 +38,26 @@ param(
     [switch]$AttachOnly,
     [switch]$MenuReload,  # drive the reload by Escape-menu keystrokes instead of relaunch+Continue
     [string]$Scenario = "",   # ambush|latecamp|kuttenberg|banditcamp|trosky -> load that save, run the F7 probe
-    [int]$ScenarioDowns = -1  # override the scenario's save-list position if the list has shifted
+    [int]$ScenarioDowns = -1, # override the scenario's save-list position if the list has shifted
+    # campaign = the two-phase camp campaign (F8 + relaunch + phase B), unchanged and the default.
+    # field    = the single-session FIELD plan (merc_torture_field_auto): walking, following,
+    #            fighting, camping, patrols and a raid, no save and no phase B.
+    # field_aggro = the same plus the base-game-NPC fight. BANDIT SAVES ONLY - on a save with
+    #            civilians nearby it calls five mercs onto a civilian.
+    # quest    = the multi-session QUEST plan (merc_torture_quest_auto): a whole Kleinkrieg
+    #            playthrough across real saves and relaunches. Three stages, stamped Q1/Q2/Q3;
+    #            the harness loops relaunch+Continue+retype until COMPLETE (max 4 relaunches).
+    [ValidateSet("campaign", "field", "field_aggro", "quest")]
+    [string]$Plan = "campaign",
+    # Name the save you want (e.g. save492.whs) and let the harness find its menu position,
+    # instead of counting downs by hand. Overrides -DownsToSave / -ScenarioDowns.
+    [string]$SaveFile = "",
+    [int]$FieldTimeout = 1700, # seconds to wait for the field plan's "[Torture] COMPLETE" (Lua deadline is 1620)
+    # -Plan quest: seconds to wait for ONE stage to reach either "SAVED - awaiting reload" or
+    # "COMPLETE". The plan's own TortureQuestDeadline is 1440, deliberately just under it, so a
+    # stage that runs out of time is the one that says so - a truncated report beats no report.
+    [int]$QuestTimeout = 1500,
+    [int]$QuestMaxRelaunches = 4
 )
 
 # The user's purpose-built saves, by main-menu list position (newest first) and the
@@ -49,10 +87,46 @@ if ($Scenario -ne "") {
     Write-Output ("[harness] scenario '" + $Scenario + "': expecting " + $ScenarioFile + " at " + $DownsToSave + " down")
 }
 
+# The saves folder. Also used by the campaign's phase-A "was a save actually written" check.
+$SaveDir = Join-Path $env:USERPROFILE "Saved Games\kingdomcome2\saves\playline0"
+
+# -SaveFile: work the menu position out from the folder instead of counting downs by hand.
+# The main-menu list is NEWEST FIRST by write time - which is exactly WHY the documented
+# positions keep drifting: a completed campaign writes an autosave to the top of the list and
+# pushes every other entry down one. Recomputing the index every run makes that drift a
+# non-issue, and the loaded-file check below still catches a menu that did something else.
+if ($SaveFile -ne "") {
+    $allSaves = @(Get-ChildItem $SaveDir -Filter *.whs -ErrorAction SilentlyContinue |
+                  Sort-Object LastWriteTime -Descending)
+    if ($allSaves.Count -eq 0) {
+        Write-Output "[harness] FAIL: no .whs saves in $SaveDir"
+        exit 1
+    }
+    $idx = -1
+    for ($i = 0; $i -lt $allSaves.Count; $i++) {
+        if ($allSaves[$i].Name -eq $SaveFile) { $idx = $i; break }
+    }
+    if ($idx -lt 0) {
+        Write-Output ("[harness] FAIL: '" + $SaveFile + "' is not in " + $SaveDir)
+        Write-Output ("[harness]       newest are: " + ((@($allSaves | Select-Object -First 8) | ForEach-Object { $_.Name }) -join ", "))
+        exit 1
+    }
+    $DownsToSave  = $idx
+    $ScenarioFile = $SaveFile     # ...and so it is verified after the load like a scenario
+    Write-Output ("[harness] -SaveFile " + $SaveFile + ": position " + $idx + " of " + $allSaves.Count + " (newest first)")
+}
+
 $ErrorActionPreference = "Stop"
-$GameDir = "C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2"
+$GameDir = & (Join-Path $PSScriptRoot "Find-KCD2.ps1")
+if (-not $GameDir) {
+    Write-Output "[harness] FAIL: Kingdom Come Deliverance 2 not found on this machine."
+    Write-Output "[harness]       set KCD2_DIR=D:\path\to\KingdomComeDeliverance2"
+    Write-Output "[harness]       or add  game=D:\path\...  to tools\local.paths.txt"
+    exit 1
+}
 $Exe     = Join-Path $GameDir "Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
 $Log     = Join-Path $GameDir "kcd.log"
+Write-Output "[harness] game: $GameDir"
 
 Add-Type -TypeDefinition @"
 using System;
@@ -75,17 +149,96 @@ public static class KeySender {
         System.Threading.Thread.Sleep(holdMs);
         SendInput(1, u, Marshal.SizeOf(typeof(INPUT)));
     }
+    const uint KEYEVENTF_UNICODE = 0x4;
+    // Layout-independent character injection (WM_CHAR path) for the console's edit box.
+    // The console OPEN key still needs a raw scancode - the game reads keybinds from raw
+    // input - but once the console has focus its text field accepts unicode input.
+    public static void TypeText(string s, int perCharMs) {
+        foreach (char c in s) {
+            var d = new INPUT[]{ new INPUT{ type=1, ki=new KEYBDINPUT{ wVk=0, wScan=c, dwFlags=KEYEVENTF_UNICODE } } };
+            var u = new INPUT[]{ new INPUT{ type=1, ki=new KEYBDINPUT{ wVk=0, wScan=c, dwFlags=KEYEVENTF_UNICODE|KEYEVENTF_KEYUP } } };
+            SendInput(1, d, Marshal.SizeOf(typeof(INPUT)));
+            System.Threading.Thread.Sleep(20);
+            SendInput(1, u, Marshal.SizeOf(typeof(INPUT)));
+            System.Threading.Thread.Sleep(perCharMs);
+        }
+    }
 }
 "@
 
+# Open the devmode console (tilde, scancode 0x29), run one command, close. The console
+# PAUSES script timers while open, so close it straight after Enter.
+function Send-ConsoleCmd([string]$cmd) {
+    Write-Output "[harness] console: $cmd"
+    [KeySender]::Tap(0x29, $false, 60); Start-Sleep -Milliseconds 700
+    [KeySender]::TypeText($cmd, 30); Start-Sleep -Milliseconds 400
+    [KeySender]::Tap(0x1C, $false, 60); Start-Sleep -Milliseconds 600
+    [KeySender]::Tap(0x29, $false, 60); Start-Sleep -Milliseconds 400
+}
+
+# The torture commands are dev-gated (players kept firing the auto-quit campaigns through
+# the old always-on F-key binds): merc_dev arms the dev set, and only in the -devmode launch
+# this harness always uses. Must run again after every game relaunch.
+#
+# merc_torture_bindkeys is deliberately NOT run any more. A run typed both commands, logged
+# "dev binds applied", tapped F8 - and nothing happened, not one [Torture] line - because the
+# game's own bindings shadow the F-keys (autobench's -ConsoleCmd exists for exactly this:
+# "videofhotomode et al. own F-keys"). Worse, the plan is what arms god mode, so a trigger
+# that silently does nothing leaves Henry standing unprotected in the open; that run killed
+# him. Every trigger is typed now. The keybind command stays registered in Lua for manual use.
+function Arm-DevCommands {
+    Send-ConsoleCmd "merc_dev"
+}
+
+# Type a start command and PROVE it took, by waiting for the plan's own banner in kcd.log.
+# One retype, then a loud failure - never a silent 800s wait on a run that never began.
+#
+# The answer comes back in $script:TortureStarted, NOT as a return value. Write-Output inside
+# a function ADDS to that function's output, so a "return $true" after a few progress lines
+# hands the caller an ARRAY - and any non-empty array is truthy, so the check would have
+# passed whatever happened. (Focus-Game in this file has the same shape and is therefore
+# effectively always true; left alone deliberately, since its callers have relied on that
+# permissiveness through every green run so far.)
+function Start-Torture([string]$cmd, [string]$banner) {
+    $script:TortureStarted = $false
+    $len = 0; try { $len = (Get-Item $Log).Length } catch {}
+    Send-ConsoleCmd $cmd
+    $deadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $deadline) {
+        if ((Read-LogTailFrom $len).Contains($banner)) {
+            Write-Output "[harness] '$cmd' is running"
+            $script:TortureStarted = $true
+            return
+        }
+        Start-Sleep -Seconds 2
+    }
+    Write-Output "[harness] '$cmd' produced no [Torture] output in 30s - re-focusing and retyping once"
+    Focus-Game | Out-Null
+    Send-ConsoleCmd $cmd
+    $deadline = (Get-Date).AddSeconds(45)
+    while ((Get-Date) -lt $deadline) {
+        if ((Read-LogTailFrom $len).Contains($banner)) {
+            Write-Output "[harness] '$cmd' is running"
+            $script:TortureStarted = $true
+            return
+        }
+        Start-Sleep -Seconds 2
+    }
+    Write-Output "[harness] ***************************************************************"
+    Write-Output "[harness] ***** FAIL: '$cmd' NEVER STARTED - no [Torture] line in 45s after two attempts."
+    Write-Output "[harness] ***** Check: is this a -devmode launch, did merc_dev arm the set, is the mod actually loaded,"
+    Write-Output "[harness] ***** and did the console take the text (a UI overlay eats keystrokes)?"
+    Write-Output "[harness] ***** Not waiting out the run timeout on a run that never began."
+    Write-Output "[harness] ***************************************************************"
+}
+
+# Menu navigation only. The F-key cases are gone on purpose - see Arm-DevCommands: nothing in
+# this harness fires a test by keypress any more.
 function Tap-Key([string]$name, [int]$after = 180) {
     switch ($name) {
         "down"  { [KeySender]::Tap(0x50, $true,  60) }
         "up"    { [KeySender]::Tap(0x48, $true,  60) }
         "enter" { [KeySender]::Tap(0x1C, $false, 60) }
-        "f6"    { [KeySender]::Tap(0x40, $false, 60) }
-        "f7"    { [KeySender]::Tap(0x41, $false, 60) }
-        "f8"    { [KeySender]::Tap(0x42, $false, 60) }
         "esc"   { [KeySender]::Tap(0x01, $false, 60) }
     }
     Start-Sleep -Milliseconds $after
@@ -144,13 +297,82 @@ function Wait-LogAny([string]$p1, [string]$p2, [int]$timeoutSec) {
     return $null
 }
 
+# Press Continue at the main menu and wait for the load to COMPLETE. The stamped save is the
+# newest by time (Game.SaveGameViaResting / QuickSave both write to the top of the list), and
+# Continue resumes exactly that - the one main-menu surface these keystrokes have driven
+# reliably in every run. Used only by -Plan quest, which needs it in a loop; the campaign keeps
+# its own inline copy so nothing about that path changes.
+#
+# The answer comes back in $script:ContinueLoaded, NOT as a return value: Write-Output inside a
+# function ADDS to its output, so a "return $true" after progress lines hands the caller an
+# array, and any non-empty array is truthy. Same trap, same fix, as Start-Torture.
+function Invoke-ContinueFromMenu {
+    $script:ContinueLoaded = $false
+    for ($attempt = 1; $attempt -le 3 -and -not $script:ContinueLoaded; $attempt++) {
+        if (-not (Focus-Game)) { break }
+        $navLen = 0; try { $navLen = (Get-Item $Log).Length } catch {}
+        if ($attempt -eq 1) {
+            Write-Output "[harness] continue attempt 1: enter"
+            Tap-Key "enter" 2500
+        } else {
+            Write-Output "[harness] continue attempt ${attempt}: up x3, enter"
+            Tap-Key "up" 300; Tap-Key "up" 300; Tap-Key "up" 300
+            Tap-Key "enter" 2500
+        }
+        $started = $false
+        $deadline = (Get-Date).AddSeconds(30)
+        while ((Get-Date) -lt $deadline -and -not $started) {
+            if ((Read-LogTailFrom $navLen).Contains("Loading saved game")) {
+                Write-Output "[harness] continue load started"
+                $started = $true
+            } else { Start-Sleep -Seconds 2 }
+        }
+        if (-not $started) {
+            Write-Output "[harness] continue attempt $attempt did not take - backing out"
+            if (-not (Focus-Game)) { break }
+            Tap-Key "esc" 900; Tap-Key "esc" 1200
+            continue
+        }
+        # Only a COMPLETED load counts: the save list prints "Loading saved game ..." merely
+        # from selecting an entry.
+        $r0 = Wait-LogAny "Game loaded! Starting the inventory monitor" "" 240
+        if ($r0 -eq "Game loaded! Starting the inventory monitor") {
+            $script:ContinueLoaded = $true
+            Start-Sleep -Seconds 12
+        } else {
+            Write-Output "[harness] the continue load started but never finished ($r0)"
+        }
+    }
+}
+
 $t0 = Get-Date
 
 # Launch (killing any prior instance) and wait until the main menu idles.
+function Ensure-SteamAppId {
+    # Launched directly (not through Steam), steam_api refuses to initialise and the game
+    # quits during init with "CSystem::Quit ... reason: Steam Service Quit - not started
+    # through Steam". steam_appid.txt beside the exe is what tells it which app it is, and it
+    # had only ever been created by hand on one machine - so a fresh checkout on a new PC saw
+    # the game exit before the main menu with nothing in the log to explain it.
+    $appIdFile = Join-Path $GameDir "Bin\Win64MasterMasterSteamPGO\steam_appid.txt"
+    if (-not (Test-Path $appIdFile)) {
+        try {
+            [System.IO.File]::WriteAllText($appIdFile, "1771300")
+            Write-Output "[harness] wrote steam_appid.txt (1771300) beside the exe - the game quits at init without it when launched directly"
+        } catch {
+            Write-Output ("[harness] WARN: could not write " + $appIdFile + " - " + $_.Exception.Message)
+        }
+    }
+}
+
 function Launch-GameToMenu {
     Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 3
+    Ensure-SteamAppId
     Write-Output "[harness] launching..."
+    # "+exec user.cfg" is OPTIONAL - the engine shrugs at a user.cfg that does not exist, and
+    # it is only here so a machine that HAS one gets its settings. Nothing in the harness
+    # depends on it.
     Start-Process -FilePath $Exe -WorkingDirectory $GameDir -ArgumentList "-devmode","+exec","user.cfg"
     Start-Sleep -Seconds 12
     for ($try = 0; $try -lt 6; $try++) {
@@ -173,6 +395,7 @@ function Launch-GameToMenu {
         $g = @(Get-Process KingdomCome -ErrorAction SilentlyContinue)
         if ($g.Count -eq 0) {
             Write-Output "[harness] game vanished during init - relaunching"
+            Ensure-SteamAppId
             Start-Process -FilePath $Exe -WorkingDirectory $GameDir -ArgumentList "-devmode","+exec","user.cfg"
             Start-Sleep -Seconds 12; $up0 = Get-Date; $lastLen = -1; $quietSince = Get-Date
             continue
@@ -237,43 +460,139 @@ if ($r -ne "Game loaded! Starting the inventory monitor") {
 }
 if ($Scenario -ne "") { Start-Sleep -Seconds 4 } else { Start-Sleep -Seconds 12 }
 
+# ---------------------------------------------------------------- is this the right world?
+# Generalised from the scenario path, because -SaveFile needs exactly the same guarantee: a
+# drifted menu list must ABORT, never silently test whatever it landed on. $ScenarioFile is
+# set by -Scenario or by -SaveFile; when neither names a file there is nothing to check and
+# the run proceeds from whatever state it gets (which is the campaign's documented habit).
+$wrongWorld = $false
+if ($ScenarioFile -ne "" -and $script:LoadedFile -ne "" -and $script:LoadedFile -ne $ScenarioFile) {
+    Write-Output ("[harness] FAIL: wanted " + $ScenarioFile + " but the engine loaded " + $script:LoadedFile + " - not testing the wrong world (adjust -SaveFile / -ScenarioDowns / -DownsToSave)")
+    Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    $wrongWorld = $true
+}
+
 # ---------------------------------------------------------------- phase A
-if ($Scenario -ne "") {
-    # ------------------------------------------------------------ scenario probe (F7)
-    if ($ScenarioFile -ne "" -and $script:LoadedFile -ne "" -and $script:LoadedFile -ne $ScenarioFile) {
-        Write-Output ("[harness] FAIL: wanted " + $ScenarioFile + " but the engine loaded " + $script:LoadedFile + " - not probing the wrong world (adjust -ScenarioDowns)")
+if ($wrongWorld) {
+    Write-Output "[harness] skipping the run - falling through to the report"
+}
+elseif ($Plan -eq "quest") {
+    # ------------------------------------------------------------ the QUEST plan
+    # A Kleinkrieg playthrough across REAL saves and REAL relaunches. Three stages
+    # (mercenaries_torture_quest.lua), each typed in as merc_torture_quest_auto; the Lua side
+    # dispatches on the TortureStage stamp in the loaded save, so the SAME command runs stage
+    # Q1 on a fresh save and Q2/Q3 on the ones the previous stage wrote. Loop: wait for either
+    # "SAVED - awaiting reload" or "COMPLETE", and on SAVED relaunch, press Continue, re-arm
+    # merc_dev (the dev gate died with the old process) and type the command again.
+    $questDone  = $false
+    $relaunches = 0
+    $stage      = 0
+    while (-not $questDone) {
+        $stage++
+        if (-not (Focus-Game)) {
+            Write-Output "[harness] FAIL: cannot focus the game to start quest stage $stage"
+            break
+        }
+        Arm-DevCommands
+        Write-Output ("[harness] quest stage " + $stage + ": merc_torture_quest_auto")
+        $script:TortureStarted = $false
+        Start-Torture "merc_torture_quest_auto" "=== torture QUEST plan"
+        if (-not $script:TortureStarted) {
+            Write-Output "[harness] quest stage $stage never began - not waiting out a run that never started"
+            break
+        }
+        Write-Output ("[harness] waiting up to " + $QuestTimeout + "s for SAVED or COMPLETE")
+        $rq = Wait-LogAny "[Torture] SAVED - awaiting reload" "[Torture] COMPLETE" $QuestTimeout
+        if ($rq -eq "[Torture] COMPLETE") {
+            Write-Output "[harness] the quest plan reached COMPLETE"
+            $questDone = $true
+            break
+        }
+        if ($rq -eq "GAME_DIED") {
+            Write-Output "[harness] GAME DIED during quest stage $stage - collecting what there is"
+            break
+        }
+        if ($null -eq $rq) {
+            Write-Output "[harness] FAIL: quest stage $stage neither saved nor completed inside $QuestTimeout s"
+            break
+        }
+        # ---- SAVED: relaunch and Continue onto the save the stage just wrote ----
+        if ($relaunches -ge $QuestMaxRelaunches) {
+            Write-Output "[harness] FAIL: the quest plan asked for more than $QuestMaxRelaunches relaunch(es) - stopping"
+            break
+        }
+        # A save FILE must exist before a relaunch can resume it: Game.QuickSave produced
+        # nothing for five runs of the campaign (airborne player) and phase B silently starved.
+        # A silent save failure has to be a loud harness failure, not a starved next stage.
+        $fresh = $null
+        $deadline = (Get-Date).AddSeconds(45)
+        while ((Get-Date) -lt $deadline -and -not $fresh) {
+            $fresh = Get-ChildItem $SaveDir -Filter *.whs -ErrorAction SilentlyContinue |
+                     Where-Object { $_.LastWriteTime -gt $t0 } |
+                     Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if (-not $fresh) { Start-Sleep -Seconds 3 }
+        }
+        if (-not $fresh) {
+            Write-Output "[harness] FAIL: no save file written this run - the next quest stage is impossible"
+            break
+        }
+        Write-Output ("[harness] fresh save on disk: " + $fresh.Name + " (" + $fresh.LastWriteTime.ToString("HH:mm:ss") + ")")
+        Write-Output "[harness] letting the save settle, then relaunching to Continue"
+        Start-Sleep -Seconds 10
+        Launch-GameToMenu
+        $relaunches++
+        Invoke-ContinueFromMenu
+        if (-not $script:ContinueLoaded) {
+            Write-Output "[harness] FAIL: could not drive Continue - the quest plan cannot go on"
+            break
+        }
+    }
+    Write-Output ("[harness] quest run: " + $stage + " stage(s) attempted, " + $relaunches + " relaunch(es)")
+    Start-Sleep -Seconds 6
+    Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+}
+elseif ($Plan -ne "campaign") {
+    # ------------------------------------------------------------ the FIELD plan
+    # Typed into the console rather than pressed: the field plan is deliberately not on any
+    # F-key (see the release policy), and typing is immune to whatever else owns F8 on this
+    # machine. One session, no save, no phase B - the plan quits the game itself when done.
+    if (-not (Focus-Game)) {
+        Write-Output "[harness] FAIL: cannot focus the game to start the field plan"
         Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-        $reportOnly = $true
-    } elseif (-not (Focus-Game)) {
+    } else {
+        Arm-DevCommands
+        $fieldCmd = "merc_torture_field_auto"
+        if ($Plan -eq "field_aggro") { $fieldCmd = "merc_torture_field_aggro_auto" }
+        Start-Torture $fieldCmd "=== torture FIELD plan"
+        if ($script:TortureStarted) {
+            Write-Output ("[harness] waiting up to " + $FieldTimeout + "s for [Torture] COMPLETE")
+            $rf = Wait-LogAny "[Torture] COMPLETE" "" $FieldTimeout
+            if ($rf -eq "GAME_DIED") { Write-Output "[harness] GAME DIED during the field plan" }
+            elseif ($null -eq $rf)   { Write-Output "[harness] FAIL: the field plan never completed inside $FieldTimeout s" }
+        }
+    }
+    Start-Sleep -Seconds 6
+    Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+}
+elseif ($Scenario -ne "") {
+    # ------------------------------------------------------------ scenario probe (F7)
+    if (-not (Focus-Game)) {
         Write-Output "[harness] FAIL: cannot focus the game to start the probe"
         Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
         $reportOnly = $true
     } else {
-        $probeKey = "f7"
-        if ($ScenarioMap[$Scenario].ContainsKey("Aggro") -and $ScenarioMap[$Scenario].Aggro) { $probeKey = "f6" }
-        Write-Output "[harness] $probeKey - scenario probe starts"
-        # Snapshot the log BEFORE the tap: the banner can flush faster than Wait-LogAny
-        # gets to capture its baseline, making a started probe read as never-started.
-        $f7Len = 0; try { $f7Len = (Get-Item $Log).Length } catch {}
-        Tap-Key $probeKey 500
-        $started = $null
-        $dl = (Get-Date).AddSeconds(30)
-        while ((Get-Date) -lt $dl -and -not $started) {
-            if ((Read-LogTailFrom $f7Len).Contains("=== scenario probe")) { $started = "=== scenario probe" }
-            else { Start-Sleep -Seconds 2 }
+        Arm-DevCommands
+        $probeCmd = "merc_torture_probe"
+        if ($ScenarioMap[$Scenario].ContainsKey("Aggro") -and $ScenarioMap[$Scenario].Aggro) {
+            $probeCmd = "merc_torture_probe_aggro"
         }
-        if ($started -ne "=== scenario probe") {
-            Write-Output "[harness] probe did not start - re-focusing and re-tapping $probeKey"
-            Focus-Game | Out-Null
-            Tap-Key $probeKey 500
-            $started = Wait-LogAny "=== scenario probe" "" 30
+        Write-Output "[harness] scenario probe: $probeCmd"
+        Start-Torture $probeCmd "=== scenario probe"
+        if ($script:TortureStarted) {
+            $rp = Wait-LogAny "[Torture] COMPLETE" "" 900
+            if ($rp -eq "GAME_DIED") { Write-Output "[harness] GAME DIED during the probe" }
+            elseif ($null -eq $rp)   { Write-Output "[harness] FAIL: probe never completed" }
         }
-        if ($started -ne "=== scenario probe") {
-            Write-Output "[harness] FAIL: probe never started after two F7 presses"
-        }
-        $rp = Wait-LogAny "[Torture] COMPLETE" "" 900
-        if ($rp -eq "GAME_DIED") { Write-Output "[harness] GAME DIED during the probe" }
-        elseif ($null -eq $rp)   { Write-Output "[harness] FAIL: probe never completed" }
     }
     Start-Sleep -Seconds 6
     Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -284,11 +603,16 @@ if (-not (Focus-Game)) {
     Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     exit 1
 }
-Write-Output "[harness] F8 - torture campaign starts"
-Tap-Key "f8" 500
-
-$r = Wait-LogAny "[Torture] SAVED - awaiting reload" "[Torture] COMPLETE" 800
-if ($r -eq "GAME_DIED") {
+Arm-DevCommands
+Write-Output "[harness] torture campaign: merc_torture_auto"
+$r = "NEVER_STARTED"
+Start-Torture "merc_torture_auto" "=== torture campaign"
+if ($script:TortureStarted) {
+    $r = Wait-LogAny "[Torture] SAVED - awaiting reload" "[Torture] COMPLETE" 800
+}
+if ($r -eq "NEVER_STARTED") {
+    Write-Output "[harness] phase A never began - nothing to verify, and no relaunch is worth burning on it"
+} elseif ($r -eq "GAME_DIED") {
     Write-Output "[harness] GAME DIED during phase A - collecting what there is"
 } elseif ($r -eq "[Torture] COMPLETE") {
     Write-Output "[harness] campaign completed without reaching the save step (see verdicts below)"
@@ -304,7 +628,7 @@ if ($r -eq "GAME_DIED") {
     # A save FILE must exist before a relaunch can resume it - Game.QuickSave produced
     # nothing for five runs (airborne player), and phase B silently starved. Demand a
     # save newer than the campaign's start before burning a relaunch on it.
-    $SaveDir = Join-Path $env:USERPROFILE "Saved Games\kingdomcome2\saves\playline0"
+    # $SaveDir is resolved once near the top now (-SaveFile needs the same folder).
     $fresh = $null
     $deadline = (Get-Date).AddSeconds(45)
     while ((Get-Date) -lt $deadline -and -not $fresh) {
@@ -350,17 +674,26 @@ if ($r -eq "GAME_DIED") {
         }
     }
     if ($bLoaded) {
-        # Phase B is armed by a second F8 now (never self-arms - see mercenaries_torture.lua).
+        # Phase B is armed by running merc_torture_auto a SECOND time (it never self-arms -
+        # see mercenaries_torture.lua): TortureStart sees the stage stamp in the loaded save
+        # and runs the persistence checks instead of a fresh campaign.
         $r0 = Wait-LogAny "Game loaded! Starting the inventory monitor" "" 240
         Start-Sleep -Seconds 12
+        $script:TortureStarted = $false
         if (Focus-Game) {
-            Write-Output "[harness] F8 - phase B"
-            Tap-Key "f8" 500
+            # Fresh process: the dev gate died with the old one.
+            Arm-DevCommands
+            Write-Output "[harness] phase B: merc_torture_auto on the stamped save"
+            Start-Torture "merc_torture_auto" "=== phase B:"
         }
-        Write-Output "[harness] waiting for phase B verdicts..."
-        $r2 = Wait-LogAny "[Torture] COMPLETE" "" 420
-        if ($r2 -eq "GAME_DIED") { Write-Output "[harness] GAME DIED during phase B" }
-        elseif ($null -eq $r2)   { Write-Output "[harness] FAIL: phase B never completed (wrong save resumed?)" }
+        if ($script:TortureStarted) {
+            Write-Output "[harness] waiting for phase B verdicts..."
+            $r2 = Wait-LogAny "[Torture] COMPLETE" "" 420
+            if ($r2 -eq "GAME_DIED") { Write-Output "[harness] GAME DIED during phase B" }
+            elseif ($null -eq $r2)   { Write-Output "[harness] FAIL: phase B never completed (wrong save resumed?)" }
+        } else {
+            Write-Output "[harness] FAIL: phase B never armed - the stamp may not be in the resumed save"
+        }
     } else {
         Write-Output "[harness] FAIL: could not drive Continue - phase B unverified"
     }
@@ -430,10 +763,24 @@ if ($r -eq "GAME_DIED") {
     }
 
     if ($reloaded) {
-        Write-Output "[harness] waiting for phase B verdicts..."
-        $r2 = Wait-LogAny "[Torture] COMPLETE" "" 300
-        if ($r2 -eq "GAME_DIED") { Write-Output "[harness] GAME DIED during phase B" }
-        elseif ($null -eq $r2)   { Write-Output "[harness] FAIL: phase B never completed" }
+        # Same arming as the relaunch path: phase B never self-arms, so it has to be asked
+        # for. The keystroke-reload path used to just wait here and would have waited for
+        # ever. merc_dev survives in this process, but running it again is free.
+        Start-Sleep -Seconds 10
+        $script:TortureStarted = $false
+        if (Focus-Game) {
+            Arm-DevCommands
+            Write-Output "[harness] phase B: merc_torture_auto on the stamped save"
+            Start-Torture "merc_torture_auto" "=== phase B:"
+        }
+        if ($script:TortureStarted) {
+            Write-Output "[harness] waiting for phase B verdicts..."
+            $r2 = Wait-LogAny "[Torture] COMPLETE" "" 300
+            if ($r2 -eq "GAME_DIED") { Write-Output "[harness] GAME DIED during phase B" }
+            elseif ($null -eq $r2)   { Write-Output "[harness] FAIL: phase B never completed" }
+        } else {
+            Write-Output "[harness] FAIL: phase B never armed after the in-field reload"
+        }
     } else {
         Write-Output "[harness] FAIL: could not drive the in-field reload - phase B unverified"
     }
@@ -446,17 +793,37 @@ Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -Err
 # ---------------------------------------------------------------- verdicts
 Write-Output ""
 Write-Output "===== TORTURE OUTPUT ====="
-# A relaunch rotates kcd.log into LogBackups, taking phase A's verdicts with it -
-# report across the current log AND the newest backup.
+# A relaunch rotates kcd.log into LogBackups, taking that session's verdicts with it - report
+# across EVERY backup written since this run began, oldest first, then the current log. The
+# campaign relaunches once and so has exactly one; the quest plan relaunches up to four times
+# and would otherwise lose every stage but the last two.
 $reportLogs = @()
-$bak = Get-ChildItem (Join-Path $GameDir "LogBackups") -Filter *.log -ErrorAction SilentlyContinue |
-       Where-Object { $_.LastWriteTime -gt $t0 } |
-       Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if ($bak) { $reportLogs += $bak.FullName }
+Get-ChildItem (Join-Path $GameDir "LogBackups") -Filter *.log -ErrorAction SilentlyContinue |
+    Where-Object { $_.LastWriteTime -gt $t0 } |
+    Sort-Object LastWriteTime | ForEach-Object { $script:reportLogs += $_.FullName }
 $reportLogs += $Log
+# Three passes over the same lines so each one appears exactly once, in the block where it is
+# useful: verdicts first, then the measurements, then the POS trace as a COUNT. The trace is
+# the field plan's per-merc position dump - deliberately enormous, and what turns "the follow
+# test failed" into "this man peeled off at t=140" - so it is left in kcd.log to be read
+# there rather than reprinted here.
+$posLines = 0
 foreach ($rl in $reportLogs) {
-    Select-String -Path $rl -Pattern "\[Torture\]" -ErrorAction SilentlyContinue | ForEach-Object { $_.Line }
+    Select-String -Path $rl -Pattern "\[Torture\]" -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.Line -match "\[Torture\] POS ") { $script:posLines++ }
+        elseif ($_.Line -notmatch "\[Torture\] INFO ") { $_.Line }
+    }
 }
+
+# Every measurement the run took, in one block: the verdicts above say WHAT passed, these say
+# by how much - distances, gang gaps, loot counts, raid timings.
+Write-Output ""
+Write-Output "===== MEASUREMENTS (INFO) ====="
+foreach ($rl in $reportLogs) {
+    Select-String -Path $rl -Pattern "\[Torture\] INFO " -ErrorAction SilentlyContinue | ForEach-Object { $_.Line }
+}
+Write-Output ""
+Write-Output ("[harness] " + $posLines + " [Torture] POS line(s) of per-merc position trace in the log(s)")
 
 Write-Output ""
 Write-Output "===== HEALTH COUNTERS ====="

@@ -2377,9 +2377,13 @@ function mercenaries:SpawnBanditCamp()
 
     -- Raborsch runs its own module: an authored siege, not a generated camp.
     if kc and kc.siege then
-        S.spawned = true
         pcall(function() self:SpawnRaborsch() end)
-        qLog("the siege of Raborsch stands")
+        -- Claim the slot only if the siege actually stood up. Latching S.spawned before
+        -- the pcall meant a refused/failed build left a zero-man "siege" that the kill
+        -- counter used to read as already won; unlatched, the monitor simply retries.
+        S.spawned = (self.RBQ and self.RBQ.active) and true or false
+        qLog(S.spawned and "the siege of Raborsch stands"
+                        or "the siege of Raborsch did NOT build - will retry")
         return
     end
 
@@ -2589,22 +2593,57 @@ function mercenaries:BanditCampService()
         return
     end
 
+    -- The letter rides on the leader's body and the fallback grant defers to looting
+    -- while it does (BanditCampGrantLetterFallback: "let them loot it themselves"). That
+    -- deferral has no end: nothing ever noticed the BODY going away - engine corpse
+    -- cleanup, a reload that dropped it - so a player who cleared the camp and walked off
+    -- without looting had `letterOnLeader` pinned true for ever, the fallback refused for
+    -- ever, and the hand-in refused for ever. The automated quest run surfaced the
+    -- deferral; this is the missing other half. Judged only after the missing-handle grace
+    -- (BanditCampMissingTicks), the same way a death is, so a streaming hiccup does not
+    -- hand the letter over while the body is still there to loot.
+    if S.cleared and not S.paid and S.letterOnLeader and not self:BanditCampHasLetter() then
+        local body = S.leaderId and System.GetEntity(S.leaderId)
+        if body then
+            S.leaderBodyMissing = 0
+        else
+            S.leaderBodyMissing = (S.leaderBodyMissing or 0) + 1
+            if S.leaderBodyMissing >= (self.BanditCampMissingTicks or 5) then
+                qLog("the leader's body is gone with the letter still on it - granting the letter")
+                S.letterOnLeader = false
+                self:BanditCampGrantLetterFallback()
+            end
+        end
+    end
+
     if not S.spawned then return end
 
     -- The siege counts its own dead: its men are in RBQ, not S.bandits.
     local kcS = self:KleinkriegContract()
     if kcS and kcS.siege then
-        local left = 0
+        -- A siege that never actually stood must not read as a siege that was won.
+        -- S.spawned is set BEFORE the pcall'd SpawnRaborsch, so if the build refused
+        -- (RBQ.active left over, an error mid-build) RBQ holds zero men and the old
+        -- "left == 0 -> complete" closed the contract on the spot. Same doctrine as
+        -- AlxTick: judge only from real evidence - here, a roster that ever had men.
+        if not (self.RBQ and self.RBQ.active) then return end
+        local total, left = 0, 0
         pcall(function()
-            for _, id in ipairs(self.RBQ.foot or {}) do
-                local e = System.GetEntity(id)
-                if e and self:IsAliveAndWell(e, true) then left = left + 1 end
-            end
-            for _, id in ipairs(self.RBQ.archers or {}) do
-                local e = System.GetEntity(id)
-                if e and self:IsAliveAndWell(e, true) then left = left + 1 end
+            for _, list in ipairs({ self.RBQ.foot, self.RBQ.archers }) do
+                for _, id in ipairs(list or {}) do
+                    total = total + 1
+                    local e = System.GetEntity(id)
+                    -- actor/soul both present = streamed in; anything less is
+                    -- "unloaded", not "dead", and counts as still standing.
+                    if e then
+                        if not (e.actor and e.soul) or self:IsAliveAndWell(e, true) then
+                            left = left + 1
+                        end
+                    end
+                end
             end
         end)
+        if total == 0 then return end
         S.target = math.max(S.target or 0, left)
         S.killed = (S.target or 0) - left
         if left == 0 and not S.cleared then

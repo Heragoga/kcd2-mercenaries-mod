@@ -79,7 +79,7 @@
   <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>Người của bạn đang đợi bên ngoài.</Cell></Row>
   <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>Không có chỗ cho họ ở đây – hãy thuê họ nơi khác.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Không đủ groschen!</Cell></Row>
-  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Ngài đã có quá nhiều người rồi! Tối đa 5 người.</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! The company is full.</Cell><Cell>Ngài đã có quá nhiều người rồi! Đội ngũ đã đầy đủ.</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Tất cả lính đánh thuê đã được cho nghỉ.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Lính đánh thuê đang chờ.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Lính đánh thuê đang theo sau.</Cell></Row>

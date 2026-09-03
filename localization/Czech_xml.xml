@@ -79,7 +79,7 @@
   <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>Tvoji muži na tebe čekají venku.</Cell></Row>
   <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>Není tu pro ně místo – najmi je jinde.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Nemáš dost grošů!</Cell></Row>
-  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Už máš moc mužů! Maximum je 5.</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! The company is full.</Cell><Cell>Už máš moc mužů! Kumpanie je plná.</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Všichni žoldáci propuštěni.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Žoldáci čekají.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Žoldáci tě následují.</Cell></Row>

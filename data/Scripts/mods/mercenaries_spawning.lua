@@ -88,7 +88,7 @@ function mercenaries:Hire(cost, amount, tier)
                 name = entityName, 
                 position = offsetPos, 
                 orientation = safeRot, 
-                properties = {guidSharedSoulId = soulGuid}
+                properties = mercenaries:RosterSpawnProps(soulGuid)
             })
             
             local ent = System.GetEntityByName(entityName)
@@ -110,6 +110,9 @@ function mercenaries:Hire(cost, amount, tier)
                     self:EquipMercenary(ent, currentPreset)
                     self:EquipMercenaryWeapon(ent, currentWeaponPreset, currentPreset)
                     self:InjectInteraction(ent)
+                    -- Hired while the company is waiting out a main-quest battle: he joins
+                    -- them rather than standing in the battle (mercenaries_mainquest_watchdog.lua).
+                    if self.MQWOnHire then self:MQWOnHire(ent) end
                     -- With a camp up, say which half of the squad he joined - nothing else
                     -- does, and the default left him neither camping nor following.
                     self:CampOnMercJoined(ent)
@@ -180,7 +183,7 @@ function mercenaries:SpawnMercAt(tier, pos, yaw, outfit, weapon)
         System.SpawnEntity({
             class = "NPC", name = name, position = pos,
             orientation = { x = 0, y = 0, z = yaw or 0 },
-            properties = { guidSharedSoulId = soulGuid },
+            properties = mercenaries:RosterSpawnProps(soulGuid),
         })
         ent = System.GetEntityByName(name)
         if not ent then return end

@@ -1,18 +1,60 @@
 # Generates data/Scripts/mods/mercenaries_gear_data.lua - the GUID -> equipment-slot
-# (armour) and GUID -> weapon-class (weapons) lookup the custom gear set needs.
+# (armour) and GUID -> weapon-class (weapons) lookup the custom gear set needs, plus
+# the set of vanilla items that are NEITHER (food, potions, tools, documents...).
 #
 # There is no runtime bind that reports an item's slot or category, so it has to be
-# baked. Source is the extracted vanilla tables under references/Libs/Tables/item/.
-# Re-run after a game patch:  python tools/gen_gear_table.py
+# baked. Source is the extracted vanilla tables under
+# references/base_game/Libs/Tables/item/.  Re-run after a game patch:
+#     python tools/gen_gear_table.py
+#
+# EVERY item*.xml is read, not just item.xml. Reading only item.xml left 1120 vanilla
+# gear items - all of item__dlc, item__unique, item__rewards, item__horse and
+# item__aux - looking exactly like modded items to the wardrobe, which silently
+# ignored them. See docs/custom-gear.md.
+#
+# The third table is what tells a MODDED item apart from a vanilla non-gear one. Both
+# are absent from the slot/weapon tables, but they must be treated in opposite ways:
+# a loaf of bread in the wardrobe chest is a mistake to ignore, a modded cuirass is a
+# piece to wear. "Not in any of the three tables" means "not vanilla" - i.e. modded,
+# or from a patch newer than this dump - and the wardrobe accepts those.
 import os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TBL  = os.path.join(ROOT, "references", "Libs", "Tables", "item")
+TBL  = os.path.join(ROOT, "references", "base_game", "Libs", "Tables", "item")
 OUT  = os.path.join(ROOT, "data", "Scripts", "mods", "mercenaries_gear_data.lua")
+
+if not os.path.isdir(TBL):
+    raise SystemExit("vanilla item tables not found at %s" % TBL)
 
 def read(name):
     with open(os.path.join(TBL, name), encoding="ascii", errors="ignore") as f:
         return f.read()
+
+def read_all_items():
+    """[(filename, text)] for item.xml plus every item__*.xml, in a stable order."""
+    names = sorted(n for n in os.listdir(TBL)
+                   if n.startswith("item") and n.endswith(".xml")
+                   and not n.endswith(("_category.xml", "_tag.xml", "_ui_sound.xml")))
+    print("item tables: %s" % ", ".join(names))
+    return [(n, read(n)) for n in names]
+
+# Horse tack is matched by KEYWORD, not by prefix. The prefix table has "Bridle" and
+# "Saddle", but the actual clothing names are BasicBridle03_m04, EastSaddle02_m01,
+# PaddedCaparison01_mRuthard - none of which START with the mapped word, so all 415
+# pieces of tack fell through to slot 0. Slot 0 is a legal, WEARABLE answer, so that
+# would have offered the player's mercenaries a saddle to put on.
+HORSE_KEYWORD = [
+    ("Bridle", 14), ("Chanfron", 14), ("Halter", 14),
+    ("Saddle", 16), ("Stirrup", 16),
+    ("Shoe", 21),
+    ("Caparison", 13), ("Harness", 13), ("Blanket", 13), ("Yoke", 13), ("Plate", 13),
+]
+
+def horse_slot(name):
+    for word, sid in HORSE_KEYWORD:
+        if word.lower() in name.lower():
+            return sid
+    return 13          # unrecognised tack is still tack: a horse_torso is rejected too
 
 def attrs(tag):
     return dict(re.findall(r'(\w+)="([^"]*)"', tag))
@@ -66,25 +108,39 @@ def slot_for(a):
             return sid
     return 0
 
-# ---- parse item.xml -----------------------------------------------------------
-items = re.findall(r'<(Armor|Helmet|Hood|MeleeWeapon|MissileWeapon|ItemAlias)\b([^>]*)/>', read("item.xml"))
+# ---- parse every item table ---------------------------------------------------
+TABLES = read_all_items()
+
+# Every vanilla item id there is, gear or not. Matches the opening tag rather than a
+# self-closing one, because an element may carry children (Document does) - the same
+# trap that made gen_item_ids.py miss all 15 quest letters.
+ALL_VANILLA = set()
+for _n, _t in TABLES:
+    ALL_VANILLA |= set(re.findall(r'Id="([0-9a-fA-F-]{36})"', _t))
 
 by_slot, by_wclass, quest, aliases = {}, {}, [], []
-for tag, body in items:
-    a = attrs("<x " + body + ">")
-    gid = a.get("Id")
-    if not gid:
-        continue
-    isq = a.get("IsQuestItem") == "true"
-    if tag == "ItemAlias":
-        aliases.append((gid, a.get("SourceItemId"), isq))
-        continue
-    if tag in ("Armor", "Helmet", "Hood"):
-        by_slot.setdefault(slot_for(a), []).append(gid)
-    else:
-        by_wclass.setdefault(int(a.get("Class", "-1")), []).append(gid)
-    if isq:
-        quest.append(gid)
+for fname, text in TABLES:
+    is_horse = (fname == "item__horse.xml")
+    for tag, body in re.findall(
+            r'<(Armor|Helmet|Hood|MeleeWeapon|MissileWeapon|ItemAlias)\b([^>]*)/>', text):
+        a = attrs("<x " + body + ">")
+        gid = a.get("Id")
+        if not gid:
+            continue
+        isq = a.get("IsQuestItem") == "true"
+        if tag == "ItemAlias":
+            aliases.append((gid, a.get("SourceItemId"), isq))
+            continue
+        if tag in ("Armor", "Helmet", "Hood"):
+            if is_horse:
+                sid = horse_slot(a.get("Clothing") or a.get("Name") or "")
+            else:
+                sid = slot_for(a)
+            by_slot.setdefault(sid, []).append(gid)
+        else:
+            by_wclass.setdefault(int(a.get("Class", "-1")), []).append(gid)
+        if isq:
+            quest.append(gid)
 
 # An alias is a relabelled copy of a real item - grade it as its source.
 src_slot  = {g: s for s, gs in by_slot.items() for g in gs}
@@ -98,6 +154,10 @@ for gid, src, isq in aliases:
         continue
     if isq:
         quest.append(gid)
+
+# Everything vanilla that did not land in a slot or a weapon class.
+gear_ids = {g for gs in by_slot.values() for g in gs} | {g for gs in by_wclass.values() for g in gs}
+non_gear = ALL_VANILLA - gear_ids
 
 # ---- emit ---------------------------------------------------------------------
 def blobs(guids, per=64):
@@ -134,6 +194,26 @@ with open(OUT, "w", encoding="utf-8", newline="\n") as f:
     f.write("mercenaries.GearQuestBlobs = {\n")
     for c in blobs(quest):
         f.write('    "%s",\n' % c)
+    f.write("}\n\n")
+    f.write("-- Vanilla items that are NOT gear: food, potions, tools, documents, ingredients.\n")
+    f.write("-- The wardrobe needs these to tell a mistake from a modded piece. An item in\n")
+    f.write("-- none of the three tables is not vanilla at all, so it is taken to be modded\n")
+    f.write("-- armour and worn; one listed here is politely ignored. See docs/custom-gear.md.\n")
+    f.write("mercenaries.GearNonGearBlobs = {\n")
+    for c in blobs(non_gear):
+        f.write('    "%s",\n' % c)
+    f.write("}\n\n")
+    f.write("-- Clothing-family prefix -> slot, longest first. This is the SAME mapping the\n")
+    f.write("-- generator uses on the vanilla Clothing attribute, kept for runtime use on\n")
+    f.write("-- items that are not in the blobs at all - i.e. modded ones. ItemManager\n")
+    f.write("-- .GetItemName(guid) hands back the item's DB name ('TunicShort05_m09_D'),\n")
+    f.write("-- whose leading letters are the clothing family for 98%% of vanilla armour, so\n")
+    f.write("-- a modder who named their row conventionally gets a real slot - and with it\n")
+    f.write("-- the layer order and the gambeson-under-plate rule, without which plate is\n")
+    f.write("-- silently refused. A miss just means slot unknown, which is still wearable.\n")
+    f.write("mercenaries.GearNamePrefixSlots = {\n")
+    for name, sid in prefixes:
+        f.write('    { "%s", %d },\n' % (name, sid))
     f.write("}\n")
 
 n_arm = sum(len(set(v)) for v in by_slot.values())

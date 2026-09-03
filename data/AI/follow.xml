@@ -31,7 +31,9 @@
                  a horse the merc was still walking to, and because the counter is never
                  reset on the mounted path the blips accumulated over a whole ride. -->
             <Variable name="despawnCountdown" type="_int" values="8" isPersistent="0" form="single" />
-            <!-- Mount attempts before giving up. The horse is spawned on a random 5m
+            <!-- Mount attempts before giving up. The horse is spawned on a random 2m
+                 bearing and the man is ForceMounted onto it the same tick (MercInstantMount);
+                 the walk-to-mount path below is the fallback if that bind does not take.
                  bearing, which can land across a fence; a fresh angle usually works. -->
             <Variable name="mountTries" type="_int" values="0" isPersistent="0" form="single" />
             <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms')" isPersistent="0" form="single" />
@@ -239,6 +241,7 @@
                                                 data.horse = existingHorse.this.id
                                                 data.horseSpawned = true
                                                 mercenaries:ApplyKeepUpBuff(existingHorse, mercenaries.HorseKeepUpBuff)
+                                                mercenaries:MercInstantMount(entity, existingHorse)
                                                 return
                                             end
                                             if data.mountAbandoned then return end
@@ -247,7 +250,7 @@
                                             if not pos then return end
 
                                             local angle = math.random() * 2 * math.pi
-                                            local offset = 5.0
+                                            local offset = 2.0
 
 
                                             local horsePos = {
@@ -282,6 +285,7 @@
                                                 data.horseSpawned = true
                                                 data.despawnCountdown = 8
                                                 mercenaries:ApplyKeepUpBuff(horseEnt, mercenaries.HorseKeepUpBuff)
+                                                mercenaries:MercInstantMount(entity, horseEnt)
                                             end
                                         else
                                             data.horseSpawned = false

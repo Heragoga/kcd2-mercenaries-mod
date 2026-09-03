@@ -19,3 +19,4 @@ Unlike the `Smithery` (which is an invisible logic entity — see the forge doc)
 
 * Use `alchemy_table_a.cgf` for the spawned mesh. `alchemy_table_b` was see-through from the back, and `alchemy_table_master` rendered invisible as a `BasicEntity`.
 * Do the proximity search for props using the table's **real** position, then move the table **last** — otherwise the search origin is already displaced.
+* The table's *current* position is not its home after a reload — the engine restores it at the camp, and treating that as home made the auto-restore pack the bench two seconds after every load. `StationHome` keeps the real home with the save; see [camp-forge.md](camp-forge.md), "Surviving a reload".

@@ -971,7 +971,6 @@
 
     <!-- ranks abreast - a battle line (40) -->
     <Formation name="merc_line40">
-        <Spot name="front" radius="0.9" x="-12" y="0" />
         <Spot name="front" radius="0.9" x="-10" y="0" />
         <Spot name="front" radius="0.9" x="-8" y="0" />
         <Spot name="front" radius="0.9" x="-6" y="0" />
@@ -982,9 +981,6 @@
         <Spot name="front" radius="0.9" x="6" y="0" />
         <Spot name="front" radius="0.9" x="8" y="0" />
         <Spot name="front" radius="0.9" x="10" y="0" />
-        <Spot name="front" radius="0.9" x="12" y="0" />
-        <Spot name="front" radius="0.9" x="14" y="0" />
-        <Spot name="front" radius="0.9" x="-12" y="2" />
         <Spot name="front" radius="0.9" x="-10" y="2" />
         <Spot name="front" radius="0.9" x="-8" y="2" />
         <Spot name="front" radius="0.9" x="-6" y="2" />
@@ -996,61 +992,6 @@
         <Spot name="front" radius="0.9" x="6" y="2" />
         <Spot name="front" radius="0.9" x="8" y="2" />
         <Spot name="front" radius="0.9" x="10" y="2" />
-        <Spot name="front" radius="0.9" x="12" y="2" />
-        <Spot name="front" radius="0.9" x="14" y="2" />
-        <Spot name="back" radius="0.9" x="-11" y="4" />
-        <Spot name="back" radius="0.9" x="-9" y="4" />
-        <Spot name="back" radius="0.9" x="-7" y="4" />
-        <Spot name="back" radius="0.9" x="-5" y="4" />
-        <Spot name="back" radius="0.9" x="-3" y="4" />
-        <Spot name="back" radius="0.9" x="-1" y="4" />
-        <Spot name="back" radius="0.9" x="1" y="4" />
-        <Spot name="back" radius="0.9" x="3" y="4" />
-        <Spot name="back" radius="0.9" x="5" y="4" />
-        <Spot name="back" radius="0.9" x="7" y="4" />
-        <Spot name="back" radius="0.9" x="9" y="4" />
-        <Spot name="back" radius="0.9" x="11" y="4" />
-        <Spot name="back" radius="0.9" x="13" y="4" />
-    </Formation>
-
-    <!-- ranks abreast - a battle line (50) -->
-    <Formation name="merc_line50">
-        <Spot name="front" radius="0.9" x="-16" y="0" />
-        <Spot name="front" radius="0.9" x="-14" y="0" />
-        <Spot name="front" radius="0.9" x="-12" y="0" />
-        <Spot name="front" radius="0.9" x="-10" y="0" />
-        <Spot name="front" radius="0.9" x="-8" y="0" />
-        <Spot name="front" radius="0.9" x="-6" y="0" />
-        <Spot name="front" radius="0.9" x="-4" y="0" />
-        <Spot name="front" radius="0.9" x="-2" y="0" />
-        <Spot name="front" radius="0.9" x="2" y="0" />
-        <Spot name="front" radius="0.9" x="4" y="0" />
-        <Spot name="front" radius="0.9" x="6" y="0" />
-        <Spot name="front" radius="0.9" x="8" y="0" />
-        <Spot name="front" radius="0.9" x="10" y="0" />
-        <Spot name="front" radius="0.9" x="12" y="0" />
-        <Spot name="front" radius="0.9" x="14" y="0" />
-        <Spot name="front" radius="0.9" x="16" y="0" />
-        <Spot name="front" radius="0.9" x="-16" y="2" />
-        <Spot name="front" radius="0.9" x="-14" y="2" />
-        <Spot name="front" radius="0.9" x="-12" y="2" />
-        <Spot name="front" radius="0.9" x="-10" y="2" />
-        <Spot name="front" radius="0.9" x="-8" y="2" />
-        <Spot name="front" radius="0.9" x="-6" y="2" />
-        <Spot name="front" radius="0.9" x="-4" y="2" />
-        <Spot name="front" radius="0.9" x="-2" y="2" />
-        <Spot name="front" radius="0.9" x="0" y="2" />
-        <Spot name="front" radius="0.9" x="2" y="2" />
-        <Spot name="front" radius="0.9" x="4" y="2" />
-        <Spot name="front" radius="0.9" x="6" y="2" />
-        <Spot name="front" radius="0.9" x="8" y="2" />
-        <Spot name="front" radius="0.9" x="10" y="2" />
-        <Spot name="front" radius="0.9" x="12" y="2" />
-        <Spot name="front" radius="0.9" x="14" y="2" />
-        <Spot name="front" radius="0.9" x="16" y="2" />
-        <Spot name="back" radius="0.9" x="-16" y="4" />
-        <Spot name="back" radius="0.9" x="-14" y="4" />
-        <Spot name="back" radius="0.9" x="-12" y="4" />
         <Spot name="back" radius="0.9" x="-10" y="4" />
         <Spot name="back" radius="0.9" x="-8" y="4" />
         <Spot name="back" radius="0.9" x="-6" y="4" />
@@ -1062,9 +1003,68 @@
         <Spot name="back" radius="0.9" x="6" y="4" />
         <Spot name="back" radius="0.9" x="8" y="4" />
         <Spot name="back" radius="0.9" x="10" y="4" />
-        <Spot name="back" radius="0.9" x="12" y="4" />
-        <Spot name="back" radius="0.9" x="14" y="4" />
-        <Spot name="back" radius="0.9" x="16" y="4" />
+        <Spot name="back" radius="0.9" x="-7" y="6" />
+        <Spot name="back" radius="0.9" x="-5" y="6" />
+        <Spot name="back" radius="0.9" x="-3" y="6" />
+        <Spot name="back" radius="0.9" x="-1" y="6" />
+        <Spot name="back" radius="0.9" x="1" y="6" />
+        <Spot name="back" radius="0.9" x="3" y="6" />
+        <Spot name="back" radius="0.9" x="5" y="6" />
+        <Spot name="back" radius="0.9" x="7" y="6" />
+    </Formation>
+
+    <!-- ranks abreast - a battle line (50) -->
+    <Formation name="merc_line50">
+        <Spot name="front" radius="0.9" x="-10" y="0" />
+        <Spot name="front" radius="0.9" x="-8" y="0" />
+        <Spot name="front" radius="0.9" x="-6" y="0" />
+        <Spot name="front" radius="0.9" x="-4" y="0" />
+        <Spot name="front" radius="0.9" x="-2" y="0" />
+        <Spot name="front" radius="0.9" x="2" y="0" />
+        <Spot name="front" radius="0.9" x="4" y="0" />
+        <Spot name="front" radius="0.9" x="6" y="0" />
+        <Spot name="front" radius="0.9" x="8" y="0" />
+        <Spot name="front" radius="0.9" x="10" y="0" />
+        <Spot name="front" radius="0.9" x="-10" y="2" />
+        <Spot name="front" radius="0.9" x="-8" y="2" />
+        <Spot name="front" radius="0.9" x="-6" y="2" />
+        <Spot name="front" radius="0.9" x="-4" y="2" />
+        <Spot name="front" radius="0.9" x="-2" y="2" />
+        <Spot name="front" radius="0.9" x="0" y="2" />
+        <Spot name="front" radius="0.9" x="2" y="2" />
+        <Spot name="front" radius="0.9" x="4" y="2" />
+        <Spot name="front" radius="0.9" x="6" y="2" />
+        <Spot name="front" radius="0.9" x="8" y="2" />
+        <Spot name="front" radius="0.9" x="10" y="2" />
+        <Spot name="back" radius="0.9" x="-10" y="4" />
+        <Spot name="back" radius="0.9" x="-8" y="4" />
+        <Spot name="back" radius="0.9" x="-6" y="4" />
+        <Spot name="back" radius="0.9" x="-4" y="4" />
+        <Spot name="back" radius="0.9" x="-2" y="4" />
+        <Spot name="back" radius="0.9" x="0" y="4" />
+        <Spot name="back" radius="0.9" x="2" y="4" />
+        <Spot name="back" radius="0.9" x="4" y="4" />
+        <Spot name="back" radius="0.9" x="6" y="4" />
+        <Spot name="back" radius="0.9" x="8" y="4" />
+        <Spot name="back" radius="0.9" x="10" y="4" />
+        <Spot name="back" radius="0.9" x="-10" y="6" />
+        <Spot name="back" radius="0.9" x="-8" y="6" />
+        <Spot name="back" radius="0.9" x="-6" y="6" />
+        <Spot name="back" radius="0.9" x="-4" y="6" />
+        <Spot name="back" radius="0.9" x="-2" y="6" />
+        <Spot name="back" radius="0.9" x="0" y="6" />
+        <Spot name="back" radius="0.9" x="2" y="6" />
+        <Spot name="back" radius="0.9" x="4" y="6" />
+        <Spot name="back" radius="0.9" x="6" y="6" />
+        <Spot name="back" radius="0.9" x="8" y="6" />
+        <Spot name="back" radius="0.9" x="10" y="6" />
+        <Spot name="back" radius="0.9" x="-6" y="8" />
+        <Spot name="back" radius="0.9" x="-4" y="8" />
+        <Spot name="back" radius="0.9" x="-2" y="8" />
+        <Spot name="back" radius="0.9" x="0" y="8" />
+        <Spot name="back" radius="0.9" x="2" y="8" />
+        <Spot name="back" radius="0.9" x="4" y="8" />
+        <Spot name="back" radius="0.9" x="6" y="8" />
     </Formation>
 
     <!-- square block (6) -->

@@ -11,8 +11,10 @@ order it about, camp with it, and take it to war. Up to **50 men** under your co
    `Mods\mercenaries\mod.manifest`.
 2. Start the game. No launcher argument and no load-order entry are needed.
 
-To uninstall, dismiss your company first (`merc_dismiss`, or the dialogue), break camp, save,
-then delete the folder.
+To uninstall, open the console and run `merc_uninstall yes` - it removes every mercenary,
+horse, patrol, camp structure and hidden state the mod put into your world. Then **save the
+game**, exit, and delete the folder. Skipping this step leaves mod entities baked into your
+saves, which makes them load very slowly (up to a minute) once the mod is gone.
 
 ## Getting started
 
@@ -86,10 +88,32 @@ Start at [docs/index.md](docs/index.md).
 
 ## Building
 
-- `PackageMod.bat` builds the mod into the game's `Mods` folder and launches the release exe.
-- `PackageModDev.bat` does the same but launches the dev exe, which writes `kcd.log`.
+- `PackageMod.bat` builds the mod into the game's `Mods` folder.
+- `PackageModDev.bat` does the same but deploys to the dev build and launches its exe,
+  which writes `kcd.log` with the `[Error]`/`[Warning]` lines the retail build swallows.
 - `PackageRelease.bat` produces the release archives, `release/mercenaries.zip` and
   `release/UNLIMITED mercenaries.zip`. Run `PackageMod.bat` first.
+
+**Nothing here has the game's path baked in.** Every script (and both test harnesses)
+calls `tools/Find-KCD2.ps1`, which checks `KCD2_DIR`, then `tools/local.paths.txt`, then
+every Steam library on the machine — including ones on other drives — so a fresh clone on
+a new PC normally just works. When it cannot find the game (a non-Steam copy, an unusual
+folder), tell it once:
+
+```bash
+set KCD2_DIR=D:\path\to\KingdomComeDeliverance2
+```
+
+or copy `tools/local.paths.txt.example` to `tools/local.paths.txt` and fill it in — that
+file is gitignored, so each machine keeps its own. The **dev build is never guessed**: set
+`KCD2_DEV_DIR` (or the `dev=` line) if you want `PackageModDev.bat`, because deploying a
+dev pak into the game you actually play would be worse than failing.
+
+To check what it finds on this machine:
+
+```bash
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\Find-KCD2.ps1
+```
 
 Both archives are the same build with voicelines; only the companion limit differs. The
 supported limit is 50 and lives in the source, not the packager: `mercenaries.MaxCompanions`

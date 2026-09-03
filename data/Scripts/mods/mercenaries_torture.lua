@@ -21,6 +21,10 @@ mercenaries.TortureTickMs   = 1000
 mercenaries.TortureAutoQuit = false
 mercenaries.TortureHover    = 16.0
 mercenaries.TortureDeadline = 900     -- phase A hard cap, seconds
+-- Read by mercenaries_main_quest_handler.lua's MonitorMainQuestLoop: while a `ground` step
+-- is walking Henry by SetWorldPos, its ghost-movement and instant-teleport checks must not
+-- read that as a fast travel and idle the squad. Set/cleared only by the plan machine.
+mercenaries.TortureDrivesPlayer = false
 
 local function tLog(s) System.LogAlways("[Torture] " .. tostring(s)) end
 
@@ -125,29 +129,125 @@ end
 -- player safety: held aloft, immortal, re-asserted every tick
 -- ---------------------------------------------------------------------------
 
+-- Arm the safety NOW, before the first tick - not on it. A run where the trigger did not
+-- take (the game's own bindings shadow the F-keys, so a tapped F8 can do nothing at all)
+-- left Henry standing unprotected in the open and he was killed, because god mode was only
+-- ever armed by a tick that never came. Arming it in the starter means the worst a dead
+-- trigger can now cost is time.
+function mercenaries:TortureArmSafety(S, hoist)
+    S.godTried = true
+    -- `god` is NOT a console command on this build ("[Warning] Unknown command: god" in
+    -- every run's log) - the two lines below are kept only so an older build that has it
+    -- still benefits. The real thing is GameRules.SetInvulnerability, a documented
+    -- scriptbind (references/kcd2-mod-docs-main: "GameRules.SetInvulnerability(
+    -- ScriptHandle playerId, bool invulnerable)"), found only after the second run in
+    -- which Henry died. Its answer is logged so a build where it does nothing is visible.
+    pcall(function() System.ExecuteCommand("god 1") end)
+    pcall(function() System.ExecuteCommand("god") end)
+    self:TortureInvulnerable(true)
+    if not (hoist and S.anchor) then return end
+    self:TortureHoist(S.anchor)
+end
+
+-- There is NO player invulnerability on this build. Run 3 proved it: `GameRules` exposes no
+-- methods to Lua here, and the only SetInvulnerability in the whole Lua state belongs to
+-- BreakableObject/DestroyableObject. What the player does have is the same Actor bind the
+-- quest camps use to buff their leaders (SetMaxHealth/SetHealth/GetMaxHealth), so god mode
+-- is arithmetic: max health raised to a number no fight can take off in the second between
+-- two heals, and TortureKeepSafe refilling it every tick. The original maximum is kept and
+-- put back by TortureFinish for a run that does not quit the game.
+mercenaries.TortureGodHealth = 50000
+
+function mercenaries:TortureInvulnerable(on)
+    local a = player and player.actor
+    if not a then tLog("invulnerability: player.actor is nil - Henry is MORTAL"); return end
+    if on then
+        pcall(function()
+            if not self._tortureRealMaxHp then self._tortureRealMaxHp = a:GetMaxHealth() end
+            a:SetMaxHealth(self.TortureGodHealth)
+            a:SetHealth(self.TortureGodHealth)
+        end)
+    else
+        pcall(function()
+            local m = self._tortureRealMaxHp
+            if m and m > 0 then a:SetMaxHealth(m); a:SetHealth(m) end
+            self._tortureRealMaxHp = nil
+        end)
+    end
+    local mx, hp = "?", "?"
+    pcall(function() mx = tostring(a:GetMaxHealth()); hp = tostring(a:GetHealth()) end)
+    tLog("invulnerability " .. (on and "ON" or "OFF") .. " -> maxHealth=" .. mx .. " health=" .. hp)
+end
+
+-- Hover ABOVE THE GROUND, not above the anchor's own z. The quest plan learned this the
+-- hard way: patrol_company's cached site z is ~15 m below the road that is actually there,
+-- so "anchor z + 16" put Henry two metres off the ground beside a knight, and he died.
+-- TortureGroundZ reads the terrain (falling back to the camp's own downward ray).
+function mercenaries:TortureHoist(a)
+    if not a then return end
+    pcall(function()
+        local gz = self:TortureGroundZ(a.x, a.y, a.z) or a.z
+        player:SetWorldPos({ x = a.x, y = a.y, z = gz + self.TortureHover })
+    end)
+    pcall(function() player:SetWorldAngles({ x = -1.22, y = 0, z = 0 }) end)
+end
+
 function mercenaries:TortureKeepSafe()
     local S = self._tortureState
     if not (S and S.anchor) then return end
+    -- God is armed FIRST and unconditionally. It used to be armed after the hoist, which
+    -- was fine while every step hovered; a `ground` step returns below without touching
+    -- Henry at all, and the field plan's very first walking step must not run him across
+    -- open country mortal.
+    if not S.godTried then
+        S.godTried = true
+        pcall(function() System.ExecuteCommand("god 1") end)
+        pcall(function() System.ExecuteCommand("god") end)
+    end
+    -- THERE IS NO GOD MODE ON THIS BUILD. The field run of 2026-09-02 logged
+    -- "[Warning] Unknown command: god" for both attempts above - so every "god mode"
+    -- this file ever claimed was a no-op, and the hover alone is what kept Henry alive
+    -- (and the one time a plan failed to start he stood on the ground and died). The
+    -- real protection is this: full health re-asserted every tick, through the same
+    -- actor:SetHealth/GetMaxHealth pair the quest camps use on their leaders. It runs
+    -- for hovering AND ground steps, before either returns below, and it is what lets
+    -- the quest plan walk him up to a bandit for the disperse test.
+    pcall(function()
+        local a = player and player.actor
+        if not a then return end
+        local m = a:GetMaxHealth()
+        -- A load or a scripted event can put the real maximum back; re-raise it so the
+        -- refill below always has the whole 50k to fill (see TortureInvulnerable).
+        if self._tortureRealMaxHp and m and m < (self.TortureGodHealth or 50000) then
+            a:SetMaxHealth(self.TortureGodHealth)
+            m = self.TortureGodHealth
+        end
+        -- Read BEFORE the refill, a few ticks in: the arm-time read-back showed
+        -- maxHealth=50000 but health=100 in the same frame, so whether SetHealth actually
+        -- takes on the player is unproven. This line answers it on the next run.
+        S.healTicks = (S.healTicks or 0) + 1
+        if S.healTicks == 5 or S.healTicks == 60 then
+            tLog(string.format("health check at tick %d: health=%s max=%s (refilled every tick)",
+                S.healTicks, tostring(a:GetHealth()), tostring(m)))
+        end
+        if m and m > 0 then a:SetHealth(m) end
+    end)
+    -- A `ground = true` step DRIVES Henry itself (TortureWalkTo / TortureWalkRoute): he has
+    -- to be on his feet for the squad to have anything to follow, and the hoist would fight
+    -- the walk metre for metre. Position and angles are left entirely to the step; only god
+    -- mode is asserted, so no field test can kill him either.
+    if S.plan and S.plan.ground then return end
     -- The save step lands Henry: the engine refuses to write a save while the player
     -- is airborne, and he hovers for the whole campaign - which is why Game.QuickSave
     -- never produced a file in five runs. God stays on either way.
     if S.groundForSave then
         pcall(function()
             local a = S.anchor
-            player:SetWorldPos({ x = a.x, y = a.y, z = a.z })
+            player:SetWorldPos({ x = a.x, y = a.y, z = self:TortureGroundZ(a.x, a.y, a.z) or a.z })
         end)
         return
     end
-    pcall(function()
-        local a = S.anchor
-        player:SetWorldPos({ x = a.x, y = a.y, z = a.z + self.TortureHover })
-    end)
-    pcall(function() player:SetWorldAngles({ x = -1.22, y = 0, z = 0 }) end)
-    if not S.godTried then
-        S.godTried = true
-        pcall(function() System.ExecuteCommand("god 1") end)
-        pcall(function() System.ExecuteCommand("god") end)
-    end
+    self:TortureHoist(S.anchor)
 end
 
 -- ---------------------------------------------------------------------------
@@ -518,7 +618,9 @@ function mercenaries:TortureStep()
         return
     end
 
-    if now - S.startedAt > self.TortureDeadline then
+    -- S.deadline lets a plan set its own cap (the field plan runs far longer than the
+    -- campaign); nil keeps the campaign's, so nothing about it changes.
+    if now - S.startedAt > (S.deadline or self.TortureDeadline) then
         self:TortureCheck(S.plan and S.plan.name or "?", false, "campaign deadline hit mid-step")
         return self:TortureFinish()
     end
@@ -539,6 +641,14 @@ function mercenaries:TortureStep()
         self:TortureCheck(plan.name, false, "check errored: " .. tostring(verdict))
         return self:TortureNext()
     end
+    -- A third verdict, used only by the field plan's aggro-gated step: NOT APPLICABLE here.
+    -- It must not read as a PASS (nothing was proved) and must not read as a FAIL (nothing
+    -- was broken), so it gets its own line and its own counter.
+    if verdict == "skip" then
+        S.skip = (S.skip or 0) + 1
+        tLog("SKIP " .. plan.name .. (detail and (" - " .. tostring(detail)) or ""))
+        return self:TortureNext()
+    end
     if verdict == true then
         self:TortureCheck(plan.name, true)
         return self:TortureNext()
@@ -555,8 +665,10 @@ end
 function mercenaries:TortureNext()
     local S = self._tortureState
 
-    -- The quicksave step hands control to the harness rather than to a next step.
-    if S.plan and S.plan.name == "quicksave" then
+    -- The quicksave step hands control to the harness rather than to a next step. The quest
+    -- plan (mercenaries_torture_quest.lua) saves twice, in the middle of its own stage lists,
+    -- so it marks those steps `awaitReload` instead of relying on the campaign's step name.
+    if S.plan and (S.plan.name == "quicksave" or S.plan.awaitReload == true) then
         S.awaitReload, S.awaitFrom = true, tClock()
         tLog("SAVED - awaiting reload")
         return
@@ -567,6 +679,20 @@ function mercenaries:TortureNext()
     if not plan then return self:TortureFinish() end
     S.plan, S.stepFrom, S.actions = plan, tClock(), nil
     S.oneKey, S.oneEnt, S.sawBusy, S.restored, S.before = nil, nil, nil, nil, nil
+    -- Per-step walk/sample state (the field plan's). Cleared here rather than in each step's
+    -- run, so a step can never inherit the previous one's distance samples or walk cursor.
+    S.walkFrom, S.samples, S.farStreak, S.maxFarStreak, S.maxFarName = nil, nil, nil, 0, nil
+    S.maxEver, S.maxEverName, S.posAt, S.shapeIdx, S.shapeAt, S.shapeKey = 0, nil, nil, nil, nil, nil
+    -- The provoke and leave-the-area bookkeeping. Cleared BEFORE run, which is where the
+    -- probe's provoke_test fills targetName/forcedKeys in, so that step is unaffected.
+    -- S.fieldStart deliberately survives every step: it is the save's start position, and
+    -- fight_base_enemies has to be able to get back to it after a kilometre of walking.
+    S.provoked, S.provokeAt, S.homeAt, S.targetName, S.forcedKeys = nil, nil, nil, nil, nil
+    S.preJump, S.preJumpN, S.newGangKey, S.newGangAt, S.awayLogged = nil, nil, nil, nil, nil
+    S.killedAt, S.lootOpenedAt, S.lootIdleFrom = nil, nil, nil
+    -- One flag, one place: a `ground` step drives Henry, so the fast-travel detector must
+    -- stand down for exactly its duration (see mercenaries_main_quest_handler.lua).
+    self.TortureDrivesPlayer = (plan.ground == true)
     tLog("step '" .. plan.name .. "'")
     local ok, err = pcall(plan.run, self, S)
     if not ok then tLog("run error in '" .. plan.name .. "': " .. tostring(err)) end
@@ -575,11 +701,23 @@ end
 function mercenaries:TortureFinish()
     local S = self._tortureState
     self.TortureRunning = false
+    -- Hand the player back to the game: nothing beyond a running plan may keep the
+    -- fast-travel detector switched off - nor keep him immortal.
+    self.TortureDrivesPlayer = false
+    pcall(function() self:TortureInvulnerable(false) end)
     if self._tortureRaidWas ~= nil then
         self.RaidEnabled, self._tortureRaidWas = self._tortureRaidWas, nil
     end
+    if self._torturePatrolWas ~= nil then
+        self.LivePatrolsEnabled, self._torturePatrolWas = self._torturePatrolWas, nil
+    end
     tLog(string.format("=========== %d passed, %d failed ===========",
         (S and S.pass) or 0, (S and S.fail) or 0))
+    -- Only printed when there is something to print, so the campaign's summary is
+    -- byte-for-byte what it always was.
+    if S and (S.skip or 0) > 0 then
+        tLog(string.format("=========== %d skipped (not applicable to this save) ===========", S.skip))
+    end
     tLog("COMPLETE")
     if self.TortureAutoQuit then
         tLog("auto-quit")
@@ -590,15 +728,24 @@ end
 function mercenaries:TortureStart(autoquit)
     if self.TortureRunning then tLog("already running"); return end
     if not player then tLog("no player - not in game yet"); return end
-    -- A stamped save means this F8 is the harness's second press, after its relaunch:
-    -- run the persistence checks instead of a fresh campaign. Explicitly keyed to F8 so
-    -- a player loading a stamped save is never hijacked - nothing here runs un-asked.
-    if self:LoadString("TortureStage") == "B" then
+    -- A stamped save means this is the harness's SECOND merc_torture_auto, after its
+    -- relaunch: run the persistence checks instead of a fresh campaign. It only ever happens
+    -- because somebody asked for it - a player loading a stamped save is never hijacked.
+    local stage = self:LoadString("TortureStage")
+    if stage == "B" then
         self:SaveString("TortureStage", "done")
-        tLog("=== phase B: verifying the reloaded world (F8 on a stamped save) ===")
+        tLog("=== phase B: verifying the reloaded world (merc_torture_auto on a stamped save) ===")
         pcall(function() System.ExecuteCommand("god 1") end)
         Script.SetTimerForFunction(12000, "mercenaries.TorturePhaseB")
         return
+    end
+    -- ...and a "Q..." stamp belongs to the QUEST plan (mercenaries_torture_quest.lua), which
+    -- runs across three sessions of its own. Hand straight over rather than starting a fresh
+    -- camp campaign on top of a live Kleinkrieg contract. Same doctrine as phase B: this only
+    -- ever happens because somebody typed merc_torture_auto on a stamped save.
+    if stage and string.sub(tostring(stage), 1, 1) == "Q" and self.TortureQuestStages
+       and self.TortureQuestStages[stage] then
+        return self:TortureStartQuest(autoquit)
     end
     self.TortureRunning  = true
     self.TortureAutoQuit = (autoquit == true)
@@ -612,6 +759,9 @@ function mercenaries:TortureStart(autoquit)
         idx = 1, plan = self.TorturePlan[1], planList = self.TorturePlan, stepFrom = tClock(),
         startedAt = tClock(), anchor = anchor, pass = 0, fail = 0,
     }
+    -- God and the hoist immediately, so Henry is safe from this instant rather than from the
+    -- first tick - see TortureArmSafety.
+    self:TortureArmSafety(self._tortureState, true)
     -- The campaign stages its own fights; an unscheduled raid landing mid-step would
     -- read as an unrelated FAIL. Put back on finish.
     self._tortureRaidWas = self.RaidEnabled
@@ -1046,6 +1196,7 @@ function mercenaries:TortureStartProbe(autoquit, provoke)
         stepFrom = tClock(), startedAt = tClock(), anchor = anchor, pass = 0, fail = 0,
         provoke = (provoke == true),
     }
+    self:TortureArmSafety(self._tortureState, true)
     -- Organic raids off for the probe too (raid_test launches its own where applicable).
     self._tortureRaidWas = self.RaidEnabled
     self.RaidEnabled = false
@@ -1056,22 +1207,1284 @@ function mercenaries:TortureStartProbe(autoquit, provoke)
 end
 
 -- ---------------------------------------------------------------------------
+-- THE FIELD PLAN (merc_torture_field / merc_torture_field_auto, plus the aggro pair).
+--
+-- The campaign tests the CAMP with Henry pinned 16m above it. This one tests everything
+-- that only exists while he is WALKING: follow at three squad sizes and three formation
+-- shapes, a fight in the open and the loot-and-reform cycle after it, a camp raised and
+-- struck in the field, patrol pressure on a real recorded road, and a raid. One session,
+-- no save, no reload - so nothing here depends on the save/relaunch machinery.
+--
+-- Every step carries `ground = true`: Henry stays on his feet, in god mode, for the whole
+-- run, and is moved TortureWalkStep metres per tick along a patrol route. That is the whole
+-- point - a squad following a hovering player is not a follow test - and it is also why
+-- TortureDrivesPlayer exists, because the mod's own fast-travel detector reads a
+-- SetWorldPos walk as a teleport and would idle the squad for the entire run.
+--
+-- Timeouts are sized for a ~15fps notebook: nothing below is judged on frames, every
+-- window is real seconds, and every limit is two to three times what the same thing takes
+-- on a healthy machine.
+-- ---------------------------------------------------------------------------
+
+mercenaries.TortureWalkStep       = 1.5    -- metres per 1s tick - a walk, not a sprint
+mercenaries.TortureWalkSettleSecs = 25.0   -- after a hire or a jump, before a walk is judged
+mercenaries.TortureFollowNear     = 35.0   -- every man must be this close when a walk ends
+mercenaries.TortureFollowMean     = 20.0   -- ...and the mean over the last 30s this close
+mercenaries.TortureFollowFar      = 80.0   -- a man beyond this is "left behind"...
+mercenaries.TortureFollowFarSecs  = 15.0   -- ...and may not stay there longer than this
+mercenaries.TortureMeanWindow     = 30.0
+mercenaries.TortureLogEvery       = 5.0    -- seconds between POS traces while walking/fighting
+-- Deliberately just under the harness's own 1500s wait for "[Torture] COMPLETE": if the
+-- plan is going to run out of time, it must be the one that says so - a plan killed by the
+-- harness reports nothing at all, and a truncated report is worth more than no report.
+mercenaries.TortureFieldDeadline  = 1620   -- happy path ~1300-1400s at 15fps once the loot window was added
+
+-- Ground height under (x,y). System.GetTerrainElevation is the engine's cheap answer and is
+-- pcalled because it is the one call in this file with no prior use anywhere in the mod; the
+-- camp's own downward ray (CampSnapToGround, behind every prop placement in the game) is the
+-- proven fallback, and the walker's previous z is the last resort. A walk that steps a metre
+-- wrong is still a walk; a walk that drops Henry through the world is not.
+function mercenaries:TortureGroundZ(x, y, prevZ)
+    local z
+    pcall(function() z = System.GetTerrainElevation(x, y) end)
+    if type(z) == "number" and z > 0 then return z + 0.05 end
+    local snap
+    pcall(function() snap = self:CampSnapToGround({ x = x, y = y, z = prevZ }) end)
+    if snap and type(snap.z) == "number" then return snap.z + 0.05 end
+    return prevZ
+end
+
+-- One tick of walking: TortureWalkStep metres towards `target`, z snapped to the ground.
+-- Returns true once he is standing on it.
+function mercenaries:TortureWalkTo(S, target)
+    if not target then return true end
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return false end
+    local step = self.TortureWalkStep or 1.5
+    local dx, dy = target.x - pp.x, target.y - pp.y
+    local d = math.sqrt(dx * dx + dy * dy)
+    if d <= step then
+        pcall(function()
+            player:SetWorldPos({ x = target.x, y = target.y,
+                                 z = self:TortureGroundZ(target.x, target.y, pp.z) })
+        end)
+        return true
+    end
+    local nx, ny = pp.x + dx * (step / d), pp.y + dy * (step / d)
+    pcall(function()
+        player:SetWorldPos({ x = nx, y = ny, z = self:TortureGroundZ(nx, ny, pp.z) })
+    end)
+    -- Deliberately NO SetWorldAngles here. The formation hangs off the elected LEADER's
+    -- heading, not the player's, so his facing buys the test nothing - and the yaw
+    -- convention is unverified in this codebase (the hover step only ever sets pitch), so
+    -- a guess could aim him at the sky and make the trace unreadable.
+    return false
+end
+
+-- Follow a polyline the same way, one point at a time. `fromIdx`/`toIdx` bound the stretch;
+-- the cursor lives on S (and is deliberately NOT reset between steps, so follow_5,
+-- follow_12_shapes and follow_24 keep going down the SAME road instead of restarting).
+function mercenaries:TortureWalkRoute(S, pts, fromIdx, toIdx)
+    if not (pts and #pts > 0) then return true end
+    if not S.walkIdx then S.walkIdx = math.max(1, fromIdx or 1) end
+    local last = math.min(toIdx or #pts, #pts)
+    if S.walkIdx > last then return true end
+    if self:TortureWalkTo(S, pts[S.walkIdx]) then
+        S.walkIdx = S.walkIdx + 1
+    end
+    return S.walkIdx > last
+end
+
+-- Mean of the per-tick means inside the last `window` seconds. The end-of-walk distance on
+-- its own is a snapshot and a squad can be lucky in it; the tail mean is what says they kept
+-- up all the way.
+local function tailMean(S, window)
+    local now = tClock()
+    local n, sum = 0, 0
+    for _, s in ipairs(S.samples or {}) do
+        if (now - s.t) <= window then n, sum = n + 1, sum + s.mean end
+    end
+    if n == 0 then return nil end
+    return sum / n
+end
+
+-- Is a POS trace due? Rate-limited because 50 mercs at 1Hz for twenty minutes is tens of
+-- thousands of lines and kcd.log rotates.
+local function posDue(S, every)
+    local now = tClock()
+    every = every or mercenaries.TortureLogEvery or 5.0
+    if S.posAt and (now - S.posAt) < every then return false end
+    S.posAt = now
+    return true
+end
+
+-- The route set for the level we are actually on, and the route whose FIRST point is
+-- nearest Henry. Resolved at RUNTIME because the plan has to work on either map and on
+-- whatever save it is pointed at: PatrolRoutesForLevel is the mod's own answer to "which
+-- recorded road network is this", so the test asks it rather than guessing from coordinates.
+function mercenaries:TorturePickRoute(S)
+    local ok = false
+    pcall(function() ok = self:PatrolRoutesForLevel() end)
+    local data = self.PatrolRouteData
+    if not (ok and data and #data > 0) then
+        S.routePts, S.routeIdx, S.routeFrom = nil, nil, nil
+        self:TortureInfo("route", "no recorded routes on this level - the follow steps will stand still")
+        return false
+    end
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return false end
+    local best, bestD, bestI
+    for i, r in ipairs(data) do
+        local p = r.pts and r.pts[1]
+        if p then
+            local d = math.sqrt((p.x - pp.x) ^ 2 + (p.y - pp.y) ^ 2)
+            if not bestD or d < bestD then best, bestD, bestI = r, d, i end
+        end
+    end
+    if not best then return false end
+    S.routePts, S.routeIdx, S.routeFrom, S.walkIdx = best.pts, bestI, 1, 1
+    self:TortureInfo("route", string.format(
+        "route %d of %d, %d point(s), %.0fm of road; its start is %.0fm off - one jump there",
+        bestI, #data, #best.pts, best.len or -1, bestD or -1))
+    -- The ONE teleport in the whole plan; everything after it is walked. The fast-travel
+    -- detector is already standing down for this step, so it does not idle the squad.
+    local p = best.pts[1]
+    pcall(function()
+        player:SetWorldPos({ x = p.x, y = p.y, z = self:TortureGroundZ(p.x, p.y, p.z) })
+    end)
+    return true
+end
+
+-- The index that sits roughly `metres` along a route from its start.
+local function indexAlong(pts, metres)
+    local run = 0
+    for i = 2, #(pts or {}) do
+        local a, b = pts[i - 1], pts[i]
+        run = run + math.sqrt((b.x - a.x) ^ 2 + (b.y - a.y) ^ 2)
+        if run >= metres then return i end
+    end
+    return math.max(1, #(pts or {}))
+end
+
+-- A point on the recorded road network at least `minDist` from Henry, else the farthest one
+-- there is. Recorded routes are ground the author actually rode, so a point on one is always
+-- somewhere he can stand - which a bearing-and-distance jump is not (those land in lakes,
+-- on cliffs and off the map).
+function mercenaries:TortureFarRoutePoint(minDist)
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return nil end
+    local best, bestD
+    for _, r in ipairs(self.PatrolRouteData or {}) do
+        for _, p in ipairs(r.pts or {}) do
+            local d = math.sqrt((p.x - pp.x) ^ 2 + (p.y - pp.y) ^ 2)
+            if d >= (minDist or 700) then return p, d end
+            if not bestD or d > bestD then best, bestD = p, d end
+        end
+    end
+    return best, bestD
+end
+
+-- Hire or pay off until exactly `want` men stand. Paying off removes the surplus entities
+-- directly rather than going through SetState('dismiss'): dismiss flips MercenariesDismissed,
+-- schedules a 15s despawn and leaves the men counting against MaxCompanions in the meantime,
+-- so a dismiss-then-hire inside one step is either refused outright or hires on top of the
+-- old company. RemoveEntity plus a roster wipe is the same teardown PruneMercCache performs
+-- for a merc who dies, run one step early.
+function mercenaries:TortureSetSquad(S, want)
+    local have = squadCount(self)
+    if have < want then
+        self:TortureInfo("squad", "hiring " .. (want - have) .. " to reach " .. want)
+        self:Hire(0, want - have, "medium")
+        return
+    end
+    if have == want then
+        self:TortureInfo("squad", "squad already at " .. have)
+        return
+    end
+    local drop, removed = have - want, 0
+    for name, ent in pairs(self.ActiveMercs or {}) do
+        if removed >= drop then break end
+        local alive = false
+        pcall(function() alive = self:IsAliveAndWell(ent, true) end)
+        if alive then
+            local id = ent.id
+            pcall(function() self:MercDropClaim(ent.this and ent.this.id or ent.id) end)
+            self.ActiveMercs[name] = nil
+            pcall(function() System.RemoveEntity(id) end)
+            removed = removed + 1
+        end
+    end
+    pcall(function() self:Recount() end)
+    self:TortureInfo("squad", "paid off " .. removed .. " to come down to " .. want
+        .. " (now " .. squadCount(self) .. ")")
+end
+
+-- One tick's distance sample: mean and max merc-to-Henry, plus the per-man "left behind"
+-- streak. The tick is 1Hz real time (Script.SetTimerForFunction, not frames), so a streak
+-- counted in ticks IS the streak in seconds even at 15fps.
+function mercenaries:TortureWalkSample(S)
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return end
+    S.farStreak = S.farStreak or {}
+    local n, sum, mx, worst = 0, 0, 0, nil
+    for name, ent in pairs(self.ActiveMercs or {}) do
+        local alive = false
+        pcall(function() alive = self:IsAliveAndWell(ent, true) end)
+        if alive then
+            local q
+            pcall(function() q = ent:GetWorldPos() end)
+            if q then
+                local d = math.sqrt((q.x - pp.x) ^ 2 + (q.y - pp.y) ^ 2)
+                n, sum = n + 1, sum + d
+                if d > mx then mx, worst = d, name end
+                if d > (self.TortureFollowFar or 80.0) then
+                    local st = (S.farStreak[name] or 0) + 1
+                    S.farStreak[name] = st
+                    if st > (S.maxFarStreak or 0) then S.maxFarStreak, S.maxFarName = st, name end
+                else
+                    S.farStreak[name] = 0
+                end
+            end
+        end
+    end
+    if n == 0 then return end
+    S.samples = S.samples or {}
+    table.insert(S.samples, { t = tClock(), mean = sum / n })
+    if mx > (S.maxEver or 0) then S.maxEver, S.maxEverName = mx, worst end
+    S.lastN, S.lastMean, S.lastMax, S.lastWorst = n, sum / n, mx, worst
+end
+
+-- The three-part verdict a walk gets: everybody close at the END, the tail MEAN inside the
+-- limit, and nobody stranded beyond TortureFollowFar for longer than TortureFollowFarSecs.
+-- `scale` widens all of it for the big squads, which are legitimately more strung out.
+function mercenaries:TortureFollowVerdict(S, tag, scale)
+    scale = scale or 1.0
+    local near    = (self.TortureFollowNear or 35.0) * scale
+    local meanLim = (self.TortureFollowMean or 20.0) * scale
+    local window  = self.TortureMeanWindow or 30.0
+    local mean30  = tailMean(S, window)
+    self:TortureInfo(tag, string.format(
+        "squad=%d meanNow=%.1fm mean%.0fs=%s maxNow=%.1fm maxEver=%.1fm(%s) longestBeyond%.0fm=%ds stallStreaks=%d",
+        S.lastN or 0, S.lastMean or -1, window,
+        mean30 and string.format("%.1fm", mean30) or "n/a",
+        S.lastMax or -1, S.maxEver or -1, tostring(S.maxEverName or "-"),
+        self.TortureFollowFar or 80.0, S.maxFarStreak or 0,
+        countTable(self.FollowStallStreak)))
+    if (S.lastN or 0) == 0 then return false, "no living merc left to measure" end
+    if (S.lastMax or 0) > near then
+        return false, string.format("%s ended the walk %.0fm from Henry (limit %.0fm)",
+            tostring(S.lastWorst or "?"), S.lastMax or -1, near)
+    end
+    if mean30 and mean30 > meanLim then
+        return false, string.format("mean distance over the last %.0fs was %.1fm (limit %.0fm)",
+            window, mean30, meanLim)
+    end
+    if (S.maxFarStreak or 0) > (self.TortureFollowFarSecs or 15.0) then
+        return false, string.format("%s stayed more than %.0fm behind for %ds (limit %.0fs)",
+            tostring(S.maxFarName or "?"), self.TortureFollowFar or 80.0,
+            S.maxFarStreak or 0, self.TortureFollowFarSecs or 15.0)
+    end
+    return true
+end
+
+-- The verbose position trace: one line for Henry, one per merc. This is what turns "the
+-- follow test failed" into "this man peeled off at t=140 and never came back".
+function mercenaries:TorturePosLog(S, tag)
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return end
+    tLog(string.format("POS %s t=%.0f player=(%.1f,%.1f,%.1f)",
+        tostring(tag), tClock() - (S.startedAt or tClock()), pp.x, pp.y, pp.z))
+    for name, ent in pairs(self.ActiveMercs or {}) do
+        local q
+        pcall(function() q = ent:GetWorldPos() end)
+        if q then
+            local alive = false
+            pcall(function() alive = self:IsAliveAndWell(ent, true) end)
+            local ka = self:CampMercKeys(ent)
+            local tgt = ka and (self.MercTargetOf or {})[ka] or nil
+            tLog(string.format("  %s (%.1f,%.1f,%.1f) d=%.1fm alive=%s target=%s",
+                tostring(name), q.x, q.y, q.z,
+                math.sqrt((q.x - pp.x) ^ 2 + (q.y - pp.y) ^ 2),
+                tostring(alive), tostring(tgt or "-")))
+        end
+    end
+end
+
+-- ...and the other half of a fight trace: how many mod enemies are still up, and how far
+-- off. Capped at sixteen names per line so a raid does not bury the log.
+function mercenaries:TortureEnemyLog(S, tag)
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return end
+    local n, parts = 0, {}
+    pcall(function()
+        local ents = System.GetPhysicalEntitiesInBoxByClass(pp, 150.0, "NPC")
+        for _, e in pairs(ents or {}) do
+            local nm
+            pcall(function() nm = e:GetName() end)
+            if nm and self:IsModEnemyName(nm) and self:IsAliveAndWell(e, true) then
+                n = n + 1
+                if #parts < 16 then
+                    local q
+                    pcall(function() q = e:GetWorldPos() end)
+                    if q then
+                        table.insert(parts, string.format("%s d=%.0fm", nm,
+                            math.sqrt((q.x - pp.x) ^ 2 + (q.y - pp.y) ^ 2)))
+                    end
+                end
+            end
+        end
+    end)
+    tLog(string.format("POS %s enemies=%d  %s", tostring(tag), n, table.concat(parts, ", ")))
+end
+
+-- Camp props standing within `radius` of Henry, counted by the same name prefixes the camp
+-- teardown sweeps (CampPropPrefixes). By spatial query and NAME, never by one id list: each
+-- upgrade tracks its props in its own table, so no single list is complete - which is why
+-- the tower placement code counts them this way too.
+-- Second return says whether the QUERY itself ran: a build without GetEntitiesInSphere must
+-- not turn "cannot see the props" into "there are no props", which would hang camp_cycle on
+-- a timeout and fail camp_break for free. The callers fall back to CampEntities there.
+function mercenaries:TortureCampProps(radius)
+    local n, queried = 0, false
+    pcall(function()
+        local pp = player:GetWorldPos()
+        local ents = System.GetEntitiesInSphere(pp, radius or 40.0)
+        queried = true
+        for _, e in pairs(ents or {}) do
+            local nm
+            pcall(function() nm = e:GetName() end)
+            if nm then
+                for _, p in ipairs(self.CampPropPrefixes or {}) do
+                    if string.sub(nm, 1, #p) == p then n = n + 1 break end
+                end
+            end
+        end
+    end)
+    return n, queried
+end
+
+-- The deployed men, and how far the furthest of them is from Henry.
+local function outPartyFar(self)
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return 0, 0, nil end
+    local n, mx, worst = 0, 0, nil
+    for name, ent in pairs(self.ActiveMercs or {}) do
+        local ka = self:CampMercKeys(ent)
+        local alive = false
+        pcall(function() alive = self:IsAliveAndWell(ent, true) end)
+        if ka and alive and self:IsCampOut(ka) then
+            local q
+            pcall(function() q = ent:GetWorldPos() end)
+            if q then
+                n = n + 1
+                local d = math.sqrt((q.x - pp.x) ^ 2 + (q.y - pp.y) ^ 2)
+                if d > mx then mx, worst = d, name end
+            end
+        end
+    end
+    return n, mx, worst
+end
+
+-- The nearest LIVING patrolman to Henry, or nil when no gang is out. Read on the tick a
+-- gang's count RISES, which is the only moment the spawn floor can honestly be judged -
+-- a second later they are walking towards him and any distance is legitimate.
+function mercenaries:TorturePatrolNearest()
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    if not pp then return nil end
+    local best
+    for _, rec in pairs(self.LivePatrols or {}) do
+        if rec.spawned then
+            for _, e in ipairs(rec.men or {}) do
+                local alive = false
+                pcall(function() alive = self:IsAliveAndWell(e, true) end)
+                if alive then
+                    local q
+                    pcall(function() q = e:GetWorldPos() end)
+                    if q then
+                        local d = math.sqrt((q.x - pp.x) ^ 2 + (q.y - pp.y) ^ 2)
+                        if not best or d < best then best = d end
+                    end
+                end
+            end
+        end
+    end
+    return best
+end
+
+-- The body every straight walking step shares: settle, walk for `secs` while sampling and
+-- tracing, then judge. Returns exactly what a step's `check` must return.
+function mercenaries:TortureFieldWalk(S, tag, secs, scale, settle)
+    local now = tClock()
+    if not S.walkFrom then
+        if (now - S.stepFrom) < (settle or self.TortureWalkSettleSecs or 25.0) then return nil end
+        S.walkFrom = now
+        S.samples, S.farStreak, S.maxFarStreak, S.maxEver, S.maxEverName = nil, nil, 0, 0, nil
+        self:TortureInfo(tag, string.format("walk starts: squad=%d shape=%s route=%s point=%s",
+            squadCount(self), tostring(self.FormationShape),
+            tostring(S.routeIdx or "-"), tostring(S.walkIdx or "-")))
+    end
+    if (now - S.walkFrom) < secs then
+        if S.routePts then self:TortureWalkRoute(S, S.routePts, S.routeFrom, nil) end
+        self:TortureWalkSample(S)
+        if posDue(S) then self:TorturePosLog(S, tag) end
+        return nil
+    end
+    return self:TortureFollowVerdict(S, tag, scale)
+end
+
+-- Find the nearest base-game NPC inside `radius`, log the nearest five WITH DISTANCES so a
+-- miss is diagnosable ("nobody in range" told the first live run nothing about why), and call
+-- five mercs onto the closest. Sets S.targetName / S.forcedKeys, or leaves them nil.
+--
+-- SAME DANGER AS THE PROBE'S provoke_test: "base-game NPC" means anyone who is not ours, so
+-- on a save with civilians nearby this attacks a civilian. Only ever reached under S.aggro.
+function mercenaries:TortureProvokeNearest(S, radius)
+    radius = radius or 120.0
+    local found = {}
+    pcall(function()
+        local pp = player:GetWorldPos()
+        local ents = System.GetPhysicalEntitiesInBoxByClass(pp, radius, "NPC")
+        for _, e in pairs(ents or {}) do
+            local nm
+            pcall(function() nm = e:GetName() end)
+            if nm and not string.find(nm, "Spawned", 1, true)
+               and not string.find(nm, "Merc", 1, true)
+               and self:IsAliveAndWell(e, true) then
+                local q
+                pcall(function() q = e:GetWorldPos() end)
+                if q then
+                    table.insert(found, { ent = e, name = nm,
+                        d = math.sqrt((q.x - pp.x) ^ 2 + (q.y - pp.y) ^ 2) })
+                end
+            end
+        end
+    end)
+    table.sort(found, function(a, b) return a.d < b.d end)
+    local shown = {}
+    for i = 1, math.min(5, #found) do
+        table.insert(shown, string.format("%s %.0fm", found[i].name, found[i].d))
+    end
+    self:TortureInfo("fight_base", string.format("%d base-game NPC(s) within %.0fm; nearest: %s",
+        #found, radius, (#shown > 0) and table.concat(shown, ", ") or "none"))
+    local best = found[1]
+    if not best then return end
+    local tw
+    pcall(function() tw = XGenAIModule.GetMyWUID(best.ent) end)
+    if not tw then
+        self:TortureInfo("fight_base", "'" .. tostring(best.name) .. "' has no WUID - nobody can be called onto him")
+        return
+    end
+    S.targetName = best.name
+    self:TortureInfo("fight_base", string.format("calling five mercs onto '%s' at %.0fm", best.name, best.d))
+    S.forcedKeys = {}
+    local n = 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if n >= 5 then break end
+        local ka, kb = self:CampMercKeys(ent)
+        for _, k in ipairs({ ka, kb }) do
+            if k then
+                self.ForcedTargetOf[k] = tw
+                table.insert(S.forcedKeys, k)
+            end
+        end
+        n = n + 1
+    end
+end
+
+mercenaries.TortureFieldPlan = {
+
+    { name = "field_sanity", timeout = 45, ground = true,
+      run = function(self, S)
+          S.startSquad = squadCount(self)
+          -- Where the SAVE put Henry, kept for the whole run. The follow walks carry him
+          -- most of a kilometre down a patrol route, and the purpose-built saves put their
+          -- interesting furniture - the vanilla bandit camp on save492 - beside the start.
+          -- The first live run failed fight_base_enemies with "no base-game NPC within 80m"
+          -- purely because it was measured from the far end of route 21.
+          pcall(function()
+              local p = player:GetWorldPos()
+              S.fieldStart = { x = p.x, y = p.y, z = p.z }
+          end)
+          self:TortureInfo("field_sanity", "squad at start = " .. S.startSquad
+              .. ", campActive = " .. tostring(self.CampActive)
+              .. ", aggro armed = " .. tostring(S.aggro == true)
+              .. ", start pos = " .. (S.fieldStart
+                    and string.format("(%.1f,%.1f,%.1f)", S.fieldStart.x, S.fieldStart.y, S.fieldStart.z)
+                    or "unknown"))
+          -- Normalise WITHOUT paying anybody off: a standing camp turns every new hire into
+          -- a camp resident rather than a follower (by design) and would invalidate every
+          -- measurement below. SetState('follow') additionally lifts a hold or escort order
+          -- the save may be carrying - a squad that was told to wait cannot fail a follow
+          -- test honestly.
+          if self.CampActive then self:BreakMercCamp(true) end
+          S.actions = {
+              function() self:SetState("follow") end,
+              function() self:SetFormationShape((self.FormationShapeOrder or {})[1] or "column", true) end,
+          }
+      end,
+      check = function(self, S)
+          if S.actions and #S.actions > 0 then return nil end
+          if self.CampActive then return nil end
+          local fid
+          pcall(function() fid = System.GetFrameID() end)
+          if not fid then return nil end
+          if _G.MercenariesDismissed then
+              self:TortureInfo("field_sanity", "this save has the company dismissed - the hire steps re-raise it")
+          end
+          return true
+      end },
+
+    { name = "follow_5", timeout = 200, ground = true,
+      run = function(self, S)
+          -- Route FIRST, hires second: the men muster on the player, so jumping to the road
+          -- after hiring would leave five fresh mercs half a kilometre behind the start.
+          S.actions = {
+              function() self:TorturePickRoute(S) end,
+              function() end,
+              function() self:TortureSetSquad(S, 5) end,
+              function() self:SetFormationShape((self.FormationShapeOrder or {})[1] or "column", true) end,
+          }
+      end,
+      check = function(self, S)
+          if S.actions and #S.actions > 0 then return nil end
+          return self:TortureFieldWalk(S, "follow_5", 90, 1.0)
+      end },
+
+    { name = "follow_12_shapes", timeout = 400, ground = true,
+      run = function(self, S)
+          -- Shape keys are READ from the formation module, never spelled out here: the
+          -- catalogue has been regenerated more than once, and a name that no longer exists
+          -- resolves to a null handle and silently drops the squad onto the follow chain -
+          -- which looks like a column and would quietly pass this test.
+          S.shapes = {}
+          for i = 1, 3 do
+              local k = (self.FormationShapeOrder or {})[i]
+              if k then table.insert(S.shapes, k) end
+          end
+          S.actions = { function() self:TortureSetSquad(S, 12) end }
+      end,
+      check = function(self, S)
+          if S.actions and #S.actions > 0 then return nil end
+          if #(S.shapes or {}) == 0 then return false, "the formation module lists no shapes to test" end
+          local now = tClock()
+          S.shapeIdx = S.shapeIdx or 0
+          if not S.walkFrom then
+              if not S.shapeAt then
+                  S.shapeIdx = S.shapeIdx + 1
+                  S.shapeKey = S.shapes[S.shapeIdx]
+                  if not S.shapeKey then
+                      if S.shapeFail then return false, S.shapeFail end
+                      return true
+                  end
+                  S.shapeAt = now
+                  pcall(function() self:SetFormationShape(S.shapeKey, true) end)
+                  self:TortureInfo("follow_12_shapes", "shape '" .. tostring(S.shapeKey) .. "' set - letting it rebuild")
+                  return nil
+              end
+              -- The first shape also waits out the fresh hires; the later two only have to
+              -- wait for a formation rebuild, which is one epoch bump plus the re-join.
+              local settle = (S.shapeIdx == 1) and (self.TortureWalkSettleSecs or 25.0) or 15.0
+              if (now - S.shapeAt) < settle then return nil end
+              S.walkFrom = now
+              S.samples, S.farStreak, S.maxFarStreak, S.maxEver, S.maxEverName = nil, nil, 0, 0, nil
+              self:TortureInfo("follow_12_shapes", string.format(
+                  "walk starts in '%s': squad=%d preset=%s", tostring(S.shapeKey),
+                  squadCount(self), tostring(self.FormationName)))
+              return nil
+          end
+          local tag = "follow_12_" .. tostring(S.shapeKey)
+          if (now - S.walkFrom) < 60 then
+              if S.routePts then self:TortureWalkRoute(S, S.routePts, S.routeFrom, nil) end
+              self:TortureWalkSample(S)
+              if posDue(S) then self:TorturePosLog(S, tag) end
+              return nil
+          end
+          local ok, why = self:TortureFollowVerdict(S, tag, 1.0)
+          -- The FIRST shape that fails is the reason the step fails; the rest still walk, so
+          -- one bad shape does not hide the others' measurements.
+          if ok ~= true and not S.shapeFail then
+              S.shapeFail = "shape '" .. tostring(S.shapeKey) .. "': " .. tostring(why)
+          end
+          S.walkFrom, S.shapeAt = nil, nil
+          return nil
+      end },
+
+    { name = "follow_24", timeout = 260, ground = true,
+      run = function(self, S)
+          S.actions = {
+              function() self:TortureSetSquad(S, 24) end,
+              function() self:SetFormationShape((self.FormationShapeOrder or {})[1] or "column", true) end,
+          }
+      end,
+      check = function(self, S)
+          if S.actions and #S.actions > 0 then return nil end
+          -- x1.5 on both distance limits: twenty-four men in a column are legitimately
+          -- strung out further than five. The test is "the tail keeps up", not "the
+          -- formation is small".
+          return self:TortureFieldWalk(S, "follow_24", 90, 1.5, 30.0)
+      end },
+
+    -- Two halves, and the second one is why the timeout is not 240: the FIGHT is still judged
+    -- on "all eight down inside 240s", but the loot sweep can only be observed AFTER the last
+    -- kill, so the step then watches for up to a further 45s before it hands over.
+    { name = "fight_mod_enemies_field", timeout = 320, ground = true,
+      run = function(self, S)
+          if self.CampActive then self:BreakMercCamp(true) end
+          S.sawClaim, S.lootMax = false, 0
+          S.killedAt, S.lootOpenedAt, S.lootIdleFrom = nil, nil, nil
+          S.actions = {
+              function() self:SetState("follow") end,
+              function() end,
+              function() self:SpawnEnemyGroup("bandit", 8) end,
+          }
+      end,
+      check = function(self, S)
+          if S.actions and #S.actions > 0 then return nil end
+          local now = tClock()
+          if countTable(self.MercTargetOf) > 0 then S.sawClaim = true end
+          if posDue(S) then
+              self:TorturePosLog(S, "fight_mod")
+              self:TortureEnemyLog(S, "fight_mod")
+          end
+
+          -- ---- the fight. Criteria unchanged: all eight down inside 240s, and at least one
+          -- merc must have claimed a target somewhere along the way.
+          if not S.killedAt then
+              if (now - S.stepFrom) < 20 then return nil end
+              local left = liveEnemies(self)
+              if left > 0 then
+                  if (now - S.stepFrom) > 240 then
+                      return false, left .. " of the 8 bandits still standing after 240s"
+                  end
+                  return nil
+              end
+              S.killedAt = now
+              self:TortureInfo("fight_mod", string.format(
+                  "8 bandits down at +%.0fs - now watching for the loot sweep",
+                  now - S.stepFrom))
+              return nil
+          end
+
+          -- ---- the loot half. "follow -> fight -> loot -> back into formation" is the
+          -- behaviour under test, so whether they went to loot at all is a RESULT.
+          --
+          -- The first live run reported "loot sweep opened=false, most men on loot duty at
+          -- once=0" and called LootSweepStop on the SAME tick it declared the fight over -
+          -- a reading that could never have been anything else. LootSweepBody only builds
+          -- LootBattle on the tick the mod's OWN enemy cache (CachedEnemies) empties, which
+          -- trails the last death, and it then holds every man off until
+          -- LootBattle.opensAt = that moment + LootSettleDelay (5s, "weapons go away first").
+          -- So the window has to be WATCHED after the last kill, never sampled at it.
+          local since = now - S.killedAt
+          local busy  = countTable(self.LootActivities)
+          if busy > (S.lootMax or 0) then S.lootMax = busy end
+          if self.LootBattle and not S.lootOpenedAt then
+              S.lootOpenedAt = since
+              local opensIn = "?"
+              pcall(function()
+                  opensIn = string.format("%.1fs", self.LootBattle.opensAt - now)
+              end)
+              self:TortureInfo("fight_mod", string.format(
+                  "loot sweep opened %.0fs after the last kill (men released in %s, %d body/bodies captured)",
+                  since, opensIn, #(self.LootBodies or {})))
+          end
+          -- Done early when the cycle has visibly completed: the sweep opened, men worked it,
+          -- and they have all been off it for five seconds. Otherwise the full 45s.
+          if S.lootOpenedAt and (S.lootMax or 0) > 0 and busy == 0 then
+              S.lootIdleFrom = S.lootIdleFrom or now
+          else
+              S.lootIdleFrom = nil
+          end
+          local done = (S.lootIdleFrom and (now - S.lootIdleFrom) >= 5.0) or (since >= 45)
+          if not done then return nil end
+
+          if not S.lootOpenedAt then
+              -- A real finding, not a measurement artefact: bodies were made and the sweep
+              -- never opened over them.
+              self:TortureInfo("fight_mod", "loot sweep never opened within 45s of the last kill")
+          end
+          self:TortureInfo("fight_mod", string.format(
+              "loot: opened=%s%s, peak men on loot duty=%d, watched %.0fs after the last kill",
+              tostring(S.lootOpenedAt ~= nil),
+              S.lootOpenedAt and string.format(" (+%.0fs)", S.lootOpenedAt) or "",
+              S.lootMax or 0, since))
+          -- Only NOW is the sweep shut down: a man standing over a body is a camp actor, and
+          -- post_fight_reform has to measure following rather than looting.
+          pcall(function() self:LootSweepStop() end)
+          if not S.sawClaim then
+              return false, "the bandits died but no merc ever claimed a target (MercTargetOf never filled)"
+          end
+          return true
+      end },
+
+    { name = "post_fight_reform", timeout = 200, ground = true,
+      run = function(self, S)
+          local pp
+          pcall(function() pp = player:GetWorldPos() end)
+          S.reformFrom = pp and { x = pp.x, y = pp.y } or nil
+      end,
+      check = function(self, S)
+          local now = tClock()
+          if posDue(S) then self:TorturePosLog(S, "reform") end
+          -- Walk him 40m clear of the bodies first: "they came back" has to mean they
+          -- FOLLOWED, not that they happened to be standing where the fight ended.
+          if not S.reformDone then
+              if S.routePts then self:TortureWalkRoute(S, S.routePts, S.routeFrom, nil) end
+              local pp
+              pcall(function() pp = player:GetWorldPos() end)
+              local moved = 0
+              if pp and S.reformFrom then
+                  moved = math.sqrt((pp.x - S.reformFrom.x) ^ 2 + (pp.y - S.reformFrom.y) ^ 2)
+              end
+              if moved >= 40.0 or (now - S.stepFrom) > 70 then
+                  S.reformDone, S.reformAt = true, now
+                  self:TortureInfo("reform", string.format(
+                      "walked %.0fm on from the fight - now watching them re-form", moved))
+              end
+              return nil
+          end
+          -- Sample count comes from the SAME pass as the distance: TortureWalkSample returns
+          -- without touching either when nobody is left, and a stale lastMax from the last
+          -- walk would then read as "everybody is close" - a wiped squad passing the reform
+          -- test is the one false PASS this step could produce.
+          S.lastN = 0
+          self:TortureWalkSample(S)
+          local el   = now - (S.reformAt or now)
+          local near = (S.lastN or 0) > 0 and (S.lastMax or 9999) <= (self.TortureFollowNear or 35.0)
+          if near and not self.EnemyAlerted then
+              self:TortureInfo("reform", string.format(
+                  "whole squad back inside %.0fm at +%.0fs, EnemyAlerted cleared",
+                  self.TortureFollowNear or 35.0, el))
+              return true
+          end
+          if el < 90 then return nil end
+          if (S.lastN or 0) == 0 then return false, "no living merc left after the fight" end
+          return false, string.format(
+              "%.0fs after the fight the furthest man is %.0fm away (%s) and EnemyAlerted=%s",
+              el, S.lastMax or -1, tostring(S.lastWorst or "?"), tostring(self.EnemyAlerted))
+      end },
+
+    -- ARMED ONLY BY merc_torture_field_aggro, never by the plain command. Same mechanism and
+    -- the same danger as the probe's provoke_test: it calls five mercs onto the nearest
+    -- NON-MOD NPC, so on a save with civilians nearby THIS ATTACKS A CIVILIAN. That is
+    -- exactly why the arming is a separate command and not a heuristic - a heuristic cannot
+    -- tell a bandit from a miller. Meant for save492 (banditcamp), where the nearest vanilla
+    -- NPCs are the declared enemy.
+    { name = "fight_base_enemies", timeout = 260, ground = true,
+      run = function(self, S)
+          if not S.aggro then return end
+          -- Go home first. Everything before this walked Henry a long way down a patrol
+          -- route (measured: route 21 on save492), and the vanilla bandit camp this step
+          -- exists to fight is beside the save's START - which is why the first live run
+          -- failed with "no base-game NPC within 80m" while standing in an empty field.
+          -- One jump, then the squad is given time to close up before anyone is provoked:
+          -- five men called in from four hundred metres is not a fight, it is a jog.
+          if S.fieldStart then
+              pcall(function()
+                  player:SetWorldPos({ x = S.fieldStart.x, y = S.fieldStart.y,
+                                       z = self:TortureGroundZ(S.fieldStart.x, S.fieldStart.y, S.fieldStart.z) })
+              end)
+              self:TortureInfo("fight_base", string.format(
+                  "jumped back to the save's start (%.1f,%.1f) - waiting for the squad to close up",
+                  S.fieldStart.x, S.fieldStart.y))
+          else
+              self:TortureInfo("fight_base", "no recorded start position - provoking from wherever Henry stands")
+          end
+          S.homeAt = tClock()
+      end,
+      check = function(self, S)
+          if not S.aggro then
+              self:TortureInfo("fight_base", "not armed - run merc_torture_field_aggro on a bandit save for this one")
+              return "skip", "aggro not armed"
+          end
+          local now = tClock()
+          if posDue(S) then self:TorturePosLog(S, "fight_base") end
+
+          -- Regroup phase, capped at 60s: they came from a long way off and some of them
+          -- will still be running, but the step must not stall on one straggler.
+          if not S.provoked then
+              self:TortureWalkSample(S)
+              local waited = now - (S.homeAt or now)
+              local closed = (S.lastN or 0) > 0
+                             and (S.lastMean or 9999) <= (self.TortureFollowNear or 35.0)
+              if not closed and waited < 60 then return nil end
+              self:TortureInfo("fight_base", string.format(
+                  "squad %s after %.0fs: %d men, mean %.1fm, furthest %.1fm (%s)",
+                  closed and "regrouped" or "still strung out", waited,
+                  S.lastN or 0, S.lastMean or -1, S.lastMax or -1, tostring(S.lastWorst or "-")))
+              S.provoked, S.provokeAt = true, now
+              self:TortureProvokeNearest(S, 120.0)
+          end
+
+          if not S.targetName then
+              return false, "no base-game NPC within 120m of the save's start to call the squad onto"
+          end
+          local el = now - (S.provokeAt or S.stepFrom)
+          local dead = true
+          pcall(function()
+              local e = System.GetEntityByName(S.targetName)
+              if e and self:IsAliveAndWell(e, true) then dead = false end
+          end)
+          if not dead and el < 120 then return nil end
+          -- Stand the squad down again whatever happened.
+          for _, k in ipairs(S.forcedKeys or {}) do self.ForcedTargetOf[k] = nil end
+          if dead then
+              self:TortureInfo("fight_base", string.format("'%s' down at +%.0fs", S.targetName, el))
+              return true
+          end
+          return false, "'" .. tostring(S.targetName) .. "' still standing after 120s of a called attack"
+      end },
+
+    { name = "camp_cycle", timeout = 90, ground = true,
+      run = function(self, S)
+          local pp
+          pcall(function() pp = player:GetWorldPos() end)
+          self:SpawnMercCamp(pp and { x = pp.x, y = pp.y, z = pp.z, ang = 0 } or nil, true)
+      end,
+      check = function(self, S)
+          if not self.CampActive then return nil end
+          -- CampActive can be true a beat before the props are down, so the prop COUNT is
+          -- what actually says a camp stands here. Two independent counts, because neither
+          -- is complete on its own: a spatial name sweep (which also catches props no list
+          -- tracks) and the camp's own teardown list.
+          local props, queried = self:TortureCampProps(60.0)
+          local tracked = #(self.CampEntities or {})
+          if props <= 0 and tracked <= 0 then return nil end
+          self:TortureInfo("camp_cycle", string.format(
+              "%d prop(s) within 60m by name%s, %d tracked in CampEntities",
+              props, queried and "" or " (sphere query unavailable)", tracked))
+          return true
+      end },
+
+    { name = "sortie_fight", timeout = 240, ground = true,
+      run = function(self, S)
+          S.sawClaim = false
+          S.actions = {
+              function() self:CampTakeParty(0.5) end,
+              function() end, function() end,
+              function()
+                  local out, arch = outPartyStats(self)
+                  S.sortieOut = out
+                  self:TortureInfo("sortie_fight", "deployed " .. out .. " (" .. arch
+                      .. " archer(s)) out of " .. squadCount(self))
+              end,
+              function() self:SpawnEnemyGroup("bandit", 6) end,
+          }
+      end,
+      check = function(self, S)
+          if S.actions and #S.actions > 0 then return nil end
+          if (S.sortieOut or 0) == 0 then return false, "deploy-half put nobody out of camp" end
+          local now = tClock()
+          if countTable(self.MercTargetOf) > 0 then S.sawClaim = true end
+          if posDue(S) then
+              self:TorturePosLog(S, "sortie")
+              self:TortureEnemyLog(S, "sortie")
+          end
+          if (now - S.stepFrom) < 25 then return nil end
+          if liveEnemies(self) > 0 then return nil end
+          local n, mx, worst = outPartyFar(self)
+          if n == 0 then
+              self:TortureInfo("sortie_fight", "the whole sortie is already back in camp")
+              return true
+          end
+          if mx <= (self.TortureFollowNear or 35.0) then
+              self:TortureInfo("sortie_fight", string.format(
+                  "6 bandits down at +%.0fs; sortie of %d back within %.0fm (furthest %.0fm, %s, claims seen=%s)",
+                  now - S.stepFrom, n, self.TortureFollowNear or 35.0, mx,
+                  tostring(worst or "-"), tostring(S.sawClaim)))
+              return true
+          end
+          return nil
+      end },
+
+    { name = "camp_return_all", timeout = 60, ground = true,
+      run = function(self, S) self:CampReturnAll() end,
+      check = function(self, S)
+          if (tClock() - S.stepFrom) < 6 then return nil end
+          if select(1, outPartyStats(self)) == 0 then return true end
+      end },
+
+    { name = "camp_break", timeout = 90, ground = true,
+      run = function(self, S) self:BreakMercCamp(true) end,
+      check = function(self, S)
+          if self.CampActive then return nil end
+          -- The teardown is staggered across ticks, so nothing is judged for 20s.
+          if (tClock() - S.stepFrom) < 20 then return nil end
+          local left, queried = self:TortureCampProps(40.0)
+          local tracked = #(self.CampEntities or {})
+          if not queried then
+              self:TortureInfo("camp_break", "sphere query unavailable - judging on CampEntities alone")
+              if tracked > 0 then return false, tracked .. " camp entity/entities still tracked after breaking camp" end
+              return true
+          end
+          if left > 0 then
+              return false, left .. " camp prop(s) still standing within 40m after breaking camp"
+          end
+          self:TortureInfo("camp_break", "camp down, no props within 40m, " .. tracked .. " tracked")
+          return true
+      end },
+
+    -- The "not overwhelming, not too frequent" test. Everything the pacing rules promise is
+    -- checked here: one gang at a time, never inside the floor, and a measured gap between
+    -- encounters - then the despawn, and the regression where the world went on thinking it
+    -- was in a fight after the gang that started it was deleted.
+    { name = "patrol_pressure", timeout = 420, ground = true,
+      run = function(self, S)
+          pcall(function() self:LivePatrolSetEnabled(1) end)
+          -- The two WAITING clocks are cleared once, here: the post-load grace and the
+          -- post-load quiet exist so a player can get his bearings, and sitting them out
+          -- would eat the observation window. The PACING clock is deliberately left to run
+          -- from now on - how long the road stays quiet between gangs is exactly what this
+          -- step measures.
+          self._patrolGraceUntil = nil
+          self._patrolQuietUntil = nil
+          self._patrolAnchor     = nil
+          S.gangAt, S.gangGaps, S.gangMen = {}, {}, {}
+          S.lastGangs, S.maxLiveMen, S.tooClose, S.obsDone = 0, 0, nil, false
+          -- Stand him ON the road, ~350m along it: a gang only becomes men when its notional
+          -- point falls inside PatrolNoSpawnRange..PatrolSpawnRange of the player, so he has
+          -- to be somewhere the network actually passes.
+          if S.routePts and #S.routePts > 1 then
+              local i = indexAlong(S.routePts, 350)
+              local p = S.routePts[i]
+              if p then
+                  pcall(function()
+                      player:SetWorldPos({ x = p.x, y = p.y, z = self:TortureGroundZ(p.x, p.y, p.z) })
+                  end)
+                  S.walkIdx = i
+                  self:TortureInfo("patrol_pressure", string.format(
+                      "standing on route %s at point %d/%d", tostring(S.routeIdx), i, #S.routePts))
+              end
+          else
+              self:TortureInfo("patrol_pressure", "no route to stand on - observing from wherever Henry is")
+          end
+          self:TortureInfo("patrol_pressure", string.format(
+              "band %.0f-%.0fm, floor %.0fm, despawn %.0fm, caps %d gang(s)/%d men, gap %.0fs, standing cap %d per %.0fm",
+              self.PatrolNoSpawnRange or 0, self.PatrolSpawnRange or 0, self.PatrolMinPlayerDist or 0,
+              self.PatrolDespawnRange or 0, self.PatrolMaxLiveGangs or 0, self.PatrolMaxLiveMen or 0,
+              self.PatrolQuietSecs or 0, self.PatrolAnchorCap or 0, self.PatrolAnchorRadius or 0))
+          -- Recorded because a save with the quartermaster's encounters switch OFF spawns
+          -- nothing at all, and a window of zero gangs then reads as a calm road rather
+          -- than as a system that was never allowed to run.
+          local enc = "n/a"
+          pcall(function() enc = tostring(self:EncountersOn()) end)
+          self:TortureInfo("patrol_pressure", "encounters switch = " .. enc
+              .. ", squad = " .. squadCount(self) .. " (gang size scales with it)")
+      end,
+      check = function(self, S)
+          local now = tClock()
+          local el  = now - S.stepFrom
+          local g, men = 0, 0
+          pcall(function() g   = self:PatrolLiveGangCount() end)
+          pcall(function() men = self:PatrolLiveMenCount() end)
+          if men > (S.maxLiveMen or 0) then S.maxLiveMen = men end
+
+          -- The hard rule: a patrol is an encounter, singular. Two gangs at once IS the
+          -- "endless waves of enemies" report, and it fails on the spot.
+          if g > 1 then
+              return false, g .. " patrol gangs live at once (PatrolMaxLiveGangs = "
+                  .. tostring(self.PatrolMaxLiveGangs) .. ")"
+          end
+
+          -- ---- phase 1: five minutes standing on the road, watching what comes down it
+          if not S.obsDone then
+              if g > (S.lastGangs or 0) then
+                  table.insert(S.gangAt, el)
+                  if #S.gangAt > 1 then table.insert(S.gangGaps, el - S.gangAt[#S.gangAt - 1]) end
+                  table.insert(S.gangMen, men)
+                  local nearest = self:TorturePatrolNearest()
+                  self:TortureInfo("patrol_pressure", string.format(
+                      "gang %d spawned at +%.0fs: %d man/men, nearest %.0fm (floor %.0fm)",
+                      #S.gangAt, el, men, nearest or -1, self.PatrolMinPlayerDist or 0))
+                  if nearest and nearest < (self.PatrolMinPlayerDist or 0) then
+                      S.tooClose = string.format(
+                          "a patrolman stood %.0fm from Henry on the tick his gang spawned (floor is %.0fm)",
+                          nearest, self.PatrolMinPlayerDist or 0)
+                  end
+              end
+              S.lastGangs = g
+              if S.tooClose then return false, S.tooClose end
+              -- 30s, not 5: this step stands still for five minutes and a per-merc dump every
+              -- five seconds would be the biggest thing in the log by an order of magnitude.
+              if posDue(S, 30.0) then self:TorturePosLog(S, "patrol") end
+              if el < 300 then return nil end
+
+              S.obsDone = true
+              local gaps, mens = {}, {}
+              for _, v in ipairs(S.gangGaps) do table.insert(gaps, string.format("%.0fs", v)) end
+              for _, v in ipairs(S.gangMen) do table.insert(mens, tostring(v)) end
+              self:TortureInfo("patrol_pressure", string.format(
+                  "300s window: %d gang(s); gaps between them [%s]; live men at each spawn [%s]; most live men at once %d",
+                  #S.gangAt, table.concat(gaps, ", "), table.concat(mens, ", "), S.maxLiveMen or 0))
+
+              -- WHICH gangs are standing here, by key, not how many. The first live run failed
+              -- "1 gang / 16 men still live" when the log showed the original route-21 gang had
+              -- despawned exactly as it should and a DIFFERENT gang had spawned on route 1 at
+              -- the destination - two events a headcount cannot tell apart.
+              S.preJump, S.preJumpN = {}, 0
+              local keys = {}
+              for k, rec in pairs(self.LivePatrols or {}) do
+                  if rec.spawned then
+                      S.preJump[k] = "live"
+                      S.preJumpN = S.preJumpN + 1
+                      table.insert(keys, tostring(k))
+                  end
+              end
+              self:TortureInfo("patrol_pressure", "gang(s) standing here before the jump: "
+                  .. ((#keys > 0) and table.concat(keys, ", ") or "none"))
+
+              local far, d = self:TortureFarRoutePoint(700)
+              if far then
+                  -- The flag comes OFF for the jump, deliberately. While it is set,
+                  -- MonitorMainQuestLoop cannot see the teleport at all, so the mod's
+                  -- transition teardown (despawn every gang) and PatrolTravelGraceSecs never
+                  -- arm - and the first live run then watched a fresh gang spawn at the
+                  -- destination on arrival and called it a failed despawn. Leaving it off is
+                  -- also the honest test: this is exactly what a real fast travel does.
+                  -- Nothing walks after this point in the step, so it is never turned back
+                  -- on here; TortureNext re-arms it for the next ground step.
+                  self.TortureDrivesPlayer = false
+                  pcall(function()
+                      player:SetWorldPos({ x = far.x, y = far.y, z = self:TortureGroundZ(far.x, far.y, far.z) })
+                  end)
+                  self:TortureInfo("patrol_pressure", string.format(
+                      "left the area - %.0fm off now (despawn range %.0fm), fast-travel detector re-enabled for the jump",
+                      d or -1, self.PatrolDespawnRange or 0))
+              else
+                  self:TortureInfo("patrol_pressure", "no road point far enough to leave from - the despawn half is weak here")
+              end
+              S.awayAt = now
+              return nil
+          end
+
+          -- ---- phase 2: did the world let go of us?
+          local away = now - (S.awayAt or now)
+
+          -- The first tick after the jump is the only place the transition is visible: it
+          -- says whether MonitorMainQuestLoop saw the teleport at all, which is the whole
+          -- mechanism the despawn hangs off.
+          if not S.awayLogged then
+              S.awayLogged = true
+              local busy0, why0 = self:PlayerBusyForSpawns()
+              self:TortureInfo("patrol_pressure", string.format(
+                  "first tick after the jump: spawn guard busy=%s (%s), travel grace %.0fs, grace left %s",
+                  tostring(busy0), tostring(why0), self.PatrolTravelGraceSecs or 0,
+                  tostring(self:PatrolLoadGraceLeft())))
+          end
+
+          -- Old gangs versus new ones, by key. A key that goes quiet and later spawns again
+          -- counts as NEW - that is a fresh gang on the same road, not a survivor.
+          local stillOld = 0
+          for k, rec in pairs(self.LivePatrols or {}) do
+              if rec.spawned then
+                  if S.preJump[k] == "live" then
+                      stillOld = stillOld + 1
+                  elseif not S.newGangKey then
+                      S.newGangKey, S.newGangAt = k, away
+                      local grace = self.PatrolTravelGraceSecs or 30.0
+                      self:TortureInfo("patrol_pressure", string.format(
+                          "a new gang (%s, %d men, nearest %.0fm) spawned %.0fs after the jump - %s the %.0fs travel grace",
+                          tostring(k), men, self:TorturePatrolNearest() or -1, away,
+                          (away < grace) and "INSIDE" or "after", grace))
+                  end
+              elseif S.preJump[k] == "live" then
+                  S.preJump[k] = "gone"
+              end
+          end
+          if posDue(S, 15.0) then self:TorturePosLog(S, "patrol_away") end
+
+          if away < 20 then return nil end
+          if stillOld > 0 then
+              if away < 60 then return nil end
+              return false, string.format(
+                  "%d of the %d gang(s) that were standing here before the jump are STILL live %.0fs after it",
+                  stillOld, S.preJumpN or 0, away)
+          end
+          -- A gang that appears inside the travel grace means the transition teardown never
+          -- armed: the road is supposed to stay quiet while the player gets his bearings on
+          -- the other side. One that appears AFTER the grace is the system working, and is
+          -- INFO (logged above), never a failure.
+          local grace = self.PatrolTravelGraceSecs or 30.0
+          if S.newGangAt and S.newGangAt < grace then
+              return false, string.format(
+                  "a new gang (%s) spawned %.0fs after the jump, inside the %.0fs travel grace",
+                  tostring(S.newGangKey), S.newGangAt, grace)
+          end
+          -- ...and the regression this step exists for. A despawn that deletes the men
+          -- without scrubbing their combat claims left EnemyAlerted and the spawn guard
+          -- latched open: "the game still thinks I am in a fight" long after the fight.
+          local busy, why = self:PlayerBusyForSpawns()
+          local inCombat = (tostring(why or ""):find("combat", 1, true) ~= nil)
+          if not inCombat and not self.EnemyAlerted then
+              self:TortureInfo("patrol_pressure", string.format(
+                  "all %d pre-jump gang(s) gone at +%.0fs; new gang since: %s; spawn guard busy=%s (%s), EnemyAlerted=false",
+                  S.preJumpN or 0, away,
+                  S.newGangKey and string.format("%s at +%.0fs", tostring(S.newGangKey), S.newGangAt or -1) or "none",
+                  tostring(busy), tostring(why)))
+              return true
+          end
+          if away < 50 then return nil end
+          return false, string.format(
+              "%.0fs after the patrols despawned the game still reads combat (guard=%s, EnemyAlerted=%s)",
+              away, tostring(why), tostring(self.EnemyAlerted))
+      end },
+
+    { name = "raid_camp_make", timeout = 90, ground = true,
+      run = function(self, S)
+          pcall(function() self:LivePatrolSetEnabled(0) end)   -- a gang wandering into a raid is not this test
+          local pp
+          pcall(function() pp = player:GetWorldPos() end)
+          self:SpawnMercCamp(pp and { x = pp.x, y = pp.y, z = pp.z, ang = 0 } or nil, true)
+      end,
+      check = function(self, S)
+          if not self.CampActive then return nil end
+          if self:TortureCampProps(60.0) <= 0 and #(self.CampEntities or {}) <= 0 then return nil end
+          return true
+      end },
+
+    { name = "raid_on_camp", timeout = 300, ground = true,
+      run = function(self, S)
+          S.raidDefenders0 = squadCount(self)
+          S.lastPhase, S.sawBattle = nil, false
+          self:RaidNow()
+      end,
+      check = function(self, S)
+          -- Judged off the wall battle's OWN phase machine, exactly as the probe's raid_test
+          -- is: two instrument versions built on entity scans were blind to raiders that
+          -- spawned, fought and LOST inside one window, and called a won battle "no raiders
+          -- ever spawned". An unwalled camp still goes through the machine - WBTick marshals
+          -- a deliberate raid whether or not there is a palisade.
+          local el = tClock() - S.stepFrom
+          local ph = self.WBPhase or "idle"
+          if ph ~= "idle" and ph ~= S.lastPhase then
+              S.lastPhase, S.sawBattle = ph, true
+              self:TortureInfo("raid_on_camp", "wall battle phase '" .. ph .. "' at +"
+                  .. string.format("%.0f", el) .. "s")
+          end
+          if posDue(S, 10.0) then self:TortureEnemyLog(S, "raid") end
+          if not S.sawBattle then
+              if el > 120 then return false, "the raid never left idle (nobody spawned, or they never marched in)" end
+              return nil
+          end
+          if ph ~= "idle" then return nil end
+          self:TortureInfo("raid_on_camp", string.format(
+              "battle resolved at +%.0fs: raiders left near camp=%d, defenders %d -> %d",
+              el, liveEnemies(self), S.raidDefenders0 or -1, squadCount(self)))
+          return true
+      end },
+
+    { name = "raid_camp_break", timeout = 90, ground = true,
+      run = function(self, S) self:BreakMercCamp(true) end,
+      check = function(self, S)
+          if self.CampActive then return nil end
+          if (tClock() - S.stepFrom) < 20 then return nil end
+          local left, queried = self:TortureCampProps(40.0)
+          if queried and left > 0 then return false, left .. " camp prop(s) still standing within 40m" end
+          local tracked = #(self.CampEntities or {})
+          if tracked > 0 then return false, tracked .. " camp entity/entities still tracked" end
+          return true
+      end },
+
+    { name = "field_health", timeout = 20, ground = true,
+      run = function(self, S) end,
+      check = function(self, S)
+          local stalls = countTable(self.FollowStallStreak)
+          local poses  = countTable(self.CampPoseHoldFrom)
+          local claims = countTable(self.MercTargetOf)
+          local gangs  = 0
+          pcall(function() gangs = self:PatrolLiveGangCount() end)
+          local busy, why = self:PlayerBusyForSpawns()
+          self:TortureInfo("field_health", string.format(
+              "squad=%d stallStreaks=%d poseHolds=%d claims=%d alerted=%s spawnGuard=%s(%s) camp=%s patrolGangs=%d",
+              squadCount(self), stalls, poses, claims, tostring(self.EnemyAlerted),
+              tostring(busy), tostring(why), tostring(self.CampActive), gangs))
+          if stalls > 3 then return false, stalls .. " concurrent stall streaks" end
+          if poses > 0 then return false, poses .. " pose-hold(s) still armed after the camp came down" end
+          return true
+      end },
+}
+
+function mercenaries:TortureStartField(autoquit, aggro)
+    if self.TortureRunning then tLog("already running"); return end
+    if not player then tLog("no player - not in game yet"); return end
+    self.TortureRunning  = true
+    self.TortureAutoQuit = (autoquit == true)
+    self.TortureSlot     = 1 - (self.TortureSlot or 0)
+    local anchor = nil
+    pcall(function()
+        local p = player:GetWorldPos()
+        anchor = { x = p.x, y = p.y, z = p.z }
+    end)
+    self._tortureState = {
+        idx = 1, plan = self.TortureFieldPlan[1], planList = self.TortureFieldPlan,
+        stepFrom = tClock(), startedAt = tClock(), anchor = anchor,
+        pass = 0, fail = 0, skip = 0,
+        aggro = (aggro == true), deadline = self.TortureFieldDeadline,
+    }
+    -- God NOW, hoist never: every step of this plan is `ground`, so Henry stays on his feet -
+    -- but he must be immortal from this instant, not from the first tick.
+    self:TortureArmSafety(self._tortureState, false)
+    -- Scheduled raids off for the whole run (raid_on_camp launches its own), and roaming
+    -- patrols off until patrol_pressure switches them back on: a gang wandering into a
+    -- follow measurement turns it into a battle and reads as an unrelated FAIL. Both are
+    -- restored in TortureFinish. LivePatrolSetEnabled rather than the bare flag, because
+    -- the flag alone leaves any gang that is ALREADY standing exactly where it is.
+    self._tortureRaidWas = self.RaidEnabled
+    self.RaidEnabled = false
+    self._torturePatrolWas = self.LivePatrolsEnabled
+    pcall(function() self:LivePatrolSetEnabled(0) end)
+    self.TortureDrivesPlayer = (self.TortureFieldPlan[1].ground == true)
+    tLog("=== torture FIELD plan: " .. #self.TortureFieldPlan .. " step(s), autoquit="
+         .. tostring(self.TortureAutoQuit) .. ", aggro=" .. tostring(aggro == true) .. " ===")
+    tLog("step '" .. self.TortureFieldPlan[1].name .. "'")
+    pcall(self.TortureFieldPlan[1].run, self, self._tortureState)
+    Script.SetTimerForFunction(self.TortureTickMs, "mercenaries.TortureTick" .. self.TortureSlot)
+end
+
+-- ---------------------------------------------------------------------------
 -- wiring
 -- ---------------------------------------------------------------------------
 
+-- MANUAL convenience only: put the torture triggers back on F6/F7/F8 for a session.
+-- NEVER called automatically - every one of these ends in quit, and F6 sends the squad
+-- at an innocent NPC. Players firing them by accident is exactly the bug that got the
+-- automatic binds removed.
+--
+-- The HARNESS no longer uses this at all. Measured: a run typed merc_dev and
+-- merc_torture_bindkeys, logged "dev binds applied", tapped F8 - and nothing happened, not
+-- one [Torture] line, because the game's own bindings shadow the F-keys (the same thing
+-- autobench's -ConsoleCmd was added for). Every trigger the harness fires is TYPED into the
+-- console now; a typed command cannot be shadowed by a keybind.
 function mercenaries:TortureBindKeys()
     pcall(function() System.ExecuteCommand("bind f8 merc_torture_auto") end)
     pcall(function() System.ExecuteCommand("bind f7 merc_torture_probe") end)
     pcall(function() System.ExecuteCommand("bind f6 merc_torture_probe_aggro") end)
+    System.LogAlways("[Torture] dev binds applied: F8=merc_torture_auto F7=merc_torture_probe F6=merc_torture_probe_aggro")
 end
 
-do
-    local function c(n, b, d)
-        if mercenaries.CmdHelpText then mercenaries.CmdHelpText[n] = d end
-        pcall(function() System.AddCCommand(n, b, d) end)
-    end
-    c("merc_torture",       "mercenaries:TortureStart(false)",      "Run the functional torture-test campaign (also F8)")
-    c("merc_torture_auto",  "mercenaries:TortureStart(true)",       "Run the torture campaign and QUIT when done (harness mode)")
-    c("merc_torture_probe", "mercenaries:TortureStartProbe(true)",  "Adaptive scenario probe: observe this save's world and QUIT (also F7)")
-    c("merc_torture_probe_aggro", "mercenaries:TortureStartProbe(true, true)", "Scenario probe + call the squad onto the nearest vanilla NPC (bandit saves ONLY; also F6)")
-end
+-- Dev-gated: automated tests, all of which quit the game when done. Not registered
+-- until merc_dev, which itself only works in a -devmode launch. See docs/console.md.
+mercenaries:DevCommand("merc_torture",       "mercenaries:TortureStart(false)",      "Run the functional torture-test campaign")
+mercenaries:DevCommand("merc_torture_auto",  "mercenaries:TortureStart(true)",       "Run the torture campaign and QUIT when done (harness mode)")
+mercenaries:DevCommand("merc_torture_probe", "mercenaries:TortureStartProbe(true)",  "Adaptive scenario probe: observe this save's world and QUIT")
+mercenaries:DevCommand("merc_torture_probe_aggro", "mercenaries:TortureStartProbe(true, true)", "Scenario probe + call the squad onto the nearest vanilla NPC (bandit saves ONLY)")
+mercenaries:DevCommand("merc_torture_bindkeys", "mercenaries:TortureBindKeys()", "Bind F8/F7/F6 to the torture triggers for this session (harness use)")
+-- The field plan is typed into the console by the harness, never bound to a key: it is a
+-- single-session plan with no reload, so it needs no keystroke arming, and the release
+-- policy is that nothing here takes an F-key.
+mercenaries:DevCommand("merc_torture_field",      "mercenaries:TortureStartField(false)",
+                   "Field plan: walk, follow at 5/12/24, fight, camp, patrols and a raid - one session")
+mercenaries:DevCommand("merc_torture_field_auto", "mercenaries:TortureStartField(true)",
+                   "Run the field plan and QUIT when done (harness mode)")
+mercenaries:DevCommand("merc_torture_field_aggro", "mercenaries:TortureStartField(false, true)",
+                   "Field plan + call the squad onto the nearest BASE-GAME NPC (bandit saves ONLY - it would murder a civilian)")
+mercenaries:DevCommand("merc_torture_field_aggro_auto", "mercenaries:TortureStartField(true, true)",
+                   "Field plan with the base-game fight armed, and QUIT when done (bandit saves ONLY)")

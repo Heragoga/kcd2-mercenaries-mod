@@ -88,23 +88,58 @@ Nothing in the scriptbind reports an item's slot or its category. `ItemManager` 
 `GetItem`, `GetItemName` and `GetItemUIName` and that is all; there is no
 "what slot does this class go in" call and no "what is in this slot" query either.
 
-So it is generated offline. `tools/gen_gear_table.py` reads
-`references/Libs/Tables/item/` and emits **2166 armour GUIDs keyed by equipment slot
-and 606 weapon GUIDs keyed by weapon class**, plus the 40 that carry `IsQuestItem`.
-The chain it walks:
+So it is generated offline. `tools/gen_gear_table.py` reads **every** `item*.xml` in
+`references/base_game/Libs/Tables/item/` and emits **3167 armour GUIDs keyed by
+equipment slot and 730 weapon GUIDs keyed by weapon class**, plus the 70 that carry
+`IsQuestItem`. The chain it walks:
 
-    item.xml <Armor|Helmet|Hood>.Clothing   ->  strip the "NN_mNN" tail
+    item*.xml <Armor|Helmet|Hood>.Clothing  ->  strip the "NN_mNN" tail
       -> armor_type.xml Name                ->  equipment_slot.xml ArmorTypes -> slot Id
-    item.xml <MeleeWeapon|MissileWeapon>.Class -> weapon_class.xml id
-    item.xml <ItemAlias>.SourceItemId       ->  graded as whatever it aliases
+    item*.xml <MeleeWeapon|MissileWeapon>.Class -> weapon_class.xml id
+    item*.xml <ItemAlias>.SourceItemId      ->  graded as whatever it aliases
 
-GUIDs are stored dashless and concatenated 32 characters apiece, grouped by slot, so
-the file is ~90 KB instead of ~250 KB. `GearBuildIndex` unpacks it **lazily**, on
-first use — a session that never touches the wardrobe never pays for it.
+> It used to read `item.xml` alone, which left **1120 vanilla gear items** — all of
+> `item__dlc`, `item__unique`, `item__rewards`, `item__aux` and `item__horse` — looking
+> exactly like modded items to the wardrobe, which silently ignored them. Horse tack is
+> matched by keyword rather than prefix for the same reason: the names are
+> `BasicBridle03_m04` and `EastSaddle02_m01`, which do not *start* with `Bridle` or
+> `Saddle`, so all 415 pieces fell through to slot 0 — a legal, **wearable** answer,
+> meaning the wardrobe would have offered your men a saddle to put on.
 
-Twelve items end up with no slot (chain collars, spectacles, a hangman's noose, a
-painter's torso). Slot 0 is a legal answer: those are equipped last and never
-trigger a prerequisite. Re-run the generator after a game patch.
+GUIDs are stored dashless and concatenated 32 characters apiece, grouped by slot.
+`GearBuildIndex` unpacks it **lazily**, on first use — a session that never touches the
+wardrobe never pays for it.
+
+126 items end up with no slot (spectacles, a hangman's noose, scabbards, a painter's
+torso). Slot 0 is a legal answer: those are equipped last and never trigger a
+prerequisite. Re-run the generator after a game patch.
+
+### Items from other mods
+
+A modded item is in none of the tables, and so is a loaf of bread — but the wardrobe
+must wear the first and ignore the second. That is what the fourth table is for:
+`GearNonGearBlobs` lists every **vanilla** item that is *not* equipment (food, potions,
+tools, documents, ingredients). The rule, in `GearIsWearableClass`:
+
+| in the slot or weapon table | vanilla gear | worn, fully graded |
+| in the non-gear table | a misdrop | ignored, as before |
+| in none of them | **not vanilla at all** | taken to be modded equipment, and worn |
+
+Modded pieces then get a slot the only way left: `ItemManager.GetItemName(guid)` returns
+the item's database name, and for 98% of vanilla armour its leading letters are the
+clothing family that decides the slot. `GearSlotByName` reads that prefix against the
+same mapping the generator used (`GearNamePrefixSlots`, longest-prefix-first), so a
+modder who copied a vanilla row — which is how nearly all of them are made — gets a real
+slot, and with it the layer order and the gambeson-under-plate rule. **That rule is why
+this matters rather than being a nicety: plate offered with no gambeson under it is
+refused by the engine without a word,** so an unslotted modded cuirass would simply never
+appear. Anything the proxy cannot parse stays unknown and is worn last, which still works
+for a single piece.
+
+Two honest limits. A modded item is invisible to `GearScanInventory`, the fallback that
+probes known classes one at a time — it can only ask after classes it already knows, and
+there is no other enumeration; it says so in the log. And a modded item whose name
+follows no vanilla convention gets no slot, so it will not pull a gambeson under itself.
 
 ### Reading what was handed over, and knowing when to stop
 

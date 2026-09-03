@@ -10,7 +10,11 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be44d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be45d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be46d" Name="loot_sackOfNails" />
-        <!-- Item used to indicate which style should be chosen (one of these items: common merc, two bandit, three cuman, four skalitz and five kuttenberg) -->
+        <!-- Item used to indicate which style should be chosen. The COUNT is the style index
+             in mercenaries.Outfits: 1 generic, 2 bandit, 3 cuman, 4 Leipa, 5 Kuttenberg,
+             6 Skalitz, 7 custom uniform, 8 Prague, 9 Sigismund, 10 Order of the Red Star,
+             11 Bergov, 12 Nebakov, 13 Semine, 14 Pisek, 15 Teutonic, 16 Ruthard, 17 Papal.
+             See docs/outfits.md - do not renumber, EnemyOutfitOverride assumes these. -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be47d" Name="loot_sackOfNails" />
         <!-- Item used to indicate the recruitment of a custom companion, one means custom companion 1, two custom companion 2 etc -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be48d" Name="loot_sackOfNails" />

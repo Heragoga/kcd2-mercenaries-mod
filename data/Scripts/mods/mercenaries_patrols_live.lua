@@ -17,18 +17,22 @@
 mercenaries.LivePatrolsEnabled = true
 -- A gang materialises only inside the BAND between these two, never on top of the player.
 -- See docs/patrols.md, "Never in your lap".
-mercenaries.PatrolSpawnRange   = 250.0   -- spawn the gang when the player is this close...
-mercenaries.PatrolNoSpawnRange = 200.0   -- ...but never closer than this
-mercenaries.PatrolDespawnRange = 330.0   -- ...and take it away again out here (hysteresis)
+-- Band pushed out from 200-250 (despawn 330): users watched gangs materialise in view.
+-- At 300m+ a spawn is over a hill or round a bend in almost all terrain, and the despawn
+-- edge keeps ~100m of hysteresis beyond the outer band edge.
+mercenaries.PatrolSpawnRange   = 400.0   -- spawn the gang when the player is this close...
+mercenaries.PatrolNoSpawnRange = 300.0   -- ...but never closer than this
+mercenaries.PatrolDespawnRange = 500.0   -- ...and take it away again out here (hysteresis)
 -- The line nothing may EVER cross, whatever the band above says. The band is tested on the
 -- gang's notional point up to a tick (3s) before the men are actually created, and only for
 -- the LEAD man - a player riding at the gang closes most of a 50m band in that time, and the
 -- rest of the column is laid out BEHIND the lead, which can be his side of it. So the floor
 -- is re-tested inside PatrolSpawnGang against a freshly read player position, and again for
 -- every man's final ground-snapped spot. See docs/patrols.md, "Never in your lap".
--- 150, not 100: a galloping horse covers ~50m in the 3s between the band test and the men
--- being created, and 100m of open road reads as "that just appeared". See docs/patrols.md.
-mercenaries.PatrolMinPlayerDist = 150.0
+-- 250, not 100: a galloping horse covers ~50m in the 3s between the band test and the men
+-- being created, and open road closer than this reads as "that just appeared". Raised
+-- with the band (was 150 when the band was 200-250). See docs/patrols.md.
+mercenaries.PatrolMinPlayerDist = 250.0
 -- What a player with no mercenaries meets: a handful of men, never a company.
 mercenaries.PatrolSoloMinMen   = 3
 mercenaries.PatrolSoloMaxMen   = 5
@@ -38,6 +42,10 @@ mercenaries.PatrolFreshTries   = 8       -- ...best of this many random start po
 -- bearings and the squad is not there yet - the cache rebuild is 2s behind him and the camp
 -- restore 4s, so a gang met in the first seconds is met alone.
 mercenaries.PatrolLoadGraceSecs = 45.0
+-- ...and for this long after a sleep/wait/fast-travel ends (the transition teardown in
+-- LivePatrolBody arms it). Shorter than the load grace: the world did not change under
+-- him, he just moved through it.
+mercenaries.PatrolTravelGraceSecs = 90.0
 mercenaries.PatrolMinMen       = 3
 -- Per-gang ceiling. Was 50: at a 20-merc company the size roll produced ~26-man gangs and
 -- several gangs are normally in range together, so the road fielded more men than a siege.
@@ -56,7 +64,11 @@ mercenaries.PatrolMaxLiveMen   = 36
 -- ...and a ceiling on how many GANGS can be live at once, which is the one that bites at a
 -- road junction: the recorded networks have positions where 9 (Kuttenberg) and 12 (Trosky)
 -- gang slots sit inside the band simultaneously, and every one of them used to spawn.
-mercenaries.PatrolMaxLiveGangs = 3
+-- ONE, by decree: two patrols on the road at once kept being reported as endless enemy
+-- waves ("killed one batch, another two spawn"). A patrol is an encounter, singular.
+-- This cap is deliberately NOT scaled by difficulty (see PatrolBudgetFor) - tiers scale
+-- gang SIZE and FREQUENCY instead.
+mercenaries.PatrolMaxLiveGangs = 1
 -- Spawning is staggered across ticks. A gang is a burst of SpawnEntity + ground-probe +
 -- clothing/weapon equips per man; letting three gangs land on one frame is a visible hitch
 -- even when the steady-state population is fine.
@@ -66,7 +78,7 @@ mercenaries.PatrolSpawnPerTick = 1
 -- these bound how OFTEN a new one may appear. Without them a freed gang slot was refilled
 -- on the next 3s tick, which at a junction is an endless conveyor. See docs/patrols.md,
 -- "Pacing".
-mercenaries.PatrolQuietSecs     = 180.0   -- floor on the gap between any two gangs
+mercenaries.PatrolQuietSecs     = 600.0   -- floor on the gap between any two gangs (was 180: six gangs in a day's ride)
 mercenaries.PatrolPostFightSecs = 480.0   -- ...and the longer silence a wipe buys
 -- How many gangs a player who has not travelled PatrolAnchorRadius may meet before the
 -- road falls silent until he does. Bounds standing still (a camp); never limits travel.
@@ -536,20 +548,33 @@ end
 
 -- ==== sizing ====
 -- A multiple of the player's fighting strength - himself plus his living mercs.
+-- The men WITH the player, not the payroll. With a camp standing most of the roster is
+-- asleep in it and the player rides out with a handful - or alone - and a gang sized off
+-- the payroll is then a company that ends him: an automated run on 2026-09-02 loaded a
+-- save with the squad in camp and the first gang to spawn was sixteen bandits, the
+-- per-gang ceiling, against one man. This is exactly the mistake the Kleinkrieg camps
+-- fixed with BanditCampFollowerCount (excludes men in the camp proper and camp actors -
+-- the same predicate the formation uses), so the roads use it too. The payroll count
+-- stays as the fallback only for a build where that helper is missing.
 function mercenaries:PatrolPartySize()
     local n = 1
-    pcall(function() n = 1 + (self:LogiAliveCount() or 0) end)
+    pcall(function()
+        if self.BanditCampFollowerCount then
+            n = 1 + (self:BanditCampFollowerCount() or 0)
+        else
+            n = 1 + (self:LogiAliveCount() or 0)
+        end
+    end)
     return math.max(1, n)
 end
 
--- True with zero living mercenaries. This used to withhold roaming patrols entirely, which
--- emptied the roads for exactly the player who is out there alone. It now sizes them
--- instead: a solo player meets PatrolSoloMinMen..PatrolSoloMaxMen men (see PatrolRollSize),
--- which is an encounter he can fight or run from rather than a company that ends him.
+-- True with zero mercenaries AT HIS SIDE (see PatrolPartySize - the payroll is not the
+-- party). This used to withhold roaming patrols entirely, which emptied the roads for
+-- exactly the player who is out there alone. It now sizes them instead: a solo player
+-- meets PatrolSoloMinMen..PatrolSoloMaxMen men (see PatrolRollSize), which is an encounter
+-- he can fight or run from rather than a company that ends him.
 function mercenaries:PatrolPlayerAlone()
-    local n = 0
-    pcall(function() n = self:LogiAliveCount() or 0 end)
-    return n <= 0
+    return self:PatrolPartySize() <= 1
 end
 
 -- How far a gang is allowed to OUTNUMBER the party, scaled by how big the party is. A flat
@@ -811,7 +836,7 @@ function mercenaries:PatrolSpawnGang(rec, force)
                 -- facing regardless of the road. Hand it the heading as a vector so they
                 -- actually face the way they are about to walk.
                 orientation = { x = fx, y = fy, z = 0 },
-                properties = { guidSharedSoulId = rec.soul },
+                properties = mercenaries:NoSaveProps({ guidSharedSoulId = rec.soul }),
             })
             e = System.GetEntityByName(name)
             if e and self.EquipEnemy then self:EquipEnemy(e, rec.group, false) end
@@ -875,10 +900,27 @@ function mercenaries:PatrolSpawnGang(rec, force)
 end
 
 function mercenaries:PatrolDespawnGang(rec, why)
+    -- A bare RemoveEntity used to be the whole function, and it left combat state behind:
+    -- the men were deleted mid-engagement, so the BT OnFail that releases combat claims
+    -- never ran, ForcedTargetOf entries written by PatrolAlert were orphaned (a man who
+    -- never ran FindEnemyTarget has no EnemyClaimWuid entry, so PruneCombatClaims never
+    -- reaches him), and the alert survived on the RECORD - a respawn of the same route
+    -- started already alerted. Net effect: "the game still thinks I am in a fight" long
+    -- after the patrol was gone. Everything the gang wrote is scrubbed here, per man and
+    -- on the record, BEFORE the entities go.
     for _, e in ipairs(rec.men or {}) do
+        local k = lKey(e)
+        if k then
+            if self.ForcedTargetOf  then self.ForcedTargetOf[k]  = nil end
+            if self.EnemyTargetOf   then self.EnemyTargetOf[k]   = nil end
+            if self.EnemyClaimWuid  then self.EnemyClaimWuid[k]  = nil end
+        end
         pcall(function() System.RemoveEntity(e.id) end)
     end
     rec.men = {}
+    -- The alert dies with the gang - never carried into this record's next spawn.
+    rec.alertAt, rec.alertTarget, rec.alertSyncAt = nil, nil, nil
+    rec.lastAlive = nil
     self:PatrolIndexClear(rec)
     rec.spawned = false
     self:PatrolClearCorpses(rec)
@@ -971,6 +1013,102 @@ function mercenaries:PatrolAnchorTouch(pp)
     return a
 end
 
+-- ---------------------------------------------------------------------------------
+-- Jumps. The player moving further, or the clock further, between two consecutive ticks
+-- than a walk allows - fast travel, sleep, a wait, a cutscene teleport - regardless of
+-- whether PlayerBusyForSpawns saw it happen.
+mercenaries.PatrolJumpDist  = 250.0   -- metres between two ticks that can only be a jump
+mercenaries.PatrolJumpHours = 0.5     -- world hours between two ticks, likewise
+
+function mercenaries:PatrolWorldHours()
+    local h
+    pcall(function() h = (Calendar.GetWorldDay() or 0) * 24 + (Calendar.GetWorldHourOfDay() or 0) end)
+    return h
+end
+
+function mercenaries:PatrolJumped(pp, t)
+    local last, lastH = self._patrolLastPP, self._patrolLastHours
+    local h = self:PatrolWorldHours()
+    self._patrolLastPP, self._patrolLastHours = { x = pp.x, y = pp.y, z = pp.z }, h
+    if not last then return false end
+    local d  = math.sqrt((pp.x - last.x) ^ 2 + (pp.y - last.y) ^ 2)
+    local dh = (h and lastH) and math.abs(h - lastH) or 0
+    if d < (self.PatrolJumpDist or 250) and dh < (self.PatrolJumpHours or 0.5) then return false end
+    System.LogAlways(string.format("[Patrol] the player jumped %.0fm / %.1fh between two ticks (fast travel, sleep or a teleport) - taking the road down", d, dh))
+    for _, rec in pairs(self.LivePatrols or {}) do
+        if rec.spawned then self:PatrolDespawnGang(rec, "the player jumped") end
+    end
+    local until_ = t + (self.PatrolTravelGraceSecs or 90)
+    if until_ > (self._patrolGraceUntil or 0) then self._patrolGraceUntil = until_ end
+    return true
+end
+
+-- ---------------------------------------------------------------------------------
+-- The day cap. The quiet clocks pace gangs in REAL seconds, and a day's ride across the
+-- map is long enough in real seconds for six of them (2026-09-03). "One or two a day" is
+-- what the road should feel like, so this counts by the world calendar and is saved with
+-- the game: reloading does not refill the day.
+mercenaries.PatrolMaxPerDay = 2   -- gangs per world day at most; 0 = no cap. merc_patrols_perday
+
+function mercenaries:PatrolDayLog()
+    if not self._patrolDay then
+        local s; pcall(function() s = self:LoadString("PatrolDayLog") end)
+        local d, n = string.match(tostring(s or ""), "^(%-?%d+),(%d+)$")
+        self._patrolDay, self._patrolDayN = tonumber(d) or -1, tonumber(n) or 0
+        local cap; pcall(function() cap = tonumber(self:LoadString("PatrolMaxPerDay")) end)
+        if cap then self.PatrolMaxPerDay = cap end
+    end
+    local today = -1
+    pcall(function() today = Calendar.GetWorldDay() or -1 end)
+    if today ~= self._patrolDay then
+        self._patrolDay, self._patrolDayN, self._patrolDayCapNoted = today, 0, false
+    end
+    return self._patrolDayN
+end
+
+function mercenaries:PatrolDayCapHit()
+    local cap = self.PatrolMaxPerDay or 0
+    local n = self:PatrolDayLog()
+    if cap <= 0 or n < cap then return false end
+    if not self._patrolDayCapNoted then
+        self._patrolDayCapNoted = true
+        System.LogAlways(string.format("[Patrol] %d gang(s) already today (cap %d) - the road stays quiet until tomorrow", n, cap))
+    end
+    return true
+end
+
+function mercenaries:PatrolDayCount()
+    self:PatrolDayLog()
+    self._patrolDayN = (self._patrolDayN or 0) + 1
+    pcall(function() self:SaveString("PatrolDayLog", string.format("%d,%d", self._patrolDay or 0, self._patrolDayN)) end)
+    System.LogAlways(string.format("[Patrol] gang %d of %d for today", self._patrolDayN, self.PatrolMaxPerDay or 0))
+end
+
+-- Give back allowance for gangs the player never got to meet (a crossing took them down
+-- moments after they appeared). Never goes below zero.
+function mercenaries:PatrolDayRefund(n)
+    self:PatrolDayLog()
+    local back = math.min(n or 1, self._patrolDayN or 0)
+    if back <= 0 then return end
+    self._patrolDayN = (self._patrolDayN or 0) - back
+    self._patrolDayCapNoted = false
+    pcall(function() self:SaveString("PatrolDayLog", string.format("%d,%d", self._patrolDay or 0, self._patrolDayN)) end)
+    System.LogAlways(string.format("[Patrol] %d gang(s) taken down before the player met them - today's count is back to %d",
+                                   back, self._patrolDayN))
+end
+
+function mercenaries:PatrolPerDaySet(line)
+    local n = tonumber(tostring(line or ""):match("%-?%d+"))
+    if not n then
+        System.LogAlways(string.format("[Patrol] gangs per day: %d (today: %d)", self.PatrolMaxPerDay or 0, self:PatrolDayLog()))
+        return
+    end
+    self.PatrolMaxPerDay = math.max(0, n)
+    self._patrolDayCapNoted = false
+    pcall(function() self:SaveString("PatrolMaxPerDay", tostring(self.PatrolMaxPerDay)) end)
+    System.LogAlways("[Patrol] gangs per day set to " .. tostring(self.PatrolMaxPerDay) .. (self.PatrolMaxPerDay == 0 and " (no cap)" or ""))
+end
+
 -- Is the camp close enough to this spot that a gang appearing here would walk into it?
 function mercenaries:PatrolNearCamp(q)
     if not (self.CampActive and self.CampCenter and q) then return false end
@@ -982,8 +1120,54 @@ end
 
 -- May ANY gang be created right now? PatrolBudgetFor asks whether there is ROOM for one;
 -- this asks whether it is TIME for one.
-function mercenaries:PatrolMayEncounter(pp)
+-- Has the player actually been travelling? A gang is put on the road AHEAD of a moving
+-- player; there is no reason to put one there for a player who is standing still, and one
+-- very good reason not to.
+--
+-- THE MAP SCREEN. Twice on 2026-09-03 a gang appeared while the player was choosing a
+-- fast-travel destination: the map opens, the 3s tick comes round, seven men go on the road -
+-- all before the crossing has started, so no travel detector can see it yet (the world clock
+-- only spikes once the map closes). Calendar.IsWorldTimePaused() was tried and answers false
+-- for the map, so the menu cannot be asked about directly. What is certainly true while a
+-- menu is open is that HENRY DOES NOT MOVE, and that is what this asks.
+--
+-- It also covers standing in an inventory, reading a book, sitting in a tavern and simply
+-- standing about, all of which are moments a gang appearing nearby reads as an ambush.
+-- Tuned against the 3s tick: a WALK covers ~6m in one tick, so 4m is cleared by anyone
+-- actually going somewhere, and the 5s window shuts within two ticks of him stopping -
+-- fast enough to close before a destination is chosen on the map.
+mercenaries.PatrolMoveMin    = 4.0    -- metres...
+mercenaries.PatrolMoveWindow = 5.0    -- ...and he counts as travelling this long after
+
+function mercenaries:PatrolPlayerMoving(pp, t)
+    local a = self._patrolMovePP
+    if not (a and pp) then
+        self._patrolMovePP = pp
+        return false          -- no history yet; the first tick after a load never spawns
+    end
+    -- Covered the ground since the anchor? Then he is on his way, and stays "travelling"
+    -- for PatrolMoveWindow after it - so a gang is not withheld because he reined in for
+    -- three seconds. Standing in a menu, the anchor never moves and the window runs out.
+    local d = math.sqrt((pp.x - a.x) ^ 2 + (pp.y - a.y) ^ 2)
+    if d >= (self.PatrolMoveMin or 6.0) then
+        self._patrolMovePP, self._patrolMovedAt = pp, t
+        return true
+    end
+    local last = self._patrolMovedAt
+    return (last ~= nil) and ((t - last) < (self.PatrolMoveWindow or 8.0))
+end
+
+function mercenaries:PatrolMayEncounter(pp, t)
+    if not self:PatrolPlayerMoving(pp, t or nowT()) then
+        if not self._patrolStillNoted then
+            self._patrolStillNoted = true
+            System.LogAlways("[Patrol] the player is not going anywhere (a menu, or standing still) - no gang is put on the road")
+        end
+        return false
+    end
+    self._patrolStillNoted = nil
     if self:PatrolQuietLeft() then return false end
+    if self:PatrolDayCapHit() then return false end
     local cap = self.PatrolAnchorCap or 0
     if cap > 0 and pp then
         local a = self:PatrolAnchorTouch(pp)
@@ -995,10 +1179,12 @@ end
 -- What this gang is allowed to be, given what is already out there. Returns 0 when there
 -- is no room for even a minimum gang, and the caller simply does not spawn it.
 function mercenaries:PatrolBudgetFor(want)
-    -- Both aggregate caps scale with the tier. Raising only the per-gang size would
-    -- be a no-op: the population budget would swallow the extra men on the way out.
+    -- The MEN cap scales with the tier; the GANG cap does not. It used to
+    -- (DifficultyCeil turned 3 into 4-10 on the hard tiers), and multiple simultaneous
+    -- gangs is exactly the "endless waves of enemies" report. One gang at a time is a
+    -- hard rule now; the tiers still get their extra men through gang size and shorter
+    -- quiet clocks.
     local gangCap = self.PatrolMaxLiveGangs or 0
-    pcall(function() gangCap = self:DifficultyCeil(gangCap) end)
     if gangCap > 0 and self:PatrolLiveGangCount() >= gangCap then return 0 end
     local cap = self.PatrolMaxLiveMen or 0
     pcall(function() cap = self:DifficultyCeil(cap) end)
@@ -1064,14 +1250,34 @@ function mercenaries.LivePatrolBody()
         -- Not while he is asleep, waiting out the clock, in a conversation or already in
         -- a fight he did not pick. A patrol that spawns in those moments is an ambush the
         -- player never had a chance to see coming - and one that spawns during a quest
-        -- battle joins a fight that is not ours. Standing patrols are untouched: this only
-        -- stops NEW ones being raised, so anything already on the road keeps walking.
+        -- battle joins a fight that is not ours.
+        --
+        -- Two tiers of response. A conversation or a fight only holds NEW spawns - the
+        -- world keeps standing, anything on the road keeps walking. But a TRANSITION
+        -- (sleep, wait, fast travel) also TAKES DOWN whatever is standing: the player is
+        -- about to reappear hours later or kilometres away, and a gang left mid-alert
+        -- through that jump is exactly the "woke up / arrived into a fight I never saw
+        -- coming" report. The teardown also arms a short grace so the road stays quiet
+        -- while he gets his bearings on the other side.
         if self.PlayerBusyForSpawns then
             local busy, why = self:PlayerBusyForSpawns()
             if busy then
                 if why ~= self._patrolHeldWhy then
                     self._patrolHeldWhy = why
                     System.LogAlways("[Patrol] holding spawns - player is " .. tostring(why))
+                end
+                local w = tostring(why or "")
+                local transition = (w:find("sleep", 1, true) or w:find("waiting", 1, true)
+                                    or w:find("fast travel", 1, true)) ~= nil
+                if transition then
+                    for _, rec in pairs(self.LivePatrols or {}) do
+                        if rec.spawned then self:PatrolDespawnGang(rec, w) end
+                    end
+                    local grace = self.PatrolTravelGraceSecs or 30.0
+                    local until_ = nowT() + grace
+                    if until_ > (self._patrolGraceUntil or 0) then
+                        self._patrolGraceUntil = until_
+                    end
                 end
                 return
             elseif self._patrolHeldWhy then
@@ -1082,6 +1288,14 @@ function mercenaries.LivePatrolBody()
         local pp; pcall(function() pp = player:GetWorldPos() end)
         if not pp then return end
         local t = nowT()
+
+        -- A JUMP is a transition the busy probe above never saw. Fast travel runs on the map
+        -- screen with Lua frozen: the clock and the player both leap between two consecutive
+        -- ticks, and the probe only ever reads the quiet world on arrival - which is how a
+        -- gang was put on the road, and into the company, the moment a fast travel ended
+        -- (2026-09-03, a man lost). Consecutive ticks are seconds apart, so 250 m or half an
+        -- hour between them is never on foot: take down what stands and hold the road.
+        if self:PatrolJumped(pp, t) then return end
 
         -- Which map's routes apply is a LEVEL check, never a coordinate box: Kuttenberg and
         -- Trosky coordinates overlap, so a box would spawn one map's gangs on the other.
@@ -1117,7 +1331,7 @@ function mercenaries.LivePatrolBody()
             end
         end
         -- Checked before the sort, so a quiet road costs nothing.
-        if #wants > 0 and self:PatrolMayEncounter(pp) then
+        if #wants > 0 and self:PatrolMayEncounter(pp, t) then
             table.sort(wants, function(a, b) return a.d < b.d end)
             local placed = 0
             local perTick = self.PatrolSpawnPerTick or 1
@@ -1129,6 +1343,7 @@ function mercenaries.LivePatrolBody()
                 if self:PatrolSpawnGang(w.rec) then
                     placed = placed + 1
                     self:PatrolQuietFor(self.PatrolQuietSecs, "a gang has taken the road")
+                    self:PatrolDayCount()
                     local a = self._patrolAnchor
                     if a then a.n = (a.n or 0) + 1 end
                 end
@@ -1384,6 +1599,12 @@ function mercenaries:ClearAnyLeftoverPatrols()
     -- level we just left, so neither may cross a load. The grace above covers the gap.
     self._patrolQuietUntil = nil
     self._patrolAnchor     = nil
+    -- The jump detector compares consecutive ticks; the first tick after a load has no
+    -- predecessor on this level (the day log is read back from the save on first use).
+    self._patrolLastPP, self._patrolLastHours = nil, nil
+    self._patrolDay = nil
+    -- The movement history does not cross a load either: the player is somewhere else.
+    self._patrolMovePP, self._patrolMovedAt = nil, nil
     local swept = 0
     pcall(function()
         local pp; pcall(function() pp = player and player:GetWorldPos() end)

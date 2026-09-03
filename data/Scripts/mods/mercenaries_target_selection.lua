@@ -973,7 +973,40 @@ function mercenaries:MercPlayerMountSeen()
         if _G.PlayerMounted then _G.PlayerMounted = false end
         return
     end
+    -- Past HorsesMaxCompany men OUT with the player, the company marches on foot whatever
+    -- he rides: fifty riders is a hundred AI entities, and the engine's answer is riders
+    -- dropping out of the Detail budget - horses standing riderless past a certain
+    -- distance, men popping in and out (2026-09-03, 50 men). The fall-behind teleport keeps
+    -- men on foot with a rider, exactly as with merc_horses 0.
+    local cap = self.HorsesMaxCompany or 0
+    if cap > 0 and self:MercsOutCount() > cap then
+        if not self._horsesCapNoted then
+            self._horsesCapNoted = true
+            System.LogAlways(string.format("[Mercenaries] %d men out is past the %d-rider limit (merc_horses_max) - the company stays on foot",
+                                           self:MercsOutCount(), cap))
+        end
+        if _G.PlayerMounted then _G.PlayerMounted = false end
+        return
+    end
+    self._horsesCapNoted = false
     if not _G.PlayerMounted then _G.PlayerMounted = true end
+end
+
+-- How many of the company are out with the player (all of them without a camp; the sortie
+-- with one). Polled per merc from the follow tree, so the answer is cached for a second.
+function mercenaries:MercsOutCount()
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if self._outCountAt and (now - self._outCountAt) < 1.0 and self._outCount then return self._outCount end
+    local n = 0
+    pcall(function()
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w and (not self.CampActive or self:IsMercInSortie(w)) then n = n + 1 end
+        end
+    end)
+    self._outCount, self._outCountAt = n, now
+    return n
 end
 
 function mercenaries:MercPlayerMountLost()
@@ -992,6 +1025,40 @@ function mercenaries:MercMountState(bt_data, myWuid)
     pcall(function() want = (_G.PlayerMounted and self:IsMercInSortie(myWuid)) or false end)
     if want and _G.MercDismountThreat then want = false end
     bt_data.playerIsMounted = want
+end
+
+-- INSTANT MOUNT. Called from follow.xml's horse lifecycle the tick the horse exists. The
+-- tree's own path - StanceElement walks the man to a horse spawned a few metres off and
+-- plays the mount transition - is what took a fifty-man company ten to twenty seconds to
+-- get into the saddle (2026-09-03), each man queueing his own walk and animation. The Human
+-- bind has `ForceMount(EntityId horseId)` ("Mounts selected horse", C_ScriptBindHuman), so he
+-- is put on it here and the tree's StanceCheck finds him already riding and goes straight to
+-- the ride loop. If neither bind takes, nothing is lost: the walk-to-mount path still runs.
+-- Which bind answered is logged once.
+function mercenaries:MercInstantMount(ent, horseEnt)
+    if not (ent and horseEnt and horseEnt.id) then return false end
+    local already = false
+    pcall(function() already = ent.human and ent.human.IsMounted and ent.human:IsMounted() or false end)
+    if already then return true end
+    local how = nil
+    if ent.human then
+        if ent.human.ForceMount then
+            local ok = pcall(function() ent.human:ForceMount(horseEnt.id) end)
+            if ok then how = "ForceMount" end
+        end
+        if not how and ent.human.Mount then
+            local ok = pcall(function() ent.human:Mount(horseEnt.id) end)
+            if ok then how = "Mount" end
+        end
+    end
+    if how and not self._instantMountNoted then
+        self._instantMountNoted = true
+        System.LogAlways("[MercHorse] instant mount through human:" .. how .. " - the walk-to-mount path is the fallback only")
+    elseif not how and not self._instantMountFailNoted then
+        self._instantMountFailNoted = true
+        System.LogAlways("[MercHorse] no instant-mount bind answered on this build - men walk to their horses as before")
+    end
+    return how ~= nil
 end
 
 function mercenaries:AutoDismountSet(v)

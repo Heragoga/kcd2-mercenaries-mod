@@ -81,15 +81,23 @@ local function runPerNpc(self, s)
     end
 end
 
-function mercenaries.MasterTick()
+function mercenaries.MasterTick(token)
     local self = mercenaries
-    -- No duplicate-chain guard here, deliberately. A time-based one was tried - exit
-    -- without re-arming if this tick landed within 40ms of the last - and it killed the
-    -- ONLY chain: after any hitch the engine fires queued timers back to back, two ticks
-    -- land close together, and the survivor removed itself. That produced 12 watchdog
-    -- re-arms in a single session. Duplicates are prevented at the source instead, by the
-    -- latch in SchedStart. A third argument to Script.SetTimerForFunction is also not an
-    -- option: it silently stops the timer re-firing at all. See docs/performance.md.
+    -- Each chain carries the token it was armed under (a closure, see SchedArm) and
+    -- retires the moment it is not the current one. A chain cannot be told apart from
+    -- its twin by timing - a time-based guard was tried and killed the ONLY chain after a
+    -- hitch fired two queued ticks back to back - but it can by identity, and this is the
+    -- identity. It matters because the engine writes pending NAMED timers into the save
+    -- and restores them on load: three sessions that each loaded the previous one's save
+    -- ran 1, 2 and 3 watchdog pollers, and every watchdog re-arm added one more master
+    -- tick that never went away - some 65 by the end of the third session, every slot
+    -- firing 65 times too often (2026-09-02). A chain restored from an older build's save
+    -- arrives here with the timer id in place of a token and retires the same way. See
+    -- docs/performance.md.
+    if token ~= self._schedToken then
+        self:SchedRetire("master tick", token)
+        return
+    end
     self.SchedTick = self.SchedTick + 1
     local t = self.SchedTick
 
@@ -124,13 +132,42 @@ function mercenaries.MasterTick()
 
     -- Re-armed unconditionally and outside the slot loop: a slot that throws must
     -- never be able to stop the master tick.
-    Script.SetTimerForFunction(self.MasterTickMs, "mercenaries.MasterTick")
+    self:SchedArm(self.MasterTickMs, "MasterTick", token)
+end
+
+-- One firing of `fn` (a mercenaries.* name) under `token`. Script.SetTimer takes a Lua
+-- closure, so the chain knows what armed it - and a closure is nothing the engine can
+-- write into a save, so the chain ends with the session that armed it instead of coming
+-- back on every load of every save made while it was pending. The name is resolved when
+-- the timer fires, as the engine does for a named timer, so a reloaded script is picked up.
+function mercenaries:SchedArm(ms, fn, token)
+    Script.SetTimer(ms, function()
+        local f = mercenaries[fn]
+        if f then f(token) end
+    end)
+end
+
+-- Said once per retired chain: the token is a table, so its address is the chain's name.
+function mercenaries:SchedRetire(what, token)
+    schLog(string.format("%s chain retired - armed under %s, current token is %s (epoch %s)",
+                         what, tostring(token), tostring(self._schedToken), tostring(self.SchedEpoch)))
 end
 
 -- One master tick means one point of failure for four subsystems, which the legacy
 -- independent timers did not have. This buys that robustness back.
-function mercenaries.SchedWatchdog()
+function mercenaries.SchedWatchdog(token)
     local self = mercenaries
+    -- The same identity check as the master tick. Before it, the watchdog was the thing
+    -- multiplying: every load of a save made while a poller was pending restored that
+    -- poller beside the fresh one, all landing within the same 100 ms - the second copy
+    -- saw tick == lastSeen every 5 s (a false strike 1 that never escalated), and with a
+    -- third copy the false strike 2 re-armed the master tick every 5 s, each re-arm
+    -- leaving the previous chain running. Now a poll from a stale token retires and the
+    -- strike count is the reading of one poller.
+    if token ~= self._schedToken then
+        self:SchedRetire("watchdog", token)
+        return
+    end
     if self.SchedRunning then
         if self.SchedTick == self._schedLastSeenTick then
             self._schedStrikes = (self._schedStrikes or 0) + 1
@@ -145,18 +182,26 @@ function mercenaries.SchedWatchdog()
                 self.SchedEnabled = false
                 self:SchedArmLegacy()
             elseif self._schedStrikes >= 2 then
+                -- SchedStart(true) issues a new token, so the stalled chain - if it is
+                -- merely late rather than dead - retires on its next firing instead of
+                -- running beside the new one.
                 schLog("master tick stalled twice - re-arming")
                 self.SchedRunning = false
                 self:SchedStart(true)
+                return   -- SchedStart armed a fresh watchdog under the new token
             else
-                schLog("master tick missed an advance - watching (strike 1)")
+                local now = 0
+                pcall(function() now = System.GetCurrTime() or 0 end)
+                schLog(string.format(
+                    "master tick missed an advance - watching (strike 1) tick=%s lastSeen=%s t=%.1f",
+                    tostring(self.SchedTick), tostring(self._schedLastSeenTick), now))
             end
         else
             self._schedStrikes = 0
         end
         self._schedLastSeenTick = self.SchedTick
     end
-    Script.SetTimerForFunction(5000, "mercenaries.SchedWatchdog")
+    self:SchedArm(5000, "SchedWatchdog", token)
 end
 
 -- The pre-scheduler timers. Each loop's wrapper re-arms itself only while
@@ -209,7 +254,7 @@ mercenaries.SchedLoadGen = 0
 -- OnGameplayStarted, RaidRunning by OnGameplayStarted, FoeLoopArmed and GearTickArmed
 -- on demand the next time there is a foe or an open wardrobe.
 mercenaries.TimerLatches = {
-    "SchedRunning", "_schedWatchdogArmed",
+    "SchedRunning",
     "LivePatrolRunning", "RaidRunning", "WBRunning",
     "FoeLoopArmed", "GearTickArmed", "_profHbArmed",
     -- The custom-uniform chains. GearArmKeep and GearArmFinish are called on demand (the
@@ -226,6 +271,9 @@ function mercenaries:SchedOnLoad()
     self.SchedLoadGen = (self.SchedLoadGen or 0) + 1
     for _, k in ipairs(self.TimerLatches) do self[k] = false end
     self._schedStrikes, self._schedLastSeenTick = 0, nil
+    -- Whatever chain the previous load left running now holds a stale token and retires
+    -- on its next firing, whether or not SchedStart arms a new one for this load.
+    self._schedToken = nil
 end
 
 -- Latched, like WBStart and LivePatrolStart elsewhere in this codebase, but the latch is
@@ -243,12 +291,13 @@ function mercenaries:SchedStart(force)
     self.SchedEpoch = (self.SchedEpoch or 0) + 1
     self.SchedRunning = true
     self.SchedTick = 0
-    self._schedLastSeenTick = nil
-    Script.SetTimerForFunction(self.MasterTickMs, "mercenaries.MasterTick")
-    if not self._schedWatchdogArmed then
-        self._schedWatchdogArmed = true
-        Script.SetTimerForFunction(5000, "mercenaries.SchedWatchdog")
-    end
+    self._schedLastSeenTick, self._schedStrikes = nil, 0
+    -- A fresh table: nothing a restored timer can hand back (it gets the numeric timer id
+    -- as its argument) and nothing an older chain still holds. Both chains are armed under
+    -- it every time, and every chain armed before it retires on its next firing.
+    self._schedToken = {}
+    self:SchedArm(self.MasterTickMs, "MasterTick", self._schedToken)
+    self:SchedArm(5000, "SchedWatchdog", self._schedToken)
     schLog("master tick armed at " .. self.MasterTickMs .. "ms, epoch " ..
            tostring(self.SchedEpoch) .. ", " .. self:_TableCount(self.SchedSlots) .. " slot(s)")
 end
@@ -320,6 +369,17 @@ function mercenaries:SchedRegisterAll()
     self:SchedRegister("monitor", {
         periodMs = 1000,
         fn = function(s) s:MonitorLoopBody() end,
+    })
+
+    -- 100ms, and that number is the entire point. The ghost-movement test this drives -
+    -- position moving while the engine reports Henry's own speed as zero - is guarded by
+    -- `realTimeDelta < 0.4`, and it lived in the 1Hz monitor loop from the first commit to
+    -- 2026-09-03, where that condition can never be true. It has therefore never fired
+    -- once, in any version. See TravelWatchTick.
+    self:SchedRegister("travelwatch", {
+        periodMs = 100,
+        gate = function(s) return player ~= nil end,
+        fn = function(s) s:TravelWatchTick() end,
     })
 
     self:SchedRegister("lowpriority", {

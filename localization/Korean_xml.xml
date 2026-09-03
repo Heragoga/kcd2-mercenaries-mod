@@ -79,7 +79,7 @@
   <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>부하들이 밖에서 기다리고 있다.</Cell></Row>
   <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>여기엔 자리가 없다 — 다른 곳에서 고용하라.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>그로셴이 부족합니다!</Cell></Row>
-  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>이미 인원이 너무 많습니다! (최대 5명)</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! The company is full.</Cell><Cell>이미 인원이 너무 많습니다! 부대가 가득 찼습니다.</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>모든 용병이 해고되었습니다.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>용병 대기 중.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>용병 동행 중.</Cell></Row>

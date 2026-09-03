@@ -49,8 +49,15 @@ function mercenaries:ForgeFindFlattest(center, avoid)
     -- Normalize to a list: a single {x,y,z} has no [1]; a list of positions does.
     local avoids = avoid and (avoid[1] and avoid or { avoid }) or nil
     local best, bestSpread, bestAng
-    -- Rings pulled in close to camp (halved from the original 9/11/13).
-    for _, R in ipairs({ 4.5, 5.5, 6.5 }) do
+    -- The close rings (4.5-6.5m) sit INSIDE the camp - between the player tent and the
+    -- first 10.5m grid ring - and this fallback used to check only the caller's avoid
+    -- list (other stations, and SpawnCampForge passes none at all), so whatever station
+    -- fell back here landed on tents and fire rings: the "improvements overlap the
+    -- camp" report. The rings stay (a close spot is the nicest one when it is genuinely
+    -- free) but every candidate now has to clear CampSpotClearOfProps - the real world,
+    -- not just the station list - and the ring set extends outward so there is always
+    -- somewhere legal to fall through to.
+    for _, R in ipairs({ 4.5, 5.5, 6.5, 9.0, 13.0, 16.5, 20.0 }) do
         for a = 0, 7 do
             local ang = a * (math.pi / 4)
             local cand = self:CampSnapToGround({ x = center.x + math.cos(ang) * R, y = center.y + math.sin(ang) * R, z = center.z })
@@ -63,9 +70,18 @@ function mercenaries:ForgeFindFlattest(center, avoid)
                     end
                 end
             end
+            if not skip and self.CampSpotClearOfProps
+               and not self:CampSpotClearOfProps(cand, 3.0) then
+                skip = true
+            end
             local spread = (not skip) and self:ForgeFlatness(cand) or nil
-            if spread and (not bestSpread or spread < bestSpread) then
-                best, bestSpread, bestAng = cand, spread, ang
+            if spread then
+                -- Mild distance penalty so a clear close spot still beats a marginally
+                -- flatter far one - the wide rings are a fallback, not the preference.
+                local scored = spread + R * 0.02
+                if not bestSpread or scored < bestSpread then
+                    best, bestSpread, bestAng = cand, scored, ang
+                end
             end
         end
     end
@@ -91,6 +107,65 @@ function mercenaries:ForgeFindNearest(cls)
     return best, bestD and math.sqrt(bestD)
 end
 
+-- The home of a borrowed village entity - the place it is put back when the camp breaks
+-- and the place the return watch means by "the player is back near its village".
+--
+--   key   the saver tag the home is kept under
+--   e     the entity ForgeFindNearest found
+--   spot  where the camp is about to put it
+--
+-- A saved home is used only when the entity is found standing near the camp spot: that is
+-- ours, restored by the engine where we left it, and its current position says nothing
+-- about where it came from. Found anywhere else it is a fresh borrow - its position IS the
+-- home, and is saved so the next load still knows it. Used by the forge, the alchemy bench
+-- and the forge's borrowed grindstone.
+mercenaries.StationHomeNearCamp = 60.0
+
+function mercenaries:StationHome(key, e, spot)
+    local cur
+    pcall(function() cur = e:GetWorldPos() end)
+    cur = cur or spot
+    local saved = self:StationHomeLoad(key)
+    if saved and spot and cur then
+        local d = math.sqrt((cur.x - spot.x) ^ 2 + (cur.y - spot.y) ^ 2)
+        if d <= (self.StationHomeNearCamp or 60) then
+            System.LogAlways(string.format("[Camp] %s found at the camp (%.0fm from its spot) - its home is the saved %.0f, %.0f",
+                                           key, d, saved.x, saved.y))
+            return saved
+        end
+    end
+    self:StationHomeSave(key, cur)
+    return { x = cur.x, y = cur.y, z = cur.z }
+end
+
+-- A home within packing distance of the camp: the camp is pitched beside the village that
+-- owns the entity, and packing it "on approach" would pack it every two seconds.
+function mercenaries:StationHomeIsHere(home, spot)
+    if not (home and spot) then return false end
+    local d = math.sqrt((home.x - spot.x) ^ 2 + (home.y - spot.y) ^ 2)
+    return d <= (self.CampForgeAutoPackDist or 30) + 10
+end
+
+function mercenaries:StationHomeLoad(key)
+    local s
+    pcall(function() s = self:LoadString(key) end)
+    if not s or s == "-" then return nil end
+    local x, y, z = string.match(s, "^([%-%d%.]+),([%-%d%.]+),([%-%d%.]+)$")
+    x, y, z = tonumber(x), tonumber(y), tonumber(z)
+    if not (x and y and z) then return nil end
+    return { x = x, y = y, z = z }
+end
+
+function mercenaries:StationHomeSave(key, p)
+    if not p then return end
+    pcall(function() self:SaveString(key, string.format("%.2f,%.2f,%.2f", p.x, p.y, p.z)) end)
+end
+
+-- "-" rather than a delete: the saver has no delete, and refuses an empty value.
+function mercenaries:StationHomeForget(key)
+    pcall(function() self:SaveString(key, "-") end)
+end
+
 -- Spawn one entity, logging success/failure.
 function mercenaries:ForgeSpawnEnt(cls, name, pos, props, yaw, track)
     local e
@@ -98,7 +173,8 @@ function mercenaries:ForgeSpawnEnt(cls, name, pos, props, yaw, track)
         -- Set orientation at spawn time: a StanceSmartObject seat caches its sit
         -- helper facing here, and SetAngles afterwards won't move it.
         e = System.SpawnEntity({ class = cls, name = name .. "_" .. tostring(math.random(100000, 999999)),
-                                 position = pos, orientation = { x = 0, y = 0, z = yaw or 0 }, properties = props })
+                                 position = pos, orientation = { x = 0, y = 0, z = yaw or 0 },
+                                 properties = mercenaries:NoSaveProps(props) })
     end)
     if e then
         if yaw then pcall(function() e:SetAngles({ x = 0, y = 0, z = yaw }) end) end
@@ -135,7 +211,21 @@ function mercenaries:SpawnCampForge(center)
     local standPos = self:CampSnapToGround({ x = anvilPos.x - F.x * 2.74, y = anvilPos.y - F.y * 2.74, z = anvilPos.z })
     local yaw = math.atan2(anvilPos.y - standPos.y, anvilPos.x - standPos.x)
 
-    local rec = { sm = sm, smPos = sm:GetWorldPos(), visuals = {}, stand = standPos, anvilPos = anvilPos }
+    -- Where the Smithery really lives. Its position NOW is not the answer after a reload:
+    -- the engine restores a moved level entity where it was moved to, so the one found
+    -- "nearest" is our own, already standing at the camp - and recording THAT as home made
+    -- the return watch below tear the forge down two seconds after every load (the player
+    -- is always within 30 m of a home that is the camp), while CampStationRetryTick put it
+    -- back up every five seconds for a minute before giving up. "Present for the first few
+    -- seconds after a load, then flickering, then gone" (2026-09-03). The home is saved
+    -- with the camp on the first borrow and read back whenever the entity is found
+    -- standing at the camp. See StationHome and docs/camp-forge.md.
+    local smPos = self:StationHome("CampForgeHome", sm, anvilPos)
+    local rec = { sm = sm, smPos = smPos, visuals = {}, stand = standPos, anvilPos = anvilPos }
+    if self:StationHomeIsHere(smPos, anvilPos) then
+        rec.noAutoPack = true
+        System.LogAlways("[CampForge] the village smithy is within reach of the camp - it will not be packed on approach")
+    end
     pcall(function() sm:SetWorldPos(anvilPos) end)
 
     for _, p in ipairs(self.CampForgeLayout) do
@@ -145,10 +235,11 @@ function mercenaries:SpawnCampForge(center)
         if p.borrow then
             local e = self:ForgeFindNearest(p.borrow)
             if e then
-                local origPos = e:GetWorldPos()
+                local homeKey = "CampForgeHome_" .. tostring(p.borrow)
+                local origPos = self:StationHome(homeKey, e, w)
                 pcall(function() e:SetWorldPos(w) end)
                 pcall(function() e:SetAngles({ x = 0, y = 0, z = yaw + math.rad(p.yaw or 0) }) end)
-                table.insert(rec.visuals, { e = e, borrowed = true, origPos = origPos })
+                table.insert(rec.visuals, { e = e, borrowed = true, origPos = origPos, homeKey = homeKey })
             end
         else
             local params = { class = "BasicEntity", name = "MercCampForge_" .. tostring(math.random(100000, 999999)),
@@ -169,7 +260,7 @@ function mercenaries:SpawnCampForge(center)
     pcall(function()
         holder = System.SpawnEntity({ class = "SmartObjectHolder",
             name = "MercCampForgeAlign_" .. tostring(math.random(100000, 999999)),
-            position = standPos, properties = {} })
+            position = standPos, properties = mercenaries:NoSaveProps({}) })
     end)
     if holder then
         pcall(function() holder:SetAngles({ x = 0, y = 0, z = yaw }) end)
@@ -210,6 +301,10 @@ function mercenaries:DespawnCampForge()
         pcall(function() System.RemoveEntity(entId) end)
     end
     self.CampForge = nil
+    self:StationHomeForget("CampForgeHome")
+    for _, v in ipairs(rec.visuals or {}) do
+        if v.homeKey then self:StationHomeForget(v.homeKey) end
+    end
     System.LogAlways("[CampForge] torn down, village Smithery restored")
 end
 
@@ -300,7 +395,7 @@ function mercenaries.CampForgeMonitor()
     if not rec then return end
     local restore = false
     pcall(function()
-        if player and rec.smPos then
+        if player and rec.smPos and not rec.noAutoPack then
             local o = player:GetWorldPos()
             local sp = rec.smPos
             local dd = (o.x - sp.x) ^ 2 + (o.y - sp.y) ^ 2 + (o.z - sp.z) ^ 2

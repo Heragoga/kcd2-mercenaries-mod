@@ -100,6 +100,10 @@ local function spawnTag(self, tag, dataString)
 end
 
 function mercenaries:SaveString(tag, dataString)
+    -- merc_uninstall has scrubbed this session: every saver entity was deleted so the
+    -- NEXT save is clean for an uninstalled game, and nothing - a logistics tick, a
+    -- camp save, anything - may quietly write one back before the player saves.
+    if self.UninstallScrubbed then return end
     if not tag or tag == "" then
         sLog("Error: Cannot save without a tag.")
         return
@@ -118,6 +122,7 @@ end
 
 -- Many tags, at most one scan. `pairs` of {tag = value}.
 function mercenaries:SaveStrings(t)
+    if self.UninstallScrubbed then return end   -- see SaveString
     if type(t) ~= "table" then return end
     self:SaverMap()
     for tag, val in pairs(t) do

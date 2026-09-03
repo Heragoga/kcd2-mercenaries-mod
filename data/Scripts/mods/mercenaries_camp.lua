@@ -1034,6 +1034,45 @@ function mercenaries:SpawnCampPropModel(model, pos, angleZ, namePrefix, trackLis
     return ent
 end
 
+-- Is this spot clear of everything the camp has already put down? The grid's own
+-- anti-overlap is the usedCell bookkeeping inside SpawnMercCamp, which off-grid
+-- placements (the stations' flat-patch fallback, ForgeFindFlattest) never see - they
+-- used to check only a 7m gap against OTHER STATIONS, so a forge or a food cart could
+-- land on a tent, a fire ring or the practice yard. This checks against the real
+-- world instead: the centre cell (player tent + quartermaster), every tracked camp
+-- entity, every claimed station tile, and the tower/cart footprints. It runs only
+-- when a station is being placed, so walking CampEntities is fine.
+function mercenaries:CampSpotClearOfProps(pos, pad)
+    if not pos then return false end
+    pad = pad or 3.0
+    local pad2 = pad * pad
+    local c = self.CampCenter or self.CampBuildOrigin
+    if c then
+        local dx, dy = pos.x - c.x, pos.y - c.y
+        if (dx * dx + dy * dy) < 36.0 then return false end   -- 6m: tent + quartermaster
+    end
+    for _, id in ipairs(self.CampEntities or {}) do
+        local p
+        pcall(function()
+            local e = System.GetEntity(id)
+            if e and e.GetWorldPos then p = e:GetWorldPos() end
+        end)
+        if p then
+            local dx, dy = pos.x - p.x, pos.y - p.y
+            if (dx * dx + dy * dy) < pad2 then return false end
+        end
+    end
+    for _, t in pairs(self.CampStationTiles or {}) do
+        if t and t.x then
+            local dx, dy = pos.x - t.x, pos.y - t.y
+            if (dx * dx + dy * dy) < 49.0 then return false end   -- 7m: a tile is busy ground
+        end
+    end
+    if self.IsSpotNearTower and self:IsSpotNearTower(pos) then return false end
+    if self.IsSpotNearCart and self:IsSpotNearCart(pos) then return false end
+    return true
+end
+
 -- Spawns one decorative camp prop by CampModels key. Tracked in
 -- CampEntities for teardown.
 function mercenaries:SpawnCampProp(modelKey, pos, angleZ)
@@ -1161,7 +1200,7 @@ function mercenaries:SpawnCampFirePrefab(pos, angleZ, prefabId, namePrefix, trac
             class = "BasicEntity",
             name = (namePrefix or "MercCampProp_FireAnchor_") .. tostring(math.random(100000, 999999)),
             position = groundPos,
-            properties = { object_Model = "", bMissionCritical = false }
+            properties = mercenaries:NoSaveProps({ object_Model = "", bMissionCritical = false })
         })
         if anchorEnt then
             pcall(function() anchorEnt:SetAngles({ x = 0, y = 0, z = angleZ or 0 }) end)
@@ -1969,7 +2008,7 @@ function mercenaries:CampSpawnNightLights(center)
                     class = "Light",
                     name = "MercCampProp_NightLampLight_" .. tostring(math.random(100000, 999999)),
                     position = { x = pos.x, y = pos.y, z = pos.z + self.CampNightLightZ },
-                    properties = self.CampNightLightProps,
+                    properties = mercenaries:NoSaveProps(self.CampNightLightProps),
                 })
                 if lightEnt then table.insert(self.CampEntities, lightEnt.id) end
             end)
@@ -3102,10 +3141,36 @@ end
 -- Put a saved camp back up after a load. Deferred until the merc cache exists
 -- (SpawnMercCamp needs ActiveMercs to hand out tents) - see the load sequence in
 -- mercenaries.lua.
+--
+-- RETRIES. This was a one-shot: if the merc cache was still empty at t+4s (the cache
+-- rebuild is a name scan of LOADED NPCs, and streaming can be slower than 2s on the
+-- machines that need this most), SpawnMercCamp bailed and nothing ever tried again -
+-- the camp with every upgrade on it simply did not come back that session, while
+-- MercCampActive stayed "1" so a LATER load restored it fine. That is the "upgrades
+-- disappear after reloading, and sometimes reappear again" report. The try counter is
+-- reset from OnGameplayStarted (it is plain Lua and would otherwise survive the load).
+mercenaries.CampRestoreRetryMs  = 5000
+mercenaries.CampRestoreRetryMax = 12
+
 function mercenaries.RestoreCampDelayed()
     local self = mercenaries
     local o = self:LoadCampOrigin()
     if not o or self.CampActive or _G.MercenariesDismissed then return end
+    pcall(function() self:Recount() end)
+    if not _G.MercCount or _G.MercCount <= 0 then
+        self._campRestoreTries = (self._campRestoreTries or 0) + 1
+        if self._campRestoreTries <= (self.CampRestoreRetryMax or 12) then
+            System.LogAlways(string.format(
+                "[Camp] restore waiting for the merc cache (try %d/%d)",
+                self._campRestoreTries, self.CampRestoreRetryMax or 12))
+            Script.SetTimerForFunction(self.CampRestoreRetryMs or 5000,
+                                       "mercenaries.RestoreCampDelayed")
+        else
+            System.LogAlways("[Camp] restore gave up - no mercs ever registered this session"
+                             .. " (the camp stays saved and restores on a later load)")
+        end
+        return
+    end
     self.CampBuildOrigin = o
     local ok, err = pcall(function() self:SpawnMercCamp(o, true) end)
     if ok then System.LogAlways("[Camp] restored saved camp")
@@ -3407,6 +3472,16 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         local campMap = nil
         pcall(function() campMap = self:CampBuildMap(center, mapCells, underRoof) end)
 
+        -- BOTH searches below run only on a FRESH pitch. On a rebuild at a given origin
+        -- (a save restore, an upgrade rebuild) the anchor was settled by these same
+        -- searches when the camp was first pitched, and re-running them re-derives the
+        -- winner from a FRESH raycast map - which streaming differences flip, moving the
+        -- centre up to ~2.8m per rebuild. Every consumer of the anchor compares with a
+        -- 2.0m epsilon (CampTileAnchorEps, DefAnchorEps), so one drifted rebuild threw
+        -- the pinned station tiles away and DefForget-ed the walls/towers/carts: that is
+        -- BOTH halves of the "upgrades vanish after a reload / tents overlap the camp"
+        -- report. A given origin is trusted verbatim.
+        if not atOrigin then
         -- If the player's own spot is unbuildable (inside a building - under a
         -- roof - or otherwise invalid), jump the whole camp origin to the
         -- nearest open ground so nothing spawns on a roof. When that jump is
@@ -3449,11 +3524,13 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
             end
             center = self:CampSnapToGround(bestC)
         end
+        end
 
-        -- The camp's anchor is settled now (the searches above may have moved it).
-        -- Remember + persist it, so an upgrade rebuild or a save/load puts the camp
-        -- back on this exact spot and facing. Re-running the searches on it is
-        -- stable: they tie-break toward the asked spot, so it wins again.
+        -- The camp's anchor is settled now (on a fresh pitch the searches above may
+        -- have moved it; on a rebuild it is the given origin verbatim). Remember +
+        -- persist it, so an upgrade rebuild or a save/load puts the camp back on this
+        -- exact spot and facing - the searches are skipped on that path precisely so
+        -- the anchor cannot drift past the 2.0m epsilons its consumers compare with.
         self.CampBuildOrigin = { x = center.x, y = center.y, z = center.z, ang = worldForwardAngle }
 
         -- Cell (0, 0) is the player tent itself; (dx, dy) offsets are in
@@ -3534,22 +3611,31 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
                 accept = valid
                 if accept then raw = { x = raw.x, y = raw.y, z = gz } end
             end
-            -- never drop a fire cluster on an archer tower (mercenaries_tower.lua)
+            -- never drop a fire cluster on an archer tower or a cart (both check their
+            -- SAVED layout too, so the load window before DefRestore is covered)
             if accept and self.IsSpotNearTower and self:IsSpotNearTower(raw) then accept = false end
+            if accept and self.IsSpotNearCart and self:IsSpotNearCart(raw) then accept = false end
             if accept then
                 usedCell[off[1] .. "," .. off[2]] = true
                 table.insert(clusterCenters, { x = raw.x, y = raw.y, z = raw.z or center.z })
             end
         end
         -- Shortfall fallback: fill remaining clusters with the closest cells we
-        -- haven't already used, validated or not.
+        -- haven't already used, validated or not - but never one a tower or cart
+        -- occupies: "validated or not" is about GROUND quality, not about dropping a
+        -- tent ring inside a standing structure.
         if #clusterCenters < numClusters then
             for _, off in ipairs(candidateOffsets) do
                 if #clusterCenters >= numClusters then break end
                 local key = off[1] .. "," .. off[2]
                 if not usedCell[key] then
-                    usedCell[key] = true
-                    table.insert(clusterCenters, gridCellPos(off[1], off[2]))
+                    local raw = gridCellPos(off[1], off[2])
+                    local blocked = (self.IsSpotNearTower and self:IsSpotNearTower(raw))
+                                 or (self.IsSpotNearCart and self:IsSpotNearCart(raw))
+                    if not blocked then
+                        usedCell[key] = true
+                        table.insert(clusterCenters, raw)
+                    end
                 end
             end
         end
@@ -3577,8 +3663,9 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
                             raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf))
                         end
                     end
-                    -- and don't hand an upgrade a tile that a tower is standing on
+                    -- and don't hand an upgrade a tile that a tower or a cart stands on
                     if accept and self.IsSpotNearTower and self:IsSpotNearTower(raw) then accept = false end
+                    if accept and self.IsSpotNearCart and self:IsSpotNearCart(raw) then accept = false end
                     if accept then
                         usedCell[key] = true
                         self.CampStationTiles[name] = { x = raw.x, y = raw.y, z = raw.z or center.z,

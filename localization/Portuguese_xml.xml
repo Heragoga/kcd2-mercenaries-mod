@@ -79,7 +79,7 @@
   <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>Os teus homens esperam-te lá fora.</Cell></Row>
   <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>Não há espaço para eles aqui – contrata-os noutro lugar.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Groschen insuficientes!</Cell></Row>
-  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Você já tem homens demais! Máximo de 5.</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! The company is full.</Cell><Cell>Você já tem homens demais! A companhia está completa.</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Todos os mercenários dispensados.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Mercenários aguardando.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Mercenários seguindo.</Cell></Row>

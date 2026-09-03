@@ -72,3 +72,22 @@ Why this combination works when everything else failed: `camper_knifeSharpening`
 * `CreateItem` → `EquipItem` (see `references/AI/quests/erik/erik.xml`) is *the* way to arm an NPC from a BT. `HandContentElement` + `<Success/>` only asserts; it never equips. `CreateItem` inside a `HandContentElement` `<Search>` silently kills the whole tree case.
 * A ContinuousSwitch flag written from a parallel reader loop must never flicker (`= false` then `= true` in one tick loses the race).
 * Drift-pinning an NPC while an unstance align-walks it produces an endless walk/yank loop — never pin during animation-driven movement.
+
+## Surviving a reload (2026-09-03)
+
+The forge and the alchemy bench were the two improvements that did not survive a save: present
+for the first seconds after a load, then flickering, then gone. Everything the mod spawns was
+fine; the two that *borrow* a village entity were not. The engine restores a moved level entity
+**where it was moved to**, so after a load `ForgeFindNearest` finds our own Smithery already
+standing at the camp - and `SpawnCampForge` recorded its current position as its home. The 2 s
+return watch (`CampForgeMonitor`) then saw the player "within 30 m of the home village" - the
+camp itself - and packed the forge; `CampStationRetryTick` put it back every 5 s for its minute
+of retries, and gave up.
+
+`StationHome` (mercenaries_forge.lua) now keeps the true home with the camp, under the
+`CampForgeHome`, `CampAlchemyHome` and `CampForgeHome_Grindstone` saver tags: a fresh borrow
+saves the entity's position; an entity found within `StationHomeNearCamp` (60 m) of its camp
+spot is ours, and the saved home is used instead. A camp pitched within packing distance of
+the village that owns the entity disables the return watch for that station rather than
+packing it on approach. Teardown restores to the true home and forgets the tag; the alchemy
+teardown also sends home any `AlchemyItem` still at the bench from an earlier session's drag.

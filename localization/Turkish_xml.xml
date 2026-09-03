@@ -79,7 +79,7 @@
   <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>Adamların seni dışarıda bekliyor.</Cell></Row>
   <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>Burada onlara yer yok – başka bir yerde tut.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Yeterli groschen yok!</Cell></Row>
-  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Zaten çok fazla adamın var! En fazla 5 kişi olabilir.</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! The company is full.</Cell><Cell>Zaten çok fazla adamın var! Bölük dolu.</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Tüm paralı askerler gönderildi.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Paralı askerler bekliyor.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Paralı askerler takip ediyor.</Cell></Row>

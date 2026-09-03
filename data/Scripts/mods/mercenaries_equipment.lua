@@ -43,9 +43,26 @@ function mercenaries:EquipMercenary(ent, currentPreset)
         finalPresetId = self.Clowns[math.random(1, #self.Clowns)]
         System.LogAlways('[Mercenary Jeff] HONK HONK. Clown mode activated for ' .. name)
     else
-        -- Standard gear lookup based on Tier and Style
-        local styleData = self.Outfits[currentPreset] or self.Outfits[1]
-        local tierOutfits = styleData[tier] or styleData["weak"]
+        -- Standard gear lookup based on Tier and Style.
+        --
+        -- Outfits is keyed by NUMBER, so a style that arrives as the string "6" misses
+        -- the table entirely and the squad silently turns out in style 1 - which is the
+        -- "my chosen style reverted to generic" report, and was indistinguishable from
+        -- the style simply looking generic. Coerce, then say so when a lookup misses:
+        -- a fallback that never speaks is a fallback nobody can debug.
+        local styleKey  = tonumber(currentPreset) or currentPreset
+        local styleData = self.Outfits[styleKey]
+        if not styleData then
+            System.LogAlways('[Mercenary Jeff] outfit style ' .. tostring(currentPreset) ..
+                             ' has no entry in Outfits - falling back to 1 (generic) for ' .. name)
+            styleData = self.Outfits[1]
+        end
+        local tierOutfits = styleData[tier]
+        if not tierOutfits or #tierOutfits == 0 then
+            System.LogAlways('[Mercenary Jeff] outfit style ' .. tostring(styleKey) ..
+                             ' has no "' .. tostring(tier) .. '" presets - falling back to weak')
+            tierOutfits = styleData["weak"]
+        end
         finalPresetId = tierOutfits[math.random(1, #tierOutfits)]
     end
 

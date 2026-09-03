@@ -1,0 +1,19 @@
+# Per-machine paths. Copy this file to  tools\local.paths.txt  and edit it.
+#
+# local.paths.txt is gitignored, so every PC that clones this repo keeps its own copy
+# and nothing machine-specific is ever committed. You usually do NOT need it: the
+# packagers and harnesses call tools\Find-KCD2.ps1, which finds a Steam install on its
+# own, including libraries on a second drive. Use this file when it cannot - a
+# non-Steam copy (Epic, GOG), an unusual folder, or a separate dev build.
+#
+# The environment variables KCD2_DIR and KCD2_DEV_DIR override this file.
+
+# The game you play. Must be the folder that contains Bin\ , Data\ and Mods\ .
+# game=D:\Games\Steam\steamapps\common\KingdomComeDeliverance2
+
+# The modding/dev build, used ONLY by PackageModDev.bat. This is the build that writes
+# kcd.log with [Error]/[Warning] lines naming the exact Skald node that failed; the
+# retail build swallows them silently. It is never auto-detected and never guessed from
+# the retail path, because deploying a dev pak into the game you actually play is worse
+# than failing - so if you want PackageModDev.bat, set this.
+# dev=D:\Games\Steam\steamapps\common\KCD2Mod

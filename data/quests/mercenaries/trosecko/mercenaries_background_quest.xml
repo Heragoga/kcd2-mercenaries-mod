@@ -2602,7 +2602,7 @@
 
 
                 <!-- The leg between the kill and the document, shared by every beat that has one. -->
-                <State Name="alx_search_state" PositionY="9380" PositionX="500" RequiredForOutput="%REGION%" TypeT="Progress">
+                <State Name="alx_search_state" PositionY="9380" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
                     <Edge From="alx_down_2.OnAcquire" To="SetActive" />
                     <Edge From="alx_down_5.OnAcquire" To="SetActive" />
                     <Edge From="alx_down_7.OnAcquire" To="SetActive" />

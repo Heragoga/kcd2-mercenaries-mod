@@ -187,7 +187,7 @@ function mercenaries:HireArcher(cost, amount)
                 name = entityName,
                 position = offsetPos,
                 orientation = safeRot,
-                properties = {guidSharedSoulId = soulGuid}
+                properties = mercenaries:RosterSpawnProps(soulGuid)
             })
 
             local ent = System.GetEntityByName(entityName)
@@ -259,7 +259,7 @@ function mercenaries:SpawnArcherAt(pos, yaw, outfit)
         System.SpawnEntity({
             class = "NPC", name = name, position = pos,
             orientation = { x = 0, y = 0, z = yaw or 0 },
-            properties = { guidSharedSoulId = soulGuid },
+            properties = mercenaries:RosterSpawnProps(soulGuid),
         })
         ent = System.GetEntityByName(name)
         if not ent then return end

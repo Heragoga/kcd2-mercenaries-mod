@@ -16,20 +16,34 @@ setlocal enabledelayedexpansion
 
 set "REPO_ROOT=%~dp0"
 set "REPO_ROOT=%REPO_ROOT:~0,-1%"
-set "DEV_ROOT=C:\Program Files\Steam\steamapps\common\KCD2Mod"
+
+:: The dev build is a SEPARATE install from the retail one, and there is nothing to
+:: autodetect it by - so it is opt-in per machine and never guessed. Find-KCD2.ps1 -Dev
+:: reads KCD2_DEV_DIR or the dev= line in tools\local.paths.txt, and deliberately does
+:: NOT fall back to the retail install: deploying a dev pak into the game you actually
+:: play would be worse than failing.
+set "DEV_ROOT="
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\tools\Find-KCD2.ps1" -Dev`) do set "DEV_ROOT=%%i"
+if not defined DEV_ROOT (
+    echo.
+    echo ERROR: no DEV build configured on this machine - nothing was packaged.
+    echo        The dev build is the one that writes kcd.log with [Error]/[Warning]
+    echo        lines; the retail build swallows rejected Skald nodes silently.
+    echo        Point this script at yours, then re-run:
+    echo            set KCD2_DEV_DIR=D:\path\to\KCD2Mod
+    echo        or add   dev=D:\path\to\KCD2Mod   to tools\local.paths.txt
+    echo        To package for the normal game instead, use PackageMod.bat.
+    exit /b 1
+)
 set "OUT_DIR=%DEV_ROOT%\Mods\mercenaries"
 set "DEV_EXE=%DEV_ROOT%\Bin\Win64ReleaseSteamLTO_DLL\KingdomCome.exe"
 
 echo ============================================================
-echo  Packaging to the DEV build (logs go to KCD2Mod\kcd.log)
+echo  Packaging to the DEV build (logs go to kcd.log in the dev root)
 echo  Repo:   %REPO_ROOT%
+echo  Dev:    %DEV_ROOT%
 echo  Output: %OUT_DIR%
 echo ============================================================
-
-if not exist "%DEV_ROOT%" (
-    echo ERROR: dev build not found at %DEV_ROOT%
-    exit /b 1
-)
 
 echo [1/4] Preparing output folder...
 if exist "%OUT_DIR%" rd /s /q "%OUT_DIR%"
@@ -71,20 +85,20 @@ set "TMP_VOICE_INNER=%TEMP%\kcd2_voice_tmp\dialog\mercenaries_background_quest"
 if not exist "%VOICE_SRC%" (
     echo       No voice folder found, skipping.
 ) else (
-    if exist "%TMP_VOICE%" rd /s /q "%TMP_VOICE%"
-    mkdir "%TMP_VOICE_INNER%"
+    if exist "!TMP_VOICE!" rd /s /q "!TMP_VOICE!"
+    mkdir "!TMP_VOICE_INNER!"
 
-    powershell -NoProfile -Command "Get-ChildItem -Path '%VOICE_SRC%' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '%TMP_VOICE_INNER%\' }; $n = (Get-ChildItem '%TMP_VOICE_INNER%').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
+    powershell -NoProfile -Command "Get-ChildItem -Path '!VOICE_SRC!' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '!TMP_VOICE_INNER!\' }; $n = (Get-ChildItem '!TMP_VOICE_INNER!').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
 
-    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%TMP_VOICE%', '%VOICE_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!TMP_VOICE!', '!VOICE_PAK!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
 
-    rd /s /q "%TMP_VOICE%"
+    rd /s /q "!TMP_VOICE!"
 
     if errorlevel 1 (
         echo       ERROR: Failed to create english.pak.
         goto :error
     )
-    echo       Created: %VOICE_PAK%
+    echo       Created: !VOICE_PAK!
 )
 rd /s /q "%TMP_LOC%"
 

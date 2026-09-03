@@ -447,7 +447,10 @@ cover it), and the suite's siege scaled to the post-battle company (~29), smalle
 reproduced at other tiers - watch, don't chase.
 
 Rerun everything: `powershell -ExecutionPolicy Bypass -File toolsutobench.ps1 [-Cores N]`.
-In game: F9 = bench, F10 = bench + quit (harness mode). This suite is the regression harness
+In game: `merc_dev` then `merc_bench` / `merc_bench_auto` (bench + quit, harness mode);
+`merc_bench_bindkeys` puts the old F9/F10/F8 triggers back for a session. The bench family
+is dev-gated now — nothing is bound or registered in a player's game until `merc_dev`,
+which itself requires a `-devmode` launch. This suite is the regression harness
 for every future release: any change that reintroduces pop-in or a frame-time tail shows up
 as a changed cell.
 

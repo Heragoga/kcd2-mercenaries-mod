@@ -1,9 +1,13 @@
 -- Detect wait/sleep/fast-travel/teleport interruptions and temp-idle the mercs
 -- so they don't scramble to catch up mid-transition; clears when it's over.
 function mercenaries:MonitorMainQuestLoop()
-    if _G.MercPersistentIdleFlag then
-        return
-    end
+    -- NO early return on _G.MercPersistentIdleFlag. There used to be one, as a shortcut
+    -- ("the squad is already idled, nothing to decide") - but this loop is also the
+    -- mod's ONLY fast-travel/teleport DETECTOR, and PlayerBusyForSpawns reads
+    -- FastTravelLastDetected from it. Skipping the loop while a persistent wait order
+    -- was set left that stamp permanently stale, so patrols could spawn mid-fast-travel
+    -- whenever the player had told the squad to wait. The idle bookkeeping below is
+    -- already correct under the flag (it is OR'd into shouldBeIdle).
 
     -- System.GetCurrTime() is engine-cached per frame (cheaper than os.clock()).
     local currentRealTime = System.GetCurrTime()
@@ -48,6 +52,19 @@ function mercenaries:MonitorMainQuestLoop()
     -- >25m instant-teleport check below still applies since fast travel can too.
     local isGhostMovement = (not isOnHorse) and (distanceMoved > 0.5 and playerSpeed < 0.1 and realTimeDelta < 0.4)
     local isInstantTeleport = (distanceMoved > 25.0)
+
+    -- The torture test's FIELD plan walks Henry by SetWorldPos - ~1.5m per second, plus one
+    -- long jump to the start of a patrol route - and a player moved that way has distance
+    -- with no speed, which is exactly the signature of both checks above. Left alone, the
+    -- detector would call the whole walk a fast travel, idle the squad for its duration and
+    -- arm the patrol travel grace, so the follow test would measure a squad that was ordered
+    -- to stand still. The flag is set only by mercenaries_torture.lua, only for the duration
+    -- of a `ground` step, and cleared when the plan ends - nothing in a player's game ever
+    -- sets it. Everything else in this loop (wait/sleep ratio, the persistent idle flag) is
+    -- deliberately left running.
+    if self.TortureDrivesPlayer then
+        isGhostMovement, isInstantTeleport = false, false
+    end
 
     if isGhostMovement then
         self.LastGhostTickTime = currentRealTime
@@ -98,17 +115,21 @@ function mercenaries:MonitorMainQuestLoop()
 
     if not _G.MercIdle and shouldBeIdle then
         _G.MercIdle = true
-        
+
         local reason = "Unknown"
         if inWaitSleep then reason = "Waiting/Sleeping"
         elseif inFastTravelCooldown then reason = "Fast Travel/Teleport" end
-        
+
         System.LogAlways(string.format('[Mercenary] %s detected! Temp idling mercs.', reason))
-        
+
     elseif _G.MercIdle and not shouldBeIdle then
         _G.MercIdle = false
         System.LogAlways('[Mercenary] Interruption ended. Resuming mercs.')
     end
+
+    -- The main-quest battle watchdog rides this loop's 1s cadence rather than owning a
+    -- timer of its own. See mercenaries_mainquest_watchdog.lua.
+    if self.MQWTick then pcall(function() self:MQWTick() end) end
 end
 
 -- ==== "Do not drop trouble on him right now" ====
@@ -133,6 +154,11 @@ mercenaries.SpawnGuardClearSecs   = 6.0    -- stay shut this long after the last
 -- Returns busy, reason. Cheap: a handful of pcalled reads, no scans.
 function mercenaries:PlayerBusyForSpawns()
     local reason = nil
+
+    -- Calendar.IsWorldTimePaused() was tried here for "in a menu" and answers FALSE while the
+    -- map screen is open (measured 2026-09-03) - the map does not pause world time, or does
+    -- not report it. The window it was meant to close is handled in mercenaries_patrols_live.lua
+    -- instead, by requiring the player to have actually moved recently: see PatrolPlayerMoving.
 
     -- Asleep, or lying down about to be.
     pcall(function()
@@ -168,6 +194,13 @@ function mercenaries:PlayerBusyForSpawns()
         pcall(function()
             if self.RBQ and self.RBQ.active then reason = "the siege of Raborsch" end
         end)
+    end
+
+    -- A recognised main-quest battle (mercenaries_mainquest_watchdog.lua). Usually the
+    -- combat probe above already answers, but the watchdog holds through the lulls
+    -- between waves, which is exactly when a patrol walking in would be worst.
+    if not reason and self.MQW and self.MQW.active then
+        reason = "a main-quest battle"
     end
 
     -- Opportunistic: a global battle meter. Only trusted when it answers with a number.

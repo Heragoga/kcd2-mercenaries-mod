@@ -27,10 +27,17 @@ function mercenaries:SpawnCampAlchemy(center)
         spot = self:CampSnapToGround({ x = center.x - 8, y = center.y, z = center.z })
     end
 
-    local origPos = at:GetWorldPos()
+    -- Home is the SAVED home when the table is found already standing at the camp after
+    -- a load - see StationHome in mercenaries_forge.lua and the note in SpawnCampForge:
+    -- recording the camp as home is what tore the bench down two seconds after every load.
+    local origPos = self:StationHome("CampAlchemyHome", at, spot)
     local origAng
     pcall(function() origAng = at:GetWorldAngles() end)
     local rec = { at = at, atPos = origPos, moved = {}, spawned = {}, spot = spot }
+    if self:StationHomeIsHere(origPos, spot) then
+        rec.noAutoPack = true
+        System.LogAlways("[CampAlchemy] the village table is within reach of the camp - it will not be packed on approach")
+    end
     local dx, dy, dz = spot.x - origPos.x, spot.y - origPos.y, spot.z - origPos.z
 
     -- Drag the dressing props: record each (for restore), then translate by the
@@ -83,10 +90,33 @@ function mercenaries:DespawnCampAlchemy()
     for _, m in ipairs(rec.moved or {}) do
         pcall(function() m.e:SetWorldPos(m.origPos) end)
     end
+    -- Bottles dragged here in an EARLIER session came back with the save already at the
+    -- bench, so they are in nobody's `moved` list: whatever AlchemyItem is still at the
+    -- bench goes home by the same offset the table does. Only that class - the camp's own
+    -- lights and particles can stand within a bench-length of the tile.
+    if rec.spot and rec.atPos then
+        local dx, dy, dz = rec.atPos.x - rec.spot.x, rec.atPos.y - rec.spot.y, rec.atPos.z - rec.spot.z
+        local sent = 0
+        local ok, list = pcall(function() return System.GetEntitiesByClass("AlchemyItem") end)
+        if ok and list then
+            for _, e in pairs(list) do
+                local p = e.GetWorldPos and e:GetWorldPos()
+                if p and e ~= rec.at then
+                    local d = math.sqrt((p.x - rec.spot.x) ^ 2 + (p.y - rec.spot.y) ^ 2 + (p.z - rec.spot.z) ^ 2)
+                    if d <= (self.CampAlchemyPropRadius or 3.5) then
+                        pcall(function() e:SetWorldPos({ x = p.x + dx, y = p.y + dy, z = p.z + dz }) end)
+                        sent = sent + 1
+                    end
+                end
+            end
+        end
+        if sent > 0 then System.LogAlways("[CampAlchemy] " .. sent .. " item(s) left from an earlier session sent home") end
+    end
     for _, id in ipairs(rec.spawned or {}) do
         pcall(function() System.RemoveEntity(id) end)
     end
     self.CampAlchemy = nil
+    self:StationHomeForget("CampAlchemyHome")
     System.LogAlways("[CampAlchemy] torn down, village AlchemyTable restored")
 end
 
@@ -98,7 +128,7 @@ function mercenaries.CampAlchemyMonitor()
     if not rec then return end
     local restore = false
     pcall(function()
-        if player and rec.atPos then
+        if player and rec.atPos and not rec.noAutoPack then
             local o = player:GetWorldPos()
             local dd = (o.x - rec.atPos.x) ^ 2 + (o.y - rec.atPos.y) ^ 2 + (o.z - rec.atPos.z) ^ 2
             if dd < (self.CampAlchemyAutoPackDist * self.CampAlchemyAutoPackDist) then

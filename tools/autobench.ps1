@@ -1,7 +1,10 @@
 # Closed-loop bench harness. Launches KCD2, navigates the main menu with scancode
-# keystrokes (counts from the author's recipe), loads the bench save, presses F10
-# (merc_bench_auto - the in-mod scenario runner + pop-in detector, which QUITS the game
-# when done), then parses kcd.log for the [Bench] results.
+# keystrokes (counts from the author's recipe), loads the bench save, then runs the
+# bench through the devmode console: merc_dev (arms the dev command set - refused
+# outside -devmode) + merc_bench_bindkeys (restores the session F-key triggers), then
+# presses the F-key (merc_bench_auto QUITS the game when done) and parses kcd.log for
+# the [Bench] results. The mod no longer binds ANY F-key on its own - players kept
+# firing the test campaigns by accident - so the console preamble is mandatory.
 #
 #   powershell -ExecutionPolicy Bypass -File tools\autobench.ps1
 #
@@ -14,13 +17,26 @@ param(
     [int]$MenuWaitSec = 35,
     [int]$Cores = 0,       # restrict the game to N PHYSICAL cores after load (0 = all).
                            # SMT pairs: N cores = 2N logical processors from CPU 0 up.
+    [string]$Key = "f10",  # which bench to fire: f10 = full suite, f8 = per-merc scale ladder
+    [string]$ConsoleCmd = "",  # type this into the devmode console instead of pressing $Key -
+                               # immune to F-key bind conflicts (videofhotomode et al. own F-keys)
     [switch]$AttachOnly    # game already at the main menu: skip launch+wait
 )
 
 $ErrorActionPreference = "Stop"
-$GameDir = "C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2"
+# Where the game is is a per-machine question - Steam sits under Program Files (x86) on
+# one rig and Program Files on another, and a library can be on any drive - so it is
+# resolved rather than assumed. See tools\Find-KCD2.ps1; override with KCD2_DIR.
+$GameDir = & (Join-Path $PSScriptRoot "Find-KCD2.ps1")
+if (-not $GameDir) {
+    Write-Output "[harness] FAIL: Kingdom Come Deliverance 2 not found on this machine."
+    Write-Output "[harness]       set KCD2_DIR=D:\path\to\KingdomComeDeliverance2"
+    Write-Output "[harness]       or add  game=D:\path\...  to tools\local.paths.txt"
+    exit 1
+}
 $Exe     = Join-Path $GameDir "Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
 $Log     = Join-Path $GameDir "kcd.log"
+Write-Output "[harness] game: $GameDir"
 
 Add-Type -TypeDefinition @"
 using System;
@@ -43,6 +59,20 @@ public static class KeySender {
         System.Threading.Thread.Sleep(holdMs);
         SendInput(1, u, Marshal.SizeOf(typeof(INPUT)));
     }
+    const uint KEYEVENTF_UNICODE = 0x4;
+    // Layout-independent character injection (WM_CHAR path) for the console's edit box.
+    // The console OPEN key still needs a raw scancode - the game reads keybinds from raw
+    // input - but once the console has focus its text field accepts unicode input.
+    public static void TypeText(string s, int perCharMs) {
+        foreach (char c in s) {
+            var d = new INPUT[]{ new INPUT{ type=1, ki=new KEYBDINPUT{ wVk=0, wScan=c, dwFlags=KEYEVENTF_UNICODE } } };
+            var u = new INPUT[]{ new INPUT{ type=1, ki=new KEYBDINPUT{ wVk=0, wScan=c, dwFlags=KEYEVENTF_UNICODE|KEYEVENTF_KEYUP } } };
+            SendInput(1, d, Marshal.SizeOf(typeof(INPUT)));
+            System.Threading.Thread.Sleep(20);
+            SendInput(1, u, Marshal.SizeOf(typeof(INPUT)));
+            System.Threading.Thread.Sleep(perCharMs);
+        }
+    }
 }
 "@
 
@@ -50,6 +80,7 @@ function Tap-Key([string]$name, [int]$after = 180) {
     switch ($name) {
         "down"  { [KeySender]::Tap(0x50, $true,  60) }
         "enter" { [KeySender]::Tap(0x1C, $false, 60) }
+        "f8"    { [KeySender]::Tap(0x42, $false, 60) }
         "f9"    { [KeySender]::Tap(0x43, $false, 60) }
         "f10"   { [KeySender]::Tap(0x44, $false, 60) }
         "esc"   { [KeySender]::Tap(0x01, $false, 60) }
@@ -124,14 +155,34 @@ function Wait-LogLine([string]$pattern, [int]$timeoutSec, [datetime]$since) {
     return $false
 }
 
+function Ensure-SteamAppId {
+    # Launched directly (not through Steam), steam_api refuses to initialise and the game
+    # quits during init with "CSystem::Quit ... reason: Steam Service Quit - not started
+    # through Steam". steam_appid.txt beside the exe is what tells it which app it is, and it
+    # had only ever been created by hand on one machine - so a fresh checkout on a new PC saw
+    # the game exit before the main menu with nothing in the log to explain it.
+    $appIdFile = Join-Path $GameDir "Bin\Win64MasterMasterSteamPGO\steam_appid.txt"
+    if (-not (Test-Path $appIdFile)) {
+        try {
+            [System.IO.File]::WriteAllText($appIdFile, "1771300")
+            Write-Output "[harness] wrote steam_appid.txt (1771300) beside the exe - the game quits at init without it when launched directly"
+        } catch {
+            Write-Output ("[harness] WARN: could not write " + $appIdFile + " - " + $_.Exception.Message)
+        }
+    }
+}
+
 $t0 = Get-Date
 
 if (-not $AttachOnly) {
     Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 3
+    Ensure-SteamAppId
     Write-Output "[harness] launching..."
+    # "+exec user.cfg" is OPTIONAL - the engine shrugs at a user.cfg that does not exist, and
+    # it is only here so a machine that HAS one gets its settings.
     Start-Process -FilePath $Exe -WorkingDirectory $GameDir -ArgumentList "-devmode","+exec","user.cfg"
-    # steam_appid.txt beside the exe stops steam_api relaunching the game through Steam
+    # steam_appid.txt beside the exe ALSO stops steam_api relaunching the game through Steam
     # (which briefly produced TWO instances). Belt and braces: wait for the process count
     # to settle, and if more than one survives, keep the newest - that is the real one.
     Start-Sleep -Seconds 12
@@ -159,6 +210,7 @@ if (-not $AttachOnly) {
         $g = @(Get-Process KingdomCome -ErrorAction SilentlyContinue)
         if ($g.Count -eq 0) {
             Write-Output "[harness] game vanished during init - relaunching"
+            Ensure-SteamAppId
             Start-Process -FilePath $Exe -WorkingDirectory $GameDir -ArgumentList "-devmode","+exec","user.cfg"
             Start-Sleep -Seconds 12; $up0 = Get-Date; $lastLen = -1; $quietSince = Get-Date
             continue
@@ -231,8 +283,42 @@ if ($Cores -gt 0) {
 }
 
 Focus-Game
-Write-Output "[harness] F10 - bench starts (auto-quit at the end)"
-Tap-Key "f10" 500
+$benchLen = 0; try { $benchLen = (Get-Item $Log).Length } catch {}
+
+# Open the devmode console (tilde, scancode 0x29), type one command, run it, close.
+# The console PAUSES script timers while open, so close it straight after Enter.
+function Send-ConsoleCmd([string]$cmd) {
+    Write-Output "[harness] console: $cmd"
+    [KeySender]::Tap(0x29, $false, 60); Start-Sleep -Milliseconds 700
+    [KeySender]::TypeText($cmd, 30); Start-Sleep -Milliseconds 400
+    Tap-Key "enter" 600
+    [KeySender]::Tap(0x29, $false, 60); Start-Sleep -Milliseconds 400
+}
+
+# The bench commands are dev-gated now: merc_dev arms them (only in a -devmode launch,
+# which this harness always uses), merc_bench_bindkeys puts the F-key triggers back.
+Send-ConsoleCmd "merc_dev"
+Send-ConsoleCmd "merc_bench_bindkeys"
+
+if ($ConsoleCmd -ne "") {
+    Send-ConsoleCmd $ConsoleCmd
+} else {
+    Write-Output "[harness] $Key - bench starts (auto-quit at the end)"
+    Tap-Key $Key 500
+}
+
+# Prove the bench actually armed. Nothing else prints "[Bench]", so 30s with no line
+# means the trigger never landed - fall back to the F-key once before giving up.
+$armed = $false
+$deadline = (Get-Date).AddSeconds(30)
+while ((Get-Date) -lt $deadline -and -not $armed) {
+    if ((Read-LogTailFrom $benchLen).Contains("[Bench]")) { $armed = $true } else { Start-Sleep -Seconds 2 }
+}
+if (-not $armed) {
+    Write-Output "[harness] WARN: no [Bench] line 30s after trigger - falling back to $Key"
+    Focus-Game
+    Tap-Key $Key 500
+}
 
 if (-not (Wait-LogLine "[Bench] COMPLETE" 900 $t0)) {
     Write-Output "[harness] FAIL: bench never completed; killing the game"
@@ -243,5 +329,7 @@ Start-Sleep -Seconds 6
 Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
 Write-Output ""
+Write-Output "===== LOADED SAVE ====="
+Select-String -Path $Log -Pattern "Loading saved game" | Select-Object -First 1 | ForEach-Object { $_.Line }
 Write-Output "===== BENCH OUTPUT ====="
 Select-String -Path $Log -Pattern "\[Bench\]" | ForEach-Object { $_.Line }

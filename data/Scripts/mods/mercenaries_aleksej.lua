@@ -834,6 +834,18 @@ mercenaries.AlxMissingTicks = 5
 -- fire and all - until they are this far off.
 mercenaries.AlxCampDespawnRange = 100.0
 
+-- Progress may only be JUDGED from close up. A beat camp is spawned with no distance gate
+-- (deliberately - see mercenaries.lua's AlxOnLoad note), so beat 8's siege goes up at
+-- Raborsch while the player still stands at the Roman fort, 3.6km away. At that range
+-- System.GetEntity resolves a handle whose actor/soul proxies never streamed in, which
+-- IsAliveAndWell reads as DEAD - and one 1Hz tick later the leader was "down", the camp
+-- was "cleared", the document was granted and the whole beat closed with nobody having
+-- been anywhere near it. That is the "castle is empty / objectives auto-complete on
+-- load" report. So: the leader-down report and the every-man-down teardown only run
+-- while the player is inside this range of the site anchor - close enough that the
+-- entities are genuinely streamed and a death reading means a death.
+mercenaries.AlxProgressRange = 250.0
+
 -- ---- additive wraps around functions this file does not own ----
 
 local AlxBaseMonitor = mercenaries.BanditCampMonitor
@@ -1463,12 +1475,15 @@ end
 
 -- How many of the camp are still on their feet. A missing handle is not a death (the engine
 -- drops one for a tick), so it is given AlxMissingTicks polls of the benefit of the doubt.
+-- A handle that RESOLVES but has no actor/soul proxies gets the same benefit: that is an
+-- UNLOADED man (streamed out, or spawned far away and never streamed in), and
+-- IsAliveAndWell would misread him as dead - the auto-complete bug in one line.
 function mercenaries:AlxLivingCount(C)
     C.missing = C.missing or {}
     local n = 0
     for _, id in ipairs(C.ids or {}) do
         local e = System.GetEntity(id)
-        if e then
+        if e and e.actor and e.soul then
             C.missing[id] = nil
             if self:IsAliveAndWell(e, false) then n = n + 1 end
         else
@@ -1867,12 +1882,27 @@ function mercenaries:AlxTick()
     local C = self.AlxCamp
     if not C then return end
 
+    -- The evidence gate for everything below: are we close enough to the site that a
+    -- death reading means a death, not a not-streamed-in man? See AlxProgressRange.
+    local nearSite = false
+    pcall(function()
+        local p = player and player:GetWorldPos()
+        local a = C.site and self:BanditCampSiteAnchor(C.site)
+        if p and a then
+            local d = math.sqrt((a.x - p.x) ^ 2 + (a.y - p.y) ^ 2 + (a.z - p.z) ^ 2)
+            nearSite = d <= (self.AlxProgressRange or 250.0)
+        end
+    end)
+
     -- THE ONE PIECE OF PROGRESS LUA STILL REPORTS: the leader is down. A missing body is not
-    -- proof (the engine drops a handle for a tick), so it gets the same grace as everyone else.
-    if C.leaderId and not C.leaderNoted then
+    -- proof (the engine drops a handle for a tick), so it gets the same grace as everyone
+    -- else - and a body that resolves WITHOUT actor/soul proxies is unloaded, not dead, so
+    -- it goes down the same grace path rather than the IsAliveAndWell misread. Judged only
+    -- from near the site; from afar every reading is a streaming artefact.
+    if nearSite and C.leaderId and not C.leaderNoted then
         local down = false
         local le = System.GetEntity(C.leaderId)
-        if le then
+        if le and le.actor and le.soul then
             C.leaderMissing = 0
             down = not self:IsAliveAndWell(le, true)
         else
@@ -1910,12 +1940,36 @@ function mercenaries:AlxTick()
     -- The camp comes away when the last man in it is down AND the player has walked off. THE
     -- QUEST DOES NOT WAIT FOR EITHER - Skald closed the beat the moment the leader fell; this
     -- only decides when the tents go, and taking them down under the player's feet looked awful.
-    if self:AlxLivingCount(C) == 0 then
-        if not C.cleared then
+    --
+    -- C.cleared may only be LATCHED from near the site (a far reading is streaming, not
+    -- death) - but once latched, the walk-off despawn below runs from any distance, so a
+    -- player who fast-travels away from a genuinely cleared camp still gets it cleaned up.
+    -- Beat 8 additionally requires the SIEGE force down: C.ids only tracks the officer and
+    -- his band, and "every man down" with a hundred besiegers still standing used to close
+    -- the beat around them.
+    if not C.cleared and nearSite and self:AlxLivingCount(C) == 0 then
+        local siegeUp = false
+        if C.beat == 8 then
+            pcall(function()
+                if not (self.RBQ and self.RBQ.active) then return end
+                for _, list in ipairs({ self.RBQ.foot, self.RBQ.archers }) do
+                    for _, id in ipairs(list or {}) do
+                        local e = System.GetEntity(id)
+                        if e and e.actor and e.soul and self:IsAliveAndWell(e, true) then
+                            siegeUp = true
+                            return
+                        end
+                    end
+                end
+            end)
+        end
+        if not siegeUp then
             C.cleared = true
             aLog("beat " .. tostring(C.beat) .. ": every man down - the camp stands until the player is " ..
                  tostring(self.AlxCampDespawnRange) .. "m off")
         end
+    end
+    if C.cleared then
         local p = player and player:GetWorldPos()
         local a = C.site and self:BanditCampSiteAnchor(C.site)
         if p and a then

@@ -16,6 +16,7 @@ function mercenaries:DevCommand(name, body, desc)
     table.insert(self.DevCommands, { name = name, body = body, desc = desc or "" })
 end
 
+
 -- Hire Tokens
 mercenaries.TokenIDWeak = "679a655e-189d-4519-b437-ccc4b92be41d"
 mercenaries.TokenIDMedium = "679a655e-189d-4519-b437-ccc4b92be42d"
@@ -1356,6 +1357,8 @@ function mercenaries.CombatScanLoop()
 end
 
 function mercenaries:LowPriorityMonitorLoopBody()
+    -- The company list, kept current for the load-time rebuild (mercenaries_roster.lua).
+    if mercenaries.RosterKeepTick then pcall(function() mercenaries:RosterKeepTick() end) end
     if next(mercenaries.ActiveMercs) then
         -- Pruning matters even while idle now that aggro applies at rest.
         mercenaries:ProfCall("low.PruneMercCache", "PruneMercCache")
@@ -1414,6 +1417,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- with the level we just left, so the latches guarding them have to be cleared or
     -- they lock the timers out for the rest of the session. See SchedOnLoad.
     if self.SchedOnLoad then self:SchedOnLoad() end
+    if self.MQWOnLoad then pcall(function() self:MQWOnLoad() end) end
+    if self.RosterOnGameplayLoad then pcall(function() self:RosterOnGameplayLoad() end) end
+    if self.TravelWatchOnLoad then pcall(function() self:TravelWatchOnLoad() end) end
 
     -- ...and the same asymmetry one level up. Timers are not the only thing that dies with
     -- the level: so do the behaviour trees, the spawned entities and the siege. What does
@@ -1505,15 +1511,12 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Load the quartermaster logistics state (tiredness / food / drink / wages).
     self:LogiLoad()
 
-    -- Recall hotkey, rebound every load (harmless if already bound). See
-    -- docs/camp.md; rebind via console with: bind <key> merc_camp_recall
-    local okBind = pcall(function()
-        System.ExecuteCommand("bind f4 merc_camp_recall")
-    end)
-    System.LogAlways("[Mercenaries] Recall keybind F4: " .. (okBind and "OK" or "FAILED - use merc_camp_recall console command"))
-    -- Bench triggers, for the external harness (F10 quits the game when done).
-    if self.BenchBindKeys then pcall(function() self:BenchBindKeys() end) end
-    if self.TortureBindKeys then pcall(function() self:TortureBindKeys() end) end
+    -- NO F-KEY IS EVER BOUND. The mod used to bind F4 (recall) plus the bench/torture
+    -- triggers on F6-F10, and players kept firing test campaigns - some of which QUIT
+    -- the game - by accident. Recall is the console command merc_camp_recall (players
+    -- can bind it themselves: bind <key> merc_camp_recall). The test harness re-binds
+    -- its keys through merc_bench_bindkeys / merc_torture_bindkeys, which exist only
+    -- after merc_dev - and merc_dev itself refuses outside a -devmode launch.
 
     -- F5-F11 ARE NOT BOUND. Four in-game editors want them - the bandit camp builder
     -- (docs/bandit-camps.md), the siege builder, the Aleksej lodging editor and the patrol
@@ -1566,12 +1569,15 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Rebuild the merc cache: the one permitted full-world NPC scan, on load only.
     Script.SetTimerForFunction(2000, "mercenaries.RebuildMercCacheDelayed")
     -- Put a saved camp back up - after the cache above, since it hands out tents
-    -- from ActiveMercs (see RestoreCampDelayed).
+    -- from ActiveMercs (see RestoreCampDelayed). The retry counter is per-load
+    -- state and plain Lua, so it is reset here rather than trusted.
+    self._campRestoreTries = 0
     Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
     -- NO torture hook here. Phase B once armed itself from this event and auto-quit
     -- the USER'S game whenever their newest save carried a torture stamp (they hit
     -- Continue, phase B ran, the game closed - reported as "the mod keeps crashing").
-    -- Phase B now runs only when F8 is pressed on a stamped save (mercenaries_torture.lua).
+    -- Phase B now runs only from an explicit merc_torture command on a stamped save
+    -- (mercenaries_torture.lua) - and those commands exist only after merc_dev.
     -- One master tick drives these four instead of four independent timers, so they
     -- are phase-offset, gated and backed off when idle. merc_sched 0 restores the
     -- legacy timers at the next load. See docs/performance.md.
@@ -1611,6 +1617,13 @@ Script.LoadScript("Scripts/mods/mercenaries_ai_modules.lua")
 Script.LoadScript("Scripts/mods/mercenaries_equipment.lua")
 Script.LoadScript("Scripts/mods/mercenaries_gear_data.lua")
 Script.LoadScript("Scripts/mods/mercenaries_custom_gear.lua")
+-- Generated from data/libs/tables/item/item__mercenaries.xml (tools/gen_item_ids.py):
+-- every item class the mod defines, for the inventory audit and the uninstall purge.
+-- Pure data, so it loads before anything that might want it.
+Script.LoadScript("Scripts/mods/mercenaries_item_ids.lua")
+-- Generated from data/libs/tables/rpg/buff__mercenaries.xml (tools/gen_buff_ids.py):
+-- every buff the mod defines, for merc_purge_buffs and the save audit.
+Script.LoadScript("Scripts/mods/mercenaries_buff_ids.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
 Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")
@@ -1622,6 +1635,9 @@ Script.LoadScript("Scripts/mods/mercenaries_hold.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation.lua")
 Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
+-- Recognises "we are inside a scripted main-quest battle" (the coming merc/patrol
+-- temp-despawn hangs off its hooks). Ticked from MonitorMainQuestLoop.
+Script.LoadScript("Scripts/mods/mercenaries_mainquest_watchdog.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
@@ -1678,9 +1694,14 @@ Script.LoadScript("Scripts/mods/mercenaries_siege.lua")
 Script.LoadScript("Scripts/mods/mercenaries_raborsch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_aleksej.lua")
 -- Last: every slot body it registers must already be defined.
+Script.LoadScript("Scripts/mods/mercenaries_roster.lua")
+Script.LoadScript("Scripts/mods/mercenaries_travelwatch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_scheduler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_bench.lua")
 Script.LoadScript("Scripts/mods/mercenaries_torture.lua")
+-- Immediately after it: the quest plan reuses the torture framework's step machine, its
+-- safety arming and its walk/log helpers, all of which the file above defines.
+Script.LoadScript("Scripts/mods/mercenaries_torture_quest.lua")
 
 -- Prints every merc console command with a one-line description.
 function mercenaries:PrintHelp()
@@ -1692,7 +1713,7 @@ function mercenaries:PrintHelp()
         "merc_heal                            heal & wash the squad (flat " .. tostring(self.HealCost) .. " groschen)",
         "merc_wait / merc_follow / merc_dismiss   squad orders",
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
-        "merc_camp_recall (F4)                bring the whole squad to you from anywhere (doesn't break camp)",
+        "merc_camp_recall                     bring the whole squad to you from anywhere (doesn't break camp)",
         "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
         "merc_hold / merc_hold_end            hold this ground: every man stands fast where he is, with a leash (docs/squad-orders.md)",
         "merc_hold_formup 0|1                 hold shape: 1 draws them up in a block instead of standing fast",

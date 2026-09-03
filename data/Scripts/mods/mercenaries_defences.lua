@@ -129,6 +129,25 @@ function mercenaries:DefBelongToCurrentCamp()
     return (dx * dx + dy * dy) <= (self.DefAnchorEps * self.DefAnchorEps)
 end
 
+-- The SAVED tower/cart layouts, for collision checks that run before the rebuild: on a
+-- load the camp claims its clusters and station tiles ~1.5s before DefRestore stands
+-- the towers and carts back up, so the live lists are empty exactly when the camp is
+-- choosing ground - and a tent cluster given a tower's cell is the "tents overlap the
+-- camp" report. Nil when the stored defences belong to some other pitch.
+function mercenaries:DefSavedTowerSpots()
+    if not self:DefBelongToCurrentCamp() then return nil end
+    local out
+    pcall(function() out = unpackPoses(self:LoadString("QMTowers")) end)
+    return out
+end
+
+function mercenaries:DefSavedCartSpots()
+    if not self:DefBelongToCurrentCamp() then return nil end
+    local out
+    pcall(function() out = unpackPoses(self:LoadString("QMCarts")) end)
+    return out
+end
+
 -- Remove any tower/cart archer left over from a previous session, and forget him.
 --
 -- Matches ONLY our own StaticArcherNamePrefix, never IsStaticArcherName: that also

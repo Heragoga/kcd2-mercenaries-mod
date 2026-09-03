@@ -8,7 +8,18 @@ setlocal enabledelayedexpansion
 
 set "REPO_ROOT=%~dp0"
 set "REPO_ROOT=%REPO_ROOT:~0,-1%"
-set "MODS_DIR=C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Mods"
+
+:: Shares the mercenaries repo's game finder (this mod lives inside it). Override with
+:: KCD2_DIR, or a game= line in ..\tools\local.paths.txt.
+set "GAME_DIR="
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\..\tools\Find-KCD2.ps1"`) do set "GAME_DIR=%%i"
+if not defined GAME_DIR (
+    echo.
+    echo ERROR: Kingdom Come Deliverance 2 was not found - nothing was packaged.
+    echo        set KCD2_DIR=D:\path\to\KingdomComeDeliverance2
+    exit /b 1
+)
+set "MODS_DIR=%GAME_DIR%\Mods"
 set "OUT_DIR=%MODS_DIR%\forgeanywhere"
 
 echo ============================================================
@@ -24,7 +35,7 @@ echo.
 echo [1/4] Preparing output folder...
 if exist "%OUT_DIR%" (
     echo       Deleting existing folder...
-    rd /s /q "%OUT_DIR%"
+    rd /s /q "!OUT_DIR!"
 )
 mkdir "%OUT_DIR%"
 mkdir "%OUT_DIR%\data"
@@ -48,12 +59,12 @@ set "DATA_PAK=%OUT_DIR%\data\forgeanywhere.pak"
 if not exist "%DATA_SRC%" (
     echo       WARNING: data folder not found, skipping.
 ) else (
-    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%DATA_SRC%', '%DATA_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!DATA_SRC!', '!DATA_PAK!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
     if errorlevel 1 (
         echo       ERROR: Failed to create data pak.
         goto :error
     )
-    echo       Created: %DATA_PAK%
+    echo       Created: !DATA_PAK!
 )
 
 :: ------------------------------------------------------------
@@ -68,9 +79,9 @@ if not exist "%LOC_SRC%" (
     echo       WARNING: localization folder not found, skipping.
 ) else (
     for %%L in (Chineses_xml Chineset_xml Czech_xml English_xml French_xml German_xml Italian_xml Japanese_xml Korean_xml Polish_xml Portuguese_xml Russian_xml Spanish_xml Turkish_xml Ukrainian_xml Vietnamese_xml) do (
-        set "SRC_FILE=%LOC_SRC%\%%L.xml"
-        set "PAK_FILE=%LOC_OUT%\%%L.pak"
-        set "TMP_LOC=%TEMP%\fa_loc_%%L"
+        set "SRC_FILE=!LOC_SRC!\%%L.xml"
+        set "PAK_FILE=!LOC_OUT!\%%L.pak"
+        set "TMP_LOC=!TEMP!\fa_loc_%%L"
 
         if not exist "!SRC_FILE!" (
             echo       WARNING: !SRC_FILE! not found, skipping %%L.

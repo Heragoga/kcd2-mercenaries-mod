@@ -1,6 +1,6 @@
 # Squad Outfits
 
-`mercenaries.Outfits` (in `mercenaries.lua`) is the squad wardrobe. Styles 1-5 and 8-17 carry **10 presets per tier** (450 generated presets); style 6 (Skalitz) is left as authored and style 7 is the custom uniform, see below. `EquipMercenary` parses the tier out of the merc's entity name, looks up `Outfits[style][tier]` and rolls one preset from it.
+`mercenaries.Outfits` (in `mercenaries.lua`) is the squad wardrobe. Styles 1-5 and 8-17 carry **10 presets per tier** (450 generated presets); style 6 (Skalitz) is authored separately with **4 per tier** and style 7 is the custom uniform, see below. `EquipMercenary` parses the tier out of the merc's entity name, looks up `Outfits[style][tier]` and rolls one preset from it.
 
 | # | Style | Heraldry | Silhouette |
 |---|---|---|---|
@@ -9,7 +9,7 @@
 | 3 | Cumans | **none** | caftan instead of gambeson, loose hose, knee boots, open bascinets |
 | 4 | Leipa | `_mLeipa` surcoat/coat/coif | standard man-at-arms in Leipa colours |
 | 5 | Kuttenberg | `_mKuttenberg` (18 surcoats, 10 coats, 2 coifs, 1 hood) | town levy in Kuttenberg colours |
-| 6 | Skalitz | — | **untouched**: hand-authored, depends on a separate mod |
+| 6 | Skalitz | Skalitz waffenrock (4), red hood, mail collar — **from *House of Kobyla*, not vanilla** | hand-authored, 4 presets per tier, generated from `tools/gen_skalitz_presets.py` |
 | 7 | *(custom uniform)* | — | not a preset pool — see [The custom uniform](custom-gear.md) |
 | 8 | Prague | `_mPrague` (4 surcoats, a coat, 2 hoods, 2 coifs) | city regiment in Prague colours |
 | 9 | Sigismund | `_mMagyar` + `_mUher` (2 surcoats, 3 coats, hood, 2 coifs) | Hungarian royal livery |
@@ -22,7 +22,11 @@
 | 16 | Ruthard | `_mRuthart` (3 surcoats, coat, coif, own leg harness) | Kuttenberg patrician |
 | 17 | Papal Legate | `_mPapal` (2 surcoats, hood, coif) | the legate's guard |
 
-**Skalitz (style 6) is deliberately excluded from all of this.** Its 12 presets are hand-authored and draw items from the third-party *House of Kobyla Arms, Armour and Regalia* mod, so its GUIDs resolve to nothing in the vanilla tables — that is expected, not a bug, and it is why the budget below does not apply to it. Leave it alone.
+**Skalitz (style 6) is authored piece by piece**, not drawn from the item budget below, and carries 4 presets per tier instead of 10. The authored list lives in `tools/gen_skalitz_presets.py`, which writes the twelve presets from it: change the look by editing the spec there and re-running, never by editing the XML. Hand-editing is what caused the last regression — `_1`/`_3` and `_2`/`_4` silently became byte-identical.
+
+**Its livery is a real dependency.** The Skalitz waffenrock (four surcoats), the plain red Skalitz hood and the Skalitz mail collar come from the third-party *House of Kobyla Arms, Armour and Regalia* mod, which is why the outfit label says so. Everything else in the presets is vanilla, so **without** that mod the base layers still equip and the men simply turn out without the surcoat — no error, just no heraldry.
+
+> **The "Skalitz reverts to generic style" bug was exactly that, but permanently:** the shipped presets had lost every livery piece and kept only the plain vanilla base, so a Skalitz merc was assembled from the same pool as style 1 whether or not the player had the dependency. On top of that, `_1`/`_3` and `_2`/`_4` were byte-identical in all three tiers, so the style fielded two looks per tier instead of four. Regenerating from the spec restores both. If mercs still look generic *after* this fix, the dependency is missing — that is the one case where the old symptom is expected.
 
 **Style 7 is the custom uniform**, not a wardrobe: the player hands the quartermaster a set of gear and the whole company copies it (`mercenaries.CustomOutfitIndex = 7`). It has no entry in `Outfits`, and `EquipMercenary` falls through to style 1 if it is ever looked up. New liveries therefore start at 8.
 
@@ -89,7 +93,9 @@ Presets are built only from a vetted pool: **1565 vanilla armour pieces**, filte
 - clergy, jester (the whole `Coat06` line), plague, painter and cutscene-only oddities;
 - another lord's heraldry, except where a style deliberately flies it.
 
-The `merc_skalitz_*` and `merc_lipa_strong_*` presets reference item GUIDs that exist in **no** vanilla table — they come from the third-party *House of Kobyla Arms, Armour and Regalia* mod, the same dependency the weapon presets carry (see `weapon_preset__mercenaries.xml`). The Skalitz ones are still live (style 6). The `merc_lipa_strong_*` ones are no longer drawn by style 4, which now uses generated presets; they stay in the XML so old saves don't break.
+The `merc_skalitz_*` presets carry **six** item GUIDs that exist in no vanilla table — the four Skalitz surcoats, the hood and the mail collar, all from *House of Kobyla Arms, Armour and Regalia* (the same dependency the Skalitz shields in `weapon_preset__mercenaries.xml` used to carry, before those were pointed at vanilla equivalents). `tools/gen_skalitz_presets.py` knows which six they are and refuses to write a preset containing any other unresolvable GUID.
+
+The `merc_lipa_strong_*` presets were documented as carrying the same dependency; checked GUID by GUID against `references/base_game/Libs/Tables/item/item*.xml`, **all 33 of their items now resolve in vanilla**. They are no longer drawn by style 4, which uses generated presets, and stay in the XML so old saves don't break.
 
 ## OutfitTierHints
 

@@ -228,6 +228,9 @@ function mercenaries:LodBoostValueFor(e)
     -- 300ms reassert silently reverted anything typed at the console within a third of a second.
     local ov = (self.CvarOverride or {})[e[1]]
     if ov ~= nil then return ov end
+    -- Armed by the company alone: the AI budget is the whole point, the renderer half (view
+    -- distance 200 against a city's own 50) is exactly what makes the mod heavy in a town.
+    if self.LodBoostAiOnly and not e.ai then return nil end
     if e.ai and self.LowSpecOn and e.low ~= nil then return e.low end
     -- nil = "do not boost this one at all"; the caller leaves whatever the engine has.
     if e.detail and (self.LowSpecOn or self.LodDetailFloorOff) then return nil end
@@ -248,9 +251,14 @@ function mercenaries:LodBoostOn()
         if want ~= nil then setCVar(e[1], want) end
     end
     self.LodBoostActive = true
-    lbLog("battle LOD raised - AI Detail " .. tostring(saved["WH_AI_LOD_MaxCountDetail"]) ..
-          " -> " .. tostring(self.LodBoostCvars[1][2]) ..
-          ", view dist " .. tostring(saved["e_ViewDistRatio"]) .. " -> 200")
+    if self.LodBoostAiOnly then
+        lbLog("big company - AI Detail " .. tostring(saved["WH_AI_LOD_MaxCountDetail"]) ..
+              " -> " .. tostring(self.LodBoostCvars[1][2]) .. " (AI half only, renderer untouched)")
+    else
+        lbLog("battle LOD raised - AI Detail " .. tostring(saved["WH_AI_LOD_MaxCountDetail"]) ..
+              " -> " .. tostring(self.LodBoostCvars[1][2]) ..
+              ", view dist " .. tostring(saved["e_ViewDistRatio"]) .. " -> 200")
+    end
 end
 
 -- Put the values back on EVERY tick while boosted, rather than once when it starts.
@@ -394,6 +402,7 @@ function mercenaries:LodBoostOff()
     end
     self._lodSaved      = nil
     self.LodBoostActive = false
+    self.LodBoostAiOnly = false
     self:LodRatioReset()
     lbLog("battle LOD budget restored")
 end
@@ -401,10 +410,25 @@ end
 -- crowd = mercs + nearby hostiles, but mercs only join the count once there is something to
 -- fight (LodBoostRequireFoes) - otherwise a big idle squad alone latches the boost on. Second
 -- return is the foe count, for callers that want to explain the number. docs/performance.md.
+-- Third return: the company ALONE armed it (see LodBoostCompanyMin) - the caller then raises
+-- only the AI half of the cvar set, never the renderer half.
+mercenaries.LodBoostCompanyMin = 30   -- a company this big is simulated in full even with nobody to fight; 0 = never
+
 function mercenaries:LodBoostCrowd()
     local foes  = #(self.CachedEnemies or {})
-    local mercs = (self.LodBoostRequireFoes and foes == 0) and 0 or (_G.MercCount or 0)
-    return mercs + foes, foes
+    local n     = _G.MercCount or 0
+    local mercs = (self.LodBoostRequireFoes and foes == 0) and 0 or n
+    -- The company on its own, out on the road, past LodBoostCompanyMin: the engine's 70-slot
+    -- Detail budget cannot hold fifty men and their horses, and what falls out of it stands
+    -- still or moves in jumps - "half the line follows, the rest stand about" (2026-09-03:
+    -- 50 men, 30 of them flagged stalled at once). Not while camped: in camp they idle, and
+    -- the sortie is smaller than the roster.
+    local companyOnly = false
+    local minN = self.LodBoostCompanyMin or 0
+    if foes == 0 and minN > 0 and n >= minN and not self.CampActive then
+        mercs, companyOnly = n, true
+    end
+    return mercs + foes, foes, companyOnly
 end
 
 -- Driven from CombatScanLoop (300ms). CachedEnemies is already built by that pass, so this
@@ -477,7 +501,7 @@ function mercenaries:LodBoostTick()
         end
     end
 
-    local crowd = self:LodBoostCrowd()
+    local crowd, _, companyOnly = self:LodBoostCrowd()
     local now   = 0
     pcall(function() now = System.GetCurrTime() or 0 end)
 
@@ -488,8 +512,15 @@ function mercenaries:LodBoostTick()
         pop = self:LodBoostPopulation()
     end
 
-    if crowd >= self.LodBoostMinCrowd then
+    if crowd >= self.LodBoostMinCrowd or companyOnly then
         self._lodLastFoeAt = now
+        -- Foes arriving while the company had it armed widen it to the full set on the next
+        -- reassert; the renderer half is not narrowed again until the boost drops.
+        if companyOnly and not self.LodBoostAiOnly and not self.LodBoostActive then
+            self.LodBoostAiOnly = true
+        elseif not companyOnly then
+            self.LodBoostAiOnly = false
+        end
         if not self.LodBoostActive then self:LodBoostOn() end
         self:LodBoostReassert()
     elseif self.LodBoostActive then
