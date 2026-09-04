@@ -1418,6 +1418,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- they lock the timers out for the rest of the session. See SchedOnLoad.
     if self.SchedOnLoad then self:SchedOnLoad() end
     if self.MQWOnLoad then pcall(function() self:MQWOnLoad() end) end
+    if self.MatrixOnLoad then pcall(function() self:MatrixOnLoad() end) end
     if self.RosterOnGameplayLoad then pcall(function() self:RosterOnGameplayLoad() end) end
     if self.TravelWatchOnLoad then pcall(function() self:TravelWatchOnLoad() end) end
 
@@ -1525,6 +1526,8 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- merc_route_* command still works from the console. To re-enable ONE editor: uncomment
     -- its binder body, then uncomment the matching call below.
     -- pcall(function() mercenaries:AlxBinds(true) end)
+    -- FIRST, before any owner rebuilds: what did the save carry? (see LoadSweepSnapshot)
+    pcall(function() mercenaries:LoadSweepSnapshot() end)
     pcall(function() mercenaries:RouteLoad() end)
     -- Roaming patrols do not survive a save: sweep anything the engine serialised before the
     -- tick re-rolls fresh records. See mercenaries_patrols_live.lua.
@@ -1533,6 +1536,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- A bandit-camp contract in progress. Only the CONTRACT is restored here; the camp
     -- itself is rebuilt by the monitor once the player is near it again.
     pcall(function() mercenaries:BanditCampRestore() end)
+    -- Second chance: if the BCQuest blob did not come back, rebuild the contract from
+    -- the independent stage record instead (mercenaries_kk_stage.lua).
+    pcall(function() mercenaries:KKStageRecover() end)
     -- Aleksej's camp is NOT save data and nothing here restores it: this drops whatever the last
     -- session left standing. The quest re-issues that beat's spawn token on the level's own
     -- OnWake if it is still live, and MonitorInventory stands the camp back up - no distance gate
@@ -1624,6 +1630,12 @@ Script.LoadScript("Scripts/mods/mercenaries_item_ids.lua")
 -- Generated from data/libs/tables/rpg/buff__mercenaries.xml (tools/gen_buff_ids.py):
 -- every buff the mod defines, for merc_purge_buffs and the save audit.
 Script.LoadScript("Scripts/mods/mercenaries_buff_ids.lua")
+-- Generated from the game's Config/CVarOverrides battle files (tools/gen_battle_cvars.py):
+-- what a scripted battle pushes, per sys_spec. Used to DETECT a battle and by merc_battlecvar.
+Script.LoadScript("Scripts/mods/mercenaries_battle_cvars.lua")
+Script.LoadScript("Scripts/mods/mercenaries_questprobe.lua")
+Script.LoadScript("Scripts/mods/mercenaries_outfit_matrix.lua")
+Script.LoadScript("Scripts/mods/mercenaries_kk_stage.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
 Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")

@@ -53,7 +53,10 @@ function mercenaries:DifficultyLoad()
 end
 
 function mercenaries:DifficultySet(name)
-    name = tostring(name or ""):lower():gsub("%s", "")
+    -- CmdClean first: the console quotes arguments, and this is an exact-name lookup,
+    -- so DifficultyTiers['"hard"'] would miss where a %d+ match would have survived.
+    name = string.lower(mercenaries:CmdClean(name))
+    name = string.gsub(name, "%s", "")
     if not self.DifficultyTiers[name] then
         diffLog("unknown tier '" .. name .. "'; pick one of: " ..
                 table.concat(self.DifficultyOrder, ", "))
@@ -296,7 +299,10 @@ function mercenaries:UpkeepApply()
 end
 
 function mercenaries:UpkeepSet(name)
-    name = tostring(name or ""):lower():gsub("%s", "")
+    -- CmdClean first: the console quotes arguments and this is an exact-name lookup, so
+    -- UpkeepModes['"harsh"'] would miss. Same fix as DifficultySet.
+    name = string.lower(mercenaries:CmdClean(name))
+    name = string.gsub(name, "%s", "")
     if not self.UpkeepModes[name] then
         diffLog("unknown upkeep mode '" .. name .. "'; pick one of: " ..
                 table.concat(self.UpkeepOrder, ", "))

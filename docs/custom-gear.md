@@ -363,3 +363,62 @@ saved wearing the uniform re-dresses out of an empty pattern.
   a slot. `merc_gear_clear` does it from the console.
 - **A chest standing at save time** is swept on the next load (`GearSweepChests`,
   from `GearLoadState`): emptied into the player, then removed.
+
+---
+
+## The armour mods (2026-09-04)
+
+`references/armor mods/1..9` holds one mod's table tree apiece. `tools/gen_gear_table.py`
+now reads them alongside the vanilla tables, so **2,358 modded items are classified**, not
+merely tolerated.
+
+| # | mod | items |
+|---|---|---|
+| 1 | refined_garments | 436 |
+| 2 | Kobyla Arms & Armour | 89 |
+| 3 | outer_garments | 384 |
+| 4 | zcustom_colorsvanilla | 999 |
+| 5 | silver_lys_gear | 146 |
+| 6 | hounskull | 19 |
+| 7 | sl_swords_shields | 83 |
+| 8 | silver_lys_brigandine | 70 |
+| 9 | armor_refit | 152 |
+
+### Why they needed anything doing
+
+They were already *accepted* — an item in none of the three vanilla tables is taken to be
+modded gear and worn. What they lacked was a **slot**, and without one there is no layer
+order and no gambeson-under-plate rule, so plate is silently refused. Wearable, but not
+wearable correctly.
+
+### How a modded item gets a slot
+
+The vanilla path matches the `Clothing` name against the armor_type prefix table. A mod
+names its rows whatever it likes, so that alone left 510 of 2,325 pieces unslotted. Four
+more signals, each derived **from the vanilla tables** rather than hand-maintained:
+
+| stage | signal | got |
+|---|---|---|
+| 1 | `Clothing` prefix (the vanilla rule) | 1,795 |
+| 2 | `IconId` matches a vanilla item's icon | 387 |
+| 3 | `IconId` prefix | 10 |
+| 4 | `UIInfo` matches a vanilla item's UIInfo | 44 |
+| 5 | `MOD_FAMILY` hand list (10 entries) | 51 |
+| 6 | `VisorTypeId` present, so it is a helmet | 2 |
+| — | unresolved | **16** |
+
+Stage 2 is the one that does the heavy lifting, and it works because a mod re-uses the
+icon of the piece it is modelled on: `Vavak_rg_chamberlain` carries `IconId="Coat01_m06_B"`
+and grades as a coat without anyone having to know what a Vavak is.
+
+**Plumes are deliberately left at slot 0.** They are helmet ornaments; any real slot would
+evict the helmet. Unknown is wearable and honest.
+
+Re-run after adding a mod:
+
+```
+python tools/gen_gear_table.py
+```
+
+It prints the cascade breakdown, so a new mod that lands mostly in "unknown" is visible
+immediately - that is the signal to add a `MOD_FAMILY` line, not to change the rules.

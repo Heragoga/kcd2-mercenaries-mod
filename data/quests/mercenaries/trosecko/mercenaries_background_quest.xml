@@ -2150,6 +2150,34 @@
                     <Edge From="alx_done.State" To="Value" />
                 </Function>
 
+                <!-- Tipster icon on Aleksej, so "walk back and tell him" is findable on the map.
+                     Mirrors bc_qm_marker in bandit_camp_quest.xml exactly - the one other
+                     ShowMapMarker in this mod and the proof that the primitive resolves here:
+                     Asset + MarkerType constant + a bool edge into IsActive, no Namespace on
+                     any of it (a Namespace attribute resolves into a vanilla module the mod's
+                     compiled database does not contain and kills the WHOLE graph).
+
+                     UNGATED, deliberately. Two gates were tried and neither showed an icon:
+                     alx_done ("you owe him a report" - true for minutes of a nine-beat arc)
+                     and alx_quest_state.Active (only true after the first hand-off, so it
+                     could not help you find him the first time). A marker node writes nothing
+                     to the log, so a third guess at the condition would be worth nothing.
+                     Always on, through an EDGE from a bool State (merc_alwaysOn, which every
+                     proven ItemDescriptorTrigger in this file gates on) rather than a bare
+                     Constant - no vanilla ShowMapMarker uses a Constant here. The real reason it
+                     never showed was that Aleksej did not exist when the graph woke; see
+                     AlxLodgingResetOnLoad, which now keeps and adopts the saved man.
+
+                     Spawn timing needs no help. The marker resolves through the SoulAsset to
+                     whichever NPC Lua spawned carrying that soul, which is how the
+                     quartermaster's marker works despite him also being Lua-spawned and also
+                     arriving seconds after a load. -->
+                <ShowMapMarker Name="alx_tipster_marker" PositionY="7370" PositionX="400">
+                    <Asset Name="MarkerObject" Alias="aleksej" />
+                    <Constant Name="MarkerType" Value="PoiTipster" />
+                    <Edge From="merc_alwaysOn.State" To="IsActive" />
+                </ShowMapMarker>
+
                 <!-- One comparison per beat. Everything downstream hangs off these. -->
                 <Function Name="alx_is_1" PositionY="7440" PositionX="-600" TypeT="int" MethodName="Control::Compare" DeclaringType="Control">
                     <Constant Name="Op" Value="Equals" />
@@ -2279,6 +2307,100 @@
                     <Edge From="alx_player_props.Inventory" To="Inventory" />
                     <Edge From="alx_down9_desc.ItemDescriptor" To="ItemDescriptor" />
                     <Edge From="merc_alwaysOn.State" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <!-- Re-binding an objective marker after a reload (docs/aleksej.md, "the marker and the spawn"):
+                     Lua sends the UP token once the beat's leader exists. Each beat's up-trigger, gated on
+                     alx_is_N so only the live beat answers, SetNones that objective and issues the RE-ARM
+                     token; the re-arm trigger fires on a later inventory poll and SetActives it, so the
+                     Started log - and the Marker on it - fires again against the respawned NPC. Same three
+                     primitives as every other bridge in this file. No Namespace anywhere. -->
+                <Function Name="alx_up_desc" PositionY="8500" PositionX="-600" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be00d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <Function Name="alx_rearm_desc" PositionY="8530" PositionX="-600" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be01d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="alx_up_1" PositionY="8560" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_1.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_1" PositionY="8560" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_1.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_up_2" PositionY="8590" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_2.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_2" PositionY="8590" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_2.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_up_3" PositionY="8620" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_3.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_3" PositionY="8620" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_3.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_up_4" PositionY="8650" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_4.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_4" PositionY="8650" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_4.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_up_5" PositionY="8680" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_5.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_5" PositionY="8680" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_5.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_up_7" PositionY="8710" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_7.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_7" PositionY="8710" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_7.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_up_8" PositionY="8740" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_8.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_8" PositionY="8740" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_8.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_up_9" PositionY="8770" PositionX="-300">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_up_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_9.bool" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <ItemDescriptorTrigger Name="alx_rearm_9" PositionY="8770" PositionX="0">
+                    <Edge From="alx_player_props.Inventory" To="Inventory" />
+                    <Edge From="alx_rearm_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="alx_needs_9.bool" To="IsActive" />
                 </ItemDescriptorTrigger>
 
                 <!-- THE DOCUMENT IS IN HAND, on the beats that carry one. On those, the kill does
@@ -2564,22 +2686,32 @@
 
                 <!-- The journal. One Progress state per beat: raised by its hand-off, closed by its kill. -->
                 <State Name="alx_obj1_state" PositionY="9000" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_1.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_1.OnAcquire" To="SetActive" />
                     <Edge From="aleksej_dialog.alx_hand_1" To="SetActive" />
                     <Edge From="alx_down_1.OnAcquire" To="SetDone" />
                 </State>
                 <State Name="alx_obj2_state" PositionY="9040" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_2.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_2.OnAcquire" To="SetActive" />
                     <Edge From="aleksej_dialog.alx_hand_2" To="SetActive" />
                     <Edge From="alx_doc_2.OnAcquire" To="SetDone" />
                 </State>
                 <State Name="alx_obj3_state" PositionY="9080" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_3.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_3.OnAcquire" To="SetActive" />
                     <Edge From="aleksej_dialog.alx_hand_3" To="SetActive" />
                     <Edge From="alx_down_3.OnAcquire" To="SetDone" />
                 </State>
                 <State Name="alx_obj4_state" PositionY="9120" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_4.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_4.OnAcquire" To="SetActive" />
                     <Edge From="aleksej_dialog.alx_hand_4" To="SetActive" />
                     <Edge From="alx_down_4.OnAcquire" To="SetDone" />
                 </State>
                 <State Name="alx_obj5_state" PositionY="9160" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_5.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_5.OnAcquire" To="SetActive" />
                     <Edge From="aleksej_dialog.alx_hand_5" To="SetActive" />
                     <Edge From="alx_doc_5.OnAcquire" To="SetDone" />
                 </State>
@@ -2588,14 +2720,20 @@
                     <Edge From="alx_b6done_trig.OnAcquire" To="SetDone" />
                 </State>
                 <State Name="alx_obj7_state" PositionY="9240" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_7.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_7.OnAcquire" To="SetActive" />
                     <Edge From="alx_b6done_trig.OnAcquire" To="SetActive" />
                     <Edge From="alx_doc_7.OnAcquire" To="SetDone" />
                 </State>
                 <State Name="alx_obj8_state" PositionY="9280" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_8.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_8.OnAcquire" To="SetActive" />
                     <Edge From="alx_doc_7.OnAcquire" To="SetActive" />
                     <Edge From="alx_doc_8.OnAcquire" To="SetDone" />
                 </State>
                 <State Name="alx_obj9_state" PositionY="9320" PositionX="500" RequiredForOutput="trosecko" TypeT="Progress">
+                    <Edge From="alx_up_9.OnAcquire" To="SetNone" />
+                    <Edge From="alx_rearm_9.OnAcquire" To="SetActive" />
                     <Edge From="alx_doc_8.OnAcquire" To="SetActive" />
                     <Edge From="alx_down_9.OnAcquire" To="SetDone" />
                 </State>
@@ -2699,7 +2837,7 @@
                     <LocalizedName StringName="obj_alx_1" Text="Clear the camp above the wagoners' camp." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_1">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_1">
                             <Log StringName="obj_alx_1" Text="Clear the camp above the wagoners' camp." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2711,7 +2849,7 @@
                     <LocalizedName StringName="obj_alx_2" Text="Deal with the silver thieves behind the mine." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_2">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_2">
                             <Log StringName="obj_alx_2" Text="Deal with the silver thieves behind the mine." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2723,7 +2861,7 @@
                     <LocalizedName StringName="obj_alx_3" Text="Ambush the silver convoy before Miskovitz." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_3">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_3">
                             <Log StringName="obj_alx_3" Text="Ambush the silver convoy before Miskovitz." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2735,7 +2873,7 @@
                     <LocalizedName StringName="obj_alx_4" Text="Clear the camp at the burnt mill." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_4">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_4">
                             <Log StringName="obj_alx_4" Text="Clear the camp at the burnt mill." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2747,7 +2885,7 @@
                     <LocalizedName StringName="obj_alx_5" Text="Intercept the captain's men on the low road." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_5">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_5">
                             <Log StringName="obj_alx_5" Text="Intercept the captain's men on the low road." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2774,7 +2912,7 @@
                     <LocalizedName StringName="obj_alx_7" Text="Find the men gathering at the burnt-out farm." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_7">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_7">
                             <Log StringName="obj_alx_7" Text="Find the men gathering at the burnt-out farm." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2786,7 +2924,7 @@
                     <LocalizedName StringName="obj_alx_8" Text="Lift the siege of Raborsch." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_8">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_8">
                             <Log StringName="obj_alx_8" Text="Lift the siege of Raborsch." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2798,7 +2936,7 @@
                     <LocalizedName StringName="obj_alx_9" Text="Find Aleksej in the marshes." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="alx_leader_9">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="alx_leader_9">
                             <Log StringName="obj_alx_9" Text="Find Aleksej in the marshes." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -2825,7 +2963,7 @@
                     <LocalizedName StringName="obj_alx_report" Text="Report to Aleksej." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="aleksej">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="aleksej">
                             <Log StringName="obj_alx_report" Text="Report to Aleksej." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">

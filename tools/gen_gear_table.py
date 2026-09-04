@@ -26,6 +26,28 @@ OUT  = os.path.join(ROOT, "data", "Scripts", "mods", "mercenaries_gear_data.lua"
 if not os.path.isdir(TBL):
     raise SystemExit("vanilla item tables not found at %s" % TBL)
 
+# ---- the armour mods -----------------------------------------------------------
+# references/armor mods/<n>/ holds one mod's Libs/Tables or Tables tree apiece. Their
+# items are already ACCEPTED by the wardrobe (anything in none of the three tables is
+# taken to be modded gear), but without a slot they get no layer order and no
+# gambeson-under-plate rule - so plate is silently refused. Reading them here is what
+# turns "wearable" into "wearable correctly".
+MODDIR = os.path.join(ROOT, "references", "armor mods")
+
+def mod_item_files():
+    out = []
+    if not os.path.isdir(MODDIR):
+        return out
+    for d in sorted(os.listdir(MODDIR)):
+        base = os.path.join(MODDIR, d)
+        if not os.path.isdir(base):
+            continue
+        for dirpath, _dirs, files in os.walk(base):
+            for fn in sorted(files):
+                if fn.startswith("item") and fn.endswith(".xml"):
+                    out.append((d, os.path.join(dirpath, fn)))
+    return out
+
 def read(name):
     with open(os.path.join(TBL, name), encoding="ascii", errors="ignore") as f:
         return f.read()
@@ -155,9 +177,90 @@ for gid, src, isq in aliases:
     if isq:
         quest.append(gid)
 
+# ---- modded gear ---------------------------------------------------------------
+# A mod names its Clothing whatever it likes, so the vanilla prefix table alone leaves
+# 510 of 2325 pieces unslotted. Three more signals, cheapest and most reliable first:
+#
+#   IconId  - a mod re-uses the vanilla icon of the piece it is modelled on, so
+#             Vavak_rg_chamberlain carries IconId="Coat01_m06_B" and grades as a coat.
+#   UIInfo  - same idea one step less precise: ui_in_coif_mail, ui_in_waffenrock.
+#   VisorTypeId - only a helmet has a visor.
+#
+# Both lookups are built FROM THE VANILLA TABLES, so they stay correct across a patch
+# instead of being a second hand-maintained list.
+icon_slot, ui_slot = {}, {}
+for _n, _t in TABLES:
+    for _tag, _body in re.findall(r'<(Armor|Helmet|Hood)\b([^>]*)/>', _t):
+        _a = attrs("<x " + _body + ">")
+        _s = slot_for(_a)
+        if not _s:
+            continue
+        if _a.get("IconId"):
+            icon_slot.setdefault(_a["IconId"], _s)
+        if _a.get("UIInfo"):
+            ui_slot.setdefault(_a["UIInfo"], _s)
+
+# What is left after all four: 27 families, every one of them plain to read. A plume is
+# deliberately NOT given a slot - it is a helmet ornament and any real slot would evict
+# the helmet; slot 0 is wearable and honest.
+MOD_FAMILY = [
+    ("Hounskull", 34), ("Legsmailrh", 42), ("NobleCaparison", 13),
+    ("Jupon", 7), ("Waffenrorh", 7), ("Knightsurcoat", 7),
+    ("Rosary", 19),
+    # Ornamental belt daggers, authored as Armor rows rather than weapons.
+    ("DaggerRoundel", 44), ("DaggerBollocks", 44), ("DaggerCommon", 44),
+]
+
+def mod_slot(a):
+    s = slot_for(a)
+    if s:
+        return s, "clothing"
+    ic = a.get("IconId")
+    if ic:
+        if ic in icon_slot:
+            return icon_slot[ic], "icon"
+        s = slot_for({"Name": ic})
+        if s:
+            return s, "icon-prefix"
+    ui = a.get("UIInfo")
+    if ui and ui in ui_slot:
+        return ui_slot[ui], "uiinfo"
+    base = a.get("Clothing") or a.get("Name") or ""
+    for fam, sid in MOD_FAMILY:
+        if base.startswith(fam):
+            return sid, "family"
+    if a.get("VisorTypeId"):
+        return 34, "visor"
+    return 0, "unknown"
+
+MOD_FILES = mod_item_files()
+mod_ids, mod_by = set(), {}
+mod_how = {}
+for _mod, _path in MOD_FILES:
+    with open(_path, encoding="ascii", errors="ignore") as _f:
+        _t = _f.read()
+    for _tag, _body in re.findall(
+            r'<(Armor|Helmet|Hood|MeleeWeapon|MissileWeapon)\b([^>]*)/>', _t):
+        _a = attrs("<x " + _body + ">")
+        _gid = _a.get("Id")
+        if not _gid or _gid in ALL_VANILLA or _gid in mod_ids:
+            continue
+        mod_ids.add(_gid)
+        if _tag in ("Armor", "Helmet", "Hood"):
+            _s, _how = mod_slot(_a)
+            by_slot.setdefault(_s, []).append(_gid)
+            mod_by.setdefault(_s, 0)
+            mod_by[_s] += 1
+        else:
+            by_wclass.setdefault(int(_a.get("Class", "-1")), []).append(_gid)
+            _how = "weapon"
+        mod_how[_how] = mod_how.get(_how, 0) + 1
+        if _a.get("IsQuestItem") == "true":
+            quest.append(_gid)
+
 # Everything vanilla that did not land in a slot or a weapon class.
 gear_ids = {g for gs in by_slot.values() for g in gs} | {g for gs in by_wclass.values() for g in gs}
-non_gear = ALL_VANILLA - gear_ids
+non_gear = (ALL_VANILLA - gear_ids) - mod_ids   # vanilla only, by construction
 
 # ---- emit ---------------------------------------------------------------------
 def blobs(guids, per=64):
@@ -215,6 +318,14 @@ with open(OUT, "w", encoding="utf-8", newline="\n") as f:
     for name, sid in prefixes:
         f.write('    { "%s", %d },\n' % (name, sid))
     f.write("}\n")
+
+print("modded gear: %d item(s) from %d table(s) in references/armor mods/"
+      % (len(mod_ids), len(MOD_FILES)))
+for _k in sorted(mod_how, key=lambda k: -mod_how[k]):
+    print("   %-12s %5d" % (_k, mod_how[_k]))
+_unk = mod_by.get(0, 0)
+print("   -> %d slotted, %d left unknown (still wearable, just no layer rule)"
+      % (len(mod_ids) - _unk, _unk))
 
 n_arm = sum(len(set(v)) for v in by_slot.values())
 n_wpn = sum(len(set(v)) for v in by_wclass.values())

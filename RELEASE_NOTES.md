@@ -1,7 +1,6 @@
 # Release notes
 
-Paste-ready for the mod page. Version number is a placeholder — set it here and in
-`mod.manifest` before packaging.
+Paste-ready for the mod page. Version 2.0, matching `mod.manifest`.
 
 ---
 
@@ -62,8 +61,9 @@ walls to defend and a siege to fight.
   to melee, or stand and shoot. Bow, crossbow or hand cannon.
 - **The custom uniform** — drop a set of gear in a chest and the whole company wears a copy
   of it, anywhere, camp or no camp.
-- **44 named companions** cloned from vanilla characters, recruitable individually.
-- **180 outfit presets** across six styles, balanced so every style is equally tough at a
+- **43 named companions** cloned from vanilla characters, recruitable individually.
+- **462 outfit presets** across 17 styles - free company, bandits, Cumans and thirteen
+  liveries from Leipa to the papal legate - balanced so every style is equally tough at a
   given tier.
 - **Post-battle loot sweep** — the men wander the corpses and rummage after a fight.
 
@@ -137,11 +137,39 @@ Sixteen languages, all complete. The difficulty confirmation message is now tran
 
 ---
 
+### Also in 2.0 — the Aleksej questline
+
+- **A nine-beat quest chain** for Aleksej of Zaslawye: a bounty-hunter in Kuttenberg who pays
+  for quiet work in the woods, through nine encounters to a reckoning in the marsh.
+- **Small-company relief.** The last two fights - the siege of Raborsch and the marsh - now
+  scale down when you turn up with few men or none. A lone player faces seven besiegers
+  instead of twelve, and the marsh's defenders lose their extra health. A company of eight or
+  more sees no change.
+- **Quest state survives a reload properly.** The beat camp and its leader are kept across a
+  save rather than deleted and respawned, so the objective marker is on the map from the
+  moment you load - and the camp no longer completes itself when you reload beside it.
+- **Modded armour works with the wardrobe.** 2,358 items from nine popular armour mods are
+  slot-classified, so they layer correctly and the gambeson-under-plate rule applies to them.
+
+### Fixes since the first 2.0 draft
+
+- **Console arguments were being ignored.** Thirty commands took an argument that never
+  arrived, including `merc_hire <n>`, which always hired five, and ten on/off switches that
+  could be turned on but never off.
+- **Fast travel** no longer strands or loses the company, and patrols no longer spawn during it.
+- **Formations**: stragglers, the leader getting stuck, line width and circle centring.
+- **The camp forge and alchemy bench** survive a reload; the smithy stays where you put it.
+- **Contract pay** is exact - hand-ins were a groschen short.
+
 ## Known issues
 
 - Mercenaries will fight bandits who are part of an unrelated quest.
 - Any other mod that replaces `AI/FormationDefinitions.xml` conflicts with this one.
 - Mounted units in large companies still look loose compared to foot.
+- Mercenaries are invisible inside scripted main-quest battles. `merc_mqstash_now` takes the
+  company out of the fight and `merc_mqunstash_now` brings them back.
+- Saves that ever held a camp load slowly if the mod is later removed. `merc_uninstall`
+  before removing it.
 
 ---
 

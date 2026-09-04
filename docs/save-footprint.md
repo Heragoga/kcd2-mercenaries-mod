@@ -218,3 +218,39 @@ that load:
 
 If none of the four changes the time, the cost is not entity residue at all and the next
 suspect is the mod's Skald quest graphs, which no purge can reach from Lua.
+
+---
+
+# Closed, 2026-09-04: the entity footprint is not the load-time cost
+
+**Abandoned after measurement.** Every category was removed and timed, and none of it moved
+the uninstalled load time. The hunt is over; what follows is what it bought, so nobody
+repeats it.
+
+## What was proven
+
+| Claim | Verdict |
+|---|---|
+| `bSaved_by_game=false` is honoured for spawned NPCs | **True.** `the engine restored 0 merc(s); the roster says 10` |
+| Mercenaries are the load-time cost | **False.** A save with zero stored mercs loaded just as slowly |
+| Mod buffs are in the save | **False.** All 22 are `is_persistent="false"` and never written |
+| Camp props/`mercenaries_Prop` are the cost | **False.** Purged, saved, uninstalled, timed: no change |
+| The saver entities are the cost | **False.** 25 of them, purged: no change |
+
+## What is left, and why it is not being chased
+
+The mod's remaining footprint in a save is not entities at all. It is the **table patches**:
+232 soul rows, 103 skald_character rows, 100 brain2mailbox, 22 buffs, plus the quest graphs
+under `data/quests/mercenaries/`. When the mod is gone, every reference a save holds into
+those rows dangles, and nothing in Lua can reach them to clean up — a purge can delete an
+entity, but it cannot un-write a soul id the engine stored in its own archive.
+
+If this is ever picked up again, that is where to start, and it needs a save-file parser
+rather than a console command.
+
+## What survives from the work
+
+The commands are worth keeping regardless — `merc_uninstall` is the supported way to leave,
+and it is now genuinely complete where it was missing twelve entity classes. The
+`merc_purge_*` set and `merc_save_audit` stay as the uninstall path and its audit, not as a
+performance tool.

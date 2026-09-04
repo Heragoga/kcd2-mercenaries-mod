@@ -200,7 +200,7 @@
                     <LocalizedName StringName="obj_merc_banditcamp" Text="Wipe them out." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="banditcamp_leader">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="banditcamp_leader">
                             <Log StringName="log_merc_banditcamp_started" Text="The quartermaster's marked them for me. All of them, he said - leave one standing and the work's not done." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -214,7 +214,7 @@
                     <LocalizedName StringName="obj_merc_banditcamp_find" Text="Search the leader's body." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="banditcamp_leader">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="banditcamp_leader">
                             <Log StringName="log_merc_banditcamp_find_started" Text="Whatever their leader carried, it's still on him." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -227,7 +227,7 @@
                     <LocalizedName StringName="obj_merc_banditcamp_letter" Text="Report to the quartermaster." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="quartermaster">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="quartermaster">
                             <Log StringName="log_merc_banditcamp_letter_started" Text="The quartermaster pays on delivery - the job, and whatever I found." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">

@@ -214,6 +214,10 @@ mercenaries.BanditCampForgetRange  = 300
 -- The engine can drop an entity handle for a tick without the NPC being gone.
 mercenaries.BanditCampMissingTicks = 5
 
+-- Debug chatter for the contract's save/restore. Off for release; merc_dev's own tools and
+-- the log lines that survive are enough to see a contract come back.
+mercenaries.BanditCampVerbose = false
+
 -- WUIDs of everyone in the bandit camp. The camp-role accessors in mercenaries_camp.lua
 -- consult this so a bandit can hold a camp role without the PLAYER's camp being up.
 mercenaries.BanditCampActors = {}
@@ -2368,6 +2372,8 @@ function mercenaries:BanditCampAccept()
     -- His accept line is SPOKEN now (quartermaster_dialog.xml gates one per contract), so
     -- this only confirms the job was taken.
     Game.SendInfoText('merc_info_banditcamp_taken', false, 0, 5)
+    -- Second, independent record of the arc (mercenaries_kk_stage.lua).
+    if self.KKStageWrite then pcall(function() self:KKStageWrite(1, "contract accepted") end) end
 end
 
 function mercenaries:SpawnBanditCamp()
@@ -2549,6 +2555,7 @@ function mercenaries:BanditCampService()
     -- because the player picks it up out of a container, which Lua never sees directly.
     if S.kind ~= "bounty" and S.cleared and not S.letterTaken and self:BanditCampHasLetter() then
         S.letterTaken = true
+        if self.KKStageWrite then pcall(function() self:KKStageWrite(3, "letter picked up") end) end
         self:BanditCampSignal(self.TokenIDBanditCampTaken)
         self:BanditCampSave()
         qLog("letter picked up - tracker moves to the quartermaster")
@@ -2842,10 +2849,11 @@ function mercenaries:BanditCampCountDead()
     -- bandits still standing. A body only counts once it has been missing for
     -- BanditCampMissingTicks consecutive polls, or is present and verifiably dead.
     S.missing = S.missing or {}
-    local alive = 0
+    local alive, present = 0, 0
     for _, entId in ipairs(S.bandits or {}) do
         local ent = System.GetEntity(entId)
         if ent then
+            present = present + 1
             S.missing[entId] = nil
             if self:IsAliveAndWell(ent, true) then
                 alive = alive + 1
@@ -2864,6 +2872,28 @@ function mercenaries:BanditCampCountDead()
             end
         end
     end
+    -- A roster that is entirely GONE is a reload artifact, not a massacre. Entity ids do not
+    -- survive a save (BanditCampRestoreSlot rebuilds S.bandits empty) and the restore then
+    -- deliberately sweeps the old camp away before rebuilding it - so for a few ticks after
+    -- a load every handle in the roster looks dead at once. Banking that as kills closed the
+    -- contract on the spot and left the props standing over an empty camp: reported
+    -- 2026-09-04, "saving while the camp wasn't cleared auto completed that part. The camp
+    -- survived but none of the fighters in it did."
+    --
+    -- Nobody kills a whole camp between two polls. If not one body is present, the camp is
+    -- not standing - so ask for the rebuild that already exists (SpawnBanditCamp brings back
+    -- target-killed men) instead of counting. Same doctrine as the siege branch above: judge
+    -- only from real evidence.
+    local roster = #(S.bandits or {})
+    if (S.target or 0) > 0 and (roster == 0 or present == 0) then
+        if S.spawned then
+            qLog(string.format("none of the %d bandit(s) on the roster is in the world - the camp is unloaded, not cleared; rebuilding", roster))
+            S.spawned = false
+        end
+        S.missing = {}
+        return
+    end
+
     local killed = math.max(S.killed or 0, (S.target or 0) - alive)
     -- Persist as soon as the count moves. The player can quicksave mid-fight, and the save
     -- captures whatever SaveString last wrote - so leaving this until the camp unloads
@@ -2879,6 +2909,7 @@ end
 function mercenaries:BanditCampComplete()
     local S = self.BCQ
     if S.cleared then return end
+    if self.KKStageWrite then pcall(function() self:KKStageWrite(2, "camp cleared") end) end
     S.cleared = true
 
     -- The bounty is its own quest with its own two objectives and nothing to find on the
@@ -2940,6 +2971,8 @@ function mercenaries:BanditCampDeliverLetter()
     self:BanditCampSignal(self.TokenIDBanditCampPaid)
 
     S.paid = true
+
+    if self.KKStageWrite then pcall(function() self:KKStageWrite(4, "contract paid") end) end
     -- Advance the run only on PAYMENT, not on the last kill: a camp you cleared but never
     -- collected on is not finished, and should still be the next one offered.
     self:BanditCampClearSiege()
@@ -2994,6 +3027,13 @@ function mercenaries:BanditCampSave()
         tostring(S.contractIdx or 0), S.dispersed and "1" or "0",
         S.letterTaken and "1" or "0")
     pcall(function() self:SaveString(tag, blob) end)
+    -- Only when it CHANGES: this is called on every kill and every tick that moves the
+    -- count, so logging unconditionally would bury the log. A contract that is running but
+    -- never prints this line is one that is not being persisted.
+    if self.BanditCampVerbose and self._bcqLastBlob ~= blob then
+        self._bcqLastBlob = blob
+        qLog(string.format("saved [%s]: %s", tostring(tag), blob))
+    end
 end
 
 -- How far around the site a reload sweeps for the previous camp's leavings.
@@ -3062,7 +3102,9 @@ function mercenaries:ClearAnyLeftoverBanditCamp()
             local n = e and e:GetName() or ""
             -- SpawnedTower_archer_ is a MERC tower archer. One has no business at a bandit
             -- camp; if the defence restore ever puts one here again, it goes with the rest.
-            if (string.find(n, S.leaderSoul or self.BanditCampLeaderSoul, 1, true)
+            if (self.KeepAcrossLoad or {})[e.id] then
+                -- A beat leader the save carried and AlxOnLoad chose to keep (see AlxKeptLeader).
+            elseif (string.find(n, S.leaderSoul or self.BanditCampLeaderSoul, 1, true)
                 or ((string.find(n, "SpawnedEnemy_", 1, true) == 1
                      or string.find(n, "SpawnedTower_archer_", 1, true) == 1) and near(e))) then
                 System.RemoveEntity(e.id); swept = swept + 1
@@ -3085,7 +3127,18 @@ end
 function mercenaries:BanditCampRestoreSlot()
     local S0 = self.BCQ
     local blob
-    pcall(function() blob = self:LoadString(self:BanditCampSaveTag(S0)) end)
+    local tag = self:BanditCampSaveTag(S0)
+    pcall(function() blob = self:LoadString(tag) end)
+    -- Said out loud on EVERY load, because "contract restored" never once appearing in a
+    -- log is the only evidence that separates "the blob was never written" from "the blob
+    -- was written and the rebuild failed" - and three sessions of logs could not tell them
+    -- apart (2026-09-04). One line, both answers.
+    if self.BanditCampVerbose or (blob and blob ~= "none") then
+        qLog(string.format("restore [%s]: %s", tostring(tag),
+            blob == nil and "nothing saved under this tag"
+                         or (blob == "none" and "no contract in that save"
+                                             or ("a contract, " .. tostring(string.len(blob)) .. " chars"))))
+    end
     -- No contract in the save. CLEAR the slot rather than returning: this session may have one
     -- running, and the loaded save is the only authority on that - leaving it would keep the
     -- hand-in offered and rebuild a camp for a contract nobody in this save ever took. The table

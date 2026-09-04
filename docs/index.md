@@ -52,12 +52,14 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Manual test plan](manual-tests.md) (The hand-run checklist: a 15-minute smoke test, regression steps for every reported bug, and the visual checks a log-reading harness cannot make)
 * [Retest, round 2](retest-round2.md) (The short follow-up plan: the five fixes from 2026-09-03, the two unverified ones, and the areas the first hand run never reached)
 * [Retest, round 3](retest-round3.md) (The roster that keeps the company out of the save, fast travel, the fifty-man formation, and what the second hand run found)
+- [retest-round4.md](retest-round4.md) - what to test next: the 30 commands that never accepted an argument, then the untested areas
 * [Open items](open-items.md) (What is left: fixes that have never been seen working, known-and-unfixed bugs, and the areas the hand runs never reached)
 * [Detecting fast travel](travel-detection.md) (Why the original detector never fired in any version, the 100ms slot that makes it work, and the probe command for when it still misses)
 * [Performance](performance.md) (What the mod costs and what controls it: the patrol population caps that fixed the long-standing lag, every cost tunable with its default, the profiler and how to read it, and what was ruled out so it is not re-chased)
 * [Save footprint and uninstalling](save-footprint.md) (Why an uninstalled game can load slowly, the three suspects — spawned NPCs, the hidden saver entities, the 176 item classes — and the staged purge commands that measure which one actually costs the minute)
 * [NPC LOD and invisible mercenaries](npc-lod.md) (The four systems that can stop an NPC rendering while it keeps fighting: AI LOD tiers and count budgets, the runtime clothing/attachment pipeline, quest-driven hides, and the per-battle cvar overrides — plus diagnostics)
 * [utokNaMalesov structure](malesov-structure.md) (What actually enrols an NPC in a scripted battle: `AddFactionRelationBetweenArrays` SoulArray0→SoulArray1, why nothing in the quest hides anyone, and why hibernation is a red herring)
+- [malesov-test.md](malesov-test.md) - how to test the battle stash: the two failure modes, separately
 * [Main-quest battle overrides](quest-override-battles.md) (**The shipping fix for invisible mercenaries**: all 12 main-quest battles overridden with the merc souls listed in their SoulAssets — what the tool does, the scopes, and the maintenance burden)
 * [Quest-override experiment](quest-override-test.md) (The single-quest Malesov prototype that proved soul membership is the render gate — `merc_testmerc`, the bisects, and how to revert)
 * [Post-battle loot sweep](loot-sweep.md) (Mercs wander the corpses and rummage after a fight - animation only, no item transfer - plus the revive/knockout/mercy-kill act, and why it rides the camp activity pipeline instead of its own module)

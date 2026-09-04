@@ -1687,3 +1687,111 @@ do
     c("merc_opt_fresh", "mercenaries:OptFresh()",
       "Drop every cvar override, then auto-tune from a clean state (use this to compare runs)")
 end
+
+-- ==== the battle cvar bench ====
+--
+-- A scripted battle pushes a whole cfg of rendering numbers (see
+-- mercenaries_battle_cvars.lua, generated from the game's own files). One of them may well
+-- be why mercenaries vanish in those battles: e_LodFaceAreaTargetSizeCharacterWH is a
+-- CHARACTER lod lever that only changes when a battle cfg loads, and the ~44-session
+-- investigation in docs/npc-lod.md ruled out the AI lod system but never this.
+--
+-- So: apply them ONE AT A TIME in ordinary play, with the company standing in front of you,
+-- and watch for the moment they go. Values go through CvarOverride, not a bare SetCVar,
+-- because LodBoostReassert re-writes every cvar it owns every 300ms and would otherwise
+-- undo the experiment within a third of a second.
+mercenaries.BattleCvarApplied = {}   -- [cvar] = value it held before we touched it
+
+local function bcLog(s) System.LogAlways("[BattleCvar] " .. tostring(s)) end
+
+function mercenaries:BattleCvarSpecKey()
+    local spec; pcall(function() spec = System.GetCVar("sys_spec") end)
+    return string.gsub(tostring(tonumber(spec) or spec or ""), "%.0$", "")
+end
+
+function mercenaries:BattleCvarWanted(name)
+    local key = self:BattleCvarSpecKey()
+    local blk = (self.BattleCvarBySpec or {})[key] or (self.BattleCvarBySpec or {})["default"] or {}
+    local v = blk[name]
+    if v == nil then v = ((self.BattleCvarBySpec or {})["default"] or {})[name] end
+    return v
+end
+
+function mercenaries:BattleCvarList()
+    local key = self:BattleCvarSpecKey()
+    bcLog("=== battle cvars (sys_spec " .. key .. ") ===")
+    bcLog("merc_battlecvar <n> | <n> <value> | all | off        (off restores everything)")
+    for i, n in ipairs(self.BattleCvarOrder or {}) do
+        local cur; pcall(function() cur = System.GetCVar(n) end)
+        local want = self:BattleCvarWanted(n)
+        local mark = self.BattleCvarApplied[n] and "  [APPLIED]" or ""
+        local own  = (self._boostOwns or {})[n] and "  (boost owns)" or ""
+        bcLog(string.format("%2d  %-46s now=%-12s battle=%-12s%s%s",
+              i, n, tostring(cur), tostring(want), mark, own))
+    end
+    local n = 0
+    for _ in pairs(self.BattleCvarApplied) do n = n + 1 end
+    bcLog(n .. " applied by hand. Watchdog cvar detection is " ..
+          (self.MQWCvarSuppressed and "SUPPRESSED while any is applied" or "live"))
+end
+
+function mercenaries:BattleCvarApply(name, val)
+    local before; pcall(function() before = System.GetCVar(name) end)
+    if self.BattleCvarApplied[name] == nil then self.BattleCvarApplied[name] = before end
+    -- CvarOverride first: LodBoostValueFor consults it before the boost's own number, and
+    -- LodBoostReassert carries the ones the boost does not own. Without this the 300ms
+    -- reassert silently puts the old value back and the test reads as "no effect".
+    self.CvarOverride[name] = val
+    pcall(function() System.SetCVar(name, val) end)
+    local got; pcall(function() got = System.GetCVar(name) end)
+    local warn = ""
+    if tostring(got) ~= tostring(val) then warn = "   <-- DID NOT TAKE" end
+    bcLog(string.format("%-46s %s -> %s%s", name, tostring(before), tostring(got), warn))
+    -- The watchdog matches on these very numbers, so a hand-applied profile would read as a
+    -- real battle and teleport the company away mid-experiment.
+    self.MQWCvarSuppressed = true
+end
+
+function mercenaries:BattleCvarOff()
+    local n = 0
+    for name, before in pairs(self.BattleCvarApplied) do
+        self.CvarOverride[name] = nil
+        if before ~= nil then pcall(function() System.SetCVar(name, before) end) end
+        n = n + 1
+    end
+    self.BattleCvarApplied = {}
+    self.MQWCvarSuppressed = false
+    bcLog(n .. " cvar(s) put back; watchdog cvar detection is live again")
+    if self.LodBoostActive then self:LodBoostReassert() end
+end
+
+function mercenaries:BattleCvarCmd(line)
+    local a = self:CmdArgs(line)
+    local w = string.lower(tostring(a[1] or ""))
+    if w == "" then return self:BattleCvarList() end
+    if w == "off" or w == "reset" then return self:BattleCvarOff() end
+    if w == "all" then
+        for _, n in ipairs(self.BattleCvarOrder or {}) do
+            local want = self:BattleCvarWanted(n)
+            if want ~= nil then self:BattleCvarApply(n, want) end
+        end
+        bcLog("the whole battle profile is now on. merc_battlecvar off puts it back.")
+        return
+    end
+    local i = tonumber(w)
+    local name = i and (self.BattleCvarOrder or {})[i]
+    if not name then
+        -- Also accept the cvar's own name, which is what anyone reading the list will type.
+        for _, n in ipairs(self.BattleCvarOrder or {}) do
+            if string.lower(n) == w then name = n; break end
+        end
+    end
+    if not name then
+        bcLog("no such entry: " .. tostring(a[1]) .. "   (merc_battlecvar lists them)")
+        return
+    end
+    local val = a[2]
+    if val == nil then val = self:BattleCvarWanted(name) end
+    if val == nil then bcLog("no battle value for " .. name .. " at this spec - give one explicitly"); return end
+    self:BattleCvarApply(name, val)
+end

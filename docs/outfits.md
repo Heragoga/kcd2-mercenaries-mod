@@ -146,3 +146,67 @@ Seventeen styles is a lot of wheel: Papal is five "more" clicks in. If it starts
 ## Changing the wardrobe
 
 To retune a tier, change the budget and rebuild — do **not** hand-edit individual presets, or the pools drift apart again. The invariant worth protecting is that the min and max of every pool stay inside a few percent of each other and of the other styles at the same tier.
+
+---
+
+## The parade ground
+
+Dev tier - run `merc_dev` first (needs `-devmode`).
+
+```
+merc_outfit_matrix           every style, all three tiers
+merc_outfit_matrix 6         one style
+merc_outfit_matrix 6 12      a range
+merc_outfit_matrix clear     take them away
+```
+
+One man per (style, tier) in a grid in front of you: styles march away, tiers spread to the
+right. 51 men for the full set.
+
+They are **not hires** — their own name prefix (`MercShowcase_`) keeps them out of
+`ActiveMercs`, so they never follow, never count, and are spawned with `NoSaveProps` so a
+save taken with a parade standing does not carry 51 NPCs into it.
+
+Row 7 is the custom uniform, which has no preset pool: it shows whatever the quartermaster
+was last given, and bare is the correct answer if it was never set.
+
+This is the tool the Skalitz regression needed. Two presets per tier being byte-identical is
+invisible one merc at a time and obvious in a row of three.
+
+## Could the armour mods carry new styles?
+
+Researched 2026-09-04 against the nine mods in `references/armor mods/`. Coverage of the
+slots a man-at-arms silhouette needs:
+
+| mod | gambeson | cuirass | helmet | gloves | legs | boots | coat |
+|---|---|---|---|---|---|---|---|
+| refined_garments | 31 | – | – | 31 | – | 14 | 143 |
+| Kobyla | 8 | 8 | 10 | 4 | 6 | – | 15 |
+| outer_garments | 128 | 82 | 53 | 6 | 32 | 3 | 24 |
+| zcustom_colorsvanilla | 157 | 194 | – | 89 | 278 | – | 79 |
+| silver_lys_gear | 5 | 16 | 35 | 8 | 10 | – | 16 |
+| hounskull | – | – | 19 | – | – | – | – |
+| sl_swords_shields | – | – | – | – | – | – | 40 |
+| silver_lys_brigandine | – | 37 | – | 20 | 10 | – | – |
+| armor_refit | 9 | 26 | 36 | – | 5 | – | 25 |
+
+**No single mod dresses a man head to foot.** Every one of them is missing at least one core
+slot - most obviously boots, which only refined_garments and outer_garments have at all.
+
+That is the finding, and it decides the shape of any new style:
+
+* **A style drawn from one mod** is a clean dependency but cannot be a full silhouette. The
+  honest candidates are `outer_garments` (4 of 6 core slots, deep) and `silver_lys_gear`
+  (thin but balanced) - each would still fall back to vanilla for boots and gloves.
+* **A style drawn from several mods** covers everything but takes several hard dependencies,
+  and the Skalitz precedent above says exactly how that fails: no error, just a merc without
+  the livery. One missing mod out of three is a silently half-dressed company.
+* **`hounskull` and `sl_swords_shields` are accessory sets**, not wardrobes - better used to
+  widen the helmet and shield pools of styles that already exist than to become styles.
+* **`zcustom_colorsvanilla` is recolours of vanilla pieces**, so it is the one that could
+  carry *colour variants* of existing styles with no silhouette work at all - and, being
+  recolours, its dependency failure mode is the mildest of the lot.
+
+Recommendation: judge it by eye first. Run `merc_outfit_matrix` with the mods installed and
+walk the rows; the 17 that exist are the yardstick for whether a mod-backed 18th is worth a
+dependency.

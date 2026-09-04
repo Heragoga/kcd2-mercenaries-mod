@@ -99,11 +99,27 @@ local function spawnTag(self, tag, dataString)
     end
 end
 
+-- The scrub latch is a SILENT kill switch: merc_purge_savers and merc_uninstall set
+-- UninstallScrubbed so nothing writes a tag back before the player saves, which is right,
+-- but from that moment the mod persists NOTHING and used to say nothing about it. A
+-- session that has quietly stopped saving looks exactly like a save/load bug - contracts
+-- vanish, camps do not come back, progress resets - and the log gives you not one clue.
+-- Rate-limited to one line every 10s so a busy tick cannot flood it.
+function mercenaries:SaveRefused(tag)
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if self._scrubWarnAt and (now - self._scrubWarnAt) < 10.0 then return end
+    self._scrubWarnAt = now
+    sLog("PERSISTENCE IS OFF for this session (merc_purge_savers / merc_uninstall was run):")
+    sLog("  refused to save [" .. tostring(tag) .. "]. NOTHING is being written - contracts,")
+    sLog("  camps and progress will not survive a reload. Restart the game to save again.")
+end
+
 function mercenaries:SaveString(tag, dataString)
     -- merc_uninstall has scrubbed this session: every saver entity was deleted so the
     -- NEXT save is clean for an uninstalled game, and nothing - a logistics tick, a
     -- camp save, anything - may quietly write one back before the player saves.
-    if self.UninstallScrubbed then return end
+    if self.UninstallScrubbed then self:SaveRefused(tag); return end
     if not tag or tag == "" then
         sLog("Error: Cannot save without a tag.")
         return
@@ -122,7 +138,7 @@ end
 
 -- Many tags, at most one scan. `pairs` of {tag = value}.
 function mercenaries:SaveStrings(t)
-    if self.UninstallScrubbed then return end   -- see SaveString
+    if self.UninstallScrubbed then self:SaveRefused("(batch)"); return end   -- see SaveString
     if type(t) ~= "table" then return end
     self:SaverMap()
     for tag, val in pairs(t) do

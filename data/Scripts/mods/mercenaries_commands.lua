@@ -59,10 +59,37 @@ end
 
 -- Split an argument line into words. Every command that takes arguments goes
 -- through this, so they all accept the same "merc_x 12 bandit" shape.
+-- The console hands arguments back ALREADY QUOTED. Typing `merc_purge_savers yes`
+-- substitutes %line as  "yes"  - quotes included - so a body written Func('%line')
+-- receives five characters where it wanted three. Measured 2026-09-04, straight off the
+-- echo in needYes:  (received ""yes"" - that is not a confirmation).
+--
+-- Every argument in this mod comes through here, so the quotes come off once, here.
+function mercenaries:CmdClean(line)
+    local s = tostring(line or "")
+    s = string.gsub(s, "^%s+", "")
+    s = string.gsub(s, "%s+$", "")
+    local inner = string.match(s, '^"(.*)"$') or string.match(s, "^'(.*)'$")
+    if inner then s = inner end
+    s = string.gsub(s, "^%s+", "")
+    s = string.gsub(s, "%s+$", "")
+    return s
+end
+
 function mercenaries:CmdArgs(line)
     local a = {}
-    for w in tostring(line or ""):gmatch("%S+") do a[#a + 1] = w end
+    for w in string.gmatch(self:CmdClean(line), "%S+") do
+        a[#a + 1] = self:CmdClean(w)
+    end
     return a
+end
+
+-- Boolean switches. This used to be written inline as `mercenaries:CmdBool('%line')`, which
+-- with the quotes in play evaluated tonumber('"0"') = nil, and nil ~= 0 is TRUE: nine
+-- switches could be turned on and never off. No argument still means on, as before.
+function mercenaries:CmdBool(line)
+    local s = string.lower(self:CmdClean(line))
+    return not (s == "0" or s == "off" or s == "false" or s == "no")
 end
 
 -- The enemy groups a player gets a command family for, and the word used in the
@@ -526,11 +553,16 @@ cmd("merc_spawn_heinrich", "mercenaries:SpawnEnemyGroup('heinrich', 1)",
 -- options
 cmd("merc_difficulty",   "mercenaries:DifficultySet('%line')", "Difficulty: easy | medium | difficult | extreme | impossible | horde")
 cmd("merc_upkeep",       "mercenaries:UpkeepSet('%line')",     "Company survival: off | lenient | standard | harsh")
-cmd("merc_encounters",   "mercenaries:EncountersSet(tonumber('%line') ~= 0)", "Random raids, patrols and ambushes: 0 | 1")
+cmd("merc_encounters",   "mercenaries:EncountersSet(mercenaries:CmdBool('%line'))", "Random raids, patrols and ambushes: 0 | 1")
 cmd("merc_patrols",      "mercenaries:LivePatrolSetEnabled(%line)", "Roaming road patrols: 0 | 1")
 cmd("merc_patrols_perday", "mercenaries:PatrolPerDaySet('%line')", "Roaming gangs per day at most, 0 = no cap; no argument reports (saved)")
-cmd("merc_mqstash",      "mercenaries:MQWStashSet(tonumber('%line') ~= 0)", "Send the company out of main-quest battles: 0 | 1 (saved)")
-cmd("merc_status_icons", "mercenaries:StatusIconsSet(tonumber('%line') ~= 0)","Squad status icons on your HUD: 0 | 1")
+cmd("merc_mqstash",      "mercenaries:MQWStashSet(mercenaries:CmdBool('%line'))", "Send the company out of main-quest battles: 0 | 1 (saved)")
+-- Player-tier on purpose: these are the instruments for the Malesov battle-stash test and
+-- nobody should be typing merc_dev with an assault under way. See docs/malesov-test.md.
+cmd("merc_mqwatch",      "mercenaries:MQWReport()",    "Main-quest battle watchdog: state + every probe's answer. Changes nothing")
+cmd("merc_mqstash_now",  "mercenaries:MQWStashNow()",  "Force the company out of a battle now, without waiting for detection")
+cmd("merc_mqunstash_now","mercenaries:MQWUnstashNow()","Bring a stashed company back to you now")
+cmd("merc_status_icons", "mercenaries:StatusIconsSet(mercenaries:CmdBool('%line'))","Squad status icons on your HUD: 0 | 1")
 cmd("merc_torches",      "mercenaries:CampTorchMaxSet('%line')", "Lit torches carried at night, 0 = none (each is a shadow-casting light): merc_torches 2")
 -- Performance experiment knobs. Player-tier on purpose: these are what a user with a weaker
 -- machine is told to try, and merc_dev should not stand between them and a playable framerate.
@@ -564,16 +596,16 @@ cmd("merc_scan_lean",  "mercenaries:ScanCandidatesSet(4)", "Combat: 4 target can
 cmd("merc_scan_full",  "mercenaries:ScanCandidatesSet(8)", "Combat: 8 candidates - the old value, for A/B")
 cmd("merc_scan_tiny",  "mercenaries:ScanCandidatesSet(2)", "Combat: 2 candidates - cheapest, watch for missed attackers")
 cmd("merc_autodismount", "mercenaries:AutoDismountSet('%line')","Mercs get off their horses to fight: 0 | 1")
-cmd("merc_horses",       "mercenaries:HorsesSet(tonumber('%line') ~= 0)", "Let the company use horses at all: 0 | 1 (saved)")
+cmd("merc_horses",       "mercenaries:HorsesSet(mercenaries:CmdBool('%line'))", "Let the company use horses at all: 0 | 1 (saved)")
 cmd("merc_horses_max",   "mercenaries:HorsesMaxSet('%line')", "Men out with you above which nobody rides, 0 = no limit (default); no argument reports (saved)")
 cmd("merc_whystand",     "mercenaries:FollowWhyStand()", "One line per merc: distance, whether he moved, both heartbeats, and a verdict on why he is standing")
-cmd("merc_formprobe",    "mercenaries:FormProbeSet(tonumber('%line') ~= 0)", "Log every formation-watch pass: who is flagged, how far from the player and the man ahead, and why")
+cmd("merc_formprobe",    "mercenaries:FormProbeSet(mercenaries:CmdBool('%line'))", "Log every formation-watch pass: who is flagged, how far from the player and the man ahead, and why")
 cmd("merc_horsestats",    "mercenaries:TravelStaminaReport()", "Every horse reading the detector can see: its own speed and velocity, stamina, health, plus the player's speed and stamina")
 cmd("merc_travelstate", "mercenaries:TravelStateReport()", "What every candidate actor-state getter answers right now (fastTravel=33, cutscene=34)")
-cmd("merc_travelprobe", "mercenaries:TravelProbeSet(tonumber('%line') ~= 0)", "Log every travel-watch sample: dt, distance, Henry's own speed, mounted, clock ratio. For diagnosing fast travel")
-cmd("merc_travel_stow",  "mercenaries:TravelStowSet(tonumber('%line') ~= 0)", "Take the company out of the world while you fast travel or sleep: 0 | 1 (saved)")
-cmd("merc_roster",       "mercenaries:RosterSet(tonumber('%line') ~= 0)", "Rebuild the company from the saved roster on load: 0 | 1 (saved)")
-cmd("merc_roster_nosave", "mercenaries:RosterNoSaveSet(tonumber('%line') ~= 0)", "Keep hired mercs out of the save entirely and rebuild them from the roster: 0 | 1 (saved). See docs/save-footprint.md")
+cmd("merc_travelprobe", "mercenaries:TravelProbeSet(mercenaries:CmdBool('%line'))", "Log every travel-watch sample: dt, distance, Henry's own speed, mounted, clock ratio. For diagnosing fast travel")
+cmd("merc_travel_stow",  "mercenaries:TravelStowSet(mercenaries:CmdBool('%line'))", "Take the company out of the world while you fast travel or sleep: 0 | 1 (saved)")
+cmd("merc_roster",       "mercenaries:RosterSet(mercenaries:CmdBool('%line'))", "Rebuild the company from the saved roster on load: 0 | 1 (saved)")
+cmd("merc_roster_nosave", "mercenaries:RosterNoSaveSet(mercenaries:CmdBool('%line'))", "Keep hired mercs out of the save entirely and rebuild them from the roster: 0 | 1 (saved). See docs/save-footprint.md")
 cmd("merc_lod_quality",  "mercenaries:LodQualitySet('%line')", "Mesh detail in big battles: crisp | balanced | performance")
 cmd("merc_hide_others",  "mercenaries:ToggleHideOthers()",     "Hide every NPC that is not yours (clean shots)")
 
@@ -691,7 +723,9 @@ function mercenaries:UninstallSweep(remove)
         local cat = forced or self:UninstallCategoryOf(name, cls)
         if not cat then return end
         n[cat] = (n[cat] or 0) + 1
-        byClass[cls] = (byClass[cls] or 0) + 1
+        -- Savers are reported on their own line, so they must not swell the A breakdown:
+        -- 25 of them under BasicEntity is what made "5 prop(s)" sit over a row reading 27.
+        if cat ~= "saver" then byClass[cls] = (byClass[cls] or 0) + 1 end
         if remove and remove[cat] then
             pcall(function() System.RemoveEntity(e.id) end)
             gone[cat] = gone[cat] + 1
@@ -825,6 +859,12 @@ function mercenaries:SaveAudit()
     -- The distinction that decides whether any of this matters.
     local nosave = self.RosterNoSave and "ON" or "OFF"
     cLog(string.format("Save-footprint switch (merc_roster_nosave): %s", nosave))
+    -- The single most important line here when something "will not save": once this is on,
+    -- the mod writes nothing at all for the rest of the session.
+    if self.UninstallScrubbed then
+        cLog("PERSISTENCE IS OFF (merc_purge_savers / merc_uninstall was run this session).")
+        cLog("  Nothing is being written. Restart the game before playing on.")
+    end
     cLog("COUNTED HERE means present in the world. Whether a thing is also WRITTEN to the")
     cLog("save is a different question - load a save and run this again: what comes back")
     cLog("is what was stored. That is the only honest measurement of the footprint.")
@@ -839,15 +879,34 @@ end
 -- console calls (so no one deletes their company with a typo); the worker is what
 -- merc_uninstall chains. Same "yes" gesture as merc_uninstall, for the same reason.
 local function confirmed(line)
-    return string.lower(tostring(line or "")):match("^%s*yes%s*$") ~= nil
+    local s = string.lower(mercenaries:CmdClean(line))
+    -- Some console paths hand the command name back along with the arguments.
+    s = string.gsub(s, "^merc_[%a_]+%s+", "")
+    return s == "yes" or s == "y" or s == "confirm"
+end
+
+-- Print the refusal. Deliberately says what it RECEIVED, because "I typed it and
+-- nothing happened" is the most expensive bug report there is and the answer is always
+-- one of two things: the yes never arrived, or the console ate the argument. One run of
+-- this tells you which. The command to type goes LAST, where the console still shows it
+-- after a long blurb has scrolled.
+local function needYes(name, line, why)
+    for _, l in ipairs(why or {}) do cLog(l) end
+    local raw = tostring(line or "")
+    if raw ~= "" then
+        cLog(string.format('(received "%s" - that is not a confirmation)', raw))
+    end
+    cLog("TYPE THIS TO PROCEED:  " .. name .. " yes")
 end
 
 function mercenaries:PurgeWorld(line)
     if not confirmed(line) then
-        cLog("merc_purge_world removes every mercenary, horse, camp structure, patrol and")
-        cLog("spawned enemy of this mod, plus its items and status effects on Henry. The")
-        cLog("hidden saver entities are KEPT (that is merc_purge_savers) so the two can be")
-        cLog("measured separately - see merc_save_audit. To proceed:  merc_purge_world yes")
+        needYes("merc_purge_world", line, {
+            "merc_purge_world removes every mercenary, horse, camp structure, patrol and",
+            "spawned enemy of this mod, plus its items and status effects on Henry. The",
+            "hidden saver entities are KEPT (that is merc_purge_savers) so the two can be",
+            "measured separately - see merc_save_audit.",
+        })
         return
     end
     return self:PurgeWorldNow()
@@ -884,6 +943,15 @@ function mercenaries:PurgeWorldNow(quiet)
 
     self.ActiveMercs = {}
     _G.MercCount = 0
+    -- Tell the logistics tick these men were TAKEN, not killed - the same guard MercStow
+    -- carries. Without it the live count drops to zero between two ticks and the death
+    -- detector books the whole company as casualties: "Morale 0 -> -50 (10 merc death(s))".
+    pcall(function()
+        local L = self:LogiState()
+        L.selfRemoved = (L.selfRemoved or 0) + (npcGone or 0)
+        L.lastAliveCount = 0
+    end)
+
     -- Reads as "the company is gone" to every monitor - RestoreCampDelayed in
     -- particular, which must not stand the camp back up behind the purge.
     _G.MercenariesDismissed = true
@@ -923,10 +991,12 @@ end
 
 function mercenaries:PurgeNpcs(line)
     if not confirmed(line) then
-        cLog("merc_purge_npcs deletes every PERSON this mod put in the world - mercenaries,")
-        cLog("the quartermaster, patrolmen, spawned enemies, tower archers, Aleksej's camp.")
-        cLog("Horses, camp structures and saved state are left alone. Your men are GONE, not")
-        cLog("stowed: this is the uninstall path, not merc_stow.  To proceed:  merc_purge_npcs yes")
+        needYes("merc_purge_npcs", line, {
+            "merc_purge_npcs deletes every PERSON this mod put in the world - mercenaries,",
+            "the quartermaster, patrolmen, spawned enemies, tower archers, Aleksej's camp.",
+            "Horses, camp structures and saved state are left alone. Your men are GONE, not",
+            "stowed: this is the uninstall path, not merc_stow.",
+        })
         return
     end
     -- The company must be told, or the monitors put men back within a tick.
@@ -936,14 +1006,23 @@ function mercenaries:PurgeNpcs(line)
     self.ActiveMercs = {}
     _G.MercCount = 0
     _G.MercenariesDismissed = true
+    -- Tell the logistics tick these men were TAKEN, not killed - the same guard MercStow
+    -- carries. Without it the live count drops to zero between two ticks and the death
+    -- detector books the whole company as casualties: "Morale 0 -> -50 (10 merc death(s))".
+    pcall(function()
+        local L = self:LogiState()
+        L.selfRemoved = (L.selfRemoved or 0) + (n or 0)
+        L.lastAliveCount = 0
+    end)
     return n
 end
 
 function mercenaries:PurgeHorses(line)
     if not confirmed(line) then
-        cLog("merc_purge_horses deletes the mounts this mod spawned (MercenaryHorse_*).")
-        cLog("Henry's own horse and every stable horse are untouched - the name is the test.")
-        cLog("To proceed:  merc_purge_horses yes")
+        needYes("merc_purge_horses", line, {
+            "merc_purge_horses deletes the mounts this mod spawned (MercenaryHorse_*).",
+            "Henry's own horse and every stable horse are untouched - the name is the test.",
+        })
         return
     end
     return self:PurgeCategory({ horse = true }, "horses")
@@ -951,11 +1030,13 @@ end
 
 function mercenaries:PurgeProps(line)
     if not confirmed(line) then
-        cLog("merc_purge_props deletes every STRUCTURE and marker of this mod: camp walls,")
-        cLog("gates, towers, the forge and its rig, carts, beds, chests, lights, alignment")
-        cLog("helpers. This is the category that draws as white pyramids in a save the mod")
-        cLog("no longer backs, because mercenaries_Prop is a class only this mod defines.")
-        cLog("The camp is torn down first so nothing rebuilds it.  To proceed:  merc_purge_props yes")
+        needYes("merc_purge_props", line, {
+            "merc_purge_props deletes every STRUCTURE and marker of this mod: camp walls,",
+            "gates, towers, the forge and its rig, carts, beds, chests, lights, alignment",
+            "helpers. This is the category that draws as white pyramids in a save the mod",
+            "no longer backs, because mercenaries_Prop is a class only this mod defines.",
+            "The camp is torn down first so nothing rebuilds it.",
+        })
         return
     end
     pcall(function() if self.CampActive then self:BreakMercCamp(true) end end)
@@ -967,10 +1048,12 @@ end
 function mercenaries:PurgeItems(line)
     if not confirmed(line) then
         local total, _, classes = self:CountModItems()
-        cLog(string.format("merc_purge_items deletes the mod's own items out of Henry's pockets"))
-        cLog(string.format("(%d item(s) across %d class(es) right now - merc_items lists them).", total, classes))
-        cLog("Vanilla items the mod merely references - groschen, torches, hammer, tongs -")
-        cLog("are NOT touched.  To proceed:  merc_purge_items yes")
+        needYes("merc_purge_items", line, {
+            "merc_purge_items deletes the mod's own items out of Henry's pockets",
+            string.format("(%d item(s) across %d class(es) right now - merc_items lists them).", total, classes),
+            "Vanilla items the mod merely references - groschen, torches, hammer, tongs -",
+            "are NOT touched.",
+        })
         return
     end
     return self:PurgeItemsNow()
@@ -993,12 +1076,11 @@ end
 
 function mercenaries:PurgeBuffs(line)
     if not confirmed(line) then
-        cLog("merc_purge_buffs takes every buff this mod defines off Henry - all " ..
-             tostring(#(self.ModBuffIds or {})) .. " of them,")
-        cLog("not just the five status effects the script tracks by name.")
-        cLog("Worth knowing before you spend a test on it: every one is is_persistent=false,")
-        cLog("so none of them is written to a save and none can be costing you load time.")
-        cLog("To proceed:  merc_purge_buffs yes")
+        needYes("merc_purge_buffs", line, {
+            "not just the five status effects the script tracks by name.",
+            "Worth knowing before you spend a test on it: every one is is_persistent=false,",
+            "so none of them is written to a save and none can be costing you load time.",
+        })
         return
     end
     return self:PurgeBuffsNow()
@@ -1020,10 +1102,12 @@ end
 
 function mercenaries:PurgeSavers(line)
     if not confirmed(line) then
-        cLog("merc_purge_savers deletes the mod's hidden save-state entities (camp anchor,")
-        cLog("upgrades, contracts, options) and turns persistence OFF for this session, so")
-        cLog("nothing writes them back. Your men and camp stay standing but will not come")
-        cLog("back after a reload. To proceed:  merc_purge_savers yes")
+        needYes("merc_purge_savers", line, {
+            "merc_purge_savers deletes the mod's hidden save-state entities (camp anchor,",
+            "upgrades, contracts, options) and turns persistence OFF for this session, so",
+            "nothing writes them back. Your men and camp stay standing but will not come",
+            "back after a reload.",
+        })
         return
     end
     return self:PurgeSaversNow()
@@ -1057,16 +1141,16 @@ end
 
 -- Everything. The user-facing uninstall path (README points here).
 function mercenaries:UninstallScrub(line)
-    local a = self:CmdArgs(line)
-    if string.lower(a[1] or "") ~= "yes" then
-        cLog("merc_uninstall prepares THIS SAVE for removing the mod. It will:")
-        cLog("  - remove every mercenary, horse, patrol, camp structure and spawned enemy")
-        cLog("  - take the mod's items and status effects off Henry")
-        cLog("  - delete the mod's hidden save-state entities")
-        cLog("Without this, saves that ever held a mercenary can load VERY slowly once")
-        cLog("the mod is gone. To proceed:  merc_uninstall yes")
-        cLog("Then SAVE the game, exit, and delete the mod. Carry on playing instead and")
-        cLog("the mod rebuilds what it needs - nothing is lost but the scrub.")
+    if not confirmed(line) then
+        needYes("merc_uninstall", line, {
+            "merc_uninstall prepares THIS SAVE for removing the mod. It will:",
+            "  - remove every mercenary, horse, patrol, camp structure and spawned enemy",
+            "  - take the mod's items and status effects off Henry",
+            "  - delete the mod's hidden save-state entities",
+            "Without this, saves that ever held a mercenary can load VERY slowly once",
+            "the mod is gone. Then SAVE, exit, and delete the mod. Carry on playing",
+            "instead and the mod rebuilds what it needs - nothing is lost but the scrub.",
+        })
         return
     end
 
@@ -1092,6 +1176,15 @@ cmd("merc_purge_horses","mercenaries:PurgeHorses('%line')","Surgical: remove onl
 cmd("merc_purge_props", "mercenaries:PurgeProps('%line')", "Surgical: remove only the mod's structures and markers (the white pyramids)")
 cmd("merc_purge_items", "mercenaries:PurgeItems('%line')", "Surgical: remove only the mod's items from Henry's inventory")
 cmd("merc_purge_buffs", "mercenaries:PurgeBuffs('%line')", "Surgical: remove only the mod's buffs from Henry")
+-- Diagnostics and bench tools: dev tier, so a normal launch never sees them. Each was
+-- written to answer one question during development and is kept for the next time that
+-- question comes up. merc_dev arms them; it needs -devmode.
+mercenaries:DevCommand("merc_outfit_matrix", "mercenaries:MatrixSpawn('%line')", "Parade ground: one man per style+tier. [first] [last] | clear")
+mercenaries:DevCommand("merc_save_probe", "mercenaries:SaveProbe('%line')", "Does the mod's save mechanism survive a reload? Write, then 'check' after reloading")
+mercenaries:DevCommand("merc_kk_stage", "mercenaries:KKStageReport()", "Kleinkrieg: which encounter stage this save records")
+mercenaries:DevCommand("merc_battlecvar", "mercenaries:BattleCvarCmd('%line')", "Apply a scripted battle's render cvars one at a time: <n> | <n> <value> | all | off")
+mercenaries:DevCommand("merc_questprobe", "mercenaries:QuestProbe('%line')", "Can Lua read the active quest/objective? Enumerates the live state and says. Changes nothing")
+mercenaries:DevCommand("merc_mqsimulate", "mercenaries:MQWSimulate()", "Rehearse a scripted battle for 30s to prove detection->stash->unstash, no quest needed")
 cmd("merc_dev",      "mercenaries:DevCommandsEnable()", "Register the authoring and diagnostic commands too")
 cmd("merc_dev_list", "mercenaries:DevCommandList()",    "List the dev commands (after merc_dev)")
 cmd("merc_lua",      "mercenaries:ExecString(%line)",   "Run a line of Lua (advanced)")

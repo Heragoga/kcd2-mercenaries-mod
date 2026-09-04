@@ -38,18 +38,41 @@ mercenaries.MQWBattleQuests = {
     "finale", "oblehaniSuchdole", "rutinaAVypad", "posledniPomazani",
 }
 
--- Contexts the battleInProgress preset applies (Libs/Tables/ai/ScriptContextPreset.xml).
--- A subset is probed, not all ten: one hit is a hit.
+-- The scripted-battle contexts, taken from the game's OWN table rather than guessed:
+-- Libs/Tables/CVarOverride.xml (Data/Tables.pak) binds each GameContext to a cfg file, and
+-- entering one is what puts `Loading config file 'Config/CVarOverrides/utokNaMalesov_battle.cfg'`
+-- in kcd.log. Those names are therefore exactly "a scripted battle is running", and the
+-- engine never enters one for a roadside ambush.
+--
+--   kutnohorsko(1) performanceDemandingArea(2) klaster(1) klaster_chram(2)
+--   Battle(3) oblehaniSuchdole_nightAttackTargetingRange(4)
+--   oblehaniSuchdole_Battle(5) utokNaMalesov_battle(4)
+--
+-- The four crime_global_* / ForceCombat* names below are the older guesses from the
+-- battleInProgress preset. Kept: one hit is a hit, and they cost a pcall each.
 mercenaries.MQWContexts = {
+    "utokNaMalesov_battle",
     "Battle",
+    "oblehaniSuchdole_Battle",
+    "oblehaniSuchdole_nightAttackTargetingRange",
     "crime_global_ignoreCombatSounds",
     "crime_global_dontGreetPlayer",
     "ForceCombatSystemAmbientLOD",
 }
 
+-- No automatic detector is known yet. Measured 2026-09-04, during the real assault with
+-- utokNaMalesov_battle.cfg plainly loaded in kcd.log: every HasScriptContext probe read
+-- false, so the CVarOverride GameContexts are not script contexts on the player's soul; and
+-- IsQuestStarted never matched any of the twelve names. The cvar footprint would match, but
+-- it is not evidence - the same numbers can be pushed with no battle in sight.
+--
+-- The next thing to try is the ACTIVE OBJECTIVE, if the Lua state exposes one at all:
+-- merc_questprobe answers that in one run. See docs/malesov-test.md.
+
 mercenaries.MQWQuestPollSecs = 10.0  -- how often the 12-quest sweep runs (cached between)
 mercenaries.MQWEnterTicks    = 2     -- consecutive busy reads before entering (blip filter)
 mercenaries.MQWExitSecs      = 20.0  -- all-quiet this long before leaving the state
+mercenaries.MQWTraceSecs     = 15.0  -- how often the near-miss line may repeat
 
 mercenaries.MQW = {
     active     = false,  -- the one output: are we inside a main-quest fight
@@ -115,6 +138,7 @@ end
 -- Signal 3: an actual fight, by whatever answers.
 function mercenaries:MQWFightSignal()
     local sig = nil
+    if self.MQW.simFight then self.MQW.fight = "simulated"; return "simulated" end
     pcall(function()
         if player and player.soul and player.soul:IsInCombatDanger() then sig = "combat" end
     end)
@@ -130,22 +154,53 @@ function mercenaries:MQWFightSignal()
     return sig
 end
 
+-- Say why we are NOT entering while any battle signal is showing. Without this the tick is
+-- completely silent on a near miss, and a test run that fails tells you nothing - which is
+-- exactly how this watchdog reached 2026-09-04 having never once been observed to fire.
+-- Rate-limited, because a battle quest stays "started" for hours of ordinary play.
+function mercenaries:MQWTrace(q, c, f, cv)
+    local S = self.MQW
+    local now = wNow()
+    if S._traceAt and (now - S._traceAt) < (self.MQWTraceSecs or 15.0) then return end
+    S._traceAt = now
+    wLog(string.format(
+        "NOT entering: quest=%s context=%s fight=%s cvars=%s streak=%d/%d",
+        tostring(q), tostring(c), tostring(f), tostring(cv),
+        S.enterCount or 0, self.MQWEnterTicks or 2))
+end
+
 -- The tick. Called at 1 Hz from MonitorMainQuestLoop; every probe is cheap or cached.
 function mercenaries:MQWTick()
     local S = self.MQW
-    local q = self:MQWQuestActive()
-    local c = self:MQWContextActive()
-    local f = self:MQWFightSignal()
+    if S.simUntil and wNow() >= S.simUntil then self:MQWSimEnd() end
 
+    local q  = self:MQWQuestActive()
+    local c  = self:MQWContextActive()
+    local f  = self:MQWFightSignal()
+    -- Signal 4 (the battle cvar profile) is NOT a detector. Those numbers can be pushed by
+    -- anything - a graphics preset, this mod's own LOD bench - so matching them would stash
+    -- the company outside any battle at all. Ruled out by decision, 2026-09-04. What is left
+    -- of it is merc_battlecvar, a bench for applying the values by hand, and the simulation
+    -- flag below, which stands in for a detection that has not been found yet.
+    local cv = S.simBattle and "simulated" or nil
+    S.cvar = cv
+
+    -- Entry used to require a QUEST NAME match before anything else could count, and at
+    -- Malesov on 2026-09-04 `IsQuestStarted('utokNaMalesov')` never answered true - so the
+    -- watchdog could not fire however plainly the battle was running. The quest list is now
+    -- corroboration, never a gate. The context is authoritative on its own: CVarOverride.xml
+    -- binds those names to the battle cfg files, so the engine is only in one during a
+    -- scripted battle.
     local busy, why = false, nil
-    if q and (c or f) then
+    if c then
         busy = true
-        why  = q .. " + " .. (c and ("context " .. c) or ("fight (" .. tostring(f) .. ")"))
-    elseif (S.questApi == false) and c and f then
-        -- No quest API on this build: context carries the "scripted, not a road
-        -- ambush" meaning, and the fight signal confirms it is live.
+        why  = "context " .. c .. (q and (" (quest " .. q .. ")") or "")
+    elseif cv then
         busy = true
-        why  = "context " .. c .. " + fight (" .. tostring(f) .. "), no quest api"
+        why  = "simulated battle (merc_mqsimulate)"
+    elseif q and f then
+        busy = true
+        why  = q .. " + fight (" .. tostring(f) .. ")"
     end
 
     local now = wNow()
@@ -159,6 +214,9 @@ function mercenaries:MQWTick()
             end
         end
     else
+        -- Trace on ANY signal, not just a quest match: keying it to the quest was why the
+        -- Malesov run produced a completely silent log while the battle was plainly on.
+        if q or c or f or cv then self:MQWTrace(q, c, f, cv) end
         S.enterCount = 0
         if S.active and S.lastBusyAt and (now - S.lastBusyAt) >= (self.MQWExitSecs or 20.0) then
             S.active = false
@@ -206,11 +264,25 @@ mercenaries.MQWStashEnabled  = true     -- merc_mqstash 0|1 (saved)
 mercenaries.MQWStashDist     = 400.0    -- metres behind the player
 mercenaries.MQWStashLoadSecs = 45.0
 
-function mercenaries:MQWStash(why)
+-- `force` is the manual path (merc_mqstash_now). The automatic path insists on the
+-- engine's Battle context even though the TICK can enter on quest+fight alone: a battle
+-- quest counts as started from the moment it is accepted, so quest+fight would empty the
+-- company out of an ordinary road ambush hours away from the battle. The consequence is
+-- that "MAIN-QUEST BATTLE detected" can be followed by a refusal - which is why the
+-- refusal says so out loud, and why the manual command exists to test the mechanism on
+-- its own.
+function mercenaries:MQWStash(why, force)
     local S = self.MQW
-    if S.stashed then return end
-    if not self.MQWStashEnabled then wLog("stash is off (merc_mqstash) - the company stays"); return end
-    if not S.ctx then wLog("no scripted-battle context on the player - the company stays"); return end
+    if S.stashed then wLog("already stashed - nothing to do"); return end
+    if not force and not self.MQWStashEnabled then wLog("stash is off (merc_mqstash) - the company stays"); return end
+    -- A scripted-battle marker of EITHER kind will do: the context, or the cfg file's cvar
+    -- footprint. What is still refused is quest+fight alone, because a battle quest counts
+    -- as started from the moment it is accepted and that would empty the company out of any
+    -- roadside ambush for the hours it stays open.
+    if not force and not (S.ctx or S.simBattle) then
+        wLog("no scripted-battle marker - the company stays")
+        return
+    end
     local pp, dir
     pcall(function() pp = player:GetWorldPos(); dir = player:GetDirectionVector() end)
     if not pp then return end
@@ -296,6 +368,8 @@ end
 function mercenaries:MQWOnLoad()
     local S = self.MQW
     S.active, S.enterCount, S.lastBusyAt, S.enteredAt = false, 0, nil, nil
+    -- A new level applies its own CVarOverride, so last level's baseline means nothing.
+    S.cvar, S.cvarWhy, S._traceAt = nil, nil, nil
     _G.MercMQBattle = false
     local v; pcall(function() v = self:LoadString("MQWStash") end)
     S.stashed = (v == "1")
@@ -306,6 +380,53 @@ function mercenaries:MQWOnLoad()
         wLog(string.format("loaded with the company stashed out of a main-quest battle - they come back unless it is re-detected within %.0fs",
                            self.MQWStashLoadSecs or 45))
     end
+end
+
+-- ==== manual test path ====
+-- The stash has two independent failure modes: the watchdog may never detect the battle,
+-- or the stash itself may not work. Testing them together means a failed run cannot say
+-- which broke. These two force the mechanism so it can be proven on any quiet hillside,
+-- before Malesov, and they are player-tier because merc_dev is not something to be typing
+-- with an assault under way. See docs/malesov-test.md.
+function mercenaries:MQWStashNow()
+    self:MQWStash("forced by hand (merc_mqstash_now)", true)
+end
+
+-- Drive the WHOLE chain without a battle: cvar signal -> entry -> stash -> exit -> unstash.
+--
+-- Needed because the one battle this was written for, utokNaMalesov, cannot be replayed
+-- without redoing a very long quest (2026-09-04). So the automatic path cannot be proven
+-- against the real thing - but it can be proven against the mechanism, which is what this
+-- does. It moves the four watched cvars off their quiet-play baseline exactly as the battle
+-- cfg would, and holds a fight signal up, then puts everything back after MQWSimSecs so the
+-- exit and the unstash are exercised too.
+--
+-- It cannot tell you whether the ENGINE will flag the battle. Only the real assault can, and
+-- the context probes in merc_mqwatch are how you would read that.
+mercenaries.MQWSimSecs = 30.0
+
+function mercenaries:MQWSimulate()
+    local S = self.MQW
+    if S.simUntil then wLog("a simulation is already running"); return end
+    if S.active or S.stashed then wLog("already in the battle state - merc_mqunstash_now first"); return end
+    S.simBattle = true
+    S.simFight  = true
+    S.simUntil  = wNow() + (self.MQWSimSecs or 30.0)
+    wLog(string.format("SIMULATION: standing in for a detected battle for %.0fs.", self.MQWSimSecs or 30.0))
+    wLog("expect within ~2s: 'MAIN-QUEST BATTLE detected: simulated battle' then the stash,")
+    wLog("and the company home again ~20s after the simulation ends.")
+end
+
+function mercenaries:MQWSimEnd()
+    local S = self.MQW
+    S.simBattle, S.simFight, S.simUntil, S.simRestore = nil, nil, nil, nil
+    wLog("SIMULATION over - the watchdog should leave the battle state after MQWExitSecs" ..
+         " and bring the men back.")
+end
+
+function mercenaries:MQWUnstashNow()
+    if not self.MQW.stashed then wLog("not stashed - nothing to bring back"); return end
+    self:MQWUnstash("forced by hand (merc_mqunstash_now)")
 end
 
 -- ==== diagnostics ====
@@ -334,7 +455,28 @@ function mercenaries:MQWReport()
     end
     probe("IsInCombatDanger", function() return player.soul:IsInCombatDanger() end)
     probe("QueryBattleStatus", function() return Game.QueryBattleStatus() end)
+
+    -- The cfg-file footprint. `base` is what quiet play looked like this session; a value
+    -- that has moved is the battle override in force. If every context above reads false
+    -- while these have all moved, HasScriptContext does not see GameContexts on this build
+    -- and the cvar route is the one to trust.
+    -- Informational only. These numbers DO track the battle, but they are not evidence:
+    -- anything can push them, so they are not wired to detection (merc_battlecvar applies
+    -- them by hand; that is all they are for now).
+    local spec; pcall(function() spec = System.GetCVar("sys_spec") end)
+    local key = string.gsub(tostring(tonumber(spec) or spec or ""), "%.0$", "")
+    local want = (self.BattleCvarAnchors or {})[key]
+    wLog("  battle cvar profile for sys_spec " .. key .. " (informational, NOT a detector):")
+    for n, accepted in pairs(want or {}) do
+        local v; pcall(function() v = System.GetCVar(n) end)
+        local vs, ok = tostring(v), false
+        for _, a2 in ipairs(accepted) do if vs == a2 then ok = true end end
+        wLog(string.format("    %-46s now=%-10s battle=%s%s", n, vs,
+             table.concat(accepted, "|"), ok and "   (at battle value)" or ""))
+    end
+    wLog("  simulated=" .. tostring(S.simBattle))
 end
 
-mercenaries:DevCommand("merc_mqwatch", "mercenaries:MQWReport()",
-                   "Main-quest battle watchdog: state + every probe's answer")
+-- merc_mqwatch, merc_mqstash_now and merc_mqunstash_now are registered PLAYER-tier in
+-- mercenaries_commands.lua: they are the instruments for the Malesov test and must not
+-- need merc_dev first, mid-battle.

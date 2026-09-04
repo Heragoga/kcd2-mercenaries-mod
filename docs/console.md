@@ -154,6 +154,21 @@ See docs/walls-and-sieges.md.
 | `merc_roster_nosave <0/1>` | Keep hired mercs out of the save entirely - the save-footprint fix (default **off** until the rebuild is proven). Applies to men hired after it is set |
 | `merc_hide_others` | Toggle: hide every NPC that is not yours. For clean screenshots and footage - **restore it before saving** |
 
+## Main-quest battles
+
+| Command | What it does |
+|---|---|
+| `merc_mqwatch` | Watchdog state plus every probe's answer. Changes nothing, safe to spam |
+| `merc_mqstash_now` | Force the company out of a battle now, without waiting for detection |
+| `merc_mqunstash_now` | Bring a stashed company back to you now |
+| `merc_mqsimulate` | Rehearse a scripted battle for 30 s — proves detection, stash and unstash without a quest *(dev tier: run `merc_dev` first, needs `-devmode`)* |
+| `merc_battlecvar` | List/apply/restore the render cvars a scripted battle pushes: `<n>` \| `<n> <value>` \| `all` \| `off`  *(dev tier: run `merc_dev` first, needs `-devmode`)* |
+| `merc_questprobe` | Does this build let Lua read the active quest/objective? Enumerates and reports. Changes nothing *(dev tier: run `merc_dev` first, needs `-devmode`)* |
+| `merc_mqstash 0` \| `1` | Turn the automatic stash off or on (saved) |
+
+Player-tier on purpose — nobody should need `merc_dev` mid-assault. The test procedure is
+[malesov-test.md](malesov-test.md).
+
 ## Uninstalling, and the save footprint
 
 | Command | What it does |
@@ -175,9 +190,11 @@ One category each, so a load-time hunt can remove exactly one thing and measure 
 | `merc_purge_props yes` | Only the **structures**: camp walls, gates, towers, forge and rig, carts, beds, chests, lights, markers. This is the white-pyramid category |
 | `merc_purge_items yes` | Only the mod's items in Henry's inventory |
 | `merc_purge_buffs yes` | Only the mod's buffs on Henry (all 22, not just the five tracked by name) |
+| `merc_save_probe` | Does the mod's save mechanism survive a reload? Write, then `check` after reloading *(dev tier: run `merc_dev` first, needs `-devmode`)* |
 | `merc_purge_savers yes` | Only the hidden saver entities |
 
-The purge commands exist to answer *which* residue makes an uninstalled game load slowly —
+The purge commands are the uninstall path. They were also used to answer *which* residue makes
+an uninstalled game load slowly; that hunt is closed with a negative result —
 see [save-footprint.md](save-footprint.md) for the measurement procedure. The audits are
 read-only and are what to paste into a bug report about load times.
 

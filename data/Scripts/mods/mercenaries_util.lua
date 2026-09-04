@@ -64,7 +64,7 @@ end
 -- default ratio, so writing 100 restores engine behaviour on a live NPC. Never 0 - that is the
 -- MINIMUM and is what sabotaged the original render experiment (see the note at the top).
 function mercenaries:RenderLodSet(v)
-    local raw = tostring(v or ''):gsub('%s+', '')
+    local raw = string.gsub(mercenaries:CmdClean(v), '%s+', '')
     if raw == '' then
         System.LogAlways('[Mercenary Jeff] merc_render_lod <n> - mesh detail, higher drops detail sooner. ' ..
             '100 = engine default, 130 mild, 180 aggressive, 255 puppet-grade. 0/off = hand back to the engine. ' ..
@@ -162,8 +162,61 @@ function mercenaries:IsLoadSweepName(name)
     return false
 end
 
+-- Taken SYNCHRONOUSLY at the head of the load chain, before any owner rebuilds anything:
+-- the set of mod NPCs the save itself carried. The sweep two seconds later removes only
+-- these. Measured 2026-09-04: Aleksej's beat camp is rebuilt from its Skald wake token
+-- BEFORE the 2000ms sweep timer fires, and the sweep - matching "SpawnedEnemy_" by name -
+-- deleted the freshly spawned looters and leader as stale ("removed 6 stale mod NPC(s)"
+-- three lines after "camp up ... 4 standing"). Empty camp, tower archers descending onto
+-- cleared ground, and a leader judged down five ticks after the player arrived. The
+-- sweep's own comment assumed every owner respawns AFTER it; the wake path does not.
+function mercenaries:LoadSweepSnapshot()
+    self._loadSweepIds = {}
+    local n = 0
+    pcall(function()
+        for _, e in pairs(System.GetEntitiesByClass('NPC') or {}) do
+            local name = e and e:GetName() or ""
+            if self:IsLoadSweepName(name) or string.find(name, 'SpawnedFriend')
+               or string.find(name, 'MercenaryCustomCompanion') then
+                self._loadSweepIds[e.id] = true
+                n = n + 1
+            end
+        end
+    end)
+    System.LogAlways('[Mercenary Jeff] load snapshot: ' .. n .. ' mod NPC(s) carried by the save')
+end
+
+-- Ids a live system owns right now. Belt and braces over the snapshot: a system that
+-- respawned its men before the sweep is exempt even if the snapshot somehow missed them.
+function mercenaries:LoadSweepProtected()
+    local keep = {}
+    local function add(id) if id then keep[id] = true end end
+    pcall(function() for id in pairs(self.KeepAcrossLoad or {}) do add(id) end end)
+    pcall(function() for _, id in ipairs((self.AlxCamp and self.AlxCamp.ids) or {}) do add(id) end end)
+    pcall(function() add(self.AlxLodgingId) end)
+    for _, S in ipairs({ self.BCQ_KK, self.BCQ_BO }) do
+        pcall(function()
+            for _, id in ipairs((S and S.bandits) or {}) do add(id) end
+            add(S and S.leaderId)
+        end)
+    end
+    pcall(function()
+        for _, rec in pairs(self.LivePatrols or {}) do
+            for _, m in ipairs(rec.men or {}) do add(type(m) == "table" and m.id or m) end
+        end
+    end)
+    pcall(function()
+        for _, list in ipairs({ self.RBQ and self.RBQ.foot, self.RBQ and self.RBQ.archers }) do
+            for _, id in ipairs(list or {}) do add(id) end
+        end
+    end)
+    return keep
+end
+
 function mercenaries:RebuildMercCache()
     self.ActiveMercs = {}
+    local carried = self._loadSweepIds or {}
+    local protected = self:LoadSweepProtected()
     -- Dismissed no longer skips the scan: the scan is also the load sweep, and a dismissed
     -- company is exactly the case with the most stale entities to remove - SetState pays the
     -- men off but the engine has already saved them, so they came back with this load.
@@ -188,11 +241,15 @@ function mercenaries:RebuildMercCache()
                     self:EquipMercenaryWeapon(e, _G.MercCurrentWeapon or 1)
                 else
                     -- A corpse from a previous session, or a man who was paid off before the
-                    -- save was written. Neither has any owner left to remove him.
-                    stale[#stale + 1] = e.id
+                    -- save was written. Neither has any owner left to remove him. Same rule
+                    -- as below: only if the save carried him.
+                    if not self._loadSweep or carried[e.id] then stale[#stale + 1] = e.id end
                 end
             elseif self._loadSweep and self:IsLoadSweepName(name) then
-                stale[#stale + 1] = e.id
+                -- Only what the save carried, and nothing a live owner has claimed since.
+                if carried[e.id] and not protected[e.id] then
+                    stale[#stale + 1] = e.id
+                end
             end
         end
     end
