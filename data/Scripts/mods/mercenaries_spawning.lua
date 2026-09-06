@@ -63,10 +63,10 @@ function mercenaries:Hire(cost, amount, tier)
         for i=1, amount do
             local idx = self.SoulIndex[tier]
             local soulGuid = soulList[idx]
-            
+
             self.SoulIndex[tier] = idx + 1
-            if self.SoulIndex[tier] > #soulList then 
-                self.SoulIndex[tier] = 1 
+            if self.SoulIndex[tier] > #soulList then
+                self.SoulIndex[tier] = 1
             end
             
             local raw = {

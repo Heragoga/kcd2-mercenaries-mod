@@ -13,6 +13,15 @@ function mercenaries:EquipMercenary(ent, currentPreset)
         self:GearHeroRestore(ent)
         return
     end
+    -- Female mercs have a wardrobe of their own - the medium kit with the headgear taken out
+    -- (tools/gen_female_gear.py) - and are exempt from the squad's outfit style exactly like a
+    -- named companion. The exemption lives HERE rather than at the hire site because this is
+    -- the one function every dressing path goes through: Hire, ChangeMercOutfit, the roster
+    -- rebuild after a load or a stow, the custom uniform. See mercenaries_female.lua.
+    if self:IsFemaleName(name) then
+        self:EquipFemale(ent, _G.MercCurrentWeapon or 1)
+        return
+    end
     -- Style 7 is not a preset pool at all: it is the set of items the player handed
     -- over, worn piece by piece. See mercenaries_custom_gear.lua.
     if currentPreset == self.CustomOutfitIndex then

@@ -481,24 +481,59 @@ function mercenaries:TravelWatchTick()
 end
 
 -- The two things that happen for the duration of a crossing. Both are idempotent.
-function mercenaries:TravelBegin(why)
-    -- The company leaves the world: a man who is not in it cannot be lost by a crossing,
-    -- walked into an ambush at the far end, or left behind. See mercenaries_roster.lua.
-    if self.TravelStow and self.MercStow then
-        pcall(function() self:MercStow(why) end)
+-- Who travels WITH the player, and who is left exactly where they stand.
+--
+-- 2.3 stowed the whole company through the roster and put it back around the player. That
+-- was wrong four different ways, all reported at once: the camp's own men were teleported
+-- to the player, men told to wait followed anyway, the camp came down, and - worst - the
+-- roster only ever stored "tier,hp", so a custom companion or an archer came back as a
+-- generic merc. Nothing is stowed any more. Men who were with you are TELEPORTED to you at
+-- the far end, which keeps the same entities and therefore their identity, gear and orders.
+--
+-- Left alone, by the mod's own state rather than by distance (the player may well be fast
+-- travelling FROM his camp, so "near me" is not the test):
+--   * camp residents - _G.MercInCamp and not in the sortie party (IsCampOut)
+--   * the whole company when it is holding ground ("wait here" is HoldBegin)
+mercenaries.TravelWith = {}
+
+function mercenaries:TravelTakesAlong(ent)
+    if not (ent and ent.id) then return false end
+    if _G.MercenariesDismissed then return false end
+    -- "Wait here" is squad-wide: if they are holding ground, nobody is dragged off it.
+    if self.HoldAnchor then return false end
+    if _G.MercInCamp then
+        local w
+        pcall(function() w = XGenAIModule.GetMyWUID(ent) end)
+        -- In camp and not part of the sortie: he stays in camp.
+        if w and not self:IsCampOut(tostring(w)) then return false end
     end
+    return true
+end
+
+function mercenaries:TravelBegin(why)
+    -- Remember who was actually following, before the crossing moves anything.
+    self.TravelWith = {}
+    local n = 0
+    if self.TravelStow then
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            if self:TravelTakesAlong(ent) then self.TravelWith[ent.id] = true; n = n + 1 end
+        end
+    end
+    twLog(string.format("crossing begins (%s): %d man/men come along, the rest stay where they are",
+                       tostring(why), n))
+
     -- Nothing of ours stands on the road he is crossing either.
     pcall(function()
-        local n = 0
+        local g = 0
         for _, rec in pairs(self.LivePatrols or {}) do
             if rec.spawned then
-                n = n + 1
+                g = g + 1
                 self:PatrolDespawnGang(rec, "the player is travelling")
             end
         end
         -- A gang taken down before the player ever met it must not spend the day's
         -- allowance: the crossing is why he never saw it.
-        if n > 0 and self.PatrolDayRefund then self:PatrolDayRefund(n) end
+        if g > 0 and self.PatrolDayRefund then self:PatrolDayRefund(g) end
         local now = System.GetCurrTime() or 0
         local until_ = now + (self.PatrolTravelGraceSecs or 90.0)
         if until_ > (self._patrolGraceUntil or 0) then self._patrolGraceUntil = until_ end
@@ -506,7 +541,40 @@ function mercenaries:TravelBegin(why)
 end
 
 function mercenaries:TravelEnd()
-    if self.MercUnstow then pcall(function() self:MercUnstow("the crossing is over") end) end
+    local pp
+    pcall(function() pp = player:GetWorldPos() end)
+    local moved, lost = 0, 0
+    for id in pairs(self.TravelWith or {}) do
+        local e
+        pcall(function() e = System.GetEntity(id) end)
+        if e and pp then
+            -- Scattered behind him rather than on him: a dozen men on one point is a
+            -- physics pile, and the formation sorts them within a tick.
+            local ang = math.random() * math.pi * 2
+            local rad = 3.0 + math.random() * 6.0
+            local spot = { x = pp.x + math.cos(ang) * rad, y = pp.y + math.sin(ang) * rad, z = pp.z }
+            pcall(function()
+                local gz = System.GetTerrainElevation(spot.x, spot.y)
+                if gz and math.abs(gz - pp.z) < 8.0 then spot.z = gz end
+            end)
+            pcall(function() e:SetPos(spot) end)
+            if self.NoteTeleport then pcall(function() self:NoteTeleport(e) end) end
+            moved = moved + 1
+        else
+            lost = lost + 1
+        end
+    end
+    self.TravelWith = {}
+    if moved > 0 then
+        twLog(string.format("crossing over: %d man/men brought to you%s", moved,
+             lost > 0 and (", " .. lost .. " could not be found") or ""))
+        -- They arrive as a batch, which is exactly the burst the follow verify exists for.
+        -- No SetState here: a man who was following still is, and one who was not is not
+        -- being dragged into it.
+        pcall(function() self:BeginFollowVerify("travel") end)
+    elseif lost > 0 then
+        twLog(lost .. " man/men could not be found after the crossing")
+    end
 end
 
 function mercenaries:TravelWatchOnLoad()

@@ -386,8 +386,8 @@ end
 
 mercenaries.CmdHelpSections = {
     { "SQUAD",      { "merc_status", "merc_heal", "merc_follow", "merc_wait", "merc_dismiss", "merc_loot", "merc_loot_stop" } },
-    { "HIRING",     { "merc_hire", "merc_hire_weak", "merc_hire_strong", "merc_hire_archers",
-                      "merc_hire_army_small", "merc_hire_army_big" } },
+    { "HIRING",     { "merc_hire", "merc_hire_weak", "merc_hire_strong", "merc_hire_female",
+                      "merc_hire_archers", "merc_hire_army_small", "merc_hire_army_big" } },
     { "ORDERS",     { "merc_hold", "merc_hold_end", "merc_escort", "merc_escort_end",
                       "merc_focus", "merc_focus_clear",
                       "merc_stance_attack", "merc_stance_default", "merc_stance_defend", "merc_stance_holdfire" } },
@@ -403,6 +403,7 @@ mercenaries.CmdHelpSections = {
     { "CAMP",       { "merc_camp_make", "merc_camp_break", "merc_camp_recall",
                       "merc_camp_deploy_all", "merc_camp_deploy_half", "merc_camp_return_all",
                       "merc_camp_remove", "merc_camp_party",
+                      "merc_camp_marker", "merc_camp_compass",
                       "merc_gate_open", "merc_gate_close" } },
     { "FIGHTS",     { "merc_battle", "merc_raborsch", "merc_raborsch_clear", "merc_clear_enemies", "merc_raid_now" } },
     { "OPTIONS",    { "merc_difficulty", "merc_upkeep", "merc_encounters", "merc_patrols", "merc_patrols_perday",
@@ -461,6 +462,7 @@ cmd("merc_loot_stop", "mercenaries:LootSweepStop()",  "Call off the loot sweep")
 cmd("merc_hire",         "mercenaries:CmdHire('medium', '%line')", "Hire seasoned foot: merc_hire [count] (default 5)")
 cmd("merc_hire_weak",    "mercenaries:CmdHire('weak', '%line')",   "Hire raw foot: merc_hire_weak [count]")
 cmd("merc_hire_strong",  "mercenaries:CmdHire('strong', '%line')", "Hire veteran foot: merc_hire_strong [count]")
+cmd("merc_hire_female",  "mercenaries:CmdHireFemale('%line')",     "Hire women: merc_hire_female [count]")
 cmd("merc_hire_archers", "mercenaries:CmdHireArchers('%line')",    "Hire archers: merc_hire_archers [count]")
 cmd("merc_hire_army_small", "mercenaries:CmdHireArmy(10, 20, 'medium')", "A company: 10 archers and 20 foot")
 cmd("merc_hire_army_big",   "mercenaries:CmdHireArmy(15, 35, 'medium')", "A full army: 15 archers and 35 foot")
@@ -563,6 +565,11 @@ cmd("merc_mqwatch",      "mercenaries:MQWReport()",    "Main-quest battle watchd
 cmd("merc_mqstash_now",  "mercenaries:MQWStashNow()",  "Force the company out of a battle now, without waiting for detection")
 cmd("merc_mqunstash_now","mercenaries:MQWUnstashNow()","Bring a stashed company back to you now")
 cmd("merc_status_icons", "mercenaries:StatusIconsSet(mercenaries:CmdBool('%line'))","Squad status icons on your HUD: 0 | 1")
+-- The camp on the world map. On by default; it costs nothing until the map is opened.
+cmd("merc_camp_marker",  "mercenaries:CampMarkerSet(mercenaries:CmdBool('%line'))", "Show the camp on the world map: 0 | 1 (saved)")
+-- The compass marker is opt-in: its bearing carries an unverified offset (see
+-- mercenaries_mapmarker.lua) and it costs a four-times-a-second redraw while it is up.
+cmd("merc_camp_compass", "mercenaries:CampCompassSet(mercenaries:CmdBool('%line'))", "Also point at the camp on your compass: 0 | 1 (saved)")
 cmd("merc_torches",      "mercenaries:CampTorchMaxSet('%line')", "Lit torches carried at night, 0 = none (each is a shadow-casting light): merc_torches 2")
 -- Performance experiment knobs. Player-tier on purpose: these are what a user with a weaker
 -- machine is told to try, and merc_dev should not stand between them and a playable framerate.
@@ -603,7 +610,7 @@ cmd("merc_formprobe",    "mercenaries:FormProbeSet(mercenaries:CmdBool('%line'))
 cmd("merc_horsestats",    "mercenaries:TravelStaminaReport()", "Every horse reading the detector can see: its own speed and velocity, stamina, health, plus the player's speed and stamina")
 cmd("merc_travelstate", "mercenaries:TravelStateReport()", "What every candidate actor-state getter answers right now (fastTravel=33, cutscene=34)")
 cmd("merc_travelprobe", "mercenaries:TravelProbeSet(mercenaries:CmdBool('%line'))", "Log every travel-watch sample: dt, distance, Henry's own speed, mounted, clock ratio. For diagnosing fast travel")
-cmd("merc_travel_stow",  "mercenaries:TravelStowSet(mercenaries:CmdBool('%line'))", "Take the company out of the world while you fast travel or sleep: 0 | 1 (saved)")
+cmd("merc_travel_stow",  "mercenaries:TravelStowSet(mercenaries:CmdBool('%line'))", "Bring the men who are with you along when you fast travel or sleep: 0 | 1 (saved)")
 cmd("merc_roster",       "mercenaries:RosterSet(mercenaries:CmdBool('%line'))", "Rebuild the company from the saved roster on load: 0 | 1 (saved)")
 cmd("merc_roster_nosave", "mercenaries:RosterNoSaveSet(mercenaries:CmdBool('%line'))", "Keep hired mercs out of the save entirely and rebuild them from the roster: 0 | 1 (saved). See docs/save-footprint.md")
 cmd("merc_lod_quality",  "mercenaries:LodQualitySet('%line')", "Mesh detail in big battles: crisp | balanced | performance")
@@ -1185,6 +1192,14 @@ mercenaries:DevCommand("merc_kk_stage", "mercenaries:KKStageReport()", "Kleinkri
 mercenaries:DevCommand("merc_battlecvar", "mercenaries:BattleCvarCmd('%line')", "Apply a scripted battle's render cvars one at a time: <n> | <n> <value> | all | off")
 mercenaries:DevCommand("merc_questprobe", "mercenaries:QuestProbe('%line')", "Can Lua read the active quest/objective? Enumerates the live state and says. Changes nothing")
 mercenaries:DevCommand("merc_mqsimulate", "mercenaries:MQWSimulate()", "Rehearse a scripted battle for 30s to prove detection->stash->unstash, no quest needed")
+mercenaries:DevCommand("merc_map_idbase", "mercenaries:MapIdBaseSet('%line')",
+                       "Marker id band start (default 666). Low ids crash the map, very high ones draw nothing; no argument reports")
+mercenaries:DevCommand("merc_map_pushes", "mercenaries:MapPushesSet('%line')",
+                       "How many times the markers are pushed per map opening (default 6); no argument reports")
+mercenaries:DevCommand("merc_map_probe", "mercenaries:MapProbeSet(mercenaries:CmdBool('%line'))",
+                       "Log every ApseMap event and the PoiMarkers readback while the camp marker draws: 0 | 1")
+mercenaries:DevCommand("merc_camp_compass_offset", "mercenaries:CampCompassOffsetSet('%line')",
+                       "Turn the camp compass bearing while you watch it, in degrees (default 45); no argument reports")
 cmd("merc_dev",      "mercenaries:DevCommandsEnable()", "Register the authoring and diagnostic commands too")
 cmd("merc_dev_list", "mercenaries:DevCommandList()",    "List the dev commands (after merc_dev)")
 cmd("merc_lua",      "mercenaries:ExecString(%line)",   "Run a line of Lua (advanced)")

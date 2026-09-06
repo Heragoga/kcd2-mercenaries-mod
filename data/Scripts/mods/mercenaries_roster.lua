@@ -29,7 +29,10 @@
 
 mercenaries.RosterTag     = "MercRoster"
 mercenaries.RosterEnabled = true     -- merc_roster 0|1 (saved): the load-time rebuild
-mercenaries.TravelStow    = true     -- merc_travel_stow 0|1 (saved): the travel stow
+-- merc_travel_stow 0|1 (saved). No longer a stow: the men who are WITH you are teleported
+-- to you at the far end of a crossing (mercenaries_travelwatch.lua). Camp residents and men
+-- holding ground are never moved.
+mercenaries.TravelStow    = true
 
 -- THE SAVE-FOOTPRINT SWITCH, and the whole point of the roster - but OFF until the rebuild
 -- above has been watched working, because it is the half that cannot be undone by a reload.
@@ -83,6 +86,9 @@ local function rLog(s) System.LogAlways("[Roster] " .. tostring(s)) end
 function mercenaries:RosterTierOf(name)
     name = tostring(name or "")
     if self.IsArcherName and self:IsArcherName(name) then return "archer" end
+    -- Before the tier match, like the archers': a woman's name carries "_medium_" too, and
+    -- rebuilt as a medium man she would come back male, helmeted and in the squad's livery.
+    if self.IsFemaleName and self:IsFemaleName(name) then return "female" end
     local tier = string.match(name, "^SpawnedFriend_([a-z]+)_")
     if tier == "archer" then return "archer" end
     return tier or "medium"
@@ -93,7 +99,10 @@ function mercenaries:RosterCapture()
     for name, ent in pairs(self.ActiveMercs or {}) do
         local hp = 0
         pcall(function() hp = math.floor(ent.actor:GetHealth() or 0) end)
-        out[#out + 1] = self:RosterTierOf(name) .. "," .. tostring(hp)
+        -- The NAME goes in too. Without it a man is only "tier,hp", so a custom companion
+        -- or an archer came back from a stow as a generic merc - reported against 2.3.
+        -- Names carry no comma or semicolon, so the blob stays parseable.
+        out[#out + 1] = self:RosterTierOf(name) .. "," .. tostring(hp) .. "," .. tostring(name)
     end
     local blob = (#out > 0) and table.concat(out, ";") or "none"
     pcall(function() self:SaveString(self.RosterTag, blob) end)
@@ -106,13 +115,60 @@ function mercenaries:RosterRead()
     local list = {}
     if not blob or blob == "" or blob == "none" then return list end
     for entry in string.gmatch(blob, "[^;]+") do
-        local tier, hp = string.match(entry, "^([a-z_]+),(%-?%d+)$")
-        if tier then list[#list + 1] = { tier = tier, hp = tonumber(hp) or 0 } end
+        local tier, hp, nm = string.match(entry, "^([a-z_]+),(%-?%d+),(.+)$")
+        if not tier then tier, hp = string.match(entry, "^([a-z_]+),(%-?%d+)$") end
+        if tier then
+            list[#list + 1] = { tier = tier, hp = tonumber(hp) or 0, name = nm }
+        end
     end
     return list
 end
 
 -- Put `n` men of a tier into the world around the player. Returns how many stood up.
+-- Rebuild ONE man exactly as he was, from the soul guid his own entity name carries.
+--
+-- Every merc this mod spawns is named "<prefix>_<tier>_<rand>_<soulGuid>", and the soul is
+-- what makes him that man: a named companion, an archer, a particular face. Respawning him
+-- from his tier alone is what turned companions into generic mercs after a stow (reported
+-- against 2.3). Modelled on SpawnMercAt, which is still the path for a man with no name on
+-- record - an older save's roster blob has none.
+function mercenaries:RosterRespawnNamed(name, pos, yaw)
+    name = tostring(name or "")
+    -- The trailing 36-character guid, if the name carries one.
+    local soulGuid = string.match(name, "([0-9a-fA-F][0-9a-fA-F-]+)$")
+    if not soulGuid or string.len(soulGuid) < 36 then return nil end
+    -- A fresh suffix: the old entity is gone, and two entities may not share a name.
+    -- The guid is located with a PLAIN find, never a pattern: it is full of hyphens, and a
+    -- hyphen in a Lua pattern is the lazy quantifier, so an embedded guid matches nonsense.
+    local gi = string.find(name, soulGuid, 1, true)
+    if not gi or gi < 3 then return nil end
+    local head = string.sub(name, 1, gi - 2)              -- drops the "_" before the guid
+    local stem = string.match(head, "^(.+)_%d+$") or head -- ...and the random suffix
+    if not stem or stem == "" then return nil end
+    local newName = stem .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+
+    local ent
+    local ok, err = pcall(function()
+        System.SpawnEntity({
+            class = "NPC", name = newName, position = pos,
+            orientation = { x = 0, y = 0, z = yaw or 0 },
+            properties = self:RosterSpawnProps(soulGuid),
+        })
+        ent = System.GetEntityByName(newName)
+        if not ent then return end
+        self.ActiveMercs[newName] = ent
+        pcall(function()
+            self:EnsureMercIsAlwaysRendered(ent)
+            self:EquipMercenary(ent, _G.MercCurrentOutfit or 1)
+            self:EquipMercenaryWeapon(ent, _G.MercCurrentWeapon or 1, _G.MercCurrentOutfit or 1)
+            self:InjectInteraction(ent)
+            self:CampOnMercJoined(ent)
+        end)
+    end)
+    if not ok then rLog("named respawn failed for " .. newName .. ": " .. tostring(err)) end
+    return ent
+end
+
 function mercenaries:RosterSpawn(list)
     local pp
     pcall(function() pp = player:GetWorldPos() end)
@@ -133,14 +189,32 @@ function mercenaries:RosterSpawn(list)
             if gz and math.abs(gz - pp.z) < 8.0 then spot.z = gz end
         end)
         local ent
-        if m.tier == "archer" then
-            pcall(function() ent = self:SpawnArcherAt(spot, yaw, outfit) end)
-        else
-            pcall(function() ent = self:SpawnMercAt(m.tier, spot, yaw, outfit, weapon) end)
+        -- A named companion is rebuilt as himself, from the soul his name carries, rather
+        -- than as an anonymous man of his tier.
+        if m.name and self.RosterRespawnNamed then
+            pcall(function() ent = self:RosterRespawnNamed(m.name, spot, yaw) end)
         end
         if ent then
             made = made + 1
             if m.hp and m.hp > 0 then pcall(function() ent.actor:SetHealth(m.hp) end) end
+        elseif m.tier == "archer" then
+            pcall(function() ent = self:SpawnArcherAt(spot, yaw, outfit) end)
+            if ent then
+                made = made + 1
+                if m.hp and m.hp > 0 then pcall(function() ent.actor:SetHealth(m.hp) end) end
+            end
+        elseif m.tier == "female" then
+            pcall(function() ent = self:SpawnFemaleAt(spot, yaw, weapon) end)
+            if ent then
+                made = made + 1
+                if m.hp and m.hp > 0 then pcall(function() ent.actor:SetHealth(m.hp) end) end
+            end
+        else
+            pcall(function() ent = self:SpawnMercAt(m.tier, spot, yaw, outfit, weapon) end)
+            if ent then
+                made = made + 1
+                if m.hp and m.hp > 0 then pcall(function() ent.actor:SetHealth(m.hp) end) end
+            end
         end
     end
     return made

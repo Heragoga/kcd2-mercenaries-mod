@@ -41,6 +41,7 @@ Hiring from the console is free and ignores the quartermaster; the companion cap
 | `merc_hire [n]` | Seasoned foot, default 5 |
 | `merc_hire_weak [n]` | Raw foot |
 | `merc_hire_strong [n]` | Veterans |
+| `merc_hire_female [n]` | Women. Their own category, like the archers: one tier, medium gear with the headgear removed, their own wardrobe that the squad's outfit switch does not touch, and no dialogue. Female head, hair and voice on a male body - the game has no female armour and no female combat animations, so everything below the neck stays male. Also on the hire and quartermaster menus. See docs/female-mercenaries.md |
 | `merc_hire_archers [n]` | Archers |
 | `merc_hire_army_small` | 10 archers and 20 foot |
 | `merc_hire_army_big` | 15 archers and 35 foot - a full company at the cap |
@@ -99,6 +100,8 @@ Weapon: `merc_archer_bow`, `merc_archer_crossbow`, `merc_archer_handcannon`.
 | `merc_camp_remove [1-11]` | Take ONE camp improvement down; no argument lists them |
 | `merc_camp_party [1-8]` | Set what a deployed party is made of (archer share, which foot); no argument lists them and prints what is set |
 | `merc_gate_open` / `merc_gate_close` | Work the camp gates |
+| `merc_camp_marker <0/1>` | Show the standing camp on the world map (default on, saved). See docs/map-marker.md |
+| `merc_camp_compass <0/1>` | Also point at the camp on your compass (default off, saved) - its bearing offset is unverified, see docs/map-marker.md |
 
 ## Enemies
 

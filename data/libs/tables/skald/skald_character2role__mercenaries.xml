@@ -122,5 +122,25 @@
 	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_cverk" />
 	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_volek" />
 <!-- end generated companions -->
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_1" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_2" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_3" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_4" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_5" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_6" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_7" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_8" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_9" />
+	<skald_character2role role_id="role_mercenary_test" skald_character_id="char_mercenary_female_10" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_1" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_2" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_3" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_4" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_5" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_6" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_7" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_8" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_9" />
+	<skald_character2role role_id="role_mercenary_test2" skald_character_id="char_mercenary_female_10" />
 	</skald_character2roles>
 </database>

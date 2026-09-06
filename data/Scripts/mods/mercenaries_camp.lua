@@ -2822,7 +2822,10 @@ function mercenaries:CampChatTick()
             -- eat, they take a bed - but they are never paired into a conversation. The
             -- gossip pool is written for anonymous sellswords and plays on the soul's
             -- own voice. See IsHeroName.
-            if ent and self:IsAliveAndWell(ent, false) and not self:IsHero(ent) then
+            -- ...and the women, for the same reason: the gossip pool is a man's voice.
+            -- They still sit, eat and take a bed like everyone else.
+            if ent and self:IsAliveAndWell(ent, false)
+               and not self:IsHero(ent) and not self:IsFemale(ent) then
                 local wuid = ent.this and ent.this.id or ent.id
                 local wuidStr = tostring(wuid)
                 -- Deployed (sortie) mercs are following the player, not sitting in

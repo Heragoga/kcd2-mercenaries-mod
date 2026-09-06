@@ -92,6 +92,10 @@
                 <Port Name="hire_a3" Direction="Out" Type="trigger" />
                 <Port Name="hire_a5" Direction="Out" Type="trigger" />
                 <Port Name="hire_a10" Direction="Out" Type="trigger" />
+                <Port Name="hire_f1" Direction="Out" Type="trigger" />
+                <Port Name="hire_f3" Direction="Out" Type="trigger" />
+                <Port Name="hire_f5" Direction="Out" Type="trigger" />
+                <Port Name="hire_f10" Direction="Out" Type="trigger" />
                 <Port Name="hire_c1" Direction="Out" Type="trigger" />
                 <Port Name="hire_c2" Direction="Out" Type="trigger" />
                 <Port Name="hire_c3" Direction="Out" Type="trigger" />
@@ -325,6 +329,47 @@
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_10" /></Response></Elements>
                                                 </Sequence>
                                                 <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_archer_cancel">
+                                                    <UiPrompt StringName="ui_mercenary_custom_cancel" />
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
+                                                </Sequence>
+                                            </Sequences>
+                                        </Decision>
+                                    </Sequence>
+
+                                    <!-- Female mercenaries: their own category, one tier. See docs/female-mercenaries.md. -->
+                                    <Sequence EndType="Decision" Name="seq_female">
+                                        <UiPrompt StringName="ui_mercenary_type_female" />
+                                        <Elements>
+                                            <Response Role="HENRY">
+                                                <Text StringName="merc_henry_female" />
+                                            </Response>
+                                            <Response Role="role_mercenary_quartermaster">
+                                                <Text StringName="merc_provider_female" />
+                                            </Response>
+                                        </Elements>
+                                        <Decision Name="dec_female_count">
+                                            <Sequences>
+                                                <Sequence EndType="EndDialogue" Name="f1">
+                                                    <UiPrompt StringName="ui_mercenary_count_1" />
+                                                    <Triggers><Port Name="hire_f1" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_1" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="f3">
+                                                    <UiPrompt StringName="ui_mercenary_count_3" />
+                                                    <Triggers><Port Name="hire_f3" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_3" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="f5">
+                                                    <UiPrompt StringName="ui_mercenary_count_5" />
+                                                    <Triggers><Port Name="hire_f5" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_5" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="f10">
+                                                    <UiPrompt StringName="ui_mercenary_count_10" />
+                                                    <Triggers><Port Name="hire_f10" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_count_10" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="GoTo" GoToDecision="dec_hire_type" Name="seq_female_cancel">
                                                     <UiPrompt StringName="ui_mercenary_custom_cancel" />
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_custom_cancel" /></Response></Elements>
                                                 </Sequence>

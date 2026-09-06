@@ -962,8 +962,13 @@ function mercenaries:RequestBark(wuid, alias)
     -- sellswords and are played on the soul's own voice, so putting one in Zizka's
     -- mouth is worse than silence. This is the queue every order bark goes through,
     -- so one check here covers all of them.
+    --
+    -- Female mercs are muted the same way and for the same reason: every line the company
+    -- owns was recorded by a man. They keep everything else a merc has - the brain, the
+    -- order wheel, the dialogue menus, camp roles - and only the AUDIBLE half is off.
+    -- See mercenaries_female.lua.
     local ent; pcall(function() ent = System.GetEntity(wuid) end)
-    if ent and self:IsHero(ent) then return end
+    if ent and (self:IsHero(ent) or self:IsFemale(ent)) then return end
     local pool = self.BarkPools[alias]
     if pool and #pool > 0 then alias = pool[math.random(#pool)] end
     _G.MercBarkReq = _G.MercBarkReq or {}
@@ -1231,6 +1236,9 @@ function mercenaries:MonitorInventory()
     -- Archer (ranged merc) hire / stance / AI-variant tokens
     self:MonitorArcherTokens(p)
 
+    -- Female mercenaries: their own category, their own hire token
+    self:MonitorFemaleTokens(p)
+
     -- Formation shape chosen from dialogue or the order wheel
     self:MonitorFormationTokens(p)
 
@@ -1446,6 +1454,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- before the LoadString calls below read from it.
     if self.SaverForget then self:SaverForget() end
 
+    -- ...and only now: MapMarkerOnLoad reads MercCampMarker/MercCampCompass, which are
+    -- LoadString tags and would otherwise answer out of the save before this one.
+    if self.MapMarkerOnLoad then pcall(function() self:MapMarkerOnLoad() end) end
+
     -- Hook Player.OnAction (mouse input for tower placement). Delayed so that a mod
     -- which replaced the callback without chaining cannot lock us out - the same
     -- reasoning as references/CompanionMerchant. See mercenaries_tower.lua.
@@ -1653,7 +1665,11 @@ Script.LoadScript("Scripts/mods/mercenaries_mainquest_watchdog.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
+Script.LoadScript("Scripts/mods/mercenaries_female.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
+-- Draws the standing camp on the world map (and optionally the compass) by pushing a
+-- POI straight into the map's Scaleform element. See docs/map-marker.md.
+Script.LoadScript("Scripts/mods/mercenaries_mapmarker.lua")
 Script.LoadScript("Scripts/mods/mercenaries_forge.lua")
 Script.LoadScript("Scripts/mods/mercenaries_alchemy.lua")
 Script.LoadScript("Scripts/mods/mercenaries_hunting.lua")

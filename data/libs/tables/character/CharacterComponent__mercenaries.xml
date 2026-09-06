@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	FEMALE MERCENARIES - the appearance half. See docs/female-mercenaries.md.
+
+	Ten vanilla female heads and seven vanilla female hairstyles, mounted in the game's MALE
+	component tree so a male-bodied NPC can wear them. No new art: these are the shipped
+	f_head_* / f_hair_* assets, referenced where they already live.
+
+	WHY THIS WORKS. A head skin carries its own rig. Reading the CompiledBones chunk (type
+	0x2000: a 32-byte header, then 584-byte records) out of m_head_081.skin and
+	f_head_009.skin gives 360 and 364 bones, of which 139 and 142 are not per-head SSDR
+	deform joints - and nearly all of those match. The facial joints that differ are named
+	after the head and travel INSIDE the skin (m081_jaw, m081_tongue_01..05 against f009_jaw,
+	f009_tongue_01..05), as do the ~230 *_SSDR_* joints. What a female head asks of the body
+	skeleton that a male body cannot give is exactly five names: LeftBreast, LeftBreastEnd,
+	RightBreast, RightBreastEnd, and a root called Human_Female rather than Human_Male. A head
+	is not weighted to breast joints, so the engine skips them. Verified in game 2026-09-06:
+	the head binds and renders.
+
+	The merge shape - the chain from <Component Name="Male"> down repeated verbatim,
+	intermediate <Elements> included, only the leaf new - is Rose of Bohemia's
+	(references/rose_of_bohemia_main). The intermediate Elements are not decoration:
+	<Head Name="Head"> carries the uberlod head skin and <Hair Name="Hair"> the uberlod hair
+	skin, and a merge that omits them is a merge that may drop them.
+
+	FilePath on a leaf REPLACES the parent's rather than appending - vanilla m_head_081
+	carries FilePath="humans/male/head/m_head_081" under a parent already at "humans/male/",
+	which only reads sanely as a replacement. That is what lets a component in the Male tree
+	reach into humans/female/.
+
+	NAMES. Deliberately NOT m_head_0* / m_hair_0*: vanilla's own rules
+	(Libs/Storm/appearance/common/heads.xml, hair.xml) hand ordinary male NPCs
+	setHead name="m_head_0*" and setHair name="m_hair_0*" by wildcard, so anything named into
+	that space would start turning up on random townsmen. "merc_" matches no vanilla wildcard.
+
+	HAIR PHYSICS is deliberately dropped. f_hair_001/003/006 carry JointElements in vanilla
+	(braids, a ponytail); the entries below omit them, so those styles render stiff rather
+	than swinging. That is a knowingly incomplete first pass - a dangling joint reference is a
+	worse failure than an unsimulated braid, and Rose shows the joints can be added later
+	(they travel with the hair skin, not the body skeleton). Four styles - 002, 004, 005, 007 -
+	have no JointElements in vanilla either, so those are complete as written. The ten
+	mercenaries below are spread across all seven on purpose: one `merc_hire_female 10` says
+	which styles render and which do not.
+-->
+<database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<CharacterComponents>
+		<Component Name="Male">
+			<DerivedComponents>
+
+				<Head Name="Head" FilePath="humans/male/" SourceForUberlodPart="face">
+					<Elements>
+						<SkinElement EquipmentPart="face" BodyLayerId="0" Model="uberlod/uberlod_body/uberlod_head.skin" />
+					</Elements>
+					<DerivedComponents>
+						<!-- fitted from vanilla f_head_009 -->
+						<Head Name="merc_fhead_01" FilePath="humans/female/head/f_head_009">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_01/merc_fhead_01.skin" Material="f_head_009_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_002 -->
+						<Head Name="merc_fhead_02" FilePath="humans/female/head/f_head_002">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_02/merc_fhead_02.skin" Material="f_head_002_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_015 -->
+						<Head Name="merc_fhead_03" FilePath="humans/female/head/f_head_015">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_03/merc_fhead_03.skin" Material="f_head_015_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_019 -->
+						<Head Name="merc_fhead_04" FilePath="humans/female/head/f_head_019">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_04/merc_fhead_04.skin" Material="f_head_019_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_021 -->
+						<Head Name="merc_fhead_05" FilePath="humans/female/head/f_head_021">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_05/merc_fhead_05.skin" Material="f_head_021_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_030 -->
+						<Head Name="merc_fhead_06" FilePath="humans/female/head/f_head_030">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_06/merc_fhead_06.skin" Material="f_head_030_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_034 -->
+						<Head Name="merc_fhead_07" FilePath="humans/female/head/f_head_034">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_07/merc_fhead_07.skin" Material="f_head_034_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_036 -->
+						<Head Name="merc_fhead_08" FilePath="humans/female/head/f_head_036">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_08/merc_fhead_08.skin" Material="f_head_036_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_041 -->
+						<Head Name="merc_fhead_09" FilePath="humans/female/head/f_head_041">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_09/merc_fhead_09.skin" Material="f_head_041_m01.mtl" /></Elements>
+						</Head>
+						<!-- fitted from vanilla f_head_047 -->
+						<Head Name="merc_fhead_10" FilePath="humans/female/head/f_head_047">
+							<Elements><SkinElement EquipmentPart="face" Model="../../../male/head/merc_fhead_10/merc_fhead_10.skin" Material="f_head_047_m01.mtl" /></Elements>
+						</Head>
+					</DerivedComponents>
+				</Head>
+
+				<Hair Name="Hair" FilePath="humans/male/hair/" SourceForUberlodPart="head">
+					<Elements>
+						<SkinElement EquipmentPart="head" BodyLayerId="0" Model="../uberlod/uberlod_body/uberlod_hair.skin" />
+					</Elements>
+					<DerivedComponents>
+						<!-- f_hair_04 - no hair physics in vanilla -->
+						<Hair Name="merc_fhair_01" Diffuse="#352012" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_d/merc_fhair_d.skin" Material="f_hair_03/f_hair_03.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_02 - no hair physics in vanilla -->
+						<Hair Name="merc_fhair_02" Diffuse="#26120E" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_b/merc_fhair_b.skin" Material="f_hair_02/f_hair_02_mat.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_05 - no hair physics in vanilla -->
+						<Hair Name="merc_fhair_03" Diffuse="#261009" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_e/merc_fhair_e.skin" Material="f_hair_02/f_hair_02_mat.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_07 - no hair physics in vanilla -->
+						<Hair Name="merc_fhair_04" Diffuse="#0F0906" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_g/merc_fhair_g.skin" Material="f_hair_06/f_hair_long_06.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_04 again, lighter -->
+						<Hair Name="merc_fhair_05" Diffuse="#82380F" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_d/merc_fhair_d.skin" Material="f_hair_03/f_hair_03.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_02 again, greying -->
+						<Hair Name="merc_fhair_06" Diffuse="#7C6249" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_b/merc_fhair_b.skin" Material="f_hair_02/f_hair_02_mat.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_01 - braids, physics dropped -->
+						<Hair Name="merc_fhair_07" Diffuse="#230F05" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_a/merc_fhair_a.skin" Material="f_hair_01/f_hair_01.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_03 - braids, physics dropped -->
+						<Hair Name="merc_fhair_08" Diffuse="#110805" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_c/merc_fhair_c.skin" Material="f_hair_03/f_hair_03.mtl" /></Elements>
+						</Hair>
+						<!-- f_hair_06 - ponytail, physics dropped -->
+						<Hair Name="merc_fhair_09" Diffuse="#160805" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_f/merc_fhair_f.skin" Material="f_hair_06/f_hair_long_06.mtl" IsFinalLayer="false" /></Elements>
+						</Hair>
+						<!-- f_hair_01 again, ginger -->
+						<Hair Name="merc_fhair_10" Diffuse="#6B2E06" FilePath="humans/female/hair/" Morphs="#extend_hood_coif">
+							<Elements><SkinElement EquipmentPart="head" Model="../../male/hair/merc_fhair_a/merc_fhair_a.skin" Material="f_hair_01/f_hair_01.mtl" /></Elements>
+						</Hair>
+					</DerivedComponents>
+				</Hair>
+
+			</DerivedComponents>
+		</Component>
+	</CharacterComponents>
+</database>

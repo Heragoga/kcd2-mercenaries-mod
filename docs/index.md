@@ -24,6 +24,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 ### Lua
 * [Console commands](console.md) (Every command a player can type, where they are registered, and how the `merc_dev` gate keeps the ~350 authoring/diagnostic ones out of the player's console)
 * [Spawning NPCs](spawning-npcs.md) (How to spawn an NPC you defined in the other guides)
+* [Putting your own marker on the world map](map-marker.md) (The map is a Scaleform movie, not a game system: nine values into `UIAction.SetArray("ApseMap", -1, "PoiMarkers", ...)` and a POI is on the map. Also the compass, and why `ShowMapMarker` and `LocationPoint` were the wrong trail)
 
 ### XML
 * [How to add a new NPC](xml/add-new-npc.md) (Covers defining the soul, inventory and appearance)
@@ -47,6 +48,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Custom companions](companions.md) (The 44 named companions cloned from vanilla characters: the roster generator that is the single source of truth, the thirteen files each one has to exist in, vanilla-versus-built gear, the categorised hire menu, and the three traps - quest items that arm nobody, sheathed polearms that do not render, and body_type making an NPC invisible)
 * [Squad outfits](outfits.md) (The 180-preset wardrobe: the per-tier armour budget that makes every style equally tough, the layering rules that break silently, the six styles and their heraldry, the reinforced caftans the Cuman styles need, and what is excluded from the item pool and why)
 * [The custom uniform](custom-gear.md) (Drop a set of gear in a chest and the whole company wears a copy of it, anywhere, camp or no camp: the offline GUID→slot table that exists because nothing in the scriptbind reports a slot, the dressing order that is the whole trick, the gambeson-under-plate rule, and how an empty pattern means naked with a sword)
+* [Female mercenaries](female-mercenaries.md) (`merc_hire_female` and a "Women." branch on the hire menu: their own category like the archers, with a wardrobe of medium gear minus the headgear that the squad outfit switch cannot touch, no dialogue, and female heads lifted onto the male skeleton by tools/fit_female_heads.py - plus why the game itself cannot give you female soldiers at all)
 * [Formations](formations.md) (How the squad marches: the engine formation system, the elected-leader anchor it forces, the seven generated shapes, and the mounted variant - plus the vanilla research behind it)
 * [The torture test](torture-test.md) (One command drives a real game session through 19 behaviour checks - hire, camp, upgrades, deploy composition, a staged fight, the time-skip guards, and persistence across a save + cold relaunch - and prints PASS/FAIL verdicts)
 * [Manual test plan](manual-tests.md) (The hand-run checklist: a 15-minute smoke test, regression steps for every reported bug, and the visual checks a log-reading harness cannot make)

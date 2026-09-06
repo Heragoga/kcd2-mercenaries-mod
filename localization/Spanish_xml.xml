@@ -93,6 +93,14 @@
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Mercenario</Cell></Row>
   <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>Mercenario novato</Cell></Row>
   <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>Mercenario veterano</Cell></Row>
+  <Row><Cell>ui_mercenary_type_female</Cell><Cell>Women.</Cell><Cell>Women.</Cell></Row>
+  <Row><Cell>merc_henry_female</Cell><Cell>Have you any women who can fight?</Cell><Cell>Have you any women who can fight?</Cell></Row>
+  <Row><Cell>merc_provider_female</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell></Row>
+  <Row><Cell>merc_info_female_hired_single</Cell><Cell>A woman joined your company.</Cell><Cell>A woman joined your company.</Cell></Row>
+  <Row><Cell>merc_info_female_hired_multiple</Cell><Cell>Women joined your company.</Cell><Cell>Women joined your company.</Cell></Row>
+  <Row><Cell>char_mercenary_female_uiName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_description</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_fullName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
   <Row><Cell>char_enemy_looter_uiName</Cell><Cell>Looter</Cell><Cell>Saqueador</Cell></Row>
   <Row><Cell>char_enemy_looter_description</Cell><Cell>Looter</Cell><Cell>Saqueador</Cell></Row>
   <Row><Cell>char_enemy_looter_fullName</Cell><Cell>Looter</Cell><Cell>Saqueador</Cell></Row>
@@ -1308,4 +1316,7 @@
   <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Composición de la tropa: los mejores primero.</Cell><Cell>Composición de la tropa: los mejores primero.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Composición de la tropa: una mezcla de todo tipo.</Cell><Cell>Composición de la tropa: una mezcla de todo tipo.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Composición de la tropa: los más verdes primero.</Cell><Cell>Composición de la tropa: los más verdes primero.</Cell></Row>
+  <Row><Cell>merc_ui_camp_marker</Cell><Cell>Campamento de mercenarios</Cell><Cell>Campamento de mercenarios</Cell></Row>
+  <Row><Cell>merc_ui_wait_marker</Cell><Cell>Mercenarios esperando</Cell><Cell>Mercenarios esperando</Cell></Row>
+  <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Aleksej de Zaslawye</Cell><Cell>Aleksej de Zaslawye</Cell></Row>
 </Table>

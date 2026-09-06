@@ -1250,5 +1250,121 @@
             </operations>
         </rule>
 <!-- end generated companions -->
+
+        <!-- =====================================================================
+             FEMALE MERCENARIES (merc_hire_female). docs/female-mercenaries.md.
+
+             Female head and hair, male body, male armour, male animations. The
+             components are vanilla f_head_* / f_hair_* mounted in the Male tree by
+             data/libs/tables/character/CharacterComponent__mercenaries.xml - the
+             game HAS no female armour and no female combat animations, so the body
+             below the neck stays male and everything the mod already does keeps
+             working untouched.
+
+             setBeard is set explicitly on every one of them and is not optional:
+             vanilla's own beard_man rule (Libs/Storm/appearance/common/hair.xml)
+             hands m_beard* to two thirds of all men by wildcard, and these souls
+             are men as far as the engine is concerned.
+
+             Bodies are the palest in the wardrobe on purpose. The head material is
+             a female skin tone and the neck seam is the thing most likely to read
+             wrong; m_body_pale_* is the closest match available. Whether that is
+             close enough is a look-at-it question.
+
+             The ten are spread across all seven female hairstyles deliberately -
+             three of them (07/08/09) use styles that carry hair physics in vanilla
+             and are declared here without it, so one `merc_hire_female 10` shows
+             which styles render at all.
+             ===================================================================== -->
+        <rule name="appearance_mercenary_female_1">
+            <selectors><hasName Name="soul_merc_female_1" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="merc_fhead_01" />
+                <setHair name="merc_fhair_01" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_2">
+            <selectors><hasName Name="soul_merc_female_2" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="merc_fhead_02" />
+                <setHair name="merc_fhair_02" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_3">
+            <selectors><hasName Name="soul_merc_female_3" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="merc_fhead_03" />
+                <setHair name="merc_fhair_03" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_4">
+            <selectors><hasName Name="soul_merc_female_4" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="merc_fhead_04" />
+                <setHair name="merc_fhair_04" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_5">
+            <selectors><hasName Name="soul_merc_female_5" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="merc_fhead_05" />
+                <setHair name="merc_fhair_05" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_6">
+            <selectors><hasName Name="soul_merc_female_6" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="merc_fhead_06" />
+                <setHair name="merc_fhair_06" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_7">
+            <selectors><hasName Name="soul_merc_female_7" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_01" />
+                <setHead name="merc_fhead_07" />
+                <setHair name="merc_fhair_07" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_8">
+            <selectors><hasName Name="soul_merc_female_8" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="merc_fhead_08" />
+                <setHair name="merc_fhair_08" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_9">
+            <selectors><hasName Name="soul_merc_female_9" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_03" />
+                <setHead name="merc_fhead_09" />
+                <setHair name="merc_fhair_09" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
+        <rule name="appearance_mercenary_female_10">
+            <selectors><hasName Name="soul_merc_female_10" /></selectors>
+            <operations>
+                <setBody name="m_body_pale_02" />
+                <setHead name="merc_fhead_10" />
+                <setHair name="merc_fhair_10" />
+                <setBeard name="m_beard_00" />
+            </operations>
+        </rule>
 </rules>
 </storm>

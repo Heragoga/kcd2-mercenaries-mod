@@ -9306,5 +9306,144 @@
             </Items>
         </clothing_preset>
 <!-- END generated townguard -->
+		<!-- BEGIN generated female wardrobe (tools/gen_female_gear.py) -->
+		<!-- The medium wardrobe with the headgear removed - see the script.
+		     Mean armour left 888, against 1302 for the same presets with their
+		     headgear on: a bare-headed merc is worth about 414 less than a man of
+		     her tier, and that is the price of showing her face. -->
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000001" clothing_preset_name="clothing_preset_mercenary_female_1" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>7439ee5f-e530-4392-adea-8f6dc4c50f65</Guid>
+				<Guid>42206555-6ba9-4de3-95df-5d70c85c5042</Guid>
+				<Guid>d2440b7a-a40b-4a2c-bf7d-61febcf5cfda</Guid>
+				<Guid>62875bbe-d9b5-4cd5-86d5-70e1bc640b80</Guid>
+				<Guid>8dd4862d-8290-4f36-ac8b-c53d42c60f65</Guid>
+				<Guid>0531f403-6772-44a6-939d-01a335c0b424</Guid>
+				<Guid>c01ca195-4129-4fbd-a966-f8eb7b162ddf</Guid>
+				<Guid>6ca69142-da64-4abc-b989-682fc91b83c7</Guid>
+				<Guid>806c81cc-2959-4a5a-9644-40174d336f4b</Guid>
+				<Guid>a94f1ef3-5328-462b-b18a-18375c515795</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000002" clothing_preset_name="clothing_preset_mercenary_female_2" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>333a3cc8-516d-44cc-8d07-4158326c235e</Guid>
+				<Guid>f1bfd1f3-c5e8-4b4a-93b1-ddd6293a3e23</Guid>
+				<Guid>e23f6c7d-0eea-4b69-a920-c14c3bdedf5e</Guid>
+				<Guid>951c694f-0067-4456-b182-16b9938bbab9</Guid>
+				<Guid>6c7ea4d3-011f-4052-a23e-3349cc54d56c</Guid>
+				<Guid>3625fd0b-94df-47ca-a0db-09f5f8833ac0</Guid>
+				<Guid>cc1adb78-fa5a-45c9-be7b-b7b50e182cb3</Guid>
+				<Guid>46920fd0-cc38-41dd-bcfb-958b134ee717</Guid>
+				<Guid>d727bf2c-2ed1-47af-aa40-a581e941b087</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000003" clothing_preset_name="clothing_preset_mercenary_female_3" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>b80a30ee-43d9-4d73-b064-b7c366320070</Guid>
+				<Guid>89c9a049-c9af-4454-a2be-d7abb468ca6a</Guid>
+				<Guid>62875bbe-d9b5-4cd5-86d5-70e1bc640b80</Guid>
+				<Guid>978586ca-3269-493b-a1fd-88ae04a6ded6</Guid>
+				<Guid>98038466-ce31-4924-b188-742c00d36b60</Guid>
+				<Guid>8472dd03-91d6-4496-a92e-e6e9baaa46ba</Guid>
+				<Guid>9214fb0e-3979-4243-bd69-1cbd709765ab</Guid>
+				<Guid>ec462e53-eff1-4ea7-a9c6-02021f2fddfd</Guid>
+				<Guid>04386d39-90fd-4de7-8da1-5f16a1b5bda6</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000004" clothing_preset_name="clothing_preset_mercenary_female_4" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>2ebcd914-64dc-499f-80c0-b606636e12f9</Guid>
+				<Guid>bdaa9037-a48f-4f3f-b7f0-27efaba93389</Guid>
+				<Guid>86d438d0-975d-4e2e-9988-ac5023f5f064</Guid>
+				<Guid>cdc9c312-59ba-480a-bfba-102fc4ab5e58</Guid>
+				<Guid>a3c3146a-84a7-4c98-a7a9-eb27d547e547</Guid>
+				<Guid>1296f34d-990b-48ae-aa80-c62d1b2d20fd</Guid>
+				<Guid>c01ca195-4129-4fbd-a966-f8eb7b162ddf</Guid>
+				<Guid>a363573e-57dd-4eda-9b44-d9d9ddf47a5d</Guid>
+				<Guid>f3aa4492-06fb-4ce3-9e41-784cbac8801f</Guid>
+				<Guid>7b6aad88-4205-48fa-b4cf-353e4b744985</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000005" clothing_preset_name="clothing_preset_mercenary_female_5" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>dfcb055a-a560-41ba-9c30-165a793982a3</Guid>
+				<Guid>f1bfd1f3-c5e8-4b4a-93b1-ddd6293a3e23</Guid>
+				<Guid>b310983d-3813-42ec-9427-8ac87493fdd6</Guid>
+				<Guid>951c694f-0067-4456-b182-16b9938bbab9</Guid>
+				<Guid>e9f59d27-ee5f-4a7e-8341-643854166285</Guid>
+				<Guid>c01ca195-4129-4fbd-a966-f8eb7b162ddf</Guid>
+				<Guid>f44e20f0-c31b-4dc7-91a9-140c9d367ab8</Guid>
+				<Guid>bead66ce-c802-4544-b037-85c61506d901</Guid>
+				<Guid>aa33e7f4-78d7-4e0f-9da0-10458f2a0ea5</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000006" clothing_preset_name="clothing_preset_mercenary_female_6" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>38102e92-9a28-4d57-85c4-716b97a0ecb8</Guid>
+				<Guid>5c56aabe-bed1-46d0-b6ac-cf9ba307a8d9</Guid>
+				<Guid>0bd0ee54-f7c8-4808-b620-da6d059640fe</Guid>
+				<Guid>6c7ea4d3-011f-4052-a23e-3349cc54d56c</Guid>
+				<Guid>91f76dc9-7d86-4fd3-b4f0-e518ca6c342e</Guid>
+				<Guid>cd55db54-061e-4389-9de2-73e1f5237555</Guid>
+				<Guid>1b735ceb-6884-4d3f-a785-d0fddbd31653</Guid>
+				<Guid>1ca7f8e0-9077-4632-bc4e-b69ff1a0a2f0</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000007" clothing_preset_name="clothing_preset_mercenary_female_7" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>ca516b12-9adb-4bb9-8a79-c0d96d87cbf5</Guid>
+				<Guid>42206555-6ba9-4de3-95df-5d70c85c5042</Guid>
+				<Guid>798db76e-9d15-4697-b995-7b8cbf7c2f34</Guid>
+				<Guid>ca402eee-1f94-4c41-b86f-93a7bfde245b</Guid>
+				<Guid>be0d233f-7e06-4dcb-aa5f-67b99aee2efc</Guid>
+				<Guid>4c93efb9-f7d6-40e7-a3b4-582931cec334</Guid>
+				<Guid>3d5708c2-65a2-433e-9792-03c3cbb5c14d</Guid>
+				<Guid>c6a66736-2f9e-4c0c-9def-4d6fd5906b82</Guid>
+				<Guid>6356eaac-e97e-42e6-a736-18ebd8dffe5f</Guid>
+				<Guid>a4f3f0bb-1739-41f6-9440-f2100156bc6b</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000008" clothing_preset_name="clothing_preset_mercenary_female_8" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>7439ee5f-e530-4392-adea-8f6dc4c50f65</Guid>
+				<Guid>f96f93ed-3141-4a31-9d3b-eac9f4c1c422</Guid>
+				<Guid>d538e764-90f1-49e5-85bf-16e7717e7723</Guid>
+				<Guid>26475e65-7714-47cc-9125-4a04814bb087</Guid>
+				<Guid>6c7ea4d3-011f-4052-a23e-3349cc54d56c</Guid>
+				<Guid>30468716-1e11-4b55-874d-36702add9114</Guid>
+				<Guid>a157447c-3c6f-463a-a02d-d4b696e644e1</Guid>
+				<Guid>b173b837-5ee6-4b16-b843-b72eae1a1ce6</Guid>
+				<Guid>40011bb3-7e8c-46bc-bf75-60f75e3dc0ec</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-000000000009" clothing_preset_name="clothing_preset_mercenary_female_9" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>ed1b1306-df52-4504-81d1-c0b2bd8ff571</Guid>
+				<Guid>e72e4dcc-07b1-4117-bd05-1a635614faa1</Guid>
+				<Guid>6686bdde-d1da-4802-92e7-72c61481c11e</Guid>
+				<Guid>6e49be7e-8972-4a8f-bd3b-011ffa55a198</Guid>
+				<Guid>4e5c9449-d757-415d-b418-e5276218ee1e</Guid>
+				<Guid>3b912b8e-3669-43e6-a53f-8136b7ae3e99</Guid>
+				<Guid>97572af8-2acc-40d6-89ae-21e940fe34c6</Guid>
+				<Guid>97aeb82a-cba6-46c1-8208-ab043db41603</Guid>
+				<Guid>04386d39-90fd-4de7-8da1-5f16a1b5bda6</Guid>
+			</Items>
+		</clothing_preset>
+		<clothing_preset clothing_preset_id="6d657263-0f01-4b00-9000-00000000000a" clothing_preset_name="clothing_preset_mercenary_female_10" gender="Male" prefers_hood_on="false" social_class_id="3">
+			<Items>
+				<Guid>9da82290-e31b-4ba6-b0e8-680081e06e9a</Guid>
+				<Guid>bdaa9037-a48f-4f3f-b7f0-27efaba93389</Guid>
+				<Guid>d40cc1ba-5ea4-44d7-86fb-ccb1680b611d</Guid>
+				<Guid>62875bbe-d9b5-4cd5-86d5-70e1bc640b80</Guid>
+				<Guid>26475e65-7714-47cc-9125-4a04814bb087</Guid>
+				<Guid>25bcc85a-0e32-4ac9-851e-ed71f8ce57fc</Guid>
+				<Guid>3d5708c2-65a2-433e-9792-03c3cbb5c14d</Guid>
+				<Guid>6ca69142-da64-4abc-b989-682fc91b83c7</Guid>
+				<Guid>d88847ce-97fb-4754-922c-f396993d93f2</Guid>
+				<Guid>569438e6-7cae-483b-a4db-d1d25aa783d0</Guid>
+			</Items>
+		</clothing_preset>
+		<!-- END generated female wardrobe -->
     </clothing_presets>
 </database>

@@ -746,6 +746,13 @@ function mercenaries:IsHero(ent)
     return ent ~= nil and self:IsHeroName(ent.GetName and ent:GetName() or '')
 end
 
+-- The entity-level twin of IsFemaleName (mercenaries_female.lua), for the same reason IsHero
+-- exists next to IsHeroName: the bark queue and the camp-chat pairing hold entities, not names.
+function mercenaries:IsFemale(ent)
+    return ent ~= nil and self.IsFemaleName ~= nil
+        and self:IsFemaleName(ent.GetName and ent:GetName() or '')
+end
+
 -- Identify whether an entity is a mercenary, returning its type or nil.
 function mercenaries:GetMercType(ent)
     if not ent then return nil end

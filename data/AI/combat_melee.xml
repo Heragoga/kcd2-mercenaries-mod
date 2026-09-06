@@ -32,6 +32,10 @@
             <!-- False when the weapon is already drawn, so a re-fire of this behaviour
                  does not replay the draw animation and stop the NPC mid-approach. -->
             <Variable name="needsDraw" type="_bool" values="true" isPersistent="0" form="single" />
+            <!-- Set by UpdateMeleeCombatData, and only ever true for a female merc: the shout
+                 below casts from the speaker's own voice, and only the female voices carry a
+                 recording for that metarole. See the note on the node itself. -->
+            <Variable name="femaleShout" type="_bool" values="false" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -113,6 +117,30 @@
                                                  defaults isTargetAlive to false and only sets it after a
                                                  successful WUID lookup inside a pcall, so one hiccup reads as
                                                  death. Two reads cap the exit at ~1.7s with no false trip. -->
+                                            <!-- The combat shout, women only.
+                                                 alias="" with a metarole is the free-vanilla-voice cast:
+                                                 the engine picks the line out of the base game's own pool
+                                                 on this NPC's own voice, so nothing is shipped - no mod
+                                                 dialog, no .ogg, no localisation. Node for node the same
+                                                 as foe_combat.xml, which is the proven one.
+
+                                                 THE SHAPE MATTERS. This Parallel is successMode="Any", so
+                                                 an arm that merely SUCCEEDS ends the fight just as surely
+                                                 as one that fails - the merc would stop swinging the moment
+                                                 she finished shouting. Hence the endless Loop around a
+                                                 finite Wait rather than a bare Wait '-1': this arm must
+                                                 never return. Same reasoning, same comment, as foe_combat. -->
+                                            <Sequence>
+                                                <IfCondition failOnCondition="false" condition="$femaleShout">
+                                                    <SuppressFailure>
+                                                        <Function_speech_schedulerMonolog alias="" animationApproach="$enum:animationApproach.dontPlayDialogAnimations" context="" lookAtId="$attackData.target" metarole="'NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT'" skipInLod="true" subtitlesDown="false" />
+                                                    </SuppressFailure>
+                                                </IfCondition>
+                                                <Loop count="-1">
+                                                    <Wait duration="'10s'" timeType="GameTime" doFail="false" variation="" />
+                                                </Loop>
+                                            </Sequence>
+
                                             <Loop count="-1">
                                                 <Sequence>
                                                     <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'400ms'" />

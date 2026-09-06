@@ -901,6 +901,33 @@
                     <Edge From="hire_dialog.hire_a10" To="Exec" />
                 </EventFunction>
 
+                <!-- Female mercenary hire tokens: count = number to hire.
+                     mercenaries_female.lua, MonitorFemaleTokens. -->
+                <EventFunction Name="exec_f1" PositionY="5000" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_f1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_f3" PositionY="5050" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_f3" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_f5" PositionY="5100" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_f5" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_f10" PositionY="5150" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="hire_dialog.hire_f10" To="Exec" />
+                </EventFunction>
+
                 <!-- Archer stance token: count = stance (1 skirmish, 2 guard, 3 melee, 4 hold) -->
                 <EventFunction Name="exec_formation_column" PositionY="2440" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be51d" />
@@ -1747,6 +1774,33 @@
                     <Constant Name="Amount" Value="10" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.hire_a10" To="Exec" />
+                </EventFunction>
+
+                <!-- Female mercenary hire tokens: count = number to hire.
+                     mercenaries_female.lua, MonitorFemaleTokens. -->
+                <EventFunction Name="exec_qm_f1" PositionY="5000" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.hire_f1" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_f3" PositionY="5050" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.hire_f3" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_f5" PositionY="5100" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.hire_f5" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_f10" PositionY="5150" PositionX="1100" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be02d" />
+                    <Constant Name="Amount" Value="10" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.hire_f10" To="Exec" />
                 </EventFunction>
                 <EventFunction Name="exec_qm_hire_c1" PositionY="3100" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be48d" />

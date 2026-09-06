@@ -517,7 +517,12 @@ function mercenaries:WallMark()
     -- Standing at another palisade: this click hangs a GATE and leaves the run alone.
     -- No charge - the stretch was paid for, and the gate is how it is finished. The
     -- quartermaster's gate purchase is for adding one to a camp that is already built.
-    local snap = self:WallGateSnapAt(pos)
+    -- ...but only when a run is actually being DRAWN. Reported 2.3: buying a second stretch
+    -- and clicking the first corner while stood at the existing palisade hung a gate and
+    -- ended the build on that very click ("gate hung, palisade finished"), because the snap
+    -- was tested before there was anything to finish. The first corner of a new run is
+    -- always just a corner.
+    local snap = (#self.WallMarks > 0) and self:WallGateSnapAt(pos) or nil
     if snap then
         if (self:GateCount() or 0) >= self.GateMax then
             Game.SendInfoText('merc_info_gate_limit', false, 0, 4)

@@ -93,6 +93,14 @@
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Наемник</Cell></Row>
   <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>Наемник-новичок</Cell></Row>
   <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>Наемник-ветеран</Cell></Row>
+  <Row><Cell>ui_mercenary_type_female</Cell><Cell>Women.</Cell><Cell>Women.</Cell></Row>
+  <Row><Cell>merc_henry_female</Cell><Cell>Have you any women who can fight?</Cell><Cell>Have you any women who can fight?</Cell></Row>
+  <Row><Cell>merc_provider_female</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell></Row>
+  <Row><Cell>merc_info_female_hired_single</Cell><Cell>A woman joined your company.</Cell><Cell>A woman joined your company.</Cell></Row>
+  <Row><Cell>merc_info_female_hired_multiple</Cell><Cell>Women joined your company.</Cell><Cell>Women joined your company.</Cell></Row>
+  <Row><Cell>char_mercenary_female_uiName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_description</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_fullName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
   <Row><Cell>char_enemy_looter_uiName</Cell><Cell>Looter</Cell><Cell>Мародер</Cell></Row>
   <Row><Cell>char_enemy_looter_description</Cell><Cell>Looter</Cell><Cell>Мародер</Cell></Row>
   <Row><Cell>char_enemy_looter_fullName</Cell><Cell>Looter</Cell><Cell>Мародер</Cell></Row>
@@ -1308,4 +1316,7 @@
   <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Состав отряда: сперва идут лучшие бойцы.</Cell><Cell>Состав отряда: сперва идут лучшие бойцы.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Состав отряда: всякого понемногу.</Cell><Cell>Состав отряда: всякого понемногу.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Состав отряда: сперва идут самые необстрелянные.</Cell><Cell>Состав отряда: сперва идут самые необстрелянные.</Cell></Row>
+  <Row><Cell>merc_ui_camp_marker</Cell><Cell>Лагерь наёмников</Cell><Cell>Лагерь наёмников</Cell></Row>
+  <Row><Cell>merc_ui_wait_marker</Cell><Cell>Ожидающие наёмники</Cell><Cell>Ожидающие наёмники</Cell></Row>
+  <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Алексей из Заславья</Cell><Cell>Алексей из Заславья</Cell></Row>
 </Table>

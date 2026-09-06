@@ -93,6 +93,14 @@
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Найманець</Cell></Row>
   <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>Найманець-новачок</Cell></Row>
   <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>Найманець-ветеран</Cell></Row>
+  <Row><Cell>ui_mercenary_type_female</Cell><Cell>Women.</Cell><Cell>Women.</Cell></Row>
+  <Row><Cell>merc_henry_female</Cell><Cell>Have you any women who can fight?</Cell><Cell>Have you any women who can fight?</Cell></Row>
+  <Row><Cell>merc_provider_female</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell></Row>
+  <Row><Cell>merc_info_female_hired_single</Cell><Cell>A woman joined your company.</Cell><Cell>A woman joined your company.</Cell></Row>
+  <Row><Cell>merc_info_female_hired_multiple</Cell><Cell>Women joined your company.</Cell><Cell>Women joined your company.</Cell></Row>
+  <Row><Cell>char_mercenary_female_uiName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_description</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_fullName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
   <Row><Cell>char_enemy_looter_uiName</Cell><Cell>Looter</Cell><Cell>Мародер</Cell></Row>
   <Row><Cell>char_enemy_looter_description</Cell><Cell>Looter</Cell><Cell>Мародер</Cell></Row>
   <Row><Cell>char_enemy_looter_fullName</Cell><Cell>Looter</Cell><Cell>Мародер</Cell></Row>
@@ -1308,4 +1316,7 @@
   <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Склад загону: спершу йдуть найкращі воїни.</Cell><Cell>Склад загону: спершу йдуть найкращі воїни.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Склад загону: усякого потроху.</Cell><Cell>Склад загону: усякого потроху.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Склад загону: спершу йдуть найзеленіші воїни.</Cell><Cell>Склад загону: спершу йдуть найзеленіші воїни.</Cell></Row>
+  <Row><Cell>merc_ui_camp_marker</Cell><Cell>Табір найманців</Cell><Cell>Табір найманців</Cell></Row>
+  <Row><Cell>merc_ui_wait_marker</Cell><Cell>Найманці, що чекають</Cell><Cell>Найманці, що чекають</Cell></Row>
+  <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Олексій із Заслав'я</Cell><Cell>Олексій із Заслав'я</Cell></Row>
 </Table>
