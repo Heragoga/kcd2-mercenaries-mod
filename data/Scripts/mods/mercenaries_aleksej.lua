@@ -449,6 +449,74 @@ mercenaries.TokenIDAlxB6Done = "679a655e-189d-4519-b437-ccc4b92beb7d"
 -- never fired once - while everything else in the same graph worked on the same run. A
 -- SoulDeathTrigger does not appear to bind to an NPC spawned at runtime from a shared soul, only
 -- to one baked into level data. Lua sees the death anyway, so Lua says so.
+-- Lua -> Skald: "beat camp is up" (after ANY rebuild, the wake one included) and, one poll
+-- later, "re-arm the objective". An objective-log marker binds to the NPC carrying the soul
+-- when the Started log fires, and a reload restores the objective already Active - so the log
+-- never re-fires and the marker stays bound to the entity AlxOnLoad tore down. Measured
+-- 2026-09-04: NPCs present after a reload, marker gone. The graph answers the up token with
+-- SetNone on that beat's objective and issues the re-arm token; the re-arm trigger fires on a
+-- later inventory poll and SetActive re-fires the Started log against the new leader. Two
+-- tokens because two edges off one trigger give no ordering guarantee; a token round trip does.
+-- The re-arm must land in a LATER Skald cascade than the up token. Skald issuing it itself
+-- (an EventFunction off the up-trigger) put SetActive inside the same synchronous cascade as
+-- SetNone and stranded every objective at None - "no markers at all" (2026-09-04). And a bare
+-- SetActive on an already-Active objective does not re-fire the Started log, so the map
+-- marker stays bound to the pre-reload entity while the compass, which resolves live, shows
+-- it. So: up token now; re-arm token from the 1 Hz tick AlxRearmDelay seconds later.
+mercenaries.AlxRearmDelay = 2.0
+
+-- OFF. Two reloads proved the objective never re-transitions (one journal entry) and that
+-- the target must exist when the graph WAKES: no compass marker either, on the run where the
+-- leader was respawned seconds after wake. Re-firing after the fact is the wrong shape. The
+-- graph nodes stay, dormant; nothing issues the up token while this is false.
+mercenaries.AlxRearmBridge = false
+
+-- THE FIX (2026-09-04, Alex's design): the engine already saves the beat leader. The mod
+-- killed him twice on every load - AlxTearDown by id, then the 2 s load sweep by name - and
+-- respawned a stranger seconds after Skald had already resolved the objective against nothing.
+-- So: remember his NAME in the save, keep him through every sweep, and let the wake path ADOPT
+-- him instead of spawning. He exists when the graph wakes; the marker resolves first time.
+mercenaries.KeepAcrossLoad = {}     -- [entityId] = true, for this load only
+mercenaries.AlxKeptLeader  = nil    -- { id, name, beat } until the wake path adopts him
+
+-- Aleksej himself, same cure (2026-09-04): AlxLodgingResetOnLoad swept him by name on every load
+-- and the tick stood a stranger up seconds later - after the graph had already resolved the
+-- beat 6/9 markers and his tipster against nobody. His name is saved on spawn, cleared when
+-- beat 6 removes him, and the reset keeps the saved man for AlxLodgingSpawn to adopt.
+mercenaries.AlxLodgingNameTag = "AlxLodgingName"
+mercenaries.AlxKeptLodging    = nil    -- { id, name } until AlxLodgingSpawn adopts him
+
+-- Which beat is live, and who leads it, remembered by Lua across a load. Written on camp-up,
+-- cleared the moment the leader is noted down or the camp is retired - so a finished beat is
+-- never stood up again. The leader NAME is what makes keep-and-adopt possible (AlxOnLoad).
+mercenaries.AlxLiveBeatTag = "AlxLiveBeat"
+
+function mercenaries:AlxLiveBeatWrite(n, leaderName)
+    local v = tostring(n or 0)
+    if (n or 0) > 0 and leaderName and leaderName ~= "" then v = v .. "|" .. leaderName end
+    pcall(function() self:SaveString(self.AlxLiveBeatTag, v) end)
+end
+
+function mercenaries:AlxScheduleRearm(why)
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    self.AlxRearmDue = now + (self.AlxRearmDelay or 2.0)
+    self.AlxRearmWhy = why
+end
+
+function mercenaries:AlxRearmTick()
+    if not self.AlxRearmDue then return end
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if now < self.AlxRearmDue then return end
+    self.AlxRearmDue = nil
+    self:AlxSignalToken(self.AlxRearmToken)
+    aLog("re-arm token issued (" .. tostring(self.AlxRearmWhy) .. ") - the live beat's objective goes Active again, marker re-bound")
+end
+
+mercenaries.AlxUpToken    = "679a655e-189d-4519-b437-ccc4b92be00d"
+mercenaries.AlxRearmToken = "679a655e-189d-4519-b437-ccc4b92be01d"
+
 mercenaries.AlxDownToken = {
     [1] = "679a655e-189d-4519-b437-ccc4b92beccd",
     [2] = "679a655e-189d-4519-b437-ccc4b92becdd",
@@ -473,7 +541,7 @@ mercenaries.AlxTokenSeen = {}
 
 function mercenaries:AlxBridgeTokens()
     if self._alxSweepTokens then return self._alxSweepTokens end
-    local t = { self.TokenIDAlxB6Done }
+    local t = { self.TokenIDAlxB6Done, self.AlxUpToken, self.AlxRearmToken }
     for _, cls in pairs(self.AlxDownToken) do table.insert(t, cls) end
     for _, cls in pairs(self.AlxDocToken)  do table.insert(t, cls) end
     self._alxSweepTokens = t
@@ -834,6 +902,18 @@ mercenaries.AlxMissingTicks = 5
 -- fire and all - until they are this far off.
 mercenaries.AlxCampDespawnRange = 100.0
 
+-- Progress may only be JUDGED from close up. A beat camp is spawned with no distance gate
+-- (deliberately - see mercenaries.lua's AlxOnLoad note), so beat 8's siege goes up at
+-- Raborsch while the player still stands at the Roman fort, 3.6km away. At that range
+-- System.GetEntity resolves a handle whose actor/soul proxies never streamed in, which
+-- IsAliveAndWell reads as DEAD - and one 1Hz tick later the leader was "down", the camp
+-- was "cleared", the document was granted and the whole beat closed with nobody having
+-- been anywhere near it. That is the "castle is empty / objectives auto-complete on
+-- load" report. So: the leader-down report and the every-man-down teardown only run
+-- while the player is inside this range of the site anchor - close enough that the
+-- entities are genuinely streamed and a death reading means a death.
+mercenaries.AlxProgressRange = 250.0
+
 -- ---- additive wraps around functions this file does not own ----
 
 local AlxBaseMonitor = mercenaries.BanditCampMonitor
@@ -846,6 +926,33 @@ end
 -- ---- scaling ----
 -- Same shape and the same follower count as BanditCampScale, so "how many men turn up" agrees
 -- everywhere in the mod.
+-- How much to soften a beat for a small company, 0 (none) .. 1 (full relief). Reported by
+-- the player 2026-09-04: the last two beats - Raborsch and the marsh - are punishing when you
+-- turn up with few men or none. Both already scaled their FOOT off the company; what did not
+-- scale was everything else - the health multiplier on every man, and the towers and carts
+-- the layout places regardless.
+--
+-- Graded rather than a cliff: full relief alone, none at AlxReliefFull men and above, linear
+-- between. A cliff at "<= 5" would make hiring a sixth man visibly harder than hiring none.
+mercenaries.AlxReliefFull = 8
+
+function mercenaries:AlxSmallRelief()
+    local F = self:BanditCampFollowerCount() or 0
+    local full = self.AlxReliefFull or 8
+    if F >= full then return 0.0 end
+    return (full - F) / full
+end
+
+-- extraHealthMult, eased toward 1.0 by the relief. 1.4 for a full company, 1.0 alone.
+function mercenaries:AlxHealthMult(beat)
+    local m = beat and beat.extraHealthMult
+    if not m then return nil end
+    local r = self:AlxSmallRelief()
+    local out = m - (m - 1.0) * r
+    if out <= 1.001 then return nil end        -- nil means "leave his health alone"
+    return out
+end
+
 function mercenaries:AlxScale(beat)
     local F = self:BanditCampFollowerCount()
     local group = beat.group
@@ -935,12 +1042,13 @@ function mercenaries:AlxSpawnLeaderNPC(pos, yaw, beat)
             end
         end
     end
-    if beat.extraHealthMult and ent.actor then
+    local hm = self:AlxHealthMult(beat)
+    if hm and ent.actor then
         pcall(function()
             local m = ent.actor:GetMaxHealth()
             if m and m > 0 then
-                ent.actor:SetMaxHealth(m * beat.extraHealthMult)
-                ent.actor:SetHealth(m * beat.extraHealthMult)
+                ent.actor:SetMaxHealth(m * hm)
+                ent.actor:SetHealth(m * hm)
             end
         end)
     end
@@ -1025,12 +1133,13 @@ function mercenaries:AlxSpawnBand(beat, count, archers, group)
             local ws2 = ent.this and tostring(ent.this.id) or nil
             if ws2 and ws2 ~= ws then table.insert(wuids, ws2) end
 
-            if beat.extraHealthMult and ent.actor then
+            local hm = self:AlxHealthMult(beat)
+            if hm and ent.actor then
                 pcall(function()
                     local m = ent.actor:GetMaxHealth()
                     if m and m > 0 then
-                        ent.actor:SetMaxHealth(m * beat.extraHealthMult)
-                        ent.actor:SetHealth(m * beat.extraHealthMult)
+                        ent.actor:SetMaxHealth(m * hm)
+                        ent.actor:SetHealth(m * hm)
                     end
                 end)
             end
@@ -1060,7 +1169,10 @@ function mercenaries:AlxSpawnCampProps(C, site)
 
     -- A small company gets fewer archer carts, and fewer archers on each of them.
     local beat = self.AlxBeats[C.beat] or {}
-    local small = beat.smallCompany and (self:BanditCampFollowerCount() <= beat.smallCompany)
+    -- Any relief at all counts as a small company now, so the carts and towers thin out on the
+    -- same curve as the health rather than at a hard "<= 5".
+    local small = beat.smallCompany and
+                  ((self:BanditCampFollowerCount() <= beat.smallCompany) or self:AlxSmallRelief() > 0)
     local cartCap = small and beat.cartsIfSmall or nil
     local towerCap = small and beat.towersIfSmall or nil
     local cartsPlaced, towersPlaced = 0, 0
@@ -1332,8 +1444,22 @@ function mercenaries:AlxSpawnBeat(n)
     if beat.siege then pcall(function() self:SpawnRaborsch() end) end
 
     local origin = self:CampSnapToGround(self:BanditCampSiteAnchor(site))
-    local leader = self:AlxSpawnLeaderNPC({ x = origin.x, y = origin.y + 3.2, z = origin.z },
-                                          site.yaw or 0, beat)
+    local leader
+    local kept = self.AlxKeptLeader
+    if kept and kept.beat == n then
+        local e; pcall(function() e = System.GetEntity(kept.id) end)
+        if e and ((e.actor == nil) or self:IsAliveAndWell(e, true)) then
+            leader = e
+            aLog("beat " .. n .. ": ADOPTED the saved leader '" .. tostring(kept.name) .. "' - he was here when the graph woke")
+        else
+            aLog("beat " .. n .. ": the kept leader is gone after all - spawning one")
+        end
+        self.AlxKeptLeader = nil
+    end
+    if not leader then
+        leader = self:AlxSpawnLeaderNPC({ x = origin.x, y = origin.y + 3.2, z = origin.z },
+                                        site.yaw or 0, beat)
+    end
     if leader then
         C.leaderId = leader.id
         table.insert(C.ids, leader.id)
@@ -1360,6 +1486,11 @@ function mercenaries:AlxSpawnBeat(n)
         self:AlxAssignCampRoles(C, origin)
     end
 
+    if self.AlxRearmBridge then
+        pcall(function() self:AlxSignalToken(self.AlxUpToken) end)
+        self:AlxScheduleRearm("beat camp up")
+    end
+    self:AlxLiveBeatWrite(n, leader and leader:GetName() or nil)
     aLog(string.format("beat %d '%s': camp up at '%s' - %d standing, leader %s (%s)%s",
         n, beat.name, tostring(beat.site), #C.ids, tostring(beat.leaderName),
         tostring(beat.leaderSoul), beat.doc and (" carrying " .. beat.doc) or ""))
@@ -1373,6 +1504,7 @@ function mercenaries:AlxRetireCamp()
     local C = self.AlxCamp
     if not C then return end
     self.AlxCamp = nil
+    self:AlxLiveBeatWrite(0)
     table.insert(self.AlxSpent, C)
     aLog("beat " .. tostring(C.beat) .. ": camp retired - it stands until the player is " ..
          tostring(self.AlxCampDespawnRange) .. "m off")
@@ -1442,7 +1574,7 @@ function mercenaries:AlxTearDown(C, onLoad)
             local e = System.GetEntity(id)
             local w = e and XGenAIModule.GetMyWUID(e)
             if w then self:ClearBanditCampActor(tostring(w)) end
-            System.RemoveEntity(id)
+            if not (self.KeepAcrossLoad or {})[id] then System.RemoveEntity(id) end
         end)
     end
     for _, ws in ipairs(C.wuids or {}) do
@@ -1463,12 +1595,15 @@ end
 
 -- How many of the camp are still on their feet. A missing handle is not a death (the engine
 -- drops one for a tick), so it is given AlxMissingTicks polls of the benefit of the doubt.
+-- A handle that RESOLVES but has no actor/soul proxies gets the same benefit: that is an
+-- UNLOADED man (streamed out, or spawned far away and never streamed in), and
+-- IsAliveAndWell would misread him as dead - the auto-complete bug in one line.
 function mercenaries:AlxLivingCount(C)
     C.missing = C.missing or {}
     local n = 0
     for _, id in ipairs(C.ids or {}) do
         local e = System.GetEntity(id)
-        if e then
+        if e and e.actor and e.soul then
             C.missing[id] = nil
             if self:IsAliveAndWell(e, false) then n = n + 1 end
         else
@@ -1489,6 +1624,26 @@ end
 -- which may be several beats ahead of the save being loaded.
 function mercenaries:AlxOnLoad()
     self:AlxSweepStaleTokens()
+    -- First, before any sweep: is the live beat's leader in this save? Names survive a save,
+    -- ids do not. Unloaded (no actor proxy yet) counts as alive - the same doctrine as every
+    -- death judgement in this file; a corpse is the one thing not adopted.
+    self.KeepAcrossLoad, self.AlxKeptLeader = {}, nil
+    do
+        local v; pcall(function() v = self:LoadString(self.AlxLiveBeatTag) end)
+        local n, name = string.match(tostring(v or ""), "^(%d+)|(.+)$")
+        n = tonumber(n)
+        if n and n > 0 and name then
+            local e; pcall(function() e = System.GetEntityByName(name) end)
+            local alive = e and ((e.actor == nil) or self:IsAliveAndWell(e, true))
+            if alive then
+                self.KeepAcrossLoad[e.id] = true
+                self.AlxKeptLeader = { id = e.id, name = name, beat = n }
+                aLog("load: beat " .. n .. " leader '" .. name .. "' is in this save and alive - keeping him for the wake path to adopt")
+            else
+                aLog("load: beat " .. n .. " saved leader '" .. name .. "' is " .. (e and "dead" or "not in this save") .. " - the wake path spawns a new one")
+            end
+        end
+    end
     -- Session flags for beat 6, not save data. Left standing, a tick after loading an earlier
     -- save could read the beat as live and hand its documents in again.
     self.AlxBeat6Live, self.AlxBeat6Done = false, false
@@ -1512,6 +1667,7 @@ function mercenaries:AlxOnLoad()
         if site then self:AlxSweepSite(site) end
     end
     self:AlxLodgingResetOnLoad()
+
 end
 
 -- The persistent Aleksej the player actually talks to for beats 1-5 (aleksej_dialog.xml is a
@@ -1632,16 +1788,38 @@ function mercenaries:AlxLodgingResetOnLoad()
     self.AlxLodgingId, self.AlxLodgingWuid, self.AlxFurnSO = nil, nil, nil
     self.AlxBeat6ChestId = nil          -- swept below with the rest of the room
 
+    -- Is the saved Aleksej in this save and alive? Then he is kept and adopted; only the
+    -- furniture is swept and rebuilt (the tick re-derives its handles anyway).
+    self.AlxKeptLodging = nil
+    do
+        local nm; pcall(function() nm = self:LoadString(self.AlxLodgingNameTag) end)
+        if nm and nm ~= "" and nm ~= "0" then
+            local e; pcall(function() e = System.GetEntityByName(nm) end)
+            local alive = e and ((e.actor == nil) or self:IsAliveAndWell(e, true))
+            if alive then
+                self.AlxKeptLodging = { id = e.id, name = nm }
+                self.KeepAcrossLoad = self.KeepAcrossLoad or {}
+                self.KeepAcrossLoad[e.id] = true
+                aLog("lodging: saved Aleksej '" .. nm .. "' is in this save and alive - keeping him to adopt")
+            else
+                aLog("lodging: saved Aleksej '" .. nm .. "' is " .. (e and "dead" or "not in this save") .. " - a new one is stood up")
+            end
+        end
+    end
+
     local swept = 0
+    local keepId = self.AlxKeptLodging and self.AlxKeptLodging.id
     for _, cls in ipairs({ "NPC", "Stash", "StanceSmartObject", "BasicEntity" }) do
         pcall(function()
             for _, e in pairs(System.GetEntitiesByClass(cls) or {}) do
                 local n = e and e:GetName() or ""
-                for _, pre in ipairs(self.AlxLodgingNames) do
-                    if string.find(n, pre, 1, true) == 1 then
-                        System.RemoveEntity(e.id)
-                        swept = swept + 1
-                        break
+                if e.id ~= keepId then
+                    for _, pre in ipairs(self.AlxLodgingNames) do
+                        if string.find(n, pre, 1, true) == 1 then
+                            System.RemoveEntity(e.id)
+                            swept = swept + 1
+                            break
+                        end
                     end
                 end
             end
@@ -1649,7 +1827,13 @@ function mercenaries:AlxLodgingResetOnLoad()
     end
     aLog("lodging: reset after load" ..
          (swept > 0 and (" (" .. swept .. " leftover(s) swept)") or "") ..
-         " - the tick puts him back within " .. tostring(self.AlxKeepEvery) .. "s")
+         " - standing him up now, the tick backs it up within " .. tostring(self.AlxKeepEvery) .. "s")
+    -- Immediately, not on the tick. The quest graph resolves its SoulAsset markers to the
+    -- NPC carrying the soul, and a marker resolved while he was between the sweep above and
+    -- the tick's respawn resolves to nothing - which is the report "Aleksej has no tipster,
+    -- he spawned after the quest tried to apply it" (2026-09-04), and it was right. The
+    -- tick's own "already standing" guard makes this safe to do twice.
+    pcall(function() self:AlxLodgingSpawn() end)
 end
 
 function mercenaries:AlxLodgingTick()
@@ -1707,15 +1891,32 @@ function mercenaries:AlxLodgingSpawn()
     local yaw = L.spawnYaw or 0
     local soul = self.AlxSoul or self.AlxTestSoul
     local ent
-    pcall(function()
-        local name = "AleksejLodging_" .. tostring(math.random(10000, 99999))
-        System.SpawnEntity({
-            class = "NPC", name = name,
-            position = pos, orientation = { x = 0, y = 0, z = yaw },
-            properties = { guidSharedSoulId = soul },
-        })
-        ent = System.GetEntityByName(name)
-    end)
+    local kept = self.AlxKeptLodging
+    self.AlxKeptLodging = nil
+    if kept then
+        local e; pcall(function() e = System.GetEntity(kept.id) end)
+        if e and ((e.actor == nil) or self:IsAliveAndWell(e, true)) then
+            ent = e
+            aLog("lodging: ADOPTED the saved Aleksej '" .. tostring(kept.name) .. "' - he was here when the graph woke")
+        else
+            aLog("lodging: the kept Aleksej is gone after all - spawning")
+        end
+    end
+    if not ent then
+        pcall(function()
+            local name = "AleksejLodging_" .. tostring(math.random(10000, 99999))
+            System.SpawnEntity({
+                class = "NPC", name = name,
+                position = pos, orientation = { x = 0, y = 0, z = yaw },
+                properties = { guidSharedSoulId = soul },
+            })
+            ent = System.GetEntityByName(name)
+        end)
+    end
+    if ent then
+        -- His name is what survives a save; the id does not.
+        pcall(function() self:SaveString(self.AlxLodgingNameTag, ent:GetName()) end)
+    end
     if not ent then
         aLog("lodging: SpawnEntity failed. soul=" .. tostring(soul) ..
              string.format("  pos=(%.2f, %.2f, %.2f)", pos.x or -1, pos.y or -1, pos.z or -1))
@@ -1742,6 +1943,10 @@ function mercenaries:AlxLodgingSpawn()
              " chest=" .. tostring(so and so.chestId ~= nil) ..
              "   (models: Stool=" .. tostring(self.CampModels and self.CampModels.Stool ~= nil) ..
              " Bed=" .. tostring(self.CampModels and self.CampModels.Bed ~= nil) .. ")")
+        if self.AlxRearmBridge then
+            pcall(function() self:AlxSignalToken(self.AlxUpToken) end)
+            self:AlxScheduleRearm("Aleksej up")
+        end
         self.AlxLodgingDay = nil
         self:AlxLodgingTick()
     end
@@ -1760,6 +1965,7 @@ function mercenaries:AlxLodgingRemove()
         System.RemoveEntity(id)
     end)
     aLog("beat 6: Aleksej is gone from his lodging")
+    pcall(function() self:SaveString(self.AlxLodgingNameTag, "0") end)
     -- He is gone for good from beat 6: that absence is the reveal, so the keeper below must not
     -- put him back.
     self.AlxLodgingGone = true
@@ -1849,6 +2055,7 @@ end
 
 function mercenaries:AlxTick()
     self:AlxSweepTokens()
+    self:AlxRearmTick()
     self:AlxSpentTick()
     -- Beat 6 has nothing in the world for Skald to watch die, so this is the one place Lua still
     -- reports progress: both documents out of the chest is that beat's hand-off.
@@ -1867,12 +2074,27 @@ function mercenaries:AlxTick()
     local C = self.AlxCamp
     if not C then return end
 
+    -- The evidence gate for everything below: are we close enough to the site that a
+    -- death reading means a death, not a not-streamed-in man? See AlxProgressRange.
+    local nearSite = false
+    pcall(function()
+        local p = player and player:GetWorldPos()
+        local a = C.site and self:BanditCampSiteAnchor(C.site)
+        if p and a then
+            local d = math.sqrt((a.x - p.x) ^ 2 + (a.y - p.y) ^ 2 + (a.z - p.z) ^ 2)
+            nearSite = d <= (self.AlxProgressRange or 250.0)
+        end
+    end)
+
     -- THE ONE PIECE OF PROGRESS LUA STILL REPORTS: the leader is down. A missing body is not
-    -- proof (the engine drops a handle for a tick), so it gets the same grace as everyone else.
-    if C.leaderId and not C.leaderNoted then
+    -- proof (the engine drops a handle for a tick), so it gets the same grace as everyone
+    -- else - and a body that resolves WITHOUT actor/soul proxies is unloaded, not dead, so
+    -- it goes down the same grace path rather than the IsAliveAndWell misread. Judged only
+    -- from near the site; from afar every reading is a streaming artefact.
+    if nearSite and C.leaderId and not C.leaderNoted then
         local down = false
         local le = System.GetEntity(C.leaderId)
-        if le then
+        if le and le.actor and le.soul then
             C.leaderMissing = 0
             down = not self:IsAliveAndWell(le, true)
         else
@@ -1881,6 +2103,7 @@ function mercenaries:AlxTick()
         end
         if down then
             C.leaderNoted = true
+            self:AlxLiveBeatWrite(0)       -- finished: never stood up again at load
             self:AlxSignalToken(self.AlxDownToken[C.beat])
             aLog("beat " .. tostring(C.beat) .. ": the leader is down - told Skald")
         end
@@ -1910,12 +2133,36 @@ function mercenaries:AlxTick()
     -- The camp comes away when the last man in it is down AND the player has walked off. THE
     -- QUEST DOES NOT WAIT FOR EITHER - Skald closed the beat the moment the leader fell; this
     -- only decides when the tents go, and taking them down under the player's feet looked awful.
-    if self:AlxLivingCount(C) == 0 then
-        if not C.cleared then
+    --
+    -- C.cleared may only be LATCHED from near the site (a far reading is streaming, not
+    -- death) - but once latched, the walk-off despawn below runs from any distance, so a
+    -- player who fast-travels away from a genuinely cleared camp still gets it cleaned up.
+    -- Beat 8 additionally requires the SIEGE force down: C.ids only tracks the officer and
+    -- his band, and "every man down" with a hundred besiegers still standing used to close
+    -- the beat around them.
+    if not C.cleared and nearSite and self:AlxLivingCount(C) == 0 then
+        local siegeUp = false
+        if C.beat == 8 then
+            pcall(function()
+                if not (self.RBQ and self.RBQ.active) then return end
+                for _, list in ipairs({ self.RBQ.foot, self.RBQ.archers }) do
+                    for _, id in ipairs(list or {}) do
+                        local e = System.GetEntity(id)
+                        if e and e.actor and e.soul and self:IsAliveAndWell(e, true) then
+                            siegeUp = true
+                            return
+                        end
+                    end
+                end
+            end)
+        end
+        if not siegeUp then
             C.cleared = true
             aLog("beat " .. tostring(C.beat) .. ": every man down - the camp stands until the player is " ..
                  tostring(self.AlxCampDespawnRange) .. "m off")
         end
+    end
+    if C.cleared then
         local p = player and player:GetWorldPos()
         local a = C.site and self:BanditCampSiteAnchor(C.site)
         if p and a then

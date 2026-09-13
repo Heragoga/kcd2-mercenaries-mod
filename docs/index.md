@@ -28,6 +28,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [The command interface](command-ui.md) (the Bannerlord-style battle order UI: squad cards, the order row and the radial submenu, built from a generated Scaleform atlas - how to rebuild it, rebind it and wire it to the real company)
 * [The camp screen](camp-ui.md) - pitch it, build it, and run the company's books; U opens it
 * [Building a custom UI screen](ui-building.md) - step by step, from an empty scene file to a working screen, plus every trap that cost me time
+* [Putting your own marker on the world map](map-marker.md) (The map is a Scaleform movie, not a game system: nine values into `UIAction.SetArray("ApseMap", -1, "PoiMarkers", ...)` and a POI is on the map. Also the compass, and why `ShowMapMarker` and `LocationPoint` were the wrong trail)
 
 ### XML
 * [How to add a new NPC](xml/add-new-npc.md) (Covers defining the soul, inventory and appearance)
@@ -52,11 +53,20 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Custom companions](companions.md) (The 44 named companions cloned from vanilla characters: the roster generator that is the single source of truth, the thirteen files each one has to exist in, vanilla-versus-built gear, the categorised hire menu, and the three traps - quest items that arm nobody, sheathed polearms that do not render, and body_type making an NPC invisible)
 * [Squad outfits](outfits.md) (The 180-preset wardrobe: the per-tier armour budget that makes every style equally tough, the layering rules that break silently, the six styles and their heraldry, the reinforced caftans the Cuman styles need, and what is excluded from the item pool and why)
 * [The custom uniform](custom-gear.md) (Drop a set of gear in a chest and the whole company wears a copy of it, anywhere, camp or no camp: the offline GUID→slot table that exists because nothing in the scriptbind reports a slot, the dressing order that is the whole trick, the gambeson-under-plate rule, and how an empty pattern means naked with a sword)
+* [Female mercenaries](female-mercenaries.md) (`merc_hire_female` and a "Women." branch on the hire menu: their own category like the archers, with a wardrobe of medium gear minus the headgear that the squad outfit switch cannot touch, no dialogue, and female heads lifted onto the male skeleton by tools/fit_female_heads.py - plus why the game itself cannot give you female soldiers at all)
 * [Formations](formations.md) (How the squad marches: the engine formation system, the elected-leader anchor it forces, the seven generated shapes, and the mounted variant - plus the vanilla research behind it)
 * [The torture test](torture-test.md) (One command drives a real game session through 19 behaviour checks - hire, camp, upgrades, deploy composition, a staged fight, the time-skip guards, and persistence across a save + cold relaunch - and prints PASS/FAIL verdicts)
+* [Manual test plan](manual-tests.md) (The hand-run checklist: a 15-minute smoke test, regression steps for every reported bug, and the visual checks a log-reading harness cannot make)
+* [Retest, round 2](retest-round2.md) (The short follow-up plan: the five fixes from 2026-09-03, the two unverified ones, and the areas the first hand run never reached)
+* [Retest, round 3](retest-round3.md) (The roster that keeps the company out of the save, fast travel, the fifty-man formation, and what the second hand run found)
+- [retest-round4.md](retest-round4.md) - what to test next: the 30 commands that never accepted an argument, then the untested areas
+* [Open items](open-items.md) (What is left: fixes that have never been seen working, known-and-unfixed bugs, and the areas the hand runs never reached)
+* [Detecting fast travel](travel-detection.md) (Why the original detector never fired in any version, the 100ms slot that makes it work, and the probe command for when it still misses)
 * [Performance](performance.md) (What the mod costs and what controls it: the patrol population caps that fixed the long-standing lag, every cost tunable with its default, the profiler and how to read it, and what was ruled out so it is not re-chased)
+* [Save footprint and uninstalling](save-footprint.md) (Why an uninstalled game can load slowly, the three suspects — spawned NPCs, the hidden saver entities, the 176 item classes — and the staged purge commands that measure which one actually costs the minute)
 * [NPC LOD and invisible mercenaries](npc-lod.md) (The four systems that can stop an NPC rendering while it keeps fighting: AI LOD tiers and count budgets, the runtime clothing/attachment pipeline, quest-driven hides, and the per-battle cvar overrides — plus diagnostics)
 * [utokNaMalesov structure](malesov-structure.md) (What actually enrols an NPC in a scripted battle: `AddFactionRelationBetweenArrays` SoulArray0→SoulArray1, why nothing in the quest hides anyone, and why hibernation is a red herring)
+- [malesov-test.md](malesov-test.md) - how to test the battle stash: the two failure modes, separately
 * [Main-quest battle overrides](quest-override-battles.md) (**The shipping fix for invisible mercenaries**: all 12 main-quest battles overridden with the merc souls listed in their SoulAssets — what the tool does, the scopes, and the maintenance burden)
 * [Quest-override experiment](quest-override-test.md) (The single-quest Malesov prototype that proved soul membership is the render gate — `merc_testmerc`, the bisects, and how to revert)
 * [Post-battle loot sweep](loot-sweep.md) (Mercs wander the corpses and rummage after a fight - animation only, no item transfer - plus the revive/knockout/mercy-kill act, and why it rides the camp activity pipeline instead of its own module)

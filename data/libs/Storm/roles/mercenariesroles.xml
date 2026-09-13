@@ -1289,5 +1289,167 @@
       </operations>
     </rule>
 <!-- end generated companions -->
+    <!-- FEMALE MERCENARIES. The same two roles every other merc gets, and that is the point:
+         roles are what the dialogues bind to, so a soul with no rule in this file has no
+         dialogue options at all - which is exactly how the first build shipped them.
+         They are muted in RequestBark and skipped by the camp-chat pairing instead; the
+         voice is off, the dialogue is not. See docs/female-mercenaries.md. -->
+    <rule name="mercenary_female_1_role">
+      <selectors>
+        <hasName name="soul_merc_female_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_2_role">
+      <selectors>
+        <hasName name="soul_merc_female_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_3_role">
+      <selectors>
+        <hasName name="soul_merc_female_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_4_role">
+      <selectors>
+        <hasName name="soul_merc_female_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_5_role">
+      <selectors>
+        <hasName name="soul_merc_female_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_6_role">
+      <selectors>
+        <hasName name="soul_merc_female_6" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_7_role">
+      <selectors>
+        <hasName name="soul_merc_female_7" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_8_role">
+      <selectors>
+        <hasName name="soul_merc_female_8" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_9_role">
+      <selectors>
+        <hasName name="soul_merc_female_9" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_10_role">
+      <selectors>
+        <hasName name="soul_merc_female_10" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <!-- FEMALE MERCENARIES: the combat voice.
+         ================================================================================
+         The mercs' souls are soul_archetype_id="0" - male, deliberately, because archetype 1
+         would hand them the female animation set and that set has no combat in it at all
+         (docs/female-mercenaries.md). The engine therefore reads them as <isMan />, and
+         vanilla's own Libs/Storm/roles/world/combat.xml hands every isMan NPC the MALE combat
+         roles:
+
+             combat_man                   -> ZASAH_ZBRANI_SILNY_MUZ, ZASAH_ZBRANI_SLABY_MUZ, ...
+             combat_man_killingInCombat   -> RANENY_NA_ZEMI_MUZ, SMRTELNY_ZASAH_MUZ
+             combat_man_murderingSilently -> TICHE_ZABITI_V_CLINCHI_MUZ, HLASITE_ZABITI_V_CLINCHI_MUZ
+
+         while the ZENA variants - the ones the actresses actually recorded - go to <isWoman />
+         only. So a female merc sits in the male slots holding a female voice, and the lines she
+         can be cast into are ones her voice never recorded.
+
+         This swaps the six gendered ones. It is not cosmetic: those roles ARE the hit grunts,
+         the death cry and the wounded-on-the-ground lines. Counted in the extracted VO, every
+         one of the ten voices assigned to these souls carries exactly the set this unlocks -
+         8 inkasovany_zasah (weapon hit), 3 smrtelny (death), 3 tezce raneny (wounded), 2 tiche
+         and 2 hlasite zabiti (quiet / loud kill) = the 18 files in open_world/boj_a_zraneni.
+
+         Nothing is shipped for this: no dialog, no .ogg, no localisation. The recordings are
+         the base game's, cast on the speaker's own voice.
+
+         The UNGENDERED roles from combat_man (BOJ_HEKANI, HEKANI_PRI_POHYBU, HEKANI_V_CLINCHI,
+         BOJ_ODDYCHOVANI, SKRCENI_V_CLINCHI...) are deliberately left alone. They are safe to
+         hold: voice.xml's fallback_voice_id chains are gender-closed - every female voice falls
+         back only to other women, ending at fejka - so the worst a woman can do on a line her
+         voice never recorded is fall back to another woman or go quiet. She can never emit a
+         man's voice. Removing them could only lose grunts we might be getting for free.
+
+         If the removeRole half does not take (Storm applies files in order, and this one has to
+         run after vanilla's combat.xml), the addRole half still works on its own: she would hold
+         both sets and be cast into a male line some of the time, which by the fallback rule above
+         is silence rather than a man's voice. The add is the part that matters; the remove is
+         tidiness. Worth listening for. -->
+    <rule name="mercenary_female_combat_voice">
+      <selectors>
+        <or>
+          <hasName name="soul_merc_female_1" />
+          <hasName name="soul_merc_female_2" />
+          <hasName name="soul_merc_female_3" />
+          <hasName name="soul_merc_female_4" />
+          <hasName name="soul_merc_female_5" />
+          <hasName name="soul_merc_female_6" />
+          <hasName name="soul_merc_female_7" />
+          <hasName name="soul_merc_female_8" />
+          <hasName name="soul_merc_female_9" />
+          <hasName name="soul_merc_female_10" />
+        </or>
+      </selectors>
+      <operations>
+        <removeRole name="ZASAH_ZBRANI_SILNY_MUZ" />
+        <removeRole name="ZASAH_ZBRANI_SLABY_MUZ" />
+        <removeRole name="RANENY_NA_ZEMI_MUZ" />
+        <removeRole name="SMRTELNY_ZASAH_MUZ" />
+        <removeRole name="TICHE_ZABITI_V_CLINCHI_MUZ" />
+        <removeRole name="HLASITE_ZABITI_V_CLINCHI_MUZ" />
+        <addRole name="ZASAH_ZBRANI_SILNY_ZENA" />
+        <addRole name="ZASAH_ZBRANI_SLABY_ZENA" />
+        <addRole name="RANENY_NA_ZEMI_ZENA" />
+        <addRole name="SMRTELNY_ZASAH_ZENA" />
+        <addRole name="TICHE_ZABITI_V_CLINCHI_ZENA" />
+        <addRole name="HLASITE_ZABITI_V_CLINCHI_ZENA" />
+      </operations>
+    </rule>
 </rules>
 </storm>

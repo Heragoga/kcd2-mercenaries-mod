@@ -86,9 +86,10 @@ local function gLog(s) System.LogAlways("[Gear] " .. tostring(s)) end
 -- pays for it.
 
 mercenaries.GearIndexBuilt = false
-mercenaries.GearSlot   = {}
-mercenaries.GearWeapon = {}
-mercenaries.GearQuest  = {}
+mercenaries.GearSlot    = {}
+mercenaries.GearWeapon  = {}
+mercenaries.GearQuest   = {}
+mercenaries.GearNonGear = {}   -- vanilla items that are NOT equipment; see GearIsKnownVanilla
 
 local function unpackBlobs(blobs, into, value)
     for _, blob in ipairs(blobs or {}) do
@@ -124,11 +125,95 @@ function mercenaries:GearBuildIndex()
         unpackBlobs(blobs, self.GearWeapon, wclass)
     end
     unpackBlobs(self.GearQuestBlobs, self.GearQuest, true)
+    unpackBlobs(self.GearNonGearBlobs, self.GearNonGear, true)
+end
+
+-- Is this class part of the VANILLA game at all - gear or otherwise? A class in none
+-- of the three baked tables did not ship with the game, so it comes from another mod
+-- (or from a patch newer than the dump). That distinction is the whole reason the
+-- non-gear table exists: a modded cuirass and a loaf of bread are both absent from the
+-- slot table, and the wardrobe has to wear the one and ignore the other.
+function mercenaries:GearIsKnownVanilla(cls)
+    self:GearBuildIndex()
+    local k = self:GearKey(cls)
+    if not k then return false end
+    return (self.GearSlot[k] ~= nil) or (self.GearWeapon[k] ~= nil)
+           or (self.GearNonGear[k] == true)
+end
+
+-- Should the wardrobe take this class into the pattern at all? Vanilla gear, yes.
+-- Vanilla anything-else (food, potions, tools), no - that is a misdrop, and ignoring
+-- it silently is the long-standing behaviour. Anything the game itself never shipped
+-- is treated as modded EQUIPMENT and accepted: it cannot be graded, so it is worn last
+-- and the engine decides whether it fits. Refusing those was the bug - a player with
+-- an armour mod put a modded cuirass in the chest and the wardrobe ignored it without
+-- a word.
+function mercenaries:GearIsWearableClass(cls)
+    if self:GearSlotOf(cls) ~= nil then return true, "vanilla gear" end
+    if self:GearWeaponClassOf(cls) ~= nil then return true, "vanilla weapon" end
+    if not self:GearIsKnownVanilla(cls) then return true, "modded" end
+    return false, "not equipment"
 end
 
 function mercenaries:GearSlotOf(cls)
     self:GearBuildIndex()
     return self.GearSlot[self:GearKey(cls)]
+end
+
+-- Last resort for an item the baked table has never heard of: ask the engine for its
+-- DATABASE NAME and read the clothing family off the front of it. Vanilla armour is
+-- named "<Family><NN>_m<NN>[_Q]" and the family is what decides the slot, so a modded
+-- piece whose author copied a vanilla row - which is how nearly all of them are made -
+-- resolves correctly. There is no scriptbind that reports a slot (docs/custom-gear.md),
+-- so this is a proxy, and a deliberately conservative one: anything it cannot parse
+-- stays unknown rather than guessing.
+--
+-- Worth the trouble because slot is not cosmetic here. It decides layer order and the
+-- prerequisite fill, and a cuirass offered with no gambeson under it is refused by the
+-- engine WITHOUT A WORD - so an unslotted modded breastplate would simply never appear.
+mercenaries.GearNameSlotCache = {}
+
+function mercenaries:GearSlotByName(cls)
+    local k = self:GearKey(cls)
+    if not k then return nil end
+    local hit = self.GearNameSlotCache[k]
+    if hit ~= nil then return (hit ~= false) and hit or nil end
+
+    local nm
+    pcall(function() nm = ItemManager.GetItemName(cls) end)
+    local slot = nil
+    if type(nm) == "string" and nm ~= "" then
+        -- Leading letters and underscores, stopping at the first digit:
+        -- "LegsBrigandine04_m02_A5" -> "LegsBrigandine", "F_Kirtle01" -> "F_Kirtle".
+        local base = string.match(nm, "^([%a_]+)")
+        if base then
+            -- The table is emitted longest-prefix-first, so the first hit is the most
+            -- specific one (BascinetVisor before Bascinet).
+            for _, row in ipairs(self.GearNamePrefixSlots or {}) do
+                local pfx = row[1]
+                if string.sub(base, 1, string.len(pfx)) == pfx then
+                    slot = row[2]
+                    break
+                end
+            end
+        end
+        if slot then
+            gLog(string.format("modded '%s' read as slot %d from its name", nm, slot))
+        end
+    end
+    self.GearNameSlotCache[k] = (slot ~= nil) and slot or false
+    return slot
+end
+
+-- The slot to actually use: the baked table when it knows, the name proxy when it does
+-- not. Vanilla items never reach the proxy, so its accuracy only ever affects modded
+-- pieces - which would otherwise have no slot at all.
+function mercenaries:GearResolveSlot(cls)
+    local s = self:GearSlotOf(cls)
+    if s ~= nil then return s end
+    if self:GearWeaponClassOf(cls) ~= nil then return nil end   -- weapons have no slot
+    if self:GearIsKnownVanilla(cls) then return nil end         -- vanilla non-gear
+    return self:GearSlotByName(cls)
 end
 
 function mercenaries:GearWeaponClassOf(cls)
@@ -193,11 +278,31 @@ function mercenaries:GearLoadSet()
 end
 
 function mercenaries:GearSaveSet(list)
-    local parts = {}
+    -- Remember what is being REPLACED, so the re-dress can take it back off. The purge
+    -- recognises armour by its baked slot, which a modded piece does not have, so
+    -- without this a merc who was wearing a modded helmet kept wearing it after the
+    -- player chose a different one - two helmets in the pack and the engine's pick
+    -- showing. Only the unknown ones need recording; the rest the purge already knows.
+    local outgoing = {}
+    for _, cls in ipairs(self:GearLoadSet()) do
+        if not self:GearIsKnownVanilla(cls) then     -- modded: the purge cannot spot it
+            outgoing[self:GearKey(cls)] = cls
+        end
+    end
+
+    local parts, keep = {}, {}
     for _, cls in ipairs(list or {}) do
         local k = self:GearKey(cls)
-        if k and string.len(k) == 32 then parts[#parts + 1] = k end
+        if k and string.len(k) == 32 then
+            parts[#parts + 1] = k
+            keep[k] = true
+        end
     end
+    self.GearStale = self.GearStale or {}
+    for k, cls in pairs(outgoing) do
+        if not keep[k] then self.GearStale[k] = cls end
+    end
+
     local blob = table.concat(parts)
     self:SaveString(self.GearSaveTag, (blob ~= "") and blob or "none")
     self.CustomGearSet = list or {}
@@ -216,7 +321,7 @@ function mercenaries:GearResolveSet()
         if wclass then
             weapons[#weapons + 1] = { cls = cls, wclass = wclass }
         else
-            local slot = self:GearSlotOf(cls)
+            local slot = self:GearResolveSlot(cls)
             if slot == nil then
                 -- Not in the baked table at all - a modded item, or one added by a
                 -- patch newer than the dump. "Unknown" is not a slot: collapsing them
@@ -610,9 +715,14 @@ function mercenaries:GearPurgeArmour(ent, keep)
         local it
         pcall(function() it = ItemManager.GetItem(handle) end)
         local cls = type(it) == "table" and it.class or nil
-        if cls and self:GearSlotOf(cls) ~= nil then          -- armour only
+        if cls then
             local key = self:GearKey(cls)
-            if not (keep and keep[key]) then doomed[key] = cls end
+            -- Armour the baked table knows, plus any UNKNOWN piece a previous pattern
+            -- put on him (GearStale). Never anything else in his pack: a merc carries
+            -- his own food and loot, and this deletes what it touches.
+            local ours = (self:GearResolveSlot(cls) ~= nil)
+                         or (self.GearStale and self.GearStale[key] ~= nil)
+            if ours and not (keep and keep[key]) then doomed[key] = cls end
         end
     end
 
@@ -786,8 +896,13 @@ function mercenaries:GearReadInventory(inv)
     return out, (entries == 0) or (#out > 0)
 end
 
--- Fallback: ask for a count of every gear class the index knows about. ~2700
+-- Fallback: ask for a count of every gear class the index knows about. ~3900
 -- lookups, one-shot, only when GetInventoryTable/GetItem produced nothing.
+--
+-- MODDED PIECES ARE INVISIBLE ON THIS PATH, and cannot not be: it works by asking
+-- after classes it already knows, and a modded class is by definition not one of
+-- them. There is no enumeration to fall back on beyond GetInventoryTable, so this
+-- says so rather than leaving the player wondering why one piece was ignored.
 function mercenaries:GearScanInventory(inv)
     self:GearBuildIndex()
     local out = {}
@@ -801,6 +916,8 @@ function mercenaries:GearScanInventory(inv)
     end
     probe(self.GearSlot)
     probe(self.GearWeapon)
+    gLog("class scan found " .. #out .. " vanilla piece(s) - items from other mods " ..
+         "cannot be seen this way")
     return out
 end
 
@@ -849,9 +966,18 @@ mercenaries.GearChest = nil            -- { id, base, sig, idle, ticks }
 -- Which one thing in the pattern this class would be. Armour answers with a slot,
 -- weapons with a role, and the pattern holds one of each: that is what makes a second
 -- visit with a pair of hose ADD hose, and a second helmet REPLACE the first.
+-- Returns role (weapons) or slot (armour). A class the baked table has never heard of -
+-- a modded piece, or one from a patch newer than the dump - answers nil for BOTH, and
+-- that nil is meaningful: it means "no known identity", not "slot 0".
+--
+-- It used to answer slot 0 for those. Slot 0 is a REAL slot with twelve vanilla items in
+-- it (chain collars, spectacles, a painter's torso - see docs/custom-gear.md), so every
+-- unknown modded piece collided with every other one AND with those twelve: whichever
+-- went into the chest last evicted all the rest, and a player who put in two modded
+-- pieces kept one. Callers must treat a nil slot as "unique to its own class".
 function mercenaries:GearRoleOf(cls)
     local wclass = self:GearWeaponClassOf(cls)
-    if not wclass then return nil, (self:GearSlotOf(cls) or 0) end
+    if not wclass then return nil, self:GearResolveSlot(cls) end
     if self.GearShieldClasses[wclass] then return "shield" end
     if self.GearMissileClasses[wclass] then return "missile" end
     return "melee"
@@ -861,9 +987,16 @@ function mercenaries:GearFold(list, cls)
     local role, slot = self:GearRoleOf(cls)
     if slot and self.GearHorseSlots[slot] then return false, "horse tack" end
     if self:GearIsQuestItem(cls) then return false, "quest item, cannot be copied" end
+    local key = self:GearKey(cls)
     for i = #list, 1, -1 do
-        local oRole, oSlot = self:GearRoleOf(list[i])
-        if (role and oRole == role) or (slot and oSlot == slot) then
+        local other = list[i]
+        local oRole, oSlot = self:GearRoleOf(other)
+        -- Same weapon role, or same KNOWN armour slot, replaces. An unknown piece
+        -- (slot nil) only ever replaces itself - see GearRoleOf: nil is "no known
+        -- identity", and two unknown pieces are not therefore the same piece.
+        if (role and oRole == role)
+           or (slot ~= nil and oSlot == slot)
+           or (self:GearKey(other) == key) then
             table.remove(list, i)
         end
     end
@@ -1026,11 +1159,14 @@ function mercenaries.GearWardrobeTick()
     for _, cls in ipairs(C.base) do list[#list + 1] = cls end
     for _, entry in ipairs(contents) do
         sig[#sig + 1] = tostring(self:GearKey(entry.cls)) .. "x" .. tostring(entry.amount or 1)
-        if (self:GearSlotOf(entry.cls) ~= nil) or (self:GearWeaponClassOf(entry.cls) ~= nil) then
+        local wearable, kind = self:GearIsWearableClass(entry.cls)
+        if wearable then
             local ok, why = self:GearFold(list, entry.cls)
-            if self.GearLog or not ok then
-                gLog("  " .. self:GearDbName(entry.cls) .. ": " .. tostring(why))
+            if self.GearLog or not ok or kind == "modded" then
+                gLog("  " .. self:GearDbName(entry.cls) .. " (" .. kind .. "): " .. tostring(why))
             end
+        elseif self.GearLog then
+            gLog("  " .. self:GearDbName(entry.cls) .. ": " .. tostring(kind) .. ", left out")
         end
     end
     table.sort(sig)

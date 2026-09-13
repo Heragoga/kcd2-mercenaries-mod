@@ -22,8 +22,38 @@ import struct
 import sys
 import zipfile
 
-GAME = r'C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2'
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _find_game():
+    """Where KCD2 is on THIS machine. Mirrors tools/Find-KCD2.ps1, which is the
+    authority for the .bat and .ps1 scripts: KCD2_DIR first, then a game= line in
+    tools/local.paths.txt, then the usual Steam locations. A hardcoded path here was
+    simply wrong on any machine but the one it was written on."""
+    env = os.environ.get('KCD2_DIR')
+    if env and os.path.isdir(env):
+        return env
+    local = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'local.paths.txt')
+    if os.path.isfile(local):
+        with open(local, encoding='utf-8', errors='replace') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('#') or '=' not in line:
+                    continue
+                k, v = line.split('=', 1)
+                if k.strip().lower() == 'game':
+                    v = v.strip().strip('"')
+                    if os.path.isdir(v):
+                        return v
+    for guess in (
+            r'C:\Program Files (x86)\Steam\steamapps\common\KingdomComeDeliverance2',
+            r'C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2'):
+        if os.path.isdir(guess):
+            return guess
+    return None
+
+
+GAME = _find_game()
 
 INDEX = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'facial_donors.json')
 OUT_DIR = os.path.join(REPO, 'data', 'Animations', 'humans', 'facials', 'dialog')

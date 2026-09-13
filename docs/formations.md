@@ -1494,3 +1494,191 @@ active `nav_goto`.
 > Both files now carry `refireBlock`, `FollowGate`, and `NoteFollowEviction` on both eviction
 > sites. They are the only two schedulers with the `$isFollowingActive` latch — grep for it before
 > assuming a fix is complete.
+
+## Fifty men: the engine's own budget (2026-09-03)
+
+A 50-man line where "about half follow and the rest stand about" is not the formation code.
+The log shows the stall detector standing down with `30 of 50 merc(s) flagged at once - the
+world is not running under them`: the engine's AI Detail budget (`WH_AI_LOD_MaxCountDetail`,
+70) cannot hold the company plus its horses plus the villagers, and an NPC outside it is
+simulated coarsely - it stands, or moves in jumps. The battle LOD boost raised that budget
+only once there were foes. `LodBoostCompanyMin` (30, mercenaries_lodboost.lua) now arms the
+**AI half only** of the boost for a company that size out on the road (not while camped):
+Detail 260, the renderer untouched, so a town's own view-distance override is not fought.
+Riders past `HorsesMaxCompany` (30, `merc_horses_max`) stay on foot: fifty riders is a hundred
+AI entities, and "riderless horses past a certain distance" is the same budget again.
+
+## Fifty men, second pass: the watch was the churn (2026-09-03)
+
+With the AI budget raised, one or two men still "broke formation and returned" at fifty,
+never at ten. The log has the mechanism, in order: `rebuild #6 (grow) merc_column50`, then
+`49 of 50 merc(s) flagged at once ... repairing 6 per pass`, then a stream of
+`stalled 3x - dropping him out of the formation`, `stalled 5x - hauled him to the player`,
+`back in the formation (stall suppression expired)`. That cycle - ejected, teleported,
+re-admitted thirty seconds later - IS the man breaking formation and returning. The git
+history agrees with the memory that early versions did not do this: none of the stall
+ladder existed before the last two commits.
+
+Three changes to `mercenaries_formation_handler.lua`:
+
+* **A settle window after every rebuild.** An epoch change deals every follower a new slot
+  and they all walk to it; that is not fifty men stalling. The watch now sits out
+  `FollowSettleBaseSecs + squad x FollowSettlePerMercSecs` (13.5 s at fifty) after any
+  epoch change, with anchors and streaks dropped, and judges the men afresh from where they
+  stand after.
+* **A mass flag never climbs the ladder.** When half the squad is flagged in one pass the
+  few taken are re-fired and nothing more - the ladder is what turned a transient into
+  ejections.
+* **The drop-out tier is off** (`FollowDropOutEnabled = false`). A man slow to reach his slot
+  is better left in it than thrown out for thirty seconds. The STALL report it printed still
+  prints, and the haul tier (now at 6 strikes) still catches a man who is genuinely wedged.
+
+And one scaling fix: the player-drift stall test (`DismountVerifyPlayer`, 5 m) now scales as
+`0.25 x FormationCap`. A column of fifty is ~45 m deep - when the player takes his first five
+metres the rear ranks are *supposed* to stand still, that is the slack in the shape.
+
+## The leader at fifty horses (2026-09-03)
+
+Nearest-to-the-player already leads, with a distance margin (30 m mounted) and a hold time
+so riders overtaking on a corner do not swap the anchor every second. At fifty horses that
+margin let a leader sit boxed in mid-pack for a long time, and a stuck anchor stands the
+whole squad. Two rules on top, in `UpdateFormationLeader`:
+
+* **Rank.** A leader with `FormationLeaderMaxRank` (4) fit men closer to the player than
+  him is replaced after the same hold time, whatever the metre gap - "one of the nearest".
+* **Stuck.** The player has covered 6 m while the leader covered under 1.5 m, for 3 s:
+  replaced immediately with no margin, hold or cooldown, and the old leader is hauled to just
+  behind the player (`LeaderUnstick`) so he is not left wedged. A mounted leader is
+  dismounted first, since a rider moved without his horse is stranded; the lifecycle
+  re-mounts him on the spot.
+
+## Instant mounting (2026-09-03)
+
+Fifty men took ten to twenty seconds to get into the saddle: each spawned a horse 5 m off on
+a random bearing, walked to it, and played the mount transition, one queue per man. The
+Human bind has `ForceMount(EntityId horseId)`. The lifecycle now spawns the horse 2 m off and
+calls `MercInstantMount` the same tick; the tree's `StanceCheck` finds the man already riding
+and goes straight to the ride loop. If neither `ForceMount` nor `Mount` takes on a build, the
+walk-to-mount path runs exactly as before - the log says once which bind answered.
+
+## The hold release, and the vanilla idiom (2026-09-03, third pass)
+
+The settle window keyed on the epoch, and the very next test released a fifty-man hold
+order: that re-fires all fifty follow trees like a rebuild does, but bumps no epoch. The
+verify window then sampled every 2 s, six men queued at the tail of a 45 m column reached
+six strikes in twelve seconds, and were hauled - vanishing and reappearing at the player,
+which is the most visible thing the mod can do to a man. "Made it worse" was exactly right.
+
+Vanilla armies (`AI/quests/erik/erik_armyMovement.xml`, `AI/move/moveUtils.xml`
+`formation_follow`, `followNPC`) do none of this. The leader runs `MakeFormation`, then
+releases an external lock; every follower waits on that lock, then `GetMemberFormation` and
+`FormationFollower(MoveHistory, AllowRelocation=false)` - **once**, with no time-box, no
+fallback chain, no re-acquire loop and no watchdog. Nothing ever judges a member stalled.
+
+Four changes, the first two the important ones:
+
+* **Every whole-squad re-fire settles.** `FollowSettle` is called by the epoch change AND by
+  `BeginFollowVerify`, which is the funnel every burst goes through (hold and escort
+  released, dismount, hire, loot sweep). The verify window is stretched past the settle so
+  it still gets to look.
+* **The verify window only re-fires.** The ladder (STALL report, haul) runs only from the
+  continuous 4 s watch, after the settle, on a squad that is plainly formed up.
+* **The leader re-fires first.** `FollowStaggerSquad` gave slot 0 to whoever `pairs()`
+  returned first; a follower who fired before the leader asked `GetMemberFormation` for a
+  handle that did not exist yet and spent 4 s on the chain - every STALL report after the
+  hold release read `inFormation=false`. Slot 0 for the leader is the lock, without the lock.
+* **The haul refuses a man who is where the chain put him** - within 15 m of the player or
+  8 m of the man ahead. The rear of a column queues; that is not a wedge.
+
+`merc_formprobe 1` prints, on every watch pass, a summary (`squad`, `inFormation`, `onChain`,
+`flagged`, which mode fired, epoch, leader, drift gate) and one line per flagged man with his
+distance to the player and to the man ahead, his slot, his in-formation flag, the age of his
+last slot stamp and his streak. Every STALL report now carries `dPlayer`, `dAhead` and
+`stampAge` too. The next report of this bug should not need a guess.
+
+## Fourth pass: the stuck rule was the churn, and the line is too wide (2026-09-03)
+
+The log after the third pass: `rebuild #9 (mounted)` and then five `(leader stuck)`
+rebuilds in a row. The 3 s stuck rule fired on every freshly elected mounted leader before
+he had so much as started - mount, `WaitAction`, riders re-acquiring - and handed the job to
+the next man, who was then in the same state. "Only a small amount actually follow" was
+fifty riders re-joining a formation that was rebuilt every few seconds.
+
+* **Rank is off** (`FormationLeaderMaxRank = 0`). Riders overtake constantly; any rank rule
+  at fifty horses is a swap generator.
+* **Stuck, rewritten.** A 15 s grace after any swap or rebuild in which nobody is stuck; then
+  8 s on foot / 12 s mounted of the leader covering under 2 m while the player covers 15 m
+  and is at least 20 m away. The first response is a **haul only** - he is put behind the
+  player and stays leader; no rebuild, nobody re-joins. Only a second stuck inside 40 s
+  hands the job over, and never more than once per 20 s. Each decision is logged with the
+  numbers.
+
+**The line.** `merc_line50` was three ranks of 17, +-16 m wide. The shape pivots with its
+leader, so a man at the end of a rank sweeps half-width x turn-angle on every turn, and at
+16 m he cannot keep up with any of them - "lost at the back". Two changes:
+
+* `tools/gen_formations.py` caps a rank at `LINE_MAX_PER_RANK` (12): 50 is five ranks,
+  +-11 m; still wider than the square (8 abreast); the two-rank line at 24 and under is
+  unchanged. `FormationDefinitions.xml` regenerated.
+* Line shapes default to the engine's `Relaxed` mode (`FormationShapeMode`), vanilla's
+  `formationData` default and its loose-escort mode, so the ends lag a turn instead of
+  chasing a rigidly rotated spot. This one is a judgement, not a measurement:
+  `merc_form_keepshape` pins KeepShape back if Relaxed reads worse by eye.
+
+## The ghost latch: found by reading the trees (2026-09-03, fifth pass)
+
+Cavalry fixed, infantry still had "five or so who just stand around, sometimes starting to
+follow, sometimes not" in a column. The log had **no errors and no stalls flagged at all** -
+the watch was not even seeing them. The trees say why, and the comment above
+`NoteFollowEviction` had already described the mechanism without anything being able to
+observe it:
+
+> queue teleport -> fire follow, latch = true -> teleport lands, evicts follow
+
+The merc ends with `$isFollowingActive = true` and no follow behaviour under it. The
+scheduler's follow arm only ever retries on a FALSE latch, so he stands there for good. The
+only rescue was the 35 m distance self-heal, which by construction **cannot see a man who
+stopped next to the player** - which is why they sometimes recover (they drift past 35 m)
+and sometimes do not, and why a movement watch flags nothing: he is not far, and the player
+walking away from a stationary man is the ordinary look of a deep column.
+
+It is directly observable, because there are two independent heartbeats already in the code:
+
+| stamp | written by | proves |
+|---|---|---|
+| `FollowSchedAt` | `FollowGate`, from mercenary_scheduler.xml, ~600 ms | the merc is ticking |
+| `FormationSlotAt` | `UpdateFormationRole`, from follow.xml's own always-on Loop, ~1 s | his FOLLOW TREE is running |
+
+**Scheduler fresh + latch true + follow tree silent for `FollowTreeStaleSecs` (6 s) = the
+race**, at any distance and with no reference to movement. `FollowGhostSweep` runs every 3 s
+(outside the settle window, since a tree walking to a new slot still stamps), excludes every
+state that legitimately replaces the follow tree - camp actor, in camp, nav order, has a
+target, in combat - logs the man with both stamp ages and his distance, and raises
+`FollowStalled`, the existing evict-and-re-fire path.
+
+`FollowGate` capturing the latch needed no XML change: the scheduler already passes it
+`bt_data`, which carries `$isFollowingActive`.
+
+**`merc_whystand`** prints one line per merc - distance, whether he moved since the last
+call, both heartbeat ages, latch, slot, block - and a verdict per man: `OK - in formation`,
+`OK - following on the chain`, `NOT LATCHED - waiting for the scheduler to fire follow`,
+`SCHEDULER SILENT - his host tree is not running`, `BUSY (...)`, or
+`LATCHED-NO-TREE - the eviction race`. Standing men should now name their own problem.
+
+## The circle was centred on nobody (2026-09-03)
+
+`merc_circle50` came out centred **8.6 m behind the leader**, who is himself behind the
+player, so the ring enclosed empty ground. The cause was `push_behind`, the transform for
+shapes the leader is not seated into: it slides the whole shape fully behind the anchor, and
+an assertion enforced that no spot may ever sit in front of him (a follower there blocks the
+one NPC the shape hangs off).
+
+The circle is the documented exception to that rule, and already was one elsewhere -
+`TeleportGuardActive` skips the same keep-behind-the-leader guard for circle "because it is
+defined by mercs standing all round the player". `ring_on_player` now centres the ring
+`CIRCLE_PLAYER_AHEAD` (3 m) in FRONT of the anchor, which is the leader's own follow
+standoff and therefore roughly where the player is; the assertion is waived for this shape
+only. Measured after regeneration: every circle size centres at (0, -3.0).
+
+That 3 m is CrimeFollower's default follow distance, which this mod does not set - so it is
+an estimate, and the one number to adjust if the ring sits off-centre by eye.

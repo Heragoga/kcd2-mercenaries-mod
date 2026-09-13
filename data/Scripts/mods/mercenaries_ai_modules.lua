@@ -270,6 +270,37 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
             if drawn then data.needsDraw = false end
         end
 
+        -- THE COMBAT SHOUT, women only. See mercenaries_female.lua and
+        -- docs/female-mercenaries.md, "combat voice".
+        --
+        -- combat_melee.xml casts metarole NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT with an EMPTY
+        -- alias, exactly as foe_combat.xml does: the engine picks the line out of the base
+        -- game's own pool on the speaker's own voice, so this ships no dialog, no .ogg and no
+        -- localisation. docs/squad-orders.md records the same node being built and REMOVED
+        -- because it was mute on a merc - correct at the time, and now explained: the three
+        -- male merc voices (sbar / phos2 / jcom) carry no recording for that metarole. The ten
+        -- female voices carry the full combat set, so on them the same node speaks.
+        --
+        -- Gated to women rather than left on for everyone, because a voice with no recording
+        -- does not simply go quiet - voice.xml gives each one a fallback_voice_id chain, and a
+        -- male merc could end up shouting in Daniel Zappi's or Petr Fejk's voice instead of
+        -- silently doing nothing. Off for the men is the behaviour that was already shipping.
+        data.femaleShout = false
+        if self.IsFemaleName and self:IsFemaleName(name) then
+            -- One shout per engagement, not one per scheduler re-fire. combat_melee is
+            -- re-fired often (that is what the needsDraw guard above exists for), and without
+            -- a cooldown a single fight would have her yelling every couple of seconds.
+            self.FemaleShoutAt = self.FemaleShoutAt or {}
+            local key = tostring(myWuid)
+            local now = 0
+            pcall(function() now = _G.System.GetCurrTime() end)
+            local last = self.FemaleShoutAt[key]
+            if not last or (now - last) > (self.FemaleShoutCooldown or 25) then
+                self.FemaleShoutAt[key] = now
+                data.femaleShout = true
+            end
+        end
+
         local mp = me and me:GetPos()
         local tp = nil
         if data.attackData and data.attackData.target then

@@ -23,7 +23,18 @@ setlocal enabledelayedexpansion
 set "REPO_ROOT=%~dp0"
 set "REPO_ROOT=%REPO_ROOT:~0,-1%"
 
-set "MODS_DIR=C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Mods"
+:: Asked, not assumed - see tools\Find-KCD2.ps1 (override with KCD2_DIR). This reads
+:: back what PackageMod.bat just deployed, so it has to resolve to the same install.
+set "GAME_DIR="
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\tools\Find-KCD2.ps1"`) do set "GAME_DIR=%%i"
+if not defined GAME_DIR (
+    echo.
+    echo ERROR: Kingdom Come Deliverance 2 was not found - nothing was released.
+    echo        set KCD2_DIR=D:\path\to\KingdomComeDeliverance2
+    echo        or add   game=D:\path\to\KingdomComeDeliverance2   to tools\local.paths.txt
+    exit /b 1
+)
+set "MODS_DIR=%GAME_DIR%\Mods"
 set "MOD_DIR=%MODS_DIR%\mercenaries"
 set "LUA_SRC=%REPO_ROOT%\data\Scripts\mods\mercenaries.lua"
 set "RELEASE_DIR=%REPO_ROOT%\release"
@@ -47,14 +58,14 @@ echo ============================================================
 echo.
 
 if not exist "%MOD_DIR%" (
-    echo ERROR: Mod folder not found at %MOD_DIR%
+    echo ERROR: Mod folder not found at !MOD_DIR!
     echo        Run PackageMod.bat first.
     pause
     exit /b 1
 )
 
 if not exist "%LUA_SRC%" (
-    echo ERROR: mercenaries.lua not found at %LUA_SRC%
+    echo ERROR: mercenaries.lua not found at !LUA_SRC!
     pause
     exit /b 1
 )
@@ -119,7 +130,7 @@ echo       Created: UNLIMITED mercenaries.zip
 :: Old multi-variant output would otherwise sit in release\ and get
 :: uploaded alongside the real ones.
 if exist "%RELEASE_DIR%\NOVOICELINES mercenaries.zip" (
-    del "%RELEASE_DIR%\NOVOICELINES mercenaries.zip"
+    del "!RELEASE_DIR!\NOVOICELINES mercenaries.zip"
     echo       Removed stale NOVOICELINES mercenaries.zip
 )
 

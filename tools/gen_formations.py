@@ -42,7 +42,11 @@ R = 0.9
 R_LOOSE = 1.3
 PITCH = 2.0
 STANDOFF = 3.4
+LINE_MAX_PER_RANK = 12
 LEAD_GAP = 1.6
+#   CIRCLE_PLAYER_AHEAD how far ahead of the anchor the circle's centre sits, i.e. the
+#   leader's own follow standoff from the player. See ring_on_player.
+CIRCLE_PLAYER_AHEAD = 3.0
 
 
 def fmt(v):
@@ -92,6 +96,13 @@ def line_shape(n):
     # square - at 50 both resolved to 8 per rank and were byte-identical. A small
     # squad gets a single rank, because "two ranks of three" is equally a square.
     ranks = 1 if n <= 10 else (2 if n <= 24 else 3)
+    # ...but never wider than LINE_MAX_PER_RANK abreast. The shape pivots with its
+    # leader, so a man at the end of a rank sweeps half-width x turn-angle every time
+    # the player turns: at 50 in three ranks that was 17 abreast, +-16 m, and the end
+    # men could not keep up with any turn ("lost at the back", 2026-09-03). 12 abreast
+    # caps that at +-11 m; 50 becomes five ranks, which is still wider than the square
+    # (8 abreast) and unchanged for the two-rank line at 24 and under.
+    ranks = max(ranks, int(math.ceil(n / float(LINE_MAX_PER_RANK))))
     return rows(n, int(math.ceil(n / float(ranks))), STANDOFF, 2.0)
 
 
@@ -168,13 +179,39 @@ def seat_the_leader(spots):
 def push_behind(spots):
     """Centre a shape laterally on the anchor and slide it fully behind him.
 
-    For shapes the leader is not seated into (circle, escort) - he stays
-    off-lattice in the middle of the gap, LEAD_GAP ahead of the nearest rank.
+    For shapes the leader is not seated into (escort) - he stays off-lattice in the
+    middle of the gap, LEAD_GAP ahead of the nearest rank.
     """
     pts = [coords(s) for s in spots]
     cx = sum(p[0] for p in pts) / float(len(pts))
     dy = min(p[1] for p in pts) - LEAD_GAP
     return [shift(s, cx, dy) for s in spots]
+
+
+def ring_on_player(spots):
+    """Centre a ring on the PLAYER, which for a circle is the whole point.
+
+    Every other shape is laid out behind the anchor, and push_behind used to do the
+    same to this one: merc_circle50 came out centred 8.6m BEHIND the leader, who is
+    himself behind the player, so the ring enclosed nobody (2026-09-03).
+
+    A formation is anchored on the leader, and the leader follows the player at
+    roughly CIRCLE_PLAYER_AHEAD, so putting the ring's centre that far in FRONT of
+    the anchor puts the player in the middle of it. That necessarily places spots
+    ahead of the leader, which every other shape forbids - a follower standing in
+    front of the anchor blocks the one NPC the shape hangs off. The circle is the
+    documented exception to that rule and already is one elsewhere:
+    TeleportGuardActive skips the same "keep behind the leader" guard for circle,
+    "because it is defined by mercs standing all round the player".
+
+    CIRCLE_PLAYER_AHEAD is the leader's follow standoff, which is CrimeFollower's
+    own default and not a number this mod sets - so it is an estimate, and the one
+    thing to adjust if the ring sits off-centre by eye.
+    """
+    pts = [coords(s) for s in spots]
+    cx = sum(p[0] for p in pts) / float(len(pts))
+    cy = sum(p[1] for p in pts) / float(len(pts))
+    return [shift(s, cx, cy + CIRCLE_PLAYER_AHEAD) for s in spots]
 
 
 # Keys MUST match mercenaries.FormationShapeOrder: Lua builds the preset name as
@@ -191,17 +228,26 @@ SHAPES = [
     ("mounted", mounted_shape, "triple column at horse spacing - the one mounted shape"),
 ]
 
-# circle and escort are excluded: both already put the anchor in the middle - circle
-# as the centre of the ring, escort as the open gap - and seating him into a file
-# would shove the whole shape sideways.
+# circle and escort are excluded: both are built AROUND the anchor rather than behind
+# him - circle as the centre of the ring, escort as the open gap - and seating him into
+# a file would shove the whole shape sideways. They are laid out differently from each
+# other, though: escort is pushed behind the leader, the circle is centred on the
+# player (ring_on_player), which is the only shape with spots ahead of the anchor.
 SEAT_LEADER = {"column", "line", "square", "wedge", "mounted"}
+AHEAD_OK = {"circle"}
 
 blocks, report = [], []
 for key, fn, desc in SHAPES:
     for n in SIZES:
-        spots = seat_the_leader(fn(n + 1)) if key in SEAT_LEADER else push_behind(fn(n))
+        if key in SEAT_LEADER:
+            spots = seat_the_leader(fn(n + 1))
+        elif key in AHEAD_OK:
+            spots = ring_on_player(fn(n))
+        else:
+            spots = push_behind(fn(n))
         assert len(spots) == n, (key, n, len(spots))
-        assert all(coords(s)[1] >= -0.01 for s in spots), "spot ahead of the anchor: %s%d" % (key, n)
+        if key not in AHEAD_OK:
+            assert all(coords(s)[1] >= -0.01 for s in spots), "spot ahead of the anchor: %s%d" % (key, n)
         name = "merc_%s%d" % (key, n)
         blocks.append('    <!-- %s (%d) -->\n    <Formation name="%s">\n%s\n    </Formation>'
                       % (desc, n, name, "\n".join(spots)))

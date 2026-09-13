@@ -58,7 +58,7 @@ function mercenaries:SpawnQuartermaster(centerPos, facingAngle)
             name        = entityName,
             position    = qpos,
             orientation = { x = 0, y = 0, z = faceAngle },
-            properties  = { guidSharedSoulId = self.QuartermasterSoul }
+            properties  = mercenaries:NoSaveProps({ guidSharedSoulId = self.QuartermasterSoul })
         })
 
         self.QuartermasterPost = {

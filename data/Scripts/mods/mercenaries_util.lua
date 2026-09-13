@@ -64,7 +64,7 @@ end
 -- default ratio, so writing 100 restores engine behaviour on a live NPC. Never 0 - that is the
 -- MINIMUM and is what sabotaged the original render experiment (see the note at the top).
 function mercenaries:RenderLodSet(v)
-    local raw = tostring(v or ''):gsub('%s+', '')
+    local raw = string.gsub(mercenaries:CmdClean(v), '%s+', '')
     if raw == '' then
         System.LogAlways('[Mercenary Jeff] merc_render_lod <n> - mesh detail, higher drops detail sooner. ' ..
             '100 = engine default, 130 mild, 180 aggressive, 255 puppet-grade. 0/off = hand back to the engine. ' ..
@@ -162,8 +162,61 @@ function mercenaries:IsLoadSweepName(name)
     return false
 end
 
+-- Taken SYNCHRONOUSLY at the head of the load chain, before any owner rebuilds anything:
+-- the set of mod NPCs the save itself carried. The sweep two seconds later removes only
+-- these. Measured 2026-09-04: Aleksej's beat camp is rebuilt from its Skald wake token
+-- BEFORE the 2000ms sweep timer fires, and the sweep - matching "SpawnedEnemy_" by name -
+-- deleted the freshly spawned looters and leader as stale ("removed 6 stale mod NPC(s)"
+-- three lines after "camp up ... 4 standing"). Empty camp, tower archers descending onto
+-- cleared ground, and a leader judged down five ticks after the player arrived. The
+-- sweep's own comment assumed every owner respawns AFTER it; the wake path does not.
+function mercenaries:LoadSweepSnapshot()
+    self._loadSweepIds = {}
+    local n = 0
+    pcall(function()
+        for _, e in pairs(System.GetEntitiesByClass('NPC') or {}) do
+            local name = e and e:GetName() or ""
+            if self:IsLoadSweepName(name) or string.find(name, 'SpawnedFriend')
+               or string.find(name, 'MercenaryCustomCompanion') then
+                self._loadSweepIds[e.id] = true
+                n = n + 1
+            end
+        end
+    end)
+    System.LogAlways('[Mercenary Jeff] load snapshot: ' .. n .. ' mod NPC(s) carried by the save')
+end
+
+-- Ids a live system owns right now. Belt and braces over the snapshot: a system that
+-- respawned its men before the sweep is exempt even if the snapshot somehow missed them.
+function mercenaries:LoadSweepProtected()
+    local keep = {}
+    local function add(id) if id then keep[id] = true end end
+    pcall(function() for id in pairs(self.KeepAcrossLoad or {}) do add(id) end end)
+    pcall(function() for _, id in ipairs((self.AlxCamp and self.AlxCamp.ids) or {}) do add(id) end end)
+    pcall(function() add(self.AlxLodgingId) end)
+    for _, S in ipairs({ self.BCQ_KK, self.BCQ_BO }) do
+        pcall(function()
+            for _, id in ipairs((S and S.bandits) or {}) do add(id) end
+            add(S and S.leaderId)
+        end)
+    end
+    pcall(function()
+        for _, rec in pairs(self.LivePatrols or {}) do
+            for _, m in ipairs(rec.men or {}) do add(type(m) == "table" and m.id or m) end
+        end
+    end)
+    pcall(function()
+        for _, list in ipairs({ self.RBQ and self.RBQ.foot, self.RBQ and self.RBQ.archers }) do
+            for _, id in ipairs(list or {}) do add(id) end
+        end
+    end)
+    return keep
+end
+
 function mercenaries:RebuildMercCache()
     self.ActiveMercs = {}
+    local carried = self._loadSweepIds or {}
+    local protected = self:LoadSweepProtected()
     -- Dismissed no longer skips the scan: the scan is also the load sweep, and a dismissed
     -- company is exactly the case with the most stale entities to remove - SetState pays the
     -- men off but the engine has already saved them, so they came back with this load.
@@ -188,11 +241,15 @@ function mercenaries:RebuildMercCache()
                     self:EquipMercenaryWeapon(e, _G.MercCurrentWeapon or 1)
                 else
                     -- A corpse from a previous session, or a man who was paid off before the
-                    -- save was written. Neither has any owner left to remove him.
-                    stale[#stale + 1] = e.id
+                    -- save was written. Neither has any owner left to remove him. Same rule
+                    -- as below: only if the save carried him.
+                    if not self._loadSweep or carried[e.id] then stale[#stale + 1] = e.id end
                 end
             elseif self._loadSweep and self:IsLoadSweepName(name) then
-                stale[#stale + 1] = e.id
+                -- Only what the save carried, and nothing a live owner has claimed since.
+                if carried[e.id] and not protected[e.id] then
+                    stale[#stale + 1] = e.id
+                end
             end
         end
     end
@@ -215,6 +272,10 @@ function mercenaries.RebuildMercCacheDelayed()
     -- delete live encounters, only the load may treat recordless NPCs as stale.
     mercenaries._loadSweep = true
     mercenaries:RebuildMercCache()
+    mercenaries:Recount()
+    -- ActiveMercs now holds whatever the engine really restored, which is the only moment
+    -- the roster can tell how many men the world is short. See mercenaries_roster.lua.
+    if mercenaries.RosterOnLoad then pcall(function() mercenaries:RosterOnLoad() end) end
     mercenaries:Recount()
     -- The roster is only now known, so this is the first moment a torch left burning by the
     -- previous session can be taken off anyone. See CampTorchOnLoad.
@@ -685,6 +746,13 @@ function mercenaries:IsHero(ent)
     return ent ~= nil and self:IsHeroName(ent.GetName and ent:GetName() or '')
 end
 
+-- The entity-level twin of IsFemaleName (mercenaries_female.lua), for the same reason IsHero
+-- exists next to IsHeroName: the bark queue and the camp-chat pairing hold entities, not names.
+function mercenaries:IsFemale(ent)
+    return ent ~= nil and self.IsFemaleName ~= nil
+        and self:IsFemaleName(ent.GetName and ent:GetName() or '')
+end
+
 -- Identify whether an entity is a mercenary, returning its type or nil.
 function mercenaries:GetMercType(ent)
     if not ent then return nil end
@@ -743,9 +811,20 @@ function mercenaries:GiveMoney(amount)
     -- the loop keeps going until the target is reached or the purse stops moving.
     local target, tries = before + amount, 0
     local now = before
-    while now < target and tries < 100 do
+    -- Half a groschen of slack: GetMoney answers a FLOAT, and minting 275 into an empty
+    -- purse read back as 274.99. A strict `now < target` then spent one more pass minting
+    -- a 0.01 fraction - which creates nothing - and the quest test's floor()ed read called
+    -- a full payment "274 of 275". Within half a coin is paid.
+    -- Every hand-in in every torture session paid exactly one groschen short (275 asked,
+    -- 274.1 landed) - not the half-coin float noise the comment above already covers, a
+    -- whole coin. GetMoney drifts to a float baseline (274.1, not 274 or 275), so the FINAL
+    -- chunk's `need` is a fraction under 1 - and CreateItem mints a coin STACK, an integer
+    -- count, so a sub-1 request silently creates nothing. `after <= now` then reads as
+    -- "purse stopped moving" and the loop gives up one coin short. Rounding the request up
+    -- guarantees every chunk, including the last, asks for a whole coin.
+    while (target - now) > 0.5 and tries < 100 do
         tries = tries + 1
-        local need = target - now
+        local need = math.ceil(target - now)
         pcall(function() player.inventory:CreateItem(self.MoneyItemClass, 1, math.min(need, 1000)) end)
         local after = now
         pcall(function() after = player.inventory:GetMoney() or after end)

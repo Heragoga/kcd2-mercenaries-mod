@@ -382,14 +382,27 @@ mercenaries.OrderBarkMinGap = 6.0
 function mercenaries:OrderBarkSome(alias, count)
     count = math.max(1, tonumber(count) or 3)
     local pool = {}
+    -- Speakers are drawn from the men where there are any. Women and named companions are
+    -- muted in RequestBark, so leaving them in the pool would spend one of the three speaking
+    -- slots on someone who cannot speak and make an order read as unacknowledged. The fallback
+    -- is the whole squad, so a company of nothing but women still selects normally and simply
+    -- says nothing - the intended outcome, not an error.
+    local voiced = {}
     pcall(function()
-        for _, ent in pairs(self.ActiveMercs or {}) do
+        for nm, ent in pairs(self.ActiveMercs or {}) do
             if ent and self:IsAliveAndWell(ent, false) then
                 local p = ent.GetWorldPos and ent:GetWorldPos()
-                if p then table.insert(pool, { ent = ent, p = p }) end
+                if p then
+                    local entry = { ent = ent, p = p }
+                    table.insert(pool, entry)
+                    local mute = (self.IsFemaleName and self:IsFemaleName(nm))
+                                 or self:IsHeroName(nm)
+                    if not mute then table.insert(voiced, entry) end
+                end
             end
         end
     end)
+    if #voiced > 0 then pool = voiced end
     if #pool == 0 then return 0 end
 
     -- Farthest-point selection: each speaker is the man furthest from everyone

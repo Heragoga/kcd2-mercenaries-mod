@@ -848,3 +848,234 @@ both of which used to leave him missing for the rest of the session:
 the tick rebuilds him. That he has **left for good** from beat 6 is Skald's to remember, not
 Lua's: the quest issues `TokenIDAlxLodgingGone` once `alx_beat >= 6` and again on every wake after
 that.
+
+### The marker does NOT survive a reload by respawning the leader (corrected 2026-09-04)
+
+The paragraph above that says `AlxEnsureLeader` re-spawns the leader "so the marker survives a
+save/load" was never true, and a play-test finally showed it: after a reload the beat camp
+stood with every NPC present and **no objective marker**. An objective-log marker
+(`<EnumLog Type="Started" Marker="alx_leader_N">`) binds to the NPC carrying the soul at the
+moment the Started log fires. A reload restores the objective already Active, so the log does
+not fire again, and the binding still points at the entity `AlxOnLoad` tore down. A same-soul
+respawn does not re-bind it.
+
+**The fix is to make the Started log fire again, after the new leader exists**, using only the
+bridge idioms this graph already relies on:
+
+1. Lua issues `AlxUpToken` at the end of every `AlxSpawnBeat` (the wake rebuild included) and
+   from `AlxLodgingSpawn` (beats whose marker sits on Aleksej himself).
+2. `alx_up_N` (an `ItemDescriptorTrigger` gated on `alx_is_N.bool`, so only the live beat
+   answers) does `SetNone` on `alx_objN_state` and, through `exec_alx_rearm`, gives the
+   player `AlxRearmToken`.
+3. `alx_rearm_N` fires on a later inventory poll and does `SetActive` - a real None -> Active
+   transition, so the Started log and its `Marker` fire against the respawned NPC.
+
+Two tokens rather than two edges off one trigger because two edges give no ordering
+guarantee; a token round trip does. Both are on `AlxBridgeTokens`' sweep list. Beats wired:
+1-5, 7, 8, 9 - every objective that carries a Started-log marker (6 has none).
+
+**Unverified as of writing.** Expect, on a reload with a beat live:
+`[Aleksej] beat N ... camp up` then, within a couple of seconds, the objective marker back on
+the leader. If the marker does not return, the first thing to check is whether the journal
+shows the objective text twice (that would prove the re-arm fired and the marker itself is
+the problem).
+
+### No marker of any kind has ever shown on a Lua-spawned NPC (2026-09-04, verified against vanilla)
+
+With the re-arm bridge in place: still no objective marker on the beat camp, no tipster on
+Aleksej, and none on the quartermaster either. So the syntax was checked against the shipped
+vanilla quests (`references/Quests/Final/Barbora/kutnohorsko`, ~1200 files) and **every form
+this mod uses is vanilla-identical**:
+
+| the mod writes | vanilla |
+|---|---|
+| `<EnumLog Type="Started" Marker="x">` on an objective | 1,351 uses |
+| that marker pointing at a `SoulAsset` **with** `SharedSoulGuids` | 266 uses - the most common kind |
+| `<ShowMapMarker>` with `<Asset Name="MarkerObject" Alias=…/>` + `MarkerType` constant | quest-level uses in `hrob/zacatek_questu.xml`, `poi_arena.xml` |
+| `MarkerType="PoiTipster"` | 19 uses (`QuestTipster` 8, `QuestGiver` 22) |
+
+So it is not the XML. The one thing every failing marker in this mod shares, and no vanilla
+marker does: **the target NPC was spawned by Lua.** Vanilla Skald never spawns NPCs at all
+(no Spawn/Create NPC method exists in the corpus); every marker target is a level-placed
+entity. Dialogue on Lua-spawned NPCs works because that is entity→soul; a marker needs
+soul→entity, which is the same direction `SoulDeathTrigger` already failed on (above).
+
+Routes checked and closed:
+* `QuestSystem.RegisterQuestEntity(entityId)` - "registers entity with quest smart object" -
+  is exactly the missing call, and `QuestSystem` is absent from the mod Lua state.
+* `HUD.SetObjectiveEntity` via `MissionObjective` - a Crysis leftover; `HUD` does not exist.
+* `LocationPoint` + `RPG.AddLocationPoint` - tried before, dead (docs/patrols.md).
+* No NPC or TagPoint property binds an entity to a quest asset name.
+
+**What changed anyway:** every marker log now carries `IsTracked="true"` (53 vanilla Started
+logs do). An untracked quest shows no map marker, and a reload can change which quest is
+tracked - cheap, vanilla-proven, and it removes tracking as a variable.
+
+**The next experiment if that is not it:** `sharedSoulInstanceId`. It is the one NPC spawn
+property the mod leaves at its default (0). If Skald resolves a shared-soul asset through
+registered soul *instances*, a Lua-spawned NPC at instance 0 may simply not be enumerable.
+One dev flag on the beat-leader spawn would test it in a single run.
+
+### CORRECTION: markers DO work on Lua-spawned NPCs - the re-arm bridge broke them (2026-09-04)
+
+The section above concluded Skald cannot resolve a Lua-spawned NPC. That was wrong, and the
+evidence that overturned it was one sentence from the play-test: *"used to work."* Objective
+markers were visible in-session on the 15:10 build; they vanished on the 15:57 build, whose
+only graph change was the re-arm bridge.
+
+The bridge did `SetNone` on the objective from the up-trigger and relied on the re-arm token
+to `SetActive` it on "a later poll". But `ItemDescriptorTrigger.OnAcquire` is synchronous, so
+the re-arm can fire inside the same cascade as the `SetNone` - and an objective that ends that
+cascade at **None** has no journal entry and no marker. That is "no markers at all".
+
+The `SetNone` edges are removed from both graphs. What remains of the bridge is harmless: the
+up token issues the re-arm token, whose trigger does `SetActive` on the live beat's objective.
+On an already-Active objective that is a no-op at worst; if Skald re-fires the Started log on
+re-activation it is also the reload fix. Either way it can no longer strand an objective.
+
+Still true from the section above: the XML forms are vanilla-identical, `IsTracked="true"`
+is vanilla-proven, and the tipster (`ShowMapMarker` on Aleksej) has never been seen - that
+one remains unverified, but it is no longer evidence of anything about soul resolution.
+
+### Compass yes, map no: the re-arm done properly (2026-09-04, third form)
+
+With `SetActive`-only re-arming, a reload gave this: **the compass shows the objective marker,
+the map does not.** That split is the diagnosis. The compass resolves the objective's target
+live and finds the respawned NPC; the map keeps a marker registry that only a fresh **Started
+log** repopulates, and a reload restores it pointing at the pre-reload entity. So a real
+None -> Active transition is required - and `SetActive` on an already-Active objective does
+not re-fire the log.
+
+The transition now happens across **two Skald cascades**, which is what the first attempt got
+wrong (it put `SetNone` and the re-arm inside one synchronous cascade and stranded every
+objective at None):
+
+1. Lua issues the **up** token when the beat's leader exists (`AlxSpawnBeat`, and
+   `AlxLodgingSpawn` for the beats whose marker is Aleksej). `alx_up_N` -> `SetNone`.
+2. `AlxTick` (1 Hz) issues the **re-arm** token `AlxRearmDelay` (2 s) later, from Lua -
+   Skald no longer issues it itself (`exec_alx_rearm` removed). `alx_rearm_N` -> `SetActive`.
+   The Started log fires again, and with it the map marker, against the new NPC.
+
+Both triggers are gated on **`alx_needs_N`** (beat is N AND not done), not `alx_is_N`: a
+beat whose leader is already down keeps its objective Done instead of being re-opened by the
+lodging's up token on the next load.
+
+Known cosmetics: on a fresh hand-off the objective blinks off for ~2 s and the journal may
+show the Started text a second time; a save taken inside the 2 s window loads with the
+objective at None until the next wake re-arms it (self-healing on every load).
+
+**Result of the third form (2026-09-04, 16:45 session):** the Lua side is proven - `camp up`
+at 1113, `re-arm token issued` at 1128 - and the map marker still did not return after the
+reload. The gate form is vanilla (8 of 15 vanilla `ItemDescriptorTrigger`s gate on a Function
+`.bool`). So one of two things is true and only the journal can tell them apart:
+
+* the objective **did** go None -> Active and a re-fired Started log does **not** re-register a
+  map marker on this build (the journal would show the objective's Started text twice), or
+* the triggers never fired (the journal shows it once).
+
+The sweep now logs `up/re-arm token was in the inventory for a tick and is now swept`, which
+at least proves the tokens reached the pack for Skald to see.
+
+### Experiment: stand the camp up BEFORE Skald wakes (`merc_alx_early 1`)
+
+If the journal shows the objective's Started text twice after a reload (so the re-arm did
+transition the objective) and the map marker still does not return, then a re-fired Started
+log does not repopulate the map on this build. The remaining lever is ordering: the map keeps
+whatever the restored objective resolved at **wake**, and at wake the leader does not exist -
+the wake token spawns him seconds later. The compass resolves live and finds him; the map
+never looks again.
+
+`merc_alx_early 1` (saved, so it survives the reload that is the test) makes `AlxOnLoad`
+stand the live beat's camp up **synchronously at load**, from a beat number Lua persists
+itself (`AlxLiveBeat`, written on camp-up, cleared the moment the leader is noted down or the
+camp is retired). `AlxSpawnBeat` is idempotent, so the wake token then finds the camp already
+standing. Only ordinary combat beats (1-5, 7, 9); 6 has no camp and 8 is the siege.
+
+Log lines: `early rebuild: beat N was live in this save - standing its camp up NOW` and then
+the usual `camp up`. What it proves: whether Lua's load chain runs before Skald resolves the
+marker. Off by default until it has.
+
+### The fix: keep the saved leader, adopt him at wake (2026-09-04, Alex's design)
+
+Two reloads settled it. With the two-cascade re-arm in place the journal showed the objective
+**once** (so it never re-transitioned) and the **compass** did not show the marker either - on
+the run where the leader was respawned seconds after the graph woke. The target has to exist
+**when Skald wakes**; anything done after that is the wrong shape.
+
+The engine already saves the beat leader (`NPC` defaults to `bSaved_by_game`). The mod killed
+him twice on every load - `AlxTearDown` by id, then the 2 s load sweep by name - and spawned a
+stranger afterwards. So:
+
+* **Persist his name.** `AlxLiveBeat` now carries `"<beat>|<leaderName>"`, written on camp-up
+  and cleared the moment the leader is noted down or the camp retired.
+* **Keep him through every sweep.** `AlxOnLoad` reads the tag first, finds the entity by name,
+  and if he is alive (unloaded counts as alive; a corpse does not) puts his id in
+  `KeepAcrossLoad`. `AlxTearDown`, `ClearAnyLeftoverBanditCamp` (which `AlxSweepSite` routes
+  through) and the load sweep's `LoadSweepProtected` all spare that id.
+* **Adopt, do not spawn.** When the wake token calls `AlxSpawnBeat`, the leader step takes the
+  kept entity (`ADOPTED the saved leader`) instead of `AlxSpawnLeaderNPC`; the band, props and
+  roles are rebuilt around him exactly as before.
+
+The re-arm bridge is switched **off** (`AlxRearmBridge = false`; the graph nodes stay,
+dormant) - the objective is never touched again, so nothing can strand it.
+
+Log lines to expect on a reload with a beat live:
+`load: beat N leader '...' is in this save and alive - keeping him` then, on wake,
+`beat N: ADOPTED the saved leader '...'`. And the map marker present from the start.
+
+Not done yet: Aleksej himself is still swept and respawned by `AlxLodgingResetOnLoad`, so the
+same cure is what the tipster (beats 6/9 markers on him) would need next - adoption there
+means re-deriving his furniture handles, which the lodging tick already redoes every tick.
+
+**Confirmed working (2026-09-04):** the beat leader kept and adopted across a reload brings the
+map and compass markers back from wake. The mechanism is settled.
+
+### Aleksej gets the same treatment
+
+`AlxLodgingResetOnLoad` swept him by name on every load and the tick stood a stranger up
+seconds later - after the graph had resolved the beat 6/9 markers and his tipster against
+nobody. Now:
+
+* his entity **name** is saved on spawn (`AlxLodgingName`) and cleared to `0` when beat 6
+  removes him, so a load after that never adopts a man who must be absent;
+* the reset finds him by name first and, if he is alive (unloaded counts as alive), keeps him
+  out of the sweep - only the furniture is swept and rebuilt, and the tick re-derives its
+  handles anyway, which is what the old "adopting means re-deriving" worry was about;
+* `AlxLodgingSpawn` adopts the kept entity instead of `SpawnEntity` and carries on unchanged
+  (wuid, camp-actor registration, furniture, tick).
+
+Log lines: `lodging: saved Aleksej '...' is in this save and alive - keeping him to adopt`, then
+`lodging: ADOPTED the saved Aleksej '...'`. As with the leader, the name is only written by
+this build, so: load (he is stood up fresh and the name saved), save, reload, then look for
+the tipster and the beat 6/9 markers.
+
+The tipster node's gate is now `<Edge From="merc_alwaysOn.State" To="IsActive" />` - always
+on, but through the same bool State every proven trigger in the graph reads - instead of the
+bare `<Constant Name="IsActive">`, which the mod uses on `SetGameContext` nodes but no vanilla
+`ShowMapMarker` ever does. Not the cause of anything; it removes an unproven form before the
+first test that can actually show the icon (Aleksej now exists at wake).
+
+### Small-company relief for the last two beats (2026-09-04)
+
+Reported after a full playthrough: Raborsch and the marsh are punishing with few men. One
+shared curve, `AlxSmallRelief()` - full relief alone, none at `AlxReliefFull` (8) men and
+above, linear between. Graded rather than a cliff, so hiring a sixth man never makes the
+fight visibly harder.
+
+| men | Raborsch soldiers + levy | marsh health mult |
+|---|---|---|
+| 0 | 4 + 3 = **7** (was 12) | **none** (was 1.40x) |
+| 2 | 4 + 2 = 6 | 1.10x |
+| 4 | 6 + 0 = 6 | 1.20x |
+| 8+ | **unchanged** | **1.40x, unchanged** |
+
+**What is deliberately NOT touched: the garrison.** The towers and carts on the walls are
+Raborsch's own, and they duel the besiegers' archers on the player's behalf ("The wall duels
+the archers, not the assault", above). Thinning them makes the fight *harder* - that was the
+first attempt at this and it was backwards. The levers are the besiegers' **levy**
+(`RaborschRecruitCount`, which deliberately grew as the company shrank) and the soldier floor
+(`RaborschFootMin` 6 -> `RaborschFootMinSolo` 4). The besiegers' archers already scaled.
+
+On the marsh, `extraHealthMult` is now eased toward 1.0 by the same curve
+(`AlxHealthMult`), and the cart/tower thinning that used to need `F <= 5` applies whenever
+there is any relief at all.

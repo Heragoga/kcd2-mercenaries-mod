@@ -79,7 +79,7 @@
   <Row><Cell>merc_info_hired_outside</Cell><Cell>Your men are waiting for you outside.</Cell><Cell>Twoi ludzie czekają na zewnątrz.</Cell></Row>
   <Row><Cell>merc_info_hire_failed</Cell><Cell>There was no room for them here - hire them elsewhere.</Cell><Cell>Nie ma tu dla nich miejsca – najmij ich gdzie indziej.</Cell></Row>
   <Row><Cell>merc_info_not_enough_money</Cell><Cell>Not enough groschen!</Cell><Cell>Za mało groszy!</Cell></Row>
-  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! Maximum of 5.</Cell><Cell>Masz już zbyt wielu ludzi! Maksimum to 5.</Cell></Row>
+  <Row><Cell>merc_info_too_many</Cell><Cell>You have too many men already! The company is full.</Cell><Cell>Masz już zbyt wielu ludzi! Kompania jest pełna.</Cell></Row>
   <Row><Cell>merc_info_dismissed</Cell><Cell>All mercenaries dismissed.</Cell><Cell>Wszyscy najemnicy odprawieni.</Cell></Row>
   <Row><Cell>merc_info_waiting</Cell><Cell>Mercenaries waiting.</Cell><Cell>Najemnicy czekają.</Cell></Row>
   <Row><Cell>merc_info_following</Cell><Cell>Mercenaries following.</Cell><Cell>Najemnicy podążają.</Cell></Row>
@@ -93,6 +93,14 @@
   <Row><Cell>char_mercenary_test_uiName</Cell><Cell>Mercenary</Cell><Cell>Najemnik</Cell></Row>
   <Row><Cell>char_mercenary_weak_uiName</Cell><Cell>Novice Mercenary</Cell><Cell>Najemnik nowicjusz</Cell></Row>
   <Row><Cell>char_mercenary_strong_uiName</Cell><Cell>Veteran Mercenary</Cell><Cell>Najemnik weteran</Cell></Row>
+  <Row><Cell>ui_mercenary_type_female</Cell><Cell>Women.</Cell><Cell>Women.</Cell></Row>
+  <Row><Cell>merc_henry_female</Cell><Cell>Have you any women who can fight?</Cell><Cell>Have you any women who can fight?</Cell></Row>
+  <Row><Cell>merc_provider_female</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell><Cell>Aye, a few. They go bare-headed - a helm's no use to a face like that. 100 groschen a head. How many?</Cell></Row>
+  <Row><Cell>merc_info_female_hired_single</Cell><Cell>A woman joined your company.</Cell><Cell>A woman joined your company.</Cell></Row>
+  <Row><Cell>merc_info_female_hired_multiple</Cell><Cell>Women joined your company.</Cell><Cell>Women joined your company.</Cell></Row>
+  <Row><Cell>char_mercenary_female_uiName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_description</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
+  <Row><Cell>char_mercenary_female_fullName</Cell><Cell>Mercenary</Cell><Cell>Mercenary</Cell></Row>
   <Row><Cell>char_enemy_looter_uiName</Cell><Cell>Looter</Cell><Cell>Maruder</Cell></Row>
   <Row><Cell>char_enemy_looter_description</Cell><Cell>Looter</Cell><Cell>Maruder</Cell></Row>
   <Row><Cell>char_enemy_looter_fullName</Cell><Cell>Looter</Cell><Cell>Maruder</Cell></Row>
@@ -1333,4 +1341,7 @@
   <Row><Cell>ui_qm_hints_top</Cell><Cell>Move them up to the top corner.</Cell><Cell>Move them up to the top corner.</Cell></Row>
   <Row><Cell>ui_qm_hints_bottom</Cell><Cell>Move them down to the bottom corner.</Cell><Cell>Move them down to the bottom corner.</Cell></Row>
   <Row><Cell>ui_qm_hints_compass</Cell><Cell>Put them beside the compass.</Cell><Cell>Put them beside the compass.</Cell></Row>
+  <Row><Cell>merc_ui_camp_marker</Cell><Cell>Obóz najemników</Cell><Cell>Obóz najemników</Cell></Row>
+  <Row><Cell>merc_ui_wait_marker</Cell><Cell>Czekający najemnicy</Cell><Cell>Czekający najemnicy</Cell></Row>
+  <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Aleksej z Zasławia</Cell><Cell>Aleksej z Zasławia</Cell></Row>
 </Table>

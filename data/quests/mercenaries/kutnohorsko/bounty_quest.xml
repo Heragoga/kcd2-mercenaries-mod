@@ -116,7 +116,7 @@
                     <LocalizedName StringName="obj_merc_bounty_clear" Text="Clear out the bandit camp." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="bounty_leader">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="bounty_leader">
                             <Log StringName="log_merc_bounty_clear_started" Text="A camp of them, and a price on the lot. The quartermaster wants it empty, not scattered." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">
@@ -128,7 +128,7 @@
                     <LocalizedName StringName="obj_merc_bounty_report" Text="Report to the quartermaster." />
                     <Logs>
                         <EnumLog Type="None" Name="None" />
-                        <EnumLog Type="Started" Name="Active" Marker="quartermaster">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true" Marker="quartermaster">
                             <Log StringName="log_merc_bounty_report_started" Text="He pays when he hears it's done, and not before." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">

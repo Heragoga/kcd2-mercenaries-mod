@@ -8,7 +8,23 @@ setlocal enabledelayedexpansion
 
 set "REPO_ROOT=%~dp0"
 set "REPO_ROOT=%REPO_ROOT:~0,-1%"
-set "MODS_DIR=C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Mods"
+
+:: Where the game is, asked rather than assumed - this used to be a hardcoded
+:: "C:\Program Files\Steam\...", which is wrong on any machine whose Steam lives
+:: anywhere else. tools\Find-KCD2.ps1 checks KCD2_DIR, tools\local.paths.txt, then
+:: every Steam library. It prints the path on stdout and its notes on stderr, so the
+:: capture below stays clean while the notes still reach the console.
+set "GAME_DIR="
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\tools\Find-KCD2.ps1"`) do set "GAME_DIR=%%i"
+if not defined GAME_DIR (
+    echo.
+    echo ERROR: Kingdom Come Deliverance 2 was not found - nothing was packaged.
+    echo        Set it once for this machine, then re-run:
+    echo            set KCD2_DIR=D:\path\to\KingdomComeDeliverance2
+    echo        or add   game=D:\path\to\KingdomComeDeliverance2   to tools\local.paths.txt
+    exit /b 1
+)
+set "MODS_DIR=%GAME_DIR%\Mods"
 set "OUT_DIR=%MODS_DIR%\mercenaries"
 
 echo ============================================================
@@ -22,9 +38,13 @@ echo.
 :: 1. Create/recreate output folder
 :: ------------------------------------------------------------
 echo [1/5] Preparing output folder...
+:: !VAR! rather than %VAR% everywhere inside a parenthesised block. A path holding
+:: brackets - "C:\Program Files (x86)\..." on any machine whose Steam is 32-bit-default -
+:: is expanded at PARSE time by %VAR%, and its ")" closes the block early: the packer
+:: died with "...was unexpected at this time" the first time it resolved a real x86 path.
 if exist "%OUT_DIR%" (
     echo       Deleting existing folder...
-    rd /s /q "%OUT_DIR%"
+    rd /s /q "!OUT_DIR!"
 )
 mkdir "%OUT_DIR%"
 mkdir "%OUT_DIR%\data"
@@ -49,12 +69,12 @@ set "DATA_PAK=%OUT_DIR%\data\mercenaries.pak"
 if not exist "%DATA_SRC%" (
     echo       WARNING: data folder not found, skipping.
 ) else (
-    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%DATA_SRC%', '%DATA_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!DATA_SRC!', '!DATA_PAK!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
     if errorlevel 1 (
         echo       ERROR: Failed to create data pak.
         goto :error
     )
-    echo       Created: %DATA_PAK%
+    echo       Created: !DATA_PAK!
 )
 
 :: ------------------------------------------------------------
@@ -69,9 +89,9 @@ if not exist "%LOC_SRC%" (
     echo       WARNING: localization folder not found, skipping.
 ) else (
     for %%L in (Chineses_xml Chineset_xml Czech_xml English_xml French_xml German_xml Italian_xml Japanese_xml Korean_xml Polish_xml Portuguese_xml Russian_xml Spanish_xml Turkish_xml Ukrainian_xml Vietnamese_xml) do (
-        set "SRC_FILE=%LOC_SRC%\%%L.xml"
-        set "PAK_FILE=%LOC_OUT%\%%L.pak"
-        set "TMP_LOC=%TEMP%\kcd2_loc_%%L"
+        set "SRC_FILE=!LOC_SRC!\%%L.xml"
+        set "PAK_FILE=!LOC_OUT!\%%L.pak"
+        set "TMP_LOC=!TEMP!\kcd2_loc_%%L"
 
         if not exist "!SRC_FILE!" (
             echo       WARNING: !SRC_FILE! not found, skipping %%L.
@@ -101,27 +121,28 @@ echo [5/5] Packing voice files (optional)...
 set "VOICE_SRC=%REPO_ROOT%\voice"
 set "VOICE_PAK=%LOC_OUT%\english.pak"
 
-:: Declare temp paths OUTSIDE the if block so %var% expansion works correctly
+:: Declared outside the if block, and read back with !var! inside it - see the note in
+:: step 1 about brackets in the path.
 set "TMP_VOICE=%TEMP%\kcd2_voice_tmp"
 set "TMP_VOICE_INNER=%TEMP%\kcd2_voice_tmp\dialog\mercenaries_background_quest"
 
 if not exist "%VOICE_SRC%" (
     echo       No voice folder found, skipping.
 ) else (
-    if exist "%TMP_VOICE%" rd /s /q "%TMP_VOICE%"
-    mkdir "%TMP_VOICE_INNER%"
+    if exist "!TMP_VOICE!" rd /s /q "!TMP_VOICE!"
+    mkdir "!TMP_VOICE_INNER!"
 
-    powershell -NoProfile -Command "Get-ChildItem -Path '%VOICE_SRC%' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '%TMP_VOICE_INNER%\' }; $n = (Get-ChildItem '%TMP_VOICE_INNER%').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
+    powershell -NoProfile -Command "Get-ChildItem -Path '!VOICE_SRC!' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '!TMP_VOICE_INNER!\' }; $n = (Get-ChildItem '!TMP_VOICE_INNER!').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
 
-    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('%TMP_VOICE%', '%VOICE_PAK%', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!TMP_VOICE!', '!VOICE_PAK!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
 
-    rd /s /q "%TMP_VOICE%"
+    rd /s /q "!TMP_VOICE!"
 
     if errorlevel 1 (
         echo       ERROR: Failed to create english.pak.
         goto :error
     )
-    echo       Created: %VOICE_PAK%
+    echo       Created: !VOICE_PAK!
 )
 
 :: ------------------------------------------------------------
@@ -133,7 +154,7 @@ echo ============================================================
 :: Game launch removed: the autobench harness (toolsutobench.ps1) owns launching now,
 :: and a packager-launched instance sat un-automated in the main menu while the harness
 :: stalled behind it. Launch manually or via the harness.
-:: start "" "C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
+:: start "" "%GAME_DIR%\Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
 goto :end
 
 :error

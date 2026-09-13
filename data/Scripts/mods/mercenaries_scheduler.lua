@@ -166,11 +166,19 @@ function mercenaries:SchedWatchdogDrive()
                 self.SchedEnabled = false
                 self:SchedArmLegacy()
             elseif self._schedStrikes >= 2 then
+                -- SchedStart(true) issues a new token, so the stalled chain - if it is
+                -- merely late rather than dead - retires on its next firing instead of
+                -- running beside the new one.
                 schLog("master tick stalled twice - re-arming")
                 self.SchedRunning = false
                 self:SchedStart(true)
+                return   -- SchedStart armed a fresh watchdog under the new token
             else
-                schLog("master tick missed an advance - watching (strike 1)")
+                local now = 0
+                pcall(function() now = System.GetCurrTime() or 0 end)
+                schLog(string.format(
+                    "master tick missed an advance - watching (strike 1) tick=%s lastSeen=%s t=%.1f",
+                    tostring(self.SchedTick), tostring(self._schedLastSeenTick), now))
             end
         else
             self._schedStrikes = 0
@@ -234,7 +242,7 @@ mercenaries.SchedLoadGen = 0
 -- OnGameplayStarted, RaidRunning by OnGameplayStarted, FoeLoopArmed and GearTickArmed
 -- on demand the next time there is a foe or an open wardrobe.
 mercenaries.TimerLatches = {
-    "SchedRunning", "_schedWatchdogArmed",
+    "SchedRunning",
     "LivePatrolRunning", "RaidRunning", "WBRunning",
     "FoeLoopArmed", "GearTickArmed", "_profHbArmed",
     -- The custom-uniform chains. GearArmKeep and GearArmFinish are called on demand (the
@@ -251,6 +259,9 @@ function mercenaries:SchedOnLoad()
     self.SchedLoadGen = (self.SchedLoadGen or 0) + 1
     for _, k in ipairs(self.TimerLatches) do self[k] = false end
     self._schedStrikes, self._schedLastSeenTick = 0, nil
+    -- Whatever chain the previous load left running now holds a stale token and retires
+    -- on its next firing, whether or not SchedStart arms a new one for this load.
+    self._schedToken = nil
 end
 
 -- Latched, like WBStart and LivePatrolStart elsewhere in this codebase, but the latch is
@@ -361,6 +372,17 @@ function mercenaries:SchedRegisterAll()
     self:SchedRegister("monitor", {
         periodMs = 1000,
         fn = function(s) s:MonitorLoopBody() end,
+    })
+
+    -- 100ms, and that number is the entire point. The ghost-movement test this drives -
+    -- position moving while the engine reports Henry's own speed as zero - is guarded by
+    -- `realTimeDelta < 0.4`, and it lived in the 1Hz monitor loop from the first commit to
+    -- 2026-09-03, where that condition can never be true. It has therefore never fired
+    -- once, in any version. See TravelWatchTick.
+    self:SchedRegister("travelwatch", {
+        periodMs = 100,
+        gate = function(s) return player ~= nil end,
+        fn = function(s) s:TravelWatchTick() end,
     })
 
     self:SchedRegister("lowpriority", {

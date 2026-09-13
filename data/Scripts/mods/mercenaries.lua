@@ -27,6 +27,7 @@ function mercenaries:PlayerCommand(name, body, desc)
     pcall(function() System.AddCCommand(name, body, desc or "") end)
 end
 
+
 -- Hire Tokens
 mercenaries.TokenIDWeak = "679a655e-189d-4519-b437-ccc4b92be41d"
 mercenaries.TokenIDMedium = "679a655e-189d-4519-b437-ccc4b92be42d"
@@ -985,8 +986,13 @@ function mercenaries:RequestBark(wuid, alias)
     -- sellswords and are played on the soul's own voice, so putting one in Zizka's
     -- mouth is worse than silence. This is the queue every order bark goes through,
     -- so one check here covers all of them.
+    --
+    -- Female mercs are muted the same way and for the same reason: every line the company
+    -- owns was recorded by a man. They keep everything else a merc has - the brain, the
+    -- order wheel, the dialogue menus, camp roles - and only the AUDIBLE half is off.
+    -- See mercenaries_female.lua.
     local ent; pcall(function() ent = System.GetEntity(wuid) end)
-    if ent and self:IsHero(ent) then return end
+    if ent and (self:IsHero(ent) or self:IsFemale(ent)) then return end
     local pool = self.BarkPools[alias]
     if pool and #pool > 0 then alias = pool[math.random(#pool)] end
     _G.MercBarkReq = _G.MercBarkReq or {}
@@ -1254,6 +1260,9 @@ function mercenaries:MonitorInventory()
 
     -- Archer (ranged merc) hire / stance / AI-variant tokens
     self:MonitorArcherTokens(p)
+
+    -- Female mercenaries: their own category, their own hire token
+    self:MonitorFemaleTokens(p)
 
     -- Formation shape chosen from dialogue or the order wheel
     self:MonitorFormationTokens(p)
@@ -1539,6 +1548,8 @@ end
 mercenaries:ChainDef("CombatScanLoop", "CombatScanLoopDrive")
 
 function mercenaries:LowPriorityMonitorLoopBody()
+    -- The company list, kept current for the load-time rebuild (mercenaries_roster.lua).
+    if mercenaries.RosterKeepTick then pcall(function() mercenaries:RosterKeepTick() end) end
     if next(mercenaries.ActiveMercs) then
         -- Pruning matters even while idle now that aggro applies at rest.
         mercenaries:ProfCall("low.PruneMercCache", "PruneMercCache")
@@ -1606,6 +1617,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- with the level we just left, so the latches guarding them have to be cleared or
     -- they lock the timers out for the rest of the session. See SchedOnLoad.
     if self.SchedOnLoad then self:SchedOnLoad() end
+    if self.MQWOnLoad then pcall(function() self:MQWOnLoad() end) end
+    if self.MatrixOnLoad then pcall(function() self:MatrixOnLoad() end) end
+    if self.RosterOnGameplayLoad then pcall(function() self:RosterOnGameplayLoad() end) end
+    if self.TravelWatchOnLoad then pcall(function() self:TravelWatchOnLoad() end) end
 
     -- ...and the same asymmetry one level up. Timers are not the only thing that dies with
     -- the level: so do the behaviour trees, the spawned entities and the siege. What does
@@ -1658,6 +1673,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     if self.SaverForget then self:SaverForget() end
     -- Ahead of every LoadString below, so they read the carried state on a crossing.
     if self.RegionOnLoad then pcall(function() self:RegionOnLoad() end) end
+
+    -- ...and only now: MapMarkerOnLoad reads MercCampMarker/MercCampCompass, which are
+    -- LoadString tags and would otherwise answer out of the save before this one.
+    if self.MapMarkerOnLoad then pcall(function() self:MapMarkerOnLoad() end) end
 
     -- Hook Player.OnAction (mouse input for tower placement). Delayed so that a mod
     -- which replaced the callback without chaining cannot lock us out - the same
@@ -1725,15 +1744,12 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Load the quartermaster logistics state (tiredness / food / drink / wages).
     self:LogiLoad()
 
-    -- Recall hotkey, rebound every load (harmless if already bound). See
-    -- docs/camp.md; rebind via console with: bind <key> merc_camp_recall
-    local okBind = pcall(function()
-        System.ExecuteCommand("bind f4 merc_camp_recall")
-    end)
-    System.LogAlways("[Mercenaries] Recall keybind F4: " .. (okBind and "OK" or "FAILED - use merc_camp_recall console command"))
-    -- Bench triggers, for the external harness (F10 quits the game when done).
-    if self.BenchBindKeys then pcall(function() self:BenchBindKeys() end) end
-    if self.TortureBindKeys then pcall(function() self:TortureBindKeys() end) end
+    -- NO F-KEY IS EVER BOUND. The mod used to bind F4 (recall) plus the bench/torture
+    -- triggers on F6-F10, and players kept firing test campaigns - some of which QUIT
+    -- the game - by accident. Recall is the console command merc_camp_recall (players
+    -- can bind it themselves: bind <key> merc_camp_recall). The test harness re-binds
+    -- its keys through merc_bench_bindkeys / merc_torture_bindkeys, which exist only
+    -- after merc_dev - and merc_dev itself refuses outside a -devmode launch.
 
     -- F5-F11 ARE NOT BOUND. Four in-game editors want them - the bandit camp builder
     -- (docs/bandit-camps.md), the siege builder, the Aleksej lodging editor and the patrol
@@ -1742,6 +1758,8 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- merc_route_* command still works from the console. To re-enable ONE editor: uncomment
     -- its binder body, then uncomment the matching call below.
     -- pcall(function() mercenaries:AlxBinds(true) end)
+    -- FIRST, before any owner rebuilds: what did the save carry? (see LoadSweepSnapshot)
+    pcall(function() mercenaries:LoadSweepSnapshot() end)
     pcall(function() mercenaries:RouteLoad() end)
     -- Roaming patrols do not survive a save: sweep anything the engine serialised before the
     -- tick re-rolls fresh records. See mercenaries_patrols_live.lua.
@@ -1750,6 +1768,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- A bandit-camp contract in progress. Only the CONTRACT is restored here; the camp
     -- itself is rebuilt by the monitor once the player is near it again.
     pcall(function() mercenaries:BanditCampRestore() end)
+    -- Second chance: if the BCQuest blob did not come back, rebuild the contract from
+    -- the independent stage record instead (mercenaries_kk_stage.lua).
+    pcall(function() mercenaries:KKStageRecover() end)
     -- Aleksej's camp is NOT save data and nothing here restores it: this drops whatever the last
     -- session left standing. The quest re-issues that beat's spawn token on the level's own
     -- OnWake if it is still live, and MonitorInventory stands the camp back up - no distance gate
@@ -1786,12 +1807,15 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Rebuild the merc cache: the one permitted full-world NPC scan, on load only.
     Script.SetTimerForFunction(2000, "mercenaries.RebuildMercCacheDelayed")
     -- Put a saved camp back up - after the cache above, since it hands out tents
-    -- from ActiveMercs (see RestoreCampDelayed).
+    -- from ActiveMercs (see RestoreCampDelayed). The retry counter is per-load
+    -- state and plain Lua, so it is reset here rather than trusted.
+    self._campRestoreTries = 0
     Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
     -- NO torture hook here. Phase B once armed itself from this event and auto-quit
     -- the USER'S game whenever their newest save carried a torture stamp (they hit
     -- Continue, phase B ran, the game closed - reported as "the mod keeps crashing").
-    -- Phase B now runs only when F8 is pressed on a stamped save (mercenaries_torture.lua).
+    -- Phase B now runs only from an explicit merc_torture command on a stamped save
+    -- (mercenaries_torture.lua) - and those commands exist only after merc_dev.
     -- One master tick drives these four instead of four independent timers, so they
     -- are phase-offset, gated and backed off when idle. merc_sched 0 restores the
     -- legacy timers at the next load. See docs/performance.md.
@@ -1831,6 +1855,19 @@ Script.LoadScript("Scripts/mods/mercenaries_ai_modules.lua")
 Script.LoadScript("Scripts/mods/mercenaries_equipment.lua")
 Script.LoadScript("Scripts/mods/mercenaries_gear_data.lua")
 Script.LoadScript("Scripts/mods/mercenaries_custom_gear.lua")
+-- Generated from data/libs/tables/item/item__mercenaries.xml (tools/gen_item_ids.py):
+-- every item class the mod defines, for the inventory audit and the uninstall purge.
+-- Pure data, so it loads before anything that might want it.
+Script.LoadScript("Scripts/mods/mercenaries_item_ids.lua")
+-- Generated from data/libs/tables/rpg/buff__mercenaries.xml (tools/gen_buff_ids.py):
+-- every buff the mod defines, for merc_purge_buffs and the save audit.
+Script.LoadScript("Scripts/mods/mercenaries_buff_ids.lua")
+-- Generated from the game's Config/CVarOverrides battle files (tools/gen_battle_cvars.py):
+-- what a scripted battle pushes, per sys_spec. Used to DETECT a battle and by merc_battlecvar.
+Script.LoadScript("Scripts/mods/mercenaries_battle_cvars.lua")
+Script.LoadScript("Scripts/mods/mercenaries_questprobe.lua")
+Script.LoadScript("Scripts/mods/mercenaries_outfit_matrix.lua")
+Script.LoadScript("Scripts/mods/mercenaries_kk_stage.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
 Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")
@@ -1842,10 +1879,17 @@ Script.LoadScript("Scripts/mods/mercenaries_hold.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation_handler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation.lua")
 Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
+-- Recognises "we are inside a scripted main-quest battle" (the coming merc/patrol
+-- temp-despawn hangs off its hooks). Ticked from MonitorMainQuestLoop.
+Script.LoadScript("Scripts/mods/mercenaries_mainquest_watchdog.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
+Script.LoadScript("Scripts/mods/mercenaries_female.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
+-- Draws the standing camp on the world map (and optionally the compass) by pushing a
+-- POI straight into the map's Scaleform element. See docs/map-marker.md.
+Script.LoadScript("Scripts/mods/mercenaries_mapmarker.lua")
 Script.LoadScript("Scripts/mods/mercenaries_forge.lua")
 Script.LoadScript("Scripts/mods/mercenaries_alchemy.lua")
 Script.LoadScript("Scripts/mods/mercenaries_hunting.lua")
@@ -1907,6 +1951,8 @@ Script.LoadScript("Scripts/mods/mercenaries_siege.lua")
 Script.LoadScript("Scripts/mods/mercenaries_raborsch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_aleksej.lua")
 -- Last: every slot body it registers must already be defined.
+Script.LoadScript("Scripts/mods/mercenaries_roster.lua")
+Script.LoadScript("Scripts/mods/mercenaries_travelwatch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_scheduler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_fttrace.lua")
 Script.LoadScript("Scripts/mods/mercenaries_bench.lua")
@@ -1922,6 +1968,9 @@ Script.LoadScript("Scripts/mods/mercenaries_campui.lua")
 Script.LoadScript("Scripts/mods/mercenaries_blorders.lua")
 Script.LoadScript("Scripts/mods/mercenaries_torture.lua")
 Script.LoadScript("Scripts/mods/mercenaries_combatwhy.lua")
+-- Immediately after it: the quest plan reuses the torture framework's step machine, its
+-- safety arming and its walk/log helpers, all of which the file above defines.
+Script.LoadScript("Scripts/mods/mercenaries_torture_quest.lua")
 
 -- Prints every merc console command with a one-line description.
 function mercenaries:PrintHelp()
@@ -1935,7 +1984,7 @@ function mercenaries:PrintHelp()
         "merc_heal                            heal & wash the squad (flat " .. tostring(self.HealCost) .. " groschen)",
         "merc_wait / merc_follow / merc_dismiss   squad orders",
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
-        "merc_camp_recall (F4)                bring the whole squad to you from anywhere (doesn't break camp)",
+        "merc_camp_recall                     bring the whole squad to you from anywhere (doesn't break camp)",
         "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
         "merc_hold / merc_hold_end            hold this ground: every man stands fast where he is, with a leash (docs/squad-orders.md)",
         "merc_hold_formup 0|1                 hold shape: 1 draws them up in a block instead of standing fast",

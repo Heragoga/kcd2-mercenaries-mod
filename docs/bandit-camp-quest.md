@@ -611,3 +611,136 @@ merc_bcamp_site_here      print a BanditCampSites row for where you stand
 - No voice lines: the quartermaster's new dialog is text-only, like the rest of his menu.
 - The bandits do not gossip. `_G.MercCampChats` pairing is merc-specific and bandit souls
   use vanilla voice 106, so they would need the generic vanilla gossip pool wiring.
+
+---
+
+## The reload that completed the contract (fixed 2026-09-04)
+
+Reported: *"saving while the camp wasn't cleared auto completed that part. The camp survived
+but none of the fighters in it did."*
+
+The chain:
+
+1. Entity ids do not survive a save. `BanditCampRestoreSlot` rebuilds `S.bandits` **empty**
+   and restores only `target` and `killed` from the blob.
+2. `ClearAnyLeftoverBanditCamp` then deliberately removes the previous session's bandits, so
+   the rebuild does not stack a second camp on the first.
+3. `BanditCampCountDead` ran before the rebuild and found every handle missing. After
+   `BanditCampMissingTicks` polls it counted them all dead, `killed` reached `target`, and
+   `BanditCampComplete` fired.
+4. `S.cleared` then makes the monitor return early — so the rebuild that would have put the
+   band back never ran, leaving exactly what was reported: props standing, nobody in them,
+   objective done.
+
+**The fix is a guard, not a new mechanism.** The repopulation already existed:
+`SpawnBanditCamp` brings back `target - killed` men on any rebuild. It simply never got the
+chance. `BanditCampCountDead` now refuses to count when *no* member of the roster is present
+in the world, and clears `S.spawned` so the existing rebuild runs on the next tick:
+
+```
+[BanditCampQuest] none of the 12 bandit(s) on the roster is in the world -
+                  the camp is unloaded, not cleared; rebuilding
+```
+
+Nobody kills a whole camp between two polls, so a wholly absent roster is only ever a reload
+or a streaming artifact. This is the same doctrine the siege branch already used - judge only
+from real evidence - applied to the ordinary camp, which had been trusting an absence.
+
+## Aleksej's tipster marker (added 2026-09-04)
+
+He never had one - this was not a spawn race. There was no `ShowMapMarker` node for him
+anywhere; the only marker in the whole mod was `bc_qm_marker` on the quartermaster.
+
+`alx_tipster_marker` is now in both `mercenaries_background_quest.xml` files, immediately
+after `alx_notdone`:
+
+```xml
+<ShowMapMarker Name="alx_tipster_marker" PositionY="7370" PositionX="400">
+    <Asset Name="MarkerObject" Alias="aleksej" />
+    <Constant Name="MarkerType" Value="PoiTipster" />
+    <Edge From="alx_done.State" To="IsActive" />
+</ShowMapMarker>
+```
+
+**Gated on `alx_done`**, which already means *"the job is done, walk back and tell him"*. So the
+icon is up exactly while the player owes him a report and disappears the moment a hand-off
+clears it. No new state, no new logic - it reads a boolean that nine beats already maintain,
+the same way `alx_notdone` reads it one node above.
+
+**Why this is safe.** A malformed node does not fail locally; it kills the entire mod quest
+graph and every dialog with it. So it mirrors `bc_qm_marker` - the one proven `ShowMapMarker`
+in this mod - part for part: `Asset` + `MarkerType` constant + a bool edge into `IsActive`.
+No `Namespace` attribute on any of it (that is the graph-killer, and the file contains none).
+`IsActive` gets a bool, never a raw trigger. `alx_done` is `TypeT="bool"` in both files.
+
+**Spawn timing needs no help**, which is what makes the original theory unnecessary: the
+marker resolves through the `SoulAsset` to whichever NPC Lua spawned carrying that soul. That
+is precisely why the quartermaster's marker works, and he is Lua-spawned and arrives seconds
+after a load too.
+
+**What to check on the next run:** the icon appears on Aleksej after a camp is cleared and
+before you report, and - the thing that matters more - **every mod dialogue still opens**. If
+dialogues break, this node is the only suspect and reverting it is the whole fix.
+
+## The original finding
+
+Reported on the same run. This is not a spawn race: **no `ShowMapMarker` node for Aleksej
+exists anywhere in the mod's quests.** The only marker in the whole graph is `bc_qm_marker`,
+the `QuestGiver` icon on the quartermaster in `bandit_camp_quest.xml`.
+
+Adding one is small - Aleksej already has a `SoulAsset` (`aleksej`,
+`a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b01`, `mercenaries_background_quest.xml:3016`), and the
+marker would mirror the quartermaster's exactly with `MarkerType="PoiTipster"`. The soul-asset
+resolution handles the spawn timing on its own: the quartermaster's marker resolves to
+"whichever NPC Lua spawned with this soul", which is why *his* works despite being Lua-spawned.
+
+It is not done here because a malformed quest node does not fail locally - a bad `Namespace`
+or a wrong port type kills the **entire** mod quest graph and every dialog with it
+(`reference_mod_quests_primitives_only`). It wants one careful edit and a dialogue check, not
+a blind addition alongside an unrelated fix.
+
+---
+
+## CORRECTION (2026-09-04, later): the real cause of the empty camp
+
+The two write-ups above were wrong, and the diagnostics they added are what proved it. The
+camp the player walks up to during Kleinkrieg is **Aleksej's beat camp**, rebuilt from its
+Skald wake token on every load. It never goes through `BanditCampAccept`, so `BCQuest` was
+never written, `contract restored` never appeared, and every fix to that path fixed a stage
+that is never reached.
+
+The log, in order:
+
+```
+[Aleksej] beat 1 'woodland camp': camp up at 'woodland_camp' - 4 standing, leader Ondra
+[Mercenary Jeff] load sweep: removed 6 stale mod NPC(s) the save carried with no record behind them
+...
+[Aleksej] a tower archer came down to fight      (ground cleared - nobody left on it)
+...
+[Aleksej] beat 1: the leader is down - told Skald (missing for AlxMissingTicks, judged down)
+```
+
+`RebuildMercCache` runs on a **2000 ms timer** after load and its `LoadSweepPrefixes` include
+`SpawnedEnemy_`. The beat rebuilds *before* that timer fires, so the sweep deleted the
+freshly-spawned looters and leader as "stale". Its own comment assumed every owner respawns
+after it; the wake path does not.
+
+**Fix:** `LoadSweepSnapshot` runs synchronously at the head of the load chain and records
+which mod NPCs the save actually carried. The sweep two seconds later removes only those -
+never anything a live owner spawned since - and additionally exempts any id claimed by a
+live system (`AlxCamp.ids`, the bandit rosters, patrols, the siege). "What the save carried
+with no record behind them" is now what the code does, not just what the log says.
+
+`mercenaries_kk_stage.lua` and the `BanditCampCountDead` guard stay: harmless on the
+quartermaster path, and that path is inert in normal play.
+
+## Aleksej's tipster: the original theory was right
+
+`AlxLodgingResetOnLoad` deletes him by name on every load and the tick respawns him seconds
+later. A `SoulAsset` marker resolved in that gap resolves to nothing. He is now stood up
+**synchronously inside the reset** (the tick's "already standing" guard makes the second
+call harmless), so he exists as early as Lua can arrange. Whether the graph resolves after
+that is the one thing still unproven - the 10-second check is whether the **quartermaster's**
+QuestGiver icon shows on the same load: he is swept and respawned at +4 s, so if his works,
+Aleksej's (now earlier) should too; if neither shows, markers on Lua-spawned NPCs are the
+problem and the gate was never the question.

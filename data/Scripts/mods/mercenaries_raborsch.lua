@@ -246,6 +246,20 @@ mercenaries.RaborschFootMin   = 6
 -- lower if the framerate says otherwise.
 mercenaries.RaborschFootMax   = 100
 
+-- Small-company relief for the siege (reported 2026-09-04: Raborsch is punishing with few men).
+--
+-- NOT the towers or carts: those are the GARRISON, and they duel the besiegers' archers on the
+-- player's behalf ("The wall duels the archers, not the assault", docs/aleksej.md). Thinning
+-- them would make the fight HARDER, which is the opposite of what was asked.
+--
+-- The besiegers' own archers already scale (RaborschArcherRatio). What did not was the LEVY:
+-- RaborschRecruitCount deliberately fields villagers in inverse proportion to the company, to
+-- keep a thin-arrow siege from feeling empty - 6 of them against a lone player, on top of the
+-- 6-soldier floor. Eighteen bodies for one man is the report. The levy and the soldier floor
+-- both now ease on the shared curve (AlxSmallRelief), so a full company sees no change at all.
+mercenaries.RaborschFootMinSolo    = 4    -- soldier floor when alone (was a flat 6)
+mercenaries.RaborschRecruitReliefMult = 0.5   -- of the levy that survives full relief
+
 -- One in three walks the patrol route; the rest live in the camp.
 mercenaries.RaborschPatrolShare = 1 / 3
 
@@ -518,6 +532,12 @@ mercenaries.RaborschRecruitMax     = 6
 function mercenaries:RaborschRecruitCount()
     local n = math.floor(self.RaborschRecruitBase
                          - self:RaborschSquadSize() * self.RaborschRecruitPerMerc + 0.5)
+    -- ...and the levy itself thins for a small company, rather than growing to fill the gap.
+    local rel = 0.0
+    pcall(function() rel = self:AlxSmallRelief() or 0.0 end)
+    if rel > 0 then
+        n = math.floor(n * (1.0 - rel * (1.0 - (self.RaborschRecruitReliefMult or 0.5))) + 0.5)
+    end
     if n < self.RaborschRecruitMin then n = self.RaborschRecruitMin end
     if n > self.RaborschRecruitMax then n = self.RaborschRecruitMax end
     if self.ScaleEncounterCount then n = self:ScaleEncounterCount(n) end
@@ -526,7 +546,15 @@ end
 
 function mercenaries:RaborschFootCount()
     local n = math.floor(self:RaborschSquadSize() * self.RaborschFootRatio + 0.5)
-    if n < self.RaborschFootMin then n = self.RaborschFootMin end
+    -- The floor eases toward RaborschFootMinSolo as the company shrinks.
+    local floor = self.RaborschFootMin
+    local rel = 0.0
+    pcall(function() rel = self:AlxSmallRelief() or 0.0 end)
+    if rel > 0 then
+        floor = math.floor(self.RaborschFootMin
+                           - (self.RaborschFootMin - (self.RaborschFootMinSolo or 3)) * rel + 0.5)
+    end
+    if n < floor then n = floor end
     if n > self.RaborschFootMax then n = self.RaborschFootMax end
     if self.ScaleEncounterCount then n = self:ScaleEncounterCount(n) end
     return n
@@ -1216,4 +1244,13 @@ function mercenaries:RaborschOnLoad()
         self.EnemyAlertRadius, self._rabSavedAlertR = self._rabSavedAlertR, nil
     end
     self:RaborschRestoreSwarmCeiling()
+    -- The RECORD dies with the load too. RBQ is plain Lua, so it outlives the level -
+    -- but the siege's entities do not, and this used to keep active=true across a load.
+    -- SpawnRaborsch's "already standing" guard then refused to rebuild for the rest of
+    -- the session: the player walked up to an EMPTY castle, and the death-checks read
+    -- the zero-man "siege" as a victory. The global load sweep (RebuildMercCache,
+    -- SpawnedEnemy_* prefixes) removes whatever men the save serialised; this drops the
+    -- bookkeeping to match. The quest's wake token re-issues the spawn if beat 8 is live.
+    self.RBQ = { active = false }
+    self.RaborschFootKeys = {}
 end

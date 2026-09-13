@@ -1,6 +1,6 @@
 # Squad Outfits
 
-`mercenaries.Outfits` (in `mercenaries.lua`) is the squad wardrobe. Styles 1-5 and 8-17 carry **10 presets per tier** (450 generated presets); style 6 (Skalitz) is left as authored and style 7 is the custom uniform, see below. `EquipMercenary` parses the tier out of the merc's entity name, looks up `Outfits[style][tier]` and rolls one preset from it.
+`mercenaries.Outfits` (in `mercenaries.lua`) is the squad wardrobe. Styles 1-5 and 8-17 carry **10 presets per tier** (450 generated presets); style 6 (Skalitz) is authored separately with **4 per tier** and style 7 is the custom uniform, see below. `EquipMercenary` parses the tier out of the merc's entity name, looks up `Outfits[style][tier]` and rolls one preset from it.
 
 | # | Style | Heraldry | Silhouette |
 |---|---|---|---|
@@ -9,7 +9,7 @@
 | 3 | Cumans | **none** | caftan instead of gambeson, loose hose, knee boots, open bascinets |
 | 4 | Leipa | `_mLeipa` surcoat/coat/coif | standard man-at-arms in Leipa colours |
 | 5 | Kuttenberg | `_mKuttenberg` (18 surcoats, 10 coats, 2 coifs, 1 hood) | town levy in Kuttenberg colours |
-| 6 | Skalitz | — | **untouched**: hand-authored, depends on a separate mod |
+| 6 | Skalitz | Skalitz waffenrock (4), red hood, mail collar — **from *House of Kobyla*, not vanilla** | hand-authored, 4 presets per tier, generated from `tools/gen_skalitz_presets.py` |
 | 7 | *(custom uniform)* | — | not a preset pool — see [The custom uniform](custom-gear.md) |
 | 8 | Prague | `_mPrague` (4 surcoats, a coat, 2 hoods, 2 coifs) | city regiment in Prague colours |
 | 9 | Sigismund | `_mMagyar` + `_mUher` (2 surcoats, 3 coats, hood, 2 coifs) | Hungarian royal livery |
@@ -22,7 +22,11 @@
 | 16 | Ruthard | `_mRuthart` (3 surcoats, coat, coif, own leg harness) | Kuttenberg patrician |
 | 17 | Papal Legate | `_mPapal` (2 surcoats, hood, coif) | the legate's guard |
 
-**Skalitz (style 6) is deliberately excluded from all of this.** Its 12 presets are hand-authored and draw items from the third-party *House of Kobyla Arms, Armour and Regalia* mod, so its GUIDs resolve to nothing in the vanilla tables — that is expected, not a bug, and it is why the budget below does not apply to it. Leave it alone.
+**Skalitz (style 6) is authored piece by piece**, not drawn from the item budget below, and carries 4 presets per tier instead of 10. The authored list lives in `tools/gen_skalitz_presets.py`, which writes the twelve presets from it: change the look by editing the spec there and re-running, never by editing the XML. Hand-editing is what caused the last regression — `_1`/`_3` and `_2`/`_4` silently became byte-identical.
+
+**Its livery is a real dependency.** The Skalitz waffenrock (four surcoats), the plain red Skalitz hood and the Skalitz mail collar come from the third-party *House of Kobyla Arms, Armour and Regalia* mod, which is why the outfit label says so. Everything else in the presets is vanilla, so **without** that mod the base layers still equip and the men simply turn out without the surcoat — no error, just no heraldry.
+
+> **The "Skalitz reverts to generic style" bug was exactly that, but permanently:** the shipped presets had lost every livery piece and kept only the plain vanilla base, so a Skalitz merc was assembled from the same pool as style 1 whether or not the player had the dependency. On top of that, `_1`/`_3` and `_2`/`_4` were byte-identical in all three tiers, so the style fielded two looks per tier instead of four. Regenerating from the spec restores both. If mercs still look generic *after* this fix, the dependency is missing — that is the one case where the old symptom is expected.
 
 **Style 7 is the custom uniform**, not a wardrobe: the player hands the quartermaster a set of gear and the whole company copies it (`mercenaries.CustomOutfitIndex = 7`). It has no entry in `Outfits`, and `EquipMercenary` falls through to style 1 if it is ever looked up. New liveries therefore start at 8.
 
@@ -89,7 +93,9 @@ Presets are built only from a vetted pool: **1565 vanilla armour pieces**, filte
 - clergy, jester (the whole `Coat06` line), plague, painter and cutscene-only oddities;
 - another lord's heraldry, except where a style deliberately flies it.
 
-The `merc_skalitz_*` and `merc_lipa_strong_*` presets reference item GUIDs that exist in **no** vanilla table — they come from the third-party *House of Kobyla Arms, Armour and Regalia* mod, the same dependency the weapon presets carry (see `weapon_preset__mercenaries.xml`). The Skalitz ones are still live (style 6). The `merc_lipa_strong_*` ones are no longer drawn by style 4, which now uses generated presets; they stay in the XML so old saves don't break.
+The `merc_skalitz_*` presets carry **six** item GUIDs that exist in no vanilla table — the four Skalitz surcoats, the hood and the mail collar, all from *House of Kobyla Arms, Armour and Regalia* (the same dependency the Skalitz shields in `weapon_preset__mercenaries.xml` used to carry, before those were pointed at vanilla equivalents). `tools/gen_skalitz_presets.py` knows which six they are and refuses to write a preset containing any other unresolvable GUID.
+
+The `merc_lipa_strong_*` presets were documented as carrying the same dependency; checked GUID by GUID against `references/base_game/Libs/Tables/item/item*.xml`, **all 33 of their items now resolve in vanilla**. They are no longer drawn by style 4, which uses generated presets, and stay in the XML so old saves don't break.
 
 ## OutfitTierHints
 
@@ -140,3 +146,67 @@ Seventeen styles is a lot of wheel: Papal is five "more" clicks in. If it starts
 ## Changing the wardrobe
 
 To retune a tier, change the budget and rebuild — do **not** hand-edit individual presets, or the pools drift apart again. The invariant worth protecting is that the min and max of every pool stay inside a few percent of each other and of the other styles at the same tier.
+
+---
+
+## The parade ground
+
+Dev tier - run `merc_dev` first (needs `-devmode`).
+
+```
+merc_outfit_matrix           every style, all three tiers
+merc_outfit_matrix 6         one style
+merc_outfit_matrix 6 12      a range
+merc_outfit_matrix clear     take them away
+```
+
+One man per (style, tier) in a grid in front of you: styles march away, tiers spread to the
+right. 51 men for the full set.
+
+They are **not hires** — their own name prefix (`MercShowcase_`) keeps them out of
+`ActiveMercs`, so they never follow, never count, and are spawned with `NoSaveProps` so a
+save taken with a parade standing does not carry 51 NPCs into it.
+
+Row 7 is the custom uniform, which has no preset pool: it shows whatever the quartermaster
+was last given, and bare is the correct answer if it was never set.
+
+This is the tool the Skalitz regression needed. Two presets per tier being byte-identical is
+invisible one merc at a time and obvious in a row of three.
+
+## Could the armour mods carry new styles?
+
+Researched 2026-09-04 against the nine mods in `references/armor mods/`. Coverage of the
+slots a man-at-arms silhouette needs:
+
+| mod | gambeson | cuirass | helmet | gloves | legs | boots | coat |
+|---|---|---|---|---|---|---|---|
+| refined_garments | 31 | – | – | 31 | – | 14 | 143 |
+| Kobyla | 8 | 8 | 10 | 4 | 6 | – | 15 |
+| outer_garments | 128 | 82 | 53 | 6 | 32 | 3 | 24 |
+| zcustom_colorsvanilla | 157 | 194 | – | 89 | 278 | – | 79 |
+| silver_lys_gear | 5 | 16 | 35 | 8 | 10 | – | 16 |
+| hounskull | – | – | 19 | – | – | – | – |
+| sl_swords_shields | – | – | – | – | – | – | 40 |
+| silver_lys_brigandine | – | 37 | – | 20 | 10 | – | – |
+| armor_refit | 9 | 26 | 36 | – | 5 | – | 25 |
+
+**No single mod dresses a man head to foot.** Every one of them is missing at least one core
+slot - most obviously boots, which only refined_garments and outer_garments have at all.
+
+That is the finding, and it decides the shape of any new style:
+
+* **A style drawn from one mod** is a clean dependency but cannot be a full silhouette. The
+  honest candidates are `outer_garments` (4 of 6 core slots, deep) and `silver_lys_gear`
+  (thin but balanced) - each would still fall back to vanilla for boots and gloves.
+* **A style drawn from several mods** covers everything but takes several hard dependencies,
+  and the Skalitz precedent above says exactly how that fails: no error, just a merc without
+  the livery. One missing mod out of three is a silently half-dressed company.
+* **`hounskull` and `sl_swords_shields` are accessory sets**, not wardrobes - better used to
+  widen the helmet and shield pools of styles that already exist than to become styles.
+* **`zcustom_colorsvanilla` is recolours of vanilla pieces**, so it is the one that could
+  carry *colour variants* of existing styles with no silhouette work at all - and, being
+  recolours, its dependency failure mode is the mildest of the lot.
+
+Recommendation: judge it by eye first. Run `merc_outfit_matrix` with the mods installed and
+walk the rows; the 17 that exist are the yardstick for whether a mod-backed 18th is worth a
+dependency.

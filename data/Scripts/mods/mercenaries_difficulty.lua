@@ -53,7 +53,10 @@ function mercenaries:DifficultyLoad()
 end
 
 function mercenaries:DifficultySet(name)
-    name = tostring(name or ""):lower():gsub("%s", "")
+    -- CmdClean first: the console quotes arguments, and this is an exact-name lookup,
+    -- so DifficultyTiers['"hard"'] would miss where a %d+ match would have survived.
+    name = string.lower(mercenaries:CmdClean(name))
+    name = string.gsub(name, "%s", "")
     if not self.DifficultyTiers[name] then
         diffLog("unknown tier '" .. name .. "'; pick one of: " ..
                 table.concat(self.DifficultyOrder, ", "))
@@ -302,7 +305,10 @@ function mercenaries:UpkeepApply()
 end
 
 function mercenaries:UpkeepSet(name)
-    name = tostring(name or ""):lower():gsub("%s", "")
+    -- CmdClean first: the console quotes arguments and this is an exact-name lookup, so
+    -- UpkeepModes['"harsh"'] would miss. Same fix as DifficultySet.
+    name = string.lower(mercenaries:CmdClean(name))
+    name = string.gsub(name, "%s", "")
     if not self.UpkeepModes[name] then
         diffLog("unknown upkeep mode '" .. name .. "'; pick one of: " ..
                 table.concat(self.UpkeepOrder, ", "))
@@ -361,13 +367,33 @@ mercenaries.TokenIDQMHints = "679a655e-189d-4519-b437-ccc4b92bef0d"
 -- at the single place that publishes it (MercPlayerMountSeen), which makes everything
 -- downstream follow, including the orphan sweep that despawns horses already standing.
 mercenaries.HorsesEnabled  = true
+-- Men out with the player above which nobody rides (see MercPlayerMountSeen). 0 = no limit,
+-- and that is the default: capping it at 30 was tried on 2026-09-03 against the riderless
+-- horses at fifty men and the report was simply "the mercs didn't mount up", which is worse
+-- than the thing it fixed. The AI-LOD budget raise (LodBoostCompanyMin) is the real answer
+-- to a big mounted company; this is here for whoever still wants the hard limit.
+mercenaries.HorsesMaxCompany = 0
 mercenaries.TokenIDQMHorses = "679a655e-189d-4519-b437-ccc4b92beefd"
+
+function mercenaries:HorsesMaxSet(line)
+    local n = tonumber(tostring(line or ""):match("%d+"))
+    if not n then
+        diffLog("riders limit: " .. tostring(self.HorsesMaxCompany or 0) .. " men out (0 = no limit)")
+        return
+    end
+    self.HorsesMaxCompany = n
+    self._horsesCapNoted = false
+    pcall(function() self:SaveString("MercHorsesMax", tostring(n)) end)
+    diffLog("riders limit set to " .. tostring(n) .. (n == 0 and " (no limit)" or " men out"))
+end
 
 function mercenaries:HorsesAllowed()
     if self._horsesLoaded == nil then
         local v
         pcall(function() v = self:LoadString("MercHorses") end)
         self.HorsesEnabled = (v ~= "0")
+        local m; pcall(function() m = tonumber(self:LoadString("MercHorsesMax")) end)
+        if m then self.HorsesMaxCompany = m end
         self._horsesLoaded = true
     end
     return self.HorsesEnabled
