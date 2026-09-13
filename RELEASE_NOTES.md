@@ -1,7 +1,63 @@
 # Release notes
 
-Paste-ready for the mod page. Version number is a placeholder — set it here and in
-`mod.manifest` before packaging.
+Paste-ready for the mod page. Set the version here and in `mod.manifest` before packaging.
+
+---
+
+## 3.0 — Command, stone and the road between
+
+2.0 gave the company a camp and a war. 3.0 gives you a way to command it, a castle to
+build, and a map you can cross without leaving it all behind.
+
+### Commanding the company
+
+- **A command interface**, drawn as a real in-game screen rather than debug text. Divide the
+  company into **four squads** and give each one orders — hold, follow, engage, fall back —
+  without opening a console. `merc_bl` shows it, `merc_bl_keys` binds it.
+- **A camp screen** (`U`): pitch the camp, buy and remove improvements, and read the
+  company's books in one place instead of through dialogue menus.
+- **Handing over supplies** through the game's own item-transfer window, so feeding the
+  company no longer depends on standing next to the quartermaster.
+
+### Stone
+
+- **The castle builder.** The same drawing mode as the palisade, in stone: real castle wall
+  pieces with corner towers, gatehouses and slopes, and a doubled back face so the walls have
+  thickness instead of reading as one-sided level facades.
+- **Walls that actually stop people.** NPCs used to walk straight through anything the mod
+  built — the palisade included. They no longer do. The cause was never the navmesh: the
+  engine ships living-vs-rigid collisions disabled, and the fix is a collider mode applied at
+  physicalisation. Fighting men still push through in a melee; that part is engine-owned.
+- **Raids route through the gate** again, while the wall stays solid.
+
+### The road between
+
+- **Crossing between Trosky and Kuttenberg** is handled properly. They are separate levels,
+  and everything the mod spawns belongs to the one it was spawned in — the men, the camp,
+  the walls, the towers. Your company now comes back with you instead of being left behind.
+
+### Performance
+
+- **The camp lag is fixed.** A palisade standing anywhere near you used to cost frame rate
+  no matter how short it was. Two causes: an NPC lookup that enumerated every NPC in the
+  level three times per call (a cache whose guard could never be satisfied), and every timer
+  in the mod running on the engine clock — which a wait or a sleep runs about 29× fast, so
+  the whole mod's workload multiplied exactly while you waited.
+- **Fast travel and waiting** are correspondingly cheaper; the heavy background work now has
+  a floor measured in real seconds rather than game seconds.
+- **No more phantom combat.** Arriving from a fast travel already fighting, with nothing in
+  sight, turned out to be real: patrol gangs frozen at ~150 m with weapons drawn, close
+  enough to hold you in combat and far enough that the engine had stopped ticking their AI,
+  so they never closed and never let go. A gang that is far off, armed and not getting any
+  closer now breaks off.
+- Assorted fixes to camp and wall persistence: walls, towers and gates no longer vanish after
+  repeated fast travel, and a torn-down camp no longer leaves invisible collision behind.
+
+### Also
+
+- Equipment customiser, more presets and more custom companions.
+- Faster horses for mounted mercenaries.
+- Difficulty scaling and engagement stances.
 
 ---
 
@@ -139,9 +195,11 @@ Sixteen languages, all complete. The difficulty confirmation message is now tran
 
 ## Known issues
 
+- The repeatable bounty and the bandit-camp contracts are **Kuttenberg only** — the camp
+  sites and both quartermaster options are pinned to that map by design.
+- Mounted units in large companies still look loose compared to foot.
 - Mercenaries will fight bandits who are part of an unrelated quest.
 - Any other mod that replaces `AI/FormationDefinitions.xml` conflicts with this one.
-- Mounted units in large companies still look loose compared to foot.
 
 ---
 

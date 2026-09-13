@@ -539,4 +539,4 @@ cmd("merc_hide_others",  "mercenaries:ToggleHideOthers()",     "Hide every NPC t
 -- advanced
 cmd("merc_dev",      "mercenaries:DevCommandsEnable()", "Register the authoring and diagnostic commands too")
 cmd("merc_dev_list", "mercenaries:DevCommandList()",    "List the dev commands (after merc_dev)")
-cmd("merc_lua",      "mercenaries:ExecString(%line)",   "Run a line of Lua (advanced)")
+cmd("merc_lua",      "mercenaries:ExecString([==[%line]==])",   "Run a line of Lua (advanced)")

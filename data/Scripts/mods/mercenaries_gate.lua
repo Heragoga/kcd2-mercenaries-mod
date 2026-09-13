@@ -95,8 +95,10 @@ local function gateMxSpawn(self, model, pos, yaw)
     if ent then
         pcall(function() ent:SetAngles({ x = 0, y = 0, z = yaw }) end)
         pcall(function() ent:SetViewDistUnlimited() end)
-        pcall(function() ent:SetViewDistRatio(255) end)
-        pcall(function() ent:SetLodRatio(255) end)
+        if mercenaries.WallForceMaxLod then
+            pcall(function() ent:SetViewDistRatio(255) end)
+            pcall(function() ent:SetLodRatio(255) end)
+        end
         table.insert(self.GateMxEnts, ent.id)
     end
     return ent
@@ -144,14 +146,19 @@ local function gateStyle(self)
     return self.GateStyles[self.GateStyleIdx] or self.GateStyles[1]
 end
 
-function mercenaries:GateWidth()
-    return gateStyle(self).width or 4.0
+-- A gate may carry its OWN style rather than the camp's current one. The castle gateway
+-- does: it is a doorway cut into a stone tile, so its leaves and its opening are the
+-- arch's, not whatever the quartermaster happens to be selling.
+function mercenaries:GateWidth(g)
+    return ((g and g.style) or gateStyle(self)).width or 4.0
 end
 
-function mercenaries:GateModel(open)
-    local st = gateStyle(self)
-    if open then return st.open end
-    return st.closed
+function mercenaries:GateModel(open, g)
+    local st = (g and g.style) or gateStyle(self)
+    -- A stone arch (castle gate style) has no leaves carved open and shut: `frame`
+    -- stands in both states, and only the colliders and the pathing know it is shut.
+    if open then return st.open or st.frame end
+    return st.closed or st.frame
 end
 
 -- Remove a gate's prop, keeping the record. Used on every state change: with no
@@ -174,10 +181,10 @@ function mercenaries:GateBuildColliders(g)
 
     local yaw = g.yaw or 0
     local px, py = -math.sin(yaw), math.cos(yaw)      -- along the panel
-    local half = self:GateWidth() * 0.5
+    local half = self:GateWidth(g) * 0.5
     local sc = self.GateColliderScale or { x = 1, y = 1, z = 1 }
     local step = math.max(0.3, (self.GateColliderStep or 0.4) * (sc.x or 1))
-    local n = math.max(1, math.floor((self:GateWidth()) / step + 0.5))
+    local n = math.max(1, math.floor((self:GateWidth(g)) / step + 0.5))
 
     for i = 0, n do
         local t = (i / n) * 2 - 1                     -- -1 .. +1 across the gate
@@ -227,7 +234,7 @@ local function gateSpawnEnt(self, g)
         name = "MercGateProp_" .. tostring(math.random(100000, 999999)),
         position = pos,
         orientation = { x = math.cos(yaw), y = math.sin(yaw), z = 0 },
-        properties = { object_Model = self:GateModel(g.open), bMissionCritical = false,
+        properties = { object_Model = self:GateModel(g.open, g), bMissionCritical = false,
                        bSaved_by_game = false, bSerialize = false },
     }
     -- Falls back through mercenaries_Prop before BasicEntity: if the gate class did not
@@ -247,8 +254,10 @@ local function gateSpawnEnt(self, g)
     if ent then
         pcall(function() ent:SetAngles({ x = 0, y = 0, z = yaw }) end)
         pcall(function() ent:SetViewDistUnlimited() end)
-        pcall(function() ent:SetViewDistRatio(255) end)
-        pcall(function() ent:SetLodRatio(255) end)
+        if mercenaries.WallForceMaxLod then
+            pcall(function() ent:SetViewDistRatio(255) end)
+            pcall(function() ent:SetLodRatio(255) end)
+        end
         pcall(function() ent:RenderShadow(true) end)
         -- GetActions runs on the entity and cannot see the gate record, so the state
         -- rides along on the entity itself
@@ -267,11 +276,12 @@ end
 -- it again fires the ray through whatever static geometry now stands there (the palisade
 -- the gate is butted against, a camp prop) rather than the terrain, so the gate rose a
 -- little further out of the ground on every rebuild until it was out of sight.
-function mercenaries:GateBuild(pos, yaw, open, noSnap)
+function mercenaries:GateBuild(pos, yaw, open, noSnap, style, tag)
     if not pos then return nil end
     local p = pos
     if self.CampSnapToGround and not noSnap then p = self:CampSnapToGround({ x = pos.x, y = pos.y, z = pos.z }) end
-    local g = { x = p.x, y = p.y, z = p.z, yaw = yaw or 0, open = (open == true) }
+    local g = { x = p.x, y = p.y, z = p.z, yaw = yaw or 0, open = (open == true),
+                style = style, tag = tag }
     table.insert(self.Gates, g)
     gateSpawnEnt(self, g)
     self:GateTouched()
@@ -369,10 +379,10 @@ end
 -- reopens and a raid marches through it.
 function mercenaries:GateBlockSegments()
     local out = {}
-    local half = self:GateWidth() * 0.5
     for _, g in ipairs(self.Gates or {}) do
         if not g.open then
             -- g.yaw, NOT g.yaw + GateYawFix: see the note on GateYawFix
+            local half = self:GateWidth(g) * 0.5
             local yaw = g.yaw or 0
             local px, py = -math.sin(yaw), math.cos(yaw)
             table.insert(out, { ax = g.x - px * half, ay = g.y - py * half,
@@ -395,6 +405,16 @@ function mercenaries:GateClearAll()
     for _, g in ipairs(self.Gates or {}) do gateDespawnEnt(g) end   -- colliders included
     self.Gates = {}
     self:GateTouched()
+end
+
+-- Take one gate out of the list by index, prop and colliders with it. The wall uses it:
+-- a gateway's leaves hang in a tile of the curtain, so they come down whenever it does.
+function mercenaries:GateRemoveAt(i)
+    local g = (self.Gates or {})[i]
+    if not g then return false end
+    gateDespawnEnt(g)
+    table.remove(self.Gates, i)
+    return true
 end
 
 function mercenaries:GateRemoveNearest()

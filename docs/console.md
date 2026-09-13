@@ -139,10 +139,23 @@ See docs/walls-and-sieges.md.
 | `merc_patrols <0/1>` | Roaming road patrols |
 | `merc_patrols_pace <gap> [postFight] [standingCap]` | **dev** — how often a roaming gang may appear at all, in seconds. No argument reports. See docs/patrols.md, "Pacing" |
 | `merc_status_icons <0/1>` | Squad status icons on the player HUD |
+| `merc_hints <on/off>` | The `[H] Command` / `[U] Camp` prompts in the screen corner. Blank toggles. Saved; also in the quartermaster's Mod settings |
+| `merc_hints_pos <where>` | Move them: `topright` (default), `compass` (beside the compass bar), `topleft`, `bottomright`, `bottomleft`, or an explicit `<x> <y>` on the 1280x720 stage. Each is the row's RIGHT edge. Saved. See docs/command-ui.md |
 | `merc_autodismount <0/1>` | Mercs get off their horses to fight |
 | `merc_horses <0/1>` | Let the company use horses at all. Off = they march on foot whatever you ride. Saved; also in the quartermaster's Mod settings |
 | `merc_lod_quality <preset>` | crisp, balanced (default), performance - how much mesh detail is cut in a big battle. Saved. See docs/npc-lod.md |
 | `merc_hide_others` | Toggle: hide every NPC that is not yours. For clean screenshots and footage - **restore it before saving** |
+| `merc_solid <0/1/2>` | Whether NPCs collide with walls the mod spawns. 0 off, 1 (default) only men within 20 m of a wall of yours, 2 everyone near the company. Saved. See docs/walls-and-sieges.md |
+| `merc_solid_status` | What the collision switch is doing: whether it is armed, and how many men are bookkept, solid, handed back or awaiting a reroute |
+| `merc_solid_selftest` | Walk about for 30 s: measures how far the company moves with the switch off, then on, and says whether arming it costs them anything |
+| `merc_navobst <0/1/2>` | NPCs steer around our walls (the engine's collision-avoidance obstacles). 0 off, 1 near our walls (default), 2 always. Saved. See docs/walls-and-sieges.md |
+| `merc_navobst_status` | The cvars, and how many standing wall segments carry the obstacle property (walls built before the fix do not - rebuild them) |
+| `merc_navobst_draw <npc>` | Draw the engine's own obstacle set for one agent - the direct answer to "is my wall in it". No argument turns it off |
+| `merc_navobst_selftest` | Walk along a wall for 30 s: how close the company lets itself get, obstacles off then on |
+| `merc_ai_probe` | Probe the engine's own AI script interface (the `AI` Lua table, 265 live binds) and dump every avoidance cvar's live value |
+| `merc_ai_walk` | Ask the engine whether an NPC can walk straight through our walls (its answer is unreliable - see docs/walls-and-sieges.md) |
+| `merc_mnm_test` | Turn on `wh_ai_AutomaticMNMRebuild`, spawn a test wall, and watch the log for a navmesh rebuild |
+| `merc_mnm_clear` | Remove the test wall segments `merc_mnm_test` spawned |
 
 ## Advanced
 

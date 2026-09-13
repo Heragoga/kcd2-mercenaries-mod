@@ -70,7 +70,7 @@ good reasons:
 | System | base | why |
 |---|---|---|
 | raids | `LogiAliveCount()` | a raid is fought by the whole company, including the men asleep in camp |
-| patrols | `PatrolPartySize()` (1 + alive) | the player is on the road himself |
+| patrols | `PatrolPartySize()` (1 + following) | the player is on the road himself, with whoever actually rode out — not the men holding the camp |
 | bounty / Kleinkrieg | `BanditCampFollowerCount()` | only the men who actually walked out |
 
 ### The ceilings, and why they had to move

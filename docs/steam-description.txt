@@ -1,0 +1,84 @@
+[h1]Mercenaries - Hire Your Own Army[/h1]
+
+[b]Discord to get help:[/b] https://discord.com/invite/R7xKaGqdRU
+
+[b]Important:[/b] This is the balanced version, which is why there's a strict cap of 50 mercenaries. For an [b]unlimited number[/b] (like in the screenshots), or a muted version without my custom voicelines, go to the Nexus page: https://www.nexusmods.com/kingdomcomedeliverance2/mods/3051
+
+KCD2 is at its core a game about a warband - Zizka's men at Nebakov, later the Devil's Band, wrecking Sigismund's war behind his own lines. And Henry? Henry runs errands for them. [b]He never commands anything.[/b]
+
+This mod fixes that. Hire your own men, march them across Bohemia, set up a war camp anywhere on the map. Feed them, pay them, keep their morale up or watch them desert. Build the camp into a fortress with a palisade, archer towers and hussite war wagons. Then go looking for a fight: bandit camps, raids on your camp, Sigismund's patrols, and a fully voiced side quest that ends in a siege.
+
+[b]This mod is finished.[/b] No roadmap, no coming soon, everything listed below is in the game.
+
+[h2]Getting Started[/h2]
+[olist]
+[*][b]Hire men.[/b] Walk up to any innkeeper and ask to hire. Pick a tier and a quantity. (If an innkeeper doesn't show the dialog, try another one.)
+[*][b]Press H to command them.[/b] Squad cards, orders and formations.
+[*][b]Press U for the camp.[/b] Pitch it, build it, run its books. You can pitch one with no men at all - your own tent has a bed, so you can sleep and save in the field.
+[*][b]Feed them.[/b] Camp screen, Rations, Deliver. Or buy food, or take supplies off the enemies you kill. Your HUD warns you when food, drink or wages run low.
+[*][b]Tell them to wait.[/b] Press [b]V[/b] while looking at them before you enter a building. They get in the way indoors.
+[/olist]
+
+[h2]The Two Screens[/h2]
+Drawn in the game's own typeface on its own dark panels, so they sit beside the vanilla UI rather than on top of it. Every button says which key presses it.
+
+[b]H - the command interface.[/b] Squad cards down the left: what each squad is, how many are left, how hurt they are, what they're doing. Four squads on 1-4, orders on 5-0. Move to a position you pick out on the ground, follow, charge, stop, retreat, return. Formations: line, column, square, wedge, circle, escort. Per squad: weapons, clothing, rules of engagement, how tightly they hold ranks, mounted or not, or send one squad back to camp without the rest.
+
+[b]U - the camp screen.[/b] [b]Build[/b] lists every improvement and what it costs. [b]Logistics[/b] is the books: men under arms, wounded, the wage bill, morale on a bar that runs both ways and what it's worth in a fight, food and drink with days left, the war chest, and a fortnight of supply as a graph so you see the stores dropping before anyone starves. Construct hands you a projection to place where you like; Relocate moves what's standing, tent rings included; Remove takes something down and keeps it. Break camp and it all goes into storage - the next camp puts it back for nothing.
+
+The quartermaster still does everything he always did. The screen is a second way in, not a replacement.
+
+[h2]The Company[/h2]
+[list]
+[*][b]Tiers:[/b] Weak (basic cannonfoder), Medium (good distraction while you do the heavy lifting), Strong (hard fights and bodyguards).
+[*][b]Customizable Squads:[/b] Equip a preset - Basic Mercenary, Cutthroat Bandit, Fierce Cuman, Loyal Skalitz/Leipa, Kuttenberg, Teutons, Crusaders, Rithard, Bergow, Semine and more. You can also hand them armour in game and the whole company will wear it.
+[*][b]Smart Combat Logic:[/b] They know the difference between a fight to the death and friendly competition, and will [b]not[/b] interfere in practice fights, fist brawls or tournaments.
+[*][b]Recruit Base Game Characters:[/b] 500 to 3000 groschen depending on the character, and they won't interfere with the main quest. Pretty much every named character is in there, from Kuběnka and Janosh up to Jan Žižka, The Devil and Sir Hans Capon.
+[*][b]Horses:[/b] Mercs spawn horses whenever you mount up and follow you mounted.
+[/list]
+
+[h2]The Camp[/h2]
+[list]
+[*][b]Set up anywhere:[/b] Within reason - no tents on roofs, but nothing stops you turning the suburbs of Kuttenberg into one giant mercenary slum. It scales with your company: every group of men adds another ring of tents around another fire.
+[*][b]Logistics:[/b] Any food item in the game works, sausages, sauerkraut, whatever you've been carrying. Drink is optional, but a company with drink has better morale and fights better. Let food and money run dry and they desert, or mutiny.
+[*][b]Improvements:[/b] Food cart, hunter's station, makeshift tavern, player house, smithy, alchemy bench, practice yard. All of them do something - the smithy is a real smithy, the men really sit down in the tavern to eat and drink, and the practice yard makes them better the longer they drill.
+[*][b]The Palisade:[/b] Two thousand groschen once, then build as much wall as you want, placing corners by hand. Raiders have to come through the gate, which you can open and close.
+[*][b]Defences:[/b] Archer towers and hussite archer carts, a nod to the Hussite wars where men fought out of war wagons much like this. Both are manned and both shoot.
+[*][b]Stone walls[/b] are in, marked Experimental - a real curtain wall with its own gatehouse.
+[/list]
+
+[h2]The Fighting[/h2]
+Encounters only spawn once you have men, and scale with how many. Difficulty is set through the quartermaster.
+[list]
+[*][b]Bandit Camps:[/b] About ten, holding twenty to thirty men, with daily routines, defences and loot worth taking. Assault or stealth.
+[*][b]Camp Raids:[/b] Bandits, or the occasional lone Henry, coming for you in camp. This won't turn into a tower defence game and a raid won't wipe out your camp.
+[*][b]Sigismund's Patrols:[/b] Twenty to thirty men in formation. Engage one and you're in a full scale battle, so be careful, or lay an ambush.
+[*][b]Kleinkrieg:[/b] A fully voiced side quest, two to three hours. Talk to Aleksej in the Hole in the Wall tavern in Kuttenberg. Every camp in it is custom made, with a real story running between jobs. It ends at Raborsch, a closed castle the base game barely uses: take the last job and a siege camp spawns around it. Break them and the siege is lifted.
+[/list]
+
+[h2]Voicelines[/h2]
+The mercs reuse base game voice lines, so they hold proper conversations in camp and idle lines on the road. Not silent combat drones.
+
+[h2]Known Issues & Quirks[/h2]
+[list]
+[*][b]Dialog not showing:[/b] Steam probably hasn't installed the mod - exit Steam completely and boot it again, or use the Nexus version.
+[*][b]Region Locking:[/b] Travel between Trosky and Kuttenberg and your mercenaries get lost. Hire a fresh crew when you arrive.
+[*][b]Moving camp:[/b] Everything you bought is kept, but a palisade and its towers stay where they stood - walls don't travel. Pitch on the same spot and they come back.
+[*][b]Absolute Loyalty:[/b] Attack town guards and your men back you up without hesitation, by slaughtering everything in their path, civilians included. You have been warned.
+[*][b]Friendly Fire:[/b] Your archers will sometimes shoot your own men in the back, or you. Don't execute them for it, they try their best.
+[*][b]Getting in your way:[/b] Only in buildings. Tell them to be idle before you go inside.
+[*][b]Not appearing after hiring:[/b] They've probably spawned upstairs in the inn. Wait, or ride off a short way and they'll teleport to you.
+[*][b]H and U taken by another mod:[/b] The console commands merc_bl and merc_camp_ui open the two screens either way.
+[/list]
+
+[h2]Credits[/h2]
+[list]
+[*]carbongo - voicelines
+[*]takuspore0729 - Japanese translation
+[*]OzelHarekaTR - Turkish translation
+[*]小邮票 - Chinese version
+[*]Heragoga - everything else
+[/list]
+
+Have a great day,
+Cheers!

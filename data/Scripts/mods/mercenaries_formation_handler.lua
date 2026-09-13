@@ -30,6 +30,12 @@ function mercenaries:IsFormationEligible(ent, wuid)
     -- Stalled repeatedly while in formation: keep him out of it for a while so his follow
     -- tree takes the plain-chain arm instead (see FollowEscalate).
     if self.FollowFormationSuppressed and self:FollowFormationSuppressed(wuid) then return false end
+    -- A man standing on a hold station is driven by nav_goto, not by the chain. Leaving him
+    -- in it makes everyone BEHIND him trail him to his station: order one squad to move and
+    -- the rest walk over and stand with them. He rejoins when the order is lifted.
+    if self.HoldActive and self.HoldStations and self.HoldStations[tostring(wuid)] then
+        return false
+    end
     return true
 end
 
@@ -755,6 +761,7 @@ function mercenaries:DismountVerify()
                               squad * (self.FollowWatchSystemicFrac or 0.5))
     if #cand >= systemic then
         local now = fhNow()
+        self._ftStanddowns = (self._ftStanddowns or 0) + 1
         if not self._dvSysLoggedAt or (now - self._dvSysLoggedAt) >= (self.FollowWatchSystemicLog or 15.0) then
             self._dvSysLoggedAt = now
             System.LogAlways('[MercForm] ' .. tostring(#cand) .. ' of ' .. tostring(squad) ..
@@ -780,6 +787,7 @@ function mercenaries:DismountVerify()
         end
     end
 
+    self._ftFollowRefires = (self._ftFollowRefires or 0) + #cand
     System.LogAlways('[MercForm] ' .. tostring(#cand) .. ' merc(s) were not following (' ..
                      tostring(self._dvReason or 'dismount') .. ') - re-firing follow on them')
 end

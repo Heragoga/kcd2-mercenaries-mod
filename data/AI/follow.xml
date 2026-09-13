@@ -34,7 +34,7 @@
             <!-- Mount attempts before giving up. The horse is spawned on a random 5m
                  bearing, which can land across a fence; a fresh angle usually works. -->
             <Variable name="mountTries" type="_int" values="0" isPersistent="0" form="single" />
-            <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms')" isPersistent="0" form="single" />
+            <Variable name="MoveParams_follow" type="additionalMoveParams" values="destChangedThreshold('300ms'),stuckThreshold(3)" isPersistent="0" form="single" />
             <!-- Mounted gait: 3 Sprint, 2 Dash, 1 Run, 0 Walk, -1 hold. Set by
                  MountedLeaderGait from the player's measured speed. -->
             <Variable name="mountGait" type="_int" values="0" isPersistent="0" form="single" />

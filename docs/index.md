@@ -6,7 +6,7 @@ This wiki will be structured a bit differently: it will mostly consist of guides
 
 This wiki will cover some parts of modding, but not all of them. Most will be heavily focused on **Lua**, **XML editing**, **Skald**, and in particular **Behavior Trees**, since these are the parts I actually touched. 
 
-> **Note:** Don't come here searching for information about adding 3D models, textures, or animation. I don't have anything even remotely approaching an idea of how to do that.
+> **Note:** Animation is still a blank spot here — I don't have anything even remotely approaching an idea of how to do that. 3D models and textures used to be on that list too, but no longer: see [Shipping our own 3D assets](custom-assets.md) and the [Blender workspace](blender-workspace.md).
 
 ---
 
@@ -24,6 +24,10 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 ### Lua
 * [Console commands](console.md) (Every command a player can type, where they are registered, and how the `merc_dev` gate keeps the ~350 authoring/diagnostic ones out of the player's console)
 * [Spawning NPCs](spawning-npcs.md) (How to spawn an NPC you defined in the other guides)
+* [Custom UI](ui.md) (KCD2's UI is Scaleform Flash and the `UIAction` Lua bridge is live in retail: driving vanilla screens on your own private instance, the 16 positionable HUD bubbles, the HTML text channels, shipping your own `.gfx`/`.swf` element, and the immediate-mode `System.Draw*` primitives - plus what Skald can and cannot draw)
+* [The command interface](command-ui.md) (the Bannerlord-style battle order UI: squad cards, the order row and the radial submenu, built from a generated Scaleform atlas - how to rebuild it, rebind it and wire it to the real company)
+* [The camp screen](camp-ui.md) - pitch it, build it, and run the company's books; U opens it
+* [Building a custom UI screen](ui-building.md) - step by step, from an empty scene file to a working screen, plus every trap that cost me time
 
 ### XML
 * [How to add a new NPC](xml/add-new-npc.md) (Covers defining the soul, inventory and appearance)
@@ -40,6 +44,7 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Ranged mercenaries / archer AI](archers.md) (The archer combat group: why ranged AI needs its own brain, the three skirmish variants, and how to test them)
 * [AI modules](ai-modules.md) (The five reusable behaviour modules - combat_melee, combat_archer_dynamic/static, follow, camp_actor - the schedulers that fire them, and the Lua control points for encounters)
 * [Combat target selection](combat-target-selection.md) (How mercs, archers and enemies pick who to fight: the shared enemy cache, the lock-on aggro rule, anti-swarm cap and the -1 relationship rule)
+* [Combat movement](combat-movement.md) (Where a fighting NPC stands and how fast he gets there: the sweet-spot arc, the four mechanisms that make vanilla combat polite, and the ~1000 console variables that drive all of it with their stock values — **plus the postmortem of the Bannerlord-melee attempt**: every knob was reachable, every write landed, and nothing was felt. Read before trying it again)
 * [The town watch](town-watch.md) (Murder enough people in a village and it musters a defence force against the company: the four trigger gates, why stealth kills don't count, the five muster points that beat a town's terrain, and the 3-day regeneration after a watch is wiped out)
 * [The crime watchdog](crime-watch.md) (Logging guards and townsmen the company kills, and the player's standing in a village: the `crime_isAuthority`/`crime_isCivilian` script contexts that classify an NPC, the NPC-name-to-settlement prefix map, and why the crime rating itself is unreadable from Lua)
 * [Squad orders](squad-orders.md) (Everything the player can order beyond follow/equip: the four engagement stances and why they need no scheduler XML at all, anti-swarm presets, calling a target, holding ground with a role-shaped line and a leash, escorting in column, and multi-merc barks — including vanilla voiced shouts for free)
@@ -63,12 +68,17 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 
 ### Camp
 * [Mercenary camp](camp.md) (Procedural camp spawn/despawn, how props render without a custom entity class, the smart-object sit/sleep integration, and deploying from camp)
+* [Crossing between Trosky and Kuttenberg](regions.md) (Why the camp, the walls, the towers and the whole company "disappear" when the player fast travels between the two regions - they are separate LEVELS and every entity the mod spawns, saver entities included, lives in only one of them - and how the company is carried across in Lua while the camp stays where it was built)
 * [The quartermaster](quartermaster.md) (An immortal camp NPC with a lobotomized-merc brain: stands, eats, defends when raided, and serves as a talking interface)
 * [Quartermaster logistics](quartermaster-logistics.md) (The camp-management systems he fronts: tiredness, food, drink and wages, with combat buffs and save-persistent state)
 * [The camp forge and its smith](camp-forge.md) (The borrowed-Smithery forge, and the full postmortem of ~10 failed NPC-smith approaches plus the one that works - read before making any NPC "work" at a built structure)
 * [The camp alchemy bench](camp-alchemy.md) (The Alchemy Bench upgrade: borrowing and relocating a village AlchemyTable, and why it needs its own spawned mesh)
-* [Walls, pathfinding and staged battles](walls-and-sieges.md) (The palisade upgrade, the custom navmesh mod NPCs use to route around it - and every engine blocker that does NOT work - and the three-phase staged battle that forms both sides into lines at the gaps before combat opens)
+* [Walls, pathfinding and staged battles](walls-and-sieges.md) (The palisade upgrade, the custom navmesh mod NPCs use to route around it, the three-phase staged battle that forms both sides into lines at the gaps before combat opens - and **why NPCs walked through the wall at all**: KCD2 ships `ac_disableLivingVsRigidCollisions` ON, so an NPC's body resolves against nothing a mod spawns, which `mercenaries_solid.lua` now turns off near our walls - and how the walls got INTO the pathfinding: the navmesh ships baked and the rebuild commands are stubs, but the engine flags navmesh polygons under runtime obstacles for NPC dialogues, and `native/mercnav/mercenaries_nav.asi` exposes that to Lua)
 * [Camp gates and multi-stretch walls](gates.md) (Placeable gates that open and shut - a shut gate blocks pathing and calls off raids - plus the many-stretch wall builder, and how to enumerate all 16k object meshes straight out of the paks)
+* [Castle builder](castle.md) (Stone walls drawn with the palisade builder: a choice of segment from the walltool kit, towers on every corner, a choice of stone gate, and the doubled-back copy that closes the one-sided facades)
+* [Shipping our own 3D assets](custom-assets.md) (Blender -> FBX -> the modding tools' own rc.exe -> .cgf: the crenellated castle wall, and every RC switch that silently does nothing)
+* [Castle model review](castle-model-review.md) (What the shipped kit actually is - three curtain variants, three mitred corners, two enterable towers - how it was built and validated, the judge's score, and exactly which claims are offline geometry rather than a live game test)
+* [Blender workspace](blender-workspace.md) (the game's own props and surfaces as a Blender asset library, read straight out of the paks, and the way back out: arrange a scene, export it as a prefab, spawn it in game)
 * [Patrols (tester)](patrols.md) (Waypoint/leader/formation sandbox for bandit and soldier patrols - and why a harmless NPC needs its own soul on testFaction rather than just having its combat fires gated)
 
 ### Behaviour Trees
@@ -76,6 +86,9 @@ This wiki will cover some parts of modding, but not all of them. Most will be he
 * [Combat](behaviour-trees/combat.md) (How to make your NPC fight)
 * [Movement](behaviour-trees/movement.md) (How to make your NPC move)
 * [Talking](behaviour-trees/talking.md) (How to make the NPC talk to the player or just talk in general)
+
+### Engine internals
+* [Disassembling WHGame.dll](disassembly.md) (Finding `gEnv` without IDA - the `exec autoexec.cfg` call site, why the published byte signature died at patch 1.4, why the RVA moves between two builds both called `release_1_5`, the engine vtable offsets re-validated against current retail - and the queryable corpus of the whole binary: 292k functions, xrefs, call graph, RTTI vtables and the recovered Lua API, with an `AGENTS.md` for whichever agent analyses it next)
 
 ---
 

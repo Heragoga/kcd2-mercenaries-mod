@@ -1,0 +1,33 @@
+- Moved the H and U key prompts to the top right, off the corner where the game puts its own pickup and objective messages
+- Changed them to use the game's own key art and typeface instead of a drawn imitation
+- Added a setting to hide or move them: the quartermaster's Mod settings, or merc_hints / merc_hints_pos in the console
+- Changed the camp screen so its Close prompt moves beside the compass while the screen is open, clear of its own panels
+- Fixed thousands separators sitting too high, so the war chest reads 2,000 and not 2'000
+- Fixed the camp screen opening by itself after loading a save made while you were placing something
+
+
+=== previous update, already published ===
+
+- Added a command screen on H: squad cards, orders and formations on the number row
+- Added a camp screen on U: build improvements on one side, the company's books on the other
+- Added a supply graph showing a fortnight of food, so you see the stores dropping early
+- Added placing improvements by hand, with a projection you aim at the ground
+- Added relocating improvements, tent rings included
+- Added storage: removing an improvement keeps it, and putting it back is free
+- Added pitching a camp with no men, so you have a tent and a bed before you hire anyone
+- Added a proper transfer window for handing over food, instead of taking everything you carry
+- Added buying drink
+- Added stone walls, marked Experimental
+- Changed the command screen so it no longer opens itself
+- Changed improvements so there is no longer a cap on how many you build
+- Removed collision from camp dressing, about 250 props that never needed it (merc_collision all puts it back)
+- Fixed pitching a camp from the screen doing nothing
+- Fixed placing anything showing no projection
+- Fixed the number keys doing nothing, and drawing a weapon when they worked
+- Fixed moving one thing shuffling the rest of the camp
+- Fixed the training ground not being movable at all
+- Fixed palisades not going into storage, and stone walls counting as palisades
+- Fixed daily food consumption showing zero
+- Fixed the command screen's corner hint vanishing when you had no men
+
+Slowdown around a palisade? Try merc_nav_wallsuppress 0 in the console and tell me if it helps.

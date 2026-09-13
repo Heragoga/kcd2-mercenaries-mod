@@ -591,6 +591,14 @@
   <Row><Cell>ui_qm_gate</Cell><Cell>Hang a gate in the palisade (400 groschen).</Cell><Cell>Colocar una puerta en la empalizada (400 groschen).</Cell></Row>
   <Row><Cell>merc_henry_qm_gate</Cell><Cell>We need a gate on that gap. See to it.</Cell><Cell>Necesitamos una puerta en ese hueco. Encárgate de ello.</Cell></Row>
   <Row><Cell>merc_qm_gate</Cell><Cell>Aye. Show me where the opening is and we'll hang one.</Cell><Cell>Sí. Muéstrame dónde está la abertura y colocaremos una.</Cell></Row>
+  <Row><Cell>ui_qm_castlewall</Cell><Cell>[Experimental] Wall this camp in stone (3000 groschen).</Cell><Cell>[Experimental] Wall this camp in stone (3000 groschen).</Cell></Row>
+  <Row><Cell>merc_henry_qm_castlewall</Cell><Cell>Stakes won't hold. I want this camp walled in stone.</Cell><Cell>Stakes won't hold. I want this camp walled in stone.</Cell></Row>
+  <Row><Cell>merc_qm_castlewall</Cell><Cell>Masons' work, and it'll cost. Walk the line you want and we'll raise it - with a gatehouse, unless you fancy climbing in.</Cell><Cell>Masons' work, and it'll cost. Walk the line you want and we'll raise it - with a gatehouse, unless you fancy climbing in.</Cell></Row>
+  <Row><Cell>merc_info_castle_gateway_placing</Cell><Cell>Look at the stretch of wall you want opened and click. Right-click to leave it.</Cell><Cell>Look at the stretch of wall you want opened and click. Right-click to leave it.</Cell></Row>
+  <Row><Cell>merc_info_castle_gateway_cut</Cell><Cell>The masons have cut a gatehouse into the wall.</Cell><Cell>The masons have cut a gatehouse into the wall.</Cell></Row>
+  <Row><Cell>merc_info_castle_gateway_blocked</Cell><Cell>That is not on the wall, or there is a gateway there already.</Cell><Cell>That is not on the wall, or there is a gateway there already.</Cell></Row>
+  <Row><Cell>merc_info_castle_gateway_nowall</Cell><Cell>There is no stone wall here to cut a gateway into.</Cell><Cell>There is no stone wall here to cut a gateway into.</Cell></Row>
+  <Row><Cell>merc_info_castle_gateway_none</Cell><Cell>This wall has no gatehouse piece. Build the Kuttenberg wall for one.</Cell><Cell>This wall has no gatehouse piece. Build the Kuttenberg wall for one.</Cell></Row>
   <Row><Cell>ui_qm_gates</Cell><Cell>The gates.</Cell><Cell>Las puertas.</Cell></Row>
   <Row><Cell>merc_henry_qm_gates</Cell><Cell>See to the gates.</Cell><Cell>Encárgate de las puertas.</Cell></Row>
   <Row><Cell>merc_qm_gates</Cell><Cell>Right away. Open or barred, whichever they aren't.</Cell><Cell>Ahora mismo. Las abro si están cerradas, las cierro si están abiertas.</Cell></Row>
@@ -1308,4 +1316,21 @@
   <Row><Cell>merc_info_comp_foot_best</Cell><Cell>Composición de la tropa: los mejores primero.</Cell><Cell>Composición de la tropa: los mejores primero.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_mixed</Cell><Cell>Composición de la tropa: una mezcla de todo tipo.</Cell><Cell>Composición de la tropa: una mezcla de todo tipo.</Cell></Row>
   <Row><Cell>merc_info_comp_foot_green</Cell><Cell>Composición de la tropa: los más verdes primero.</Cell><Cell>Composición de la tropa: los más verdes primero.</Cell></Row>
+	<Row><Cell>merc_camp_place_aim</Cell><Cell>Look where it should stand and click. Right-click to cancel.</Cell><Cell>Look where it should stand and click. Right-click to cancel.</Cell></Row>
+	<Row><Cell>merc_camp_place_done</Cell><Cell>Set down where you wanted it.</Cell><Cell>Set down where you wanted it.</Cell></Row>
+	<Row><Cell>merc_camp_place_cancel</Cell><Cell>Left where it was.</Cell><Cell>Left where it was.</Cell></Row>
+	<Row><Cell>merc_camp_place_aimfirst</Cell><Cell>Look at solid ground first.</Cell><Cell>Look at solid ground first.</Cell></Row>
+	<Row><Cell>merc_camp_stowed</Cell><Cell>Taken down and stored. You can put it back up for nothing.</Cell><Cell>Taken down and stored. You can put it back up for nothing.</Cell></Row>
+	<Row><Cell>merc_camp_restored</Cell><Cell>Back up, and it cost you nothing.</Cell><Cell>Back up, and it cost you nothing.</Cell></Row>
+	<Row><Cell>merc_camp_cant_move</Cell><Cell>That one cannot be moved. Take it down and put it up again instead.</Cell><Cell>That one cannot be moved. Take it down and put it up again instead.</Cell></Row>
+	<Row><Cell>merc_camp_cant_here</Cell><Cell>Not with this one.</Cell><Cell>Not with this one.</Cell></Row>
+	<Row><Cell>merc_camp_ring_moved</Cell><Cell>The tents follow the fire.</Cell><Cell>The tents follow the fire.</Cell></Row>
+  <Row><Cell>merc_camp_deliver_open</Cell><Cell>Put what you can spare in the chest and close it.</Cell><Cell>Put what you can spare in the chest and close it.</Cell></Row>
+  <Row><Cell>merc_camp_deliver_nochest</Cell><Cell>There's nowhere to set the goods down.</Cell><Cell>There's nowhere to set the goods down.</Cell></Row>
+  <Row><Cell>ui_qm_hints_hub</Cell><Cell>Key prompts: the marks in the corner of my screen.</Cell><Cell>Key prompts: the marks in the corner of my screen.</Cell></Row>
+  <Row><Cell>ui_qm_hints_on</Cell><Cell>Keep them where I can see them.</Cell><Cell>Keep them where I can see them.</Cell></Row>
+  <Row><Cell>ui_qm_hints_off</Cell><Cell>Take them off my screen. I know the keys.</Cell><Cell>Take them off my screen. I know the keys.</Cell></Row>
+  <Row><Cell>ui_qm_hints_top</Cell><Cell>Move them up to the top corner.</Cell><Cell>Move them up to the top corner.</Cell></Row>
+  <Row><Cell>ui_qm_hints_bottom</Cell><Cell>Move them down to the bottom corner.</Cell><Cell>Move them down to the bottom corner.</Cell></Row>
+  <Row><Cell>ui_qm_hints_compass</Cell><Cell>Put them beside the compass.</Cell><Cell>Put them beside the compass.</Cell></Row>
 </Table>

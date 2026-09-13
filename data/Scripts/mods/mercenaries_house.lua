@@ -115,7 +115,14 @@ end
 -- One wall crate; invisible unless `visible` (DrawSlot 0,0 keeps physics).
 function mercenaries:SpawnHouseWallCrate(wp, yaw, sx, sy, sz, visible, namePrefix, trackList)
     local ent = self:SpawnHousePart(self.CampHouseWallCollider, wp, 0, 0, yaw, { x = sx, y = sy, z = sz }, namePrefix, trackList)
-    if ent and not visible then pcall(function() ent:DrawSlot(0, 0) end) end
+    if ent and not visible then
+        pcall(function() ent:DrawSlot(0, 0) end)
+        -- SpawnHousePart has just flagged it never-cull and shadow-casting, which is wasted on
+        -- something that is never drawn - and there are 121 of these in a built camp (measured
+        -- by merc_camp_census). Physics is untouched: the collision these exist for is unchanged.
+        pcall(function() ent:RenderShadow(false) end)
+        pcall(function() ent:SetViewDistRatio(1) end)
+    end
     return ent
 end
 
@@ -222,6 +229,27 @@ function mercenaries:SpawnCampHouse(centerPos, facingAngle, namePrefix, trackLis
 
         local inside = self:HouseLocalToWorld(origin, angle, insLx, insLy, 0)
         self.CampHouseCenter = { x = inside.x, y = inside.y }
+        -- The hut is one solid block to anyone routing past it: its collider walls are
+        -- static geometry the AI does not path against, and nobody but the player ever
+        -- goes in, so the doorway is not worth modelling. The house frame puts lx along
+        -- the facing and ly across it - the reverse of a footprint's w/h. Only the
+        -- player's own camp registers one; a bandit camp passes namePrefix and its props
+        -- are not torn down by BreakMercCamp, which is what clears these.
+        if self.NavAddObstacle and not namePrefix then
+            local x0, x1, y0, y1
+            for _, w in ipairs(self.CampHouseWalls) do
+                for _, q in ipairs({ { w.ax, w.ay }, { w.bx, w.by } }) do
+                    if not x0 or q[1] < x0 then x0 = q[1] end
+                    if not x1 or q[1] > x1 then x1 = q[1] end
+                    if not y0 or q[2] < y0 then y0 = q[2] end
+                    if not y1 or q[2] > y1 then y1 = q[2] end
+                end
+            end
+            if x0 then
+                local mid = self:HouseLocalToWorld(origin, angle, (x0 + x1) * 0.5, (y0 + y1) * 0.5, 0)
+                self:NavAddObstacle(mid, angle, { w = (y1 - y0) * 0.5, h = (x1 - x0) * 0.5 }, "house")
+            end
+        end
         System.LogAlways("[CampHouse] player house raised")
     end)
     if not ok then System.LogAlways("[CampHouse] SpawnCampHouse error: " .. tostring(err)) end
@@ -230,4 +258,5 @@ end
 -- On break-camp: the props go with CampEntities; the centre is ours to reset.
 function mercenaries:ClearCampHouse()
     self.CampHouseCenter = nil
+    if self.NavClearObstacles then self:NavClearObstacles("house") end
 end

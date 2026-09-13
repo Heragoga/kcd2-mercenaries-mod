@@ -19,6 +19,18 @@
 --   battle  everyone is in place (or staging timed out). All wall rules OFF - normal
 --           combat, clipping tolerated.
 
+-- ON. It was briefly off to test whether NPCs would route around the walls unaided; they
+-- cannot, and no data-only change makes a FIGHTING man do it (combat locomotion neither
+-- consumes ORCA nor requests paths, and its own obstacle weights are baked - see
+-- docs/walls-and-sieges.md). Marshalling both sides to the gaps before blows are struck is
+-- the mechanism the engine does support. Wall COLLISION is separate and stays on either way:
+-- mercenaries_solid.lua is what stops a man walking through the timber.
+-- merc_wb_enable 0 turns the staging off again.
+mercenaries.WBEnabled = true
+
+-- The classes an enemy can be. Used to keep the staging sweep off the camp's own scenery.
+local WB_NPC_CLASSES = { "NPC", "NPC_Female", "NPC_NAI" }
+
 mercenaries.WBPhase = "idle"          -- idle | staging | battle
 mercenaries.WBGaps = nil              -- cached gap list for the current wall version
 mercenaries.WBGapsVersion = nil
@@ -288,17 +300,26 @@ function mercenaries:WBAttackersNearCamp()
     end
 
     if not skipSphere then
-        local ents
-        pcall(function() ents = System.GetEntitiesInSphere(c, self.WBTriggerRange) end)
-        for _, e in pairs(ents or {}) do
-            pcall(function()
-                local k = wbKey(e)
-                if k and seen[k] then return end
-                local nm = e:GetName() or ""
-                if self.IsModEnemyName and self:IsModEnemyName(nm) and self:IsAliveAndWell(e, true) then
-                    table.insert(out, e)
-                end
-            end)
+        -- BY CLASS. This used to be a bare GetEntitiesInSphere, which hands back every entity in
+        -- the radius - and inside a built-up camp that is every wall segment, decor prop, tower
+        -- part, gate, tent and bed, each one then paying a pcall and a GetName just to be
+        -- rejected by name. At 700 ms, for as long as the player is within 300 m. The cost grew
+        -- with everything the player had ever built, which is what "lag near an old camp, worst
+        -- while travelling past it" actually was. Enemies are NPCs, so let the engine filter.
+        for _, cls in ipairs(WB_NPC_CLASSES) do
+            local ents
+            pcall(function() ents = System.GetEntitiesInSphereByClass(c, self.WBTriggerRange, cls) end)
+            for _, e in pairs(ents or {}) do
+                pcall(function()
+                    local k = wbKey(e)
+                    if k and seen[k] then return end
+                    local nm = e:GetName() or ""
+                    if self.IsModEnemyName and self:IsModEnemyName(nm) and self:IsAliveAndWell(e, true) then
+                        if k then seen[k] = true end   -- wbKey can be nil; a nil index would throw
+                        table.insert(out, e)
+                    end
+                end)
+            end
         end
     end
     return out
@@ -636,13 +657,20 @@ function mercenaries:WBSetPhase(p)
         pcall(function() self:WBForceGates() end)
         -- release everyone: wall rules off, fight normally. Men still short of the gap
         -- simply walk the rest of the way under their own behaviour.
-        for key in pairs(self.WBAssign) do
-            local ent = self.WBEntByKey and self.WBEntByKey[key]
-            if ent then pcall(function() self:NavGotoEnd(ent, "battle") end) end
-        end
-        self.WBAssign = {}
-        self.WBHold = {}
+        self:WBRelease("battle")
     end
+end
+
+-- Hand every marshalled man back to his own behaviour. Entering battle does this, and
+-- so does switching the system off underneath a staging run - otherwise they keep
+-- walking to a gap for a fight that is no longer being staged.
+function mercenaries:WBRelease(why)
+    for key in pairs(self.WBAssign or {}) do
+        local ent = self.WBEntByKey and self.WBEntByKey[key]
+        if ent then pcall(function() self:NavGotoEnd(ent, why) end) end
+    end
+    self.WBAssign = {}
+    self.WBHold = {}
 end
 
 -- True while the wall must be respected. Battle turns everything off deliberately.
@@ -744,9 +772,13 @@ function mercenaries:WBStagePoll(data, ent)
     end
 end
 
-function mercenaries.WBTick()
-    local self = mercenaries
+function mercenaries:WBTickDrive()
     pcall(function()
+        if not self.WBEnabled then
+            if self.WBPhase ~= "idle" then self:WBRelease("disabled") end
+            self:WBSetPhase("idle")
+            return
+        end
         if not (self.CampActive and self.CampCenter) then
             self:WBSetPhase("idle")
             return
@@ -834,17 +866,22 @@ function mercenaries.WBTick()
             end
         end
     end)
-    Script.SetTimerForFunction(mercenaries.WBTickMs, "mercenaries.WBTick")
+    self:ChainArm("WBTick", self.WBTickMs or 700)
 end
+-- Generation-named, so a WBTick timer restored from an old save drains instead of becoming a
+-- second chain. It used to re-arm by bare name with no guard, and the profiler caught the
+-- result: three concurrent chains, 29 + 19 + 18 ms every 700 ms.
+mercenaries:ChainDef("WBTick", "WBTickDrive")
 
 function mercenaries:WBStart()
     if self.WBRunning then return end
     self.WBRunning = true
-    Script.SetTimerForFunction(self.WBTickMs, "mercenaries.WBTick")
+    self:ChainArm("WBTick", self.WBTickMs or 700)
     wbLog("watching for attacks on the walled camp")
 end
 
 function mercenaries:WBStatus()
+    wbLog("marshalling: " .. (self.WBEnabled and "on" or "OFF - merc_wb_enable 1"))
     wbLog("phase: " .. tostring(self.WBPhase) .. (self.WBRunning and "" or "  (WATCHER NOT RUNNING - merc_wb_start)"))
     wbLog("gaps: " .. #(self:NavFindGaps() or {}))
     local all, ready, total = self:WBAllStaged()
@@ -1025,6 +1062,17 @@ function mercenaries:WBSetLine(line)
         self.WBOutsideOffset, self.WBInsideOffset, self.WBColumnSpacing))
 end
 
+function mercenaries:WBSetEnabled(line)
+    local n = tonumber(tostring(line or ""):match("%-?%d+") or "")
+    self.WBEnabled = (n ~= nil and n ~= 0)
+    if not self.WBEnabled and self.WBPhase ~= "idle" then
+        self:WBRelease("disabled")
+        self:WBSetPhase("idle")
+    end
+    wbLog("marshalling attackers to the wall gaps is " .. (self.WBEnabled and "ON" or "OFF"))
+end
+
+mercenaries:DevCommand("merc_wb_enable", "mercenaries:WBSetEnabled('%line')", "Marshal both sides to the wall gaps before a fight: merc_wb_enable 0|1")
 mercenaries:DevCommand("merc_wb_status", "mercenaries:WBStatus()",   "Wall-battle phase, gaps and staging progress")
 mercenaries:DevCommand("merc_wb_gaps",   "mercenaries:WBShowGaps('%line')", "Mark the battle lines at each gap: merc_wb_gaps [menPerSide]")
 mercenaries:DevCommand("merc_wb_line",   "mercenaries:WBSetLine('%line')",  "Line shape: merc_wb_line [spacing] [maxPerRank] [rankDepth] [outOffset] [inOffset] [columnFile]")

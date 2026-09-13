@@ -111,9 +111,17 @@ indiscriminate `FindRenegadeTarget`, he only ever engages real raiders.
 ### He is also the mod's settings menu
 
 Everything the player can retune about the mod itself lives in his dialogue, under one hub
-(`seq_qm_settings_hub`): **difficulty**, **random encounters**, **upkeep** and the **HUD icons**.
-There is no other in-game way to reach them — the console commands (`merc_difficulty`, etc.) are the
-same settings by another door.
+(`seq_qm_settings_hub`): **difficulty**, **random encounters**, **upkeep**, the **HUD icons**, the
+horses, and the **corner key prompts**. There is no other in-game way to reach them — the console
+commands (`merc_difficulty`, etc.) are the same settings by another door.
+
+Adding one costs a marker item, a hub, and four strings. The item's **count** carries the choice,
+so a whole sub-menu needs a single new `MiscItem` row: the key-prompt hub sends 1 for on, 2 for
+off, 3 for the top right, 4 for the bottom right and 5 for beside the compass, and
+`MonitorDifficultyTokens` in
+`mercenaries_difficulty.lua` deletes the item and dispatches on the count. Both region copies must
+get the same edit, and the out-ports have to be **declared** at the top of the dialogue as well as
+triggered — `tools/check_dialogs.py` catches that one, which is the whole reason it exists.
 
 That made it easy to miss. The hub used to be labelled *"Let's talk about how the company runs."*,
 which reads as flavour chat sitting at the bottom of a long menu, and the four options under it

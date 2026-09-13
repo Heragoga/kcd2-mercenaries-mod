@@ -514,7 +514,7 @@ mercenaries.ProfBtHooks = {
 -- intended and name a duplicate outright. Value is the field holding the interval.
 mercenaries.ProfTimerSchedule = {
     ["timer.LivePatrolBody"] = "PatrolLiveTickMs",
-    ["timer.RaidTick"]       = "RaidTickMs",
+    ["timer.RaidTickBody"]   = "RaidTickMs",
     ["timer.WBTick"]         = "WBTickMs",
     ["timer.RouteTick"]      = "RouteTickMs",
     ["timer.FoeLoop"]        = "FoeTickMs",
@@ -522,7 +522,7 @@ mercenaries.ProfTimerSchedule = {
 
 -- Timers still running outside the master scheduler. Each is a candidate heartbeat.
 mercenaries.ProfTimerFns = {
-    "LootSweepTick", "RaidTick", "LivePatrolBody", "WBTick", "RouteTick",
+    "LootSweepTick", "RaidTickBody", "LivePatrolBody", "WBTick", "RouteTick",
     "StaticArcherPinTick", "StaticArcherPlaceTick", "HideOthersTick", "AnimPollTick",
     "CampForgeMonitor", "CampAlchemyMonitor", "FoeLoop",
     "ForgeCensusStep", "ForgeRigStep",

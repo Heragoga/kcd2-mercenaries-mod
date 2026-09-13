@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="us-ascii"?>
+﻿<?xml version="1.0" encoding="us-ascii"?>
 <BehaviorTrees>
     <BehaviorTree name="onUpdate" is_function="0">
         <Variables>
@@ -11,8 +11,8 @@
             <Variable name="followStopDistance"  type="_float"               values="2.0"                               isPersistent="0" form="single" />
             <Variable name="followRunThresh"     type="_float"               values="4.5"                               isPersistent="0" form="single" />
             <Variable name="followSprintThresh"  type="_float"               values="8.0"                               isPersistent="0" form="single" />
-            <Variable name="MoveParams_follow"   type="additionalMoveParams" values="destChangedThreshold('300ms')"     isPersistent="0" form="single" />
-            <Variable name="MoveParams_fleeing"  type="additionalMoveParams" values="destChangedThreshold('1s')"        isPersistent="0" form="single" />
+            <Variable name="MoveParams_follow"   type="additionalMoveParams" values="destChangedThreshold('300ms'),stuckThreshold(3)"     isPersistent="0" form="single" />
+            <Variable name="MoveParams_fleeing"  type="additionalMoveParams" values="destChangedThreshold('1s'),stuckThreshold(3)"        isPersistent="0" form="single" />
             <Variable name="pathParams_fleeing"  type="pathFindingParams"    values="usePaths(true),useGeneratedNSO(true),useSmartObjects(true)" isPersistent="0" form="single" />
             <Variable name="distanceToFlee"      type="_float"               values="50.0"                              isPersistent="0" form="single" />
             <Variable name="keepMinimalDistance" type="_float"               values="10.0"                              isPersistent="0" form="single" />
@@ -119,7 +119,18 @@
              Set only when NavGotoRequest actually recorded a NEW one, so the interrupt
              is never re-fired over a nav_goto that is already walking him there. -->
         <Variable name="navOrderGo" type="_bool" values="false" isPersistent="0" form="single" />
+        <!-- navOrderForce: this ground order must move him even mid-fight. A plain nav order
+             waits for combat to end (the arm below is gated on ~inCombat and fires at 150,
+             under combat's 160); a forced one gets its own arm at 170 so the man breaks off,
+             walks to his mark, and picks the fight up again when he is standing on it. -->
+        <Variable name="navOrderForce" type="_bool" values="false" isPersistent="0" form="single" />
         <Variable name="navOrderMrkev" type="_wuid" values="" isPersistent="0" form="single" />
+
+        <!-- navFollowGo: a following merc has the camp's own tents or palisade between
+             him and the player, and NavFollowPoll has taken him off formation to route
+             him round it. Same one-shot contract as navOrderGo. -->
+        <Variable name="navFollowGo" type="_bool" values="false" isPersistent="0" form="single" />
+        <Variable name="navFollowMrkev" type="_wuid" values="" isPersistent="0" form="single" />
 
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
@@ -848,7 +859,42 @@
                                         <AddInterrupt Target="$this.id" Host="$navOrderMrkev" Behavior="'nav_goto'" Priority="150" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
                                     </Sequence>
                                 </IfCondition>
+                                <!-- The forced case: an order to move is an order to move.
+                                     Priority 170 beats the attack interrupt's 160, which the
+                                     150 arm above cannot, so the man leaves the fight rather
+                                     than finishing it first. Lua clears navOrderForce the
+                                     moment he reaches his station. -->
+                                <IfCondition failOnCondition="false" condition="$navOrderGo &amp; $navOrderForce &amp; $inCombat &amp; ~$wbStageGo &amp; ~$wbLocked">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$navOrderMrkev" nodeLabel="1245" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$navOrderMrkev" Behavior="'nav_goto'" Priority="170" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                    </Sequence>
+                                </IfCondition>
                                 <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'250ms'" />
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Follow detour: walk a following merc round his own camp instead of
+                             through it. FormationFollower and CrimeFollower both choose their
+                             destination inside the engine, so the only way to bend a follower's
+                             path is to take him off them for the length of the detour - which is
+                             what NavFollowPoll does, grudgingly and near camp only. Lowest of the
+                             three nav arms and gated on all of them, so it fires only when
+                             nothing else wants him. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <ExecuteLua code="mercenaries:NavFollowPoll(data, entity)" />
+                                <IfCondition failOnCondition="false" condition="$navFollowGo &amp; ~$inCombat &amp; ~$isCampActor &amp; ~$wbStageGo &amp; ~$navOrderGo &amp; ~$wbLocked &amp; ~$playerMounted">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Function_crime_getMrkev mrkev="$navFollowMrkev" nodeLabel="1245" />
+                                        </SuppressFailure>
+                                        <AddInterrupt Target="$this.id" Host="$navFollowMrkev" Behavior="'nav_goto'" Priority="150" IgnorePriorityOnPreviousInterrupt="true" urgency="Fast" Aliveness="Alive" Privileged="false" FastForward="false" />
+                                    </Sequence>
+                                </IfCondition>
+                                <Wait duration="'900ms'" timeType="GameTime" doFail="false" variation="'300ms'" />
                             </Sequence>
                         </Loop>
 

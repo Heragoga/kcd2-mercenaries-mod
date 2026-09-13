@@ -256,6 +256,14 @@ function mercenaries:LogiUpdateStatusBuffs()
     self:SetStatusBuff('injured',           injured)
     self:SetStatusBuff('starvation_mild',   foodDays == 1)
     self:SetStatusBuff('starvation_strong', foodDays <= 0)
+
+    -- The command interface's idle hint rides this rather than its own timer: this already
+    -- runs on every squad-state change, and a repeating timer would be serialized into saves.
+    if self.SquadAssign then pcall(function() self:SquadAssign() end) end
+    if self.SquadDeathTick then pcall(function() self:SquadDeathTick() end) end
+    if self.MarchClearArrived then pcall(function() self:MarchClearArrived() end) end
+    if self.BLFlagTick then pcall(function() self:BLFlagTick() end) end
+    if self.BLHintUpdate then pcall(function() self:BLHintUpdate() end) end
 end
 
 -- ==== Manual test commands (freeze the evaluator) ====

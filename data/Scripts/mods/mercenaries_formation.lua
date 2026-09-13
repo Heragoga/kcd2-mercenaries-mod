@@ -419,12 +419,13 @@ function mercenaries:FormationLoopBody()
     if not ok then System.LogAlways('[MercForm] FormationLoop Error: ' .. tostring(err)) end
 end
 
-function mercenaries.FormationLoop()
-    mercenaries:FormationLoopBody()
-    if not mercenaries.SchedRunning then
-        Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
+function mercenaries:FormationLoopDrive()
+    self:FormationLoopBody()
+    if not self.SchedRunning then
+        self:ChainArm("FormationLoop", self.FormationTickMs)
     end
 end
+mercenaries:ChainDef("FormationLoop", "FormationLoopDrive")
 
 -- ---------------------------------------------------------------------------
 -- NAMED COMPANIONS RIDE AT THE FRONT.
@@ -559,7 +560,11 @@ function mercenaries:UpdateFormationRole(bt_data, myWuid)
         -- engine formation running alongside it would be a second set of destinations
         -- pulling the same NPCs somewhere else.
         if not self.FormationEnabled then off = "disabled"
-        elseif self.HoldActive then off = "hold order"
+        -- Only when the order binds EVERYONE. A partial hold - one squad sent to a piece of
+        -- ground while the rest follow - excludes the held men per-merc through
+        -- IsFormationEligible instead, so the men still following keep their formation
+        -- rather than the whole company dropping to the plain follow chain.
+        elseif self.HoldActive and not self:HoldIsPartial() then off = "hold order"
         elseif self.EscortEnt then off = "escort order"
         elseif _G.MercenariesDismissed then off = "dismissed"
         elseif _G.MercIdle then off = "idle"

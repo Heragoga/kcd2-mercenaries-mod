@@ -156,8 +156,13 @@ function mercenaries:RaidLaunch()
     return false
 end
 
-function mercenaries.RaidTick()
+-- The 5,472-timer save flood (see the SchedOnLoad block in mercenaries_scheduler.lua)
+-- was this function's old self-arming chain compounding across saves. The bare
+-- "mercenaries.RaidTick" name is now a drain tombstone (ChainDef below), so restored
+-- timers from any infected save are counted and retired without running a thing.
+function mercenaries.RaidTickBody()
     local self = mercenaries
+    self._ftRaid = (self._ftRaid or 0) + 1
     pcall(function()
         if not self.RaidEnabled then return end
         -- The quartermaster's master switch for uninvited trouble.
@@ -180,13 +185,18 @@ function mercenaries.RaidTick()
 
         if self:RaidLaunch() then self:RaidScheduleNext(day) end
     end)
-    -- Re-armed only when this is the legacy private chain. Under the master scheduler the
-    -- "raids" slot calls RaidTick and owns the cadence - measured at 3x its armed interval
-    -- when it drove itself, the same fault the patrol tick had. See docs/performance.md.
-    if not mercenaries.SchedEnabled then
-        Script.SetTimerForFunction(mercenaries.RaidTickMs, "mercenaries.RaidTick")
+end
+
+-- Re-armed only when this is the legacy private chain. Under the master scheduler the
+-- "raids" slot calls RaidTickBody and owns the cadence - measured at 3x its armed
+-- interval when it drove itself, the same fault the patrol tick had.
+function mercenaries:RaidTickDrive()
+    mercenaries.RaidTickBody()
+    if not self.SchedEnabled then
+        self:ChainArm("RaidTick", self.RaidTickMs)
     end
 end
+mercenaries:ChainDef("RaidTick", "RaidTickDrive")
 
 function mercenaries:RaidStart()
     if self.RaidRunning then return end
@@ -195,7 +205,7 @@ function mercenaries:RaidStart()
         raidLog("watching for raid days (on the master tick)")
         return
     end
-    Script.SetTimerForFunction(self.RaidTickMs, "mercenaries.RaidTick")
+    self:ChainArm("RaidTick", self.RaidTickMs)
     raidLog("watching for raid days")
 end
 

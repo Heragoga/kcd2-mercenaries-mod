@@ -1174,6 +1174,41 @@
                     <Edge From="quartermaster_dialog.quartermaster_icons_off" To="Exec" />
                 </EventFunction>
 
+                <EventFunction Name="exec_qm_hints_on" PositionY="4080" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef0d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_hints_on" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="exec_qm_hints_off" PositionY="4140" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef0d" />
+                    <Constant Name="Amount" Value="2" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_hints_off" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="exec_qm_hints_compass" PositionY="4320" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef0d" />
+                    <Constant Name="Amount" Value="5" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_hints_compass" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="exec_qm_hints_top" PositionY="4200" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef0d" />
+                    <Constant Name="Amount" Value="3" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_hints_top" To="Exec" />
+                </EventFunction>
+
+                <EventFunction Name="exec_qm_hints_bottom" PositionY="4260" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef0d" />
+                    <Constant Name="Amount" Value="4" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_hints_bottom" To="Exec" />
+                </EventFunction>
+
                 <EventFunction Name="exec_archer_stance_skirmish" PositionY="2100" PositionX="800" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be62d" />
                     <Constant Name="Amount" Value="1" />
@@ -1642,6 +1677,12 @@
                     <Constant Name="Amount" Value="1" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_gate" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_castlewall" PositionY="272" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef5d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_castlewall" To="Exec" />
                 </EventFunction>
                 <EventFunction Name="exec_qm_gates" PositionY="275" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bec1d" />
@@ -2174,6 +2215,61 @@
                 <State Name="kk_phase_2" PositionY="5140" PositionX="0" TypeT="bool">
                     <Edge From="kk_ph2_trig.OnAcquire" To="SetTrue" />
                 </State>
+
+                <!-- Command interface: block the quick-slot weapon draw on 1-4.
+                     Squad selection sits on 1-4, which are qam_1..qam_4, and in the field
+                     those unsheathe the weapon in that slot. Blocking them is an ACTION
+                     FILTER, and FilterInput is the only live way to enable one - the Lua
+                     binding for EnableActionFilter was removed before release.
+                     MEASURED: a filter registered at runtime with LoadFromXML does NOT take -
+                     the custom merc_no_qam_slots had no effect - so this uses the vanilla
+                     no_qam_weapons, which also costs the B quick-access wheel.
+                     Lua drives it by adding or removing merc_qamblock_token. -->
+                <Function Name="merc_qam_desc" PositionY="5600" PositionX="-600" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef3d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="merc_qam_trig" PositionY="5600" PositionX="-300">
+                    <Edge From="kk_player_props.Inventory" To="Inventory" />
+                    <Edge From="merc_qam_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="merc_alwaysOn.State" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <State Name="merc_qam_block" PositionY="5600" PositionX="0" TypeT="bool">
+                    <Constant Name="DefaultValue" Value="false" />
+                    <Edge From="merc_qam_trig.OnAcquire" To="SetTrue" />
+                    <Edge From="merc_qam_trig.OnLose" To="SetFalse" />
+                </State>
+                <MakeArray Name="merc_qam_filters" PositionY="5600" PositionX="200" TypeT="Strings">
+                    <Constant Name="A" Value="no_qam_weapons" />
+                </MakeArray>
+                <FilterInput Name="merc_qam_filter" PositionY="5600" PositionX="440">
+                    <Edge From="merc_qam_filters.Array" To="Filters" />
+                    <Edge From="merc_qam_block.State" To="IsActive" />
+                </FilterInput>
+
+                <!-- Command interface: block attacking while a move order is being sited, so
+                     the left click that plants the marker does not also swing the sword. -->
+                <Function Name="merc_atk_desc" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef4d" />
+                    <Constant Name="Amount" Value="1" />
+                </Function>
+                <ItemDescriptorTrigger Name="merc_atk_trig">
+                    <Edge From="kk_player_props.Inventory" To="Inventory" />
+                    <Edge From="merc_atk_desc.ItemDescriptor" To="ItemDescriptor" />
+                    <Edge From="merc_alwaysOn.State" To="IsActive" />
+                </ItemDescriptorTrigger>
+                <State Name="merc_atk_block" TypeT="bool">
+                    <Constant Name="DefaultValue" Value="false" />
+                    <Edge From="merc_atk_trig.OnAcquire" To="SetTrue" />
+                    <Edge From="merc_atk_trig.OnLose" To="SetFalse" />
+                </State>
+                <MakeArray Name="merc_atk_filters" TypeT="Strings">
+                    <Constant Name="A" Value="no_attack" />
+                </MakeArray>
+                <FilterInput Name="merc_atk_filter">
+                    <Edge From="merc_atk_filters.Array" To="Filters" />
+                    <Edge From="merc_atk_block.State" To="IsActive" />
+                </FilterInput>
                 <Function Name="kk_ph3_desc" PositionY="5210" PositionX="-600" MethodName="wh::entitymodule::CreateItemClassDescriptor" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be92d" />
                     <Constant Name="Amount" Value="1" />

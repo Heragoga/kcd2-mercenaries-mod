@@ -81,15 +81,15 @@ local function runPerNpc(self, s)
     end
 end
 
-function mercenaries.MasterTick()
-    local self = mercenaries
-    -- No duplicate-chain guard here, deliberately. A time-based one was tried - exit
-    -- without re-arming if this tick landed within 40ms of the last - and it killed the
-    -- ONLY chain: after any hitch the engine fires queued timers back to back, two ticks
-    -- land close together, and the survivor removed itself. That produced 12 watchdog
-    -- re-arms in a single session. Duplicates are prevented at the source instead, by the
-    -- latch in SchedStart. A third argument to Script.SetTimerForFunction is also not an
-    -- option: it silently stops the timer re-firing at all. See docs/performance.md.
+-- Runs only via the generation-named entry points (ChainDef below): a timer restored
+-- from a save - the measured 415-chain flood - fires the bare name or a stale
+-- generation and drains instead of ever reaching this body. A time-based duplicate
+-- guard was tried before that and killed the ONLY chain (queued catch-up firings land
+-- back to back after any hitch); the generation name has no such failure mode, and the
+-- watchdog's rate governor covers the one residual case (a generation collision mod 8).
+function mercenaries:MasterTickDrive()
+    self._mtFired = (self._mtFired or 0) + 1              -- watchdog window, reset every 5s
+    self._mtFiredTotal = (self._mtFiredTotal or 0) + 1    -- running total, read by the tracer
     self.SchedTick = self.SchedTick + 1
     local t = self.SchedTick
 
@@ -124,13 +124,34 @@ function mercenaries.MasterTick()
 
     -- Re-armed unconditionally and outside the slot loop: a slot that throws must
     -- never be able to stop the master tick.
-    Script.SetTimerForFunction(self.MasterTickMs, "mercenaries.MasterTick")
+    self:ChainArm("MasterTick", self.MasterTickMs)
 end
+mercenaries:ChainDef("MasterTick", "MasterTickDrive")
 
 -- One master tick means one point of failure for four subsystems, which the legacy
 -- independent timers did not have. This buys that robustness back.
-function mercenaries.SchedWatchdog()
-    local self = mercenaries
+function mercenaries:SchedWatchdogDrive()
+    -- RATE GOVERNOR. Counts actual master-tick firings per watchdog window against the
+    -- configured rate. Anything well past it means more than one live chain - the case
+    -- the generation names cannot catch is a restored timer whose generation collides
+    -- mod 8 - and one rotation retires every chain but the fresh one. A single burst is
+    -- forgiven (a hitch fires queued ticks back to back); two windows in a row are not.
+    local fired = self._mtFired or 0
+    self._mtFired = 0
+    local expect = 5000 / (self.MasterTickMs or 100)
+    if self.SchedRunning and fired > expect * 2.5 then
+        self._mtHotWindows = (self._mtHotWindows or 0) + 1
+        schLog(string.format("governor: %d master ticks in 5s (expected ~%d) - window %d",
+                             fired, expect, self._mtHotWindows))
+        if self._mtHotWindows >= 2 then
+            self._mtHotWindows = 0
+            self._wdRotatedThisPass = true
+            self:ChainRotate("duplicate master chains measured")
+        end
+    else
+        self._mtHotWindows = 0
+    end
+
     if self.SchedRunning then
         if self.SchedTick == self._schedLastSeenTick then
             self._schedStrikes = (self._schedStrikes or 0) + 1
@@ -156,16 +177,23 @@ function mercenaries.SchedWatchdog()
         end
         self._schedLastSeenTick = self.SchedTick
     end
-    Script.SetTimerForFunction(5000, "mercenaries.SchedWatchdog")
+    -- A rotation just armed a fresh watchdog chain under the new generation; re-arming
+    -- here as well would leave two live ones.
+    if self._wdRotatedThisPass then
+        self._wdRotatedThisPass = nil
+    else
+        self:ChainArm("SchedWatchdog", 5000)
+    end
 end
+mercenaries:ChainDef("SchedWatchdog", "SchedWatchdogDrive")
 
 -- The pre-scheduler timers. Each loop's wrapper re-arms itself only while
 -- SchedRunning is false, so this is safe to call exactly once.
 function mercenaries:SchedArmLegacy()
-    Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
-    Script.SetTimerForFunction(300,  "mercenaries.CombatScanLoop")
-    Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
-    Script.SetTimerForFunction(self.FormationTickMs or 150, "mercenaries.FormationLoop")
+    self:ChainArm("MonitorLoop", 1000)
+    self:ChainArm("CombatScanLoop", 300)
+    self:ChainArm("LowPriorityMonitorLoop", 5000)
+    self:ChainArm("FormationLoop", self.FormationTickMs or 150)
     -- Patrols and raids are slots now, so they died with the master tick. Hand them back
     -- their private chains, which is what SchedEnabled=false above has just re-enabled.
     self.LivePatrolRunning, self.RaidRunning = false, false
@@ -178,17 +206,14 @@ end
 -- LOAD GENERATION. Call this at the top of OnGameplayStarted, before anything arms
 -- a timer.
 --
--- Script.SetTimerForFunction chains are BELIEVED not to survive a save load - the engine
--- drops them with the level - but this table is plain Lua and survives everything, so any
--- latch guarding a timer has to be reset per load or it locks the timer out for the rest of
--- the session.
---
--- Believed, not measured. The argument used to be "LootSweepLoop re-arms itself with no
--- guard at all, so if timers survived it would double every load, and it does not" - which
--- is circular (nothing was watching it) and was the only evidence there was. LootSweepArm
--- no longer relies on the answer: consecutive loads alternate between two entry points, so
--- a chain from the previous load retires on its next firing either way. Anything else added
--- here should do the same rather than inherit the assumption.
+-- Script.SetTimerForFunction chains do NOT reliably die with the level. MEASURED
+-- 2026-08-29: the engine serializes pending timers into the SAVE and restores them on
+-- load - a submitted long-playthrough save carried 5,899 of them (5,472 x RaidTick,
+-- 415 x MasterTick), and every restored one fired. The latches guarding chains are
+-- plain Lua and survive everything the other way round, so they still need resetting
+-- per load - but latches alone can never stop a restored timer, because it bypasses
+-- every arm site. That is what the generation-named entry points are for (ChainDef in
+-- mercenaries.lua): a restored chain calls a stale name and drains instead of running.
 --
 -- Getting this wrong killed the whole mod on the second save loaded in one session.
 -- SchedRunning was still true from the first, SchedStart refused to arm, the master
@@ -244,10 +269,10 @@ function mercenaries:SchedStart(force)
     self.SchedRunning = true
     self.SchedTick = 0
     self._schedLastSeenTick = nil
-    Script.SetTimerForFunction(self.MasterTickMs, "mercenaries.MasterTick")
+    self:ChainArm("MasterTick", self.MasterTickMs)
     if not self._schedWatchdogArmed then
         self._schedWatchdogArmed = true
-        Script.SetTimerForFunction(5000, "mercenaries.SchedWatchdog")
+        self:ChainArm("SchedWatchdog", 5000)
     end
     schLog("master tick armed at " .. self.MasterTickMs .. "ms, epoch " ..
            tostring(self.SchedEpoch) .. ", " .. self:_TableCount(self.SchedSlots) .. " slot(s)")
@@ -273,6 +298,22 @@ function mercenaries:SchedSet(v)
            " - takes effect on the next load (legacy timers are used when disabled)")
 end
 
+function mercenaries:ChainStatus()
+    schLog("chain generation G" .. self:ChainGenSuffix() ..
+           " (load " .. tostring(self.SchedLoadGen or 0) .. "), master ticks total " ..
+           tostring(self._mtFiredTotal or 0))
+    local t = self.ChainDrained or {}
+    local any = false
+    for k, v in pairs(t) do
+        if type(v) == "number" and k ~= "_total" and k ~= "_at" then
+            schLog(string.format("  drained %-24s %d", k, v)); any = true
+        end
+    end
+    if not any then schLog("  no stale timers drained - this save's timer field is clean") end
+end
+
+mercenaries:DevCommand("merc_chains", "mercenaries:ChainStatus()",
+                   "Timer-chain health: generation, master rate, stale timers drained from the save")
 mercenaries:DevCommand("merc_sched", "mercenaries:SchedSet('%line')",
                    "Master scheduler on/off, applied at next load: merc_sched 1 | 0")
 mercenaries:DevCommand("merc_sched_status", "mercenaries:SchedStatus()",
@@ -345,7 +386,7 @@ function mercenaries:SchedRegisterAll()
 
     self:SchedRegister("raids", {
         periodMs = mercenaries.RaidTickMs or 20000,
-        fn = function(s) if s.RaidTick then mercenaries.RaidTick() end end,
+        fn = function(s) if s.RaidTickBody then mercenaries.RaidTickBody() end end,
     })
 
     -- Ungated by ActiveMercs: the player murdering a guard on his own is exactly the

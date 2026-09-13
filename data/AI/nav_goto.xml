@@ -16,7 +16,7 @@
             <!-- Walk instead of run. Two Move nodes rather than a variable speed: speed is
                  an enum attribute, and follow.xml already picks between two Moves this way. -->
             <Variable name="navWalk" type="_bool" values="false" isPersistent="0" form="single" />
-            <Variable name="MoveParams_nav" type="additionalMoveParams" values="destChangedThreshold('150ms')" isPersistent="0" form="single" />
+            <Variable name="MoveParams_nav" type="additionalMoveParams" values="destChangedThreshold('150ms'),stuckThreshold(3)" isPersistent="0" form="single" />
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">

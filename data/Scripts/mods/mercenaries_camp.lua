@@ -141,6 +141,7 @@ function mercenaries:SpawnPlayerCampTent(centerPos, facingAngle)
         local tentAngle = (facingAngle or 0) +  math.rad(130)
 
         self:SpawnCampPropModel(self.CampPlayerTentModel, tentPos, tentAngle, "MercCampProp_PlayerTent")
+        if self.NavAddObstacle then self:NavAddObstacle(tentPos, tentAngle, self.NavPlayerTentFootHalf, "tent") end
 
         local bedPos, bedAngle = self:CampRelativeOffset(tentPos, tentAngle, self.CampPlayerBedOffset)
         bedPos = self:CampSnapToGround(bedPos)
@@ -599,6 +600,14 @@ mercenaries.CampTileClearFrac = 0.8                    -- player-tent/training t
 mercenaries.CampTentFootHalf   = { w = 1.0, h = 2.25 }
 mercenaries.CampFireFootHalf    = { w = 1.25, h = 1.25 }
 mercenaries.CampPlayerTentFootHalf = { w = 2.25, h = 2.25 }
+
+-- Footprints for ROUTING (mercenaries_navmesh.lua), not for placement. The boxes above
+-- are deliberately generous - they ask how much clear GROUND a prop needs, and a tent
+-- claims 2 x 4.5m of it - so steering men round those would wall the fire circle in and
+-- leave nobody able to reach it. These are sized to the meshes instead.
+mercenaries.NavTentFootHalf       = { w = 1.05, h = 1.45 }
+mercenaries.NavPlayerTentFootHalf = { w = 2.10, h = 2.10 }
+mercenaries.NavFireFootHalf       = { w = 1.00, h = 1.00 }
 mercenaries.CampFootprintSlack  = 2
 mercenaries.CampMercFootprint   = 0.6                  -- footprint FindValidGround checks per single spawn/teleport spot
 mercenaries.CampNudgeStep = 0.5                        -- prop nudge step/limit to dodge an obstacle before placing least-bad
@@ -999,6 +1008,14 @@ end
 -- `trackList` (optional) is the table the spawned entity id is recorded in for
 -- teardown; defaults to CampEntities. The activity-test commands pass their own
 -- list so clearing them can't disturb a live camp.
+-- OFF. Spawning camp dressing STATIC looked like a free physics win - BasicEntity's default is
+-- a live pushable rigid body and a big camp has ~250 of them. But ac_disableLivingVsRigidCollisions
+-- ships at 1, which exempts living entities from RIGID bodies only: as rigid props, chairs and
+-- beds were invisible to an NPC's character controller, and making them static handed that
+-- collision back. Mercs then sat a metre up, standing on the seat's collision box instead of in
+-- it. Correctness beats an unmeasured frame or two; set true again only with a seat/bed exemption.
+mercenaries.CampPropsStatic = false
+
 function mercenaries:SpawnCampPropModel(model, pos, angleZ, namePrefix, trackList)
     if not model or model == "" then return nil end
 
@@ -1021,6 +1038,27 @@ function mercenaries:SpawnCampPropModel(model, pos, angleZ, namePrefix, trackLis
             -- (see docs/camp.md), and saved ones come back as broken placeholders.
             bSaved_by_game = false,
             bSerialize = false,
+            -- STATIC. BasicEntity's shipped default is bRigidBody = true and
+            -- bPushableByPlayers = true, so without this every tent, table, rack and wood pile
+            -- in the camp is a live, pushable rigid body - about 250 of them inside 50 m in a
+            -- fully-upgraded camp, all paying broadphase for ever. Every structural spawn path
+            -- in this mod already forces static; the decor path never did. Camp dressing should
+            -- not drift when somebody walks into it either.
+            -- No Physics property at all is the mod's recipe for a walk-through prop (see
+            -- GhostBuild and AmbushMarkerSpawn); an explicit bPhysicalize = false gave the
+            -- wrong mesh. mercenaries.CollisionMode decides - camp dressing is the bulk of
+            -- the physicalised entities in a camp and none of it needs to stop anybody.
+            -- A missing helper means the old behaviour, never a silent loss of collision:
+            -- mercenaries_solid.lua is loaded after this file.
+            Physics = (mercenaries.CampPropsStatic ~= false
+                       and (not mercenaries.PropSolid
+                            or mercenaries:PropSolid("decor"))) and {
+                bPhysicalize = true,
+                bRigidBody = false,
+                bPushableByPlayers = false,
+                Mass = -1,
+                Density = -1,
+            } or nil,
         }
     })
 
@@ -2882,14 +2920,14 @@ function mercenaries:GetPatrolWaypoint(mercWuid)
 
     local wp = rec.waypoints[rec.index]
     rec.onDetour = false
-    if not (wp and self.NavSteerPoint and self:WallHasAny()) then return wp end
+    if not (wp and self.NavSteerPoint and (self:WallHasAny() or self:NavHasObstacles())) then return wp end
 
     local ent, me
     pcall(function() ent = XGenAIModule.GetEntityByWUID(mercWuid) end)
     if ent then pcall(function() me = ent:GetWorldPos() end) end
     if not me then return wp end
 
-    if not self:NavIsBlocked(me, wp) then
+    if not self:NavPathBlocked(me, wp) then
         rec.nav = nil
         return wp
     end
@@ -2901,7 +2939,10 @@ function mercenaries:GetPatrolWaypoint(mercWuid)
         return p
     end
 
-    -- Blocked with no way round: drop this waypoint and try the next one.
+    -- Nothing came back. Only a WALL with no route round it is worth dropping a
+    -- waypoint for: a tent he could not round this tick is not, or he would shed points
+    -- off his ring for a prop he will be clear of in a second.
+    if not self:NavIsBlocked(me, wp) then return wp end
     rec.index = (rec.index % #rec.waypoints) + 1
     rec.nav = nil
     return rec.waypoints[rec.index]
@@ -3014,10 +3055,104 @@ end
 -- The tile reserved for `name` this camp: a position + the outward facing (away
 -- from the camp centre). nil if the station has no tile, in which case its own
 -- spawn falls back to scanning for a flat patch.
+-- Where the player PUT a station, as opposed to where the camp would have put it. Keyed by
+-- the same station names as CampStationTiles and read in preference to them, so one entry
+-- here overrides the automatic layout for that one improvement and leaves the rest alone.
+--
+-- Tied to the camp anchor exactly as the automatic tiles are: a spot chosen around one camp
+-- means nothing around a camp pitched somewhere else, so moving camp drops them and the
+-- automatic layout takes over again.
+mercenaries.CampPlacedSpots = mercenaries.CampPlacedSpots or {}
+
+-- Tent rings the player moved, by ring number. Same anchor rule as the station spots.
+mercenaries.CampCirclePlaced = mercenaries.CampCirclePlaced or {}
+
+-- Where the player put the training ground, if anywhere.
+mercenaries.CampTrainPlaced = mercenaries.CampTrainPlaced or nil
+
+function mercenaries:CampSaveCircles()
+    local t = {}
+    for i, p in pairs(self.CampCirclePlaced or {}) do t["c" .. i] = p end
+    if self.CampTrainPlaced then t["train"] = self.CampTrainPlaced end
+    local packed = self:CampPackSpots(t)
+    if packed then pcall(function() self:SaveString("MercCampCircles", packed) end) end
+end
+
+function mercenaries:CampLoadCircles(origin)
+    local raw = self:LoadString("MercCampCircles")
+    if not (raw and origin) then return {} end
+    local head, body = string.match(raw, "^([^|]*)|(.*)$")
+    if not head then return {} end
+    local ax, ay = string.match(head, "([^,]+),([^,]+)")
+    ax, ay = tonumber(ax), tonumber(ay)
+    if not (ax and ay) then return {} end
+    local dx, dy = origin.x - ax, origin.y - ay
+    if (dx * dx + dy * dy) > (self.CampTileAnchorEps * self.CampTileAnchorEps) then return {} end
+    local out = {}
+    self.CampTrainPlaced = nil
+    for chunk in string.gmatch(body or "", "[^;]+") do
+        local name, rest = string.match(chunk, "^([^:]+):(.*)$")
+        local x, y, z = string.match(rest or "", "([^,]+),([^,]+),([^,]+)")
+        if name and x then
+            local pos = { x = tonumber(x), y = tonumber(y), z = tonumber(z) }
+            if name == "train" then
+                self.CampTrainPlaced = pos
+            else
+                local i = tonumber(string.match(name, "^c(%d+)$") or "")
+                if i then out[i] = pos end
+            end
+        end
+    end
+    return out
+end
+
 function mercenaries:CampStationSpot(name)
+    local p = self.CampPlacedSpots and self.CampPlacedSpots[name]
+    if p then return { x = p.x, y = p.y, z = p.z }, p.ang end
     local t = self.CampStationTiles and self.CampStationTiles[name]
     if not t then return nil end
     return { x = t.x, y = t.y, z = t.z }, t.ang
+end
+
+-- Both tables serialise the same way; the tag is the only difference.
+function mercenaries:CampPackSpots(tbl)
+    local o = self.CampBuildOrigin
+    if not o then return nil end
+    local out = {}
+    for name, t in pairs(tbl or {}) do
+        table.insert(out, string.format("%s:%.2f,%.2f,%.2f,%.4f", name, t.x, t.y, t.z or o.z, t.ang or 0))
+    end
+    table.sort(out)
+    return string.format("%.2f,%.2f|%s", o.x, o.y, table.concat(out, ";"))
+end
+
+function mercenaries:CampSavePlacedSpots()
+    local packed = self:CampPackSpots(self.CampPlacedSpots)
+    if packed then pcall(function() self:SaveString("MercCampPlaced", packed) end) end
+end
+
+function mercenaries:CampLoadPlacedSpots(origin)
+    local raw = self:LoadString("MercCampPlaced")
+    if not (raw and origin) then return {} end
+    local head, body = string.match(raw, "^([^|]*)|(.*)$")
+    if not head then return {} end
+    local ax, ay = string.match(head, "([^,]+),([^,]+)")
+    ax, ay = tonumber(ax), tonumber(ay)
+    if not (ax and ay) then return {} end
+    local dx, dy = origin.x - ax, origin.y - ay
+    if (dx * dx + dy * dy) > (self.CampTileAnchorEps * self.CampTileAnchorEps) then return {} end
+    local out = {}
+    for chunk in string.gmatch(body or "", "[^;]+") do
+        local name, rest = string.match(chunk, "^([^:]+):(.*)$")
+        if name then
+            local x, y, z, a = string.match(rest, "([^,]+),([^,]+),([^,]+),([^,]+)")
+            if x and y and z then
+                out[name] = { x = tonumber(x), y = tonumber(y), z = tonumber(z),
+                              ang = tonumber(a) or 0 }
+            end
+        end
+    end
+    return out
 end
 
 -- ==== Camp persistence ====
@@ -3104,6 +3239,13 @@ end
 -- mercenaries.lua.
 function mercenaries.RestoreCampDelayed()
     local self = mercenaries
+    -- A region crossing is still walking the company back into the world (docs/regions.md).
+    -- Pitching now would lay the camp out around whoever happens to be standing already and
+    -- leave the rest of them outside it.
+    if next(self.RegionSpawnQueue or {}) then
+        Script.SetTimerForFunction(1000, "mercenaries.RestoreCampDelayed")
+        return
+    end
     local o = self:LoadCampOrigin()
     if not o or self.CampActive or _G.MercenariesDismissed then return end
     self.CampBuildOrigin = o
@@ -3196,7 +3338,7 @@ end
 -- camp to wherever the player happens to be standing. `silent` skips the
 -- "camp made" text for those non-player-initiated builds.
 -- See docs/camp.md for the full layout scheme.
-function mercenaries:SpawnMercCamp(atOrigin, silent)
+function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
     if self.CampActorInvalidateAll then self:CampActorInvalidateAll() end
     if self.CampActive then
         Game.SendInfoText('merc_info_camp_already_active', false, 0, 3)
@@ -3208,7 +3350,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
     end
 
     self:Recount()
-    if not _G.MercCount or _G.MercCount <= 0 then
+    if not allowSolo and (not _G.MercCount or _G.MercCount <= 0) then
         Game.SendInfoText('merc_info_camp_no_squad', false, 0, 3)
         return
     end
@@ -3230,6 +3372,9 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
             end
         end
         center = self:CampSnapToGround(center)
+        -- Footprints an NPC has to walk around are registered as the props go down and
+        -- rebuilt with the camp; they are never saved. See mercenaries_navmesh.lua.
+        if self.NavClearObstacles then self:NavClearObstacles() end
 
         -- Sort mercs strong -> medium -> weak so tent slots go to the
         -- higher tiers first.
@@ -3248,7 +3393,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         table.sort(mercList, function(a, b) return tierRank(a.tier) < tierRank(b.tier) end)
 
         local mercCount = #mercList
-        if mercCount == 0 then
+        if mercCount == 0 and not allowSolo then
             Game.SendInfoText('merc_info_camp_no_squad', false, 0, 3)
             return
         end
@@ -3361,7 +3506,10 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- of swallowing the player.
         local forward
         if atOrigin then
-            forward = { x = math.cos(atOrigin.ang), y = math.sin(atOrigin.ang) }
+            -- An origin without a facing is legitimate (the camp screen hands over the
+            -- player's position); nil here used to kill the whole pitch inside its pcall.
+            local a0 = atOrigin.ang or 0
+            forward = { x = math.cos(a0), y = math.sin(a0) }
         else
             local pp = player:GetWorldPos()
             local dx, dy = pp.x - center.x, pp.y - center.y
@@ -3500,6 +3648,8 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         do
             local savedTiles = {}
             pcall(function() savedTiles = self:CampLoadStationTiles(center) or {} end)
+            pcall(function() self.CampPlacedSpots = self:CampLoadPlacedSpots(center) or {} end)
+            pcall(function() self.CampCirclePlaced = self:CampLoadCircles(center) or {} end)
             for _, name in ipairs(stationNames) do
                 local t = savedTiles[name]
                 if t and t.x and t.y then
@@ -3554,6 +3704,17 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
             end
         end
 
+        -- A tent ring the player moved by hand wins over the cell the grid chose for it.
+        -- This has to happen BEFORE anything reads clusterCenters: the campfire, the seats,
+        -- the tents and the beds are all placed off these positions further down, so an
+        -- override applied after that moved nothing at all - the ring stayed where the grid
+        -- put it and only the remembered position changed.
+        for i, cp in pairs(self.CampCirclePlaced or {}) do
+            if clusterCenters[i] then
+                clusterCenters[i] = self:CampSnapToGround({ x = cp.x, y = cp.y, z = cp.z })
+            end
+        end
+
         -- STATION TILES: each camp upgrade claims its own grid tile out of the
         -- cells the clusters didn't take - same spacing and same footprint
         -- validation as a campfire cluster, so an upgrade is given exactly as much
@@ -3603,6 +3764,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
 
         for _, cPos in ipairs(clusterCenters) do
             self:SpawnCampFirePrefab(cPos, 0)
+            if self.NavAddObstacle then self:NavAddObstacle(cPos, 0, self.NavFireFootHalf, "fire") end
         end
 
         -- TRAINING YARD - the reserved tile BEHIND the player tent (per spec:
@@ -3629,7 +3791,16 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- flagged a trainer below and nobody drills. Buying it mid-camp raises it
         -- immediately via LogiBuyPractice -> SpawnCampPracticeYard.
         self.CampForwardAngle = worldForwardAngle
-        self.CampTrainCenter = trainCenter
+        -- A training ground the player moved wins over the computed one. Without this the
+        -- rebuild recomputed it from the camp's forward angle and overwrote the chosen spot
+        -- before the yard was spawned, so it could never be moved.
+        if self.CampTrainPlaced then
+            self.CampTrainCenter = self:CampSnapToGround({
+                x = self.CampTrainPlaced.x, y = self.CampTrainPlaced.y,
+                z = self.CampTrainPlaced.z })
+        else
+            self.CampTrainCenter = trainCenter
+        end
         -- Kept so a merc who joins the camp later can be given a spot on one of the same
         -- rings the build loop used (CampEnsureSpot) instead of no spot at all.
         self.CampClusterCenters = clusterCenters
@@ -3736,6 +3907,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
                 -- CampTentVariants entry shares the same footprint/facing.
                 local tentModel = self.CampTentVariants[math.random(#self.CampTentVariants)]
                 self:SpawnCampPropModel(tentModel, tentPos, angle, "MercCampProp_Tent")
+                if self.NavAddObstacle then self:NavAddObstacle(tentPos, angle, self.NavTentFootHalf, "tent") end
                 local tentFacing = angle
 
                 -- Bed placed relative to the tent itself (CampBedOffset) -
@@ -3959,7 +4131,14 @@ function mercenaries:SpawnMercCamp(atOrigin, silent)
         -- back if this is the same spot they were built at, otherwise leave them behind
         -- and start bare. Deferred so the camp props are all down first.
         pcall(function()
-            if self.DefArmRestore then self:DefArmRestore() end
+            -- "A rebuild" means the camp went back up on a SAVED anchor, which is what
+            -- an explicit origin used to imply. It no longer does: the camp screen pitches
+            -- a NEW camp at the player's position and passes an origin to do it, and
+            -- calling that a rebuild had the defence restore re-anchor the previous camp's
+            -- walls onto the new one. An origin marked `fresh` says which it is.
+            if self.DefArmRestore then
+                self:DefArmRestore(atOrigin ~= nil and not atOrigin.fresh)
+            end
         end)
 
         if not silent then Game.SendInfoText('merc_info_camp_made', false, 0, 4) end
@@ -3973,6 +4152,12 @@ end
 -- Despawn every tracked camp prop and resume normal squad state. silent = true
 -- skips the info text (when a follow/dismiss order breaks camp as a side effect).
 function mercenaries:BreakMercCamp(silent)
+    -- Everything standing goes into storage first, whichever way camp is being broken: the
+    -- camp screen's own Break did this, the look-at-and-hold-E route did not, and the two
+    -- must not disagree about whether you keep what you paid for.
+    if self.CUStowStanding and self.CampActive then
+        pcall(function() self:CUStowStanding() end)
+    end
     if self.CampActorInvalidateAll then self:CampActorInvalidateAll() end
     if not self.CampActive then
         if not silent then
@@ -4008,7 +4193,11 @@ function mercenaries:BreakMercCamp(silent)
     pcall(function() self:DespawnCampFoodCart() end)
     -- House props go with CampEntities; this just restores the grass CVar.
     pcall(function() self:ClearCampHouse() end)
+    -- The wall's invisible obstacle blockers go with it. Without this they are left
+    -- standing, solid and unseen, where the camp used to be.
+    pcall(function() if self.NavObstBlockerClear then self:NavObstBlockerClear() end end)
 
+    if self.NavClearObstacles then self:NavClearObstacles() end
     self.CampEntities = {}
     self.CampSlots = {}
     self.CampPatrollers = {}
@@ -4241,6 +4430,9 @@ mercenaries.CampPropPrefixes = {
     "MercAnvil",
     "MercPart_",      -- upgrade preview
     "MercUpg",
+    -- Invisible navigation blockers (mercenaries_navobst.lua). They are RESTING RIGID
+    -- bodies, so one left behind is collision standing in an empty field, unseen.
+    "MercNavBlocker_",
 }
 
 local function isCampPropName(name)
@@ -4291,8 +4483,12 @@ function mercenaries:ClearAnyLeftoverCamp()
     pcall(function() self:DespawnCampFoodCart() end)
     -- House props go with CampEntities; this just restores the grass CVar.
     pcall(function() self:ClearCampHouse() end)
+    -- The wall's invisible obstacle blockers go with it. Without this they are left
+    -- standing, solid and unseen, where the camp used to be.
+    pcall(function() if self.NavObstBlockerClear then self:NavObstBlockerClear() end end)
 
     self.CampActive = false
+    if self.NavClearObstacles then self:NavClearObstacles() end
     self.CampEntities = {}
     self.CampSlots = {}
     self.CampPatrollers = {}

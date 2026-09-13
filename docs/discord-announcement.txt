@@ -1,0 +1,23 @@
+Hello there @everyone,
+
+**TLDR:** New update out. Bannerlord style command UI on **H**, camp management UI on **U**. Same key closes it again.
+
+After quite a bit of research and experimentation I finally got fully custom UI working, which means pretty much any kind of interface I want from here on.
+
+The first thing I used it for is commanding your mercenaries, Bannerlord style. You have four squads, two melee and two archers, so you can actually employ tactics now: set up ambushes, hold a squad in reserve, put your archers somewhere the enemy has to climb to reach them, and move the rest up while they shoot.
+
+The second is a camp screen. It shows which upgrades are active, lets you buy new ones, and lets you move the ones you already have so you can lay the camp out however you like. Logistics runs through there too: hand your men food, drink or gold, and withdraw the spoils of your battles.
+
+I also fixed a good number of bugs, namely:
+- Defensive upgrades disappearing if you travelled too far from camp
+- Mercenaries following you after a fast travel when they were supposed to stay in camp
+- Lag while you were in camp
+- The orange "in combat" rabbit showing up after a fast travel
+and a bunch more.
+
+Showcase video for the command UI: https://youtu.be/tSWXPCZxVFg?si=oLoOjKYcu1kSmGyD
+
+Have a great day,
+Cheers!
+
+||PS: There's a new experimental feature in there as well, stone walls. Still a few things to iron out, so handle with care.||

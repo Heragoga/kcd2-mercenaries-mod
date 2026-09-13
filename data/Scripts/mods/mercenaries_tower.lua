@@ -219,21 +219,32 @@ mercenaries:DevCommand("merc_tower_rails_clear", "mercenaries:TowerRailsClear()"
 -- different heights (z 0.72 vs 0.50) to take up sloping ground.
 local SCAF = "objects/manmade/structures/scafolding/"
 
+-- ONE MESH, not a scaffold. watchtower_a is the game's own timber watchtower: a roofed
+-- platform on four raking legs, 9.26 m to the ridge with its deck at 3.25 m. It reads as
+-- a watchtower where a stack of builder's scaffolding read as a building site, and it is
+-- a single node plus a shadow proxy, so it costs one entity instead of eight.
+--
+-- Its deck is at 3.25 m against the old scaffold's 4.52, and the old TowerSink of -2.1 m
+-- existed only to bring that 4.52 down to a workable 2.42. This one needs no sinking to
+-- land in the same band, so TowerSink is 0 and the archer ends up 0.6 m higher than he
+-- used to be. merc_tower_sink puts that back if his aim depression suffers.
+--
+-- The deck figures below are measured off the render mesh with the shadow proxy excluded
+-- - counting it doubles every surface and puts a phantom deck at 6 m that nothing can
+-- stand on.
 mercenaries.TowerParts = {
-    { model = SCAF .. "scaffolding_handrail_c.cgf",          x = -1.134644, y = -0.725514, z = 0.741791, qw = 1, qx = 0, qy = 0, qz = 0 },
-    { model = SCAF .. "scaffolding_handrail_c.cgf",          x =  1.178375, y = -0.769817, z = 2.866657, qw = 4.371139e-08, qx = 0, qy = 0, qz = 1 },
-    { model = SCAF .. "scaffolding_beam_support_a.cgf",      x =  0.521000, y =  0.091393, z = 0.504337, qw = 0.7071068, qx = 0, qy = 0, qz = 0.7071068 },
-    { model = SCAF .. "scaffolding_beam_support_b.cgf",      x = -0.540184, y = -0.098377, z = 0.504337, qw = 0.7071067, qx = 0, qy = 0, qz = -0.7071068 },
-    { model = SCAF .. "scaffolding_main_beam_c.cgf",         x = -1.139229, y = -0.725514, z = 0.722488, qw = 1, qx = 0, qy = 0, qz = 0 },
-    { model = SCAF .. "scaffolding_main_beam_c.cgf",         x =  1.360771, y = -0.725514, z = 0.504337, qw = 1, qx = 0, qy = 0, qz = 0 },
-    { model = SCAF .. "scaffolding_floor_only_ladder_a.cgf", x = -1.139229, y = -0.725514, z = 2.113335, qw = 1, qx = 0, qy = 0, qz = 0 },
-    { model = SCAF .. "scaffolding_floor_only_ladder_a.cgf", x = -1.139229, y = -0.725514, z = 4.515823, qw = 1, qx = 0, qy = 0, qz = 0 },
+    { model = "objects/manmade/structures/defensive/watchtowers/watchtower_a.cgf",
+      x = 0, y = 0, z = 0, qw = 1, qx = 0, qy = 0, qz = 0 },
 }
 
+-- The tower has no stair of its own, so it keeps the rustic ladder and its Ladder_400
+-- smart object. A 4 m ladder against a 3.25 m deck overtops it by about a metre, which
+-- is how a ladder is leant against a platform anyway. Stood off the -Y side, clear of
+-- the legs.
 mercenaries.TowerLadders = {
     { model = "objects/manmade/common_fixtures/ladders/ladder_rustic_400.cgf", height = 4,
       so = "Ladder_400", guid = "450aabee-95e7-4ff6-eca8-3d783b1664ae",
-      x = 0.223284, y = -0.789013, z = 0.522682,
+      x = 0.85, y = -1.60, z = 0.00,
       qw = 0.7064338, qx = 0.03084356, qy = -0.03084356, qz = -0.7064338 },
 }
 
@@ -241,7 +252,7 @@ mercenaries.TowerLadders = {
 -- for the archer's height: he stands on the TOP deck, so sinking the tower is what
 -- brings his vantage down low enough to depress his aim onto nearby targets while
 -- still overlooking the camp. Tune live with merc_tower_sink.
-mercenaries.TowerSink = -2.1
+mercenaries.TowerSink = 0.0
 
 -- COLLIDERS: the deck meshes carry no player collision of their own (big
 -- structures keep theirs in a separate cv_*.cgf - the spawn-house finding), so
@@ -251,12 +262,11 @@ mercenaries.TowerSink = -2.1
 -- re-tune any time and merc_tower_col_dump to get a fresh block to paste here.
 mercenaries.TowerColliderModel = "objects/manmade/common_furniture/crates/crate_low_a.cgf"
 mercenaries.TowerCollidersVisible = false   -- merc_tower_col_show 1 to see them while tuning
--- Collider on the TOP deck (z 4.52) - the archer stands up top. His height is
--- brought down not by moving him to the mid deck but by sinking the whole tower
--- into the ground (TowerSink / merc_tower_sink), so he keeps the top-deck vantage
--- at a workable absolute height.
+-- Collider on the deck (z 3.25, the watchtower's own platform). The slab is what holds
+-- the archer up there - he is never navmesh-grounded on it - so it has to cover where he
+-- stands, not the whole deck.
 mercenaries.TowerColliders = {
-    { n = "deck", x = -0.99, y = -0.73, z = 4.52, sx = 2.50, sy = 2.50, sz = 0.30 },
+    { n = "deck", x = 0.85, y = 1.15, z = 3.25, sx = 2.50, sy = 2.50, sz = 0.30 },
 }
 
 -- Where the tower's archer ends up, in the same tower-local frame: standing on
@@ -267,7 +277,7 @@ mercenaries.TowerColliders = {
 -- mercenaries_static_archer.lua. Tune with merc_tower_archer_z.
 -- x is the outward/facing axis (local +x = st.yaw); more positive backs him off the
 -- front ledge he shoots over; z is his standing height on the deck.
-mercenaries.TowerArcherLocal = { x = -0.79, y = -0.73, z = 4.65 }
+mercenaries.TowerArcherLocal = { x = 1.05, y = 1.15, z = 3.38 }
 mercenaries.TowerArcherMode = "defend"
 -- The archer is spawned this long AFTER the tower, not with it: a collider
 -- spawned in the same frame is not physicalised/registered yet, so an archer
@@ -372,7 +382,12 @@ function mercenaries:TowerColApply(i)
     end
     if ent then
         pcall(function() ent:SetAngles({ x = 0, y = 0, z = st.yaw }) end)
-        if not self.TowerCollidersVisible then pcall(function() ent:DrawSlot(0, 0) end) end
+        if not self.TowerCollidersVisible then
+            pcall(function() ent:DrawSlot(0, 0) end)
+            -- invisible: do not also pay never-cull + shadow for it
+            pcall(function() ent:RenderShadow(false) end)
+            pcall(function() ent:SetViewDistRatio(1) end)
+        end
         st.cols[i] = ent.id
     end
 end
@@ -1476,3 +1491,53 @@ end
 
 mercenaries:DevCommand("merc_tower_hold",       "mercenaries:TowerHoldSpawn(%1, %2)", "Row of NPC-hold strategies, each with an archer on a deck slab: merc_tower_hold [height] [spacing]")
 mercenaries:DevCommand("merc_tower_hold_clear", "mercenaries:TowerHoldClear()",       "Remove the hold test")
+
+-- The tower half of the same hole. Repaired PER STATION: the restore path is not idempotent,
+-- so a blanket re-restore would duplicate every tower. Foreign towers (st.group) belong to a
+-- bandit camp and rebuild through their own contract state - leave them alone.
+mercenaries.TowerWatchdogEvery = 30.0
+mercenaries.TowerWatchdogLast  = nil
+
+function mercenaries:TowerWatchdog()
+    local sts = self.TowerStations or {}
+    if #sts == 0 then return end
+    local t = 0
+    pcall(function() t = System.GetCurrTime() or 0 end)
+    if self.TowerWatchdogLast and (t - self.TowerWatchdogLast) < (self.TowerWatchdogEvery or 30.0) then
+        return
+    end
+
+    -- snapshot: TowerStationClearOne removes from the live list
+    local broken = {}
+    for _, st in ipairs(sts) do
+        if not st.group and st.placedGround and st.ids and #st.ids > 0 then
+            local live = 0
+            for _, id in ipairs(st.ids) do
+                local e
+                pcall(function() e = System.GetEntity(id) end)
+                if e then
+                    local n = ""
+                    pcall(function() n = e:GetName() or "" end)
+                    if string.sub(n, 1, 9) == "MercTower" then live = live + 1 end
+                end
+            end
+            if live == 0 then broken[#broken + 1] = st end
+        end
+    end
+    if #broken == 0 then return end
+
+    self.TowerWatchdogLast = t
+    local rebuilt = 0
+    for _, st in ipairs(broken) do
+        local ground, yaw, mode = st.placedGround, st.yaw, st.mode
+        pcall(function() self:TowerStationClearOne(st) end)
+        local ok = false
+        pcall(function()
+            ok = self:TowerBuildStation(ground, yaw, mode and { mode = mode } or nil) ~= nil
+        end)
+        if ok then rebuilt = rebuilt + 1 end
+    end
+    if rebuilt > 0 then
+        System.LogAlways("[Tower] " .. rebuilt .. " tower(s) had lost their parts - rebuilt")
+    end
+end

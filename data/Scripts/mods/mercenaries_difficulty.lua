@@ -216,6 +216,12 @@ function mercenaries:MonitorDifficultyTokens(p)
         p:DeleteItemOfClass(self.TokenIDQMHorses, h)
         self:HorsesSet(h == 1)
     end
+
+    local k = p:GetCountOfClass(self.TokenIDQMHints)
+    if k and k > 0 then
+        p:DeleteItemOfClass(self.TokenIDQMHints, k)
+        self:HintsSetByIndex(k)
+    end
 end
 
 -- ==== encounters ====
@@ -340,6 +346,11 @@ function mercenaries:StatusIconsSet(on)
     pcall(function() self:LogiUpdateStatusBuffs() end)
     diffLog("status icons " .. (self.StatusIconsEnabled and "on" or "off"))
 end
+
+-- ==== corner key nudges ====
+-- The [H] Command / [U] Camp marks. The setting itself lives in mercenaries_blui.lua,
+-- which owns both screens' nudges; this is only the quartermaster's way in.
+mercenaries.TokenIDQMHints = "679a655e-189d-4519-b437-ccc4b92bef0d"
 
 -- ==== horses ====
 -- Off means the company marches on foot whatever the player is riding. The lever is

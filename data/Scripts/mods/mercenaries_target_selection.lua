@@ -678,6 +678,16 @@ function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid, force)
         pcall(function() te = XGenAIModule.GetEntityByWUID(targetWuid) end)
         if te and self:AlxDoubleName(te:GetName()) then return false end
     end
+    -- The wall lab's walker is a measurement, not a foe: with the company standing next to
+    -- the player he was killed on his spawn point twenty trials running and every one read
+    -- as "never moved". Only while a lab is running, so play is never touched.
+    if self.LabRun then
+        local te
+        pcall(function() te = XGenAIModule.GetEntityByWUID(targetWuid) end)
+        local nm = ""
+        if te then pcall(function() nm = te:GetName() or "" end) end
+        if nm:find("^SpawnedTestNpc_") then return false end
+    end
     local targetWuidStr = tostring(targetWuid)
 
     if not self:MercMayClaim(myWuid, targetWuidStr) then return false end
@@ -688,6 +698,9 @@ function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid, force)
     if self.HoldActive and self.HoldOutOfLeash and self:HoldOutOfLeash(myWuid, targetWuid) then
         return false
     end
+    -- Marching under a forced ground order: he is not fighting anything until he is standing
+    -- on his mark. Without this he re-acquires on the way and the order stalls a metre later.
+    if self.MarchForce and self.MarchForce[tostring(myWuid)] then return false end
 
     local cap = self.EffectiveSwarmCap or self.SwarmCap
     if not force and (self.TargetLoad[targetWuidStr] or 0) >= cap then return false end

@@ -45,11 +45,14 @@ mercenaries.LootPerKillWages = 2.4             -- merc-days, converted at WagePe
 mercenaries.MoraleDeathPenalty   = 5           -- per merc that dies
 mercenaries.TirednessGraceDays   = 3           -- days out of camp before tiredness bites (kept in step with ExhaustedBuffDays so the icon and the morale penalty line up)
 mercenaries.StartingSupplyDays   = 3           -- days of food and drink handed out when the first camp goes up
+mercenaries.LogiHistoryDays      = 14          -- days of food level kept for the camp screen's graph
 
 mercenaries.DesertSecondsPerMerc = 86400       -- one desertion/mutiny per game-day of negative morale
 
 mercenaries.FoodBuyCost          = 100
 mercenaries.FoodBuyAmount        = 5
+mercenaries.DrinkBuyCost         = 60          -- ale is cheaper than a week of bread
+mercenaries.DrinkBuyAmount       = 5
 mercenaries.CofferDepositStep    = 500         -- groschen per "put money toward wages"
 mercenaries.WagePerTier          = { weak = 5, medium = 10, strong = 20 }
 
@@ -74,6 +77,7 @@ mercenaries.UpgArcherCartCost    = 300         -- buying enables aim-placing an 
 
 mercenaries.UpgWallCost          = 2000        -- palisade around the camp; stays with this pitch
 mercenaries.UpgGateCost          = 400         -- one gate for an opening in that palisade
+mercenaries.UpgCastleWallCost    = 3000        -- the STONE curtain: masons, not stakes - and it comes with its gatehouse
 
 -- Wealth draws raiders: rolled at the same daily upkeep tick, off the PLAYER'S OWN
 -- purse (not the coffer - hoarding in the war chest doesn't paint a target on you).
@@ -192,6 +196,7 @@ function mercenaries:LogiState()
             fightLootKills = 0, fightLootFood = 0, fightLootDrink = 0, fightLootCoin = 0,
             lootCarryFood = 0, lootCarryDrink = 0, lootCarryCoin = 0,
             buffApplied = {}, warnLevel = 0,
+            foodHistory = {},          -- food left after each evening ration, oldest first
         }
     end
     return _G.MercLogi
@@ -336,6 +341,7 @@ function mercenaries:LogiSave()
     -- still the party you get after a reload.
     self:LogiSaveField("QMDeployArchers", L.deployArchers or "same")
     self:LogiSaveField("QMDeployPick",    L.deployPick or "best")
+    self:LogiSaveField("QMFoodHistory", table.concat(L.foodHistory or {}, ","))
 
     local batch = self._logiPending
     self._logiPending = nil
@@ -369,6 +375,10 @@ function mercenaries:LogiLoad()
     L.hasArcherCart   = num("QMArcherCart", 0) == 1
     L.deployArchers   = self:LoadString("QMDeployArchers") or "same"
     L.deployPick      = self:LoadString("QMDeployPick") or "best"
+    L.foodHistory = {}
+    for n in string.gmatch(self:LoadString("QMFoodHistory") or "", "[^,]+") do
+        L.foodHistory[#L.foodHistory + 1] = tonumber(n) or 0
+    end
     L.innActive       = L.innDays > 0
     L.lastTick = self:LogiNow()          -- not persisted (see comment in LogiTick)
     L.lastAliveCount = self:LogiAliveCount()
@@ -664,6 +674,12 @@ function mercenaries:LogiProcessUpkeep()
         L.trainLevel = (L.trainLevel or 0) + 1
     end
 
+    -- One reading per upkeep day, for the camp screen's supply graph. Capped, because it is
+    -- serialised into the save as a string and an uncapped run of days would grow forever.
+    L.foodHistory = L.foodHistory or {}
+    L.foodHistory[#L.foodHistory + 1] = L.food
+    while #L.foodHistory > self.LogiHistoryDays do table.remove(L.foodHistory, 1) end
+
     self:LogiProcessWages()
     self:LogiApplyBuffs()
     self:LogiWealthRaidTick()
@@ -943,6 +959,15 @@ function mercenaries:LogiPanelDrink(_signal)
     self:LogiInfo("@merc_n_dtook " .. delivered .. " @merc_n_stock " .. self:LogiState().drink .. " @merc_n_days " .. self:LogiSupplyDays(self:LogiState().drink))
 end
 
+function mercenaries:LogiBuyDrink()
+    if not self:LogiSpend(self.DrinkBuyCost) then return end
+    self:LogiAdjust("drink", self.DrinkBuyAmount,
+                    "bought for " .. self.DrinkBuyCost .. " groschen")
+    self:LogiReconcile(); self:LogiSave()
+    self:LogiInfo("@merc_n_fbought " .. self.DrinkBuyAmount .. " @merc_n_cost "
+                  .. self.DrinkBuyCost .. " @merc_n_stock " .. self:LogiState().drink)
+end
+
 function mercenaries:LogiBuyFood()
     if not self:LogiSpend(self.FoodBuyCost) then return end
     self:LogiAdjust("food", self.FoodBuyAmount, "bought for " .. self.FoodBuyCost .. " groschen")
@@ -1140,6 +1165,9 @@ function mercenaries:LogiRemoveUpgrade(which)
         pcall(function() self:ClearArcherCarts() end)
     elseif k == "wall" then
         had = (self.WallRuns and #self.WallRuns or 0) > 0
+        -- the gateway is a tile OF the wall, so it goes with it rather than being a
+        -- separate thing to take down
+        pcall(function() self.CastleGateways = {} end)
         pcall(function() self:WallClearAll() end)
     elseif k == "gate" then
         had = (self:GateCount() or 0) > 0
@@ -1226,6 +1254,10 @@ function mercenaries:LogiBuyWall()
     end
     if not self:LogiSpend(self.UpgWallCost) then return end
     Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
+    -- Back to the PALISADE first. Build mode uses whatever wall type is selected, and the
+    -- stone wall leaves the castle type selected behind it - so buying stakes after stone
+    -- quietly built another stone wall, at the price of a palisade.
+    pcall(function() self:WallSetType(self.WallTypePalisade or 3) end)
     self:StartWallBuild()
 end
 
@@ -1242,6 +1274,28 @@ function mercenaries:LogiBuyGate()
     if not self:LogiSpend(self.UpgGateCost) then return end
     Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
     self:StartGatePlacement()
+end
+
+-- The stone curtain. Not a second wall command so much as a second grade of the same one:
+-- it selects the castle wall type and hands over to the ordinary build mode, exactly as
+-- merc_castle_build does. A gatehouse is NOT sold separately - a wall you cannot walk
+-- through is no use to anybody, so one is cut into it automatically when the run is
+-- finished (CastleGatewayAuto).
+function mercenaries:LogiBuyCastleWall()
+    if not self.CastleWallForSale then
+        System.LogAlways("[Logistics] the stone wall is not for sale yet "
+                         .. "(mercenaries.CastleWallForSale); merc_castle_build still works")
+        return
+    end
+    if not (self.CampActive and self.CampBuildOrigin) then
+        Game.SendInfoText('merc_info_camp_not_active', false, 0, 3); return
+    end
+    if not self.CastleBuild then
+        Game.SendInfoText('merc_info_castle_gateway_none', false, 0, 4); return
+    end
+    if not self:LogiSpend(self.UpgCastleWallCost) then return end
+    Game.SendInfoText('merc_logi_upg_bought', false, 0, 3)
+    self:CastleBuild()
 end
 
 -- The standing order: one word to the quartermaster swings every gate in the camp.

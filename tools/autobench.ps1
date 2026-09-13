@@ -14,7 +14,11 @@ param(
     [int]$MenuWaitSec = 35,
     [int]$Cores = 0,       # restrict the game to N PHYSICAL cores after load (0 = all).
                            # SMT pairs: N cores = 2N logical processors from CPU 0 up.
-    [switch]$AttachOnly    # game already at the main menu: skip launch+wait
+    [switch]$AttachOnly,   # game already at the main menu: skip launch+wait
+    [switch]$NoBench,      # observation mode: load the save, do NOT press F10 - just
+                           # hold for -HoldSec and dump the diagnostic log lines
+                           # ([FTTrace]/[MercChains]/[MercSched]). For save forensics.
+    [int]$HoldSec = 120
 )
 
 $ErrorActionPreference = "Stop"
@@ -228,6 +232,17 @@ if ($Cores -gt 0) {
         $g.ProcessorAffinity = [IntPtr]$mask
         Write-Output ("[harness] affinity restricted to " + $Cores + " cores (mask 0x" + $mask.ToString("X") + ")")
     }
+}
+
+if ($NoBench) {
+    Write-Output "[harness] observation mode: holding for $HoldSec s, no bench"
+    Start-Sleep -Seconds $HoldSec
+    Get-Process KingdomCome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Write-Output ""
+    Write-Output "===== DIAGNOSTIC OUTPUT ====="
+    Select-String -Path $Log -Pattern "\[FTTrace\]|\[MercChains\]|\[MercSched\]|\[MercForm\]|governor" |
+        ForEach-Object { $_.Line }
+    exit 0
 }
 
 Focus-Game

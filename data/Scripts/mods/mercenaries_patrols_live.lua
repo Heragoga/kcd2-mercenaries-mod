@@ -115,6 +115,25 @@ mercenaries.PatrolLiveTickMs   = 3000
 -- enough that the FIRST man reacts while there is still a fight to have.
 mercenaries.PatrolDetectRange  = 25.0
 mercenaries.PatrolAlertSecs    = 45.0    -- ...once one of them makes contact, the gang joins in for this long
+-- ...but an alert about a target further away than this is dropped whatever the clock
+-- says. Without it a gang that made contact just before a fast travel keeps the player as
+-- a forced target from the other side of the map, and he arrives already in combat.
+mercenaries.PatrolAlertMaxDist = 150.0
+-- ==== the combat leash ====
+-- A gang that is in a fight, far away, and not closing has stopped being an encounter and
+-- become a lock on the player's combat state - he cannot fast travel, rest or sleep until it
+-- lets go, and it never does. Measured at 16 men frozen at 137-145 m for ten minutes; see
+-- tools' merc_combat_why and docs/patrols.md. All three conditions must hold, plus the player
+-- actually being in combat, so a gang merely walking past at 150 m is never touched.
+mercenaries.PatrolStallSecs   = 25.0     -- how long it must stay stalled; 0 disables the leash
+mercenaries.PatrolStallDist   = 90.0     -- only ever applies beyond this - never to a live fight
+mercenaries.PatrolStallCloseM = 5.0      -- closing by this much counts as still coming
+-- The player's combat flag is a LATCH here, never a live condition. It flaps every 12-13s while
+-- this is happening (measured), so requiring it on each tick reset the stall timer before it
+-- could ever reach PatrolStallSecs - which is why the first version of this leash never armed
+-- once. It stays "recently fighting" for this long after the flag drops.
+mercenaries.PatrolStallCombatGrace = 90.0
+mercenaries.PatrolCombatSeenAt = nil
 -- Routes at least this long (METRES of road, not points) carry two gangs. It used to be a
 -- point count, PatrolTwoAtPoints = 150, which is only a proxy for length while every map is
 -- recorded at the same marker spacing - and they are not. The recorder drops a marker every
@@ -535,21 +554,27 @@ function mercenaries:PatrolEscalationStatus()
 end
 
 -- ==== sizing ====
--- A multiple of the player's fighting strength - himself plus his living mercs.
-function mercenaries:PatrolPartySize()
-    local n = 1
-    pcall(function() n = 1 + (self:LogiAliveCount() or 0) end)
-    return math.max(1, n)
+-- The living mercs actually on the road WITH the player - the men left holding the camp
+-- are not. Same counter Kleinkrieg scales its camps with (BanditCampFollowerCount, the
+-- formation's own predicate), so every "who is behind me" number agrees. With no camp
+-- standing it is the whole company, as before.
+function mercenaries:PatrolFollowerCount()
+    local n = 0
+    pcall(function() n = self:BanditCampFollowerCount() or 0 end)
+    return n
 end
 
--- True with zero living mercenaries. This used to withhold roaming patrols entirely, which
--- emptied the roads for exactly the player who is out there alone. It now sizes them
+-- A multiple of the player's fighting strength - himself plus the mercs following him.
+function mercenaries:PatrolPartySize()
+    return 1 + self:PatrolFollowerCount()
+end
+
+-- True with zero mercenaries following. This used to withhold roaming patrols entirely,
+-- which emptied the roads for exactly the player who is out there alone. It now sizes them
 -- instead: a solo player meets PatrolSoloMinMen..PatrolSoloMaxMen men (see PatrolRollSize),
 -- which is an encounter he can fight or run from rather than a company that ends him.
 function mercenaries:PatrolPlayerAlone()
-    local n = 0
-    pcall(function() n = self:LogiAliveCount() or 0 end)
-    return n <= 0
+    return self:PatrolFollowerCount() <= 0
 end
 
 -- How far a gang is allowed to OUTNUMBER the party, scaled by how big the party is. A flat
@@ -875,6 +900,13 @@ function mercenaries:PatrolSpawnGang(rec, force)
 end
 
 function mercenaries:PatrolDespawnGang(rec, why)
+    -- Drop the alert BEFORE the men go: PatrolAlertClear walks the gang to unset each man's
+    -- ForcedTargetOf, and once rec.men is emptied there is nobody left to walk. Without this a
+    -- despawned gang leaves its aggro behind - the record still says alerted, the entries still
+    -- name the player, and he stays in combat with a gang that no longer exists.
+    if rec and rec.alertAt then
+        pcall(function() self:PatrolAlertClear(rec) end)
+    end
     for _, e in ipairs(rec.men or {}) do
         pcall(function() System.RemoveEntity(e.id) end)
     end
@@ -1066,6 +1098,13 @@ function mercenaries.LivePatrolBody()
         -- player never had a chance to see coming - and one that spawns during a quest
         -- battle joins a fight that is not ours. Standing patrols are untouched: this only
         -- stops NEW ones being raised, so anything already on the road keeps walking.
+        -- Hold the SPAWN step only. This used to `return` out of the whole tick, which also
+        -- skipped the per-record housekeeping below (PatrolTickOne: alert expiry, despawn,
+        -- corpse clearing) - and since PlayerBusyForSpawns reports busy while the player is in
+        -- combat, being in combat prevented the very code that ends it. A gang that alerted on
+        -- the player kept him as a forced target for ever, so he arrived from a fast travel
+        -- already fighting nobody and stayed that way.
+        local holdSpawns = false
         if self.PlayerBusyForSpawns then
             local busy, why = self:PlayerBusyForSpawns()
             if busy then
@@ -1073,7 +1112,13 @@ function mercenaries.LivePatrolBody()
                     self._patrolHeldWhy = why
                     System.LogAlways("[Patrol] holding spawns - player is " .. tostring(why))
                 end
-                return
+                holdSpawns = true
+                -- Housekeeping below is kept running ONLY for the combat case, because that is
+                -- the one that feeds itself: being in combat used to stop the tick that expires
+                -- the alert keeping the player in combat. Sleeping, waiting and dialogue have no
+                -- such loop, and a wait skips hours of world time - so paying for a full
+                -- per-record sweep through it is cost for nothing. Return as it always did.
+                if why ~= "in combat" then return end
             elseif self._patrolHeldWhy then
                 self._patrolHeldWhy = nil
                 System.LogAlways("[Patrol] spawns released")
@@ -1117,7 +1162,7 @@ function mercenaries.LivePatrolBody()
             end
         end
         -- Checked before the sort, so a quiet road costs nothing.
-        if #wants > 0 and self:PatrolMayEncounter(pp) then
+        if #wants > 0 and not holdSpawns and self:PatrolMayEncounter(pp) then
             table.sort(wants, function(a, b) return a.d < b.d end)
             local placed = 0
             local perTick = self.PatrolSpawnPerTick or 1
@@ -1148,6 +1193,45 @@ function mercenaries.LivePatrolBeat(slot)
     if not self.LivePatrolRunning or self.LivePatrolSlot ~= slot then return end
     mercenaries.LivePatrolBody()
     Script.SetTimerForFunction(self.PatrolLiveTickMs, "mercenaries.LivePatrolTick" .. slot)
+end
+
+-- Distance from the player to the NEAREST living man of this gang. The record's route point
+-- is where the gang was put, not where it is, and the leash below must reason about the men.
+function mercenaries:PatrolGangNearestDist(rec, pp)
+    local best
+    for _, e in ipairs(self:PatrolLivingMen(rec) or {}) do
+        local p
+        pcall(function() p = e:GetWorldPos() end)
+        if p then
+            local dx, dy = p.x - pp.x, p.y - pp.y
+            local d = math.sqrt(dx * dx + dy * dy)
+            if not best or d < best then best = d end
+        end
+    end
+    return best
+end
+
+-- Is anyone in this gang holding a fight? soul:IsInCombatDanger alone reads FALSE on an NPC -
+-- mercenaries_townwatch.lua measured that through an eight-merc massacre - so the drawn weapon
+-- and the crime contexts are asked too. Those are the exact signals the stalled men were found
+-- holding, so this is the reading that identified them rather than a guess about the engine.
+mercenaries.PatrolPostureContexts = { "crime_interruptAttack", "combat_flee", "combat_surrender" }
+
+function mercenaries:PatrolGangPosture(rec)
+    for _, e in ipairs(self:PatrolLivingMen(rec) or {}) do
+        local v
+        pcall(function() v = e.soul and e.soul:IsInCombatDanger() or false end)
+        if v then return true end
+        v = nil
+        pcall(function() v = e.human and e.human:IsWeaponDrawn() or false end)
+        if v then return true end
+        for _, ctx in ipairs(self.PatrolPostureContexts) do
+            local has
+            pcall(function() has = e.soul and e.soul:HasScriptContext(ctx) or false end)
+            if has then return true end
+        end
+    end
+    return false
 end
 
 function mercenaries:PatrolTickOne(rec, pp, t)
@@ -1213,9 +1297,72 @@ function mercenaries:PatrolTickOne(rec, pp, t)
         if rec.alertAt then
             local t2 = nil
             pcall(function() t2 = XGenAIModule.GetEntityByWUID(rec.alertTarget) end)
-            if (t - rec.alertAt) >= self.PatrolAlertSecs
+
+            -- IsCombatViable is IsAliveAndWell - dead/unconscious only, no distance term - so
+            -- against a living player it is always true and the 45 s timer used to be the only
+            -- way out. That is the phantom combat: the player fast-travels away, the gang keeps
+            -- him as a forced target (patrols have no leash by design), and he is "in combat"
+            -- with men kilometres off until the timer runs down. This is the one expiry path
+            -- driven by the mod's own timer rather than by the gang's behaviour tree, which
+            -- matters because a gang that far away has gone AI-LOD-inactive and ticks nothing.
+            local stale = false
+            if self.FastTravelLastDetected and self.FastTravelLastDetected > rec.alertAt then
+                stale = true
+            end
+            -- Distance from the GANG to its target, not from the target to the player: the
+            -- target normally IS the player, so comparing those two is always zero.
+            if not stale and t2 then
+                local ta, ga
+                pcall(function() ta = t2:GetWorldPos() end)
+                for _, m in ipairs(rec.men or {}) do
+                    if not ga then pcall(function() ga = m:GetWorldPos() end) end
+                end
+                if ta and ga then
+                    local ddx, ddy = ga.x - ta.x, ga.y - ta.y
+                    local far = tonumber(self.PatrolAlertMaxDist) or 150.0
+                    if (ddx * ddx + ddy * ddy) > (far * far) then stale = true end
+                end
+            end
+
+            if stale
+               or (t - rec.alertAt) >= self.PatrolAlertSecs
                or not (t2 and self:IsCombatViable(t2)) then
                 self:PatrolAlertClear(rec)
+            end
+        end
+
+        -- The combat leash. Ordered cheapest-first and short-circuited: the posture walk only
+        -- runs for a gang that is already far away while the player is already in a fight.
+        if (self.PatrolStallSecs or 0) > 0 then
+            local hot = false
+            pcall(function() hot = player.soul and player.soul:IsInCombatDanger() or false end)
+            if hot then self.PatrolCombatSeenAt = t end
+            local recently = (t - (self.PatrolCombatSeenAt or -1e9))
+                             <= (self.PatrolStallCombatGrace or 90.0)
+            local md = recently and self:PatrolGangNearestDist(rec, pp) or nil
+            if md and md > (self.PatrolStallDist or 90.0) and self:PatrolGangPosture(rec) then
+                if not rec.stallSince
+                   or (rec.stallD and md < (rec.stallD - (self.PatrolStallCloseM or 5.0))) then
+                    -- first sighting, or still closing: he is coming, leave him alone
+                    if not rec.stallSince then
+                        lLog(string.format("route %s: gang stalled at %.0fm - breaking off in %.0fs "
+                                           .. "unless it closes", tostring(rec.route), md,
+                                           self.PatrolStallSecs))
+                    end
+                    rec.stallSince, rec.stallD = t, md
+                elseif (t - rec.stallSince) >= self.PatrolStallSecs then
+                    local n = #(self:PatrolLivingMen(rec) or {})
+                    self:PatrolDespawnGang(rec, string.format(
+                        "broke off - %d man(men) stalled at %.0fm for %.0fs, holding the player in combat",
+                        n, md, t - rec.stallSince))
+                    return
+                end
+            elseif rec.stallSince then
+                lLog(string.format("route %s: stall cleared (%s)", tostring(rec.route),
+                     (not recently) and "no fight in a while"
+                     or (md and md <= (self.PatrolStallDist or 90.0)) and "gang is close"
+                     or "gang stood down"))
+                rec.stallSince, rec.stallD = nil, nil
             end
         end
 
@@ -1507,6 +1654,22 @@ end
 -- livingMen is optional: pass it when the caller already has PatrolLivingMen(rec) on
 -- hand (see PatrolFindTarget) to skip recomputing it here. Falls back to computing its
 -- own when omitted, so any other caller keeps working unchanged.
+-- merc_patrol_leash <secs>   0 turns the leash off, no args reports it
+function mercenaries:PatrolLeashSet(line)
+    local n = tonumber(tostring(line or ""):match("%-?%d+"))
+    if n then
+        self.PatrolStallSecs = (n > 0) and n or 0
+        lLog(n > 0 and ("leash: a stalled gang breaks off after " .. n .. "s")
+                    or "leash OFF - a stalled gang will hold the player in combat indefinitely")
+    end
+    lLog(string.format("leash %s | beyond %.0fm | closing by %.0fm resets it",
+        (self.PatrolStallSecs or 0) > 0 and ((self.PatrolStallSecs or 0) .. "s") or "off",
+        self.PatrolStallDist or 90.0, self.PatrolStallCloseM or 5.0))
+end
+
+System.AddCCommand("merc_patrol_leash", "mercenaries:PatrolLeashSet('%line')",
+    "Seconds a far-off gang may stay stalled in combat before it breaks off (0 = never; it then holds the player in combat)")
+
 function mercenaries:PatrolAlert(rec, targetWuid, livingMen)
     if not (rec and targetWuid) then return end
     local now   = nowT()
@@ -1572,7 +1735,25 @@ function mercenaries:PatrolFindTarget(bt_data, myWuid)
     -- An alerted gang keeps whatever the alert handed it, however far off it is - that is
     -- the whole point of the alert, and ForcedTargetOf is what got him this target.
     if rec and rec.alertAt and self.ForcedTargetOf[lKey(me) or ''] ~= nil then
-        if (nowT() - rec.alertAt) < self.PatrolAlertSecs then return end
+        -- An alert outlives the distance check by design, for PatrolAlertSecs. Two things must
+        -- still end it early, or the player fast-travels away from a gang that passed him on
+        -- the road and arrives somewhere else already "in combat" with men kilometres behind.
+        local stale = false
+        if self.FastTravelLastDetected and self.FastTravelLastDetected > rec.alertAt then
+            stale = true
+        end
+        if not stale then
+            -- independent of any clock: an alert about someone absurdly far away is over.
+            -- Catches every teleport, not only the ones the fast-travel detector notices.
+            local pa, pb
+            pcall(function() pa = me:GetWorldPos(); pb = tgt:GetWorldPos() end)
+            if pa and pb then
+                local ddx, ddy = pa.x - pb.x, pa.y - pb.y
+                local far = tonumber(self.PatrolAlertMaxDist) or 150.0
+                if (ddx * ddx + ddy * ddy) > (far * far) then stale = true end
+            end
+        end
+        if not stale and (nowT() - rec.alertAt) < self.PatrolAlertSecs then return end
         self:PatrolAlertClear(rec, living)
     end
 

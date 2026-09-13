@@ -55,7 +55,12 @@ function mercenaries:ArcherCartSpawnPart(model, wp, yaw, scale, invisible, track
     if ent then
         pcall(function() ent:SetAngles({ x = 0, y = 0, z = yaw }) end)
         pcall(function() ent:SetViewDistUnlimited() end)
-        if invisible then pcall(function() ent:DrawSlot(0, 0) end) end
+        if invisible then
+            pcall(function() ent:DrawSlot(0, 0) end)
+            -- invisible: do not also pay never-cull + shadow for it
+            pcall(function() ent:RenderShadow(false) end)
+            pcall(function() ent:SetViewDistRatio(1) end)
+        end
         table.insert(track, ent.id)
     end
     return ent

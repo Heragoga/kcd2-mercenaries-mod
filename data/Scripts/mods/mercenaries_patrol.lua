@@ -286,6 +286,7 @@ end
 -- a combat context and it is written off: the claim is dropped, the route resumes, and
 -- FindEnemyTarget is free to pick again on the next pass.
 mercenaries.PatrolEngageGrace = 5.0
+mercenaries.PatrolEngageLogSecs = 30.0   -- how often the engage-failure note may repeat
 
 function mercenaries:PatrolClaimStalled(ent)
     local k = pKey(ent)
@@ -310,7 +311,18 @@ function mercenaries:PatrolClaimStalled(ent)
     if self.EnemyTargetOf then self.EnemyTargetOf[k] = nil end
     if self.EnemyClaimWuid then self.EnemyClaimWuid[k] = nil end
     if self.ForcedTargetOf then self.ForcedTargetOf[k] = nil end
-    pLog("a man could not engage his target - dropping it and walking on")
+    -- Throttled: this was 289 of the 345 [Patrol] lines in a single session. A gang that
+    -- cannot reach its target reports it once, then once every PatrolEngageLogSecs with a
+    -- count, which is what you actually want when tuning - the rate, not each instance.
+    self._patEngageFails = (self._patEngageFails or 0) + 1
+    local lastLog = self._patEngageLogAt or -1e9
+    if (now - lastLog) >= (self.PatrolEngageLogSecs or 30.0) then
+        pLog(self._patEngageFails == 1
+             and "a man could not engage his target - dropping it and walking on"
+             or string.format("%d man/men could not engage their target since the last note"
+                              .. " - dropping it and walking on", self._patEngageFails))
+        self._patEngageLogAt, self._patEngageFails = now, 0
+    end
     return true
 end
 

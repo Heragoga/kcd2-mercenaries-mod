@@ -106,7 +106,8 @@ local function vanillaBystanders(self)
                and not string.find(nm, "orse", 1, true)
                and not string.find(nm, "Dude", 1, true)
                and self:IsAliveAndWell(e, true) then
-                out[nm] = true
+                -- the ENTITY, not just the name: see the note on the camp_fight check
+                out[nm] = e
             end
         end
     end)
@@ -360,10 +361,18 @@ mercenaries.TorturePlan = {
           if (tClock() - S.stepFrom) < 20 then return nil end
           if liveEnemies(self) > 0 then return nil end
           -- Fight over: did any base-game bystander die in it?
-          local after = vanillaBystanders(self)
+          --
+          -- Asked of the ENTITIES recorded before the fight, not of a fresh box query. The
+          -- old check rebuilt the list with GetPhysicalEntitiesInBoxByClass(pp, 100m) and
+          -- called anyone missing from it dead - so a villager who simply WALKED OUT of the
+          -- 100 m box during a 20-second fight read as a murder. It failed a release run
+          -- exactly that way (ksuc_petr), against a log showing 6 bandits spawned, 6 kills,
+          -- 6 bodies and nothing at all on the company's crime account.
           local lost = {}
-          for nm in pairs(S.bystanders or {}) do
-              if not after[nm] then table.insert(lost, nm) end
+          for nm, e in pairs(S.bystanders or {}) do
+              local alive = false
+              pcall(function() alive = self:IsAliveAndWell(e, true) and true or false end)
+              if not alive then table.insert(lost, nm) end
           end
           self:TortureInfo("camp_fight", "max simultaneous pose-holds = " .. tostring(S.maxPoseHolds))
           if #lost > 0 then

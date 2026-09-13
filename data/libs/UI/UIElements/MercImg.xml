@@ -1,0 +1,23 @@
+<UIElements name="MercImg">
+
+  <UIElement name="MercImg" layer="36" mouseevents="0" keyevents="0" cursor="0">
+
+    <GFx file="MercImg.gfx" layer="36">
+      <Constraints>
+        <Align mode="fullscreen" />
+      </Constraints>
+    </GFx>
+
+    <functions>
+    </functions>
+
+    <events>
+    </events>
+
+    <MovieClips>
+      <MovieClip name="mc_img" instancename="mc_img" />
+    </MovieClips>
+
+  </UIElement>
+
+</UIElements>

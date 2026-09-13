@@ -1,0 +1,90 @@
+{
+  "element": "MercSupplies",
+  "table": "MercSuppliesAtlas",
+  "stage": [1280, 720],
+  "ss": 3,
+
+  "out": {
+    "swf": "out/MercSupplies.swf",
+    "xml": "out/MercSupplies.xml",
+    "lua": "out/mercsupplies_atlas.lua"
+  },
+
+  "palette": {
+    "ink":    [238, 231, 216],
+    "dim":    [150, 144, 130],
+    "panel":  [26, 21, 15],
+    "rim":    [120, 92, 45],
+    "gold":   [214, 168, 78],
+    "chip":   [28, 26, 22],
+    "good":   [128, 158, 94],
+    "bad":    [178, 66, 46],
+    "track":  [40, 38, 34]
+  },
+
+  "layout": {
+    "panelX": 40, "panelY": 40, "panelW": 300, "panelH": 150,
+    "titleX": 56, "titleY": 62,
+    "rowY0": 96, "rowPitch": 28, "labelX": 56, "valueX": 300,
+    "barX": 56, "barY": 168,
+    "hintGap": 7,
+    "hintLeftX": 26, "hintRightX": 1160, "hintTopY": 32, "hintBottomY": 629,
+    "hintRowDY": 0
+  },
+
+  "clips": [
+    { "name": "panel", "kind": "rounded", "w": 300, "h": 150, "r": 7,
+      "rgb": "panel", "alpha": 0.93, "edge": "rim", "edgeW": 1, "center": false },
+
+    { "name": "title", "kind": "text", "text": "Supplies", "px": 19, "rgb": "ink",
+      "center": false },
+
+    { "name": "lbl_food",  "kind": "text", "text": "Food",  "px": 12, "rgb": "dim", "center": false },
+    { "name": "lbl_drink", "kind": "text", "text": "Drink", "px": 12, "rgb": "dim", "center": false },
+    { "name": "lbl_days",  "kind": "text", "text": "Days left", "px": 12, "rgb": "dim", "center": false },
+
+    { "name": "bar_track", "kind": "rect", "w": 250, "h": 9, "rgb": "track", "center": false },
+    { "name": "bar_fill",  "kind": "rect", "w": 250, "h": 9, "rgb": "good", "center": false },
+
+    { "comment": "One clip, three looks. Lua swaps it with GotoAndStopFrameName instead of hiding two of three instances.",
+      "name": "state_dot", "kind": "states", "frames": [
+        { "label": "ok",   "kind": "disc", "d": 10, "rgb": "good" },
+        { "label": "low",  "kind": "disc", "d": 10, "rgb": "gold" },
+        { "label": "out",  "kind": "disc", "d": 10, "rgb": "bad" }
+      ]},
+
+    { "comment": "Number columns: one instance per character POSITION, or 500 asks the single 0 clip to be in two places.",
+      "digits": "food",  "width": 5, "glyphs": "0123456789", "px": 13, "rgb": "ink" },
+    { "digits": "drink", "width": 5, "glyphs": "0123456789", "px": 13, "rgb": "ink" },
+    { "digits": "days",  "width": 4, "glyphs": "0123456789.", "px": 13, "rgb": "ink" },
+
+    { "name": "hint_chip", "kind": "rounded", "w": 19, "h": 14, "r": 3, "rgb": "chip", "alpha": 0.9 },
+    { "name": "hint_key",  "kind": "text", "text": "J", "px": 9, "rgb": "ink", "shadow": false },
+    { "name": "hint_lbl",  "kind": "text", "text": "Supplies", "px": 11, "rgb": "ink" }
+  ],
+
+  "preview": [
+    { "clip": "panel", "x": 40, "y": 40 },
+    { "clip": "title", "x": 56, "y": 56 },
+
+    { "clip": "lbl_food",  "x": 56, "y": 96 },
+    { "clip": "lbl_drink", "x": 56, "y": 124 },
+    { "clip": "lbl_days",  "x": 56, "y": 152 },
+
+    { "clip": "n_food_1_4", "x": 250, "y": 96 },
+    { "clip": "n_food_2_2", "x": 258, "y": 96 },
+    { "clip": "n_drink_1_8", "x": 250, "y": 124 },
+    { "clip": "n_days_1_6", "x": 250, "y": 152 },
+    { "clip": "n_days_2_dot", "x": 258, "y": 152 },
+    { "clip": "n_days_3_5", "x": 262, "y": 152 },
+
+    { "clip": "state_dot", "x": 320, "y": 96 },
+
+    { "clip": "bar_track", "x": 56, "y": 174 },
+    { "clip": "bar_fill",  "x": 56, "y": 174, "scale": 0.62 },
+
+    { "clip": "hint_chip", "x": 1169, "y": 32 },
+    { "clip": "hint_key",  "x": 1169, "y": 32 },
+    { "clip": "hint_lbl",  "x": 1210, "y": 32 }
+  ]
+}

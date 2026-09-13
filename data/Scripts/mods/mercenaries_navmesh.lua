@@ -129,6 +129,252 @@ function mercenaries:NavIsBlocked(a, b, marginOverride)
     return false
 end
 
+-- ==== camp obstacles ====
+-- Tents, the player's hut and the fire: solid to look at, walk-through to the engine,
+-- and deliberately NOT part of the A* graph. A camp packs its tents onto a 3.9m ring
+-- (CampTentRingRadius), so cutting graph edges against them seals the fire circle off
+-- and every route inside camp comes back NO ROUTE - which beelines, i.e. exactly the
+-- clipping this exists to stop. An obstacle is therefore a purely LOCAL correction to
+-- the point an NPC is already steering at, applied in NavSteerPoint. It never enters
+-- NavIsBlocked, the graph, the gap sweep or the targeting test: the wall keeps those.
+--
+-- Footprints use the camp builder's own frame (see CampFootprintStats): `half.w` is the
+-- half-extent ACROSS the facing, `half.h` the half-extent ALONG it.
+mercenaries.NavObstacles     = {}
+mercenaries.NavObsClearance  = 0.45   -- how far outside a footprint a route is aimed
+mercenaries.NavObsRange      = 16.0   -- obstacles further than this from the walker are ignored
+mercenaries.NavObsMaxHops    = 3      -- corners rounded per steering tick before giving up
+mercenaries.NavObsCornerMin  = 0.60   -- a corner nearer than this is one he is already on
+mercenaries.NavObsGiveUpSecs = 9.0    -- rounding this long with no progress means no way round
+mercenaries.NavObsMuteSecs   = 6.0    -- then walk straight for this long
+mercenaries.NavObsProgress   = 0.5    -- metres nearer the target that count as progress
+
+function mercenaries:NavAddObstacle(pos, angle, half, tag)
+    if not (pos and half) then return nil end
+    local w = math.max(tonumber(half.w) or 0, 0.1)
+    local h = math.max(tonumber(half.h) or 0, 0.1)
+    local o = { x = pos.x, y = pos.y, z = pos.z or 0, a = tonumber(angle) or 0,
+                w = w, h = h, tag = tag or "camp" }
+    table.insert(self.NavObstacles, o)
+    return o
+end
+
+-- No tag clears the lot. Obstacles are rebuilt with the camp, never saved.
+function mercenaries:NavClearObstacles(tag)
+    if not tag then self.NavObstacles = {}; return end
+    local keep = {}
+    for _, o in ipairs(self.NavObstacles or {}) do
+        if o.tag ~= tag then table.insert(keep, o) end
+    end
+    self.NavObstacles = keep
+end
+
+function mercenaries:NavHasObstacles()
+    return #(self.NavObstacles or {}) > 0
+end
+
+-- A world point in the obstacle's own frame: `across` along its right, `along` its facing.
+local function obsLocal(o, px, py)
+    local c, s = math.cos(o.a), math.sin(o.a)
+    local dx, dy = px - o.x, py - o.y
+    return (-s * dx + c * dy), (c * dx + s * dy)
+end
+
+-- Liang-Barsky: does the local-frame segment touch the box of half-extents hw x hh?
+local function segHitsBox(u1, v1, u2, v2, hw, hh)
+    if (math.abs(u1) <= hw and math.abs(v1) <= hh)
+    or (math.abs(u2) <= hw and math.abs(v2) <= hh) then return true end
+    local du, dv = u2 - u1, v2 - v1
+    local t0, t1 = 0.0, 1.0
+    local function clip(p, q)
+        if math.abs(p) < 1e-9 then return q >= 0 end
+        local r = q / p
+        if p < 0 then
+            if r > t1 then return false end
+            if r > t0 then t0 = r end
+        else
+            if r < t0 then return false end
+            if r < t1 then t1 = r end
+        end
+        return true
+    end
+    if not clip(-du, u1 + hw) then return false end
+    if not clip( du, hw - u1) then return false end
+    if not clip(-dv, v1 + hh) then return false end
+    if not clip( dv, hh - v1) then return false end
+    return t0 <= t1
+end
+
+-- The padded footprint's four corners, world space.
+local function obsCorners(o, pad)
+    local c, s = math.cos(o.a), math.sin(o.a)
+    local w, h = o.w + pad, o.h + pad
+    local out = {}
+    for _, q in ipairs({ { w, h }, { -w, h }, { -w, -h }, { w, -h } }) do
+        out[#out + 1] = { x = o.x + (-s) * q[1] + c * q[2],
+                          y = o.y + ( c) * q[1] + s * q[2],
+                          z = o.z }
+    end
+    return out
+end
+
+-- The nearest obstacle standing between a and b, or nil. One distance compare per
+-- obstacle rejects the whole camp when the walker is elsewhere, which is the usual case.
+function mercenaries:NavObstacleHit(a, b, pad)
+    local obs = self.NavObstacles
+    if not (a and b and obs and #obs > 0) then return nil end
+    pad = pad or self.NavObsClearance
+    local range2 = (self.NavObsRange or 16.0) ^ 2
+    local best, bestD2
+    for i = 1, #obs do
+        local o = obs[i]
+        local dx, dy = o.x - a.x, o.y - a.y
+        local d2 = dx * dx + dy * dy
+        if d2 <= range2 and (not bestD2 or d2 < bestD2) then
+            local au, av = obsLocal(o, a.x, a.y)
+            -- Already standing IN it (spawned inside his own tent, sitting at the fire):
+            -- deflecting a man who is inside only pushes him deeper, so he is let walk
+            -- straight out. The test is the RAW footprint, not the padded one - a man
+            -- merely inside the clearance margin must still be steered, or brushing a
+            -- corner switches avoidance off exactly where it is needed.
+            if math.abs(au) > o.w or math.abs(av) > o.h then
+                local bu, bv = obsLocal(o, b.x, b.y)
+                if segHitsBox(au, av, bu, bv, o.w + pad, o.h + pad) then
+                    best, bestD2 = o, d2
+                end
+            end
+        end
+    end
+    return best
+end
+
+function mercenaries:NavObstacleBlocks(a, b)
+    return self:NavObstacleHit(a, b) ~= nil
+end
+
+-- Wall OR camp obstacle. Kept apart from NavIsBlocked on purpose: "is a wall in the
+-- way" drives the graph, the gap sweep and targeting, and none of those want tents.
+function mercenaries:NavPathBlocked(a, b, marginOverride)
+    if self:NavIsBlocked(a, b, marginOverride) then return true end
+    return self:NavObstacleBlocks(a, b)
+end
+
+-- Round whatever stands between `me` and `p`: hop to a corner of the box in the way,
+-- re-test, up to NavObsMaxHops times. Corners sit a fifth further out than the test box,
+-- so the one just chosen is strictly outside it and the next hop cannot pick it again.
+-- Returns `p` itself when nothing is in the way, which is the common case.
+--
+-- THE SIDE IS LATCHED (rec.obsSide, keyed by obstacle) until that obstacle stops
+-- blocking. Choosing afresh every tick makes him alternate between the two near corners
+-- and walk on the spot, because the cheapest corner is always the one he just left.
+--
+-- Corners are tried FAR first: aiming at the far one skims the side of the tent and
+-- comes out past it, and the near one is the fallback that gets him clear of the box's
+-- slab so the far one becomes reachable on the next tick.
+function mercenaries:NavAvoidPoint(rec, me, p)
+    if not (me and p) or #(self.NavObstacles or {}) == 0 then return p end
+    local pad  = self.NavObsClearance or 0.45
+    local cmin = self.NavObsCornerMin or 0.60
+    local sides
+    if rec then rec.obsSide = rec.obsSide or {}; sides = rec.obsSide end
+    local seen = {}
+    local aim = p
+
+    for _ = 1, (self.NavObsMaxHops or 3) do
+        local o = self:NavObstacleHit(me, aim, pad)
+        if not o then break end
+        seen[o] = true
+
+        local dx, dy = aim.x - me.x, aim.y - me.y
+        local L = math.sqrt(dx * dx + dy * dy)
+        if L < 1e-6 then break end
+        local dirx, diry = dx / L, dy / L
+        local perpx, perpy = -diry, dirx
+
+        local cand = {}
+        for _, c in ipairs(obsCorners(o, pad * 1.2)) do
+            local ex, ey = c.x - me.x, c.y - me.y
+            table.insert(cand, { lat = ex * perpx + ey * perpy,
+                                 along = ex * dirx + ey * diry, p = c })
+        end
+
+        local side = sides and sides[o]
+        if not side then
+            local latMax, latMin = cand[1].lat, cand[1].lat
+            for _, e in ipairs(cand) do
+                if e.lat > latMax then latMax = e.lat end
+                if e.lat < latMin then latMin = e.lat end
+            end
+            side = (math.abs(latMax) <= math.abs(latMin)) and 1 or -1
+            if sides then sides[o] = side end
+        end
+
+        local onSide = {}
+        for _, e in ipairs(cand) do
+            if (side > 0 and e.lat >= 0) or (side < 0 and e.lat <= 0) then
+                table.insert(onSide, e)
+            end
+        end
+        if #onSide == 0 then onSide = cand end
+        table.sort(onSide, function(x, y) return x.along > y.along end)
+
+        local mu, mv = obsLocal(o, me.x, me.y)
+        local pick
+        for _, e in ipairs(onSide) do
+            local cu, cv = obsLocal(o, e.p.x, e.p.y)
+            if not segHitsBox(mu, mv, cu, cv, o.w + pad, o.h + pad) then pick = e.p; break end
+        end
+        if not pick then break end
+
+        -- Standing on the corner he just rounded, aiming at it is a zero-length step and
+        -- he stops there. Keep the direction - it points out of the box's slab - and push
+        -- the aim out to cmin, so the far corner comes into view on the next tick.
+        local pdx, pdy = pick.x - me.x, pick.y - me.y
+        local pd = math.sqrt(pdx * pdx + pdy * pdy)
+        if pd < cmin then
+            if pd < 1e-6 then break end
+            pick = { x = me.x + pdx / pd * cmin, y = me.y + pdy / pd * cmin, z = pick.z }
+        end
+        aim = pick
+    end
+
+    if sides then
+        for o in pairs(sides) do if not seen[o] then sides[o] = nil end end
+    end
+    -- A tent is never a reason to cross a WALL. The wall is the graph's business and a
+    -- deflection that put him on the far side of one would undo it.
+    if aim ~= p and self:NavIsBlocked(me, aim) then return p end
+    return aim
+end
+
+-- Avoidance plus the give-up that keeps it honest. Local rounding cannot find a gap on
+-- the far side of a ring of tents, and a man who circles one for ever looks worse than a
+-- man who clips it - so deflection that gains no ground stands the layer down for a few
+-- seconds and lets him walk.
+function mercenaries:NavAvoidSteer(rec, me, tp)
+    if not rec then return self:NavAvoidPoint(nil, me, tp) end
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if rec.obsMuteUntil and now < rec.obsMuteUntil then return tp end
+
+    local aim = self:NavAvoidPoint(rec, me, tp)
+    if aim == tp then
+        rec.obsBest, rec.obsSince = nil, nil
+        return tp
+    end
+
+    local d = math.sqrt((tp.x - me.x) ^ 2 + (tp.y - me.y) ^ 2)
+    if (not rec.obsBest) or d < (rec.obsBest - (self.NavObsProgress or 0.5)) then
+        rec.obsBest, rec.obsSince = d, now
+    elseif rec.obsSince and (now - rec.obsSince) > (self.NavObsGiveUpSecs or 9.0) then
+        rec.obsMuteUntil = now + (self.NavObsMuteSecs or 6.0)
+        rec.obsBest, rec.obsSince = nil, nil
+        navLog("obstacle detour got nowhere; walking straight for a bit")
+        return tp
+    end
+    return aim
+end
+
 -- ==== graph ====
 function mercenaries:NavBuild(radius, spacing)
     local center = self.CampCenter
@@ -141,6 +387,14 @@ function mercenaries:NavBuild(radius, spacing)
         radius = need
         navLog(string.format("graph grown to %.0fm to clear the wall", radius))
     end
+
+    -- Every node below pays a CampSnapToGround raycast, and the radius grows with the wall,
+    -- so this is quadratic in camp size. It is rebuilt whenever WallTouched() fires - which
+    -- includes any gate change, and GateWatchdog re-hangs gates on a 5 s tick. Count it, so a
+    -- rebuild storm shows up in the log instead of being inferred.
+    local t0 = 0
+    pcall(function() t0 = System.GetCurrTime() or 0 end)
+    self.NavBuildCount = (self.NavBuildCount or 0) + 1
 
     local nodes, index = {}, {}
     local steps = math.floor(radius / spacing)
@@ -183,6 +437,11 @@ function mercenaries:NavBuild(radius, spacing)
 
     self.NavGraph = { nodes = nodes, adj = adj, center = center, spacing = spacing, radius = radius }
     self.NavGraphWallVersion = self.WallVersion
+    local t1 = 0
+    pcall(function() t1 = System.GetCurrTime() or 0 end)
+    System.LogAlways(string.format(
+        "[Nav] graph build #%d: %d node(s) (one ground raycast each), radius %.0fm, %.0fms",
+        self.NavBuildCount or 0, #nodes, radius, (t1 - t0) * 1000))
     navLog(string.format("graph built: %d nodes, %d edges, %d edges cut by walls (%.0fm radius, %.1fm spacing)",
         #nodes, edges, blocked, radius, spacing))
     return true
@@ -307,7 +566,7 @@ function mercenaries:NavStringPull(from, pts)
     while i <= #pts do
         local pick = nil
         for j = #pts, i, -1 do
-            if not self:NavIsBlocked(anchor, pts[j]) then pick = j; break end
+            if not self:NavPathBlocked(anchor, pts[j]) then pick = j; break end
         end
         if not pick then
             -- nothing from here is directly visible; step one node along the A* path,
@@ -321,11 +580,11 @@ function mercenaries:NavStringPull(from, pts)
     return out
 end
 
--- Sanity check: no leg of the finished route may cross a wall.
+-- Sanity check: no leg of the finished route may cross a wall or a camp footprint.
 function mercenaries:NavValidatePath(from, path)
     local prev, bad = from, 0
     for _, p in ipairs(path or {}) do
-        if self:NavIsBlocked(prev, p) then bad = bad + 1 end
+        if self:NavPathBlocked(prev, p) then bad = bad + 1 end
         prev = p
     end
     return bad
@@ -335,7 +594,7 @@ end
 -- the walls, or nil when the direct line is already clear / the system does not apply.
 function mercenaries:NavPathAround(fromPos, toPos)
     if not (fromPos and toPos) then return nil end
-    if not self:NavIsBlocked(fromPos, toPos) then return nil end     -- nothing in the way
+    if not self:NavIsBlocked(fromPos, toPos) then return nil end     -- no wall in the way
     local c = self.CampCenter
     if not c then return nil end
     -- Near camp by EITHER end: a man 70m out walking to a muster point 20m from the
@@ -404,6 +663,10 @@ function mercenaries:NavGotoRequest(ent, target, opts)
         rec.trailAim  = opts.trailAim
         rec.trailDir  = opts.trailDir
         rec.mode      = opts.mode
+        -- obsAware: keep the detour alive while a TENT is in the way, not only a wall.
+        -- Only the follow detour wants this - staging and hold orders walk to a fixed
+        -- mark and must arrive there even if a tent stands off to one side of it.
+        if opts.obsAware then rec.obsAware = true end
     end
     self.NavGoto[k] = rec
     return true
@@ -445,7 +708,19 @@ end
 
 function mercenaries:NavGotoEnd(ent, why)
     local k = navKey(ent); if not k then return end
+    local rec = self.NavGoto[k]
     self.NavGoto[k] = nil
+    -- A follow detour REPLACED the follow behaviour, so ending it leaves the man with
+    -- nothing running and a latch that still says he is following - the standing-still
+    -- bug. FollowStalled is the existing signal that evicts and re-arms him properly
+    -- (hold does the same on release). The timestamp is the cooldown NavFollowPoll
+    -- reads, so the two are not traded back and forth at the edge of a tent.
+    if rec and rec.mode == "followdetour" then
+        self.NavFollowLast = self.NavFollowLast or {}
+        local t = 0; pcall(function() t = System.GetCurrTime() or 0 end)
+        self.NavFollowLast[k] = t
+        if self.FollowStalled then pcall(function() self:FollowStalled(ent) end) end
+    end
     navLog("goto ended: " .. tostring(why))
 end
 
@@ -503,24 +778,26 @@ function mercenaries:NavLaneOffset(rec, me, wp)
 
     local ox, oy = -dy / L * rec.lane, dx / L * rec.lane
     local p = { x = wp.x + ox, y = wp.y + oy, z = wp.z }
-    if self:NavIsBlocked(me, p) then return wp end         -- lane runs into the wall
+    if self:NavPathBlocked(me, p) then return wp end       -- lane runs into a wall or a tent
     return p
 end
 
 -- THE SHARED STEERING CORE. Given a caller-owned record, where am I heading right now?
 -- Returns the point to steer at, plus true when the target itself is reachable in a
--- straight line. Everything that wants wall-aware movement (nav_goto, the merc slot
--- hook, camp patrol) calls this rather than duplicating the logic.
+-- straight line. Everything that wants wall-aware movement (nav_goto and camp patrol)
+-- calls this rather than duplicating the logic. Every point it hands back has been put
+-- through NavAvoidSteer, so tents are rounded whether or not a wall was involved.
 --
 -- `rec` is any table the caller keeps per NPC; this owns the fields path/idx/
 -- lastTargetPos/failAt inside it.
 function mercenaries:NavSteerPoint(rec, me, tp)
     if not (rec and me and tp) then return tp, true end
 
-    -- Straight line clear? No navmesh at all - the common case, one segment test.
+    -- Wall in the way? Only a wall puts him on the graph; a tent is rounded locally by
+    -- NavAvoidSteer on the way out, which is why that is applied to every point below.
     if not self:NavIsBlocked(me, tp) then
         rec.path, rec.failAt = nil, nil
-        return tp, true
+        return self:NavAvoidSteer(rec, me, tp), true
     end
 
     local now = 0
@@ -532,7 +809,7 @@ function mercenaries:NavSteerPoint(rec, me, tp)
     -- a blocked NPC re-ran A* on every single tick forever.
     local needPath = (rec.path == nil)
     if needPath and rec.failAt and (now - rec.failAt) < self.NavFailBackoff then
-        return tp, false                        -- still cooling off; head at the target
+        return self:NavAvoidSteer(rec, me, tp), false   -- still cooling off; head at the target
     end
     if not needPath and rec.lastTargetPos then
         local mx, my = tp.x - rec.lastTargetPos.x, tp.y - rec.lastTargetPos.y
@@ -551,7 +828,7 @@ function mercenaries:NavSteerPoint(rec, me, tp)
     end
 
     local path = rec.path
-    if not path or #path == 0 then return tp, false end   -- no way around; do what we can
+    if not path or #path == 0 then return self:NavAvoidSteer(rec, me, tp), false end   -- no way around; do what we can
 
     -- advance through the legs, cutting each corner early
     local wp = path[rec.idx]
@@ -569,14 +846,14 @@ function mercenaries:NavSteerPoint(rec, me, tp)
         -- feet forever.
         if d2 > (self.NavArriveR * self.NavArriveR) then
             local nxt = path[rec.idx + 1]
-            if nxt and self:NavIsBlocked(me, nxt) then break end
+            if nxt and self:NavPathBlocked(me, nxt) then break end
         end
         rec.idx = rec.idx + 1
         wp = path[rec.idx]
     end
     wp = rec.path and rec.path[rec.idx] or nil
-    if not wp then return tp, false end
-    return self:NavLaneOffset(rec, me, wp), false
+    if not wp then return self:NavAvoidSteer(rec, me, tp), false end
+    return self:NavAvoidSteer(rec, me, self:NavLaneOffset(rec, me, wp)), false
 end
 
 mercenaries.NavMinAim = 1.5   -- never steer at a point nearer than this while there is route left
@@ -605,7 +882,7 @@ function mercenaries:NavAimAhead(rec, me, p)
     if L < 1e-3 then return p end
     local step = math.min(self.NavMinAim - d, L)
     local q = { x = p.x + (bx / L) * step, y = p.y + (by / L) * step, z = p.z }
-    if self:NavIsBlocked(me, q) then return p end
+    if self:NavPathBlocked(me, q) then return p end
     return q
 end
 
@@ -626,7 +903,8 @@ function mercenaries:NavGotoTick(data, ent)
     -- shoved into the wall, the poll re-fired, and it arrived again on the next tick.
     -- That loop is what looked like bugging out and walking into the wall - and it only
     -- showed up close in, which is why the long approach looked fine.
-    local blocked = self:NavIsBlocked(me, tp)
+    local blocked
+    if rec.obsAware then blocked = self:NavPathBlocked(me, tp) else blocked = self:NavIsBlocked(me, tp) end
 
     if blocked then
         rec.clearTicks = 0
@@ -774,7 +1052,40 @@ local function navAnchorPos(self)
     return pp
 end
 
+-- OFF makes every man use the engine formation regardless of walls, as before this
+-- suppression existed.
+--
+-- Worth knowing what this costs when it is on: the whole branch is dead until the FIRST
+-- wall stands, and from then on every merc within `r` of the camp centre is taken out of
+-- the engine formation and steered by the mod's own follow/nav instead - which is the
+-- expensive path. `r` is the camp centre to the FARTHEST wall point, so one segment placed
+-- well away from the middle makes that circle large. That is a fixed cost that appears with
+-- the first wall and does not grow with the wall's length, which is the shape of the lag
+-- reported at the palisade. `merc_nav_wallsuppress 0` is the A/B.
+mercenaries.NavWallSuppress = (mercenaries.NavWallSuppress ~= false)
+
+function mercenaries:NavWallSuppressSet(line)
+    local v = tonumber(tostring(line or ""):match("%-?%d+"))
+    if v == nil then
+        System.LogAlways("[Nav] merc_nav_wallsuppress <0|1> - currently "
+                         .. (self.NavWallSuppress and "1" or "0"))
+        return
+    end
+    self.NavWallSuppress = (v ~= 0)
+    self._navFormationOffFor = {}
+    pcall(function() self:SaveString("MercNavWallSuppress", self.NavWallSuppress and "1" or "0") end)
+    System.LogAlways("[Nav] wall formation suppression " ..
+                     (self.NavWallSuppress and "on" or "off (everyone uses the engine formation)"))
+end
+
+mercenaries:PlayerCommand("merc_nav_wallsuppress", "mercenaries:NavWallSuppressSet('%line')",
+                          "Drop men near a wall out of the engine formation: 1 on, 0 off")
+
 function mercenaries:NavSuppressFormationFor(wuid)
+    if not self.NavWallSuppress then
+        if next(self._navFormationOffFor) then self._navFormationOffFor = {} end
+        return false
+    end
     if not (self.CampCenter and self:WallHasAny()) then
         if next(self._navFormationOffFor) then self._navFormationOffFor = {} end
         return false
@@ -917,6 +1228,95 @@ end
 -- Back-compat wrapper: the enemy schedulers call this.
 function mercenaries:EnemyNavPoll(data, ent, _targetWuid)
     self:NavApproachPoll(data, ent, "enemy")
+end
+
+-- Follow detour. Engine formation and CrimeFollower both pick their own destinations
+-- inside the engine, so a following merc cannot be steered round anything - which is why
+-- a squad walks through the camp it just paid for. This hands him to nav_goto instead,
+-- for as long as camp geometry is actually in his way, and gives him straight back.
+--
+-- It is deliberately grudging. Firing the interrupt evicts the follow behaviour and the
+-- scheduler has to re-arm it, so a poll that fires readily trades the two back and forth
+-- at the edge of every tent: hence near camp only, a confirmation tick, and a cooldown
+-- after each detour ends (NavGotoEnd records it).
+mercenaries.NavFollowEnabled  = true
+mercenaries.NavFollowConfirm  = 2      -- consecutive blocked polls before the tree is touched
+mercenaries.NavFollowCooldown = 5.0    -- seconds before the same man may detour again
+mercenaries.NavFollowMinDist  = 3.0    -- on top of the player already: nothing to route around
+mercenaries.NavFollowLast     = {}
+mercenaries._navFollowSeen    = {}
+
+function mercenaries:NavFollowPoll(data, ent)
+    data.navFollowGo = false
+    if not self.NavFollowEnabled then return end
+    if _G.MercenariesDismissed then return end
+    if not (ent and player and self.CampCenter) then return end
+    if self:IsNavGotoActive(ent) then return end
+    -- Once the fight is on, staging has already put everyone where they belong and
+    -- re-routing mid-battle is what made them run at walls.
+    if self.WBWallRulesActive and not self:WBWallRulesActive() then return end
+    -- Re-firing an interrupt over a mounted merc throws him off the horse.
+    if _G.PlayerMounted then return end
+    if not (self:WallHasAny() or self:NavHasObstacles()) then return end
+
+    local k = navKey(ent); if not k then return end
+    local me, tp
+    pcall(function() me = ent:GetWorldPos() end)
+    pcall(function() tp = player:GetWorldPos() end)
+    if not (me and tp) then return end
+
+    local c = self.CampCenter
+    local cx, cy = me.x - c.x, me.y - c.y
+    local ex, ey = tp.x - me.x, tp.y - me.y
+    if (cx * cx + cy * cy) > (self.NavActiveRadius * self.NavActiveRadius)
+    or (ex * ex + ey * ey) < (self.NavFollowMinDist * self.NavFollowMinDist)
+    or not self:NavPathBlocked(me, tp) then
+        self._navFollowSeen[k] = nil
+        return
+    end
+
+    -- A man mercenaries_solid.lua reports as STUCK is a different case from a man merely
+    -- blocked. Blocked means the straight line crosses a wall and he would have clipped
+    -- through it; the confirm count and the cooldown exist to stop that trading the tree
+    -- back and forth at the edge of every tent. Stuck means his body is already against
+    -- the timber and he is going nowhere, so both of those guards are only delaying the
+    -- one thing that can help him. He gets the route on the next poll.
+    local stuck = false
+    pcall(function() stuck = self.SolidIsStuck and self:SolidIsStuck(ent) end)
+
+    if not stuck then
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        local last = self.NavFollowLast[k]
+        if last and (now - last) < self.NavFollowCooldown then return end
+
+        local n = (self._navFollowSeen[k] or 0) + 1
+        self._navFollowSeen[k] = n
+        if n < self.NavFollowConfirm then return end
+    end
+    self._navFollowSeen[k] = nil
+
+    if self:NavGotoRequest(ent, player, { endWhenClear = true, obsAware = true, mode = "followdetour" }) then
+        data.navFollowGo = true
+        if stuck then
+            pcall(function() self:SolidDetourTaken(ent) end)
+            navLog("follow detour: he was against the wall - rerouting him now")
+        else
+            navLog("follow detour: routing round camp geometry")
+        end
+    end
+end
+
+function mercenaries:SetNavFollow(v)
+    self.NavFollowEnabled = (tostring(v or ""):match("0") == nil)
+    navSay("follow detours " .. (self.NavFollowEnabled and "ON" or "off"))
+end
+
+function mercenaries:SetNavAvoid(v)
+    v = tonumber(v)
+    if v and v >= 0 then self.NavObsClearance = v end
+    navSay(string.format("obstacle clearance %.2fm over %d footprint(s)",
+        self.NavObsClearance, #(self.NavObstacles or {})))
 end
 
 function mercenaries:SetNavRadii(sw, ar)
@@ -1183,6 +1583,27 @@ function mercenaries:NavShow()
     navLog(shown .. " wall-adjacent nodes marked (merc_nav_clear to remove)")
 end
 
+-- Mark every camp footprint an NPC routes around, at the clearance he actually keeps.
+function mercenaries:NavObsShow()
+    self:NavClearDebug()
+    local obs = self.NavObstacles or {}
+    if #obs == 0 then navSay("no camp obstacles registered"); return end
+    local pad = self.NavObsClearance or 0.45
+    local byTag = {}
+    for _, o in ipairs(obs) do
+        byTag[o.tag] = (byTag[o.tag] or 0) + 1
+        local c, s = math.cos(o.a), math.sin(o.a)
+        local w, h = o.w + pad, o.h + pad
+        for _, q in ipairs({ { w, h }, { -w, h }, { -w, -h }, { w, -h } }) do
+            self:NavMarker({ x = o.x + (-s) * q[1] + c * q[2],
+                             y = o.y + ( c) * q[1] + s * q[2], z = o.z },
+                           "objects/manmade/common_furniture/barrels/barrel_a.cgf")
+        end
+    end
+    navSay(string.format("%d obstacle(s), %.2fm clearance (merc_nav_clear to remove)", #obs, pad))
+    for tag, n in pairs(byTag) do navSay(string.format("   %s x%d", tostring(tag), n)) end
+end
+
 -- Path from the player to whatever is under the crosshair, drawn with markers.
 function mercenaries:NavTest()
     if not player then return end
@@ -1196,8 +1617,16 @@ function mercenaries:NavTest()
     navSay("--- path test ---")
     navSay(string.format("wall: %d run(s), %d corner(s), extent %.0fm",
         #self:WallAllRuns(), #self:WallAllPoints(), self:NavWallExtent()))
+    navSay(string.format("obstacles: %d footprint(s), %.2fm clearance",
+        #(self.NavObstacles or {}), self.NavObsClearance or 0))
     if not self.CampCenter then navSay("FAIL: no camp"); return end
-    if not self:NavIsBlocked(from, to) then navSay("line is clear - no detour needed"); return end
+    if not self:NavIsBlocked(from, to) then
+        -- No wall, so no A* route is wanted; say whether a tent is being rounded instead.
+        local o = self:NavObstacleHit(from, to)
+        navSay(o and string.format("no wall - rounding a %s footprint locally", tostring(o.tag))
+                 or "line is clear - no detour needed")
+        return
+    end
     if not self.NavGraph then self:NavBuild() end
     local g = self.NavGraph
     if not g then navSay("FAIL: no graph"); return end
@@ -1223,6 +1652,114 @@ function mercenaries:SetNavDebug(v)
     System.LogAlways("[Nav] debug logging " .. (self.NavDebug and "ON" or "off"))
 end
 
+-- ==== engine obstacle machinery (DIAGNOSTIC ONLY) ====
+-- Everything below drives the ENGINE's own obstacle and navmesh systems rather than our
+-- geometry. None of it is armed by the mod: these are the commands for answering "can the
+-- engine be made to see a spawned wall", one console line at a time. Arming a global AI
+-- cvar as shipped behaviour is not something a mod should do.
+--
+-- What the binary says exists (dumped from WHGame.dll, see docs/walls-and-sieges.md):
+--   wh_ai_ObstaclesAddToCollisionAvoidance  "Add static obstacles to the collision
+--                                            avoidance. 0 - no, 1 - yes, 2 - yes but
+--                                            exclude obstacles with ignore radius"
+--   wh_ai_FindPathUseObstacles              "Include obstacles when computing costs
+--                                            within the nav mesh search"
+--   wh_ai_AutomaticMNMRebuild               "Enables automatic rebuilding of nav mesh
+--                                            when a change in level is detected"
+--   ai_MovementSystemPathReplanningEnabled  re-plans actors when "a navigation-mesh
+--                                            change at runtime affects their current path"
+--   ai_DebugDrawNavigationWorldMonitor      "displaying bounding boxes for world changes"
+mercenaries.NavEngineCVars = {
+    "wh_ai_ObstaclesAddToCollisionAvoidance",
+    "wh_ai_FindPathUseObstacles",
+    "wh_ai_FindPathObstaclesMultiplier",
+    "wh_ai_AutomaticMNMRebuild",
+    "wh_ai_OverrideMNM",
+    "ai_AdjustPathsAroundDynamicObstacles",
+    "ai_ObstacleSizeThreshold",
+    "ai_MinActorDynamicObstacleAvoidanceRadius",
+    "ai_ExtraAvoidanceRadius",
+    "ai_ExtraActorAvoidanceRadius",
+    "ai_CollisionAvoidanceRange",
+    "ai_MovementSystemPathReplanningEnabled",
+    "ai_DebugDrawNavigationWorldMonitor",
+    "ai_DebugDrawNavigation",
+}
+
+function mercenaries:NavEngineReport()
+    navSay("--- engine obstacle cvars ---")
+    for _, name in ipairs(self.NavEngineCVars) do
+        local v
+        pcall(function() v = System.GetCVar(name) end)
+        navSay(string.format("   %-42s %s", name, v == nil and "MISSING" or tostring(v)))
+    end
+    navSay(string.format("wall: %d segment entities, %d corner(s)",
+        #(self.WallSegEnts or {}), #self:WallAllPoints()))
+end
+
+-- Turn the obstacle systems on so a spawned wall has a chance of being seen. Reversible:
+-- merc_nav_engine_arm 0 puts back what was there.
+function mercenaries:NavEngineArm(v)
+    local on = (tostring(v or ""):match("0") == nil)
+    self._navEngineSaved = self._navEngineSaved or {}
+    local want = {
+        wh_ai_ObstaclesAddToCollisionAvoidance = 1,
+        wh_ai_FindPathUseObstacles             = 1,
+        wh_ai_AutomaticMNMRebuild              = 1,
+        ai_AdjustPathsAroundDynamicObstacles   = 1,
+        ai_MovementSystemPathReplanningEnabled = 1,
+    }
+    for name, val in pairs(want) do
+        if on then
+            if self._navEngineSaved[name] == nil then
+                local cur
+                pcall(function() cur = System.GetCVar(name) end)
+                self._navEngineSaved[name] = cur
+            end
+            pcall(function() System.SetCVar(name, val) end)
+        elseif self._navEngineSaved[name] ~= nil then
+            pcall(function() System.SetCVar(name, self._navEngineSaved[name]) end)
+            self._navEngineSaved[name] = nil
+        end
+    end
+    navSay("engine obstacle cvars " .. (on and "ARMED" or "restored"))
+    self:NavEngineReport()
+end
+
+-- AI.SetPFBlockerRadius(entityId, blocker, radius) - "PF" is pathfinding. It was written
+-- off as inert once, but it acts on an entity's AI object and a plain prop has none, so
+-- that test proved nothing. This tries it on every wall segment and says how many calls
+-- the bind actually accepted.
+function mercenaries:NavEngineBlockers(line)
+    local radius, blocker = 1.5, 0
+    local a, b = tostring(line or ""):match("([%d%.]+)%s*([%d]*)")
+    if a and tonumber(a) then radius = tonumber(a) end
+    if b and tonumber(b) then blocker = tonumber(b) end
+    if not AI or not AI.SetPFBlockerRadius then navSay("AI.SetPFBlockerRadius is missing"); return end
+
+    local tried, ok, firstErr = 0, 0, nil
+    for _, id in ipairs(self.WallSegEnts or {}) do
+        local ent
+        pcall(function() ent = System.GetEntity(id) end)
+        if ent then
+            tried = tried + 1
+            local good, err = pcall(function() AI.SetPFBlockerRadius(ent.id, blocker, radius) end)
+            if good then ok = ok + 1 elseif not firstErr then firstErr = tostring(err) end
+        end
+    end
+    navSay(string.format("SetPFBlockerRadius(blocker=%d, r=%.2f): %d/%d segment(s) accepted",
+        blocker, radius, ok, tried))
+    if firstErr then navSay("   first error: " .. firstErr) end
+    navSay("now walk a merc at the wall; nothing changing means the bind needs an AI object")
+end
+
+mercenaries:DevCommand("merc_nav_engine",     "mercenaries:NavEngineReport()",
+    "Report the engine obstacle/navmesh cvars and the wall size")
+mercenaries:DevCommand("merc_nav_engine_arm", "mercenaries:NavEngineArm(%line)",
+    "Turn the engine obstacle systems on (1) or put them back (0)")
+mercenaries:DevCommand("merc_nav_blockers",   "mercenaries:NavEngineBlockers(%line)",
+    "Try AI.SetPFBlockerRadius on every wall segment: merc_nav_blockers [radius] [blockerType]")
+
 mercenaries:DevCommand("merc_nav_build",  "mercenaries:NavBuild(%line)", "Build the camp nav graph: merc_nav_build [radius] [spacing]")
 mercenaries:DevCommand("merc_nav_show",   "mercenaries:NavShow()",       "Mark the nodes that sit against a wall")
 mercenaries:DevCommand("merc_nav_test",   "mercenaries:NavTest()",       "Path from you to the crosshair, drawn with markers")
@@ -1231,3 +1768,6 @@ mercenaries:DevCommand("merc_nav_patrol", "mercenaries:NavRefreshPatrolRings()",
 mercenaries:DevCommand("merc_nav_debug",  "mercenaries:SetNavDebug(%line)", "Nav logging on the hot path: 0 or 1")
 mercenaries:DevCommand("merc_nav_lane",   "mercenaries:SetNavLane(%line)",  "How far off the shared route each NPC walks: merc_nav_lane <metres>, 0 for single file")
 mercenaries:DevCommand("merc_nav_aim",    "mercenaries:SetNavAim(%line)",   "How far ahead the steering point is held: merc_nav_aim <metres>, higher = smoother, 0 = halts at waypoints")
+mercenaries:DevCommand("merc_nav_obs",    "mercenaries:NavObsShow()",       "Mark the tent/hut/fire footprints mercs route around")
+mercenaries:DevCommand("merc_nav_avoid",  "mercenaries:SetNavAvoid(%line)", "How far outside a camp footprint a route is aimed: merc_nav_avoid <metres>")
+mercenaries:DevCommand("merc_nav_follow", "mercenaries:SetNavFollow(%line)", "Route following mercs round camp geometry: 0 or 1")

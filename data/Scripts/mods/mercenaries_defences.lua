@@ -86,6 +86,24 @@ function mercenaries:DefSave()
     self:SaveString("QMWallPts",    table.concat(runs, "|"))
     self:SaveString("QMWallClosed", table.concat(closed, "|"))
     self:SaveString("QMWallType",   tostring(self.WallTypeIdx or 3))
+    -- Ways THROUGH the wall. Only the mark is saved: which tile becomes an archway
+    -- is worked out again at every rebuild, so a gateway travels with the wall if
+    -- the run is ever refitted under it.
+    self:SaveString("QMCastleGw", packPoints(self.CastleGateways or {}))
+    -- Castle settings: the towers and the doubled back faces are generated at rebuild
+    -- time, so without these a reloaded stone wall comes back bare and see-through.
+    local ctSpec = (self.CastleTowers or {})[self.CastleTowerIdx or 1] or {}
+    self:SaveString("QMCastle", table.concat({
+        self.CastleTowerIdx or 1,
+        self.CastleTowersOn and 1 or 0,
+        self.CastleTowerEnds and 1 or 0,
+        fmt(self.CastleThick or 0),
+        fmt(self.CastleTowerUp or ctSpec.up or 0),
+        fmt(self.CastleTowerYaw or 0),
+        self.GateStyleIdx or 1,
+        math.floor(tonumber(self.CastleTowerEvery) or 1),
+        self.CastleCornersOn and 1 or 0,
+    }, ";"))
     -- guarded like the rest of this file: a DefSave must never be the thing that breaks
     -- because an optional module did not load
     local gates = {}
@@ -167,8 +185,12 @@ end
 mercenaries.DefRestoreDelayMs   = 1500
 mercenaries.DefRestoreGraceSecs = 10.0
 
-function mercenaries:DefArmRestore()
+-- `rebuild` = the camp went back up on a SAVED anchor (a save load or an upgrade
+-- rebuild) rather than being pitched somewhere new. It decides what an anchor
+-- mismatch means; see DefRestoreBody.
+function mercenaries:DefArmRestore(rebuild)
     self.DefRestorePending = true
+    self.DefRestoreIsRebuild = rebuild and true or false
     self.DefRestoreArmedAt = nil
     pcall(function() self.DefRestoreArmedAt = System.GetCurrTime() end)
     Script.SetTimerForFunction(self.DefRestoreDelayMs, "mercenaries.DefRestoreDelayed")
@@ -207,9 +229,23 @@ end
 function mercenaries:DefRestoreBody()
     if not self.CampBuildOrigin then return end
     if not self:DefBelongToCurrentCamp() then
-        self:DefForget()
-        System.LogAlways("[Defences] new pitch - previous camp's defences left behind")
-        return
+        -- A REBUILD is the same camp going back up on its own saved anchor, so a mismatch
+        -- here is not the player moving house: SpawnMercCamp re-runs its ground search and
+        -- re-saves the anchor, and that search reads static geometry, which streams. Rebuild
+        -- the camp with its surroundings not yet loaded and the winning cell can shift a
+        -- couple of metres - past DefAnchorEps - and the walls, gates and towers were being
+        -- silently erased from the save for it. The wall's own corners are absolute world
+        -- points and did not move, so the anchor follows the camp instead.
+        if self.DefRestoreIsRebuild and tonumber(self:LoadString("QMDefX") or "") then
+            local o = self.CampBuildOrigin
+            self:SaveString("QMDefX", tostring(o.x))
+            self:SaveString("QMDefY", tostring(o.y))
+            System.LogAlways("[Defences] rebuild moved the camp anchor - defences re-anchored, not abandoned")
+        else
+            self:DefForget()
+            System.LogAlways("[Defences] new pitch - previous camp's defences left behind")
+            return
+        end
     end
 
     local runsRaw, closedRaw = {}, {}
@@ -223,13 +259,44 @@ function mercenaries:DefRestoreBody()
     self.WallRuns  = {}
     self.WallMarks = {}
     self.WallClosed = false
+    self.CastleGateways = unpackPoints(self:LoadString("QMCastleGw") or "")
     local nCorners = 0
     for i, raw in ipairs(runsRaw) do
         local pts = unpackPoints(raw)
         if #pts >= 2 then
+            -- The bearings the run was drawn on, recovered from the points themselves.
+            -- Only the positions are saved, and without the bearings a restored run is
+            -- refitted towards its own corners rather than along its own edges - which is
+            -- harmless while nothing changes, but changing the wall type or the segment
+            -- length afterwards walks the whole thing inwards a tile at a time and swings
+            -- every turn off the angles its corner pieces are cut for.
+            for k = 2, #pts do
+                local dx, dy = pts[k].x - pts[k - 1].x, pts[k].y - pts[k - 1].y
+                pts[k].bear = math.atan2(dy, dx)
+                pts[k].reach = math.sqrt(dx * dx + dy * dy)
+            end
             table.insert(self.WallRuns, { pts = pts, closed = (closedRaw[i] == "1") })
             nCorners = nCorners + #pts
         end
+    end
+
+    local cst = {}
+    for w in string.gmatch(tostring(self:LoadString("QMCastle") or ""), "[^;]+") do
+        cst[#cst + 1] = w
+    end
+    if #cst >= 7 then
+        self.CastleTowerIdx  = tonumber(cst[1]) or self.CastleTowerIdx
+        self.CastleTowersOn  = (cst[2] == "1")
+        self.CastleTowerEnds = (cst[3] == "1")
+        self.CastleThick     = tonumber(cst[4]) or self.CastleThick
+        self.CastleTowerUp   = tonumber(cst[5])
+        self.CastleTowerYaw  = tonumber(cst[6]) or 0
+        local gi = tonumber(cst[7])
+        if gi and self.GateStyles and self.GateStyles[gi] then self.GateStyleIdx = gi end
+        -- written since the corner pieces went in; a save from before simply keeps the
+        -- defaults, which is a tower every other corner
+        if cst[8] then self.CastleTowerEvery = math.max(0, math.floor(tonumber(cst[8]) or 1)) end
+        if cst[9] then self.CastleCornersOn  = (cst[9] == "1") end
     end
 
     if #self.WallRuns > 0 then
@@ -296,6 +363,7 @@ end
 function mercenaries:DefForget()
     self:SaveString("QMGates", " ")
     self:SaveString("QMWallPts", " ")
+    self:SaveString("QMCastleGw", " ")
     self:SaveString("QMWallClosed", "0")
     self:SaveString("QMTowers", " ")
     self:SaveString("QMCarts", " ")

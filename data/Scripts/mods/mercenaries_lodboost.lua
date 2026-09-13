@@ -1656,3 +1656,80 @@ do
     c("merc_opt_fresh", "mercenaries:OptFresh()",
       "Drop every cvar override, then auto-tune from a clean state (use this to compare runs)")
 end
+
+
+-- ==== camp STRUCTURE render policy (not AI-LOD - different thing entirely) ====
+-- Everything above this line is about NPC AI tiers. This is about how hard the camp's own
+-- meshes are drawn. Every wall segment, tower part, gate and house piece is spawned with
+-- SetViewDistUnlimited + SetViewDistRatio(255) so it never pops out; the cost is that a mature
+-- camp is a few hundred meshes all drawn at maximum detail with shadows, and none of them ever
+-- LOD away. See docs/performance.md, "Known costs not yet addressed".
+--
+-- Mode 0 is exactly what ships. 1 and 2 are for measuring whether that is what costs the frames.
+mercenaries.CampRenderMode = 0
+mercenaries.CampRenderPrefixes = {
+    "MercWallSeg_", "MercWallDecor_", "MercWallCap_",
+    "MercTowerPart_", "MercTowerLadder_", "MercTowerCol_", "MercTowerProp_",
+    "MercGateProp_", "MercCampHouse_", "MercCamp",
+}
+-- decor and small parts lose their forced shadow first in mode 2: they are the cheapest to
+-- lose and the least missed
+mercenaries.CampRenderDecor = { "MercWallDecor_", "MercWallCap_", "MercTowerProp_" }
+
+function mercenaries:CampRenderApply(mode, quiet)
+    mode = math.max(0, math.min(2, math.floor(tonumber(mode) or 0)))
+    self.CampRenderMode = mode
+    local c = self.CampCenter
+    if not c then
+        if not quiet then System.LogAlways("[CampRender] no camp to apply to") end
+        return 0
+    end
+    local ents
+    pcall(function() ents = System.GetEntitiesInSphere(c, 120.0) end)
+    local touched, shadowed = 0, 0
+    for _, e in pairs(ents or {}) do
+        local n = ""
+        pcall(function() n = e:GetName() or "" end)
+        local isOurs, isDecor = false, false
+        for _, p in ipairs(self.CampRenderPrefixes) do
+            if string.sub(n, 1, string.len(p)) == p then isOurs = true; break end
+        end
+        if isOurs then
+            for _, p in ipairs(self.CampRenderDecor) do
+                if string.sub(n, 1, string.len(p)) == p then isDecor = true; break end
+            end
+            if mode == 0 then
+                pcall(function() e:SetViewDistUnlimited() end)
+                pcall(function() e:SetViewDistRatio(255) end)
+                pcall(function() e:RenderShadow(true) end)
+            elseif mode == 1 then
+                pcall(function() e:SetViewDistRatio(120) end)
+            else
+                pcall(function() e:SetViewDistRatio(80) end)
+                if isDecor then
+                    pcall(function() e:RenderShadow(false) end)
+                    shadowed = shadowed + 1
+                end
+            end
+            touched = touched + 1
+        end
+    end
+    if not quiet then
+        System.LogAlways(string.format(
+            "[CampRender] mode %d applied to %d camp mesh(es)%s", mode, touched,
+            shadowed > 0 and (", " .. shadowed .. " decor shadow(s) off") or ""))
+        if mode > 0 then
+            System.LogAlways("[CampRender] a piece already flagged view-dist-unlimited may keep it "
+                             .. "until it respawns - merc_wall_rebuild re-spawns the wall under the new mode")
+        end
+    end
+    return touched
+end
+
+function mercenaries:CampRenderSet(line)
+    local n = tonumber(tostring(line or ""):match("%-?%d+") or "")
+    self:CampRenderApply(n or 0)
+end
+
+mercenaries:DevCommand("merc_camp_render", "mercenaries:CampRenderSet('%line')",
+                       "Camp mesh detail: 0 as shipped (unlimited), 1 finite, 2 lean - for measuring camp lag")

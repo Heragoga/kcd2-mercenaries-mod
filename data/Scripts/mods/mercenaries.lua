@@ -16,6 +16,17 @@ function mercenaries:DevCommand(name, body, desc)
     table.insert(self.DevCommands, { name = name, body = body, desc = desc or "" })
 end
 
+-- Registered straight away, for anything a PLAYER uses rather than an author. The command
+-- interface binds keys to its own commands on every gameplay start, so those commands have to
+-- exist without merc_dev having been typed first - a key bound to a command the console does
+-- not know simply does nothing, with no error to explain it.
+mercenaries.CmdHelpText = mercenaries.CmdHelpText or {}
+
+function mercenaries:PlayerCommand(name, body, desc)
+    self.CmdHelpText[name] = desc or ""
+    pcall(function() System.AddCCommand(name, body, desc or "") end)
+end
+
 -- Hire Tokens
 mercenaries.TokenIDWeak = "679a655e-189d-4519-b437-ccc4b92be41d"
 mercenaries.TokenIDMedium = "679a655e-189d-4519-b437-ccc4b92be42d"
@@ -82,6 +93,7 @@ mercenaries.TokenIDQMRemoveUpg       = "679a655e-189d-4519-b437-ccc4b92be7fd"
 mercenaries.TokenIDQMWall            = "679a655e-189d-4519-b437-ccc4b92be80d"
 mercenaries.TokenIDQMGate            = "679a655e-189d-4519-b437-ccc4b92bec0d"
 mercenaries.TokenIDQMGates           = "679a655e-189d-4519-b437-ccc4b92bec1d"
+mercenaries.TokenIDQMCastleWall      = "679a655e-189d-4519-b437-ccc4b92bef5d"
 -- Two menus that would otherwise need a GUID per option use the COUNT as the selector
 -- instead: every option grants the same item, with a different Amount (the trick
 -- ChangeMercOutfit/ChangeMercWeapon already use). One token, one item row, one handler.
@@ -876,9 +888,21 @@ mercenaries.CustomCompanionsData = {
 mercenaries.SoulIndex = { weak = 1, medium = 1, strong = 1 }
 
 -- Run an arbitrary Lua string from the console (avoids equals/semicolon quirks).
+-- merc_lua's target. The command passes the typed line inside a [==[ ]==] long
+-- bracket, so quotes in the line survive and loadstring gets CODE rather than the
+-- result of evaluating it - unquoted %line made every merc_lua call a silent no-op.
 function mercenaries:ExecString(text)
+    if type(text) ~= "string" or text == "" then
+        System.LogAlways("[MercCmd] merc_lua: nothing to run")
+        return
+    end
     local func, err = loadstring(text)
-    if func then pcall(func) end
+    if not func then
+        System.LogAlways("[MercCmd] merc_lua compile error: " .. tostring(err))
+        return
+    end
+    local ok, rerr = pcall(func)
+    if not ok then System.LogAlways("[MercCmd] merc_lua error: " .. tostring(rerr)) end
 end
 
 function mercenaries:SetState(state)
@@ -1167,6 +1191,7 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMComposition,   function(n) self:CampSetComposition(n) end)
     tok(self.TokenIDQMWall,          function() self:LogiBuyWall() end)
     tok(self.TokenIDQMGate,          function() self:LogiBuyGate() end)
+    tok(self.TokenIDQMCastleWall,    function() self:LogiBuyCastleWall() end)
     tok(self.TokenIDQMGates,         function() self:LogiToggleGates() end)
     tok(self.TokenIDBanditCamp,      function() self:BanditCampAccept() end)
     tok(self.TokenIDBanditCampHandIn, function() self:BanditCampDeliverLetter() end)
@@ -1294,12 +1319,169 @@ function mercenaries:MonitorLoopBody()
     mercenaries:ProfCall("mon.AlxLodgingTick", "AlxLodgingTick")
 end
 
-function mercenaries.MonitorLoop()
-    mercenaries:MonitorLoopBody()
-    if not mercenaries.SchedRunning then
-        Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
+-- ---------------------------------------------------------------------------
+-- GENERATION-NAMED TIMER CHAINS.
+--
+-- The engine SERIALIZES pending Script.SetTimerForFunction timers into the save and
+-- restores them on load - measured, not believed: a submitted long-playthrough save
+-- carried 5,899 of them (5,472 x RaidTick, 415 x MasterTick), each restored timer
+-- fired on load, and any that re-armed became a permanent extra chain. 415 master
+-- chains ran every subsystem at ~415x its designed rate: constant stutter, and a
+-- fast travel's frozen-clock catch-up burst in one frame. See docs/performance.md.
+--
+-- The cure is the lootsweep pattern generalized: the LIVE chain runs on a name that
+-- carries the load generation ("mercenaries.XG3"), so a timer restored from a save -
+-- or left over from a previous load - calls either the bare name or a stale
+-- generation, and both drain: counted, logged, never re-armed.
+-- ---------------------------------------------------------------------------
+mercenaries.ChainDrained = {}
+
+function mercenaries:ChainGenSuffix()
+    return tostring((self.SchedLoadGen or 0) % 8)
+end
+
+-- Arm the live chain for `base` under the current generation. Used both for the
+-- initial arm and for a chain's own re-arm (a body that just passed the generation
+-- check re-arms into the same generation by construction).
+function mercenaries:ChainArm(base, ms)
+    Script.SetTimerForFunction(ms, "mercenaries." .. base .. "G" .. self:ChainGenSuffix())
+end
+
+function mercenaries:ChainDrain(base)
+    local t = self.ChainDrained
+    t[base] = (t[base] or 0) + 1
+    t._total = (t._total or 0) + 1
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if not t._at or (now - t._at) > 10 or t._total <= 1 then
+        t._at = now
+        System.LogAlways("[MercChains] drained " .. t._total ..
+            " stale timer firing(s) (restored from the save or a previous load) - latest: " .. base)
     end
 end
+
+-- ---------------------------------------------------------------------------
+-- REAL-TIME FLOORS.
+--
+-- Script.SetTimerForFunction runs on ENGINE time, and a KCD wait or sleep runs the engine
+-- clock about 29x fast (measured: merc_verbose reports the scale on its FRAMES line). So a
+-- 1000 ms chain fires 29 times a REAL second while the player waits, and the mod's whole
+-- tick load is multiplied by the time scale exactly when the player is least able to act on
+-- anything. That is "the lag is worse while waiting", and it is the same family as the
+-- fast-travel catch-up burst above.
+--
+-- Game-time cadence is right for anything that models the world - morale drifts per day,
+-- wages fall due per day. It is wrong for the chains whose cost is REAL work: an entity
+-- query costs the same millisecond whether the clock is running fast or not. Those get a
+-- shortest-real-interval floor here; a firing that arrives early re-arms instead of running.
+--
+-- Only chains that pay real engine cost per firing belong in this table. MasterTick is
+-- deliberately absent: the scheduler's cadence is gameplay, and slowing it during a wait
+-- would change behaviour rather than only cost. merc_chain_floor can add it at runtime to
+-- test that, without a redeploy.
+mercenaries.ChainRealFloor = {
+    SolidTick   = 900,      -- SolidSweep -> SolidCandidates -> three sphere queries
+    NavObstTick = 1800,     -- NavObstAgentPass -> SolidCandidates again, plus per-agent AI calls
+    WBTick      = 600,      -- a 55 m GetEntitiesInSphere per firing
+    RaidTick    = 900,
+    -- Samples the fast-travel pass list with three sphere queries. A fast travel accelerates
+    -- the engine clock the same way a wait does, so without a floor the probe would storm
+    -- exactly during the event it exists to observe.
+    CombatWhyTick = 150,
+}
+mercenaries.ChainTimeScale = 1.0        -- engine seconds per real second; 1 in normal play
+
+local chainRealClock = (os and os.clock) or
+                       (System.GetCurrAsyncTime and function() return System.GetCurrAsyncTime() end)
+
+-- Engine seconds per real second, smoothed. Used only to pick how long to re-arm a chain
+-- that arrived early: the floor itself is always re-checked against the real clock, so a bad
+-- estimate costs an extra cheap re-arm or a slightly late firing, never a stalled chain.
+local function chainScale(m)
+    if not chainRealClock then return 1.0 end
+    local r, e = chainRealClock(), 0
+    pcall(function() e = System.GetCurrTime() or 0 end)
+    local lr, le = m._chainScaleR, m._chainScaleE
+    m._chainScaleR, m._chainScaleE = r, e
+    if lr and le and r > lr + 0.05 then
+        local s = (e - le) / (r - lr)
+        if s > 0.1 and s < 200 then m.ChainTimeScale = (m.ChainTimeScale or 1) * 0.5 + s * 0.5 end
+    end
+    return m.ChainTimeScale or 1.0
+end
+
+-- Define the entry points for one chain: the bare name becomes a tombstone (only a
+-- restored legacy timer can ever fire it), and G0..G7 run `driveName` only when their
+-- generation is current. The drive re-arms itself via ChainArm under its own rules.
+function mercenaries:ChainDef(base, driveName)
+    local m = mercenaries
+    m[base] = function() m:ChainDrain(base) end
+    for g = 0, 7 do
+        m[base .. "G" .. g] = function()
+            if tostring(g) ~= m:ChainGenSuffix() then m:ChainDrain(base); return end
+            local floor = chainRealClock and m.ChainRealFloor and m.ChainRealFloor[base]
+            if floor then
+                local now = chainRealClock() * 1000
+                m._chainRealAt = m._chainRealAt or {}
+                local last = m._chainRealAt[base]
+                if last and (now - last) < floor then
+                    -- too soon in REAL terms: put it back on the clock rather than run it
+                    local wait = (floor - (now - last)) * chainScale(m)
+                    if wait < 16 then wait = 16 elseif wait > 5000 then wait = 5000 end
+                    m:ChainArm(base, math.floor(wait))
+                    return
+                end
+                m._chainRealAt[base] = now
+            end
+            local drive = m[driveName]
+            if drive then drive(m) end
+        end
+    end
+end
+
+-- merc_chain_floor <name> <ms>   (0 removes it, no args lists them)
+function mercenaries:ChainFloorSet(line)
+    local s = tostring(line or "")
+    local name, ms = s:match("([%a%d_]+)%s+(%-?%d+)")
+    if not name then
+        local out = {}
+        for k, v in pairs(self.ChainRealFloor or {}) do out[#out + 1] = k .. "=" .. v .. "ms" end
+        table.sort(out)
+        System.LogAlways("[MercChains] real-time floors: " ..
+            (#out > 0 and table.concat(out, ", ") or "none") ..
+            string.format("  (time scale now x%.1f)", self.ChainTimeScale or 1))
+        return
+    end
+    ms = tonumber(ms) or 0
+    self.ChainRealFloor = self.ChainRealFloor or {}
+    self.ChainRealFloor[name] = (ms > 0) and ms or nil
+    System.LogAlways("[MercChains] " .. name .. " real-time floor " ..
+                     (ms > 0 and (ms .. "ms") or "removed"))
+end
+
+System.AddCCommand("merc_chain_floor", "mercenaries:ChainFloorSet('%line')",
+    "Shortest REAL interval a timer chain may run at, in ms (engine timers run ~29x fast during a wait). No args lists them.")
+
+-- Generation bump + fresh arms for the always-on chains. The watchdog's rate governor
+-- calls this when it measures duplicate master chains (the one case the generation
+-- names cannot prevent: a restored timer whose generation collides mod 8); every chain
+-- of the old generation dies at its next firing.
+function mercenaries:ChainRotate(reason)
+    self.SchedLoadGen = (self.SchedLoadGen or 0) + 1
+    System.LogAlways("[MercChains] generation rotated (" .. tostring(reason) ..
+                     ") - stale chains will drain on their next firing")
+    if self.SchedRunning then self:ChainArm("MasterTick", self.MasterTickMs or 100) end
+    self:ChainArm("SchedWatchdog", 5000)
+    if self.FtTraceArm then pcall(function() self:FtTraceArm() end) end
+end
+
+function mercenaries:MonitorLoopDrive()
+    self:MonitorLoopBody()
+    if not self.SchedRunning then
+        self:ChainArm("MonitorLoop", 1000)
+    end
+end
+mercenaries:ChainDef("MonitorLoop", "MonitorLoopDrive")
 
 -- Enemy detection runs on its own faster tick: it is the squad's reaction time
 -- to a threat, and the merc behaviour trees only see what this leaves behind in
@@ -1348,12 +1530,13 @@ function mercenaries:CombatScanLoopBody()
     end
 end
 
-function mercenaries.CombatScanLoop()
-    mercenaries:CombatScanLoopBody()
-    if not mercenaries.SchedRunning then
-        Script.SetTimerForFunction(300, "mercenaries.CombatScanLoop")
+function mercenaries:CombatScanLoopDrive()
+    self:CombatScanLoopBody()
+    if not self.SchedRunning then
+        self:ChainArm("CombatScanLoop", 300)
     end
 end
+mercenaries:ChainDef("CombatScanLoop", "CombatScanLoopDrive")
 
 function mercenaries:LowPriorityMonitorLoopBody()
     if next(mercenaries.ActiveMercs) then
@@ -1393,18 +1576,27 @@ function mercenaries:LowPriorityMonitorLoopBody()
     -- Quartermaster logistics: tiredness / food / drink / wages upkeep.
     mercenaries:ProfCall("low.LogiTick", "LogiTick")
 
+    -- Stamp which region holds the newer picture of the company (docs/regions.md).
+    mercenaries:ProfCall("low.RegionTick", "RegionTick")
+
     -- The camp's defences: put the layout back if its restore timer died with a level
     -- change, and re-hang any gate whose prop has been swept out from under its record.
     mercenaries:ProfCall("low.DefWatchdog", "DefWatchdog")
     mercenaries:ProfCall("low.GateWatchdog", "GateWatchdog")
+    -- ...and the same for the walls and the towers, which never had one. Repeated fast
+    -- travel is what exposes it: many load/stream events, each able to sweep a prop out
+    -- from under its Lua record.
+    mercenaries:ProfCall("low.WallWatchdog", "WallWatchdog")
+    mercenaries:ProfCall("low.TowerWatchdog", "TowerWatchdog")
 end
 
-function mercenaries.LowPriorityMonitorLoop()
-    mercenaries:LowPriorityMonitorLoopBody()
-    if not mercenaries.SchedRunning then
-        Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
+function mercenaries:LowPriorityMonitorLoopDrive()
+    self:LowPriorityMonitorLoopBody()
+    if not self.SchedRunning then
+        self:ChainArm("LowPriorityMonitorLoop", 5000)
     end
 end
+mercenaries:ChainDef("LowPriorityMonitorLoop", "LowPriorityMonitorLoopDrive")
 
 -- Mod Initialization
 function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
@@ -1423,6 +1615,12 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- make a fresh load pay a battle's costs with no battle on. Each module releases its own
     -- and every one of them is re-established from the live world within a tick if it is
     -- genuinely still warranted. See docs/performance.md.
+    -- Re-arms the command interface: its console binds and timers both died with the level.
+    -- Also restores the time scale and any suppressed action map unconditionally - a crash or
+    -- a save taken with the interface open would otherwise strand the game slowed down.
+    if self.BLOnLoad then pcall(function() self:BLOnLoad() end) end
+    if self.CUOnLoad then pcall(function() self:CUOnLoad() end) end
+    if self.DelSweep then pcall(function() self:DelSweep() end) end
     if self.RaborschOnLoad  then pcall(function() self:RaborschOnLoad()  end) end
     if self.TargetingOnLoad then pcall(function() self:TargetingOnLoad() end) end
     if self.LodBoostOnLoad  then pcall(function() self:LodBoostOnLoad()  end) end
@@ -1434,10 +1632,32 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     if self.CrimeWatchOnLoad then pcall(function() self:CrimeWatchOnLoad() end) end
     if self.TownWatchOnLoad  then pcall(function() self:TownWatchOnLoad()  end) end
     if self.FollowWatchOnLoad then pcall(function() self:FollowWatchOnLoad() end) end
+    -- The living-vs-rigid flag is a global cvar and the level load just re-applied this
+    -- level's own cvar context over it; the chain that owns it died with the level too.
+    if self.SolidOnLoad then pcall(function() self:SolidOnLoad() end) end
+    -- remembered performance switches
+    pcall(function()
+        local v = self:LoadString("MercNavWallSuppress")
+        if v == "0" then self.NavWallSuppress = false
+        elseif v == "1" then self.NavWallSuppress = true end
+    end)
+    -- Navigation-obstacle ids belong to the level that just went away.
+    if self.NavObstOnLoad then pcall(function() self:NavObstOnLoad() end) end
+    if self.AIProbeOnLoad then pcall(function() self:AIProbeOnLoad() end) end
+    -- Fast-travel / world-freeze tracer: verbose activity accounting around map screens,
+    -- teleports and time skips. See mercenaries_fttrace.lua and docs/performance.md.
+    if self.FtTraceOnLoad then pcall(function() self:FtTraceOnLoad() end) end
+    if self.CombatWhyOn then pcall(function() self:ChainArm("CombatWhyTick", 2000) end) end
 
     -- Saver entities belong to the save just loaded, so the tag map must be rebuilt
-    -- before the LoadString calls below read from it.
+    -- before the LoadString calls below read from it. The map being dropped here is also
+    -- the LAST look at the level being left, so the company is copied out of it first: on
+    -- a Trosky <-> Kuttenberg crossing the level ahead holds none of the mod's entities at
+    -- all, and RegionOnLoad is what puts the company back. See docs/regions.md.
+    if self.RegionCaptureTags then pcall(function() self:RegionCaptureTags() end) end
     if self.SaverForget then self:SaverForget() end
+    -- Ahead of every LoadString below, so they read the carried state on a crossing.
+    if self.RegionOnLoad then pcall(function() self:RegionOnLoad() end) end
 
     -- Hook Player.OnAction (mouse input for tower placement). Delayed so that a mod
     -- which replaced the callback without chaining cannot lock us out - the same
@@ -1581,10 +1801,10 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     elseif self.SchedArmLegacy then
         self:SchedArmLegacy()
     else
-        Script.SetTimerForFunction(1000, "mercenaries.MonitorLoop")
-        Script.SetTimerForFunction(300,  "mercenaries.CombatScanLoop")
-        Script.SetTimerForFunction(5000, "mercenaries.LowPriorityMonitorLoop")
-        Script.SetTimerForFunction(mercenaries.FormationTickMs, "mercenaries.FormationLoop")
+        self:ChainArm("MonitorLoop", 1000)
+        self:ChainArm("CombatScanLoop", 300)
+        self:ChainArm("LowPriorityMonitorLoop", 5000)
+        self:ChainArm("FormationLoop", mercenaries.FormationTickMs)
     end
     -- Post-battle loot sweep. Own tick: it must keep watching CachedEnemies drain
     -- even with no squad orders pending. See docs/loot-sweep.md.
@@ -1637,7 +1857,13 @@ Script.LoadScript("Scripts/mods/mercenaries_static_archer.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archer_cart.lua")
 Script.LoadScript("Scripts/mods/mercenaries_wall.lua")
 Script.LoadScript("Scripts/mods/mercenaries_gate.lua")
+Script.LoadScript("Scripts/mods/mercenaries_castle.lua")
+Script.LoadScript("Scripts/mods/mercenaries_prefab.lua")
 Script.LoadScript("Scripts/mods/mercenaries_navmesh.lua")
+Script.LoadScript("Scripts/mods/mercenaries_solid.lua")
+Script.LoadScript("Scripts/mods/mercenaries_navobst.lua")
+Script.LoadScript("Scripts/mods/mercenaries_aiprobe.lua")
+Script.LoadScript("Scripts/mods/mercenaries_verbose.lua")
 Script.LoadScript("Scripts/mods/mercenaries_defences.lua")
 Script.LoadScript("Scripts/mods/mercenaries_wallbattle.lua")
 Script.LoadScript("Scripts/mods/mercenaries_raids.lua")
@@ -1648,6 +1874,7 @@ Script.LoadScript("Scripts/mods/mercenaries_patrol_routes_trosky.lua")
 Script.LoadScript("Scripts/mods/mercenaries_patrols_live.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush_road.lua")
 Script.LoadScript("Scripts/mods/mercenaries_testnpc.lua")
+Script.LoadScript("Scripts/mods/mercenaries_navlab.lua")
 Script.LoadScript("Scripts/mods/mercenaries_weapon_audit.lua")
 Script.LoadScript("Scripts/mods/mercenaries_companion_lineup.lua")
 -- The rewritten hostile AI (idle until alerted, then everyone engages). Own brain,
@@ -1659,6 +1886,8 @@ Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
 Script.LoadScript("Scripts/mods/mercenaries_quartermaster.lua")
 Script.LoadScript("Scripts/mods/mercenaries_logistics.lua")
+-- After it: the cross-region carry is stamped with the logistics world clock.
+Script.LoadScript("Scripts/mods/mercenaries_region.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lootsweep.lua")
 -- Watch-only: who the company kills in a settlement, and how the town feels about the
 -- player. Reads the combat tables the modules above fill in, so it loads after them.
@@ -1679,16 +1908,30 @@ Script.LoadScript("Scripts/mods/mercenaries_raborsch.lua")
 Script.LoadScript("Scripts/mods/mercenaries_aleksej.lua")
 -- Last: every slot body it registers must already be defined.
 Script.LoadScript("Scripts/mods/mercenaries_scheduler.lua")
+Script.LoadScript("Scripts/mods/mercenaries_fttrace.lua")
 Script.LoadScript("Scripts/mods/mercenaries_bench.lua")
+Script.LoadScript("Scripts/mods/mercenaries_uitest.lua")
+Script.LoadScript("Scripts/mods/mercenaries_cmdui.lua")
+Script.LoadScript("Scripts/mods/mercenaries_swftest.lua")
+Script.LoadScript("Scripts/mods/mercenaries_squads.lua")
+Script.LoadScript("Scripts/mods/mercenaries_blatlas.lua")
+Script.LoadScript("Scripts/mods/mercenaries_blui.lua")
+Script.LoadScript("Scripts/mods/mercenaries_delivery.lua")
+Script.LoadScript("Scripts/mods/mercenaries_campatlas.lua")
+Script.LoadScript("Scripts/mods/mercenaries_campui.lua")
+Script.LoadScript("Scripts/mods/mercenaries_blorders.lua")
 Script.LoadScript("Scripts/mods/mercenaries_torture.lua")
+Script.LoadScript("Scripts/mods/mercenaries_combatwhy.lua")
 
 -- Prints every merc console command with a one-line description.
 function mercenaries:PrintHelp()
     local lines = {
         "===== Mercenaries mod commands =====",
         "The mod's SETTINGS live in the quartermaster's dialogue, under \"[Mod settings]\":",
-        "  difficulty, random encounters, upkeep and the HUD icons. Everything below is the console equivalent.",
+        "  difficulty, random encounters, upkeep, the HUD icons and the corner key prompts. Everything below is the console equivalent.",
         "merc_status                          one-line squad report (count, health, orders, archer stance)",
+        "merc_hints on|off                    the [H] Command / [U] Camp prompts in the corner",
+        "merc_hints_pos topright|topleft|bottomright|bottomleft|<x> <y>   where they sit (1280x720 stage)",
         "merc_heal                            heal & wash the squad (flat " .. tostring(self.HealCost) .. " groschen)",
         "merc_wait / merc_follow / merc_dismiss   squad orders",
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",

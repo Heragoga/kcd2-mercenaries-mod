@@ -1,0 +1,23 @@
+<UIElements name="MercUIc">
+
+  <UIElement name="MercUIc" layer="36" mouseevents="0" keyevents="0" cursor="0">
+
+    <GFx file="MercUIc.gfx" layer="36">
+      <Constraints>
+        <Align mode="fullscreen" />
+      </Constraints>
+    </GFx>
+
+    <functions>
+    </functions>
+
+    <events>
+    </events>
+
+    <MovieClips>
+      <MovieClip name="mc_00" instancename="mc_00" />
+    </MovieClips>
+
+  </UIElement>
+
+</UIElements>

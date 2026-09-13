@@ -114,13 +114,17 @@ also labelled `publicEnemy`, so a dead patrolman is looted rather than robbed; t
 *not* make the town watch join in — see [Public enemies and stolen loot](public-enemy.md) for
 why bystanders ignore a patrol and what it would take to change that.
 
-**Size** is a multiple of the player's strength — himself plus his living mercs — clamped to
+**Size** is a multiple of the player's strength — himself plus the mercs **actually
+following him** (`PatrolFollowerCount`, which is Kleinkrieg's `BanditCampFollowerCount`:
+men deployed to hold a standing camp do not count, and with no camp it is the whole
+company) — clamped to
 `PatrolMinMen`..`PatrolMaxMen` (3..50) and rolled per patrol. The floor of the multiple is a
 flat `PatrolPartyMin` (0.5x); **the ceiling scales with the party** (`PatrolMaxMultFor`),
 ramping from `PatrolPartyMaxSolo` (1.2x at a party of one) to `PatrolPartyMax` (2.0x at
 `PatrolPartyMaxAt`, 20, and above).
 
-**A player with no mercenaries still meets patrols.** Being alone used to withhold them
+**A player with no mercenaries behind him still meets patrols** — none hired, or all of
+them left in camp. Being alone used to withhold them
 entirely, which emptied the roads for exactly the player who is out there on his own. It now
 sizes them instead: `PatrolPlayerAlone` clamps the roll to
 `PatrolSoloMinMen`..`PatrolSoloMaxMen` (**3‥5**), applied *after* the difficulty tier and any

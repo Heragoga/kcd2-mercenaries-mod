@@ -47,6 +47,8 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="0" Price="0" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92beebd" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="0" Price="0" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92beecd" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="0" Price="0" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92beefd" Name="loot_sackOfNails" />
+        <!-- Corner key nudges; count = the choice (1 on, 2 off, 3 top right, 4 bottom right) -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="0" Price="0" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bef0d" Name="loot_sackOfNails" />
         <!-- Custom uniform: "I want you to dress this way" was picked -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="0" Price="0" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92beeed" Name="loot_sackOfNails" />
         <!-- Archer ranged weapon type token; count = weapon type (1 bow, 2 crossbow, 3 handcannon) -->
@@ -219,6 +221,13 @@
              against loot_silverChalice (650 for 0.6 kg, with a craftsman's markup on top), so a
              plain cake of bullion sits a little under that per kilo. -->
         <MiscItem Type="5" SubType="2" IconId="loot_silverChalice" UIInfo="ui_in_merc_alx_silver" UIName="ui_nm_merc_alx_silver" Model="manmade/task_specific_props/metal_industry/silver/silver_cake_single.cgf" Weight="1" Price="450" FadeCoef="1" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bed8d" Name="merc_alx_silver" />
+        <!-- Command interface: presence of this token tells the quest graph to enable the
+             merc_no_qam_slots action filter, which stops 1-4 drawing a weapon while the
+             order row owns them. Weightless, because it is added and removed constantly. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="0" Price="1" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bef3d" Name="merc_qamblock_token" />
+        <!-- Command interface: presence of this token enables the no_attack filter, so a
+             left click while siting a move order places the marker instead of swinging. -->
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="0" Price="1" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bef4d" Name="merc_atkblock_token" />
         <!-- Kleinkrieg phase markers: token N latches 'the run has reached contract N'. -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be90d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be91d" Name="loot_sackOfNails" />
@@ -258,6 +267,7 @@
         </Document>
 
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bec0d" Name="loot_sackOfNails" />
+        <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bef5d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bec1d" Name="loot_sackOfNails" />
         <!-- The quartermaster's repeatable camp bounty (mercenaries_bounty.lua): accept,
              "the camp is standing", "the camp is cleared", report, paid, then the two

@@ -16,7 +16,7 @@
         <Variables>
             <Variable name="wpPos" type="vec3" values="" isPersistent="0" form="single" />
             <Variable name="routeDone" type="_bool" values="false" isPersistent="0" form="single" />
-            <Variable name="MoveParams_walk" type="additionalMoveParams" values="destChangedThreshold('150ms')" isPersistent="0" form="single" />
+            <Variable name="MoveParams_walk" type="additionalMoveParams" values="destChangedThreshold('150ms'),stuckThreshold(3)" isPersistent="0" form="single" />
         </Variables>
         <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
             <Behavior canSkip="1">

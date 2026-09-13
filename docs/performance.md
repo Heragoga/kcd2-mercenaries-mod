@@ -417,6 +417,48 @@ Rules this hunt adds to the ones above:
 3. Save-file name-string counts are NOT entity counts (50 strings = 9 entities); only
    GetEntitiesByClass at runtime is authoritative.
 
+## THE SAVE-BORNE TIMER FLOOD - root cause of the submitted-save stutter - 2026-08-29
+
+A user-submitted save (playline3/autosave173, a long 1.5.6 playthrough) stuttered on every
+machine and got dramatically worse after fast travel, and NO toggle changed it - because the
+cost was not in any subsystem. Decompressing the save (zlib blocks: [compLen u32][rawLen u32]
+[78 5e ...]) and scanning for serialized timer records found the engine PERSISTS pending
+Script.SetTimerForFunction timers into the save and restores them on load:
+
+    submitted save: 5,899 pending script timers   own save: 3
+      5,472 x mercenaries.RaidTick   (20000ms each - the old self-arming chain compounding)
+        415 x mercenaries.MasterTick (100ms each)
+          5 x mercenaries.SchedWatchdog, 1 each of the legacy loops
+
+Restored timers bypass every arm-site latch (SchedStart's guard never sees them). On the
+current build each restored MasterTick re-armed unconditionally: 415 permanent chains, and
+because they all increment the SHARED SchedTick, every scheduler slot ran ~415x its designed
+rate. Constant stutter; a fast travel's frozen-clock catch-up then fires the whole backlog
+back to back in the first frames after the map closes - the "much worse after fast travel".
+
+**Fix - generation-named chains** (the lootsweep pattern generalized, mercenaries.lua):
+the live chain runs on a name carrying the load generation ("mercenaries.MasterTickG3",
+mod 8 of SchedLoadGen); bare names and stale generations are drain tombstones - counted,
+logged as [MercChains], never re-armed. Converted: MasterTick, SchedWatchdog, RaidTick,
+MonitorLoop, CombatScanLoop, LowPriorityMonitorLoop, FormationLoop. The watchdog gained a
+RATE GOVERNOR: >2.5x the expected master-tick count for two 5s windows rotates the
+generation, retiring every duplicate chain within one firing - catches the one case names
+cannot (a mod-8 generation collision) and any future flood from any source. An infected
+save heals itself: the flood drains on first load, and the next save written carries a
+clean timer field. `merc_chains` (dev) prints generation, master totals and drain counts.
+
+**Fast-travel tracer** (mercenaries_fttrace.lua, always on, 1s cadence, [FTTrace]): detects
+world-freeze (world clock stalled vs real), player position jumps >150m and game-time skips
+>5min, and around each event logs per-second deltas of master ticks, slot runs, raid ticks,
+drains, follow re-fires and systemic stand-downs. Harness support: autobench.ps1
+-NoBench -HoldSec N loads a save, holds, and dumps [FTTrace]/[MercChains]/[MercSched] -
+the save-forensics mode.
+
+Residual (documented, deliberate): situational fixed-name loops (WBTick, RouteTick, FoeLoop,
+HideOthersTick, camp monitors, ProfHeartbeat) still use bare names - their restored timers
+drain naturally through their own guards, at most one extra pass; the governor and tracer
+would surface any that ever compound.
+
 ## THE GRID — the suite across three hardware tiers — 2026-08-28 (overnight)
 
 Full 12-scenario suite (tools/autobench.ps1, `-Cores N` restricts affinity), field save,
