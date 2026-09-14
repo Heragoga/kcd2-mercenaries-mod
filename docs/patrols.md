@@ -281,8 +281,9 @@ that is where the cost was: the recorded networks have positions with 9 (Kuttenb
 | `PatrolMaxLiveMen` | 36 | every gang, added up |
 | `PatrolMaxLiveGangs` | 3 | how many gangs at once |
 | `PatrolSpawnPerTick` | 1 | how many may appear per 3s tick |
-| `PatrolMaxCorpses` | 12 | lingering bodies, all gangs |
-| `PatrolCorpseGraceSecs` | 30 s | the pile just made is exempt from the cap for this long |
+| `PatrolMaxCorpses` | 20 | lingering bodies, all gangs |
+| `PatrolCorpseGraceSecs` | 120 s | the pile just made is exempt from the cap for this long |
+| `PatrolCorpseSecs` | 1200 s | how long a pile stands if the player never leaves |
 
 Worst case is now 36 living patrolmen, whatever the route geometry. Small parties are
 unaffected — they never reached the caps.

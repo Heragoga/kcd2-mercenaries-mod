@@ -220,6 +220,12 @@
        <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_heinrich_1" social_class_id="3" soul_archetype_id="0" soul_id="1c9e791f-09ea-5171-96e7-102188affa24" soul_name="soul_enemy_heinrich_1" soul_vip_class_id="0" xp_multiplier="1" />
        <!-- Quatermaster -->
        <soul brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_mercenary_quartermaster" social_class_id="3" soul_archetype_id="0" soul_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44" soul_name="soul_quartermaster" soul_vip_class_id="12" xp_multiplier="0" />
+       <!-- Camp trader (the company sutler). He shares the QUARTERMASTER'S brain: stand at
+            a post, eat now and then, defend himself, never wander. His post is read per
+            entity (GetQuartermasterPost), so the two do not walk to the same spot. His
+            skald_character has no role mapping, which is deliberate - pressing E on him
+            opens the trade prompts, not a conversation. See docs/camp-trader.md. -->
+       <soul brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_mercenary_trader" social_class_id="3" soul_archetype_id="0" soul_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7c01" soul_name="soul_merc_trader" soul_vip_class_id="12" xp_multiplier="0" />
 		<soul brain_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b04" combat_level="0.9" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_aleksej" social_class_id="3" soul_archetype_id="0" soul_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b01" soul_name="soul_aleksej" soul_vip_class_id="12" xp_multiplier="0" />
 		<!-- The marsh Aleksej. He was on mercenariesFaction with a VIP class and his own townsman
             brain, which is three separate reasons he stood there immortal, eating, being cut

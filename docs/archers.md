@@ -137,6 +137,74 @@ The combat trees check total ammo count each tick; at zero they fight with the s
 
 ---
 
+## The archer tower's collision
+
+`watchtower_a.cgf` is not a mesh that needs the invisible-crate treatment for the usual
+reason — it has **no `cv_*.cgf` sibling** and carries a complete hull of its own: 53
+`$physics_proxy_*` nodes, measured straight out of `IPL_Objects-part1.pak`.
+
+| what | tower-local extent |
+| --- | --- |
+| four corner posts | 0.31 × 0.31, z −0.14 → 5.74 |
+| deck floor plate | x −0.31…2.43, y −1.31…2.97, z 3.01…3.12 |
+| parapet ring | z 2.75…4.23, 0.11 thick |
+| stair plank walls | x −0.24…−0.12 and −1.70…−1.59, up to z 3.18 |
+| staircase | 14 steps + landing, z 0.27 → 3.11, climbing +y on the −x side |
+| braces | z 1.81…2.99 and 4.60…5.67 — nothing at walking height |
+| roof | **no proxy above z 5.80** — the roof is not collidable |
+
+Two things follow, and they are the whole of why the tower read as "no collision":
+
+1. **The understorey is genuinely open.** Four 31 cm legs on a 4 m square with the first
+   brace at 1.8 m is a tower you walk straight under. That is the base game's own hull,
+   not a fault — but it is what you hit when you walk at the tower.
+2. **Nothing guaranteed the hull was ever physicalised.** `TowerSpawnPart` passed no
+   `Physics` table at spawn time and relied on the `mercenaries_Prop` class default.
+   Entity properties are read *when the entity physicalises*, and the spawn-time table is
+   the only one guaranteed to be in place by then — the same reason `WallSpawnSegment`
+   re-passes its own. Both the parts and the collider crates now pass it explicitly.
+
+`TowerColliders` therefore traces the hull rather than inventing one, and every box sits
+within 1 mm of measured `$physics_proxy` geometry — so **collision only ever sits where
+there is visible timber**. No invisible walls between the legs, which would be worse than
+walking through.
+
+`tools/cgf_proxies.py` is what produced those numbers, and `--crate` emits collider rows
+ready to paste. Run it before hand-placing a collider on anything — it is the difference
+between a box on the timber and a box in mid-air.
+
+| boxes | what |
+| --- | --- |
+| 4 | the corner posts |
+| 2 | the plank walls flanking the stair — the tower's only solid faces at walking height |
+| 2 | the platform, which is L-shaped: the main plate plus a second one over the head of the stair |
+| 15 | the flight: 14 steps and the top landing |
+
+**The stair is the way up, and the ladder is gone.** The mesh has a real, visible
+staircase — 2,586 render verts in the stair volume — so the rustic `Ladder_400` that used
+to lean against the −y side stood in front of a perfectly good flight. `TowerLadders` is
+now empty, which drops it from the ghost preview as well as the build;
+`TowerSpawnLadder` is kept as the mod's only worked example of a climbable Ladder entity,
+and the old row is recorded in the comment above it.
+
+The flight is generated from two numbers (0.20 m rise, 0.20 m going) rather than written
+out as fifteen near-identical rows. Each box fills its own riser, so the stair is one
+continuous solid with no gap to clip through; the bottom tread is bedded into the ground
+instead of floating at z 0.11 where the mesh's slope proxy starts, and the landing at 3.11
+steps up 0.21 m onto the stair-head plate.
+
+**The parapet ring is deliberately left out.** It is in the mesh hull, but it is a solid
+rail at chest height directly in front of the archer, and arrows are physical. Not worth
+risking the one thing the tower exists for.
+
+The archer is untouched: the deck slab keeps its old top height (z 3.319), so
+`TowerArcherLocal.z = 3.38` still drops him the same 6 cm onto the same surface.
+
+Cost is 23 static crates per tower instead of 1 (less the ladder entity), and it applies to
+bandit-camp and siege towers too — they go through the same `TowerColApply`.
+
+---
+
 ## Console reference
 
 ```

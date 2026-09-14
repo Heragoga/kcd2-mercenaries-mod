@@ -17,6 +17,7 @@
                      missing file is fatal to every dialog in the mod, not just this one). -->
                 <Definition File="mercenaries_background_quest/aleksej_dialog.xml" />
                 <Definition File="mercenaries_background_quest/order_wheel_chat.xml" />
+                <Definition File="mercenaries_background_quest/trader_dialog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story1_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story2_monolog.xml" />
                 <Definition File="mercenaries_background_quest/carbongo/story3_monolog.xml" />
@@ -98,6 +99,9 @@
                 <!-- Silent order wheel; reuses the E-dialog's tokens, so it only
                      needs extra Edges on the execute_* nodes below. -->
                 <order_wheel_chat Name="order_wheel_chat" PositionY="750" PositionX="300" />
+                <!-- The camp sutler. One port; the reward node below turns it into the
+                     token mercenaries.lua routes to TraderOpen. -->
+                <trader_dialog Name="trader_dialog" PositionY="850" PositionX="300" />
                 <story_1_monolog Name="story_1_monolog" PositionY="150" PositionX="500" />
                 <story_2_monolog Name="story_2_monolog" PositionY="150" PositionX="500" />
                 <story_3_monolog Name="story_3_monolog" PositionY="150" PositionX="500" />
@@ -1606,6 +1610,18 @@
                     <Constant Name="Amount" Value="11" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_rm_gate" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_trader" PositionY="1210" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="12" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_trader" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_trader_open" PositionY="1240" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef6d" />
+                    <Constant Name="Amount" Value="1" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="trader_dialog.trader_open" To="Exec" />
                 </EventFunction>
                 <EventFunction Name="exec_qm_comp_arch_same" PositionY="1220" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef2d" />

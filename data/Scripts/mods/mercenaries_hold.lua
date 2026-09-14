@@ -438,6 +438,21 @@ function mercenaries:MercIsIdle(ent)
     -- See FollowWatchWorldFrozen and docs/formations.md.
     self.BtHeartbeatAt = System.GetCurrTime()
     if _G.MercIdle then return true end
+    -- Parked at a doorway: the player walked into a building and this man was following.
+    -- Cleared when he comes back out, and the merc re-fires follow himself off the back
+    -- of this going false. See mercenaries_interior.lua.
+    -- ...but never over a fight. The scheduler's idle arm sits AHEAD of its combat arm in
+    -- the same ContinuousSwitch, so a parked man who has claimed a target would stand
+    -- there and be cut down. MercTargetOf is the mod's existing "has a target" cache, so
+    -- this stays a table lookup - no engine call in a per-merc, per-tick path. He fights,
+    -- then goes back to standing; the park itself is untouched either way.
+    if self.InteriorParked then
+        local k
+        pcall(function() k = tostring((ent.this and ent.this.id) or ent.id) end)
+        if k and self.InteriorParked[k] and (self.MercTargetOf or {})[k] == nil then
+            return true
+        end
+    end
     local ok, idle = pcall(function()
         if not self.HoldActive then return false end
         return self:HoldAtStation(ent)

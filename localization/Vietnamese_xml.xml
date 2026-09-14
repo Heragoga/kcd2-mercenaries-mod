@@ -1112,7 +1112,7 @@
   <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>Hộ tống hắn.</Cell></Row>
   <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>Quy tắc giao chiến</Cell></Row>
   <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>Tùy nghi giao chiến.</Cell></Row>
-  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>Đối đầu với bất kỳ ai rút vũ khí.</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Kill everyone in sight.</Cell><Cell>Giết tất cả những ai các ngươi thấy.</Cell></Row>
   <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>Chỉ phản công.</Cell></Row>
   <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>Hãy tra kiếm.</Cell></Row>
   <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>Cách áp sát địch</Cell></Row>
@@ -1125,6 +1125,14 @@
   <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>Đang hộ tống.</Cell></Row>
   <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>Không có ai để hộ tống.</Cell></Row>
   <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>Người của bạn đang bị tấn công nhưng vẫn tra kiếm.</Cell></Row>
+  <Row><Cell>merc_info_engage_default</Cell><Cell>The men will engage at will.</Cell><Cell>The men will engage at will.</Cell></Row>
+  <Row><Cell>merc_info_engage_viking</Cell><Cell>The men will cut down every living soul in sight.</Cell><Cell>The men will cut down every living soul in sight.</Cell></Row>
+  <Row><Cell>merc_info_engage_defend</Cell><Cell>The men will defend themselves and no more.</Cell><Cell>The men will defend themselves and no more.</Cell></Row>
+  <Row><Cell>merc_info_engage_hold</Cell><Cell>The men will hold their blades.</Cell><Cell>The men will hold their blades.</Cell></Row>
+  <Row><Cell>merc_info_viking_warn</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell></Row>
+  <Row><Cell>merc_info_aggro_tight</Cell><Cell>Tight ranks. One man to an enemy.</Cell><Cell>Tight ranks. One man to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_balanced</Cell><Cell>Balanced. Two men to an enemy.</Cell><Cell>Balanced. Two men to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_loose</Cell><Cell>Swarm them. Three men to an enemy.</Cell><Cell>Swarm them. Three men to an enemy.</Cell></Row>
   <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>Tập hợp.</Cell></Row>
   <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[Cài đặt mod] Thay đổi cách đại quân và mod hoạt động.</Cell></Row>
   <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Hãy bàn về cách vận hành đội quân.</Cell></Row>
@@ -1163,6 +1171,10 @@
   <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>Cực khó</Cell></Row>
   <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>Bất khả thi</Cell></Row>
   <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>Bầy đàn</Cell></Row>
+  <Row><Cell>merc_info_upkeep_off</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_lenient</Cell><Cell>Lenient upkeep. The food goes further.</Cell><Cell>Lenient upkeep. The food goes further.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_standard</Cell><Cell>Standard upkeep.</Cell><Cell>Standard upkeep.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_harsh</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell></Row>
   <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>Cứ để nguyên như hiện tại.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>Hãy làm cho đúng như vậy.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Được. Ta sẽ truyền tin đi.</Cell></Row>
@@ -1302,6 +1314,7 @@
   <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Xe cung thủ.</Cell><Cell>Xe cung thủ.</Cell></Row>
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Hàng rào gỗ.</Cell><Cell>Hàng rào gỗ.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Cổng trại.</Cell><Cell>Cổng trại.</Cell></Row>
+  <Row><Cell>ui_qm_rm_trader</Cell><Cell>Quầy của thương nhân.</Cell><Cell>Quầy của thương nhân.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Trong trại này chẳng có thứ đó.</Cell><Cell>Trong trại này chẳng có thứ đó.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Hãy quyết xem ai sẽ theo ta ra trận.</Cell><Cell>Hãy quyết xem ai sẽ theo ta ra trận.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Khi ta dẫn người rời trại, ta muốn có đúng người sau lưng mình.</Cell><Cell>Khi ta dẫn người rời trại, ta muốn có đúng người sau lưng mình.</Cell></Row>
@@ -1344,4 +1357,23 @@
   <Row><Cell>merc_ui_camp_marker</Cell><Cell>Trại lính đánh thuê</Cell><Cell>Trại lính đánh thuê</Cell></Row>
   <Row><Cell>merc_ui_wait_marker</Cell><Cell>Lính đánh thuê đang chờ</Cell><Cell>Lính đánh thuê đang chờ</Cell></Row>
   <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Aleksej xứ Zaslawye</Cell><Cell>Aleksej xứ Zaslawye</Cell></Row>
+  <!-- Camp trader -->
+  <Row><Cell>ui_mercenary_trade_action</Cell><Cell>Giao dịch</Cell><Cell>Giao dịch</Cell></Row>
+  <Row><Cell>char_mercenary_trader_uiName</Cell><Cell>Thương nhân</Cell><Cell>Thương nhân</Cell></Row>
+  <Row><Cell>char_mercenary_trader_fullName</Cell><Cell>Thương nhân</Cell><Cell>Thương nhân</Cell></Row>
+  <Row><Cell>char_mercenary_trader_description</Cell><Cell>Người bán hàng theo đoàn quân.</Cell><Cell>Người bán hàng theo đoàn quân.</Cell></Row>
+  <Row><Cell>merc_trader_closed</Cell><Cell>Quầy hàng đã đóng.</Cell><Cell>Quầy hàng đã đóng.</Cell></Row>
+  <Row><Cell>merc_trader_broke</Cell><Cell>Thương nhân đã hết tiền - không thể trả hết.</Cell><Cell>Thương nhân đã hết tiền - không thể trả hết.</Cell></Row>
+  <Row><Cell>merc_trader_short</Cell><Cell>Bạn không đủ tiền - thương nhân đã lấy lại phần không trả nổi.</Cell><Cell>Bạn không đủ tiền - thương nhân đã lấy lại phần không trả nổi.</Cell></Row>
+  <Row><Cell>merc_n_trpaid</Cell><Cell>Thương nhân trả bạn:</Cell><Cell>Thương nhân trả bạn:</Cell></Row>
+  <Row><Cell>merc_n_trspent</Cell><Cell>Bạn trả thương nhân:</Cell><Cell>Bạn trả thương nhân:</Cell></Row>
+  <Row><Cell>merc_n_trpurse</Cell><Cell>| túi tiền của ông ta:</Cell><Cell>| túi tiền của ông ta:</Cell></Row>
+  <Row><Cell>merc_info_chest_locked</Cell><Cell>Hòm chứa đồ của bạn chưa khả dụng.</Cell><Cell>Hòm chứa đồ của bạn chưa khả dụng.</Cell></Row>
+  <!-- Camp trader dialogue -->
+  <Row><Cell>ui_merc_trader_root</Cell><Cell>Thương nhân</Cell><Cell>Thương nhân</Cell></Row>
+  <Row><Cell>ui_merc_trader_wares</Cell><Cell>Cho ta xem hàng của ngươi.</Cell><Cell>Cho ta xem hàng của ngươi.</Cell></Row>
+  <Row><Cell>merc_henry_trader_wares</Cell><Cell>Đưa hàng ra xem nào.</Cell><Cell>Đưa hàng ra xem nào.</Cell></Row>
+  <Row><Cell>merc_trader_wares_reply</Cell><Cell>Cứ lấy những gì trên quầy, còn thứ muốn bán thì bày ra đó. Xong xuôi ta tính sổ, rồi thanh toán một lần.</Cell><Cell>Cứ lấy những gì trên quầy, còn thứ muốn bán thì bày ra đó. Xong xuôi ta tính sổ, rồi thanh toán một lần.</Cell></Row>
+  <Row><Cell>ui_merc_trader_leave</Cell><Cell>Bây giờ thì không.</Cell><Cell>Bây giờ thì không.</Cell></Row>
+  <Row><Cell>merc_henry_trader_leave</Cell><Cell>Để lần khác.</Cell><Cell>Để lần khác.</Cell></Row>
 </Table>

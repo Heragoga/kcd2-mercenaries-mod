@@ -503,6 +503,15 @@
       </operations>
     </rule>
 
+    <rule name="soul_merc_trader">
+      <selectors>
+        <hasName name="soul_merc_trader" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_trader" />
+      </operations>
+    </rule>
+
     <!-- Aleksej of Zaslawye: his own talk-to role. soul_aleksej_double (the body double who
          dies at beat 9) deliberately has no rule here - he is never talked to. -->
     <rule name="soul_aleksej">

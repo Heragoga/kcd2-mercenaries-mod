@@ -374,6 +374,17 @@ python tools/kcdui check MyScreen.swf --xml MyScreen.xml --lua myscreen_atlas.lu
 That parses the SWF back and makes all three files agree on every clip name. `build` runs it
 for you automatically.
 
+If your mod has more than one screen, `tools/check_uistate.py` is the other kind of check:
+it loads the drivers into a real Lua interpreter (lupa), stubs the engine, and presses the
+keys. Mine are mutually exclusive - opening one closes the other - and that is an input rule
+more than a layout one, because two screens up at once both want the number row. Reading the
+code will not tell you which one gets it.
+
+`tools/check_blstate.py` is the third kind: it loads the drivers the same way, then calls
+the mod's own setters and asserts the screen agrees with them. A screen that keeps its own
+copy of a setting drifts from the thing it is reporting, and nothing on screen says so - it
+just shows a stale value confidently. See [command-ui.md](command-ui.md#what-the-screen-reads-back).
+
 For a real screen, copy `tools/check_campui.py` and adapt it. Every check in there exists
 because that failure reached the game silently, and I proved each one by deliberately putting
 the bug back:

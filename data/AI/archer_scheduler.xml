@@ -26,6 +26,16 @@
                  docs/formations.md, "The eviction race". This file is a parallel copy of
                  that scheduler and needs every fix made there. -->
             <Variable name="refireBlock"         type="_bool"                values="false"                             isPersistent="0" form="single" />
+
+            <!-- THE ENGINE'S OWN ANSWER to "is this man on his feet". Camp tables cannot answer
+                 it: a StanceElement torn off its tree leaves the pose running with every camp
+                 table already cleared, so the merc reads as an ordinary follower while the
+                 engine still has him pinned to a bed. GetStance asks the engine instead, and
+                 it is right whoever owns (or orphaned) the pose. See NoteStance. -->
+            <Variable name="myStance"            type="enum:stanceCategory"  values=""                                  isPersistent="0" form="single" />
+            <Variable name="myStanceObject"      type="_wuid"                values=""                                  isPersistent="0" form="single" />
+            <Variable name="stanceGrounded"      type="_bool"                values="false"                             isPersistent="0" form="single" />
+            <Variable name="standUpWanted"       type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Which follow-family behaviour is running: camp_actor (true) or follow (false). -->
             <Variable name="firedCampActor"     type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- Mirror of _G.PlayerMounted; keeps the self-heal from restarting a
@@ -262,6 +272,49 @@
                                         </Else>
                                     </EntityContextCheck>
                                 </IfCondition>
+                            </Sequence>
+                        </Loop>
+
+                        <!-- Stance heartbeat - see the twin in mercenary_scheduler.xml. -->
+                        <Loop count="-1">
+                            <Sequence>
+                                <SuppressFailure>
+                                    <Sequence>
+                                        <GetStance Npc="$this.id" Stance="$myStance" StanceObject="$myStanceObject" />
+                                        <IfElseCondition failOnCondition="false" condition="$myStance == $enum:stanceCategory.lying | $myStance == $enum:stanceCategory.sitting" saveVersion="2">
+                                            <Then canSkip="1">
+                                                <Expression expressions="$stanceGrounded = true" />
+                                            </Then>
+                                            <Else canSkip="1">
+                                                <Expression expressions="$stanceGrounded = false" />
+                                            </Else>
+                                        </IfElseCondition>
+                                        <ExecuteLua code="mercenaries:NoteStance(data, entity.this.id)" />
+                                        <!-- STAND HIM UP, AND KEEP STANDING HIM UP. The first build
+                                             of this fired once, at the head of follow.xml, and the log
+                                             showed exactly that: standUps=1 against men who were still
+                                             lying down minutes later. A single attempt cannot win -
+                                             taking a squad out of camp evicts and re-fires every tree
+                                             in the same couple of frames, so the one attempt is as
+                                             likely to be torn off as the pose it was trying to end.
+                                             Here it retries every poll until the ENGINE says he is on
+                                             his feet, which is the only condition that actually means
+                                             it worked. NoteStance decides when it is wanted: he is off
+                                             his feet and holds no camp role, i.e. lying down is simply
+                                             wrong for him. A man in his own camp bed is never touched.
+                                             `unstance` NAMES THE ACTION TO PLAY - it does not mean
+                                             "un-stance from this" - and waiting_armsCrossed is a plain
+                                             standing emote whose In fragment (WaitingStandIn) is the
+                                             transition that breaks the pose. It needs nothing in his
+                                             hands, so locationObject stays empty. -->
+                                        <IfCondition failOnCondition="false" condition="$standUpWanted">
+                                            <SuppressFailure>
+                                                <UnstanceAction unstance="waiting_armsCrossed" locationObject="" slaveObject="" />
+                                            </SuppressFailure>
+                                        </IfCondition>
+                                    </Sequence>
+                                </SuppressFailure>
+                                <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="'300ms'" />
                             </Sequence>
                         </Loop>
 

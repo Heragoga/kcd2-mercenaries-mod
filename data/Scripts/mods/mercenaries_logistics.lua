@@ -68,6 +68,7 @@ mercenaries.UpgHunterMinCamp     = 2
 mercenaries.UpgSmithyCost        = 3000
 mercenaries.UpgSmithyPct         = 20
 mercenaries.UpgAlchemyCost       = 3000
+mercenaries.UpgTraderCost        = 2500        -- the sutler's stall: a shop that follows the company
 mercenaries.UpgPracticeCost      = 1000
 mercenaries.PracticeMaxLevel     = 6
 mercenaries.PracticePctPerLevel  = 8
@@ -188,6 +189,13 @@ function mercenaries:LogiState()
             foodCartDays = 0, innDays = 0, hunterSpots = 0,
             hasSmithy = false, hasAlchemy = false, hasPracticeYard = false, hasHouse = false, trainLevel = 0,
             hasTower = false, hasArcherCart = false,
+            -- The trader's stall. traderPurse is what the sutler is carrying, and nil
+            -- until the first stall is built (see SpawnCampTrader).
+            hasTrader = false, traderPurse = nil, traderRestockDay = nil,
+            -- How many item classes were on his counter when it was last written. A
+            -- runtime Stash loses its GENERATED stock across a save, and this is how
+            -- that is told apart from the player buying him out - see TraderSpawnStock.
+            traderStockN = nil,
             deployArchers = "same", deployPick = "best",
             lastUpkeepDay = nil, lastTick = nil,
             -- runtime combat tracking
@@ -337,6 +345,10 @@ function mercenaries:LogiSave()
     self:LogiSaveField("QMTrainLevel", L.trainLevel)
     self:LogiSaveField("QMTower", L.hasTower and 1 or 0)
     self:LogiSaveField("QMArcherCart", L.hasArcherCart and 1 or 0)
+    self:LogiSaveField("QMTrader", L.hasTrader and 1 or 0)
+    if L.traderPurse ~= nil then self:LogiSaveField("QMTraderPurse", math.floor(L.traderPurse)) end
+    if L.traderRestockDay ~= nil then self:LogiSaveField("QMTraderRestock", L.traderRestockDay) end
+    if L.traderStockN ~= nil then self:LogiSaveField("QMTraderStockN", L.traderStockN) end
     -- Deploy composition (see CampSetComposition): saved so the party you asked for is
     -- still the party you get after a reload.
     self:LogiSaveField("QMDeployArchers", L.deployArchers or "same")
@@ -373,6 +385,10 @@ function mercenaries:LogiLoad()
     L.trainLevel      = num("QMTrainLevel", 0)
     L.hasTower        = num("QMTower", 0) == 1
     L.hasArcherCart   = num("QMArcherCart", 0) == 1
+    L.hasTrader       = num("QMTrader", 0) == 1
+    local tp          = self:LoadString("QMTraderPurse");   L.traderPurse     = tp and tonumber(tp) or nil
+    local tr          = self:LoadString("QMTraderRestock"); L.traderRestockDay = tr and tonumber(tr) or nil
+    local tn          = self:LoadString("QMTraderStockN");   L.traderStockN     = tn and tonumber(tn) or nil
     L.deployArchers   = self:LoadString("QMDeployArchers") or "same"
     L.deployPick      = self:LoadString("QMDeployPick") or "best"
     L.foodHistory = {}
@@ -862,6 +878,11 @@ function mercenaries:LogiTick()
         -- One evening summary, after any upkeep, listing the day's tallies.
         if didUpkeep then self:LogiEveningSummary() end
 
+        -- The sutler goes out for goods every few days: a fresh stall and a full purse.
+        -- Checked every tick rather than only on an upkeep day, so a stall bought
+        -- mid-week still restocks on schedule.
+        if L.hasTrader and self.TraderRestock then pcall(function() self:TraderRestock(false) end) end
+
         self:LogiReconcile()
         self:LogiDesertionTick(dt)
         self:LogiApplyBuffs()
@@ -1076,8 +1097,10 @@ function mercenaries:LogiRemoveAllUpgrades()
     L.trainLevel      = 0
     L.hasTower        = false
     L.hasArcherCart   = false
+    L.hasTrader       = false
 
     pcall(function() self:DespawnCampFoodCart() end)
+    pcall(function() self:TraderDropStock() end)
     -- defences are per-pitch: take them down AND forget them, or they would come back
     -- with the camp rebuild below
     pcall(function() self:DefClearWorld() end)
@@ -1114,6 +1137,7 @@ mercenaries.UpgRemovable = {
     { key = "archercart", label = "archer carts" },
     { key = "wall",       label = "palisade" },
     { key = "gate",       label = "gates" },
+    { key = "trader",     label = "trader's stall" },
 }
 
 function mercenaries:LogiRemoveUpgrade(which)
@@ -1172,6 +1196,13 @@ function mercenaries:LogiRemoveUpgrade(which)
     elseif k == "gate" then
         had = (self:GateCount() or 0) > 0
         pcall(function() self:GateClearAll() end)
+    elseif k == "trader" then
+        had = L.hasTrader == true
+        L.hasTrader = false
+        -- The stock and the purse go with him: what is left on the counter is his,
+        -- not the company's, and a stall bought again is a new man with new goods.
+        pcall(function() self:TraderDropStock() end)
+        rebuild = true
     end
 
     if not had then
@@ -1221,6 +1252,17 @@ function mercenaries:LogiBuyAlchemy()
     if L.hasAlchemy then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
     if not self:LogiSpend(self.UpgAlchemyCost) then return end
     L.hasAlchemy = true; self:LogiApplyBuffs(); self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
+    self:LogiRebuildCampForUpgrade()
+end
+function mercenaries:LogiBuyTrader()
+    local L = self:LogiState()
+    if L.hasTrader then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
+    if not self:LogiSpend(self.UpgTraderCost) then return end
+    L.hasTrader = true
+    -- A new sutler arrives with a full purse and a full stall.
+    L.traderPurse = self.TraderPurseFull
+    L.traderRestockDay = self:LogiUpkeepDay()
+    self:LogiSave(); Game.SendInfoText('merc_logi_upg_bought', false, 0, 4)
     self:LogiRebuildCampForUpgrade()
 end
 function mercenaries:LogiBuyHouse()

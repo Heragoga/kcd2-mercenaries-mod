@@ -265,7 +265,7 @@ the mod already knows how to hold ground, follow, form up and pick an engagement
 | Move to Position | enters placement mode - see below |
 | Follow Me | `HoldEnd` - back to following |
 | Stop | `HoldBegin()` with no anchor, which is stand-fast on the ground each man is already on |
-| Charge | attack anything hostile, and see much further - below |
+| Charge | **kill everything in sight** for 30s, and see much further - below |
 | Retreat | move away from the fight and stand - see below |
 | Formation | `SetFormationShape`, which resolves the preset name on the spot |
 | Fire at Will / Holding Fire | `SetArcherStance` skirmish / hold |
@@ -282,8 +282,10 @@ which is what a player who never touched the number row expects.
 
 ### Charge
 
-Two halves. `SetEngageStance("aggressive")` is the *acceptance* half - it is `EngageOrder`'s
-"attack anyone". The *seeing* half is the scan radius: `mercenaries_perf.lua` picks it as
+Two halves. `SetEngageStance("viking", true)` is the *acceptance* half - it is
+`EngageOrder`'s top rung, and it **does not care who anybody is**. A charge ordered
+within `BLChargeRadius` (140m) of a village is an order to sack the village; `BLCharge`
+raises the same `VikingWarn` that picking the stance by hand does. The *seeing* half is the scan radius: `mercenaries_perf.lua` picks it as
 "alerted and `EnemyAlertRadius`, or `EnemyScanRadius`" (60m vs 18m), so a charge forces the
 alert on and raises the radius to `BLChargeRadius` (140m) for `BLChargeSecs` (30s).
 
@@ -291,6 +293,17 @@ The alert's own clock is `_alertAt` + `EnemyAlertHoldSecs`, stamped on contact -
 stamps it too, so the ordinary decay cannot close the alert mid-advance. The radius is put
 back to `EnemyAlertRadiusDefault` on a generation-guarded timer: a 140m query left running is
 the expensive one.
+
+**Both halves are temporary, and the stance half did not used to be.** The timer restored
+the radius alone, so one charge left the company on "attack on sight" for the rest of the
+session — and `SetEngageStance` persists the stance, so across saves too. The player
+charged a camp, won, rode into town, and had no idea his standing order had changed. The
+timer now puts the stance back as well, and only if the charge's own `viking` is still
+the one in force (a stance the player picked himself mid-charge means that and is not
+overruled 30s later). The charge's stance change is `transient` — it is deliberately not
+written to the save, because `SetTimerForFunction` timers **do not survive a save load**
+while a saved string does, so a save taken mid-charge used to come back on `viking` with no
+timer left to put it right.
 
 ### Retreat
 
@@ -627,7 +640,7 @@ cannot issue:
 | Wheel | Source |
 |---|---|
 | Formation | `mercenaries.FormationShapeOrder` |
-| Engagement | `mercenaries.EngageOrder` - Engage at will / Attack anyone / Defend only / Hold your blades |
+| Engagement | `mercenaries.EngageOrder` - Engage at will / Viking: kill everyone / Defend only / Hold your blades |
 | Swarm | `mercenaries.AggroOrder` - Tight ranks / Balanced / Swarm them |
 
 Engagement and Swarm are multi-state settings, not toggles: each press steps to the next
@@ -691,10 +704,67 @@ prints any glyph it had to stand in for, and prints nothing when there are none.
 [outfits.md](outfits.md). Those belong to the camp/outfit screen, not this one, and are not
 in this atlas.
 
+## What the screen reads back
+
+Every button and every lit wheel slot shows what the company is **actually set to**, read out
+of the mod on each draw by `BLReadState`. Nothing on this screen keeps its own copy of a
+setting: `BL.state` is a cache the layout refreshes and the presses write optimistically, so
+an order that is refused or clamped puts its own button back.
+
+That was not always so. `BL.state` used to be a table of defaults seeded when the driver
+loaded and written only by this screen's own presses, and everything set from the console,
+from the quartermaster's dialogue or restored by a save was contradicted the moment the
+screen opened. Horses ship **on** and the button opened on "Dismounted"; a company holding
+fire read "Firing at will"; a wedge read "Line".
+
+| Shown | Read from |
+|---|---|
+| Movement | `SquadOrder[i]`, cross-checked against `HoldStations` |
+| Formation | `mercenaries.FormationShape` |
+| Fire at Will | `_G.ArcherStance` - `skirmish` is on, anything else is off |
+| Mounted | `mercenaries:HorsesAllowed()` |
+| Engagement | `_G.MercEngage` |
+| Swarm | `_G.MercAggro` |
+| Weapons (melee) | `SquadWeapon[i]`, else `_G.MercCurrentWeapon` |
+| Weapons (ranged) | `mercenaries:GetArcherWeaponType()` - company-wide, never per squad |
+| Clothing | `SquadOutfit[i]`, else `_G.MercCurrentOutfit` |
+
+Two of those need the cross-check rather than the record alone:
+
+**A ground order outlives its stations.** `SquadOrder` is the last order *given*;
+`HoldDropGroup`, a rally and every gameplay start clear the stations while the record stays
+put. Without `BLSquadHeld` a reloaded save opened on "Move to Position" with the men trotting
+along behind the player. `BLOrdersOnLoad` now drops `SquadOrder`, `SquadWeapon` and
+`SquadOutfit` outright for the same reason - a load re-dresses and re-arms the whole company
+from `MercCurrentOutfit` / `MercCurrentWeapon`, so the per-squad records describe nothing.
+
+**A charge is a thirty-second window, not a standing order.** It reads as a charge only while
+`_blChargePrevStance` says one is in flight.
+
+A live setting with **no wheel entry** is never written into `BL.state`: `FormationShape`
+"vanilla" and `ArcherStance` "melee" have no clip, and a button asked for a clip that does not
+exist draws nothing at all - it would vanish rather than lie. The formation button keeps the
+last real shape; `melee` reads as not firing, which is what men with the bow on their back are
+doing.
+
+`tools/check_blstate.py` is the gate: it runs the drivers in a real Lua interpreter, calls the
+mod's own setters, and asserts both that `BL.state` agrees with them and that every value it
+can produce names art in the atlas.
+
+### The archers' weapon wheel
+
+Picking Bow, Crossbow or Hand Cannon goes to `SetArcherWeaponType`, not down the per-man
+`EquipMercenaryWeapon` path the melee loadouts use. `EquipMercenaryWeapon` throws away the
+index it is handed for an archer and re-equips him from that company-wide setting instead
+(see [archers.md](archers.md)), so a ranged pick used to light the wheel's icon and change
+nothing - the men kept the weapon they had.
+
 ## Wiring it to the real company
 
-`mercenaries.BLSquadSource` returns the card data and currently returns a fixed roster.
-Replace it to drive the cards off the real squads:
+`mercenaries.BLSquadSource` returns the card data, and `mercenaries_blorders.lua` drives it
+off the real squads - troop type, headcount, mean health, casualties and the squad's live
+state, all from [mercenaries_squads.lua](../data/Scripts/mods/mercenaries_squads.lua).
+Replace it to drive the cards off something else:
 
 ```lua
 mercenaries.BLSquadSource = function()
@@ -702,6 +772,5 @@ mercenaries.BLSquadSource = function()
 end
 ```
 
-`type` must be one of `BLAtlas.troopTypes`, `order` one of the movement keys. Picking an
-order currently only updates the interface's own state - nothing is routed into the squad
-behaviour yet.
+`type` must be one of `BLAtlas.troopTypes` and `order` one of the movement keys - plus
+`camp`, which is a card state rather than an order.

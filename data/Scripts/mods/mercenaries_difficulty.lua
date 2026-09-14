@@ -16,10 +16,14 @@
 
 mercenaries.DifficultyOrder = { "easy", "medium", "difficult", "extreme", "impossible", "horde" }
 
+-- `qualityBias` is how often a biased tier actually draws from its favoured half of the
+-- wardrobe, overriding DifficultyQualityBias for that tier. The default tier skews poor
+-- but only just: half the line in the ragged half is a company of raiders who mostly
+-- cannot afford plate, while easy's 0.7 is one that visibly cannot.
 mercenaries.DifficultyTiers = {
-    easy       = { countMult = 0.8, quality = "low",   label = "Easy" },
-    medium     = { countMult = 1.2, quality = "mixed", label = "Medium" },
-    difficult  = { countMult = 1.4, quality = "mixed", label = "Difficult" },
+    easy       = { countMult = 0.4, quality = "low",   qualityBias = 0.7, label = "Easy" },
+    medium     = { countMult = 0.6, quality = "low",   qualityBias = 0.5, label = "Medium" },
+    difficult  = { countMult = 1.0, quality = "mixed", label = "Difficult" },
     extreme    = { countMult = 1.5, quality = "high",  label = "Extreme" },
     impossible = { countMult = 2.0, quality = "high",  label = "Impossible" },
     horde      = { countMult = 4.0, quality = "low",   label = "Horde" },
@@ -30,14 +34,16 @@ mercenaries.Difficulty = "medium"
 -- Count-encoded from the quartermaster dialog: Amount 1..6 indexes DifficultyOrder.
 mercenaries.TokenIDQMDifficulty = "679a655e-189d-4519-b437-ccc4b92bee8d"
 
--- Medium is the reference tier: at 1.2 every hard ceiling keeps the value it was
--- tuned with, and "mixed" quality is byte-identical to the old flat random draw.
--- Anything harsher scales the ceilings so the multiplier is not silently clipped.
+-- The multiplier the hard ceilings (RaidMaxCount and friends) were tuned at. At or below
+-- it every ceiling keeps the value it was authored with; anything harsher scales them so
+-- the multiplier is not silently clipped. It is NOT "whatever medium happens to be" - the
+-- default tier came down to 0.6 and the ceilings did not move with it, because a cap of
+-- fourteen raiders is a cap on what the camp fight can stage, not a difficulty knob.
 mercenaries.DifficultyBaseMult = 1.2
 
--- How often a biased tier actually draws from its favoured half of the wardrobe.
--- Not 1.0: "favour low armour" should still put the odd decent breastplate in the
--- line, or every easy fight looks identically ragged.
+-- Fallback for a tier that names no `qualityBias` of its own. Not 1.0: "favour low
+-- armour" should still put the odd decent breastplate in the line, or every easy fight
+-- looks identically ragged.
 mercenaries.DifficultyQualityBias = 0.7
 
 local function diffLog(s) System.LogAlways("[Difficulty] " .. s) end
@@ -87,6 +93,10 @@ end
 
 function mercenaries:DifficultyQuality()
     return self:DifficultyTier().quality or "mixed"
+end
+
+function mercenaries:DifficultyQualityBiasNow()
+    return self:DifficultyTier().qualityBias or self.DifficultyQualityBias
 end
 
 -- ==== counts ====
@@ -183,7 +193,7 @@ function mercenaries:DiffPickClothing(groupKey)
 
     local w    = self:DiffWardrobe(groupKey)
     local half = (q == "low") and w.low or w.high
-    if #half > 0 and math.random() < self.DifficultyQualityBias then
+    if #half > 0 and math.random() < self:DifficultyQualityBiasNow() then
         return half[math.random(1, #half)]
     end
     return nil
@@ -259,10 +269,10 @@ end
 -- no wages, no morale drift.
 mercenaries.UpkeepOrder = { "off", "lenient", "standard", "harsh" }
 mercenaries.UpkeepModes = {
-    off      = { label = "Upkeep off",       feed = 1.0,  yield = 1.0  },
-    lenient  = { label = "Lenient upkeep",   feed = 1.4,  yield = 1.25 },
-    standard = { label = "Standard upkeep",  feed = 1.0,  yield = 1.0  },
-    harsh    = { label = "Harsh upkeep",     feed = 0.65, yield = 0.7  },
+    off      = { label = "Upkeep off",       feed = 1.0,  yield = 1.0,  info = 'merc_info_upkeep_off' },
+    lenient  = { label = "Lenient upkeep",   feed = 1.4,  yield = 1.25, info = 'merc_info_upkeep_lenient' },
+    standard = { label = "Standard upkeep",  feed = 1.0,  yield = 1.0,  info = 'merc_info_upkeep_standard' },
+    harsh    = { label = "Harsh upkeep",     feed = 0.65, yield = 0.7,  info = 'merc_info_upkeep_harsh' },
 }
 mercenaries.Upkeep = "standard"
 mercenaries.TokenIDQMUpkeep = "679a655e-189d-4519-b437-ccc4b92beebd"
@@ -321,7 +331,7 @@ function mercenaries:UpkeepSet(name)
     local m = self.UpkeepModes[name]
     diffLog(string.format("%s (one food unit feeds %.1f men a day, spoils x%.2f)",
         m.label, self.FeedRatio, m.yield or 1.0))
-    Game.SendInfoText(m.label, false, 0, 4)
+    Game.SendInfoText(m.info or 'merc_info_upkeep_standard', false, 0, 4)
     return true
 end
 
@@ -414,8 +424,11 @@ end
 -- ==== status ====
 function mercenaries:DifficultyStatus()
     local t = self:DifficultyTier()
-    diffLog(string.format("%s (%s): up to %.1f enemies per man, %s armour",
-        self.Difficulty, t.label, t.countMult, t.quality))
+    diffLog(string.format("%s (%s): up to %.1f enemies per man, %s armour%s",
+        self.Difficulty, t.label, t.countMult, t.quality,
+        (t.quality == "low" or t.quality == "high")
+            and string.format(" (%.0f%% of the draw)", self:DifficultyQualityBiasNow() * 100)
+            or ""))
     diffLog(string.format("raid ceiling %d, patrol gang ceiling %d, live patrolmen %d",
         self:DifficultyCeil(self.RaidMaxCount or 14),
         self:DifficultyCeil(self.PatrolMaxMen or 16),

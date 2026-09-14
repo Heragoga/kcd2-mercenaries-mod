@@ -39,7 +39,53 @@ The corpse scan is a full-class scan, so it runs **once per battle**, never per 
 
 Corpse liveness is tested **positively** (`actor:IsDead()` or `health <= 0`). `not IsAliveAndWell(ent, true)` is not a corpse test — it also catches a missing actor/soul or a failed `GetState`, which would put half-loaded entities on the list.
 
-Enemy corpses are never despawned by this mod, so the window is bounded only by the timer. Merc corpses are removed ~10 s after death, so your own dead are gone before the sweep starts.
+Enemy corpses are never despawned by this mod, so the window is bounded only by the timer. Merc corpses are removed after `MercCorpseSecs` (600 s, `mercenaries_util.lua`), so your own dead lie where they fell for the whole sweep and well past it — they are never sweep targets, only scenery.
+
+## How long bodies stay
+
+Nothing in the game has a single "corpse timer" — four different owners decide, and only the
+first two are the mod's:
+
+| whose body | removed by | when |
+|---|---|---|
+| Roaming patrolmen | `mercenaries_patrols_live.lua` | `PatrolCorpseSecs` (1200 s) after the gang dies, or as soon as the player is more than `PatrolDespawnRange` (500 m) from the route point, or when the total across all gangs passes `PatrolMaxCorpses` (20) and the pile is older than `PatrolCorpseGraceSecs` (120 s) |
+| Mercenaries | `PruneMercCache` → `DespawnMerc` (`mercenaries_util.lua`) | `MercCorpseSecs` (600 s) after death |
+| Ambush enemies | `AmbushDespawnActive` | distance only — the player leaves `AmbushForgetRange` (250 m). No clock |
+| Everyone else (bandit camps, raids, vanilla NPCs) | the engine | `CorpseDisappearanceTimeUndiscovered` (21600) / `CorpseDisappearanceTimeDiscovered` (10800), both **seconds of GameTime**, set in `data/libs/tables/rpg/rpg_param__mercenaries.xml` |
+
+Whatever the clock says, a corpse also goes on a **level change** (the level owns the
+entity) and on a **load** — `RebuildMercCache`'s load sweep removes any mod NPC the save
+carried with no live record behind it, corpses included.
+
+### The engine's own clock, and why it is the one that bites
+
+The engine figure is what governs most bodies, and **it is GameTime, not real time** — the
+official wiki gives the units and the second default, which the vanilla table never
+authors:
+
+| constant | vanilla | in the vanilla table? | now |
+|---|---|---|---|
+| `CorpseDisappearanceTimeUndiscovered` | 3600 s GameTime (~5 real min) | yes, `rpg_param.xml` line 82 | 21600 (~30 real min) |
+| `CorpseDisappearanceTimeDiscovered` | 300 s GameTime (~20 real sec) | **no** — compiled default | 10800 (~15 real min) |
+
+At KCD2's day length a game second is worth roughly a twelfth of a real one, which is why
+vanilla bodies go so fast and why raising the mod-side timers alone would not have been
+felt outside the roaming patrols. Both are `wh::rpgmodule::Constants` fields bound by name
+in `sub_CE3F40`, filled in from the table; `data/libs/tables/rpg/rpg_param__mercenaries.xml`
+carries the new pair.
+
+**Two different merge cases in that one file, and only one of them is proven.**
+`...Discovered` is absent from the vanilla table, so it is a plain insert — the case the
+`__mercenaries` merge is known to handle (`perk_rpg_param_override`, "lines added: 2").
+`...Undiscovered` is authored at 3600, so its row is a duplicate-key *override*, which is
+untested for `rpg_param`. `kcd.log` says which happened: look for `Table 'rpg_param' is
+patched by 'rpg_param__mercenaries'`. Deleting the file puts every body back on vanilla's
+clock.
+
+Two things this is **not**. `wh_rpg_CorpseDisappearAddedDelay` (cvar, default 60000) is
+only the retry delay used when a despawn is deferred because the player is standing too
+close — not a lifetime. And `NPCSpawnMinDistanceFromPlayer` (30 m) already means no corpse
+ever disappears while you are that close to it, whatever the clock says.
 
 ## Distance is the whole safety story
 

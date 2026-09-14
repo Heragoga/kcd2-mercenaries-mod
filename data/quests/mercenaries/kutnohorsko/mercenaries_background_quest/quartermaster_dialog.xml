@@ -100,6 +100,7 @@
                 <Port Name="quartermaster_rm_archercart" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_rm_wall" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_rm_gate" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_trader" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_comp_arch_same" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_comp_arch_none" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_comp_arch_qtr" Direction="Out" Type="trigger" />
@@ -1312,6 +1313,11 @@
                                                 <Sequence EndType="EndDialogue" Name="seq_qm_rm_gate">
                                                     <UiPrompt StringName="ui_qm_rm_gate" />
                                                     <Triggers><Port Name="quartermaster_rm_gate" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_trader">
+                                                    <UiPrompt StringName="ui_qm_rm_trader" />
+                                                    <Triggers><Port Name="quartermaster_rm_trader" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
                                                 </Sequence>
                                                 <Sequence EndType="GoTo" GoToDecision="dec_qm_upgrades" Name="seq_qm_removeone_back">

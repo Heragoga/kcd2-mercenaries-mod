@@ -70,6 +70,7 @@ IMPROVEMENTS = [
     ("hunter",     "hunting_spot",     "Hunter's Station", "UpgHunterCost"),
     ("smithy",     "smithy",           "Smithy",           "UpgSmithyCost"),
     ("alchemy",    "alchemy_bench",    "Alchemy Bench",    "UpgAlchemyCost"),
+    ("trader",     "trader",           "Trader",           "UpgTraderCost"),
     ("practice",   "practice_yard",    "Practice Yard",    "UpgPracticeCost"),
     ("house",      "player_house",     "Player House",     "UpgHouseCost"),
     ("circle",     "tent_circle",      "Tent Circle",      None),
@@ -80,6 +81,12 @@ IMPROVEMENTS = [
     ("stonewall",  "stone_wall",       "Stone Wall",       "UpgCastleWallCost"),
     ("gate",       "gate",             "Gate",             "UpgGateCost"),
 ]
+
+# The improvements list is the tallest thing either panel has to hold, so the panel is sized
+# to it rather than to a number somebody has to remember to raise. The Trader was the row
+# that made a hardcoded 572 clip its last entry; adding the next improvement now grows the
+# box instead. 16 is the bottom margin, matched to the gap above the first row.
+L["listH"] = (L["listY0"] - L["panelY"]) + len(IMPROVEMENTS) * L["listPitch"] + 16
 
 # What a button offers. Buy is hidden once owned, Relocate once placed - the driver picks,
 # the atlas carries all of them.
@@ -154,6 +161,7 @@ BONUS = {
     "hunter":     ("Feeds five men daily",       None),
     "smithy":     ("+20% in a fight",            None),
     "alchemy":    ("Draughts for the wounded",   None),
+    "trader":     ("Buys loot, sells supplies",  None),
     "practice":   ("The men drill each day",     "pct"),
     "house":      ("Your quarters, not a tent",  None),
     "tower":      ("An archer holds it",         None),
@@ -269,7 +277,7 @@ EXTRA = {}
 def art(name, n):
     """Pack glyph if there is one, drawn fallback otherwise."""
     packs = ("logistics-icons-v1", "camp-improvements-v2", "upgrade-actions-v1",
-             "camp-improvements-v1")
+             "camp-improvements-v1", "trader-upgrade-v1")
     for d in [B.ICONS, B.ICONS_ALT] + [os.path.join(ROOT, "assets", "ui", q) for q in packs]:
         if os.path.exists(os.path.join(d, name + ".png")):
             keep = B.ICONS

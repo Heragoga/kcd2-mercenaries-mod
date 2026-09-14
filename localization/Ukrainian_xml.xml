@@ -1112,7 +1112,7 @@
   <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>Супроводжувати його.</Cell></Row>
   <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>Правила бою</Cell></Row>
   <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>Атакувати на власний розсуд.</Cell></Row>
-  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>Атакувати кожного, хто оголить зброю.</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Kill everyone in sight.</Cell><Cell>Убивайте всіх, кого побачите.</Cell></Row>
   <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>Лише відбиватися.</Cell></Row>
   <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>Не оголювати зброю.</Cell></Row>
   <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>Як тиснути на ворога</Cell></Row>
@@ -1125,6 +1125,14 @@
   <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>Супроводжуємо.</Cell></Row>
   <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>Нікого супроводжувати.</Cell></Row>
   <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>На твоїх людей напали, а вони не оголюють зброю.</Cell></Row>
+  <Row><Cell>merc_info_engage_default</Cell><Cell>The men will engage at will.</Cell><Cell>The men will engage at will.</Cell></Row>
+  <Row><Cell>merc_info_engage_viking</Cell><Cell>The men will cut down every living soul in sight.</Cell><Cell>The men will cut down every living soul in sight.</Cell></Row>
+  <Row><Cell>merc_info_engage_defend</Cell><Cell>The men will defend themselves and no more.</Cell><Cell>The men will defend themselves and no more.</Cell></Row>
+  <Row><Cell>merc_info_engage_hold</Cell><Cell>The men will hold their blades.</Cell><Cell>The men will hold their blades.</Cell></Row>
+  <Row><Cell>merc_info_viking_warn</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell></Row>
+  <Row><Cell>merc_info_aggro_tight</Cell><Cell>Tight ranks. One man to an enemy.</Cell><Cell>Tight ranks. One man to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_balanced</Cell><Cell>Balanced. Two men to an enemy.</Cell><Cell>Balanced. Two men to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_loose</Cell><Cell>Swarm them. Three men to an enemy.</Cell><Cell>Swarm them. Three men to an enemy.</Cell></Row>
   <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>Шикуйсь.</Cell></Row>
   <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[Налаштування мода] Змінити, як працюють загін і мод.</Cell></Row>
   <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Поговорімо про те, як керувати ротою.</Cell></Row>
@@ -1163,6 +1171,10 @@
   <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>Екстремальна</Cell></Row>
   <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>Неможлива</Cell></Row>
   <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>Орда</Cell></Row>
+  <Row><Cell>merc_info_upkeep_off</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_lenient</Cell><Cell>Lenient upkeep. The food goes further.</Cell><Cell>Lenient upkeep. The food goes further.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_standard</Cell><Cell>Standard upkeep.</Cell><Cell>Standard upkeep.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_harsh</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell></Row>
   <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>Лиши все як є.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>Простеж, щоб так і було.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Гаразд. Поширю чутку.</Cell></Row>
@@ -1302,6 +1314,7 @@
   <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Вози для лучників.</Cell><Cell>Вози для лучників.</Cell></Row>
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Частокіл.</Cell><Cell>Частокіл.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Ворота.</Cell><Cell>Ворота.</Cell></Row>
+  <Row><Cell>ui_qm_rm_trader</Cell><Cell>Ятка торговця.</Cell><Cell>Ятка торговця.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Нічого такого в цьому таборі немає.</Cell><Cell>Нічого такого в цьому таборі немає.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Вирішімо, хто вирушить зі мною.</Cell><Cell>Вирішімо, хто вирушить зі мною.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Коли беру людей із табору, хочу мати за спиною тих, кого треба.</Cell><Cell>Коли беру людей із табору, хочу мати за спиною тих, кого треба.</Cell></Row>
@@ -1344,4 +1357,23 @@
   <Row><Cell>merc_ui_camp_marker</Cell><Cell>Табір найманців</Cell><Cell>Табір найманців</Cell></Row>
   <Row><Cell>merc_ui_wait_marker</Cell><Cell>Найманці, що чекають</Cell><Cell>Найманці, що чекають</Cell></Row>
   <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Олексій із Заслав'я</Cell><Cell>Олексій із Заслав'я</Cell></Row>
+  <!-- Camp trader -->
+  <Row><Cell>ui_mercenary_trade_action</Cell><Cell>Торгувати</Cell><Cell>Торгувати</Cell></Row>
+  <Row><Cell>char_mercenary_trader_uiName</Cell><Cell>Торговець</Cell><Cell>Торговець</Cell></Row>
+  <Row><Cell>char_mercenary_trader_fullName</Cell><Cell>Торговець</Cell><Cell>Торговець</Cell></Row>
+  <Row><Cell>char_mercenary_trader_description</Cell><Cell>Маркітант загону.</Cell><Cell>Маркітант загону.</Cell></Row>
+  <Row><Cell>merc_trader_closed</Cell><Cell>Ятка зачинена.</Cell><Cell>Ятка зачинена.</Cell></Row>
+  <Row><Cell>merc_trader_broke</Cell><Cell>У торговця скінчилися гроші - він не зміг заплатити за все.</Cell><Cell>У торговця скінчилися гроші - він не зміг заплатити за все.</Cell></Row>
+  <Row><Cell>merc_trader_short</Cell><Cell>Тобі нічим платити - торговець забрав те, що ти не зміг оплатити.</Cell><Cell>Тобі нічим платити - торговець забрав те, що ти не зміг оплатити.</Cell></Row>
+  <Row><Cell>merc_n_trpaid</Cell><Cell>Торговець платить:</Cell><Cell>Торговець платить:</Cell></Row>
+  <Row><Cell>merc_n_trspent</Cell><Cell>Ти платиш торговцеві:</Cell><Cell>Ти платиш торговцеві:</Cell></Row>
+  <Row><Cell>merc_n_trpurse</Cell><Cell>| його гаманець:</Cell><Cell>| його гаманець:</Cell></Row>
+  <Row><Cell>merc_info_chest_locked</Cell><Cell>Твоя скриня поки що недоступна.</Cell><Cell>Твоя скриня поки що недоступна.</Cell></Row>
+  <!-- Camp trader dialogue -->
+  <Row><Cell>ui_merc_trader_root</Cell><Cell>Торговець</Cell><Cell>Торговець</Cell></Row>
+  <Row><Cell>ui_merc_trader_wares</Cell><Cell>Покажи свій товар.</Cell><Cell>Покажи свій товар.</Cell></Row>
+  <Row><Cell>merc_henry_trader_wares</Cell><Cell>Нумо, що в тебе є.</Cell><Cell>Нумо, що в тебе є.</Cell></Row>
+  <Row><Cell>merc_trader_wares_reply</Cell><Cell>Бери з прилавка, що хочеш, а що продаєш - клади поруч. Як скінчиш, я все підрахую, тоді й розрахуємося.</Cell><Cell>Бери з прилавка, що хочеш, а що продаєш - клади поруч. Як скінчиш, я все підрахую, тоді й розрахуємося.</Cell></Row>
+  <Row><Cell>ui_merc_trader_leave</Cell><Cell>Не зараз.</Cell><Cell>Не зараз.</Cell></Row>
+  <Row><Cell>merc_henry_trader_leave</Cell><Cell>Іншого разу.</Cell><Cell>Іншого разу.</Cell></Row>
 </Table>

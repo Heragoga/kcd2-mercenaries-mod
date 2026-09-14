@@ -15,5 +15,9 @@
 		     his own management interface, not the squad-orders dialog. -->
 		<role role_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a55" metarole_name="NPC" role_name="role_mercenary_quartermaster" />
 		<role role_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b02" metarole_name="NPC" role_name="role_aleksej" />
+
+		<!-- The camp trader's own talk-to role, so pressing E on him opens his stall
+		     dialog and nothing else. -->
+		<role role_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7c02" metarole_name="NPC" role_name="role_mercenary_trader" />
 	</roles>
 </database>

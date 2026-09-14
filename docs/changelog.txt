@@ -1,9 +1,24 @@
+- Added your own chest beside the bed in the player tent: it holds the same things your stash does, so a camp is a place you can leave gear
+- Added a drying rack and a smokehouse beside the tent, both of them real: dry meat, fruit, mushrooms and herbs at one, smoke meat at the other
+- Fixed your own men knocking you about and riding you down: they and their horses now pass through you instead of shoving and trampling you (merc_nobump 0 puts it back)
+- Added a trader you can build in camp: a market stall and a sutler who sells potions, food, arrows and basic gear, and who buys anything you drag off a battlefield
+- He carries 25,000 groschen and restocks every three days, so a company can empty its packs without riding to Kuttenberg
+- His stall is the game's own market stall, the one every outdoor shop in Kuttenberg is built from, with his goods laid out on the counter
+- He has his own dialogue: ask to see his wares and he tells you to help yourself and lay out what you're selling, and that he'll do the reckoning when you close the counter
+- Fixed the trader's stall coming back empty after loading a save, holding nothing but the last thing you sold him
+- Changed how long the dead lie where they fell, everywhere: bodies now keep for about half an hour instead of five minutes, roadside gangs for twenty minutes instead of three, and your own fallen men for ten minutes instead of ten seconds
+- Changed the default difficulty: about half as many enemies per man, and fewer of them in good armour (the quartermaster still has the other five settings)
+- Changed camp raids so they never fall on a camp you have only just pitched, or the moment you wake up, wait or fast travel into one - you have to have been standing in the camp for a minute first
+- Changed raids and roadside gangs so the enemy takes turns: the same band no longer turns up twice running
 - Moved the H and U key prompts to the top right, off the corner where the game puts its own pickup and objective messages
 - Changed them to use the game's own key art and typeface instead of a drawn imitation
 - Added a setting to hide or move them: the quartermaster's Mod settings, or merc_hints / merc_hints_pos in the console
 - Changed the camp screen so its Close prompt moves beside the compass while the screen is open, clear of its own panels
 - Fixed thousands separators sitting too high, so the war chest reads 2,000 and not 2'000
 - Fixed the camp screen opening by itself after loading a save made while you were placing something
+- Fixed the command screen opening on the wrong settings: the buttons showed defaults instead of what the company was actually on, so a wedge read Line, holding fire read Firing at will, and horses read Dismounted while they were on
+- Fixed the command screen still showing a move order after loading a save, when the men were following you again
+- Fixed picking Bow, Crossbow or Hand Cannon on the command screen doing nothing - the archers kept the weapon they had
 
 
 === previous update, already published ===

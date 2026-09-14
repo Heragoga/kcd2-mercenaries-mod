@@ -173,7 +173,7 @@ TOGGLE = [
     # Engagement and swarm mirror mercenaries.EngageOrder / mercenaries.AggroOrder exactly -
     # same keys, same order - so the wheel cannot drift from the orders the mod can issue.
     ("engage", [("default",    "engagement_default",    "Engage at will"),
-                ("aggressive", "engagement_aggressive", "Attack anyone"),
+                ("viking",     "engagement_viking",     "Kill everyone"),
                 ("defend",     "engagement_defend",     "Defend only"),
                 ("hold",       "engagement_hold",       "Hold your blades")]),
     ("swarm",  [("tight",    "swarm_tight",    "Tight ranks"),

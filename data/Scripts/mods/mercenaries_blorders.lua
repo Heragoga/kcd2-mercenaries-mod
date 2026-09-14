@@ -165,6 +165,12 @@ end
 function mercenaries:BLOrdersOnLoad()
     BL.placing, BL.atkBlocked = false, false
     BL.flags = {}
+    -- The per-squad records are the last orders GIVEN, and nothing they describe survives a
+    -- load: OnGameplayStarted clears HoldStations, and it re-dresses and re-arms the whole
+    -- company from MercCurrentOutfit / MercCurrentWeapon. Left standing they are what had
+    -- the screen opening on orders nobody had given this session.
+    self.SquadOrder, self.SquadWeapon, self.SquadOutfit = {}, {}, {}
+    self._blChargePrevStance, self._blPrevOutfit = nil, nil
     flagChain, flagTicks = false, 0
     pcall(function() System.ExecuteCommand("unbind mouse1") end)
     pcall(function()
@@ -225,6 +231,14 @@ end
 -- excluded from HoldRoster (IsMercInCampProper / IsCampActor), so a ground order simply never
 -- reaches them - they stand in camp and the order looks ignored. Marking them out of the
 -- out-party is the camp's own way of saying "these men are with the player now".
+--
+-- This used to set the out-party flag and nothing else, which is a THIRD way out of camp
+-- doing a different subset of the teardown from CampTakeParty and CampDeployOne. The man kept
+-- his bed record and his claim on the shared bed (so the spot could never be reused), and
+-- nothing evicted the camp behaviour holding him in it - he was marched out of camp on paper
+-- while still lying in it. Do what the other two paths do, and defer the eviction for anyone
+-- mid-pose so camp_actor unwinds the StanceElement instead of having it torn off.
+-- See docs/camp.md, "That was not enough".
 function mercenaries:BLLeaveCamp(sel)
     if not self.CampActive then return 0 end
     local n = 0
@@ -232,12 +246,31 @@ function mercenaries:BLLeaveCamp(sel)
         for _, ent in ipairs(self:SquadMembers(i)) do
             local w = ent and (ent.this and ent.this.id or ent.id)
             if w and self:IsMercInCampProper(w) then
+                local posed = self:InCampPose(w)
+                pcall(function()
+                    local ka, kb = self:CampMercKeys(ent)
+                    for _, k in ipairs({ ka, kb }) do
+                        if k then
+                            if self.CampRoster then self.CampRoster[k] = nil end
+                            if self.CampActivities then self.CampActivities[k] = nil end
+                            if self.CampFurniture then self.CampFurniture[k] = nil end
+                            if self.CampPatrollers then self.CampPatrollers[k] = nil end
+                            self:ReleaseSpot(self.CampSeats or {}, k)
+                            self:ReleaseSpot(self.CampBeds or {}, k)
+                        end
+                    end
+                end)
                 pcall(function() self:CampSetOut(ent, true) end)
+                pcall(function() self:FollowStalled(ent, posed and self.CampPoseUnwindSecs or nil) end)
                 n = n + 1
             end
         end
     end
-    if n > 0 then log(n .. " man/men marched out of camp to take the order") end
+    if n > 0 then
+        if self.CampActorInvalidateAll then self:CampActorInvalidateAll() end
+        pcall(function() self:SaveCampOutParty() end)
+        log(n .. " man/men marched out of camp to take the order")
+    end
     return n
 end
 
@@ -340,10 +373,30 @@ end
 mercenaries.BLChargeRadius = mercenaries.BLChargeRadius or 140
 mercenaries.BLChargeSecs   = mercenaries.BLChargeSecs or 30
 
--- Attack anything hostile to the player, and look a long way for it. The stance does the
+-- Kill everything in front of you, and look a long way for it. The stance does the
 -- target-acceptance half; the radius does the seeing half.
+--
+-- THE ACCEPTANCE HALF IS NOW `viking`, WHICH DOES NOT CARE WHO ANYBODY IS. A charge
+-- ordered within BLChargeRadius (140m) of a village is an order to sack the village.
+-- That is the order working as specified, not a bug - but it is why BLCharge raises the
+-- same warning SetEngageStance does, and why the stance is transient and generation-
+-- guarded so it can never outlive the 30s window.
+--
+-- BOTH halves are temporary, and the stance half did not used to be: the timer restored
+-- the radius alone, so one charge order left the company on the top rung for the rest of
+-- the session AND across saves, because SetEngageStance persists it. The player charged a
+-- camp, won, rode into town, and had no idea what his standing order now was. That is
+-- survivable when the rung is "attack outlaws" and it is a massacre now, which is why
+-- the change is passed transient (never written to the save, because timers do not
+-- survive a load and a saved string does) and why the restore runs on a generation guard.
 function mercenaries:BLCharge()
-    self:SetEngageStance("aggressive")
+    -- Whatever they were on before the charge - captured before the change, and only on
+    -- the first charge of a chain, or a second order inside the window would record
+    -- "viking" as the thing to go back to.
+    if self._blChargePrevStance == nil then
+        self._blChargePrevStance = _G.MercEngage or "default"
+    end
+    self:SetEngageStance("viking", true)
     self.EnemyAlerted = true
     self.EnemyAlertRadius = math.max(self.EnemyAlertRadius or 60, self.BLChargeRadius)
     -- The alert decays EnemyAlertHoldSecs after the last contact (_alertAt), so stamping it
@@ -355,11 +408,19 @@ function mercenaries:BLCharge()
         if gen ~= mercenaries._blChargeGen then return end
         -- Never leave the 140m query running: it is the expensive one.
         mercenaries.EnemyAlertRadius = mercenaries.EnemyAlertRadiusDefault or 60
-        System.LogAlways("[MercOrder] charge alert expired, scan radius back to "
-            .. tostring(mercenaries.EnemyAlertRadius) .. "m")
+        local back = mercenaries._blChargePrevStance or "default"
+        mercenaries._blChargePrevStance = nil
+        -- Only if the charge's own stance is still the one in force: a player who picked
+        -- a stance himself mid-charge means that, and must not be overruled 30s later.
+        if (_G.MercEngage or "default") == "viking" and back ~= "viking" then
+            mercenaries:SetEngageStance(back, true)
+        end
+        System.LogAlways("[MercOrder] charge expired, scan radius back to "
+            .. tostring(mercenaries.EnemyAlertRadius) .. "m, engagement back to "
+            .. tostring(_G.MercEngage))
     end
     Script.SetTimerForFunction(self.BLChargeSecs * 1000, "mercenaries._blChargeRestore")
-    log(string.format("charge: attack anyone hostile, scan radius %dm for %ds",
+    log(string.format("charge: kill everything in sight, scan radius %dm for %ds",
         self.EnemyAlertRadius, self.BLChargeSecs))
 end
 
@@ -523,6 +584,10 @@ mercenaries.BLWeaponIndex = {
     shortsword = 6, mace = 7, axe = 8, polearm = 9,
     bow = 10, crossbow = 11, handcannon = 12,
 }
+-- The same table read the other way, so BLReadState can turn the company-wide
+-- _G.MercCurrentWeapon back into the key the wheel draws.
+mercenaries.BLWeaponKeyOf = {}
+for k, i in pairs(mercenaries.BLWeaponIndex) do mercenaries.BLWeaponKeyOf[i] = k end
 
 -- ChangeMercWeapon re-arms the WHOLE company, which is how an archer squad's loadout ended up
 -- putting hand cannons on the melee line. Equip the selected squads man by man instead -
@@ -530,6 +595,16 @@ mercenaries.BLWeaponIndex = {
 function mercenaries:BLWeapons(key)
     local idx = self.BLWeaponIndex[key]
     if not idx then log("no loadout for '" .. tostring(key) .. "'") return end
+    -- The archers' weapon type is ONE COMPANY-WIDE setting, and EquipArcherWeapon is the
+    -- only thing that reads it. EquipMercenaryWeapon throws away the index it is handed for
+    -- an archer and re-equips him from that setting instead, so a bow / crossbow / hand
+    -- cannon sent down the per-man path below lit the wheel's icon and changed nothing:
+    -- the men kept the weapon they had. See docs/archers.md.
+    if self.ArcherWeaponSets and self.ArcherWeaponSets[key] then
+        pcall(function() self:SetArcherWeaponType(key) end)
+        log("archer weapon type " .. key .. " (company-wide)")
+        return
+    end
     local sel, n = self:BLSelected(), 0
     for _, i in ipairs(sel) do
         for _, ent in ipairs(self:SquadMembers(i)) do
@@ -555,6 +630,8 @@ mercenaries.BLOutfitIndex = {
     custom = 7, prague = 8, sigismund = 9, red_star = 10, bergov = 11, nebakov = 12,
     semine = 13, pisek = 14, teutonic = 15, ruthard = 16, papal = 17,
 }
+mercenaries.BLOutfitKeyOf = {}
+for k, i in pairs(mercenaries.BLOutfitIndex) do mercenaries.BLOutfitKeyOf[i] = k end
 
 -- Scoped the same way as the loadout, and for the same reason.
 function mercenaries:BLOutfit(key)
@@ -666,6 +743,113 @@ function mercenaries:BLCamp()
         self:BLFlagClear(i)
     end
     log(string.format("%d man/men of squad(s) %s sent to camp", n, table.concat(sel, ",")))
+end
+
+-- ---------------------------------------------------------------- reading the state back
+--
+-- The row and the wheels report what the company is ACTUALLY set to. BL.state used to be a
+-- table of defaults seeded once when the file loaded and written only by this screen's own
+-- presses, so everything set from the console, from the quartermaster's dialogue or restored
+-- by a save was contradicted the moment the screen opened: a company holding fire read
+-- "Firing at will", a wedge read "Line", horses off read "Mounted". Each entry below names
+-- the one place the mod really keeps that setting, and BLLayout re-reads all of them on
+-- every draw. See docs/command-ui.md.
+
+-- Which keys a wheel actually has art for, taken from the atlas rather than restated here. A
+-- live setting with no entry - FormationShape "vanilla", ArcherStance "melee" - must never
+-- reach BL.state, or the button asks for a clip that does not exist and silently draws
+-- nothing at all.
+local wheelKeyCache = {}
+local function wheelKeys(cat)
+    local hit = wheelKeyCache[cat]
+    if hit then return hit end
+    local out = {}
+    for _, e in ipairs(((mercenaries.BLAtlas or {}).wheels or {})[cat] or {}) do
+        if e.key ~= "return" then out[e.key] = true end
+    end
+    -- An empty answer means the atlas was not there yet, so it is not worth remembering:
+    -- cached, it would refuse every real key for the rest of the session.
+    if next(out) then wheelKeyCache[cat] = out end
+    return out
+end
+
+-- Is this squad still standing on a station? SquadOrder records the last order GIVEN, and
+-- that record outlives the order itself: HoldDropGroup, a rally and every gameplay start
+-- clear the stations while it stays put, which is how a reloaded save opened on "Move to
+-- Position" with the men trotting along behind the player.
+function mercenaries:BLSquadHeld(i)
+    local st = self.HoldStations or {}
+    for key in pairs((self.Squads or {})[i] or {}) do
+        if st[key] then return true end
+    end
+    return false
+end
+
+local HELD_ORDER = { move = true, stop = true, retreat = true }
+
+-- What this squad is under, mapped onto the movement wheel. The wheel has no Camp entry, so
+-- quartered men read as following, which is what they do the moment they step out.
+function mercenaries:BLLiveMove(i)
+    local o = (self.SquadOrder or {})[i]
+    -- A charge is a thirty-second window, not a standing order. _blChargePrevStance is set
+    -- for exactly as long as one is in flight and cleared when it expires.
+    if o == "charge" then
+        return (self._blChargePrevStance ~= nil) and "charge" or "follow"
+    end
+    if HELD_ORDER[o] then return self:BLSquadHeld(i) and o or "follow" end
+    return "follow"
+end
+
+function mercenaries:BLReadState()
+    local st = BL and BL.state
+    if not st then return end
+    local first = self:BLSelected()[1] or 1
+
+    -- Siting a flag IS the move order, and nothing records it until the click lands.
+    st.move = BL.placing and "move" or self:BLLiveMove(first)
+
+    -- Shape is company-wide.
+    if wheelKeys("form")[self.FormationShape] then st.form = self.FormationShape end
+
+    -- Fire at will IS the archers' stance: skirmish shoots, hold stands down. "melee" is a
+    -- third stance a two-state button cannot show, and men who have put the bow away are
+    -- not firing at anything.
+    st.fire = ((_G.ArcherStance or "skirmish") == "skirmish") and "on" or "off"
+
+    local mounted = true
+    pcall(function() mounted = self:HorsesAllowed() end)
+    st.mount = mounted and "on" or "off"
+
+    local eng = _G.MercEngage
+    st.engage = (eng and (self.EngageCodeOf or {})[eng]) and eng or "default"
+    local agg = _G.MercAggro
+    st.swarm = (agg and (self.AggroPresets or {})[agg]) and agg or "balanced"
+
+    -- Loadout and clothing are per squad once this screen has touched them and company-wide
+    -- before that: _G.MercCurrentWeapon and _G.MercCurrentOutfit are what the dialogue, the
+    -- console and a loaded save set, and BLOrdersOnLoad drops the per-squad records for
+    -- exactly that reason.
+    local w = (self.SquadWeapon or {})[first]
+    if w and wheelKeys("wpnm")[w] then
+        st.wpnm = w
+    else
+        local k = (self.BLWeaponKeyOf or {})[_G.MercCurrentWeapon or 1]
+        if k and wheelKeys("wpnm")[k] then st.wpnm = k end
+    end
+
+    -- No per-squad branch for the archers: their weapon type is one company-wide setting,
+    -- which is also why BLWeapons routes a ranged pick to SetArcherWeaponType.
+    local t = "bow"
+    pcall(function() t = self:GetArcherWeaponType() end)
+    if wheelKeys("wpnr")[t] then st.wpnr = t end
+
+    local o = (self.SquadOutfit or {})[first]
+    if o and (self.BLOutfitIndex or {})[o] then
+        st.outfit = o
+    else
+        local k = (self.BLOutfitKeyOf or {})[_G.MercCurrentOutfit or 1]
+        if k then st.outfit = k end
+    end
 end
 
 -- ---------------------------------------------------------------- cards

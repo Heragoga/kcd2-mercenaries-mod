@@ -108,6 +108,73 @@ function mercenaries:ApplyKeepUpBuff(ent, buffId)
     if ok then self._keepUpDone[k] = true end
 end
 
+-- The company stops body-checking the player: no shove, no trample, no collision damage.
+-- Nothing in the game exposes "collision damage" as a switch, so the collision itself is
+-- what gets filtered out - the physics classes the player's own body carries are added to
+-- each merc's IGNORE mask, and a collision that never happens deals nothing. Bits are from
+-- the engine's g_PhysicsCollisionClass table; these two are gcc_player_all, the whole of the
+-- player's body. gcc_player_type is deliberately not here - that bit belongs to the
+-- avoidance family, not the physics body. See docs/collision-ghosting.md.
+mercenaries.GccPlayerCapsule = 0x400
+mercenaries.GccPlayerBody    = 0x800
+mercenaries.GccHorse         = 0x10000
+
+mercenaries.GhostMask      = 0x400 + 0x800
+-- A merc's mount ignores horses too: mounted, the body that gets rammed is your horse.
+mercenaries.GhostHorseMask = 0x400 + 0x800 + 0x10000
+mercenaries.GhostCollision = true
+
+function mercenaries:GhostCollisionOn()
+    if self._ghostLoaded == nil then
+        local v
+        pcall(function() v = self:LoadString("MercGhostCollision") end)
+        self.GhostCollision = (v ~= "0")
+        self._ghostLoaded = true
+    end
+    return self.GhostCollision
+end
+
+-- collisionClass* keys OR bits in, the *UNSET keys clear them, so this is additive in both
+-- directions and never disturbs the classes the entity was physicalised with.
+function mercenaries:ApplyCollisionGhost(ent, mask)
+    if not (ent and ent.SetPhysicParams and PHYSICPARAM_COLLISION_CLASS) then return false end
+    local key = self:GhostCollisionOn() and "collisionClassIgnore" or "collisionClassIgnoreUNSET"
+    return pcall(function()
+        ent:SetPhysicParams(PHYSICPARAM_COLLISION_CLASS, { [key] = mask or self.GhostMask })
+    end)
+end
+
+-- Horses are spawned by follow.xml's mount lifecycle, not by any Lua spawn path, so they are
+-- caught by name off the same query the orphan sweep already pays for.
+function mercenaries:GhostCollisionHorses()
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
+    if not pp then return 0 end
+    local n = 0
+    local horses = System.GetPhysicalEntitiesInBoxByClass(pp, 150.0, "Horse")
+    for _, h in pairs(horses or {}) do
+        local nm = h and h.GetName and h:GetName() or ""
+        if string.find(nm, 'MercenaryHorse_', 1, true) then
+            if self:ApplyCollisionGhost(h, self.GhostHorseMask) then n = n + 1 end
+        end
+    end
+    return n
+end
+
+function mercenaries:GhostCollisionSet(on)
+    self.GhostCollision = on and true or false
+    self._ghostLoaded = true
+    pcall(function() self:SaveString("MercGhostCollision", self.GhostCollision and "1" or "0") end)
+    local n = 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if self:ApplyCollisionGhost(ent) then n = n + 1 end
+    end
+    n = n + self:GhostCollisionHorses()
+    System.LogAlways('[Mercenary Jeff] merc collision with the player '
+        .. (self.GhostCollision and 'OFF - they pass through you' or 'ON - they are solid again')
+        .. ' (' .. n .. ' body/mount)')
+end
+
 -- Re-applied on a slow tick as well as at spawn: equipping clothing, a save/load, or anything
 -- that rebuilds the entity can drop these, and the whole symptom is something undoing render
 -- state behind us. The keep-up buff rides along on the same sweep so newly hired mercs and
@@ -116,6 +183,7 @@ function mercenaries:RefreshRenderPins()
     for _, ent in pairs(self.ActiveMercs or {}) do
         if self.RenderPin then self:EnsureMercIsAlwaysRendered(ent) end
         self:ApplyKeepUpBuff(ent)
+        if self:GhostCollisionOn() then self:ApplyCollisionGhost(ent) end
     end
 end
 
@@ -282,12 +350,16 @@ function mercenaries.RebuildMercCacheDelayed()
     if mercenaries.CampTorchOnLoad then pcall(function() mercenaries:CampTorchOnLoad() end) end
 end
 
+-- How long a dead merc's body stays on the ground before it is removed. He is off the
+-- roster the moment he dies (RebuildMercCache never re-adopts a corpse, and the load sweep
+-- clears any the save carried), so this is purely how long the battlefield keeps its dead.
+mercenaries.MercCorpseSecs = 600
 function mercenaries:PruneMercCache()
     for name, ent in pairs(self.ActiveMercs) do
         if not self:IsAliveAndWell(ent, true) then
             self.ActiveMercs[name] = nil
             self:MercDropClaim(ent.this and ent.this.id or ent.id)
-            Script.SetTimerForFunction(10000, "mercenaries.DespawnMerc", ent.id)
+            Script.SetTimerForFunction((self.MercCorpseSecs or 600) * 1000, "mercenaries.DespawnMerc", ent.id)
         elseif not self:IsCombatViable(ent) then
             -- Knocked out: keeps his roster slot (a false answer above schedules a
             -- despawn), but he is not fighting and must not hold a swarm-cap slot.
@@ -440,12 +512,15 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
         local rotatedDir = VectorUtils.Rotate2D(backDir, angleOffset)
         if rotatedDir then
             local checkVec = VectorUtils.Scale(rotatedDir, rayDistance)
-            -- Use ent_terrain + ent_static: ignore dynamic entities (NPCs, horses, etc.)
+            -- GroundMask: terrain, static geometry and rigid bodies - so a parked cart or a
+            -- woodpile blocks a bearing - but never ent_living, so a merc or a horse standing
+            -- in the way does not, which is what this comment always meant to say.
             -- Param 5 is a skip-entity ID, not an entity table. Passing the table made
             -- the engine log a parameter-type warning per ray AND ignore the skip, so the
             -- ray could hit the very entity it was cast from. Vanilla passes self.id.
             local hits = Physics.RayWorldIntersection(eyePos, checkVec, 2,
-                ent_terrain + ent_static, (pe and pe.id) or nil, nil, hitTable)
+                self.GroundMask and self:GroundMask() or (ent_terrain + ent_static),
+                (pe and pe.id) or nil, nil, hitTable)
 
             local clearDist = rayDistance
             if hits > 0 and hitTable[1] and hitTable[1].dist then
@@ -481,17 +556,33 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
         z = playerPos.z,
     }
 
-    -- Ground snap: start higher to avoid interior ceiling hits, use a separate hitTable
-    local groundHitTable = {}
-    local groundCheckStart = { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z + 5.0 }
-    local groundCheckDir  = { x = 0, y = 0, z = -100 }
-    local groundHits = Physics.RayWorldIntersection(groundCheckStart, groundCheckDir, 2,
-        ent_terrain + ent_static, nil, nil, groundHitTable)
-
-    if groundHits > 0 and groundHitTable[1] and groundHitTable[1].pos then
-        spawnPos.z = groundHitTable[1].pos.z
-    else
-        spawnPos.z = playerPos.z
+    -- Ground snap. This used to take the first surface a ray met 5m above the player's own
+    -- height, which is fine in a field and wrong next to a building: a one-storey roof sits
+    -- inside that 5m, so the ray found the roof and the man was put on it. That is where
+    -- the teleported stragglers were ending up. GroundSnap looks at the whole column and
+    -- answers with the ground.
+    --
+    -- When the chosen bearing turns out to be blocked by something standing on the ground -
+    -- a cart, a wall, a house - walk back in along it: the bearing was picked for clearance
+    -- at chest height, which says nothing about what is under foot further out. If the whole
+    -- bearing is blocked, keep the outermost answer, which is at least at GROUND level
+    -- rather than on top of the obstruction. Never the player's own spot: that is known-good
+    -- ground but it is also where he is standing, and a man put there is inside him.
+    local step = math.max(0.8, spawnDist / 4)
+    local d = spawnDist
+    local first = true
+    while self.GroundSnap and d >= 0.8 - 1e-6 do
+        local cand = { x = playerPos.x + bestDir.x * d, y = playerPos.y + bestDir.y * d, z = playerPos.z }
+        local g, clear = self:GroundSnap(cand)
+        if g and clear then
+            spawnPos = g
+            break
+        end
+        -- Nothing open along the bearing yet: keep the outermost ground-level answer, which
+        -- still beats the top of whatever is in the way.
+        if g and first then spawnPos = g end
+        first = false
+        d = d - step
     end
 
     return spawnPos, playerRot
@@ -660,7 +751,7 @@ end
 -- then falls through to the plain ground snap below exactly as an exhausted spiral did.
 -- See docs/performance.md.
 function mercenaries:FindValidGround(pos, refZ, maxRadius, step, maxTries)
-    if not pos then return pos end
+    if not pos then return pos, false end
     refZ = refZ or pos.z
     maxRadius = maxRadius or 3.0
     step = step or 0.5
@@ -668,19 +759,28 @@ function mercenaries:FindValidGround(pos, refZ, maxRadius, step, maxTries)
     local foot = self.CampMercFootprint or 0.6
     local tries = 0
 
+    -- The validator's edge test is the one part of it that fires rays of its own, so the
+    -- spiral runs without it and the winner pays for it once. A candidate that passes
+    -- everything else and then turns out to be the top of a log is rejected here and the
+    -- spiral carries on, which is the same answer at a fraction of the cost.
     local function try(x, y)
         if tries >= maxTries then return nil end
         tries = tries + 1
         local okv, v, gz = pcall(function()
-            local valid, groundZ = self:CampValidateSpot({ x = x, y = y, z = refZ }, refZ, foot)
+            local valid, groundZ = self:CampValidateSpot({ x = x, y = y, z = refZ }, refZ, foot, true)
             return valid, groundZ
         end)
-        if okv and v then return { x = x, y = y, z = gz } end
-        return nil
+        if not (okv and v) then return nil end
+        if self.GroundEdgeCheck and self.GroundGuard
+           and self:GroundEdgeCheck(x, y, gz, self.GroundEdgeFast, self.GroundEdgeFast) then
+            self:GroundNote(string.format('%.1f, %.1f is the top of something - looking further out', x, y))
+            return nil
+        end
+        return { x = x, y = y, z = gz }
     end
 
     local hit = try(pos.x, pos.y)
-    if hit then return hit end
+    if hit then return hit, true end
 
     local r = step
     while r <= maxRadius + 1e-6 and tries < maxTries do
@@ -688,16 +788,19 @@ function mercenaries:FindValidGround(pos, refZ, maxRadius, step, maxTries)
         for k = 0, n - 1 do
             local a = (k / n) * 2 * math.pi
             hit = try(pos.x + math.cos(a) * r, pos.y + math.sin(a) * r)
-            if hit then return hit end
+            if hit then return hit, true end
             if tries >= maxTries then break end
         end
         r = r + step
     end
 
-    -- Nothing clear nearby: best-effort plain snap.
-    local ok, snapped = pcall(function() return self:CampSnapToGround({ x = pos.x, y = pos.y, z = refZ }) end)
-    if ok and snapped then return snapped end
-    return pos
+    -- Nothing clear nearby: best-effort plain snap. The second return value says the search
+    -- failed, so a caller that can afford to wait (the straggler teleport) can decline to
+    -- put a man down here rather than drop him under a house. Callers that ignore it are no
+    -- worse off than before - the snap is at ground level, never on an object's roof.
+    local ok, snapped = pcall(self.CampSnapToGround, self, { x = pos.x, y = pos.y, z = refZ })
+    if ok and snapped then return snapped, false end
+    return pos, false
 end
 
 -- Check that an entity is alive and well (engine death/unconscious + health).

@@ -23,7 +23,7 @@
                             data.hasPost = false
                             data.hasFace = false
                             pcall(function()
-                                local p = mercenaries:GetQuartermasterPost()
+                                local p = mercenaries:GetQuartermasterPost(entity)
                                 if p then
                                     data.postPos.x = p.x
                                     data.postPos.y = p.y

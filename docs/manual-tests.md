@@ -121,6 +121,12 @@ you which residue costs the minute - that is the point of the exercise.
       `merc_stance_attack`: they do. `merc_stance_holdfire` with archers under fire: they hold.
 - [ ] **Dismiss.** `merc_dismiss` - everyone leaves, `merc_status` reports none, and no leftover
       NPC is standing about a minute later.
+- [ ] **No bumping** (docs/collision-ghosting.md). Stand still in a tight spot with 12 men
+      following, then stop dead in front of a mounted column at a gallop. Pass: no health lost,
+      no stagger, you walk through them. Then confirm nothing else broke on a ghosted merc - E
+      still opens the order wheel on him, he still blocks and takes hits in a fight, and he
+      still walks round scenery rather than through it. `merc_nobump 0` makes them solid again
+      live, without a reload.
 
 ## 3. Combat
 
@@ -160,6 +166,14 @@ you which residue costs the minute - that is the point of the exercise.
 - [ ] **Raid on camp.** `merc_raid_bandit 12` with a camp up, then `merc_raid_now`. Pass: they
       march on a gate rather than through the wall; the defence turns out; towers and archer
       carts are manned.
+- [ ] **A fresh camp is left alone.** Pitch a camp and stand in it. `merc_raid_status`. Pass:
+      it reports the camp has stood well under 12 in-game hours, and no scheduled raid comes
+      while it has (`merc_raid_now` still works - it is meant to ignore the rule).
+- [ ] **A time skip is not a raid cue.** In a settled camp, sleep or wait, then read
+      `merc_raid_status` at once. Pass: the "stood in it" clock is back at 0 and climbs again
+      only while you stand there in real time.
+- [ ] **The enemy takes turns.** Two raids in a row (`merc_raid_now`, resolve, again), then
+      `merc_enemy_rotation`. Pass: the second raid is a different group from the first.
 
 ## 5. Patrols and encounters
 

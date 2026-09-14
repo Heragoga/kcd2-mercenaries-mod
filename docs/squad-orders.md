@@ -7,7 +7,7 @@ and all available from the console:
 
 | Order | Console | Lives in |
 |---|---|---|
-| Engagement stance | `merc_engage_default\|aggressive\|defend\|hold` | `mercenaries_orders.lua` |
+| Engagement stance | `merc_engage_default\|viking\|defend\|hold` | `mercenaries_orders.lua` |
 | Aggression preset | `merc_aggro_tight\|balanced\|loose` | `mercenaries_orders.lua` |
 | Call a target | `merc_focus`, `merc_focus_clear` | `mercenaries_orders.lua` |
 | Hold this ground | `merc_hold`, `merc_hold_end` | `mercenaries_hold.lua` |
@@ -33,21 +33,68 @@ That is why the stance system is pure Lua. The one place it is enforced is
 
 ## The four stances
 
-| Stance | Retaliates | Starts fights | Who counts as an enemy |
+**The ladder only decides how freely the men start something with an OUTLAW.** It has
+nothing to say about anybody else: whoever has actually taken the player or a merc as his
+target is a legitimate target on every rung but `hold`, guard or not, and whoever has not
+is a target on no rung at all.
+
+| Stance | Fights whoever is attacking us | Starts fights | ...with whom |
 |---|---|---|---|
-| `default` | yes | yes | declared hostiles (relationship at the −1 floor) |
-| `aggressive` | yes | yes | ...plus anyone with a weapon drawn, whatever their faction |
-| `defend` | yes | **no** | declared hostiles |
 | `hold` | **no** | **no** | — |
+| `defend` | yes | **no** | — |
+| `default` | yes | yes | outlaws on sight, at the −1 floor or merely identified as one |
+| `viking` | yes | yes | **everyone** in sight — townsfolk and the watch included |
 
-`aggressive` is additive, not a replacement: the normal pass still runs first, so
-hostiles who have not drawn yet stay targetable exactly as before, and the extra
-pass only adds *armed* neutrals. It waives the relationship gate but keeps the
-drawn-weapon one, because **exactly one of the two hostility gates may be waived per
-path, never both** (see [combat-target-selection.md](combat-target-selection.md)) —
-waiving both turns every villager in a 60 m radius into a cached enemy.
+"Attacking us" is vetted, not taken on trust — the engine registers collisions as hits all
+day long. See [a bump is not an assault](combat-target-selection.md#a-bump-is-not-an-assault-aggressorconfirmed).
 
-`IsOwnSide` is the backstop that keeps the aggressive stance off the quartermaster
+`viking` is the one stance that waives **both** hostility gates — the relationship floor
+and the drawn-weapon test. Everywhere else that is forbidden (see
+[combat-target-selection.md](combat-target-selection.md)), because waiving both turns every
+villager in a 60 m radius into a cached enemy. Here that is the point.
+
+It is also the only stance that costs what a town used to cost. The armed early-out in
+`consider` is what makes a settlement cheap — about ten engine calls per bystander per pass
+became one — and `viking` is the single setting that turns it off. So the cache is capped at
+`VikingCacheMax` (40). That cap is a performance guard and **not** a mercy: as each target
+dies the next pass admits another, so nothing is spared, it just arrives in waves.
+
+`default` used to have a rung above it called `aggressive`, which took any **armed
+neutral**. That was wrong in the one place it shows: a town guard carries a halberd in
+his hands all day, so "armed" is his resting state, not a threat, and one charge order in
+a settlement put the company through the watch. What it was *meant* to add — outlaws who
+have not reached the −1 floor yet — is a hair's difference from `default`, so the two are
+merged and `default` now needs positive proof of an outlaw (`HostileKind`, see
+[combat-target-selection.md](combat-target-selection.md)) as well as the weapon.
+
+### ⚠ `viking`
+
+The freed top rung is a real change of behaviour rather than a nuance: **every living
+person in the alert radius, armed or not, hostile or not.** Both hostility gates and the
+townsman gate are waived at once. What `IsValidEnemy` still refuses is our own souls and
+heroes, the companion dog, the dying, and anyone fleeing or surrendering — so the squad
+does not spend the day chasing runners.
+
+It is loud about itself. `SetEngageStance` raises `VikingWarn` on the way in (an on-screen
+line plus a log line naming the consequences), and leaving the stance drops every claim,
+so a man still swinging at a baker stops when told to.
+
+Two practical notes:
+
+* **`VikingCacheMax` (40)** caps how many people it will hold in the cache at once. This
+  is a performance guard, not a mercy — viking admits everyone in range, which in
+  Kuttenberg is hundreds, and `PickCombatTarget` sweeps the cache per merc per tick.
+  As each target dies the next pass admits another, so nothing is spared; it arrives in
+  waves.
+* **The battle-line Charge order sets it, transiently, for 30 s.** A charge ordered
+  within `BLChargeRadius` (140 m) of a village is an order to sack the village. That is
+  the order working as specified — see [command-ui.md](command-ui.md#charge).
+
+Outside `viking`, **no stance, aggression preset or order makes the watch a target the
+squad will start on.** The townsman gate in `IsValidEnemy` sits above all of them; what
+gets past it is a man actually fighting us, and a target the player calls by name.
+
+`IsOwnSide` is the backstop that keeps the `viking` stance off the quartermaster
 and any spawned friend. `IsValidEnemy` filters by soul id, which misses those; that
 was harmless while the relationship floor did the work and is load-bearing now.
 

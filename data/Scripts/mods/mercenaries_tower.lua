@@ -237,16 +237,16 @@ mercenaries.TowerParts = {
       x = 0, y = 0, z = 0, qw = 1, qx = 0, qy = 0, qz = 0 },
 }
 
--- The tower has no stair of its own, so it keeps the rustic ladder and its Ladder_400
--- smart object. A 4 m ladder against a 3.25 m deck overtops it by about a metre, which
--- is how a ladder is leant against a platform anyway. Stood off the -Y side, clear of
--- the legs.
-mercenaries.TowerLadders = {
-    { model = "objects/manmade/common_fixtures/ladders/ladder_rustic_400.cgf", height = 4,
-      so = "Ladder_400", guid = "450aabee-95e7-4ff6-eca8-3d783b1664ae",
-      x = 0.85, y = -1.60, z = 0.00,
-      qw = 0.7064338, qx = 0.03084356, qy = -0.03084356, qz = -0.7064338 },
-}
+-- EMPTY ON PURPOSE. The tower has a staircase of its own in the visible mesh, and it is
+-- now collided step for step (see TowerColliders below), so the rustic ladder that used
+-- to be leant against the -Y side is gone - it stood in front of a perfectly good stair.
+-- Putting a row back here re-adds one, in the ghost preview as well as the build.
+--
+-- TowerSpawnLadder is kept: it is the only worked example in the mod of a climbable
+-- Ladder entity with its smart object wired up. The entry that used to live here was
+-- ladder_rustic_400.cgf at (0.85, -1.60, 0.00), so = "Ladder_400",
+-- guid = "450aabee-95e7-4ff6-eca8-3d783b1664ae".
+mercenaries.TowerLadders = {}
 
 -- How deep the whole tower sits in the ground (negative = sunk). This is the lever
 -- for the archer's height: he stands on the TOP deck, so sinking the tower is what
@@ -254,20 +254,62 @@ mercenaries.TowerLadders = {
 -- still overlooking the camp. Tune live with merc_tower_sink.
 mercenaries.TowerSink = 0.0
 
--- COLLIDERS: the deck meshes carry no player collision of their own (big
--- structures keep theirs in a separate cv_*.cgf - the spawn-house finding), so
--- each walkable deck gets an invisible scaled crate, exactly like the player
--- house's walls. Positions are tower-local (the same frame as TowerParts); scale
--- multiplies the crate mesh. Values below were tuned in play (merc_tower_col_*);
--- re-tune any time and merc_tower_col_dump to get a fresh block to paste here.
+-- COLLIDERS: invisible scaled crates, exactly like the player house's walls.
+-- Positions are tower-local (the same frame as TowerParts); scale multiplies the crate
+-- mesh, whose own proxy is 0.59 x 1.06 x 0.23 with its origin at the bottom and off
+-- centre in x - so a box [x0,x1][y0,y1][z0,z1] is
+--     sx = (x1-x0)/0.59, x = x0 + 0.27*sx | sy = (y1-y0)/1.06, y = (y0+y1)/2
+--     sz = (z1-z0)/0.23, z = z0
+-- Tune live with merc_tower_col_*; merc_tower_col_dump prints a fresh block to paste.
+--
+-- Every box below is traced onto watchtower_a's OWN $physics_proxy geometry, measured out
+-- of the pak - so collision only ever sits where there is visible timber, never in mid-air.
+-- The two deck plates are the exception in one axis only: their footprints are the mesh's,
+-- their top height is the old hand-tuned one. See docs/archers.md.
 mercenaries.TowerColliderModel = "objects/manmade/common_furniture/crates/crate_low_a.cgf"
 mercenaries.TowerCollidersVisible = false   -- merc_tower_col_show 1 to see them while tuning
--- Collider on the deck (z 3.25, the watchtower's own platform). The slab is what holds
--- the archer up there - he is never navmesh-grounded on it - so it has to cover where he
--- stands, not the whole deck.
 mercenaries.TowerColliders = {
-    { n = "deck", x = 0.85, y = 1.15, z = 3.25, sx = 2.50, sy = 2.50, sz = 0.30 },
+    -- The deck. Covers the whole platform (the mesh floor plate spans x -0.31..2.43,
+    -- y -1.31..2.97) but keeps the old slab's top height, because that is what the
+    -- archer's drop is tuned against: he is never navmesh-grounded up there, so this is
+    -- all that holds him. Widening it only means the player can walk the deck too.
+    { n = "deck",       x =  0.944, y =  0.83,  z =  3.25, sx = 4.644, sy = 4.038, sz =  0.30 },
+    -- The platform is L-shaped: this is the second floor plate, over the head of the
+    -- stair. Without it you climb the steps and drop straight through at the top.
+    { n = "deck_stair", x = -0.979, y =  2.335, z =  3.25, sx = 3.153, sy = 1.142, sz =  0.30 },
+
+    -- The four corner posts, z -0.14..5.74. Thin (0.31 m) on purpose - that is the timber
+    -- you can see. The understorey between them stays open, as it is on the real mesh.
+    { n = "post_x_ny",  x =  2.257, y = -1.14,  z = -0.14, sx = 0.509, sy = 0.283, sz = 25.57 },
+    { n = "post_x_py",  x =  2.257, y =  2.845, z = -0.14, sx = 0.509, sy = 0.293, sz = 25.57 },
+    { n = "post_nx_py", x = -1.813, y =  2.845, z = -0.14, sx = 0.509, sy = 0.293, sz = 25.57 },
+    { n = "post_nx_ny", x = -1.813, y = -1.175, z = -0.14, sx = 0.509, sy = 0.293, sz = 25.57 },
+
+    -- The two plank walls that flank the tower's own staircase on the -x side, ground to
+    -- deck. These are the tower's only solid faces at walking height.
+    { n = "stair_in",   x = -0.185, y =  0.17,  z = -0.10, sx = 0.203, sy = 2.981, sz = 13.74 },
+    { n = "stair_out",  x = -1.650, y =  0.22,  z = -0.10, sx = 0.186, sy = 3.094, sz = 14.26 },
 }
+
+-- The staircase between those two walls: 14 steps and the top landing, every one 1.40 m
+-- wide at x -1.58..-0.18, climbing +y at 0.20 m rise and 0.20 m going. Each box fills its
+-- own riser, so the flight is one continuous solid with no gap to clip through, and the
+-- 0.20 m step is well inside what the player can walk up.
+--
+-- Generated rather than written out: fifteen near-identical rows say less than the two
+-- numbers they come from. The file re-assigns TowerColliders above, so a script reload
+-- rebuilds this instead of appending to it.
+for i = 0, 14 do
+    -- The bottom tread is bedded into the ground instead of being left floating at 0.11,
+    -- where the mesh's own slope proxy starts; every other riser meets the tread below it.
+    local z0 = (i == 0) and -0.10 or (0.11 + 0.20 * i)
+    local top = 0.31 + 0.20 * i
+    table.insert(mercenaries.TowerColliders, {
+        n = "step_" .. (i + 1),
+        x = -0.939, y = -1.11 + 0.20 * i, z = z0,
+        sx = 2.373, sy = 0.189, sz = (top - z0) / 0.23,
+    })
+end
 
 -- Where the tower's archer ends up, in the same tower-local frame: standing on
 -- the TOP deck's collider slab (see above). He is not placed AT this point - he
@@ -314,7 +356,14 @@ function mercenaries:TowerSpawnPart(p, origin, yaw, track, namePrefix)
         position = wp,
         orientation = { x = rx, y = ry, z = rz },
         properties = { object_Model = p.model, bMissionCritical = false,
-                       bSaved_by_game = false, bSerialize = false },
+                       bSaved_by_game = false, bSerialize = false,
+                       -- On the class too, but entity properties are read when the entity
+                       -- PHYSICALISES and the spawn-time table is the only one guaranteed
+                       -- to be in place by then - the same reason WallSpawnSegment passes
+                       -- it. Without it a part can come up rendered but not physicalised,
+                       -- and watchtower_a's own proxy hull never loads.
+                       Physics = { bPhysicalize = true, bRigidBody = false,
+                                   bPushableByPlayers = false, Mass = -1, Density = -1 } },
     }
     params.class = "mercenaries_Prop"
     local ent = System.SpawnEntity(params)
@@ -372,7 +421,11 @@ function mercenaries:TowerColApply(i)
         orientation = { x = math.cos(st.yaw), y = math.sin(st.yaw), z = 0 },
         scale = { x = c.sx, y = c.sy, z = c.sz },
         properties = { object_Model = self.TowerColliderModel, bMissionCritical = false,
-                       bSaved_by_game = false, bSerialize = false },
+                       bSaved_by_game = false, bSerialize = false,
+                       -- spawn-time, not class-time: see TowerSpawnPart. These exist ONLY
+                       -- to collide, so they are the last thing that may miss it.
+                       Physics = { bPhysicalize = true, bRigidBody = false,
+                                   bPushableByPlayers = false, Mass = -1, Density = -1 } },
     }
     local ent = System.SpawnEntity(params)
     if not ent then

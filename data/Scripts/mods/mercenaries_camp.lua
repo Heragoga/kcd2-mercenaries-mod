@@ -141,7 +141,10 @@ function mercenaries:SpawnPlayerCampTent(centerPos, facingAngle)
         local tentAngle = (facingAngle or 0) +  math.rad(130)
 
         self:SpawnCampPropModel(self.CampPlayerTentModel, tentPos, tentAngle, "MercCampProp_PlayerTent")
-        if self.NavAddObstacle then self:NavAddObstacle(tentPos, tentAngle, self.NavPlayerTentFootHalf, "tent") end
+        if self.NavAddObstacle then
+            self:NavAddObstacle(tentPos, tentAngle,
+                self:CampPropFootHalf(self.CampPlayerTentModel, 0), "tent")
+        end
 
         local bedPos, bedAngle = self:CampRelativeOffset(tentPos, tentAngle, self.CampPlayerBedOffset)
         bedPos = self:CampSnapToGround(bedPos)
@@ -236,6 +239,11 @@ function mercenaries:SpawnCampBedTrigger(bedEnt, bedPos, bedAngle)
             pcall(function() engineSaves = EntityModule.WillSleepingOnThisBedSave(bedEnt.id) and true or false end)
             self.CampPlayerBed = { id = bedEnt.id, pos = bedPos, engineSaves = engineSaves }
             self.CampBedSleepState = nil
+
+            -- The player's own chest, beside the bed. Here rather than in the two
+            -- callers because this is the point where "that bed is the player's"
+            -- is decided - tent and house both come through it.
+            if self.SpawnCampChest then self:SpawnCampChest(bedPos, bedAngle) end
         end
     end)
     if not ok then
@@ -548,6 +556,51 @@ mercenaries.CampClusterTentRingSlots = 7
 -- so the patrol ring can size itself relative to the outermost tents (see the
 -- guard-assignment loop in SpawnMercCamp).
 mercenaries.CampTentRingRadius = 3.9
+
+-- The radius the tent ring actually needs, never smaller than CampTentRingRadius.
+--
+-- WHICH WAY ROUND A TENT SITS ON THE RING is the thing to get right here, and it is not what
+-- it looks like. A tent is placed at `tentFaceAngle + pi + CampTentFacingFix`, and
+-- CampRingPos's second return is the RADIAL direction, so the tent's forward ends up at
+-- radial + 3pi/2 - a quarter turn off. Forward is TANGENTIAL. Since forward is the mesh's X
+-- (see CampPropFootHalf), the mesh's LONG axis lies along the ring and its short axis points
+-- at the fire. Sizing the ring by the short axis, as the first version of this did, lets the
+-- widest variant lap its neighbour by over a metre.
+--
+-- Two constraints, both off the CLAIM box so the ring and the overlap test can never
+-- disagree:
+--   tangential  each of `slots` tents needs 2 * claim.h of arc
+--   radial      the tent's inner edge has to clear the fire's seating ring, which is spawned
+--               at CampFireSeatRadius and is as wide as the weapon pile that dresses it
+function mercenaries:CampTentRingRadiusFor(models, slots)
+    local tang, rad = 0, 0
+    for _, model in ipairs(models or {}) do
+        local c = self:CampPropClaimHalf(model)
+        if c.h > tang then tang = c.h end
+        if c.w > rad then rad = c.w end
+    end
+    if tang == 0 then
+        tang = self.CampPropFootDefault.h + self.CampPropClaimPad
+        rad  = self.CampPropFootDefault.w + self.CampPropClaimPad
+    end
+    slots = math.max(1, slots or self.CampClusterTentRingSlots)
+
+    local byArc = (slots * 2 * tang) / (2 * math.pi)
+    local seatOuter = self.CampFireSeatRadius
+        + self:CampPropClaimHalf(self.CampModels.WeaponStack).w
+    local bySeats = seatOuter + rad
+
+    return math.max(self.CampTentRingRadius, byArc, bySeats), byArc, bySeats
+end
+
+-- The radius THIS camp's tent rings were built at. Settled once per pitch, because
+-- everything that has to stay clear of the tents - the activity spots, the night lamps, the
+-- guards' patrol ring - is measured outward from it and would otherwise sit among them.
+mercenaries.CampTentRingR = nil
+
+function mercenaries:CampTentRing()
+    return self.CampTentRingR or self.CampTentRingRadius
+end
 -- Distance the patrol navnode ring sits beyond the outermost tent, per
 -- feedback ("navnodes placed at a distance of about 3m from the nearest
 -- tent"). Patrol radius = (farthest cluster from centre) + CampTentRingRadius
@@ -564,6 +617,9 @@ mercenaries.CampPatrolSpacing = 12.0
 -- tiles (player tent / fire clusters) kept growing further apart each
 -- round.
 mercenaries.CampClusterSpacing = 10.5
+-- ...and at least this much open ground between two tent rings, whatever the meshes force
+-- the ring radius to. See the spacing bump in SpawnMercCamp.
+mercenaries.CampClusterGap = 1.5
 -- No longer a hard cap - guard count is now half the squad (originally a
 -- third, per "a third of mercs should be going around the camp at all
 -- times", bumped to half per follow-up feedback), picked at random,
@@ -587,6 +643,9 @@ mercenaries.CampMaxProbeCells = 60                     -- cells SpawnMercCamp pr
 -- 0.5m grid sorted into valid/obstacle/building/void by connectivity, so slopes
 -- stay valid and only sharp steps cut off. See docs/camp.md.
 mercenaries.CampSampleStep = 0.5      -- sample resolution (m)
+-- The terrain sub-grid the surface test runs on, coarser because terrain layers are large
+-- patches. One ray per cell of THIS grid, not of the 0.5m one - see CampSampleHeightmap.
+mercenaries.CampTerrainSampleStep = 2.0
 mercenaries.CampConnectStep = 0.5     -- height delta between adjacent samples that counts as an edge, not the same surface
 mercenaries.CampSmallClumpMax = 5     -- obstacle clumps this size or smaller = tree/rock (tolerable); bigger = building
 
@@ -596,19 +655,103 @@ mercenaries.CampSmallClumpMax = 5     -- obstacle clumps this size or smaller = 
 mercenaries.CampTileHalf = 5.25                        -- half-size (m) of one layout tile (a campfire unit's footprint)
 mercenaries.CampTileMaxInvalidFrac = 0.5               -- a camping tile may be at most this fraction invalid
 mercenaries.CampTileClearFrac = 0.8                    -- player-tent/training tiles need this fraction valid and no building clump
--- Prop footprints (half-width x half-depth, m); a footprint passes if <= CampFootprintSlack cells are invalid.
-mercenaries.CampTentFootHalf   = { w = 1.0, h = 2.25 }
-mercenaries.CampFireFootHalf    = { w = 1.25, h = 1.25 }
-mercenaries.CampPlayerTentFootHalf = { w = 2.25, h = 2.25 }
+-- The campfire's footprint. It is a PREFAB, not a single mesh, so there is nothing in the
+-- paks to measure it from and it stays a hand-set box - unlike the tents below, which are
+-- measured (CampPropFootHalf).
+mercenaries.CampFireFootHalf = { w = 1.25, h = 1.25 }
 
--- Footprints for ROUTING (mercenaries_navmesh.lua), not for placement. The boxes above
--- are deliberately generous - they ask how much clear GROUND a prop needs, and a tent
--- claims 2 x 4.5m of it - so steering men round those would wall the fire circle in and
--- leave nobody able to reach it. These are sized to the meshes instead.
-mercenaries.NavTentFootHalf       = { w = 1.05, h = 1.45 }
-mercenaries.NavPlayerTentFootHalf = { w = 2.10, h = 2.10 }
-mercenaries.NavFireFootHalf       = { w = 1.00, h = 1.00 }
+-- Footprints for ROUTING (mercenaries_navmesh.lua), not for placement. A routing box is the
+-- mesh's own extent and nothing more: padding one steers men round a wider obstacle than is
+-- there, and round a fire circle that walls the men out of their own camp. Tents pass
+-- CampPropFootHalf(model, 0) for the same reason; the fire has no mesh to measure.
+mercenaries.NavFireFootHalf = { w = 1.00, h = 1.00 }
 mercenaries.CampFootprintSlack  = 2
+-- ...or this share of the box, whichever is larger. The slack used to be a flat cell count
+-- against a flat box; now that a footprint is the mesh's own size, a big tent covers twice
+-- the cells of a small one and two bad cells out of a hundred would be a far harsher test
+-- than two out of fifty. 0.04 is what the old pair of numbers works out to on the box they
+-- were tuned against, so a small tent behaves exactly as it did.
+mercenaries.CampFootprintSlackFrac = 0.04
+
+-- How many invalid cells a footprint of `total` cells may have.
+function mercenaries:CampFootprintAllowance(total)
+    return math.max(self.CampFootprintSlack,
+                    math.floor((total or 0) * self.CampFootprintSlackFrac))
+end
+
+-- MEASURED FOOTPRINTS. The fallback boxes above are one size for every model, on the stated
+-- grounds that the tent variants "share the same footprint". Measured out of the paks
+-- (tools/measure_camp_props.py, table in mercenaries_camp_footprints.lua) they do not: the
+-- five span 1.46 to 2.33 half-length, so tent_small_rustic_a is 60% longer than the box that
+-- approved its spot. Three of them are not centred on their own origin either -
+-- tent_small_forest_d sits 0.69m off along Y.
+--
+-- Getting a mesh measurement into the placement frame needs no convention-guessing, because
+-- the spawn is a plain YAW: SpawnCampPropModel sets angles {0, 0, angleZ}, so the mesh's own
+-- +X axis ends up along (cos angleZ, sin angleZ) - which is exactly the `forward` that
+-- CampFootprintStats and CampRelativeOffset project along. So:
+--
+--     forward (depth)  = the mesh's X        right (width) = the mesh's Y
+--
+-- and the mesh's centre offset (ox, oy) is a `forward`/`right` offset of the same numbers.
+-- That falls out of the rotation rather than being tuned, and it agrees with the hand-tuned
+-- routing box this replaced: 1.05 x 1.45 against a mesh measuring y 1.19, x 1.46.
+--
+-- The offset is applied, not absorbed into a bigger box. An earlier version grew the box to
+-- reach an off-centre mesh (half = |offset| + extent) to avoid needing the sign; that is
+-- safe for a ground test and wrong for everything else, because it inflates the box in the
+-- direction the mesh ISN'T, and a tent inflated 0.69m toward its own campfire collides with
+-- it.
+mercenaries.CampPropFootSlack = 0.35   -- clear ground wanted beyond the mesh itself
+mercenaries.CampPropFootDefault = { w = 1.0, h = 1.5 }   -- a model with no measurement
+
+-- The footprint of one model: { w, h, right, forward } in the prop's own frame, where
+-- right/forward locate the box CENTRE relative to the spawn position. `slack` defaults to
+-- CampPropFootSlack; pass 0 for the mesh's own extent, which is what a nav obstacle wants -
+-- a padded obstacle round a tent closes the gaps the men walk through between them.
+function mercenaries:CampPropFootHalf(model, slack)
+    local m = model and self.CampPropFoot and self.CampPropFoot[model]
+    if not m then
+        local d = self.CampPropFootDefault
+        return { w = d.w, h = d.h, right = 0, forward = 0 }
+    end
+    slack = slack or self.CampPropFootSlack
+    return { w = m.y + slack, h = m.x + slack, right = m.oy, forward = m.ox }
+end
+
+-- Where a footprint's box actually sits, given where its prop is being put.
+function mercenaries:CampFootCentre(pos, angle, half)
+    if not (pos and half) then return pos end
+    if (half.right or 0) == 0 and (half.forward or 0) == 0 then return pos end
+    return (self:CampRelativeOffset(pos, angle or 0,
+        { right = half.right or 0, forward = half.forward or 0 }))
+end
+
+-- The mesh's own extent in the placement frame, WITHOUT the off-centre growth. This is the
+-- one to space neighbours by: two tents on the same ring share a local frame, so a mesh that
+-- sits to one side of its origin shifts them both equally and never brings them closer.
+function mercenaries:CampPropSpanHalf(model)
+    local m = model and self.CampPropFoot and self.CampPropFoot[model]
+    if not m then
+        local d = self.CampPropFootDefault
+        return { w = d.w, h = d.h, right = 0, forward = 0 }
+    end
+    return { w = m.y, h = m.x, right = 0, forward = 0 }
+end
+
+-- What a prop OCCUPIES, as against what it would like clear: the mesh plus a gap to walk
+-- through, and nothing else. This is what neighbours are tested against - padding a claim
+-- with the ground slack as well would have two tents 0.6m apart declared overlapping, which
+-- they visibly are not.
+mercenaries.CampPropClaimPad = 0.25
+
+function mercenaries:CampPropClaimHalf(model)
+    local f = self:CampPropSpanHalf(model)
+    local m = model and self.CampPropFoot and self.CampPropFoot[model]
+    return { w = f.w + self.CampPropClaimPad, h = f.h + self.CampPropClaimPad,
+             right = m and m.oy or 0, forward = m and m.ox or 0 }
+end
+
 mercenaries.CampMercFootprint   = 0.6                  -- footprint FindValidGround checks per single spawn/teleport spot
 mercenaries.CampNudgeStep = 0.5                        -- prop nudge step/limit to dodge an obstacle before placing least-bad
 mercenaries.CampNudgeMax  = 3
@@ -652,49 +795,78 @@ mercenaries.CampPatrollers = {}  -- [mercWuidStr] = { waypoints={ {x,y,z}, ... }
 mercenaries.CampFurniture  = {}  -- [mercWuidStr] = { wuid=furnitureSOWuid, kind="bed"/"chair" } - a non-guard merc's assigned sit/sleep smart object, see SpawnMercCamp + GetCampFurniture
 mercenaries.CampCommunalChairs = {} -- unused - kept declared for back-compat
 
--- Ground-snap a position via the same terrain raycast GetSafeSpawnPosition uses.
-function mercenaries:CampSnapToGround(pos)
-    local ok, result = pcall(function()
-        local hitTable = {}
-        local start = { x = pos.x, y = pos.y, z = pos.z + 5.0 }
-        local dir = { x = 0, y = 0, z = -100 }
-        local hits = Physics.RayWorldIntersection(start, dir, 2, ent_terrain + ent_static, nil, nil, hitTable)
-        if hits > 0 and hitTable[1] and hitTable[1].pos then
-            return { x = pos.x, y = pos.y, z = hitTable[1].pos.z }
-        end
-        return pos
-    end)
-    if ok and result then return result end
-    return pos
+-- Ground-snap a position. The old version took the first surface a ray met 5m above the
+-- point, which over a house is the roof and over a cart is the cart - that is how props and
+-- men ended up standing on things. It asks mercenaries_ground.lua instead, which looks at
+-- the whole column and picks the surface that is actually the world's ground.
+--
+-- Returns pos, clear, kind. `clear` is false when the ground here has something standing on
+-- it (the snap still lands at ground level, not on the object's roof) - callers that can
+-- move the thing somewhere else should; the rest are no worse off than before.
+-- `verify` pays a few extra rays to also run the edge test, which is what catches a log or a
+-- crate. Worth it wherever something solid is being put down; not for the thousands of snaps
+-- a camp pitch does while working out its layout.
+function mercenaries:CampSnapToGround(pos, verify)
+    if not pos then return pos end
+    local ok, p, clear, kind = pcall(self.GroundSnap, self, pos, verify)
+    if ok and p then return p, clear, kind end
+    return pos, false, nil
 end
 
 -- Validate whether a tent/cluster can sit on the ground at `pos`, by firing a
 -- cluster of downward probe rays over a CampClusterFootprint square: the centre
--- probe rejects steep normals and ground that sits too far above/below the
--- player's level (a roof/ledge/pit), and eight edge probes reject steps and tree
--- trunks. Leaf canopies pass through (camping under one is fine). Returns valid,
--- groundZ, reason. See docs/camp.md "Ground validation" for the full rationale.
-function mercenaries:CampValidateSpot(pos, refZ, footprint)
+-- probe rejects steep normals, anything that isn't the world's own ground, and
+-- ground that sits too far above/below the player's level (a roof/ledge/pit); eight
+-- edge probes reject steps and tree trunks. Leaf canopies pass through (camping
+-- under one is fine). Returns valid, groundZ, reason. See docs/camp.md "Ground
+-- validation" and docs/ground-guard.md.
+-- `skipEdge` leaves out the one test that costs rays of its own. FindValidGround passes it
+-- because it calls this up to 40 times to spiral for a spot and then runs the edge test once,
+-- on the winner - 4 rays per search instead of 4 per candidate. Nothing else should.
+function mercenaries:CampValidateSpot(pos, refZ, footprint, skipEdge)
     footprint = footprint or self.CampClusterFootprint
     refZ = refZ or pos.z
 
+    -- Returns the topmost surface at a column: its height, its normal, and the raw hit, so
+    -- the caller can ask mercenaries_ground.lua about it without firing a second ray.
     local function probe(px, py)
         local hitTable = {}
         local start = { x = px, y = py, z = refZ + self.CampProbeStartHeight }
         local dir   = { x = 0, y = 0, z = -(self.CampProbeStartHeight + self.CampProbeDepth) }
-        local ok, hz, hn = pcall(function()
-            local hits = Physics.RayWorldIntersection(start, dir, 2, ent_terrain + ent_static, nil, nil, hitTable)
+        local ok, hz, hn, hit = pcall(function()
+            -- GroundMask, not ent_terrain + ent_static: that mask cannot see a rigid body, so
+            -- a cart, a log or a woodpile was invisible to every check below it.
+            local hits = Physics.RayWorldIntersection(start, dir, 2,
+                self.GroundMask and self:GroundMask() or (ent_terrain + ent_static),
+                nil, nil, hitTable)
             if hits > 0 and hitTable[1] and hitTable[1].pos then
-                return hitTable[1].pos.z, hitTable[1].normal
+                return hitTable[1].pos.z, hitTable[1].normal, hitTable[1]
             end
-            return nil, nil
+            return nil, nil, nil
         end)
-        if ok then return hz, hn end
-        return nil, nil
+        if ok then return hz, hn, hit end
+        return nil, nil, nil
     end
 
-    local cz, cnormal = probe(pos.x, pos.y)
+    local cz, cnormal, chit = probe(pos.x, pos.y)
     if not cz then return false, pos.z, "no_ground" end          -- over a hole/void
+
+    -- Is this surface the ground, or the top of something standing on it? The only check
+    -- here that does not care where the caller THINKS the floor is: refZ is whatever the
+    -- caller had in hand, and when the caller is a man already stranded on a roof, every
+    -- relative test below agrees the roof is fine.
+    --
+    -- The free half first: the heightmap comparison costs no ray, and catches the things
+    -- with tops too big to find the edge of - a roof, a bridge, a wall walk.
+    if self.GroundTerrainAt then
+        local tz, tSurf = self:GroundTerrainAt(pos.x, pos.y, refZ)
+        local isObj, why = self:GroundSurfaceLooksLikeObject(cz, chit and chit.surface, tz, tSurf)
+        if isObj then
+            self:GroundNote(string.format('rejected (%.1f, %.1f) z=%.2f - %s',
+                pos.x, pos.y, cz, tostring(why)))
+            return false, cz, "on_object"
+        end
+    end
 
     if cnormal and cnormal.z and cnormal.z < self.CampMaxSlopeCos then
         return false, cz, "too_steep"                            -- hillside
@@ -717,6 +889,24 @@ function mercenaries:CampValidateSpot(pos, refZ, footprint)
     end
     if (maxZ - minZ) > self.CampMaxStep then return false, cz, "uneven" end       -- step/cliff edge
 
+    -- Last, because it is the only check that costs rays of its own and by here almost
+    -- everything has already been rejected: is this surface the TOP of something? The ring
+    -- above cannot answer that - its radius is the caller's footprint, 0.6m for one man and
+    -- 3.0m for a tent cluster, and the question needs a known distance. Four probes at a
+    -- fixed 1.25m, all of which must drop: on a slope one of them is always above you, so
+    -- hillsides (where camping is fine) never trip it, while a log, a crate, a plank walkway
+    -- or a low wall - everything too short for the step tests above to notice - does.
+    if self.GroundEdgeCheck and not skipEdge then
+        local isTop, drops, samples = self:GroundEdgeCheck(pos.x, pos.y, cz,
+                                                           self.GroundEdgeFast, self.GroundEdgeFast)
+        if isTop then
+            self:GroundNote(string.format(
+                'rejected (%.1f, %.1f) z=%.2f - stands above its surroundings on %d of %d sides',
+                pos.x, pos.y, cz, drops, samples))
+            return false, cz, "on_object"
+        end
+    end
+
     return true, cz, "ok"
 end
 
@@ -730,27 +920,88 @@ function mercenaries:CampSampleHeightmap(origin, radius, spacing, underRoof)
     local bottomZ = refZ - self.CampProbeDepth
     local roofThresh = self.CampRoofDetectHeight
 
-    -- One downward ray from absolute height `fromZ`; returns hit z or nil.
+    -- One downward ray from absolute height `fromZ`; returns hit z and the surface type it
+    -- landed on, or nil.
     local function probe(wx, wy, fromZ)
         local hitTable = {}
-        local ok, hz = pcall(function()
+        local ok, hz, surf = pcall(function()
             local hits = Physics.RayWorldIntersection({ x = wx, y = wy, z = fromZ },
-                { x = 0, y = 0, z = -(fromZ - bottomZ) }, 2, ent_terrain + ent_static, nil, nil, hitTable)
-            if hits > 0 and hitTable[1] and hitTable[1].pos then return hitTable[1].pos.z end
-            return nil
+                { x = 0, y = 0, z = -(fromZ - bottomZ) }, 2,
+                self.GroundMask and self:GroundMask() or (ent_terrain + ent_static),
+                nil, nil, hitTable)
+            if hits > 0 and hitTable[1] and hitTable[1].pos then
+                return hitTable[1].pos.z, hitTable[1].surface
+            end
+            return nil, nil
         end)
-        return ok and hz or nil
+        if not ok then return nil, nil end
+        return hz, surf
+    end
+
+    -- THE TERRAIN SUB-GRID.
+    --
+    -- Telling the ground from a thing lying on it means knowing what the ground at that spot
+    -- is made of, which is a second ray (ent_terrain only - see mercenaries_ground.lua). One
+    -- per cell would double a map that is already ~8000 rays, and a single burst that size is
+    -- the shape of the camp-lag postmortem, so the terrain is sampled on its own COARSER
+    -- grid: terrain layers are large patches and their material does not change every half
+    -- metre. At 2m against the map's 0.5m that is a sixteenth of the rays - a few hundred.
+    --
+    -- A fine cell is compared against the FOUR terrain samples around it and counts as ground
+    -- if it matches ANY of them. That is what makes the coarse grid safe: on a grass/dirt
+    -- boundary the nearest single sample would often be the wrong layer and punch holes in
+    -- the map, while "matches one of the materials hereabouts" does not care which side of
+    -- the boundary the sample fell.
+    local tstep = self.CampTerrainSampleStep
+    local tr = math.max(1, math.ceil((radius * spacing) / tstep))
+    local tsurf = {}
+    -- Skipped entirely with the guard off, which costs nothing and leaves the map exactly as
+    -- it was before any of this: no sub-grid, no cell ever marked as an object.
+    local guarded = (self.GroundGuard and self.GroundTerrainAt) and true or false
+    if guarded then
+        for ti = 0, 2 * tr do
+            tsurf[ti] = {}
+            for tj = 0, 2 * tr do
+                local _, sid = self:GroundTerrainAt(origin.x + (ti - tr) * tstep,
+                                                    origin.y + (tj - tr) * tstep, refZ)
+                tsurf[ti][tj] = sid
+            end
+        end
+    end
+
+    -- Does this cell's surface match the ground anywhere around it? nil terrain samples mean
+    -- there is no heightmap here to compare against (a bridge, a cut-away interior), and then
+    -- nothing is ruled out - the edge test in CampValidateSpot covers that case.
+    local function surfaceIsGroundHere(wx, wy, sid)
+        if not guarded or sid == nil then return true end
+        local fi = (wx - origin.x) / tstep + tr
+        local fj = (wy - origin.y) / tstep + tr
+        local i0, j0 = math.floor(fi), math.floor(fj)
+        local sawTerrain = false
+        for di = 0, 1 do
+            for dj = 0, 1 do
+                local ti, tj = i0 + di, j0 + dj
+                local t = tsurf[ti] and tsurf[ti][tj]
+                if t ~= nil then
+                    sawTerrain = true
+                    if t == sid then return true end
+                end
+            end
+        end
+        return not sawTerrain
     end
 
     local z = {}
     local roof = {}
+    local obj = {}
     for i = 0, 2 * radius do
         z[i] = {}
         roof[i] = {}
+        obj[i] = {}
         for j = 0, 2 * radius do
             local wx = origin.x + (i - radius) * spacing
             local wy = origin.y + (j - radius) * spacing
-            local hi = probe(wx, wy, highStart)
+            local hi, hsurf = probe(wx, wy, highStart)
             z[i][j] = hi
             -- Per-cell roof test: in under-roof mode, a column whose high ray
             -- hits well ABOVE the player is under a roof. The engine snaps a
@@ -764,9 +1015,17 @@ function mercenaries:CampSampleHeightmap(origin, radius, spacing, underRoof)
             if underRoof and hi and (hi - refZ) >= roofThresh then
                 roof[i][j] = true
             end
+            -- Made of something the ground here is not: a mat, a plank, a woodpile, a cart, a
+            -- roof. The classifier already refused anything TALL, because its flood cannot
+            -- climb a big step - what it could not see is a thing lying FLAT on the ground,
+            -- which joined the walkable surface and had tents pitched on it.
+            if hi and not surfaceIsGroundHere(wx, wy, hsurf) then
+                obj[i][j] = true
+            end
         end
     end
-    return { r = radius, spacing = spacing, origin = origin, refZ = refZ, z = z, roof = roof }
+    return { r = radius, spacing = spacing, origin = origin, refZ = refZ,
+             z = z, roof = roof, obj = obj }
 end
 
 -- Heightmap classifier: flood the walkable surface out from a seed cell (the
@@ -775,7 +1034,7 @@ end
 -- clumps are "small" (tree/rock) or "building" by size; no-ground is "void".
 -- Returns cls[i][j] and a counts table. See docs/camp.md.
 function mercenaries:CampClassifyHeightmap(hm, seedI, seedJ)
-    local r, z, roofg = hm.r, hm.z, hm.roof
+    local r, z, roofg, objg = hm.r, hm.z, hm.roof, hm.obj
     local step = self.CampConnectStep
     local cls = {}
     for i = 0, 2 * r do cls[i] = {} end
@@ -786,21 +1045,27 @@ function mercenaries:CampClassifyHeightmap(hm, seedI, seedJ)
     -- (under a roof = the engine would spawn the prop on the roof, so it's a
     -- hard no-build).
     local function hasZ(i, j) return z[i] and z[i][j] ~= nil and not isRoof(i, j) end
+    -- ...and nothing stands on a cell made of something the ground here is not. Kept OUT of
+    -- hasZ on purpose, so these cells still go through the clump sizing below: a straw mat
+    -- comes out "small" (tolerable, props step round it) where a woodpile or a cart comes out
+    -- "building". Folding it into hasZ would make every one of them a hard barrier.
+    local function isObj(i, j) return objg and objg[i] and objg[i][j] end
+    local function walkable(i, j) return hasZ(i, j) and not isObj(i, j) end
     local NB = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } }
 
-    -- Seed defaults to the centre; if that column is a void OR a roof (the
-    -- player is standing inside a building), spiral out to the nearest buildable
-    -- cell so the flood starts on real open ground - the camp then forms outside
-    -- the walls rather than on the roof.
+    -- Seed defaults to the centre; if that column is a void, a roof (the player
+    -- is standing inside a building) or an object (he is standing on a cart),
+    -- spiral out to the nearest buildable cell so the flood starts on real open
+    -- ground - the camp then forms outside the walls rather than on the roof.
     seedI = seedI or r
     seedJ = seedJ or r
-    if not hasZ(seedI, seedJ) then
+    if not walkable(seedI, seedJ) then
         local found = false
         for rad = 1, r do
             for di = -rad, rad do
                 for dj = -rad, rad do
                     local i, j = seedI + di, seedJ + dj
-                    if not found and inb(i, j) and hasZ(i, j) then
+                    if not found and inb(i, j) and walkable(i, j) then
                         seedI, seedJ, found = i, j, true
                     end
                 end
@@ -811,7 +1076,7 @@ function mercenaries:CampClassifyHeightmap(hm, seedI, seedJ)
 
     -- 1. Flood the walkable surface from the seed.
     local ground = {}
-    if hasZ(seedI, seedJ) then
+    if walkable(seedI, seedJ) then
         local stack = { { seedI, seedJ } }
         ground[seedI .. "," .. seedJ] = true
         while #stack > 0 do
@@ -820,7 +1085,7 @@ function mercenaries:CampClassifyHeightmap(hm, seedI, seedJ)
             for _, d in ipairs(NB) do
                 local ni, nj = c[1] + d[1], c[2] + d[2]
                 local nk = ni .. "," .. nj
-                if inb(ni, nj) and not ground[nk] and hasZ(ni, nj) and math.abs(z[ni][nj] - cz) <= step then
+                if inb(ni, nj) and not ground[nk] and walkable(ni, nj) and math.abs(z[ni][nj] - cz) <= step then
                     ground[nk] = true
                     table.insert(stack, { ni, nj })
                 end
@@ -883,6 +1148,8 @@ function mercenaries:CampDetectRoof(playerPos)
         local hits = Physics.RayWorldIntersection(
             { x = playerPos.x, y = playerPos.y, z = refZ + self.CampProbeStartHeight },
             { x = 0, y = 0, z = -(self.CampProbeStartHeight + self.CampProbeDepth) },
+            -- Static geometry only, deliberately NOT GroundMask: this asks whether there is
+            -- SHELTER overhead, and a parked cart or a stack of crates is not a roof.
             2, ent_terrain + ent_static, nil, nil, hitTable)
         if hits > 0 and hitTable[1] and hitTable[1].pos then return hitTable[1].pos.z end
         return nil
@@ -897,7 +1164,42 @@ end
 -- remembering its geometry so a world (x,y) maps back to a cell class.
 function mercenaries:CampBuildMap(center, radius, underRoof)
     local hm = self:CampSampleHeightmap(center, radius, self.CampSampleStep, underRoof)
-    local cls = self:CampClassifyHeightmap(hm, radius, radius)
+    local cls, counts = self:CampClassifyHeightmap(hm, radius, radius)
+
+    -- Safety net for the ground guard. The map is guarded now: a cell whose surface is not
+    -- what the ground there is made of is unwalkable. Somewhere that rule does not hold - a
+    -- region paved in meshes, a terrain layer the sub-grid never samples - it would leave the
+    -- camp with nowhere to stand and no clue why. A map with not one buildable cell might be
+    -- that, so ask again with the guard off: if the answer changes, the guard was the reason,
+    -- and it is turned off and said so rather than quietly breaking camps.
+    if counts and counts.valid == 0 and self.GroundGuard then
+        local ok = pcall(function()
+            self.GroundGuard = false
+            local hm2 = self:CampSampleHeightmap(center, radius, self.CampSampleStep, underRoof)
+            local cls2, counts2 = self:CampClassifyHeightmap(hm2, radius, radius)
+            if counts2 and counts2.valid > 0 then
+                hm, cls, counts = hm2, cls2, counts2
+                System.LogAlways('[Mercenaries] the ground guard rules out every column here but ' ..
+                    'the plain heightmap does not, so the guard is now OFF. Run merc_groundprobe on ' ..
+                    'this spot and merc_groundguard 1 to put it back.')
+            else
+                self.GroundGuard = true    -- not the guard's doing; this site is genuinely unusable
+            end
+        end)
+        if not ok then self.GroundGuard = true end
+    end
+
+    -- One line per camp pitch. A camp that comes out in an odd shape is almost always a map
+    -- that saw the ground differently than the player did, and this is the cheapest way to
+    -- know that without running merc_camp_scan after the fact.
+    if counts then
+        System.LogAlways(string.format(
+            '[Mercenaries] camp map %.0fm: %d buildable, %d tree/rock, %d building, %d void ' ..
+            '(ground guard %s)',
+            radius * self.CampSampleStep, counts.valid, counts.small, counts.building,
+            counts.void, self.GroundGuard and 'on' or 'OFF'))
+    end
+
     return { hm = hm, cls = cls, center = center, r = radius, spacing = self.CampSampleStep }
 end
 
@@ -967,35 +1269,185 @@ function mercenaries:CampFootprintStats(map, wpos, angle, halfW, halfH)
     return valid, total, hasBuilding
 end
 
+-- ==== what the camp has already claimed ====
+--
+-- The ground map answers "is there decent ground here" and nothing else. It does not know
+-- what the camp itself has already put down, so two tents on the same ring could each be
+-- nudged up to CampNudgeMax * CampNudgeStep (1.5m) TOWARD each other and both come out
+-- "valid" - 3m of closing on a 0.4m gap. That is why tents still overlapped after the
+-- footprints were measured: the footprints were right and nothing was comparing them.
+--
+-- Each claim is the oriented box a prop occupies. Cleared with the camp.
+mercenaries.CampPlacedFoot = {}
+
+function mercenaries:CampClearClaims()
+    self.CampPlacedFoot = {}
+end
+
+function mercenaries:CampClaimFoot(pos, angle, half, what)
+    if not (pos and half) then return end
+    local c = self:CampFootCentre(pos, angle, half)
+    table.insert(self.CampPlacedFoot, { x = c.x, y = c.y, a = angle or 0,
+                                        w = half.w, h = half.h, what = what })
+end
+
+-- Do two oriented boxes overlap? Separating-axis test on the four box axes: they are clear
+-- exactly when some axis has a gap between their projections.
+local function obbOverlap(ax, ay, aa, aw, ah, bx, by, ba, bw, bh)
+    local dx, dy = bx - ax, by - ay
+    local axes = {
+        { math.cos(aa), math.sin(aa) }, { -math.sin(aa), math.cos(aa) },
+        { math.cos(ba), math.sin(ba) }, { -math.sin(ba), math.cos(ba) },
+    }
+    -- Box local axes: forward = (cos a, sin a) carries the DEPTH, right carries the WIDTH -
+    -- the same convention CampFootprintStats projects with.
+    local afx, afy = math.cos(aa), math.sin(aa)
+    local arx, ary = -afy, afx
+    local bfx, bfy = math.cos(ba), math.sin(ba)
+    local brx, bry = -bfy, bfx
+    for _, ax2 in ipairs(axes) do
+        local ux, uy = ax2[1], ax2[2]
+        local ra = math.abs((arx * ux + ary * uy) * aw) + math.abs((afx * ux + afy * uy) * ah)
+        local rb = math.abs((brx * ux + bry * uy) * bw) + math.abs((bfx * ux + bfy * uy) * bh)
+        if math.abs(dx * ux + dy * uy) > (ra + rb) then return false end
+    end
+    return true
+end
+
+-- Would a prop of this footprint, here, sit on top of something the camp has already placed?
+function mercenaries:CampFootClaimed(pos, angle, half)
+    if not (pos and half) then return false end
+    local p = self:CampFootCentre(pos, angle, half)
+    for _, c in ipairs(self.CampPlacedFoot or {}) do
+        if obbOverlap(p.x, p.y, angle or 0, half.w, half.h,
+                      c.x, c.y, c.a, c.w, c.h) then
+            return true, c.what
+        end
+    end
+    return false
+end
+
+-- ==== thin geometry the map cannot see ====
+--
+-- The map samples straight down every half metre, which a FENCE walks straight through: its
+-- rails are a hand wide, so a run at an angle registers on some cells and not others, the
+-- flood fill leaks through the gaps, both sides of it read as one connected surface, and a
+-- tent gets pitched across it. Posts, thin walls, cart shafts and railings all do this.
+--
+-- A fence crossing a footprint has to cross its PERIMETER, so the perimeter is what gets
+-- cast - four rays round the edges plus the two diagonals for anything standing alone in the
+-- middle. Horizontal rays at the heights a rail lives at, which is the one thing a downward
+-- grid can never see however fine it is sampled.
+--
+-- A SAFETY MARGIN, not a detection improvement. A cart's two thin handles are the case that
+-- makes the point: they are a couple of centimetres across, they stick out well past the
+-- body, and no sampling catches every one of them. So the box that gets swept is the
+-- footprint GROWN by CampClearMargin - anything within a hand's breadth of where a tent is
+-- going counts as in the way, and a near miss becomes a miss.
+--
+-- The heights matter as much as the margin. Two of them (0.45 and 1.05) left a hole at 0.7m,
+-- which is exactly where a resting cart shaft sits; the band is sampled at 0.35m now, from
+-- below a fence's bottom rail to above its top one. Anything lower than the first height is
+-- the ground tests' business.
+--
+-- Run on a spot everything cheaper has already approved.
+mercenaries.CampClearHeights = { 0.25, 0.60, 0.95, 1.30 }   -- above the ground under the spot
+mercenaries.CampClearMargin  = 0.10                         -- keep this clear all round
+
+function mercenaries:CampFootprintUnobstructed(pos, angle, half, groundZ)
+    if not (pos and half) then return true end
+    local centre = self:CampFootCentre(pos, angle, half)
+    local fwd = { x = math.cos(angle or 0), y = math.sin(angle or 0) }
+    local rgt = { x = -fwd.y, y = fwd.x }
+    local w = half.w + self.CampClearMargin
+    local h = half.h + self.CampClearMargin
+
+    local function corner(sw, sh)
+        return { x = centre.x + rgt.x * (sw * w) + fwd.x * (sh * h),
+                 y = centre.y + rgt.y * (sw * w) + fwd.y * (sh * h) }
+    end
+    -- Four edges and the two diagonals. A ray that STARTS inside solid geometry may report
+    -- nothing, which sounds like a hole in the perimeter and is not: an object covering a
+    -- corner has to cross both edges meeting at it, and the other of those two is cast from
+    -- its far end, outside the object. The only thing that escapes is something swallowing
+    -- the whole box, which the ground map has already refused. The diagonals are for a post
+    -- standing alone in the middle, crossing no edge at all.
+    local c = { corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1) }
+    local lines = { { c[1], c[2] }, { c[2], c[3] }, { c[3], c[4] }, { c[4], c[1] },
+                    { c[1], c[3] }, { c[2], c[4] } }
+
+    local base = groundZ or pos.z
+    local mask = self.GroundObstacleMask and self:GroundObstacleMask()
+                 or (ent_static + ent_sleeping_rigid + ent_rigid)
+    for _, hgt in ipairs(self.CampClearHeights) do
+        for _, ln in ipairs(lines) do
+            local a, b = ln[1], ln[2]
+            local dx, dy = b.x - a.x, b.y - a.y
+            local hit = false
+            pcall(function()
+                local hitTable = {}
+                local n = Physics.RayWorldIntersection(
+                    { x = a.x, y = a.y, z = base + hgt }, { x = dx, y = dy, z = 0 },
+                    1, mask, nil, nil, hitTable)
+                hit = (tonumber(n) or 0) > 0
+            end)
+            if hit then return false end
+        end
+    end
+    return true
+end
+
 -- True if a prop footprint at (wpos, angle) sits on mostly-valid ground -
 -- at most CampFootprintSlack invalid cells. Used to accept, or to score
 -- nudges for, tents/fires/the player tent.
 function mercenaries:CampFootprintOk(map, wpos, angle, half)
     if not map then return true end   -- no map (fallback) -> don't block placement
-    local valid, total = self:CampFootprintStats(map, wpos, angle, half.w, half.h)
-    return (total - valid) <= self.CampFootprintSlack, valid, total
+    local c = self:CampFootCentre(wpos, angle, half)
+    local valid, total = self:CampFootprintStats(map, c, angle, half.w, half.h)
+    return (total - valid) <= self:CampFootprintAllowance(total), valid, total
 end
 
 -- Nudges `basePos` (in its local right/forward frame) over a small search to
 -- find the spot whose footprint has the fewest invalid cells; returns the best
 -- position found. Tents/beds are never skipped - the least-bad spot is used -
 -- so every non-guard keeps a tent and the furniture pools stay intact.
-function mercenaries:CampNudgeToValid(map, basePos, angle, half)
+-- A candidate has to clear three things, cheapest first: the GROUND under its footprint
+-- (the map, free), what the CAMP has already claimed there (bookkeeping, free), and anything
+-- THIN standing in it (a perimeter sweep, six rays - only ever on a spot the other two have
+-- already passed).
+-- `claim` is the box tested against what the camp has already put down, and defaults to
+-- `half`. They differ wherever the ground slack would make a prop look bigger than it is.
+function mercenaries:CampNudgeToValid(map, basePos, angle, half, groundZ, claim)
     if not map then return basePos end
-    local ok, bestValid = self:CampFootprintOk(map, basePos, angle, half)
-    if ok then return basePos end
-    local best = basePos   -- bestValid = valid-cell count of basePos, from CampFootprintOk above
+    claim = claim or half
+
+    local function acceptable(p)
+        local v, t = self:CampFootprintStats(map, self:CampFootCentre(p, angle, half),
+                                             angle, half.w, half.h)
+        if (t - v) > self:CampFootprintAllowance(t) then return false, v end
+        if self:CampFootClaimed(p, angle, claim) then return false, v end
+        if not self:CampFootprintUnobstructed(p, angle, half, groundZ or p.z) then
+            return false, v
+        end
+        return true, v
+    end
+
+    local okBase, bestValid = acceptable(basePos)
+    if okBase then return basePos end
+    local best = basePos
     for ring = 1, self.CampNudgeMax do
         local d = ring * self.CampNudgeStep
         for _, off in ipairs({ { d, 0 }, { -d, 0 }, { 0, d }, { 0, -d }, { d, d }, { -d, d }, { d, -d }, { -d, -d } }) do
             local cand = self:CampRelativeOffset(basePos, angle, { right = off[1], forward = off[2] })
-            local v, t = self:CampFootprintStats(map, cand, angle, half.w, half.h)
-            if (t - v) <= self.CampFootprintSlack then
-                return cand    -- first clean spot wins
-            end
+            local ok, v = acceptable(cand)
+            if ok then return cand end    -- first clean spot wins
             if v > bestValid then best, bestValid = cand, v end
         end
     end
+    -- Nothing clean within reach. The least-bad ground still beats the original spot, but a
+    -- spot that would sit ON something already placed is worse than a rough one that does
+    -- not, so those are refused outright and the base is kept.
+    if self:CampFootClaimed(best, angle, claim) then return basePos end
     return best
 end
 
@@ -1019,7 +1471,15 @@ mercenaries.CampPropsStatic = false
 function mercenaries:SpawnCampPropModel(model, pos, angleZ, namePrefix, trackList)
     if not model or model == "" then return nil end
 
-    local groundPos = self:CampSnapToGround(pos)
+    -- Snapping now answers with the ground rather than the top of whatever is standing on
+    -- it, so a prop over a cart or a shed lands at its foot instead of on its roof. Where it
+    -- lands under something, say so: the layout chose this spot and the layout is what wants
+    -- fixing, but the prop is at least on the floor.
+    local groundPos, clear = self:CampSnapToGround(pos, true)
+    if clear == false and self.GroundNote then
+        self:GroundNote(string.format('%s placed at (%.1f, %.1f) with something over it',
+            tostring(namePrefix or 'camp prop'), groundPos.x, groundPos.y))
+    end
     local name = (namePrefix or "MercCampProp") .. "_" .. tostring(math.random(100000, 999999))
 
     local ent = System.SpawnEntity({
@@ -1147,10 +1607,31 @@ function mercenaries:SpawnCampFurnitureSO(model, pos, angleZ, namePrefix, soProp
     -- 1. The visual prop - purely decorative, no SO properties.
     local propEnt = self:SpawnCampPropModel(model, groundPos, angleZ, namePrefix, trackList)
 
+    -- The prop ground-snaps once more on its way in, so take the height it ACTUALLY landed
+    -- at. The smart object has to sit on the seat, not on the height the seat was asked for.
+    -- Not under noSnap: there the caller has an exact aimed floor point (an interior, where
+    -- snapping is what goes wrong) and the prop's own snap is the thing not to copy.
+    if propEnt and not noSnap then
+        local pp
+        pcall(function() pp = propEnt:GetWorldPos() end)
+        if pp and pp.z then groundPos = { x = groundPos.x, y = groundPos.y, z = pp.z } end
+    end
+
     -- 2. The smart object itself. Normally co-located with the prop, but
     -- callers can nudge it (soPosOverride) when the SO helper's authored pose
     -- doesn't land centred on our particular prop - see the sitter stool.
-    local soGroundPos = soPosOverride and self:CampSnapToGround(soPosOverride) or groundPos
+    -- The nudge is horizontal and lands INSIDE the prop's own footprint, so it takes the
+    -- prop's height rather than a ground ray of its own: that ray fires with the prop
+    -- already physicalised and hits the prop's own top face. See docs/camp.md,
+    -- "The sitter floated above his log".
+    local soGroundPos = groundPos
+    if soPosOverride then
+        soGroundPos = {
+            x = soPosOverride.x,
+            y = soPosOverride.y,
+            z = groundPos.z + ((soPosOverride.z or pos.z) - pos.z),
+        }
+    end
 
     -- BEDS ONLY: the sleeper lies across the bed instead of along it, because the two
     -- halves of this function do not share a facing convention. The prop is turned with
@@ -1411,7 +1892,7 @@ function mercenaries:CampEnsureSpot(wuidStr)
     local fire = (#fires > 0) and fires[math.random(#fires)] or self.CampCenter
     local slots = self.CampClusterTentRingSlots or 7
     s.actPos  = self:CampSnapToGround(select(1, self:CampRingPos(fire,
-        self.CampTentRingRadius + self.CampActivityOutsideGap,
+        self:CampTentRing() + self.CampActivityOutsideGap,
         math.random(slots), slots, math.pi / slots)))
     s.lastPos = s.actPos
     s.firePos = { x = fire.x, y = fire.y, z = fire.z }
@@ -1632,6 +2113,226 @@ mercenaries.CampPoseHoldFrom    = {}     -- [wuidStr] = when we started making c
 mercenaries.CampPoseFreshSecs   = 2.5    -- a stamp older than this means the tree is gone
 mercenaries.CampPoseMaxHoldSecs = 4.0    -- never hold combat off longer than this, whatever
 
+local function campNow()
+    local t = 0
+    pcall(function() t = System.GetCurrTime() or 0 end)
+    return t
+end
+
+-- ==== The pose outlives the tree ====
+-- A StanceElement binds the merc to its smart object: while it is up, the ENGINE owns his
+-- position, and a Lua SetPos is undone on the next animation update. Tear camp_actor off
+-- mid-pose (which is exactly what a deploy's FollowStalled does) and the element is orphaned
+-- rather than ended - so the man is still pinned to the bed with no tree left to unwind him.
+-- Anything that hauls him then plays out as teleport, snap back, teleport, snap back, once a
+-- second, until the orphan finally lets go. That is the sleeping-merc deploy report.
+--
+-- CampPoseAt is cleared the moment he leaves a pose, so it cannot answer "is he still
+-- unwinding one". CampPoseLastAt is the same heartbeat kept: it is never cleared, so the
+-- grace below runs from the last tick camp_actor reported him posed - whether the tree ended
+-- cleanly or was destroyed.
+mercenaries.CampPoseLastAt      = {}     -- [wuidStr] = last tick he was seen inside a pose
+mercenaries.CampPoseUnwindSecs  = 3.5    -- how long camp_actor's yield gate needs to stand him up
+mercenaries.CampPoseGraceSecs   = 6.0    -- ...and how long nothing may teleport him afterwards
+
+-- Age of a pose stamp, or nil if there is none to read. A NEGATIVE age means the engine
+-- clock restarted under us (a save load), which would otherwise read as "stamped in the
+-- future" and exempt the man from every haul for good - so the stamp is dropped instead.
+local function campPoseAge(pool, ws)
+    local at = pool[ws]
+    if not at then return nil end
+    local age = campNow() - at
+    if age < 0 then pool[ws] = nil; return nil end
+    return age
+end
+
+-- True while he is demonstrably inside a Stance/Unstance element RIGHT NOW.
+function mercenaries:InCampPose(wuid)
+    local age = campPoseAge(self.CampPoseAt, tostring(wuid))
+    return (age ~= nil) and age <= self.CampPoseFreshSecs
+end
+
+-- ==== Ask the ENGINE, not the camp tables ====
+-- Everything above is inference: it reads what the mod believes about a merc's camp role,
+-- and a torn-off pose is precisely the case where that belief is wrong - the tables are
+-- already cleared while the engine still has him pinned to a bed. `GetStance` is the engine's
+-- own answer and cannot be wrong about it, so both schedulers poll it once a second and
+-- publish the result here. It keeps reporting after the tree that owned the pose is gone,
+-- which is exactly when it is needed.
+--
+-- No grace window and no bound: this is a LIVE read, refreshed every second, so "he is still
+-- lying down" stays true for as long as it is true and becomes false the tick he stands. The
+-- only bound it needs is staleness - a merc whose scheduler has stopped reporting is not
+-- described by an old sample. (Same shape as the GHOST LATCH sweep's FollowSchedAt test.)
+mercenaries.StanceAt          = {}      -- [wuidStr] = when the stance was last read
+mercenaries.StanceDown        = {}      -- [wuidStr] = engine says lying or sitting
+mercenaries.StanceFreshSecs   = 4.0     -- a read older than this describes nothing
+
+-- How many times we have asked this man to get up without the engine agreeing that he did.
+mercenaries.StandUpTries = {}
+mercenaries.StandUpLogEvery = 10        -- attempts between log lines, after the first
+
+-- ==== Pose rescue: own the pose again, then let it go ====
+-- Playing a standing action at a pinned merc does NOT free him - measured, 30+ attempts, the
+-- engine still reporting him lying. A StanceElement binds him to its smart object and only
+-- ENDING the element releases him, so the cure has to be to re-enter it and leave: the exit
+-- plays the Out fragment and stands him up. camp_actor's rescue arm does exactly that.
+--
+-- This is the automatic form of the workaround found by hand - sending a stuck man back to
+-- camp cures him, because a camp role is what makes camp_actor fire and take the pose back.
+-- Here he is handed to camp_actor for a couple of seconds WITHOUT a camp role, and given back
+-- the moment he is on his feet.
+-- 2, not 4: the rescue is what actually works, so the seconds spent playing an action at him
+-- first are mostly just a man lying in a bed for longer than he needs to be.
+mercenaries.PoseRescueAfter    = 2      -- failed stand-ups before handing him to camp_actor
+mercenaries.PoseRescueMax      = 4      -- rescues attempted before giving up on him
+mercenaries.PoseRescuePending  = {}     -- [wuidStr] = true while camp_actor should run the arm
+mercenaries.PoseRescueCount    = {}     -- [wuidStr] = rescues attempted
+mercenaries.PoseRescueDoneAt   = {}     -- [wuidStr] = when his last rescue finished
+
+-- A MAN GETTING UP STILL READS AS LYING. The stand-up is not instant, and for as long as it
+-- plays the engine reports the old stance - so judging him the moment the rescue ends counts a
+-- success as a failure, asks for another, and that one re-enters the StanceElement on top of
+-- the stand-up already running. Measured before this window existed: eight men rescued, five
+-- needing a second go, four a third, one a fourth, each fired on the very next poll. camp_actor
+-- holds him through most of the transition; this covers the rest.
+mercenaries.PoseRescueSettleSecs = 4.0
+
+function mercenaries:PoseRescueSettling(ws)
+    local age = campPoseAge(self.PoseRescueDoneAt, ws)
+    return (age ~= nil) and age <= self.PoseRescueSettleSecs
+end
+
+-- Read by camp_actor (the arm) and by IsCampActor (so the scheduler fires camp_actor at all).
+function mercenaries:PoseRescueWanted(wuid)
+    return self.PoseRescuePending[tostring(wuid)] == true
+end
+
+function mercenaries:PoseRescueDone(wuid)
+    local ws = tostring(wuid)
+    self.PoseRescuePending[ws] = nil
+    self.PoseRescueDoneAt[ws]  = campNow()
+    -- The stance poll decides whether it worked; clearing the try count here would restart
+    -- the ladder and rescue him forever.
+    self:CampActorDirty(ws)
+end
+
+-- Give up loudly rather than silently: a man this cannot free is a real, unhandled state and
+-- the log should say so once, by name, instead of counting to infinity.
+function mercenaries:PoseRescueAsk(ws)
+    if self.PoseRescuePending[ws] then return end
+    local n = (self.PoseRescueCount[ws] or 0) + 1
+    if n > self.PoseRescueMax then
+        if n == self.PoseRescueMax + 1 then
+            self.PoseRescueCount[ws] = n
+            System.LogAlways("[Camp] " .. ws .. " could not be freed from his pose in " ..
+                             tostring(self.PoseRescueMax) .. " attempts - leaving him. " ..
+                             "Nothing will teleport him while he is down.")
+        end
+        return
+    end
+    self.PoseRescueCount[ws] = n
+    self.PoseRescuePending[ws] = true
+    self:CampActorDirty(ws)
+    System.LogAlways("[Camp] " .. ws .. " will not stand - handing him to camp_actor to unwind the pose (" ..
+                     tostring(n) .. " of " .. tostring(self.PoseRescueMax) .. ")")
+end
+
+function mercenaries:NoteStance(bt_data, myWuid)
+    local ws   = tostring(myWuid)
+    local down = (bt_data.stanceGrounded == true)
+    self.StanceAt[ws]   = campNow()
+    self.StanceDown[ws] = down
+    bt_data.standUpWanted = false
+
+    -- On his feet: nothing to do, and both ladders are only meaningful unbroken. The rescue
+    -- budget resets too, so a man pinned again an hour later gets a fresh one rather than
+    -- inheriting a count from the last time.
+    if not down then
+        self.StandUpTries[ws]     = nil
+        self.PoseRescueCount[ws]  = nil
+        self.PoseRescueDoneAt[ws] = nil
+        return
+    end
+
+    -- He is off his feet. That is only WRONG if he holds no camp role - a man asleep in his
+    -- own camp bed is doing exactly what he was told to. Both tests, because they answer
+    -- different questions: IsCampActor is "has a role", IsMercInCampProper is "is quartered
+    -- here at all", and the paths that take a squad out of camp do not all clear both.
+    -- A rescue is running, or one has just finished and he is still climbing out of the pose.
+    -- Either way camp_actor has him in hand: leave BOTH the action and the try count alone -
+    -- resetting the count would send him back to the bottom of the ladder every time, and
+    -- counting a failure mid-stand-up is what made one rescue turn into four.
+    if self:PoseRescueWanted(myWuid) or self:PoseRescueSettling(ws) then return end
+
+    if _G.MercenariesDismissed then return end
+    if self:IsCampActor(myWuid) or self:IsMercInCampProper(myWuid) then
+        self.StandUpTries[ws] = nil
+        return
+    end
+
+    local n = (self.StandUpTries[ws] or 0) + 1
+    self.StandUpTries[ws] = n
+
+    -- The cheap cure first: play a standing action at him. It does work for some poses, and
+    -- it costs one node. When it plainly is not working, escalate to the rescue - and stop
+    -- playing the action, so the two are never fighting over him at once.
+    if n < self.PoseRescueAfter then
+        bt_data.standUpWanted = true
+        if n == 1 then
+            System.LogAlways("[Camp] " .. ws .. " is off his feet with no camp role - standing him up")
+        end
+        return
+    end
+    self:PoseRescueAsk(ws)
+end
+
+-- One line per merc saying whether he is on his feet and what every guard makes of it. The
+-- teleport loop is invisible in a log otherwise: "he snaps back to the bed" and "he is
+-- following normally" look identical from the camp tables alone.
+function mercenaries:StanceDump()
+    local n, down = 0, 0
+    for name, ent in pairs(self.ActiveMercs or {}) do
+        local w = ent and (ent.this and ent.this.id or ent.id)
+        if w then
+            n = n + 1
+            local grounded = self:IsGroundedStance(w)
+            if grounded then down = down + 1 end
+            local age = self.StanceAt[tostring(w)]
+            System.LogAlways(string.format(
+                '[MercStance] %-58s %-4s read=%s campOut=%-5s campActor=%-5s pose=%-5s standUps=%d',
+                tostring(name), grounded and "DOWN" or "up",
+                age and string.format('%.1fs ago', campNow() - age) or 'never',
+                tostring(self:IsCampOut(w)), tostring(self:IsCampActor(w)),
+                tostring(self:LeavingCampPose(w)), self.StandUpTries[tostring(w)] or 0))
+        end
+    end
+    System.LogAlways('[MercStance] ' .. tostring(down) .. ' of ' .. tostring(n) ..
+                     ' merc(s) are off their feet. read=never means the scheduler is not polling him.')
+end
+
+-- True when the engine currently has him off his feet (lying or sitting).
+function mercenaries:IsGroundedStance(wuid)
+    local ws = tostring(wuid)
+    if not self.StanceDown[ws] then return false end
+    local age = campPoseAge(self.StanceAt, ws)
+    return (age ~= nil) and age <= self.StanceFreshSecs
+end
+
+-- THE test every teleporter asks before moving a merc. Three ways to be off your feet, most
+-- authoritative first:
+--   * the engine says lying/sitting - true even for a pose nothing owns any more;
+--   * camp_actor says it is inside a Stance/Unstance element right now;
+--   * it said so within CampPoseGraceSecs - the stand-up fragment is still playing.
+-- A StanceElement pins the actor to its smart object, so SetPos on any of these is undone on
+-- the next animation update: the merc blinks to the player and snaps straight back. The last
+-- two are bounded because they are stamps; the first needs no bound because it is a live read.
+function mercenaries:LeavingCampPose(wuid)
+    if self:IsGroundedStance(wuid) then return true end
+    local age = campPoseAge(self.CampPoseLastAt, tostring(wuid))
+    return (age ~= nil) and age <= self.CampPoseGraceSecs
+end
+
 -- Does this merc have a fight on? Shared by CampActorYield (should he leave his pose)
 -- and CampPoseHold (is combat actually waiting on him).
 function mercenaries:CampHasFightTarget(ws)
@@ -1712,6 +2413,9 @@ function mercenaries:CampActorYield(data, entity)
         local now = 0
         pcall(function() now = System.GetCurrTime() or 0 end)
         self.CampPoseAt[ws] = now
+        -- Never cleared: this is what tells the teleporters he is still shedding a pose
+        -- after the tree that owned it is gone. See CampPoseLastAt.
+        self.CampPoseLastAt[ws] = now
     else
         self.CampPoseAt[ws] = nil
     end
@@ -1800,6 +2504,13 @@ function mercenaries:IsCampActor(mercWuid)
     -- battle is on, camp_actor must not hold the interrupt slot, full stop.
     if self.RaborschIsFighting and self:RaborschIsFighting(mercWuid) then return false end
 
+    -- A man being freed from a stuck pose IS a camp actor for the moment it takes, whatever
+    -- else is true of him: camp_actor owns the rescue arm, and the scheduler only fires
+    -- camp_actor at men this answers true for. Checked before everything else because it has
+    -- to outrank "he holds no camp role" - that is precisely the state he is being rescued
+    -- from. See PoseRescueAsk.
+    if self:PoseRescueWanted(mercWuid) then return true end
+
     if self:GetCampActivity(mercWuid) ~= nil then return true end
     if self:IsCampGuard(mercWuid) then return true end
     -- Men marching in a column count too: camp_actor is the behaviour that carries the follow
@@ -1821,12 +2532,6 @@ end
 -- See docs/camp.md, "Leaving camp: who leads".
 mercenaries.CampBusyUntil       = {}     -- [wuidStr] = time he is trusted to march again
 mercenaries.CampBusyRecoverSecs = 45.0
-
-local function campNow()
-    local t = 0
-    pcall(function() t = System.GetCurrTime() or 0 end)
-    return t
-end
 
 -- Snapshot the unfit. Must run BEFORE the camp role tables are cleared.
 function mercenaries:MarkCampBusyMercs()
@@ -2029,8 +2734,10 @@ function mercenaries:CampSpawnNightLights(center)
         end
         if #ring == 0 then
             for w = 1, self.CampNightLightCount do
-                table.insert(ring, self:CampSnapToGround(select(1, self:CampRingPos(center,
-                    self.CampTentRingRadius + self.CampPatrolTentClearance, w, self.CampNightLightCount, 0))))
+                -- select(1, ...): the snap answers with a validity flag too, and a bare
+                -- call in the last argument slot would hand every one of them to insert.
+                table.insert(ring, (self:CampSnapToGround(select(1, self:CampRingPos(center,
+                    self:CampTentRing() + self.CampPatrolTentClearance, w, self.CampNightLightCount, 0)))))
             end
         end
 
@@ -2385,8 +3092,13 @@ function mercenaries:CampTakeParty(fraction)
     -- so with the out-party marked busy too UpdateFormationLeader has no fit anchor at all
     -- and falls through to the busy tier. Whole-company deploys escape it because the
     -- guards come along, and guards are never stamped. The stayers keep their stamp.
+    --
+    -- ...with one exception, and it is the man lying in a bed. "Cannot walk yet" is a guess
+    -- for most of the stamp's subjects and a fact for him: he is inside a StanceElement, and
+    -- until it unwinds the engine owns where he stands. Clear his stamp and he can be elected
+    -- the formation anchor from a bed - the whole sortie then forms up on a man who is asleep.
     for k in pairs(self.CampOutParty) do
-        if self.CampBusyUntil then self.CampBusyUntil[k] = nil end
+        if self.CampBusyUntil and not self:InCampPose(k) then self.CampBusyUntil[k] = nil end
     end
 
     -- A standing order outranks the formation squad-wide (see UpdateFormationRole's `off`
@@ -2406,11 +3118,25 @@ function mercenaries:CampTakeParty(fraction)
     -- latches him "following" anyway, and its re-fire test is edge-triggered on the camp
     -- role, so it never tries again. That is the same transition the loot sweep has to
     -- force, and this is its cure: evict, stagger, verify (LootReleaseFinished).
-    local kicked = 0
+    --
+    -- A man mid-POSE is the one who must NOT be evicted on this tick. His camp role was
+    -- cleared a few lines up, so CampActorYield already reads campYield for him and
+    -- camp_actor is unwinding his StanceElement on its own; evicting him now tears that off
+    -- instead, and an orphaned element keeps him pinned to the furniture with no tree left
+    -- to end it. Hold his eviction for the length of the yield gate and he stands up first.
+    local kicked, deferred = 0, 0
     for i, m in ipairs(list) do
         if i <= takeN and m.ent then
-            if pcall(function() self:FollowStalled(m.ent) end) then kicked = kicked + 1 end
+            local posed = self:InCampPose(m.ka)
+            if posed then deferred = deferred + 1 end
+            local wait = posed and self.CampPoseUnwindSecs or nil
+            if pcall(function() self:FollowStalled(m.ent, wait) end) then kicked = kicked + 1 end
         end
+    end
+    if deferred > 0 then
+        System.LogAlways(string.format(
+            '[CampDeploy] %d deployed merc(s) were mid-pose - eviction held %.1fs so they stand up first',
+            deferred, self.CampPoseUnwindSecs))
     end
     pcall(function() self:FollowStaggerSquad() end)
     -- Safe for the men staying behind: DismountVerify skips anyone IsCampActor answers for.
@@ -2545,13 +3271,22 @@ function mercenaries:CampDeployOne(ent)
     if not ka then return false end
     if self:IsCampOut(ka) then return false end
 
+    -- Read BEFORE the role tables are torn down, the same ordering MarkCampBusyMercs needs.
+    local posed = self:InCampPose(ka)
+
     for _, k in ipairs({ ka, kb }) do
         if k then
             self.CampOutParty[k] = true
             if self.CampRoster then self.CampRoster[k] = nil end
             if self.CampActivities then self.CampActivities[k] = nil end
             if self.CampFurniture then self.CampFurniture[k] = nil end
-            if self.CampBusyUntil then self.CampBusyUntil[k] = nil end
+            -- A man inside a StanceElement genuinely cannot walk yet, and an anchor that
+            -- cannot walk stands the squad. This path never ran MarkCampBusyMercs, so the
+            -- stamp has to be laid rather than kept - and only for as long as standing up
+            -- takes, not the 45s a broken camp allows. See CampTakeParty.
+            if self.CampBusyUntil then
+                self.CampBusyUntil[k] = posed and (campNow() + self.CampPoseUnwindSecs) or nil
+            end
             if self.CampPatrollers then self.CampPatrollers[k] = nil end
             pcall(function() self:ReleaseSpot(self.CampSeats, k) end)
             pcall(function() self:ReleaseSpot(self.CampBeds, k) end)
@@ -2567,7 +3302,8 @@ function mercenaries:CampDeployOne(ent)
     self:SaveString("MercIdlePersistent", "0")
 
     if self.CampActorInvalidateAll then self:CampActorInvalidateAll() end
-    pcall(function() self:FollowStalled(ent) end)
+    -- Mid-pose men are deferred, not evicted - see the same call in CampTakeParty.
+    pcall(function() self:FollowStalled(ent, posed and self.CampPoseUnwindSecs or nil) end)
     pcall(function() self:FollowStaggerSquad() end)
     pcall(function() self:BeginFollowVerify("camp deploy one") end)
     self:SaveCampOutParty()
@@ -3091,6 +3827,7 @@ function mercenaries:CampActiveStations()
     if (L.hunterSpots or 0) > 0 then table.insert(list, "hunt") end
     if L.innActive then table.insert(list, "inn") end
     if (L.foodCartDays or 0) > 0 then table.insert(list, "cart") end
+    if L.hasTrader then table.insert(list, "trader") end
     return list
 end
 
@@ -3505,7 +4242,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
                 maxTile = math.max(maxTile, math.sqrt(off[1] * off[1] + off[2] * off[2]))
             end
             local estRadius = maxTile * self.CampClusterSpacing
-                + self.CampTentRingRadius + self.CampPatrolTentClearance
+                + self:CampTentRing() + self.CampPatrolTentClearance
             local routeCap = math.max(1, math.floor((2 * math.pi * estRadius) / self.CampPatrolSpacing))
             guardCount = math.max(1, math.min(guardCount, routeCap))
         end
@@ -3539,6 +4276,21 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
             campSeed[i] = seed
         end
         for i = nonGuardCount + 1, mercCount do campRole[i] = "guard" end
+
+        -- Settle the tent ring for this camp before anything measures outward from it. The
+        -- widest tent variant decides, not the constant: the tents sit with their LONG axis
+        -- along the ring (see CampTentRingRadiusFor), so seven of tent_small_rustic_a at the
+        -- nominal 3.9m lap each other by over a metre.
+        self:CampClearClaims()
+        local ringR, byArc, bySeats = self:CampTentRingRadiusFor(self.CampTentVariants,
+                                                                 self.CampClusterTentRingSlots)
+        self.CampTentRingR = ringR
+        if ringR > self.CampTentRingRadius + 0.01 then
+            System.LogAlways(string.format(
+                '[Mercenaries] tent ring %.2fm (nominal %.2f): %.2f to give %d tents their arc, ' ..
+                '%.2f to clear the fire seats',
+                ringR, self.CampTentRingRadius, byArc, self.CampClusterTentRingSlots, bySeats))
+        end
 
         self.CampFurniture = {}
         self.CampActivities = {}
@@ -3592,6 +4344,17 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
         end
         local right = { x = -forward.y, y = forward.x }
         local spacing = self.CampClusterSpacing
+        -- A wider tent ring needs wider spacing between the clusters, or neighbouring rings
+        -- grow into each other and it is the same overlap one tile further out.
+        do
+            local needSpacing = 2 * self:CampTentRing() + self.CampClusterGap
+            if needSpacing > spacing then
+                System.LogAlways(string.format(
+                    '[Mercenaries] cluster spacing %.2fm -> %.2fm so the tent rings do not meet',
+                    spacing, needSpacing))
+                spacing = needSpacing
+            end
+        end
 
         local worldForwardAngle = math.atan2(forward.y, forward.x)
 
@@ -3665,8 +4428,10 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
                         y = center.y + right.y * a + forward.y * b,
                         z = center.z,
                     }
-                    local v = select(1, self:CampFootprintStats(campMap, cand, worldForwardAngle,
-                        self.CampPlayerTentFootHalf.w, self.CampPlayerTentFootHalf.h))
+                    local pf = self:CampPropFootHalf(self.CampPlayerTentModel)
+                    local v = select(1, self:CampFootprintStats(campMap,
+                        self:CampFootCentre(cand, worldForwardAngle, pf), worldForwardAngle,
+                        pf.w, pf.h))
                     local score = v - 0.001 * (math.abs(a) + math.abs(b))  -- tie-break toward the asked spot
                     if score > bestScore then bestScore, bestC = score, cand end
                     b = b + st
@@ -3687,14 +4452,24 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
         -- Cell (0, 0) is the player tent itself; (dx, dy) offsets are in
         -- grid tiles, dx = right/left, dy = forward(+)/behind(-).
         local function gridCellPos(dx, dy)
-            return self:CampSnapToGround({
+            local p = self:CampSnapToGround({
                 x = center.x + right.x * dx * spacing + forward.x * dy * spacing,
                 y = center.y + right.y * dx * spacing + forward.y * dy * spacing,
                 z = center.z,
             })
+            return p
         end
 
         self:SpawnPlayerCampTent(center, worldForwardAngle)
+        -- Claimed so the ring tents cannot be nudged onto it. Its own facing carries the
+        -- extra rotation SpawnPlayerCampTent applies, so the box is claimed at that angle
+        -- rather than the grid's.
+        self:CampClaimFoot(center, worldForwardAngle + math.rad(130),
+                           self:CampPropClaimHalf(self.CampPlayerTentModel), "player tent")
+
+        -- The drying rack and the smokehouse, beside the tent (or the house).
+        -- Before the clusters so their tiles are claimed and routed around.
+        if self.SpawnCampAmenities then self:SpawnCampAmenities(center, worldForwardAngle) end
 
         -- The quartermaster: an immortal talking-interface NPC that stands by
         -- the player tent for the camp's lifetime (see mercenaries_quartermaster.lua).
@@ -3757,7 +4532,8 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
                 local v, t = self:CampFootprintStats(campMap, raw, worldForwardAngle, self.CampTileHalf, self.CampTileHalf)
                 accept = t > 0 and ((t - v) / t) <= self.CampTileMaxInvalidFrac
                 if accept then
-                    raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf))
+                    raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf, raw.z))
+                    self:CampClaimFoot(raw, worldForwardAngle, self.CampFireFootHalf, "fire")
                 end
             else
                 local valid, gz = self:CampValidateSpot(raw, center.z, self.CampClusterFootprint)
@@ -3824,7 +4600,8 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
                         local v, t = self:CampFootprintStats(campMap, raw, worldForwardAngle, self.CampTileHalf, self.CampTileHalf)
                         accept = t > 0 and ((t - v) / t) <= self.CampTileMaxInvalidFrac
                         if accept then
-                            raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf))
+                            raw = self:CampSnapToGround(self:CampNudgeToValid(campMap, raw, worldForwardAngle, self.CampFireFootHalf, raw.z))
+                    self:CampClaimFoot(raw, worldForwardAngle, self.CampFireFootHalf, "fire")
                         end
                     end
                     -- and don't hand an upgrade a tile that a tower or a cart stands on
@@ -3870,7 +4647,8 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
             z = center.z,
         })
         if campMap then
-            trainCenter = self:CampSnapToGround(self:CampNudgeToValid(campMap, trainCenter, worldForwardAngle, self.CampFireFootHalf))
+            trainCenter = self:CampSnapToGround(self:CampNudgeToValid(campMap, trainCenter, worldForwardAngle, self.CampFireFootHalf, trainCenter.z))
+            self:CampClaimFoot(trainCenter, worldForwardAngle, self.CampFireFootHalf, "training")
         end
         -- Yard is behind camp, so "toward camp" is +forward and "away" is
         -- -forward: dummies face the camp (+forward), trainees face away toward
@@ -3982,7 +4760,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
                 -- gap, per feedback ("calculate with seven tents, but leave
                 -- one tent spot empty, to allow movement"). Radius is
                 -- CampTentRingRadius (see its definition for history).
-                local tentPos, tentFaceAngle = self:CampRingPos(cPos, self.CampTentRingRadius, memberIndex, self.CampClusterTentRingSlots, 0)
+                local tentPos, tentFaceAngle = self:CampRingPos(cPos, self:CampTentRing(), memberIndex, self.CampClusterTentRingSlots, 0)
                 tentPos = self:CampSnapToGround(tentPos)
                 angle = tentFaceAngle + math.pi + self.CampTentFacingFix
                 -- Nudge the whole tent unit onto valid ground if its footprint
@@ -3990,14 +4768,25 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
                 -- relative to tentPos, so they move with it. Never skipped (the
                 -- least-bad spot is used) so every non-guard keeps a bed and the
                 -- shared CampBeds pool stays intact.
-                if campMap then
-                    tentPos = self:CampSnapToGround(self:CampNudgeToValid(campMap, tentPos, angle, self.CampTentFootHalf))
-                end
-                -- Random tent variant per merc, for visual variety - every
-                -- CampTentVariants entry shares the same footprint/facing.
+                -- Random tent variant per merc, for visual variety. Chosen BEFORE the
+                -- nudge, not after: the variants are not the same size (see
+                -- CampPropFootHalf), so validating the spot against a fixed box and then
+                -- rolling for the model meant the ground was checked for a tent other than
+                -- the one that got built there.
                 local tentModel = self.CampTentVariants[math.random(#self.CampTentVariants)]
+                local tentFoot = self:CampPropFootHalf(tentModel)
+                local tentClaim = self:CampPropClaimHalf(tentModel)
+                if campMap then
+                    tentPos = self:CampSnapToGround(self:CampNudgeToValid(
+                        campMap, tentPos, angle, tentFoot, tentPos.z, tentClaim))
+                end
+                self:CampClaimFoot(tentPos, angle, tentClaim, "tent")
                 self:SpawnCampPropModel(tentModel, tentPos, angle, "MercCampProp_Tent")
-                if self.NavAddObstacle then self:NavAddObstacle(tentPos, angle, self.NavTentFootHalf, "tent") end
+                -- The obstacle gets the mesh's own extent, no slack: padding a tent closes
+                -- the gaps the men walk through between them.
+                if self.NavAddObstacle then
+                    self:NavAddObstacle(tentPos, angle, self:CampPropFootHalf(tentModel, 0), "tent")
+                end
                 local tentFacing = angle
 
                 -- Bed placed relative to the tent itself (CampBedOffset) -
@@ -4071,7 +4860,7 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
                 -- eat/forage spot: OUTSIDE the tent circle per earlier feedback,
                 -- staggered half a slot so it lands between two tents with a
                 -- clear line to the fire rather than directly behind their own.
-                local activityRadius = self.CampTentRingRadius + self.CampActivityOutsideGap
+                local activityRadius = self:CampTentRing() + self.CampActivityOutsideGap
                 local actPos = self:CampSnapToGround(select(1, self:CampRingPos(clusterFirePos, activityRadius, ringSlot, ringCount, math.pi / ringCount)))
 
                 -- Only about one merc per five trains (cap 5, = the dummy count):
@@ -4150,30 +4939,72 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
         -- them and give each a perimeter waypoint ring, staggered by a
         -- per-guard angular offset.
         local NUM_WAYPOINTS = 8
-        local patrolRadius = maxClusterOffset + self.CampTentRingRadius + self.CampPatrolTentClearance
+        local patrolRadius = maxClusterOffset + self:CampTentRing() + self.CampPatrolTentClearance
         local guardIndices = {}
         for i = 1, mercCount do
             if campRole[i] == "guard" then table.insert(guardIndices, i) end
         end
+        -- The ring is a circle drawn on the map, so it runs through whatever happens to be
+        -- standing around the camp. A waypoint that lands on a house is not merely
+        -- unreachable - the guard's Move resolves to it and he ends up on the roof, which
+        -- is the "patrolling mercs get teleported onto buildings" report. Every point is
+        -- pulled onto open ground near where the circle wanted it and dropped when there is
+        -- none, so the route goes round the obstacle instead of over it. A ring that loses
+        -- most of its points is drawn again closer in, where a cramped site has more room.
+        -- One ring is validated for the whole camp, not one per guard: the circle is the
+        -- same for everybody and only the starting point differs, so validating it per man
+        -- multiplied the raycast burst by the guard count for no new information.
+        local RING_POINTS = NUM_WAYPOINTS * 3
+        local function ringWaypoints(radius)
+            local pts = {}
+            for w = 1, RING_POINTS do
+                local wp = self:CampRingPos(center, radius, w, RING_POINTS, 0)
+                local g = self:FindValidGround({ x = wp.x, y = wp.y, z = center.z }, center.z,
+                                               3.0, 0.5, 16)
+                if g and self:CampValidateSpot(g, center.z, self.CampMercFootprint) then
+                    table.insert(pts, { x = g.x, y = g.y, z = g.z })
+                end
+            end
+            return pts
+        end
+
+        local ring = ringWaypoints(patrolRadius)
+        if #ring < 4 then
+            local tighter = ringWaypoints(patrolRadius * 0.6)
+            if #tighter > #ring then ring = tighter end
+        end
+
+        if #ring < 2 then
+            System.LogAlways(
+                '[Mercenaries] camp guards: no open ground anywhere on the patrol ring - they stay put')
+        end
         for p, idx in ipairs(guardIndices) do
             local m = mercList[idx]
-            if m then
-                local wuid = entWuid(m.ent)
-                local baseAngle = (p - 1) * (2 * math.pi / math.max(#guardIndices, 1))
+            local wuid = m and entWuid(m.ent)
+            if wuid and #ring > 1 then
+                -- Each guard walks the same loop from his own place on it, which is what the
+                -- per-guard angular offset did before, taking NUM_WAYPOINTS points spread
+                -- evenly through whatever survived so the legs stay the length the sentry
+                -- pause was tuned around however many candidates the obstacles took out.
+                local start = math.floor(((p - 1) / math.max(#guardIndices, 1)) * #ring)
+                local taken = math.min(NUM_WAYPOINTS, #ring)
                 local waypoints = {}
-                for w = 1, NUM_WAYPOINTS do
-                    local wp = self:CampRingPos(center, patrolRadius, w, NUM_WAYPOINTS, baseAngle)
-                    wp = self:CampSnapToGround(wp)
-                    table.insert(waypoints, { x = wp.x, y = wp.y, z = wp.z })
+                for w = 0, taken - 1 do
+                    table.insert(waypoints, ring[((start + math.floor(w * #ring / taken)) % #ring) + 1])
                 end
-                if wuid and #waypoints > 0 then
-                    self.CampPatrollers[tostring(wuid)] = { waypoints = waypoints, index = 1 }
-                end
+                self.CampPatrollers[tostring(wuid)] = { waypoints = waypoints, index = 1 }
             end
         end
 
         self.CampCenter = center
         self.CampActive = true
+        -- Nobody raids a camp that went up an hour ago (mercenaries_raids.lua). `fresh` is
+        -- a NEW pitch; an origin without it is the saved anchor coming back after a load or
+        -- an upgrade, which is the same camp and keeps its age. Same test as DefArmRestore
+        -- below.
+        if self.RaidNoteCampPitched then
+            pcall(function() self:RaidNoteCampPitched(atOrigin == nil or atOrigin.fresh == true) end)
+        end
         self.CampStationRetries = 0
         self.CampOutParty = {}   -- fresh camp: everyone starts in it
         _G.MercCampMode = true
@@ -4210,6 +5041,11 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
         -- Food cart: a loaded supply wagon while the Food Cart upgrade has days left.
         pcall(function()
             if self.LogiState and (self:LogiState().foodCartDays or 0) > 0 then self:SpawnCampFoodCart(center) end
+        end)
+        -- Trader: the stall, the sutler, and his counter (which keeps its stock across
+        -- a break and a reload - see mercenaries_trader.lua).
+        pcall(function()
+            if self.LogiState and self:LogiState().hasTrader then self:SpawnCampTrader(center) end
         end)
         -- Night-watch lamps around the guard perimeter (see CampSpawnNightLights).
         pcall(function() self:CampSpawnNightLights(center) end)
@@ -4281,6 +5117,7 @@ function mercenaries:BreakMercCamp(silent)
     pcall(function() self:DespawnCampHunt() end)
     pcall(function() self:DespawnCampInn() end)
     pcall(function() self:DespawnCampFoodCart() end)
+    pcall(function() self:DespawnCampTrader() end)
     -- House props go with CampEntities; this just restores the grass CVar.
     pcall(function() self:ClearCampHouse() end)
     -- The wall's invisible obstacle blockers go with it. Without this they are left
@@ -4389,6 +5226,7 @@ function mercenaries:CampStationRetryTick()
     want((L.hunterSpots or 0) > 0, self.CampHunt, "hunt", self.SpawnCampHunt)
     want(L.innActive, self.CampInn, "inn", self.SpawnCampInn)
     want((L.foodCartDays or 0) > 0, self.CampFoodCart, "cart", self.SpawnCampFoodCart)
+    want(L.hasTrader, self.CampTrader, "trader", self.SpawnCampTrader)
 
     if #missing == 0 then
         -- everything owned is standing: stop asking
@@ -4508,6 +5346,9 @@ mercenaries.CampPropClasses = {
     "BasicEntity", "ParticleEffect", "BedTrigger", "StanceSmartObject",
     "SmartObjectHolder", "mercenaries_Prop", "Bed", "GeomEntity", "Light",
     "Smithery", "ItemSlot", "TagPoint",
+    -- The player tent's amenities: the personal chest and the two food stations
+    -- (mercenaries_amenities.lua).
+    "Stash", "FoodProcessingTrigger", "ActionTrigger",
 }
 mercenaries.CampPropPrefixes = {
     "MercCamp",       -- props, player tent/bed, forge, alchemy, hunt, inn, cart, house
@@ -4571,6 +5412,7 @@ function mercenaries:ClearAnyLeftoverCamp()
     pcall(function() self:DespawnCampHunt() end)
     pcall(function() self:DespawnCampInn() end)
     pcall(function() self:DespawnCampFoodCart() end)
+    pcall(function() self:DespawnCampTrader() end)
     -- House props go with CampEntities; this just restores the grass CVar.
     pcall(function() self:ClearCampHouse() end)
     -- The wall's invisible obstacle blockers go with it. Without this they are left
@@ -4594,6 +5436,9 @@ function mercenaries:ClearAnyLeftoverCamp()
     self.CampBeds = {}
     self.CampPlayerBed = nil
     self.CampBedSleepState = nil
+    -- The player's master chest is LEVEL data and there is one per level, so the
+    -- cached handle cannot be carried across a load into the other region.
+    self.CampMasterChest = nil
     self.CampTicks = 0
     self.CampCommunalChairs = {}
     self.CampOutParty = {}

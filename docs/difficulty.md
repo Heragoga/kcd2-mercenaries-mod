@@ -42,12 +42,22 @@ penalty, so it was reporting a non-problem.
 
 | Tier | Enemies per man | Armour |
 |---|---|---|
-| easy | 0.8× | favour the ragged half |
-| **medium** (default) | 1.2× | as authored |
-| difficult | 1.4× | as authored |
+| easy | 0.4× | favour the ragged half (70% of the draw) |
+| **medium** (default) | 0.6× | favour the ragged half (50% of the draw) |
+| difficult | 1.0× | as authored |
 | extreme | 1.5× | favour the good half |
 | impossible | 2.0× | favour the good half |
 | horde | 4.0× | favour the ragged half |
+
+**The default tier came down** (2026-09-14): medium was 1.2× and drew its armour flat. It is
+now 0.6× and skews poor — the company faces half the men it used to, and fewer of them in
+good kit. Easy came down with it (0.8× → 0.4×), because a tier above the default is not an
+easy one, and difficult came down to 1.0× so the step up from the default is a step and not
+a cliff. Extreme and above are unchanged: a player who picks them asked for them.
+
+Medium and easy skew by **different amounts**, which is what `qualityBias` on a tier is for
+(see below): at 0.5 half the line is drawn from the ragged half — a band who mostly cannot
+afford plate — while easy's 0.7 is one that visibly cannot.
 
 Lives in `mercenaries_difficulty.lua`; persisted with `SaveString("MercDifficulty")`
 and lazily loaded on first read, the same idiom as `RaidNextDay`.
@@ -89,8 +99,11 @@ difficulty, and each would silently swallow a harder tier:
 per-gang patrol size alone would have been a **no-op** — the population budget in
 `PatrolBudgetFor` would have swallowed the extra men on the way out.
 
-`DifficultyBaseMult` is 1.2, i.e. medium. Anything at or below it leaves every
-ceiling exactly as authored, so the default tier changes nothing.
+`DifficultyBaseMult` is 1.2 — the multiplier the ceilings were *tuned* at, and no longer what
+medium is set to. Anything at or below it leaves every ceiling exactly as authored, so the
+default tier does not touch them. It deliberately did **not** follow medium down to 0.6: a
+cap of fourteen raiders is a cap on what the camp fight can stage, not a difficulty knob, and
+scaling the ceilings off the new default would have handed `difficult` a raid of 33.
 
 ---
 
@@ -130,15 +143,18 @@ But the ladder already exists as authored data, in two independent forms:
    ordinal for the GUIDs `Outfits` does not know (sigi, prague, ruthenian, recruit).
 
 `DiffWardrobe(group)` merges the two into a `low`/`high` half per group, and
-`DiffPickClothing` draws from the favoured half `DifficultyQualityBias` (70%) of the
-time. Not 100%: "favour poor armour" should still put the odd decent breastplate in
-the line, or every easy fight looks identically ragged.
+`DiffPickClothing` draws from the favoured half `DifficultyQualityBiasNow()` of the time — the
+tier's own `qualityBias` where it names one (medium 0.5, easy 0.7), otherwise the global
+`DifficultyQualityBias` (70%). Not 100%: "favour poor armour" should still put the odd decent
+breastplate in the line, or every easy fight looks identically ragged.
 
-**A `mixed` tier returns `nil`**, so `EquipEnemy` keeps its own uniform draw and
-nothing about the old behaviour changes. Only easy / extreme / impossible / horde
-shift the wardrobe at all.
+**A `mixed` tier returns `nil`**, so `EquipEnemy` keeps its own flat draw and nothing about
+the old behaviour changes. Only `difficult` is mixed now — every other tier shifts the
+wardrobe one way or the other.
 
-This deliberately does **not** bias which *group* turns up. Swapping looters in for
+This deliberately does **not** bias which *group* turns up — though it does not pick the same
+one twice running either, which is a separate rule: see [Enemy groups](enemies.md), "Which
+group turns up". Swapping looters in for
 knights would change the fiction and would fight the per-group `share` values that
 already balance the raid roster; biasing the wardrobe within the group the fiction
 already chose is the narrower, safer knob.

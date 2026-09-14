@@ -1112,7 +1112,7 @@
   <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>Ona eşlik et.</Cell></Row>
   <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>Çatışma kuralları</Cell></Row>
   <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>İstediğinde çatış.</Cell></Row>
-  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>Silah çekeni kim olursa olsun karşıla.</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Kill everyone in sight.</Cell><Cell>Gördüğünüz herkesi öldürün.</Cell></Row>
   <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>Yalnızca karşılık ver.</Cell></Row>
   <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>Kılıçlarını çekme.</Cell></Row>
   <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>Nasıl bastırılacağı</Cell></Row>
@@ -1125,6 +1125,14 @@
   <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>Eşlik ediliyor.</Cell></Row>
   <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>Eşlik edilecek kimse yok.</Cell></Row>
   <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>Adamların saldırı altında ve kılıçlarını çekmiyor.</Cell></Row>
+  <Row><Cell>merc_info_engage_default</Cell><Cell>The men will engage at will.</Cell><Cell>The men will engage at will.</Cell></Row>
+  <Row><Cell>merc_info_engage_viking</Cell><Cell>The men will cut down every living soul in sight.</Cell><Cell>The men will cut down every living soul in sight.</Cell></Row>
+  <Row><Cell>merc_info_engage_defend</Cell><Cell>The men will defend themselves and no more.</Cell><Cell>The men will defend themselves and no more.</Cell></Row>
+  <Row><Cell>merc_info_engage_hold</Cell><Cell>The men will hold their blades.</Cell><Cell>The men will hold their blades.</Cell></Row>
+  <Row><Cell>merc_info_viking_warn</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell></Row>
+  <Row><Cell>merc_info_aggro_tight</Cell><Cell>Tight ranks. One man to an enemy.</Cell><Cell>Tight ranks. One man to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_balanced</Cell><Cell>Balanced. Two men to an enemy.</Cell><Cell>Balanced. Two men to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_loose</Cell><Cell>Swarm them. Three men to an enemy.</Cell><Cell>Swarm them. Three men to an enemy.</Cell></Row>
   <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>Toparlanın.</Cell></Row>
   <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[Mod ayarları] Bölüğün ve modun işleyişini değiştir.</Cell></Row>
   <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Birliğin nasıl işlediği hakkında konuşalım.</Cell></Row>
@@ -1163,6 +1171,10 @@
   <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>Aşırı</Cell></Row>
   <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>İmkânsız</Cell></Row>
   <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>Sürü</Cell></Row>
+  <Row><Cell>merc_info_upkeep_off</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_lenient</Cell><Cell>Lenient upkeep. The food goes further.</Cell><Cell>Lenient upkeep. The food goes further.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_standard</Cell><Cell>Standard upkeep.</Cell><Cell>Standard upkeep.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_harsh</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell></Row>
   <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>Olduğu gibi bırak.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>Öyle olsun.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Peki. Haberi yayarım.</Cell></Row>
@@ -1302,6 +1314,7 @@
   <Row><Cell>ui_qm_rm_archercart</Cell><Cell>Okçu arabaları.</Cell><Cell>Okçu arabaları.</Cell></Row>
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Palanka.</Cell><Cell>Palanka.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Kapılar.</Cell><Cell>Kapılar.</Cell></Row>
+  <Row><Cell>ui_qm_rm_trader</Cell><Cell>Tüccarın tezgâhı.</Cell><Cell>Tüccarın tezgâhı.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Bu kampta böyle bir şey yok.</Cell><Cell>Bu kampta böyle bir şey yok.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Benimle kimin yola çıkacağına karar verelim.</Cell><Cell>Benimle kimin yola çıkacağına karar verelim.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Kamptan adam çıkardığımda, arkamda doğru adamları istiyorum.</Cell><Cell>Kamptan adam çıkardığımda, arkamda doğru adamları istiyorum.</Cell></Row>
@@ -1344,4 +1357,23 @@
   <Row><Cell>merc_ui_camp_marker</Cell><Cell>Paralı asker kampı</Cell><Cell>Paralı asker kampı</Cell></Row>
   <Row><Cell>merc_ui_wait_marker</Cell><Cell>Bekleyen paralı askerler</Cell><Cell>Bekleyen paralı askerler</Cell></Row>
   <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Zaslawye'li Aleksej</Cell><Cell>Zaslawye'li Aleksej</Cell></Row>
+  <!-- Camp trader -->
+  <Row><Cell>ui_mercenary_trade_action</Cell><Cell>Ticaret yap</Cell><Cell>Ticaret yap</Cell></Row>
+  <Row><Cell>char_mercenary_trader_uiName</Cell><Cell>Tüccar</Cell><Cell>Tüccar</Cell></Row>
+  <Row><Cell>char_mercenary_trader_fullName</Cell><Cell>Tüccar</Cell><Cell>Tüccar</Cell></Row>
+  <Row><Cell>char_mercenary_trader_description</Cell><Cell>Bölüğün seyyar satıcısı.</Cell><Cell>Bölüğün seyyar satıcısı.</Cell></Row>
+  <Row><Cell>merc_trader_closed</Cell><Cell>Tezgâh kapalı.</Cell><Cell>Tezgâh kapalı.</Cell></Row>
+  <Row><Cell>merc_trader_broke</Cell><Cell>Tüccarın parası bitti - hepsinin bedelini ödeyemedi.</Cell><Cell>Tüccarın parası bitti - hepsinin bedelini ödeyemedi.</Cell></Row>
+  <Row><Cell>merc_trader_short</Cell><Cell>Ödeyemedin - tüccar, parasını veremediklerini geri aldı.</Cell><Cell>Ödeyemedin - tüccar, parasını veremediklerini geri aldı.</Cell></Row>
+  <Row><Cell>merc_n_trpaid</Cell><Cell>Tüccar sana ödüyor:</Cell><Cell>Tüccar sana ödüyor:</Cell></Row>
+  <Row><Cell>merc_n_trspent</Cell><Cell>Tüccara ödüyorsun:</Cell><Cell>Tüccara ödüyorsun:</Cell></Row>
+  <Row><Cell>merc_n_trpurse</Cell><Cell>| kesesi:</Cell><Cell>| kesesi:</Cell></Row>
+  <Row><Cell>merc_info_chest_locked</Cell><Cell>Sandığın henüz kullanılamıyor.</Cell><Cell>Sandığın henüz kullanılamıyor.</Cell></Row>
+  <!-- Camp trader dialogue -->
+  <Row><Cell>ui_merc_trader_root</Cell><Cell>Tüccar</Cell><Cell>Tüccar</Cell></Row>
+  <Row><Cell>ui_merc_trader_wares</Cell><Cell>Malını göster.</Cell><Cell>Malını göster.</Cell></Row>
+  <Row><Cell>merc_henry_trader_wares</Cell><Cell>Bakalım neyin varmış.</Cell><Cell>Bakalım neyin varmış.</Cell></Row>
+  <Row><Cell>merc_trader_wares_reply</Cell><Cell>Tezgâhtan ne istersen al, satacaklarını da şuraya koy. İşin bitince hesabı çıkarırım, o zaman ödeleşiriz.</Cell><Cell>Tezgâhtan ne istersen al, satacaklarını da şuraya koy. İşin bitince hesabı çıkarırım, o zaman ödeleşiriz.</Cell></Row>
+  <Row><Cell>ui_merc_trader_leave</Cell><Cell>Şimdi olmaz.</Cell><Cell>Şimdi olmaz.</Cell></Row>
+  <Row><Cell>merc_henry_trader_leave</Cell><Cell>Başka zaman.</Cell><Cell>Başka zaman.</Cell></Row>
 </Table>

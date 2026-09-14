@@ -23,7 +23,7 @@ rendered, raycasts it fires, cvars it raises.
 | `PatrolMaxLiveGangs` | same | 3 | concurrent gangs |
 | `PatrolMaxMen` | same | 16 | one gang |
 | `PatrolSpawnPerTick` | same | 1 | gangs appearing per 3s tick |
-| `PatrolMaxCorpses` / `PatrolCorpseSecs` | same | 12 / 180s | lingering ragdolls |
+| `PatrolMaxCorpses` / `PatrolCorpseSecs` | same | 20 / 1200s | lingering ragdolls |
 | `RenderPin` | `mercenaries_util.lua` | true | every merc never distance-culled or LOD-reduced; `merc_render_pin 0` |
 | `LodBoostMinCrowd` + `LodBoostRequireFoes` | `mercenaries_lodboost.lua` | 70, true | raises the engine AI-LOD budget globally while a real fight is on — and **only** then; density alone must never arm it |
 | `PatrolQuietSecs` / `PatrolPostFightSecs` | `mercenaries_patrols_live.lua` | 180 s / 480 s | how often a roaming gang may appear at all — see [patrols.md](patrols.md), "Pacing" |
@@ -574,8 +574,8 @@ and does its real job.
 boost before a spawn burst of 10+ NPCs, which in a town is a town-watch muster — a real
 fight, so arming is right. But the hold clause *restamped* `_lodLastFoeAt` every tick that
 population was above the release line, so once armed in a town it could never come down.
-The hold no longer restamps and is bounded by `LodBoostPopHoldMax` (240 s with no foes in
-the cache) — chosen to clear `PatrolCorpseSecs` (180 s) with margin, since covering a
+The hold no longer restamps and is bounded by `LodBoostPopHoldMax` (1320 s with no foes in
+the cache) — chosen to clear `PatrolCorpseSecs` (1200 s) with margin, since covering a
 battle's standing bodies is the whole point of the hold. It is a bound on the pathological
 case, not a tuning.
 
@@ -670,9 +670,9 @@ POLLS, not seconds, and the file's own comment says the thresholds are scaled to
 timeout - the sheathe-weapon, drop-claim and re-fire-follow behaviours. Thresholds moved 66->33
 and 55->27 in both files, so they still mean ~20s and ~16s.
 
-**Shipped: corpse ragdolls freeze after 5s.** A wiped gang leaves up to 12 ragdolls - 20-30
+**Shipped: corpse ragdolls freeze after 5s.** A wiped gang leaves up to `PatrolMaxCorpses` ragdolls - 20-30
 part articulated bodies, touching each other, which is CryPhysics' never-settles worst case -
-lingering for `PatrolCorpseSecs` (180s) exactly where the player just fought. They now get
+lingering for `PatrolCorpseSecs` exactly where the player just fought. They now get
 `AwakePhysics(0)` + `EnablePhysics(0)` once they have finished falling. Looting reads SOUL
 state (`LootCaptureBodies`/`IsCorpse`), not physics, so they stay lootable and the sweep still
 clears them on the same schedule. `EnablePhysics(0)` is the call the tower hold-test already

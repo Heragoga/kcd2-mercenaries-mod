@@ -247,7 +247,12 @@ end
 -- of frames. Men who are already queued keep the slot they were given.
 mercenaries.FollowRefireStagger = 0.30
 
-function mercenaries:FollowStalled(ent)
+-- `delay` holds this ONE man's eviction back without moving anybody else down the queue: a
+-- merc mid-pose has to be given camp_actor's own yield gate long enough to unwind the
+-- StanceElement, because evicting him instead orphans it and leaves him pinned to the
+-- furniture (see CampPoseLastAt in mercenaries_camp.lua). It is deliberately applied AFTER
+-- the stagger slot is taken, so a deferred man costs the men behind him nothing.
+function mercenaries:FollowStalled(ent, delay)
     local ok = pcall(function()
         local k = fhKey(ent)
         if not k then return end
@@ -255,17 +260,17 @@ function mercenaries:FollowStalled(ent)
         local now  = fhNow()
         local slot = math.max(now, self._fsNextSlot or 0)
         self._fsNextSlot   = slot + self.FollowRefireStagger
-        self.FollowStuck[k] = slot
+        self.FollowStuck[k] = slot + (delay or 0)
     end)
     if not ok then System.LogAlways('[MercForm] FollowStalled error') end
 end
 
 -- Same signal, for callers that hold a wuid rather than an entity.
-function mercenaries:FollowStalledWuid(wuid)
+function mercenaries:FollowStalledWuid(wuid, delay)
     if not wuid then return end
     local ent
     pcall(function() ent = XGenAIModule.GetEntityByWUID(wuid) end)
-    if ent then self:FollowStalled(ent) end
+    if ent then self:FollowStalled(ent, delay) end
 end
 
 -- BT hook, polled by mercenary_scheduler.xml. Sets data.followStuck. READ-ONLY:
@@ -745,6 +750,16 @@ function mercenaries:FollowEscalate(ent, k)
                                            k, n, dP, dT))
             return n
         end
+        -- Nor is a man still shedding a camp pose hauled: the StanceElement owns his
+        -- position until it unwinds, so SetPos only blinks him to the player and lets the
+        -- engine snap him straight back to the furniture. Bounded by CampPoseGraceSecs.
+        local shedding = false
+        pcall(function() shedding = self:LeavingCampPose(ent.this and ent.this.id or ent.id) end)
+        if shedding then
+            System.LogAlways("[MercForm] " .. k .. " stalled " .. n ..
+                             "x - NOT hauled: he is still coming out of a camp pose")
+            return n
+        end
         local moved = false
         pcall(function()
             local base = self:GetSafeSpawnPosition(player, 10)
@@ -941,6 +956,10 @@ function mercenaries:DismountVerify()
                             local w = ent.this and ent.this.id or ent.id
                             busy = self:IsCampActor(w)
                                 or self:IsNavGotoActive(ent)
+                                -- Parked outside a building the player walked into: he is
+                                -- standing on purpose, and re-firing follow would fight the
+                                -- park exactly the way it fights a nav order.
+                                or (self.InteriorParked or {})[tostring(w)] == true
                                 or ent.soul:HasScriptContext("crime_interruptAttack")
                                 -- Committed to an enemy: the approach to one is legitimately
                                 -- slow. Only reachable now the watch runs outside a window.

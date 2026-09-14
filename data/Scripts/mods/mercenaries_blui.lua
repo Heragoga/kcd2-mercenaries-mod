@@ -25,6 +25,11 @@ BL.on = false
 BL.open = nil                       -- "move" | "form" | "toggle" | nil
 BL.shown = BL.shown or {}
 BL.frame = BL.frame or {}
+-- What the row and the wheels are showing. This is a CACHE of the company's real settings,
+-- not the settings themselves: BLReadState refreshes every entry from the mod on each draw,
+-- so these values only ever stand in for the frame before the behaviour layer has loaded.
+-- They were the whole state once, and the screen duly reported a wedge as a line and a
+-- company holding fire as firing at will. See docs/command-ui.md.
 BL.state = BL.state or {
     move = "follow", form = "line",
     fire = "on", mount = "off", engage = "default", swarm = "balanced",
@@ -393,6 +398,14 @@ function mercenaries:BLLayout()
     end
     -- Open: the same corner says what H does now.
     hintRow("hint_lbl_close")
+
+    -- Every draw, before anything is placed: the row and the wheels show the company's live
+    -- settings, not the last thing this screen was told. A press writes BL.state
+    -- optimistically and then lands in the mod, so this is also what puts the button back if
+    -- the order was refused or clamped.
+    if mercenaries.BLReadState then
+        pcall(function() mercenaries:BLReadState() end)
+    end
 
     local squads = mercenaries.BLSquadSource() or {}
     for i = 1, 5 do
@@ -911,6 +924,14 @@ end
 
 function mercenaries:BLShow()
     if not atlas() then log("mercenaries_blatlas.lua did not load - run tools/make_bl.py") return end
+    -- One screen at a time. The camp screen does the same to this one in CUShow, and the
+    -- two of them up together is not a layout problem so much as an input one: they share
+    -- the number row, and which of them a keypress reaches depends on which test runs
+    -- first. Closed BEFORE the keys are taken below, because CUReleaseKeys hands them back
+    -- to the game on its way out.
+    if mercenaries.CU and mercenaries.CU.on then
+        pcall(function() self:CUHide() end)
+    end
     local fresh = self:BLElement(true)
     BL.on, BL.open, BL.userClosed = true, nil, false
     self:BLAcquireKeys()

@@ -99,13 +99,16 @@ mercenaries.PatrolGroundTries = 6
 -- Total lingering corpses across every wiped gang. Bodies are deliberately lootable for a
 -- while, but a hotspot could stack several full gangs of ragdolls with nothing bounding the
 -- sum while fresh gangs kept spawning alongside them.
-mercenaries.PatrolMaxCorpses   = 12
+-- 20 clears PatrolMaxMen (16), so one full wipe is never over the cap on its own. It is a
+-- population bound, not a linger time - raising it further is what reintroduced lag once
+-- before (docs/performance.md, "A regression worth remembering").
+mercenaries.PatrolMaxCorpses   = 20
 -- The pile the player just made is exempt from the CAP for this long, so the fight he has
 -- only just won is not swept out from under him. Recency, not distance: a "never evict
 -- within 60m" rule was tried and is unbounded - standing and fighting in one place
 -- accumulates corpses with nothing to stop it. At most a pile or two is ever fresh, and
 -- they age out. The walked-away and timeout rules are unaffected either way.
-mercenaries.PatrolCorpseGraceSecs = 30.0
+mercenaries.PatrolCorpseGraceSecs = 120.0
 -- Seconds after a gang dies before its ragdolls are frozen. Long enough for the bodies to
 -- finish falling and settle naturally; after that they are static scenery that still loots.
 mercenaries.PatrolCorpseFreezeSecs = 5.0
@@ -116,7 +119,7 @@ mercenaries.PatrolPartyMaxSolo = 1.2     -- ceiling at a party of one
 mercenaries.PatrolPartyMax     = 2.0     -- ceiling at PatrolPartyMaxAt and above
 mercenaries.PatrolPartyMaxAt   = 20
 mercenaries.PatrolRespawnDays  = 1.0     -- a wiped patrol is back after this long
-mercenaries.PatrolCorpseSecs   = 180.0   -- bodies stay lootable this long if the player stays put
+mercenaries.PatrolCorpseSecs   = 1200.0  -- bodies stay lootable this long (20 min) if the player stays put
 mercenaries.PatrolGhostSpeed   = 1.4     -- m/s the unspawned patrol advances along its route
 mercenaries.PatrolLiveTickMs   = 3000
 -- How far a patrolman notices a target ON HIS OWN. It was 12, on the principle that a gang
@@ -780,7 +783,13 @@ end
 mercenaries.PatrolForceGroup = nil
 
 function mercenaries:PatrolRollIdentity(rec)
-    rec.group = self.PatrolForceGroup or self.PatrolGroupPool[math.random(1, #self.PatrolGroupPool)]
+    -- Rotated, not drawn flat: two bandit gangs on the same road in a row is one enemy
+    -- with two names. PickRotatingGroup skips whoever walked the last one out
+    -- (mercenaries_spawning.lua). A forced group is the player's own order and is never
+    -- rotated away from - nor noted, or merc_patrol_bandit twice would refuse itself.
+    rec.group = self.PatrolForceGroup
+                or self:PickRotatingGroup("patrol", self.PatrolGroupPool)
+                or self.PatrolGroupPool[math.random(1, #self.PatrolGroupPool)]
     rec.soul  = self:PatrolRollSoul(rec.group)
     rec.size  = self:PatrolBudgetFor(self:PatrolRollSize(rec.route))
 end

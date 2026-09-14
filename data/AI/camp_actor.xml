@@ -70,6 +70,11 @@
             <!-- True only while an arm is inside a StanceElement/UnstanceElement. The yield
                  gate below waits for it to clear so the pose is unwound, not torn off. -->
             <Variable name="inCampAnim" type="_bool" values="false" isPersistent="0" form="single" />
+            <!-- Pose rescue (first case in the switch below). Set by Lua when a merc is stuck
+                 off his feet with no camp role - the pose outlived the tree that owned it. -->
+            <Variable name="poseRescue" type="_bool" values="false" isPersistent="0" form="single" />
+            <Variable name="myStance" type="enum:stanceCategory" values="" isPersistent="0" form="single" />
+            <Variable name="myStanceObject" type="_wuid" values="" isPersistent="0" form="single" />
         </Variables>
         <Parameters>
             <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
@@ -93,14 +98,14 @@
                                 " />
                                 <IfCondition failOnCondition="false" condition="$campYield">
                                     <Sequence>
-                                        <!-- Give an arm that is mid-pose up to 3s to unwind its own
+                                        <!-- Give an arm that is mid-pose up to 10s to unwind its own
                                              StanceElement/UnstanceElement and stand up (the Out fragment
                                              plus the stand-up runs to about that). Failing the tree
                                              straight away tears the fragment off its owner instead, and
                                              the merc leaves camp floating in whatever pose he was in.
                                              Ends the instant inCampAnim clears, so a man merely standing
                                              about still yields on the same tick as before. -->
-                                        <Loop count="12">
+                                        <Loop count="40">
                                             <Sequence>
                                                 <IfCondition failOnCondition="false" condition="~$inCampAnim">
                                                     <Fail />
@@ -115,6 +120,7 @@
                                      ExecuteLua crossing instead of five - same calls, same order, only
                                      after the yield gate above. See docs/performance.md. -->
                                 <ExecuteLua code="
+                                    data.poseRescue = mercenaries:PoseRescueWanted(entity.this.id)
                                     data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)
                                     mercenaries:ColumnFollowRole(data, entity)
 
@@ -189,6 +195,51 @@
 
                         <Loop count="-1">
                             <ContinuousSwitch>
+
+                                <!-- POSE RESCUE. FIRST case, because a man who cannot stand up cannot do
+                                     anything else either.
+                                     A StanceElement binds the merc to a smart object, and only ENDING the
+                                     element releases him - there is no force-standing node, and playing a
+                                     standing action at him does not do it either (measured: 30+ attempts,
+                                     still lying). So when a pose outlives the tree that owned it, the only
+                                     way out is to OWN IT AGAIN: re-enter the element on the object he is
+                                     actually on, hold it for a moment, and leave - which plays the Out
+                                     fragment and stands him up, exactly as camp life does.
+                                     This is the automatic version of the workaround that was found by
+                                     hand: sending a stuck man back to camp cures him, because that gives
+                                     him a camp role and camp_actor takes the pose back.
+                                     GetStance supplies the object; Lua never sees it. -->
+                                <IfCondition failOnCondition="false" condition="$poseRescue">
+                                    <Sequence>
+                                        <SuppressFailure>
+                                            <Sequence>
+                                                <GetStance Npc="$this.id" Stance="$myStance" StanceObject="$myStanceObject" />
+                                                <IfCondition failOnCondition="false" condition="$myStance == $enum:stanceCategory.lying">
+                                                    <StanceElement smartObject="$myStanceObject" stance="lying" allowAny="false" enabled="true">
+                                                        <Wait duration="'600ms'" timeType="GameTime" doFail="false" variation="" />
+                                                    </StanceElement>
+                                                </IfCondition>
+                                                <IfCondition failOnCondition="false" condition="$myStance == $enum:stanceCategory.sitting">
+                                                    <StanceElement smartObject="$myStanceObject" stance="sitting" allowAny="false" enabled="true">
+                                                        <Wait duration="'600ms'" timeType="GameTime" doFail="false" variation="" />
+                                                    </StanceElement>
+                                                </IfCondition>
+                                            </Sequence>
+                                        </SuppressFailure>
+                                        <!-- HOLD HIM WHILE HE GETS UP, and only then hand him back. The
+                                             element has ended by now, but the stand-up it triggered is
+                                             still playing, and during it the engine still reports him
+                                             lying. Clearing the flag here instead put him straight back
+                                             on the ladder: the very next poll saw "still down", asked for
+                                             another rescue, and that rescue re-entered the StanceElement
+                                             on top of the stand-up it had just started - which is why men
+                                             needed two, three and four goes to stand. camp_actor keeps
+                                             him (isCampActor stays true while the flag is up) until the
+                                             transition has had time to finish. -->
+                                        <Wait duration="'2s'" timeType="GameTime" doFail="false" variation="'300ms'" />
+                                        <ExecuteLua code="mercenaries:PoseRescueDone(entity.this.id)" />
+                                    </Sequence>
+                                </IfCondition>
 
                                 <!-- FORCED DIALOGUE AT THE PLAYER. First case, so it beats every
                                      other camp behaviour. Copied from the gossip arm below: the

@@ -80,6 +80,7 @@ local OWNS = {
     hunter     = function(L) return (L.hunterSpots or 0) > 0 end,
     smithy     = function(L) return L.hasSmithy end,
     alchemy    = function(L) return L.hasAlchemy end,
+    trader     = function(L) return L.hasTrader end,
     practice   = function(L) return L.hasPracticeYard end,
     house      = function(L) return L.hasHouse end,
     tower      = function(L) return L.hasTower end,
@@ -107,6 +108,7 @@ local CENTRE_PIECE = { house = true, tent = true }
 local BUY = {
     cart = "LogiBuyFoodCart", inn = "LogiBuyInn", hunter = "LogiBuyHunter",
     smithy = "LogiBuySmithy", alchemy = "LogiBuyAlchemy", practice = "LogiBuyPractice",
+    trader = "LogiBuyTrader",
     house = "LogiBuyHouse", tower = "LogiBuyTower", archercart = "LogiBuyArcherCart",
     wall = "LogiBuyWall", gate = "LogiBuyGate", stonewall = "LogiBuyCastleWall",
 }
@@ -128,6 +130,7 @@ local RESTORE = {
     hunter     = function(_s, L) L.hunterSpots = math.max(1, L.hunterSpots or 0) end,
     smithy     = function(_s, L) L.hasSmithy = true end,
     alchemy    = function(_s, L) L.hasAlchemy = true end,
+    trader     = function(_s, L) L.hasTrader = true end,
     practice   = function(_s, L) L.hasPracticeYard = true end,
     house      = function(_s, L) L.hasHouse = true end,
     archercart = function(_s, L) L.hasArcherCart = true end,
@@ -632,6 +635,7 @@ end
 -- UI key -> the station name the camp builder knows it by.
 local STATION = {
     cart = "cart", inn = "inn", hunter = "hunt", smithy = "forge", alchemy = "alchemy",
+    trader = "trader",
 }
 
 -- What the projection looks like: one barrel, wherever the improvement will stand. The
@@ -941,9 +945,9 @@ function mercenaries:CUReleaseKeys()
             pcall(function() player.inventory:DeleteItemOfClass(token, 99) end)
         end
     end
-    -- If the command interface is coming back it re-takes its keys itself; if it is not,
-    -- they go back to the game.
-    if not CU.restoreBL then pcall(function() self:BLReleaseKeys() end) end
+    -- The keys always go back to the game. If the command interface is being opened in
+    -- this screen's place, BLShow re-takes them for itself straight afterwards.
+    pcall(function() self:BLReleaseKeys() end)
 end
 
 -- ---------------------------------------------------------------- element
@@ -970,9 +974,10 @@ function mercenaries:CUShow()
         log("mercenaries_campatlas.lua did not load - run tools/make_camp.py")
         return
     end
-    -- The two screens share the bottom of the frame, so only one of them can be up.
-    CU.restoreBL = mercenaries.BL and mercenaries.BL.on or false
-    if CU.restoreBL then pcall(function() self:BLHide() end) end
+    -- One screen at a time, and this is a swap rather than a stack: the command
+    -- interface goes down and does not come back when this one closes. BLShow does the
+    -- same to this screen.
+    if mercenaries.BL and mercenaries.BL.on then pcall(function() self:BLHide() end) end
     -- Both screens keep a hint in the same corner; only one of them may speak at a time.
     if mercenaries.BL then
         -- Capture the ORIGINAL value once. Re-capturing on a later show read back the false
@@ -1008,12 +1013,9 @@ function mercenaries:CUHide()
         mercenaries.BL.hintEnabled = CU.restoreHint
         CU.restoreHint = nil
     end
-    if CU.restoreBL then
-        CU.restoreBL = false
-        pcall(function() self:BLShow() end)
-    else
-        pcall(function() self:BLHintUpdate() end)
-    end
+    -- Nothing is reopened here. Closing a screen closes it, and the corner prompt is
+    -- what says the other one is a keypress away.
+    pcall(function() self:BLHintUpdate() end)
 end
 
 function mercenaries:CUOnLoad()

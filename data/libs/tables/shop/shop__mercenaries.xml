@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<!-- The camp trader's shop row, for the ENGINE-SHOP route only.
+	     mercenaries_trader.lua spawns a Shop entity carrying this shop_name and links the
+	     sutler to it with a `shopKeeper` entity link, which is how the game's own market
+	     stalls are wired (references/Prefabs/profession/seller/shop_market.xml). Whether
+	     the engine picks that up for a RUNTIME-spawned keeper is not yet confirmed -
+	     `merc_trader_probe` is what answers it - so the trade the player actually gets
+	     is the Lua counter in mercenaries_trader.lua, not this. See docs/camp-trader.md.
+
+	     bOwnerIsSpawned is the flag the roadside-camp merchants carry (their keepers are
+	     spawned by the random-event system, and their Shop entities have no shopKeeper
+	     link baked in at all), which is the precedent for a shop whose keeper is not in
+	     the level data.
+
+	     The filters are deliberately wide: this is a sutler following an army, and the
+	     point of him is that the company can empty its packs after a fight. -->
+	<Shops version="5">
+		<ShopData shop_id="1701" shop_name="merc_camp_trader" restock_period="3" inventory_preset="inventory_merc_trader_stock">
+			<ShopItemFilter filter="weapon.*.*"                price_buy_multiplier="0.9"  price_sell_multiplier="0.35" />
+			<ShopItemFilter filter="armor.*.*"                 price_buy_multiplier="0.9"  price_sell_multiplier="0.35" />
+			<ShopItemFilter filter="helmet.*.*"                price_buy_multiplier="0.9"  price_sell_multiplier="0.35" />
+			<ShopItemFilter filter="hood.*.*"                  price_buy_multiplier="0.9"  price_sell_multiplier="0.35" />
+			<ShopItemFilter filter="ammo.*.*"                  price_buy_multiplier="0.9"  price_sell_multiplier="0.45" />
+			<ShopItemFilter filter="food.*.*"                  price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="ointment_item.*.*"         price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="poison.*.*"                price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="crafting_material.*.*"     price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="document.*.*"              price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="quick_slot_container.*.*"  price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="die.*.*"                   price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="dice_badge.*.*"            price_buy_multiplier="0.9"  price_sell_multiplier="0.4"  />
+			<ShopItemFilter filter="player_item.*.*"           price_buy_multiplier="0.9"  price_sell_multiplier="0.35" />
+			<ShopItemFilter filter="misc.*.*"                  price_buy_multiplier="1"    price_sell_multiplier="0.5"  />
+		</ShopData>
+	</Shops>
+</database>

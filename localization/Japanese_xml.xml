@@ -1112,7 +1112,7 @@
   <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>彼を護衛しろ。</Cell></Row>
   <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>交戦規定</Cell></Row>
   <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>自由に交戦しろ。</Cell></Row>
-  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>抜いた者は誰であれ相手にしろ。</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Kill everyone in sight.</Cell><Cell>見かけた者は皆殺しにしろ。</Cell></Row>
   <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>反撃のみに留めろ。</Cell></Row>
   <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>剣を収めておけ。</Cell></Row>
   <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>攻め方</Cell></Row>
@@ -1125,6 +1125,14 @@
   <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>護衛中。</Cell></Row>
   <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>護衛する相手がいない。</Cell></Row>
   <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>部下たちが攻撃を受けているが、剣を収めたままだ。</Cell></Row>
+  <Row><Cell>merc_info_engage_default</Cell><Cell>The men will engage at will.</Cell><Cell>The men will engage at will.</Cell></Row>
+  <Row><Cell>merc_info_engage_viking</Cell><Cell>The men will cut down every living soul in sight.</Cell><Cell>The men will cut down every living soul in sight.</Cell></Row>
+  <Row><Cell>merc_info_engage_defend</Cell><Cell>The men will defend themselves and no more.</Cell><Cell>The men will defend themselves and no more.</Cell></Row>
+  <Row><Cell>merc_info_engage_hold</Cell><Cell>The men will hold their blades.</Cell><Cell>The men will hold their blades.</Cell></Row>
+  <Row><Cell>merc_info_viking_warn</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell></Row>
+  <Row><Cell>merc_info_aggro_tight</Cell><Cell>Tight ranks. One man to an enemy.</Cell><Cell>Tight ranks. One man to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_balanced</Cell><Cell>Balanced. Two men to an enemy.</Cell><Cell>Balanced. Two men to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_loose</Cell><Cell>Swarm them. Three men to an enemy.</Cell><Cell>Swarm them. Three men to an enemy.</Cell></Row>
   <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>集合しろ。</Cell></Row>
   <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[MOD設定] 部隊とMODの振る舞いを変える。</Cell></Row>
   <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>一党の運営について話そう。</Cell></Row>
@@ -1163,6 +1171,10 @@
   <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>極限</Cell></Row>
   <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>不可能</Cell></Row>
   <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>大群</Cell></Row>
+  <Row><Cell>merc_info_upkeep_off</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_lenient</Cell><Cell>Lenient upkeep. The food goes further.</Cell><Cell>Lenient upkeep. The food goes further.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_standard</Cell><Cell>Standard upkeep.</Cell><Cell>Standard upkeep.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_harsh</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell></Row>
   <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>今のままにしておいてくれ。</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>そうしてくれ。</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>分かった。言い広めておこう。</Cell></Row>
@@ -1302,6 +1314,7 @@
   <Row><Cell>ui_qm_rm_archercart</Cell><Cell>弓兵の荷車。</Cell><Cell>弓兵の荷車。</Cell></Row>
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>柵。</Cell><Cell>柵。</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>門。</Cell><Cell>門。</Cell></Row>
+  <Row><Cell>ui_qm_rm_trader</Cell><Cell>商人の露店。</Cell><Cell>商人の露店。</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>この野営地には、その手の物はない。</Cell><Cell>この野営地には、その手の物はない。</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>誰を連れて出るか、決めよう。</Cell><Cell>誰を連れて出るか、決めよう。</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>野営地から人を連れ出す時は、しかるべき者を後ろに置きたい。</Cell><Cell>野営地から人を連れ出す時は、しかるべき者を後ろに置きたい。</Cell></Row>
@@ -1344,4 +1357,23 @@
   <Row><Cell>merc_ui_camp_marker</Cell><Cell>傭兵の野営地</Cell><Cell>傭兵の野営地</Cell></Row>
   <Row><Cell>merc_ui_wait_marker</Cell><Cell>待機中の傭兵</Cell><Cell>待機中の傭兵</Cell></Row>
   <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>ザスラヴィエのアレクセイ</Cell><Cell>ザスラヴィエのアレクセイ</Cell></Row>
+  <!-- Camp trader -->
+  <Row><Cell>ui_mercenary_trade_action</Cell><Cell>取引する</Cell><Cell>取引する</Cell></Row>
+  <Row><Cell>char_mercenary_trader_uiName</Cell><Cell>商人</Cell><Cell>商人</Cell></Row>
+  <Row><Cell>char_mercenary_trader_fullName</Cell><Cell>商人</Cell><Cell>商人</Cell></Row>
+  <Row><Cell>char_mercenary_trader_description</Cell><Cell>傭兵団の従軍商人。</Cell><Cell>傭兵団の従軍商人。</Cell></Row>
+  <Row><Cell>merc_trader_closed</Cell><Cell>露店は閉まっている。</Cell><Cell>露店は閉まっている。</Cell></Row>
+  <Row><Cell>merc_trader_broke</Cell><Cell>商人の持ち金が尽きた。すべては買い取れなかった。</Cell><Cell>商人の持ち金が尽きた。すべては買い取れなかった。</Cell></Row>
+  <Row><Cell>merc_trader_short</Cell><Cell>支払えなかった。商人は代金の足りない品を引き取った。</Cell><Cell>支払えなかった。商人は代金の足りない品を引き取った。</Cell></Row>
+  <Row><Cell>merc_n_trpaid</Cell><Cell>商人の支払い:</Cell><Cell>商人の支払い:</Cell></Row>
+  <Row><Cell>merc_n_trspent</Cell><Cell>商人への支払い:</Cell><Cell>商人への支払い:</Cell></Row>
+  <Row><Cell>merc_n_trpurse</Cell><Cell>| 商人の所持金:</Cell><Cell>| 商人の所持金:</Cell></Row>
+  <Row><Cell>merc_info_chest_locked</Cell><Cell>保管箱はまだ利用できない。</Cell><Cell>保管箱はまだ利用できない。</Cell></Row>
+  <!-- Camp trader dialogue -->
+  <Row><Cell>ui_merc_trader_root</Cell><Cell>商人</Cell><Cell>商人</Cell></Row>
+  <Row><Cell>ui_merc_trader_wares</Cell><Cell>品物を見せてくれ。</Cell><Cell>品物を見せてくれ。</Cell></Row>
+  <Row><Cell>merc_henry_trader_wares</Cell><Cell>何があるか見せてもらおう。</Cell><Cell>何があるか見せてもらおう。</Cell></Row>
+  <Row><Cell>merc_trader_wares_reply</Cell><Cell>台のものは好きに取りなさる。売るものはそこに並べてくれ。終わったら勘定して、その場で清算しよう。</Cell><Cell>台のものは好きに取りなさる。売るものはそこに並べてくれ。終わったら勘定して、その場で清算しよう。</Cell></Row>
+  <Row><Cell>ui_merc_trader_leave</Cell><Cell>今はいい。</Cell><Cell>今はいい。</Cell></Row>
+  <Row><Cell>merc_henry_trader_leave</Cell><Cell>また今度な。</Cell><Cell>また今度な。</Cell></Row>
 </Table>

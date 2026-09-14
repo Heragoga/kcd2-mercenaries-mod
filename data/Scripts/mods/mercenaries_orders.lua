@@ -10,17 +10,41 @@
 -- See docs/squad-orders.md.
 
 -- ==== engagement stance ====
--- default    - the behaviour the squad has always had
--- aggressive - also takes on armed neutrals, not only declared enemies
--- defend     - only ever hits back; never starts anything
--- hold       - never engages at all, even under attack
-mercenaries.EngageOrder     = { "default", "aggressive", "defend", "hold" }
-mercenaries.EngageCodeOf    = { default = 0, aggressive = 1, defend = 2, hold = 3 }
+--
+-- This is the aggression ladder, and it only ever decides how freely the men START
+-- something with an OUTLAW. It has nothing to say about anybody else: whoever has taken
+-- the player or a merc as his target is a legitimate target on every rung but `hold`,
+-- guard or not, and nobody who has not is a target on any rung.
+--
+-- hold   - nothing, even under attack
+-- defend - only men who are actively targeting the player or a merc
+-- default- ...plus OUTLAWS on sight, whether or not they have reached the -1 floor
+-- viking - ...plus EVERYONE ELSE on sight. See the warning in SetEngageStance.
+--
+-- There used to be an `aggressive` rung between default and viking: default took outlaws
+-- already at the -1 floor and aggressive added armed outlaws who had not declared yet.
+-- That is a hair's difference in play, so the two are merged into `default` and the top
+-- of the ladder is now a real change of behaviour rather than a nuance.
+--
+-- A save written with the old "aggressive" loads as "default" - LoadOrderState falls back
+-- on any key it does not recognise - which is the merged rung and is what that player
+-- meant. It deliberately does NOT migrate to viking.
+mercenaries.EngageOrder     = { "default", "viking", "defend", "hold" }
+mercenaries.EngageCodeOf    = { default = 0, viking = 1, defend = 2, hold = 3 }
+-- EngageLabel is the CONSOLE wording; EngageInfo is the HUD one. They are separate
+-- because SendInfoText resolves every WORD of its argument as a string id, so a raw
+-- sentence comes out as "@Engage @at @will" on screen.
 mercenaries.EngageLabel     = {
     default    = "Engage at will",
-    aggressive = "Attack anyone",
+    viking     = "Viking: kill everyone in sight",
     defend     = "Defend only",
     hold       = "Hold fire",
+}
+mercenaries.EngageInfo      = {
+    default    = 'merc_info_engage_default',
+    viking     = 'merc_info_engage_viking',
+    defend     = 'merc_info_engage_defend',
+    hold       = 'merc_info_engage_hold',
 }
 
 mercenaries.TokenIDEngage = "679a655e-189d-4519-b437-ccc4b92bee4d"
@@ -29,19 +53,40 @@ function mercenaries:EngageCode()
     return self.EngageCodeOf[_G.MercEngage or "default"] or 0
 end
 
-function mercenaries:SetEngageStance(stance)
+-- `transient` means "for the next few seconds", not "from now on": it changes the live
+-- stance without writing the persistent one. The charge order is the only caller, and it
+-- needs it because SetTimerForFunction timers DO NOT SURVIVE A SAVE LOAD while a saved
+-- string does - so a save taken mid-charge used to come back on "attack on sight" with
+-- no timer left to put it right, permanently.
+function mercenaries:SetEngageStance(stance, transient)
     if not self.EngageCodeOf[stance] then stance = "default" end
+    local was = _G.MercEngage or "default"
     _G.MercEngage = stance
-    self:SaveString("MercEngagePersistent", stance)
+    if not transient then self:SaveString("MercEngagePersistent", stance) end
     -- Standing down means dropping what they are already on, or a man mid-fight
     -- keeps swinging until his own watchdog notices. Claims are re-acquired
     -- immediately on the permissive stances, so this is only ever a real change
-    -- for defend/hold.
+    -- for defend/hold - and for LEAVING viking, where a man still swinging at a baker
+    -- is exactly what the player has just told them to stop doing.
     if stance == "hold" or stance == "defend" then
         self:EngageDropClaims(stance == "hold")
+    elseif was == "viking" and stance ~= "viking" then
+        self:EngageDropClaims(true)
     end
-    Game.SendInfoText(self.EngageLabel[stance] or stance, false, 0, 3)
+    Game.SendInfoText(self.EngageInfo[stance] or 'merc_info_engage_default', false, 0, 3)
+    if stance == "viking" then self:VikingWarn() end
     System.LogAlways("[MercOrders] engagement = " .. stance)
+end
+
+-- Say plainly what this one does. It is the only stance that kills people who have done
+-- nothing, and a player who picks it off a wheel by accident should not have to work out
+-- from the bodies what he chose. Its own function so the charge order can raise it too.
+mercenaries.VikingWarnSecs = 6
+function mercenaries:VikingWarn()
+    Game.SendInfoText('merc_info_viking_warn', false, 0, mercenaries.VikingWarnSecs)
+    System.LogAlways("[MercOrders] *** VIKING: the company will attack every living " ..
+        "person in range, including civilians and the town watch. Murder charges, a " ..
+        "collapsed reputation and dead quest NPCs are all on the table. ***")
 end
 
 -- Release current targets so a stance change bites now. `all` drops everyone;
@@ -92,9 +137,10 @@ function mercenaries:EngageAllowsInitiative()
     return c ~= 2 and c ~= 3
 end
 
--- Widen the enemy cache on the aggressive stance. Additive on purpose: the normal
--- pass still runs first, so declared hostiles who have not drawn yet stay in the
--- cache exactly as before, and the aggressive pass only ADDS armed neutrals.
+-- Widen the enemy cache past the declared hostiles. Additive on purpose: the normal
+-- pass still runs first, so hostiles who have not drawn yet stay in the cache exactly
+-- as before. `default` then adds armed OUTLAWS not yet at the relationship floor;
+-- `viking` adds everybody.
 --
 -- The two hostility gates are never both waived on the RELATIONSHIP paths - the
 -- relationship floor and the drawn-weapon proof are each other's safety net (see
@@ -125,10 +171,40 @@ function mercenaries:EngageCacheAccepts(ent, playerWuid, armed, confirmed)
             self:BanditCampAlertFor(tostring(ent.this and ent.this.id or ent.id),
                                     "a bandit is fighting us")
         end
-        if self:IsValidEnemy(ent, player, playerWuid, true, true) then return true, true end
+        -- allowProtected = confirmed. `confirmed` is IsRecentAttacker, which is written
+        -- only by NoteAttacker, which now runs only after AggressorConfirmed has cleared
+        -- him - so it already carries the collision filter and the proof that he took
+        -- one of ours as his target. Passing it here is what lets the WHOLE squad turn
+        -- on a guard who is genuinely fighting them, instead of the one man he is hitting
+        -- defending himself while the rest watch.
+        if self:IsValidEnemy(ent, player, playerWuid, true, true, confirmed == true) then
+            return true, true
+        end
     end
-    if self:EngageCode() ~= 1 then return false, false end
+    -- Below this line the squad is STARTING something, which defend and hold forbid.
+    if not self:EngageAllowsInitiative() then return false, false end
     if self:IsOwnSide(ent) then return false, false end
+
+    -- VIKING. Everybody in sight, armed or not, hostile or not, townsman or not: both
+    -- hostility gates and the townsman gate waived at once. Everything else IsValidEnemy
+    -- refuses still stands - our own souls and heroes, the companion dog, the dying, and
+    -- men who are fleeing or surrendering, so the squad does not spend the rest of the
+    -- day chasing runners across a field.
+    if self:EngageCode() == 1 then
+        return self:IsValidEnemy(ent, player, playerWuid, true, true, true), false
+    end
+
+    -- OUTLAWS ON SIGHT, and NOT "anyone with a weapon out" - a town guard carries a
+    -- halberd in his hands all day, so "armed" is his resting state, not a threat. This
+    -- needs positive proof he is a robber (ClassifyHostility: the publicEnemy faction
+    -- label, a bandit faction path, or one of the mod's own hostiles) as well as the
+    -- weapon. A neutral is left alone; if he draws on us he comes back through the
+    -- lock-on path in his own right, which was always the stronger proof.
+    --
+    -- This used to be the `aggressive` stance's own rung. It is the default now: the
+    -- difference between it and "declared hostiles only" was too small to be worth a
+    -- setting, and merging them is what freed the top of the ladder for viking.
+    if self:HostileKind(ent) ~= "hostile" then return false, false end
     return self:IsValidEnemy(ent, player, playerWuid, true, false), false
 end
 
@@ -175,9 +251,9 @@ end
 -- from these every cache pass, so writing them is the whole change.
 mercenaries.AggroOrder   = { "tight", "balanced", "loose" }
 mercenaries.AggroPresets = {
-    tight    = { cap = 1, max = 2, hard = 4,  label = "Tight ranks" },
-    balanced = { cap = 2, max = 4, hard = 10, label = "Balanced" },
-    loose    = { cap = 3, max = 7, hard = 16, label = "Swarm them" },
+    tight    = { cap = 1, max = 2, hard = 4,  label = "Tight ranks", info = 'merc_info_aggro_tight' },
+    balanced = { cap = 2, max = 4, hard = 10, label = "Balanced",    info = 'merc_info_aggro_balanced' },
+    loose    = { cap = 3, max = 7, hard = 16, label = "Swarm them",  info = 'merc_info_aggro_loose' },
 }
 
 mercenaries.TokenIDAggro = "679a655e-189d-4519-b437-ccc4b92bee5d"
@@ -190,7 +266,7 @@ function mercenaries:SetAggroPreset(name)
     self.SwarmCapMax  = p.max
     self.SwarmCapHard = p.hard
     self:SaveString("MercAggroPersistent", name)
-    Game.SendInfoText(p.label, false, 0, 3)
+    Game.SendInfoText(p.info or 'merc_info_aggro_balanced', false, 0, 3)
     System.LogAlways(string.format("[MercOrders] aggression = %s (cap %d, ceiling %d, hard %d)",
         name, p.cap, p.max, p.hard))
 end
@@ -288,7 +364,10 @@ function mercenaries:OrderLookTick()
     self.LookLastEnt, self.LookLastAt = ent, t
 
     local playerWuid = player and (player.this and player.this.id or player.id)
-    if playerWuid and self:IsValidEnemy(ent, nil, playerWuid, false, true) then
+    -- allowProtected: this is the memory a CALLED target is picked from, and the player
+    -- naming a man himself is the one route the townsman gate does not close - see
+    -- PickCombatTarget. It stays shut on every path the squad drives itself.
+    if playerWuid and self:IsValidEnemy(ent, nil, playerWuid, false, true, true) then
         self.LookLastEnemy, self.LookLastEnemyAt = ent, t
     end
 end
@@ -503,6 +582,8 @@ end
 function mercenaries:LoadOrderState()
     local s = self:LoadString("MercEngagePersistent")
     _G.MercEngage = (s and self.EngageCodeOf[s]) and s or "default"
+    -- A charge in the session before this one left its restore timer behind in the save.
+    self._blChargePrevStance = nil
 
     local a = self:LoadString("MercAggroPersistent")
     local name = (a and self.AggroPresets[a]) and a or "balanced"

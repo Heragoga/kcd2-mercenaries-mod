@@ -16,7 +16,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92be44d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92be45d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92be46d", tag = "MiscItem", name = "loot_sackOfNails" },
-    -- Item used to indicate which style should be chosen (one of these items: common merc, two bandit, three cuman, four skalitz and five kuttenberg)
+    -- Item used to indicate which style should be chosen. The COUNT is the style index in mercenaries.Outfits: 1 generic, 2 bandit, 3 cuman, 4 Leipa, 5 Kuttenberg, 6 Skalitz, 7 custom uniform, 8 Prague, 9 Sigismund, 10 Order of the Red Star, 11 Bergov, 12 Nebakov, 13 Semine, 14 Pisek, 15 Teutonic, 16 Ruthard, 17 Papal. See docs/outfits.md - do not renumber, EnemyOutfitOverride assumes these.
     { id = "679a655e-189d-4519-b437-ccc4b92be47d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Item used to indicate the recruitment of a custom companion, one means custom companion 1, two custom companion 2 etc
     { id = "679a655e-189d-4519-b437-ccc4b92be48d", tag = "MiscItem", name = "loot_sackOfNails" },
@@ -32,6 +32,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92be58d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Archer (ranged merc) hire tokens, one per tier; count = how many to hire
     { id = "679a655e-189d-4519-b437-ccc4b92be60d", tag = "MiscItem", name = "loot_sackOfNails" },
+    { id = "679a655e-189d-4519-b437-ccc4b92be02d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Archer stance token; count = stance (1 skirmish, 2 guard, 3 melee, 4 hold)
     { id = "679a655e-189d-4519-b437-ccc4b92be62d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92be51d", tag = "MiscItem", name = "loot_sackOfNails" },
@@ -46,6 +47,8 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92beebd", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92beecd", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92beefd", tag = "MiscItem", name = "loot_sackOfNails" },
+    -- Corner key nudges; count = the choice (1 on, 2 off, 3 top right, 4 bottom right)
+    { id = "679a655e-189d-4519-b437-ccc4b92bef0d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Custom uniform: 'I want you to dress this way' was picked
     { id = "679a655e-189d-4519-b437-ccc4b92beeed", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Archer ranged weapon type token; count = weapon type (1 bow, 2 crossbow, 3 handcannon)
@@ -81,6 +84,8 @@ mercenaries.ModItemIds = {
     -- Count-as-selector tokens: the AMOUNT granted picks the menu option
     { id = "679a655e-189d-4519-b437-ccc4b92bef1d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bef2d", tag = "MiscItem", name = "loot_sackOfNails" },
+    -- Camp trader: 'show me your wares' opens his counter
+    { id = "679a655e-189d-4519-b437-ccc4b92bef6d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Camp deploy (take-N) tokens
     { id = "679a655e-189d-4519-b437-ccc4b92bee2d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bee3d", tag = "MiscItem", name = "loot_sackOfNails" },
@@ -161,8 +166,15 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92bed5d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bed6d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bed7d", tag = "MiscItem", name = "loot_sackOfNails" },
+    -- 'beat camp is up' and 're-arm the objective', Lua -> Skald. Sent after a wake rebuild so the Started log fires again and its Marker binds to the RESPAWNED leader (docs/aleksej.md).
+    { id = "679a655e-189d-4519-b437-ccc4b92be00d", tag = "MiscItem", name = "loot_sackOfNails" },
+    { id = "679a655e-189d-4519-b437-ccc4b92be01d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Cast silver. The base game has a full set of raw-silver meshes under metal_industry/silver, built to dress the Royal Silver quest's mint, and never wraps any of them as an item - so this is the first lootable silver in the game. Priced against loot_silverChalice (650 for 0.6 kg, with a craftsman's markup on top), so a plain cake of bullion sits a little under that per kilo.
     { id = "679a655e-189d-4519-b437-ccc4b92bed8d", tag = "MiscItem", name = "merc_alx_silver" },
+    -- Command interface: presence of this token tells the quest graph to enable the merc_no_qam_slots action filter, which stops 1-4 drawing a weapon while the order row owns them. Weightless, because it is added and removed constantly.
+    { id = "679a655e-189d-4519-b437-ccc4b92bef3d", tag = "MiscItem", name = "merc_qamblock_token" },
+    -- Command interface: presence of this token enables the no_attack filter, so a left click while siting a move order places the marker instead of swinging.
+    { id = "679a655e-189d-4519-b437-ccc4b92bef4d", tag = "MiscItem", name = "merc_atkblock_token" },
     -- Kleinkrieg phase markers: token N latches 'the run has reached contract N'.
     { id = "679a655e-189d-4519-b437-ccc4b92be90d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92be91d", tag = "MiscItem", name = "loot_sackOfNails" },
@@ -187,6 +199,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92be8cd", tag = "Document", name = "merc_kk_letter5" },
     { id = "679a655e-189d-4519-b437-ccc4b92be8dd", tag = "Document", name = "merc_kk_letter7" },
     { id = "679a655e-189d-4519-b437-ccc4b92bec0d", tag = "MiscItem", name = "loot_sackOfNails" },
+    { id = "679a655e-189d-4519-b437-ccc4b92bef5d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bec1d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- The quartermaster's repeatable camp bounty (mercenaries_bounty.lua): accept, 'the camp is standing', 'the camp is cleared', report, paid, then the two dialog gates with a set and a clear token each. Same reusable sack-of-nails shape as the Kleinkrieg tokens above - none of them is ever seen by the player, they are swept back out of the pack a tick after Skald has read them.
     { id = "679a655e-189d-4519-b437-ccc4b92bed9d", tag = "MiscItem", name = "loot_sackOfNails" },

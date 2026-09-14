@@ -1125,7 +1125,35 @@ not clockwork), and only when:
 
 - the camp is pitched **and the player is standing in it** (`RaidCampRange`, 45 m) — a raid
   nobody is there to fight is just a band of men standing in a field
+- the camp has **stood for `RaidCampGraceHours`** (12 in-game hours) — see below
+- the player has been **in it for `RaidDwellSecs`** (60 real seconds), unbroken — see below
 - no fight is already under way (`WBPhase` is idle and no raid force is still alive)
+
+#### A camp has to settle first
+
+Two clocks, because a camp can be old on one and new on the other.
+
+**The camp's own age** is world time since it was *pitched*, stamped by `RaidNoteCampPitched`
+from `SpawnMercCamp` and saved (`QMRaidCampAt`). Only a **fresh** pitch stamps it: the camp
+going back up on its saved anchor after a load, or after buying an upgrade, is the same camp
+and keeps its age — the same `atOrigin == nil or atOrigin.fresh` test `DefArmRestore` uses. A
+camp that was already standing before this existed reads as `nil`, which counts as settled
+rather than blocking raids on it for ever.
+
+**The player's dwell** is `RaidDwellUpdate`, and it is measured on `os.clock()` — **real**
+seconds. `System.GetCurrTime` and the timer chain both run on the engine clock, which a wait
+or a sleep runs ~29× fast (`reference_engine_timers_are_game_time`), so they cannot tell the
+minute in camp from a minute of sleeping through. The dwell resets when:
+
+- the player leaves the 45 m circle,
+- the **world clock outruns the wall clock** by more than `RaidSkipRatio` (40 world seconds
+  per real second; this build's normal ratio is 15) — that is a sleep, a wait or a fast
+  travel, so a raid can never be what greets him coming out of a time skip,
+- the camp is re-pitched, or a save is loaded (`RaidOnLoad`).
+
+`RaidDwellUpdate` therefore runs **every tick, ahead of every other gate** — it is also what
+notices him leaving. An earlier shape that only ran while he was in camp kept a stale start
+time across an hour on the road and let the next raid land the moment he rode back in.
 
 A raid force that has been standing for `RaidStaleSecs` (5 min) is **cleared** by `RaidBusy` rather
 than merely ignored. Something wedged, or a few raiders broke off and wandered — either way it must
@@ -1142,10 +1170,11 @@ only as a line in `merc_raid_status`.
 
 ### The roster
 
-Who turns up is rolled at launch from `RaidRoster`, **every group equally likely**. The
-company's own quality no longer picks the enemy — what varies is `share`, the number of
-raiders per living man in the company, because the groups are nowhere near each other in
-worth:
+Who turns up is rolled at launch from `RaidRoster`, **every group equally likely except the
+last one or two to raid**, which are skipped (`PickRotatingGroup`, `mercenaries_spawning.lua`
+— see [Enemy groups](enemies.md)). The company's own quality no longer picks the enemy — what
+varies is `share`, the number of raiders per living man in the company, because the groups are
+nowhere near each other in worth:
 
 | Group | Key | Share | 13-man company faces |
 |---|---|---|---|
@@ -1167,7 +1196,8 @@ Because the group is only rolled when the raid launches, `merc_raid_status` cann
 in advance — it prints the whole draw instead, sized against the company you have now.
 
 The next raid day is saved (`QMRaidNextDay`) so it survives a reload, and a clock that jumps
-backwards re-arms rather than firing immediately.
+backwards re-arms rather than firing immediately. So is the list of who raided last
+(`QMRaidRecent`): raids are days apart and a reload in between must not wipe the rotation.
 
 A raid marshals the camp **whether or not there is a wall**. Without one there is nothing to
 route around, but the attackers still have to be marched in: `WBTick` used to bail out

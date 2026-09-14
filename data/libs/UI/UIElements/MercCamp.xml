@@ -199,6 +199,12 @@
       <MovieClip name="r14_pill_built" instancename="r14_pill_built" />
       <MovieClip name="r14_pill_owned" instancename="r14_pill_owned" />
       <MovieClip name="r14_pill_none" instancename="r14_pill_none" />
+      <MovieClip name="r15_sel" instancename="r15_sel" />
+      <MovieClip name="r15_ic" instancename="r15_ic" />
+      <MovieClip name="r15_nm" instancename="r15_nm" />
+      <MovieClip name="r15_pill_built" instancename="r15_pill_built" />
+      <MovieClip name="r15_pill_owned" instancename="r15_pill_owned" />
+      <MovieClip name="r15_pill_none" instancename="r15_pill_none" />
       <MovieClip name="b1_disc" instancename="b1_disc" />
       <MovieClip name="b1_ring" instancename="b1_ring" />
       <MovieClip name="b1_dot_built" instancename="b1_dot_built" />
@@ -246,6 +252,8 @@
       <MovieClip name="b1_t_smithy" instancename="b1_t_smithy" />
       <MovieClip name="b1_i_alchemy" instancename="b1_i_alchemy" />
       <MovieClip name="b1_t_alchemy" instancename="b1_t_alchemy" />
+      <MovieClip name="b1_i_trader" instancename="b1_i_trader" />
+      <MovieClip name="b1_t_trader" instancename="b1_t_trader" />
       <MovieClip name="b1_i_practice" instancename="b1_i_practice" />
       <MovieClip name="b1_t_practice" instancename="b1_t_practice" />
       <MovieClip name="b1_i_house" instancename="b1_i_house" />
@@ -312,6 +320,8 @@
       <MovieClip name="b2_t_smithy" instancename="b2_t_smithy" />
       <MovieClip name="b2_i_alchemy" instancename="b2_i_alchemy" />
       <MovieClip name="b2_t_alchemy" instancename="b2_t_alchemy" />
+      <MovieClip name="b2_i_trader" instancename="b2_i_trader" />
+      <MovieClip name="b2_t_trader" instancename="b2_t_trader" />
       <MovieClip name="b2_i_practice" instancename="b2_i_practice" />
       <MovieClip name="b2_t_practice" instancename="b2_t_practice" />
       <MovieClip name="b2_i_house" instancename="b2_i_house" />
@@ -378,6 +388,8 @@
       <MovieClip name="b3_t_smithy" instancename="b3_t_smithy" />
       <MovieClip name="b3_i_alchemy" instancename="b3_i_alchemy" />
       <MovieClip name="b3_t_alchemy" instancename="b3_t_alchemy" />
+      <MovieClip name="b3_i_trader" instancename="b3_i_trader" />
+      <MovieClip name="b3_t_trader" instancename="b3_t_trader" />
       <MovieClip name="b3_i_practice" instancename="b3_i_practice" />
       <MovieClip name="b3_t_practice" instancename="b3_t_practice" />
       <MovieClip name="b3_i_house" instancename="b3_i_house" />
@@ -444,6 +456,8 @@
       <MovieClip name="b4_t_smithy" instancename="b4_t_smithy" />
       <MovieClip name="b4_i_alchemy" instancename="b4_i_alchemy" />
       <MovieClip name="b4_t_alchemy" instancename="b4_t_alchemy" />
+      <MovieClip name="b4_i_trader" instancename="b4_i_trader" />
+      <MovieClip name="b4_t_trader" instancename="b4_t_trader" />
       <MovieClip name="b4_i_practice" instancename="b4_i_practice" />
       <MovieClip name="b4_t_practice" instancename="b4_t_practice" />
       <MovieClip name="b4_i_house" instancename="b4_i_house" />
@@ -510,6 +524,8 @@
       <MovieClip name="b5_t_smithy" instancename="b5_t_smithy" />
       <MovieClip name="b5_i_alchemy" instancename="b5_i_alchemy" />
       <MovieClip name="b5_t_alchemy" instancename="b5_t_alchemy" />
+      <MovieClip name="b5_i_trader" instancename="b5_i_trader" />
+      <MovieClip name="b5_t_trader" instancename="b5_t_trader" />
       <MovieClip name="b5_i_practice" instancename="b5_i_practice" />
       <MovieClip name="b5_t_practice" instancename="b5_t_practice" />
       <MovieClip name="b5_i_house" instancename="b5_i_house" />
@@ -576,6 +592,8 @@
       <MovieClip name="b6_t_smithy" instancename="b6_t_smithy" />
       <MovieClip name="b6_i_alchemy" instancename="b6_i_alchemy" />
       <MovieClip name="b6_t_alchemy" instancename="b6_t_alchemy" />
+      <MovieClip name="b6_i_trader" instancename="b6_i_trader" />
+      <MovieClip name="b6_t_trader" instancename="b6_t_trader" />
       <MovieClip name="b6_i_practice" instancename="b6_i_practice" />
       <MovieClip name="b6_t_practice" instancename="b6_t_practice" />
       <MovieClip name="b6_i_house" instancename="b6_i_house" />
@@ -642,6 +660,8 @@
       <MovieClip name="b7_t_smithy" instancename="b7_t_smithy" />
       <MovieClip name="b7_i_alchemy" instancename="b7_i_alchemy" />
       <MovieClip name="b7_t_alchemy" instancename="b7_t_alchemy" />
+      <MovieClip name="b7_i_trader" instancename="b7_i_trader" />
+      <MovieClip name="b7_t_trader" instancename="b7_t_trader" />
       <MovieClip name="b7_i_practice" instancename="b7_i_practice" />
       <MovieClip name="b7_t_practice" instancename="b7_t_practice" />
       <MovieClip name="b7_i_house" instancename="b7_i_house" />
@@ -708,6 +728,8 @@
       <MovieClip name="b8_t_smithy" instancename="b8_t_smithy" />
       <MovieClip name="b8_i_alchemy" instancename="b8_i_alchemy" />
       <MovieClip name="b8_t_alchemy" instancename="b8_t_alchemy" />
+      <MovieClip name="b8_i_trader" instancename="b8_i_trader" />
+      <MovieClip name="b8_t_trader" instancename="b8_t_trader" />
       <MovieClip name="b8_i_practice" instancename="b8_i_practice" />
       <MovieClip name="b8_t_practice" instancename="b8_t_practice" />
       <MovieClip name="b8_i_house" instancename="b8_i_house" />
@@ -922,6 +944,8 @@
       <MovieClip name="d_smithy_nm" instancename="d_smithy_nm" />
       <MovieClip name="d_alchemy_ic" instancename="d_alchemy_ic" />
       <MovieClip name="d_alchemy_nm" instancename="d_alchemy_nm" />
+      <MovieClip name="d_trader_ic" instancename="d_trader_ic" />
+      <MovieClip name="d_trader_nm" instancename="d_trader_nm" />
       <MovieClip name="d_practice_ic" instancename="d_practice_ic" />
       <MovieClip name="d_practice_nm" instancename="d_practice_nm" />
       <MovieClip name="d_house_ic" instancename="d_house_ic" />
@@ -6516,6 +6540,278 @@
       <MovieClip name="n_c14_8_pct" instancename="n_c14_8_pct" />
       <MovieClip name="n_c14_8_days" instancename="n_c14_8_days" />
       <MovieClip name="n_c14_8_space" instancename="n_c14_8_space" />
+      <MovieClip name="n_u15_1_0" instancename="n_u15_1_0" />
+      <MovieClip name="n_u15_1_1" instancename="n_u15_1_1" />
+      <MovieClip name="n_u15_1_2" instancename="n_u15_1_2" />
+      <MovieClip name="n_u15_1_3" instancename="n_u15_1_3" />
+      <MovieClip name="n_u15_1_4" instancename="n_u15_1_4" />
+      <MovieClip name="n_u15_1_5" instancename="n_u15_1_5" />
+      <MovieClip name="n_u15_1_6" instancename="n_u15_1_6" />
+      <MovieClip name="n_u15_1_7" instancename="n_u15_1_7" />
+      <MovieClip name="n_u15_1_8" instancename="n_u15_1_8" />
+      <MovieClip name="n_u15_1_9" instancename="n_u15_1_9" />
+      <MovieClip name="n_u15_1_comma" instancename="n_u15_1_comma" />
+      <MovieClip name="n_u15_1_slash" instancename="n_u15_1_slash" />
+      <MovieClip name="n_u15_1_plus" instancename="n_u15_1_plus" />
+      <MovieClip name="n_u15_1_minus" instancename="n_u15_1_minus" />
+      <MovieClip name="n_u15_1_pct" instancename="n_u15_1_pct" />
+      <MovieClip name="n_u15_1_days" instancename="n_u15_1_days" />
+      <MovieClip name="n_u15_1_space" instancename="n_u15_1_space" />
+      <MovieClip name="n_u15_2_0" instancename="n_u15_2_0" />
+      <MovieClip name="n_u15_2_1" instancename="n_u15_2_1" />
+      <MovieClip name="n_u15_2_2" instancename="n_u15_2_2" />
+      <MovieClip name="n_u15_2_3" instancename="n_u15_2_3" />
+      <MovieClip name="n_u15_2_4" instancename="n_u15_2_4" />
+      <MovieClip name="n_u15_2_5" instancename="n_u15_2_5" />
+      <MovieClip name="n_u15_2_6" instancename="n_u15_2_6" />
+      <MovieClip name="n_u15_2_7" instancename="n_u15_2_7" />
+      <MovieClip name="n_u15_2_8" instancename="n_u15_2_8" />
+      <MovieClip name="n_u15_2_9" instancename="n_u15_2_9" />
+      <MovieClip name="n_u15_2_comma" instancename="n_u15_2_comma" />
+      <MovieClip name="n_u15_2_slash" instancename="n_u15_2_slash" />
+      <MovieClip name="n_u15_2_plus" instancename="n_u15_2_plus" />
+      <MovieClip name="n_u15_2_minus" instancename="n_u15_2_minus" />
+      <MovieClip name="n_u15_2_pct" instancename="n_u15_2_pct" />
+      <MovieClip name="n_u15_2_days" instancename="n_u15_2_days" />
+      <MovieClip name="n_u15_2_space" instancename="n_u15_2_space" />
+      <MovieClip name="n_u15_3_0" instancename="n_u15_3_0" />
+      <MovieClip name="n_u15_3_1" instancename="n_u15_3_1" />
+      <MovieClip name="n_u15_3_2" instancename="n_u15_3_2" />
+      <MovieClip name="n_u15_3_3" instancename="n_u15_3_3" />
+      <MovieClip name="n_u15_3_4" instancename="n_u15_3_4" />
+      <MovieClip name="n_u15_3_5" instancename="n_u15_3_5" />
+      <MovieClip name="n_u15_3_6" instancename="n_u15_3_6" />
+      <MovieClip name="n_u15_3_7" instancename="n_u15_3_7" />
+      <MovieClip name="n_u15_3_8" instancename="n_u15_3_8" />
+      <MovieClip name="n_u15_3_9" instancename="n_u15_3_9" />
+      <MovieClip name="n_u15_3_comma" instancename="n_u15_3_comma" />
+      <MovieClip name="n_u15_3_slash" instancename="n_u15_3_slash" />
+      <MovieClip name="n_u15_3_plus" instancename="n_u15_3_plus" />
+      <MovieClip name="n_u15_3_minus" instancename="n_u15_3_minus" />
+      <MovieClip name="n_u15_3_pct" instancename="n_u15_3_pct" />
+      <MovieClip name="n_u15_3_days" instancename="n_u15_3_days" />
+      <MovieClip name="n_u15_3_space" instancename="n_u15_3_space" />
+      <MovieClip name="n_u15_4_0" instancename="n_u15_4_0" />
+      <MovieClip name="n_u15_4_1" instancename="n_u15_4_1" />
+      <MovieClip name="n_u15_4_2" instancename="n_u15_4_2" />
+      <MovieClip name="n_u15_4_3" instancename="n_u15_4_3" />
+      <MovieClip name="n_u15_4_4" instancename="n_u15_4_4" />
+      <MovieClip name="n_u15_4_5" instancename="n_u15_4_5" />
+      <MovieClip name="n_u15_4_6" instancename="n_u15_4_6" />
+      <MovieClip name="n_u15_4_7" instancename="n_u15_4_7" />
+      <MovieClip name="n_u15_4_8" instancename="n_u15_4_8" />
+      <MovieClip name="n_u15_4_9" instancename="n_u15_4_9" />
+      <MovieClip name="n_u15_4_comma" instancename="n_u15_4_comma" />
+      <MovieClip name="n_u15_4_slash" instancename="n_u15_4_slash" />
+      <MovieClip name="n_u15_4_plus" instancename="n_u15_4_plus" />
+      <MovieClip name="n_u15_4_minus" instancename="n_u15_4_minus" />
+      <MovieClip name="n_u15_4_pct" instancename="n_u15_4_pct" />
+      <MovieClip name="n_u15_4_days" instancename="n_u15_4_days" />
+      <MovieClip name="n_u15_4_space" instancename="n_u15_4_space" />
+      <MovieClip name="n_u15_5_0" instancename="n_u15_5_0" />
+      <MovieClip name="n_u15_5_1" instancename="n_u15_5_1" />
+      <MovieClip name="n_u15_5_2" instancename="n_u15_5_2" />
+      <MovieClip name="n_u15_5_3" instancename="n_u15_5_3" />
+      <MovieClip name="n_u15_5_4" instancename="n_u15_5_4" />
+      <MovieClip name="n_u15_5_5" instancename="n_u15_5_5" />
+      <MovieClip name="n_u15_5_6" instancename="n_u15_5_6" />
+      <MovieClip name="n_u15_5_7" instancename="n_u15_5_7" />
+      <MovieClip name="n_u15_5_8" instancename="n_u15_5_8" />
+      <MovieClip name="n_u15_5_9" instancename="n_u15_5_9" />
+      <MovieClip name="n_u15_5_comma" instancename="n_u15_5_comma" />
+      <MovieClip name="n_u15_5_slash" instancename="n_u15_5_slash" />
+      <MovieClip name="n_u15_5_plus" instancename="n_u15_5_plus" />
+      <MovieClip name="n_u15_5_minus" instancename="n_u15_5_minus" />
+      <MovieClip name="n_u15_5_pct" instancename="n_u15_5_pct" />
+      <MovieClip name="n_u15_5_days" instancename="n_u15_5_days" />
+      <MovieClip name="n_u15_5_space" instancename="n_u15_5_space" />
+      <MovieClip name="n_u15_6_0" instancename="n_u15_6_0" />
+      <MovieClip name="n_u15_6_1" instancename="n_u15_6_1" />
+      <MovieClip name="n_u15_6_2" instancename="n_u15_6_2" />
+      <MovieClip name="n_u15_6_3" instancename="n_u15_6_3" />
+      <MovieClip name="n_u15_6_4" instancename="n_u15_6_4" />
+      <MovieClip name="n_u15_6_5" instancename="n_u15_6_5" />
+      <MovieClip name="n_u15_6_6" instancename="n_u15_6_6" />
+      <MovieClip name="n_u15_6_7" instancename="n_u15_6_7" />
+      <MovieClip name="n_u15_6_8" instancename="n_u15_6_8" />
+      <MovieClip name="n_u15_6_9" instancename="n_u15_6_9" />
+      <MovieClip name="n_u15_6_comma" instancename="n_u15_6_comma" />
+      <MovieClip name="n_u15_6_slash" instancename="n_u15_6_slash" />
+      <MovieClip name="n_u15_6_plus" instancename="n_u15_6_plus" />
+      <MovieClip name="n_u15_6_minus" instancename="n_u15_6_minus" />
+      <MovieClip name="n_u15_6_pct" instancename="n_u15_6_pct" />
+      <MovieClip name="n_u15_6_days" instancename="n_u15_6_days" />
+      <MovieClip name="n_u15_6_space" instancename="n_u15_6_space" />
+      <MovieClip name="n_u15_7_0" instancename="n_u15_7_0" />
+      <MovieClip name="n_u15_7_1" instancename="n_u15_7_1" />
+      <MovieClip name="n_u15_7_2" instancename="n_u15_7_2" />
+      <MovieClip name="n_u15_7_3" instancename="n_u15_7_3" />
+      <MovieClip name="n_u15_7_4" instancename="n_u15_7_4" />
+      <MovieClip name="n_u15_7_5" instancename="n_u15_7_5" />
+      <MovieClip name="n_u15_7_6" instancename="n_u15_7_6" />
+      <MovieClip name="n_u15_7_7" instancename="n_u15_7_7" />
+      <MovieClip name="n_u15_7_8" instancename="n_u15_7_8" />
+      <MovieClip name="n_u15_7_9" instancename="n_u15_7_9" />
+      <MovieClip name="n_u15_7_comma" instancename="n_u15_7_comma" />
+      <MovieClip name="n_u15_7_slash" instancename="n_u15_7_slash" />
+      <MovieClip name="n_u15_7_plus" instancename="n_u15_7_plus" />
+      <MovieClip name="n_u15_7_minus" instancename="n_u15_7_minus" />
+      <MovieClip name="n_u15_7_pct" instancename="n_u15_7_pct" />
+      <MovieClip name="n_u15_7_days" instancename="n_u15_7_days" />
+      <MovieClip name="n_u15_7_space" instancename="n_u15_7_space" />
+      <MovieClip name="n_u15_8_0" instancename="n_u15_8_0" />
+      <MovieClip name="n_u15_8_1" instancename="n_u15_8_1" />
+      <MovieClip name="n_u15_8_2" instancename="n_u15_8_2" />
+      <MovieClip name="n_u15_8_3" instancename="n_u15_8_3" />
+      <MovieClip name="n_u15_8_4" instancename="n_u15_8_4" />
+      <MovieClip name="n_u15_8_5" instancename="n_u15_8_5" />
+      <MovieClip name="n_u15_8_6" instancename="n_u15_8_6" />
+      <MovieClip name="n_u15_8_7" instancename="n_u15_8_7" />
+      <MovieClip name="n_u15_8_8" instancename="n_u15_8_8" />
+      <MovieClip name="n_u15_8_9" instancename="n_u15_8_9" />
+      <MovieClip name="n_u15_8_comma" instancename="n_u15_8_comma" />
+      <MovieClip name="n_u15_8_slash" instancename="n_u15_8_slash" />
+      <MovieClip name="n_u15_8_plus" instancename="n_u15_8_plus" />
+      <MovieClip name="n_u15_8_minus" instancename="n_u15_8_minus" />
+      <MovieClip name="n_u15_8_pct" instancename="n_u15_8_pct" />
+      <MovieClip name="n_u15_8_days" instancename="n_u15_8_days" />
+      <MovieClip name="n_u15_8_space" instancename="n_u15_8_space" />
+      <MovieClip name="n_c15_1_0" instancename="n_c15_1_0" />
+      <MovieClip name="n_c15_1_1" instancename="n_c15_1_1" />
+      <MovieClip name="n_c15_1_2" instancename="n_c15_1_2" />
+      <MovieClip name="n_c15_1_3" instancename="n_c15_1_3" />
+      <MovieClip name="n_c15_1_4" instancename="n_c15_1_4" />
+      <MovieClip name="n_c15_1_5" instancename="n_c15_1_5" />
+      <MovieClip name="n_c15_1_6" instancename="n_c15_1_6" />
+      <MovieClip name="n_c15_1_7" instancename="n_c15_1_7" />
+      <MovieClip name="n_c15_1_8" instancename="n_c15_1_8" />
+      <MovieClip name="n_c15_1_9" instancename="n_c15_1_9" />
+      <MovieClip name="n_c15_1_comma" instancename="n_c15_1_comma" />
+      <MovieClip name="n_c15_1_slash" instancename="n_c15_1_slash" />
+      <MovieClip name="n_c15_1_plus" instancename="n_c15_1_plus" />
+      <MovieClip name="n_c15_1_minus" instancename="n_c15_1_minus" />
+      <MovieClip name="n_c15_1_pct" instancename="n_c15_1_pct" />
+      <MovieClip name="n_c15_1_days" instancename="n_c15_1_days" />
+      <MovieClip name="n_c15_1_space" instancename="n_c15_1_space" />
+      <MovieClip name="n_c15_2_0" instancename="n_c15_2_0" />
+      <MovieClip name="n_c15_2_1" instancename="n_c15_2_1" />
+      <MovieClip name="n_c15_2_2" instancename="n_c15_2_2" />
+      <MovieClip name="n_c15_2_3" instancename="n_c15_2_3" />
+      <MovieClip name="n_c15_2_4" instancename="n_c15_2_4" />
+      <MovieClip name="n_c15_2_5" instancename="n_c15_2_5" />
+      <MovieClip name="n_c15_2_6" instancename="n_c15_2_6" />
+      <MovieClip name="n_c15_2_7" instancename="n_c15_2_7" />
+      <MovieClip name="n_c15_2_8" instancename="n_c15_2_8" />
+      <MovieClip name="n_c15_2_9" instancename="n_c15_2_9" />
+      <MovieClip name="n_c15_2_comma" instancename="n_c15_2_comma" />
+      <MovieClip name="n_c15_2_slash" instancename="n_c15_2_slash" />
+      <MovieClip name="n_c15_2_plus" instancename="n_c15_2_plus" />
+      <MovieClip name="n_c15_2_minus" instancename="n_c15_2_minus" />
+      <MovieClip name="n_c15_2_pct" instancename="n_c15_2_pct" />
+      <MovieClip name="n_c15_2_days" instancename="n_c15_2_days" />
+      <MovieClip name="n_c15_2_space" instancename="n_c15_2_space" />
+      <MovieClip name="n_c15_3_0" instancename="n_c15_3_0" />
+      <MovieClip name="n_c15_3_1" instancename="n_c15_3_1" />
+      <MovieClip name="n_c15_3_2" instancename="n_c15_3_2" />
+      <MovieClip name="n_c15_3_3" instancename="n_c15_3_3" />
+      <MovieClip name="n_c15_3_4" instancename="n_c15_3_4" />
+      <MovieClip name="n_c15_3_5" instancename="n_c15_3_5" />
+      <MovieClip name="n_c15_3_6" instancename="n_c15_3_6" />
+      <MovieClip name="n_c15_3_7" instancename="n_c15_3_7" />
+      <MovieClip name="n_c15_3_8" instancename="n_c15_3_8" />
+      <MovieClip name="n_c15_3_9" instancename="n_c15_3_9" />
+      <MovieClip name="n_c15_3_comma" instancename="n_c15_3_comma" />
+      <MovieClip name="n_c15_3_slash" instancename="n_c15_3_slash" />
+      <MovieClip name="n_c15_3_plus" instancename="n_c15_3_plus" />
+      <MovieClip name="n_c15_3_minus" instancename="n_c15_3_minus" />
+      <MovieClip name="n_c15_3_pct" instancename="n_c15_3_pct" />
+      <MovieClip name="n_c15_3_days" instancename="n_c15_3_days" />
+      <MovieClip name="n_c15_3_space" instancename="n_c15_3_space" />
+      <MovieClip name="n_c15_4_0" instancename="n_c15_4_0" />
+      <MovieClip name="n_c15_4_1" instancename="n_c15_4_1" />
+      <MovieClip name="n_c15_4_2" instancename="n_c15_4_2" />
+      <MovieClip name="n_c15_4_3" instancename="n_c15_4_3" />
+      <MovieClip name="n_c15_4_4" instancename="n_c15_4_4" />
+      <MovieClip name="n_c15_4_5" instancename="n_c15_4_5" />
+      <MovieClip name="n_c15_4_6" instancename="n_c15_4_6" />
+      <MovieClip name="n_c15_4_7" instancename="n_c15_4_7" />
+      <MovieClip name="n_c15_4_8" instancename="n_c15_4_8" />
+      <MovieClip name="n_c15_4_9" instancename="n_c15_4_9" />
+      <MovieClip name="n_c15_4_comma" instancename="n_c15_4_comma" />
+      <MovieClip name="n_c15_4_slash" instancename="n_c15_4_slash" />
+      <MovieClip name="n_c15_4_plus" instancename="n_c15_4_plus" />
+      <MovieClip name="n_c15_4_minus" instancename="n_c15_4_minus" />
+      <MovieClip name="n_c15_4_pct" instancename="n_c15_4_pct" />
+      <MovieClip name="n_c15_4_days" instancename="n_c15_4_days" />
+      <MovieClip name="n_c15_4_space" instancename="n_c15_4_space" />
+      <MovieClip name="n_c15_5_0" instancename="n_c15_5_0" />
+      <MovieClip name="n_c15_5_1" instancename="n_c15_5_1" />
+      <MovieClip name="n_c15_5_2" instancename="n_c15_5_2" />
+      <MovieClip name="n_c15_5_3" instancename="n_c15_5_3" />
+      <MovieClip name="n_c15_5_4" instancename="n_c15_5_4" />
+      <MovieClip name="n_c15_5_5" instancename="n_c15_5_5" />
+      <MovieClip name="n_c15_5_6" instancename="n_c15_5_6" />
+      <MovieClip name="n_c15_5_7" instancename="n_c15_5_7" />
+      <MovieClip name="n_c15_5_8" instancename="n_c15_5_8" />
+      <MovieClip name="n_c15_5_9" instancename="n_c15_5_9" />
+      <MovieClip name="n_c15_5_comma" instancename="n_c15_5_comma" />
+      <MovieClip name="n_c15_5_slash" instancename="n_c15_5_slash" />
+      <MovieClip name="n_c15_5_plus" instancename="n_c15_5_plus" />
+      <MovieClip name="n_c15_5_minus" instancename="n_c15_5_minus" />
+      <MovieClip name="n_c15_5_pct" instancename="n_c15_5_pct" />
+      <MovieClip name="n_c15_5_days" instancename="n_c15_5_days" />
+      <MovieClip name="n_c15_5_space" instancename="n_c15_5_space" />
+      <MovieClip name="n_c15_6_0" instancename="n_c15_6_0" />
+      <MovieClip name="n_c15_6_1" instancename="n_c15_6_1" />
+      <MovieClip name="n_c15_6_2" instancename="n_c15_6_2" />
+      <MovieClip name="n_c15_6_3" instancename="n_c15_6_3" />
+      <MovieClip name="n_c15_6_4" instancename="n_c15_6_4" />
+      <MovieClip name="n_c15_6_5" instancename="n_c15_6_5" />
+      <MovieClip name="n_c15_6_6" instancename="n_c15_6_6" />
+      <MovieClip name="n_c15_6_7" instancename="n_c15_6_7" />
+      <MovieClip name="n_c15_6_8" instancename="n_c15_6_8" />
+      <MovieClip name="n_c15_6_9" instancename="n_c15_6_9" />
+      <MovieClip name="n_c15_6_comma" instancename="n_c15_6_comma" />
+      <MovieClip name="n_c15_6_slash" instancename="n_c15_6_slash" />
+      <MovieClip name="n_c15_6_plus" instancename="n_c15_6_plus" />
+      <MovieClip name="n_c15_6_minus" instancename="n_c15_6_minus" />
+      <MovieClip name="n_c15_6_pct" instancename="n_c15_6_pct" />
+      <MovieClip name="n_c15_6_days" instancename="n_c15_6_days" />
+      <MovieClip name="n_c15_6_space" instancename="n_c15_6_space" />
+      <MovieClip name="n_c15_7_0" instancename="n_c15_7_0" />
+      <MovieClip name="n_c15_7_1" instancename="n_c15_7_1" />
+      <MovieClip name="n_c15_7_2" instancename="n_c15_7_2" />
+      <MovieClip name="n_c15_7_3" instancename="n_c15_7_3" />
+      <MovieClip name="n_c15_7_4" instancename="n_c15_7_4" />
+      <MovieClip name="n_c15_7_5" instancename="n_c15_7_5" />
+      <MovieClip name="n_c15_7_6" instancename="n_c15_7_6" />
+      <MovieClip name="n_c15_7_7" instancename="n_c15_7_7" />
+      <MovieClip name="n_c15_7_8" instancename="n_c15_7_8" />
+      <MovieClip name="n_c15_7_9" instancename="n_c15_7_9" />
+      <MovieClip name="n_c15_7_comma" instancename="n_c15_7_comma" />
+      <MovieClip name="n_c15_7_slash" instancename="n_c15_7_slash" />
+      <MovieClip name="n_c15_7_plus" instancename="n_c15_7_plus" />
+      <MovieClip name="n_c15_7_minus" instancename="n_c15_7_minus" />
+      <MovieClip name="n_c15_7_pct" instancename="n_c15_7_pct" />
+      <MovieClip name="n_c15_7_days" instancename="n_c15_7_days" />
+      <MovieClip name="n_c15_7_space" instancename="n_c15_7_space" />
+      <MovieClip name="n_c15_8_0" instancename="n_c15_8_0" />
+      <MovieClip name="n_c15_8_1" instancename="n_c15_8_1" />
+      <MovieClip name="n_c15_8_2" instancename="n_c15_8_2" />
+      <MovieClip name="n_c15_8_3" instancename="n_c15_8_3" />
+      <MovieClip name="n_c15_8_4" instancename="n_c15_8_4" />
+      <MovieClip name="n_c15_8_5" instancename="n_c15_8_5" />
+      <MovieClip name="n_c15_8_6" instancename="n_c15_8_6" />
+      <MovieClip name="n_c15_8_7" instancename="n_c15_8_7" />
+      <MovieClip name="n_c15_8_8" instancename="n_c15_8_8" />
+      <MovieClip name="n_c15_8_9" instancename="n_c15_8_9" />
+      <MovieClip name="n_c15_8_comma" instancename="n_c15_8_comma" />
+      <MovieClip name="n_c15_8_slash" instancename="n_c15_8_slash" />
+      <MovieClip name="n_c15_8_plus" instancename="n_c15_8_plus" />
+      <MovieClip name="n_c15_8_minus" instancename="n_c15_8_minus" />
+      <MovieClip name="n_c15_8_pct" instancename="n_c15_8_pct" />
+      <MovieClip name="n_c15_8_days" instancename="n_c15_8_days" />
+      <MovieClip name="n_c15_8_space" instancename="n_c15_8_space" />
       <MovieClip name="n_standing_1_0" instancename="n_standing_1_0" />
       <MovieClip name="n_standing_1_1" instancename="n_standing_1_1" />
       <MovieClip name="n_standing_1_2" instancename="n_standing_1_2" />
@@ -6803,6 +7099,9 @@
       <MovieClip name="u_alchemy_ic" instancename="u_alchemy_ic" />
       <MovieClip name="u_alchemy_nm" instancename="u_alchemy_nm" />
       <MovieClip name="u_alchemy_bo" instancename="u_alchemy_bo" />
+      <MovieClip name="u_trader_ic" instancename="u_trader_ic" />
+      <MovieClip name="u_trader_nm" instancename="u_trader_nm" />
+      <MovieClip name="u_trader_bo" instancename="u_trader_bo" />
       <MovieClip name="u_practice_ic" instancename="u_practice_ic" />
       <MovieClip name="u_practice_nm" instancename="u_practice_nm" />
       <MovieClip name="u_practice_bo" instancename="u_practice_bo" />

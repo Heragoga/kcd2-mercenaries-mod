@@ -23,7 +23,15 @@ mercenaries.QuartermasterPost = nil
 mercenaries.QuartermasterTentOffset  = { right = 1.5, forward = 3.2 }
 mercenaries.QuartermasterHouseOffset = { right = 2.0, forward = 5.0 }
 
-function mercenaries:GetQuartermasterPost()
+-- Answered PER ENTITY: the camp trader shares this brain (soul_merc_trader ->
+-- quartermaster_brain), and quartermaster_idle.xml passes the entity in so the two men
+-- do not walk to the same post. An entity the trader does not claim gets the
+-- quartermaster's own, which is what every caller before the trader existed wanted.
+function mercenaries:GetQuartermasterPost(ent)
+    if ent and self.TraderPostFor then
+        local p = self:TraderPostFor(ent)
+        if p then return p end
+    end
     return self.QuartermasterPost
 end
 

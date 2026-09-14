@@ -208,6 +208,160 @@ function mercenaries:DebugCampFurniture()
     end
 end
 
+-- === WHY A SITTER FLOATS ABOVE HIS LOG ===
+--
+-- Three heights have to agree and one report says they do not, so measure all three rather
+-- than reason about them. Per seat:
+--   prop   the visible stump's own world z
+--   SO     the StanceSmartObject's world z - the seated pose's floor, since the
+--          Sit_1Place_Bench_Low helper's Place0 is at 0,0,0 (references/Libs/SmartObjects.xml)
+--          and all the seat height lives in the animation
+--   merc   the occupant's world z, which is the one the player actually sees
+--   top    the topmost physics surface at that column, and its material
+--   terr   the ent_terrain ray's height and material - what CampSnapToGround placed on
+-- Read-only: no entity is spawned, moved or removed. Run it while a merc is visibly floating.
+function mercenaries:SeatProbe()
+    local ok, err = pcall(function()
+        local function z(e)
+            local p
+            pcall(function() p = e and e:GetWorldPos() end)
+            return p and p.z or nil
+        end
+        local function f(v) return v and string.format("%.2f", v) or "--" end
+
+        -- Occupant key -> entity, so a seat can name the man on it.
+        local byKey = {}
+        for _, e in pairs(self.ActiveMercs or {}) do
+            local ka, kb = self:CampMercKeys(e)
+            if ka then byKey[ka] = e end
+            if kb then byKey[kb] = e end
+        end
+
+        -- Every stump prop and every smart object we spawned, by name, so a seat can be
+        -- paired with both even if GetEntityByWUID declines a smart-object holder handle.
+        local props, soEnts = {}, {}
+        for _, id in ipairs(self.CampEntities or {}) do
+            local e
+            pcall(function() e = System.GetEntity(id) end)
+            local n = e and e:GetName() or ""
+            local pp
+            pcall(function() pp = e and e:GetWorldPos() end)
+            if pp then
+                if string.find(n, "_SO_", 1, true) then
+                    table.insert(soEnts, { x = pp.x, y = pp.y, z = pp.z, n = n })
+                elseif string.find(n, "LogSO", 1, true) then
+                    table.insert(props, { x = pp.x, y = pp.y, z = pp.z, n = n })
+                end
+            end
+        end
+        local function nearest(list, x, y)
+            local best, bestD = nil, 9999
+            for _, q in ipairs(list) do
+                local dx, dy = q.x - (x or 0), q.y - (y or 0)
+                local d = dx * dx + dy * dy
+                if d < bestD then bestD, best = d, q end
+            end
+            return best, math.sqrt(bestD)
+        end
+
+        System.LogAlways('[SeatProbe] === seats: ' .. tostring(#(self.CampSeats or {})) ..
+                         ', stump props found: ' .. tostring(#props) .. ' ===')
+        local pz = z(player)
+        System.LogAlways('[SeatProbe] player z=' .. f(pz) ..
+                         '  ground guard ' .. (self.GroundGuard and 'on' or 'OFF'))
+
+        for i, seat in ipairs(self.CampSeats or {}) do
+            local sp = seat.pos or {}
+            local soEnt
+            pcall(function() soEnt = XGenAIModule.GetEntityByWUID(seat.wuid) end)
+            local soZ = z(soEnt)
+            local soNear = nearest(soEnts, sp.x, sp.y)
+            if not soZ then soZ = soNear and soNear.z end
+            local best, bestD = nearest(props, sp.x, sp.y)
+
+            local topZ, topS, terrZ, terrS
+            pcall(function()
+                local hits = self:GroundRawHits(sp.x, sp.y, sp.z or 0, nil, 1)
+                if hits[1] and hits[1].pos then topZ, topS = hits[1].pos.z, hits[1].surface end
+                terrZ, terrS = self:GroundTerrainAt(sp.x, sp.y, sp.z or 0)
+            end)
+
+            local occ = seat.occupant and byKey[tostring(seat.occupant)]
+            local mz = z(occ)
+            local gap = (mz and soZ) and (mz - soZ) or nil
+
+            System.LogAlways(string.format(
+                '[SeatProbe] %2d%s stored=%s SO=%s prop=%s(%.2fm away) top=%s/%s terr=%s/%s merc=%s gap=%s %s',
+                i, seat.tavern and ' TAVERN' or '',
+                f(sp.z), f(soZ), f(best and best.z), bestD,
+                f(topZ), tostring(topS), f(terrZ), tostring(terrS),
+                f(mz), f(gap),
+                seat.occupant and ((occ and occ:GetName() or 'occupant not in ActiveMercs')) or 'free'))
+        end
+        System.LogAlways('[SeatProbe] gap is merc z minus smart object z. A seated merc should read about 0.')
+    end)
+    if not ok then System.LogAlways('[SeatProbe] error: ' .. tostring(err)) end
+end
+
+-- The snapshot above needs the player to catch a floater. This watches instead: once a
+-- second it compares every occupied seat's smart object z with the man on it and logs only
+-- the ones clearly off. Read-only; merc_seat_watch again to stop.
+mercenaries.SeatWatchOn  = false
+mercenaries.SeatWatchTol = 0.25     -- metres of disagreement worth a line
+mercenaries.SeatWatchSaid = {}
+
+function mercenaries:SeatWatchTick()
+    if not self.SeatWatchOn then return end
+    -- Engine time runs ~29x fast through a sleep/wait, so pace the work on the wall clock
+    -- and let the timer itself fire as often as it likes (see docs/performance.md).
+    local now = (os and os.clock) and os.clock() or nil
+    local due = (not now) or (not self.SeatWatchLast) or (now - self.SeatWatchLast) >= 1.0
+    if due then
+    self.SeatWatchLast = now
+    pcall(function()
+        local byKey = {}
+        for _, e in pairs(self.ActiveMercs or {}) do
+            local ka, kb = self:CampMercKeys(e)
+            if ka then byKey[ka] = e end
+            if kb then byKey[kb] = e end
+        end
+        for i, seat in ipairs(self.CampSeats or {}) do
+            local occ = seat.occupant and byKey[tostring(seat.occupant)]
+            if occ then
+                local soEnt, mp, sp
+                pcall(function() soEnt = XGenAIModule.GetEntityByWUID(seat.wuid) end)
+                pcall(function() mp = occ:GetWorldPos() end)
+                pcall(function() sp = soEnt and soEnt:GetWorldPos() end)
+                if mp and sp then
+                    local dz = mp.z - sp.z
+                    local flat = (mp.x - sp.x) ^ 2 + (mp.y - sp.y) ^ 2
+                    -- Only while he is actually AT the seat: a man still walking to it is
+                    -- allowed to be at a different height.
+                    if flat < 1.5 and math.abs(dz) > self.SeatWatchTol then
+                        local k = tostring(i) .. ':' .. string.format('%.1f', dz)
+                        if not self.SeatWatchSaid[k] then
+                            self.SeatWatchSaid[k] = true
+                            System.LogAlways(string.format(
+                                '[SeatProbe] FLOATER seat %d: %s is %.2fm off his smart object (%.2fm away flat), merc z=%.2f SO z=%.2f',
+                                i, tostring(occ:GetName()), dz, math.sqrt(flat), mp.z, sp.z))
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    end
+    Script.SetTimerForFunction(1000, "mercenaries.SeatWatchTick")
+end
+
+function mercenaries:SeatWatchToggle()
+    self.SeatWatchOn = not self.SeatWatchOn
+    self.SeatWatchSaid = {}
+    self.SeatWatchLast = nil
+    System.LogAlways('[SeatProbe] seat watch ' .. (self.SeatWatchOn and 'ON - floaters will be logged' or 'off'))
+    if self.SeatWatchOn then self:SeatWatchTick() end
+end
+
 -- Visualise the heightmap classifier (see docs/camp.md "Ground validation"):
 -- drops a marker per cell - flag = valid ground (at its real height, so slope
 -- reads), barrel = small clump (tree/rock), crate = building; void = no marker.
@@ -259,12 +413,22 @@ function mercenaries:CampScan(radius, spacing)
             end
         end
 
+        -- How many cells the ground guard took out on its own, so the scan says whether a
+        -- gap in the flags is a step the classifier refused or a material it did.
+        local objCells = 0
+        for i = 0, 2 * radius do
+            for j = 0, 2 * radius do
+                if hm.obj and hm.obj[i] and hm.obj[i][j] then objCells = objCells + 1 end
+            end
+        end
+
         local total = (2 * radius + 1) * (2 * radius + 1)
         local roofNote = underRoof and string.format(" [UNDER-ROOF: ceiling +%.1fm, building columns marked invalid (crate)]", (ceilingZ or refZ) - refZ) or ""
         System.LogAlways(string.format(
-            "[Mercenaries] camp scan: %dx%d @ %.2fm (%d cells / rays) -> valid %d (flag), small-clump %d (barrel), building %d (crate), void %d%s",
+            "[Mercenaries] camp scan: %dx%d @ %.2fm (%d cells / rays) -> valid %d (flag), small-clump %d (barrel), building %d (crate), void %d%s; %d cell(s) are made of something the ground there is not (ground guard %s)",
             radius * 2 + 1, radius * 2 + 1, spacing, total,
-            counts.valid, counts.small, counts.building, counts.void, roofNote))
+            counts.valid, counts.small, counts.building, counts.void, roofNote,
+            objCells, mercenaries.GroundGuard and "on" or "OFF"))
         Game.SendInfoText(string.format(
             "@merc_logi_msg Camp scan%s: %d valid / %d tree / %d building / %d void",
             underRoof and " (indoors)" or "", counts.valid, counts.small, counts.building, counts.void), false, 0, 5)
@@ -286,4 +450,6 @@ mercenaries:DevCommand("merc_camp_scan_clear", "mercenaries:ClearCampScan()", "R
 mercenaries:DevCommand("merc_camp_activity_list", "mercenaries:ListCampActivities()", "List the camp activity catalogue (index, name, mode) for merc_camp_activity_test")
 mercenaries:DevCommand("merc_camp_activity_test", "mercenaries:SpawnCampActivityTest(%1)", "Spawn what an activity needs and make a merc play it. Usage: merc_camp_activity_test <index or name>")
 mercenaries:DevCommand("merc_camp_activity_test_clear", "mercenaries:ClearCampActivityTest()", "Stop the activity test and remove its props")
+mercenaries:PlayerCommand("merc_seat_probe", "mercenaries:SeatProbe()", "Measure every camp seat: stump z, smart object z, seated merc z, and the ground under it")
+mercenaries:PlayerCommand("merc_seat_watch", "mercenaries:SeatWatchToggle()", "Watch occupied seats once a second and log any merc sitting clear of his smart object")
 mercenaries:DevCommand("merc_camp_furniture_debug", "mercenaries:DebugCampFurniture()", "Dump the merc sit/sleep smart-object state (spawned SOs, per-merc assignments, guard count)")

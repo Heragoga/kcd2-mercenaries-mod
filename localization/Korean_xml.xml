@@ -1112,7 +1112,7 @@
   <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>그를 호위해라.</Cell></Row>
   <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>교전 수칙</Cell></Row>
   <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>임의로 교전하라.</Cell></Row>
-  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>무기를 뽑는 자는 누구든 상대하라.</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Kill everyone in sight.</Cell><Cell>보이는 자는 모두 죽여라.</Cell></Row>
   <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>반격만 하라.</Cell></Row>
   <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>칼을 거두어라.</Cell></Row>
   <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>압박하는 방식</Cell></Row>
@@ -1125,6 +1125,14 @@
   <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>호위 중.</Cell></Row>
   <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>호위할 대상 없음.</Cell></Row>
   <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>부하들이 공격받는 중에도 칼을 거두고 있음.</Cell></Row>
+  <Row><Cell>merc_info_engage_default</Cell><Cell>The men will engage at will.</Cell><Cell>The men will engage at will.</Cell></Row>
+  <Row><Cell>merc_info_engage_viking</Cell><Cell>The men will cut down every living soul in sight.</Cell><Cell>The men will cut down every living soul in sight.</Cell></Row>
+  <Row><Cell>merc_info_engage_defend</Cell><Cell>The men will defend themselves and no more.</Cell><Cell>The men will defend themselves and no more.</Cell></Row>
+  <Row><Cell>merc_info_engage_hold</Cell><Cell>The men will hold their blades.</Cell><Cell>The men will hold their blades.</Cell></Row>
+  <Row><Cell>merc_info_viking_warn</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell></Row>
+  <Row><Cell>merc_info_aggro_tight</Cell><Cell>Tight ranks. One man to an enemy.</Cell><Cell>Tight ranks. One man to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_balanced</Cell><Cell>Balanced. Two men to an enemy.</Cell><Cell>Balanced. Two men to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_loose</Cell><Cell>Swarm them. Three men to an enemy.</Cell><Cell>Swarm them. Three men to an enemy.</Cell></Row>
   <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>집결하라.</Cell></Row>
   <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[모드 설정] 중대와 모드가 작동하는 방식을 바꾸기.</Cell></Row>
   <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>부대 운영에 대해 이야기 좀 합시다.</Cell></Row>
@@ -1163,6 +1171,10 @@
   <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>극한</Cell></Row>
   <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>불가능</Cell></Row>
   <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>무리</Cell></Row>
+  <Row><Cell>merc_info_upkeep_off</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_lenient</Cell><Cell>Lenient upkeep. The food goes further.</Cell><Cell>Lenient upkeep. The food goes further.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_standard</Cell><Cell>Standard upkeep.</Cell><Cell>Standard upkeep.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_harsh</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell></Row>
   <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>지금 이대로 두시오.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>그리 되게 하시오.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>알겠네. 소문을 내지.</Cell></Row>
@@ -1302,6 +1314,7 @@
   <Row><Cell>ui_qm_rm_archercart</Cell><Cell>궁수용 수레.</Cell><Cell>궁수용 수레.</Cell></Row>
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>목책.</Cell><Cell>목책.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>문.</Cell><Cell>문.</Cell></Row>
+  <Row><Cell>ui_qm_rm_trader</Cell><Cell>상인의 노점.</Cell><Cell>상인의 노점.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>이 진영에는 그런 것이 없다.</Cell><Cell>이 진영에는 그런 것이 없다.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>누가 나와 함께 출정할지 정하자.</Cell><Cell>누가 나와 함께 출정할지 정하자.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>진영에서 사람을 데리고 나갈 때는, 제대로 된 자들을 곁에 두고 싶다.</Cell><Cell>진영에서 사람을 데리고 나갈 때는, 제대로 된 자들을 곁에 두고 싶다.</Cell></Row>
@@ -1344,4 +1357,23 @@
   <Row><Cell>merc_ui_camp_marker</Cell><Cell>용병 야영지</Cell><Cell>용병 야영지</Cell></Row>
   <Row><Cell>merc_ui_wait_marker</Cell><Cell>대기 중인 용병</Cell><Cell>대기 중인 용병</Cell></Row>
   <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>자슬라비예의 알렉세이</Cell><Cell>자슬라비예의 알렉세이</Cell></Row>
+  <!-- Camp trader -->
+  <Row><Cell>ui_mercenary_trade_action</Cell><Cell>거래하기</Cell><Cell>거래하기</Cell></Row>
+  <Row><Cell>char_mercenary_trader_uiName</Cell><Cell>상인</Cell><Cell>상인</Cell></Row>
+  <Row><Cell>char_mercenary_trader_fullName</Cell><Cell>상인</Cell><Cell>상인</Cell></Row>
+  <Row><Cell>char_mercenary_trader_description</Cell><Cell>용병단의 종군 상인입니다.</Cell><Cell>용병단의 종군 상인입니다.</Cell></Row>
+  <Row><Cell>merc_trader_closed</Cell><Cell>노점이 닫혀 있습니다.</Cell><Cell>노점이 닫혀 있습니다.</Cell></Row>
+  <Row><Cell>merc_trader_broke</Cell><Cell>상인의 돈이 떨어졌습니다. 전부 값을 치르지 못했습니다.</Cell><Cell>상인의 돈이 떨어졌습니다. 전부 값을 치르지 못했습니다.</Cell></Row>
+  <Row><Cell>merc_trader_short</Cell><Cell>값을 치르지 못했습니다. 상인이 못 낸 만큼의 물건을 도로 가져갔습니다.</Cell><Cell>값을 치르지 못했습니다. 상인이 못 낸 만큼의 물건을 도로 가져갔습니다.</Cell></Row>
+  <Row><Cell>merc_n_trpaid</Cell><Cell>상인이 지불한 금액:</Cell><Cell>상인이 지불한 금액:</Cell></Row>
+  <Row><Cell>merc_n_trspent</Cell><Cell>상인에게 지불한 금액:</Cell><Cell>상인에게 지불한 금액:</Cell></Row>
+  <Row><Cell>merc_n_trpurse</Cell><Cell>| 상인의 소지금:</Cell><Cell>| 상인의 소지금:</Cell></Row>
+  <Row><Cell>merc_info_chest_locked</Cell><Cell>당신의 보관함은 아직 이용할 수 없습니다.</Cell><Cell>당신의 보관함은 아직 이용할 수 없습니다.</Cell></Row>
+  <!-- Camp trader dialogue -->
+  <Row><Cell>ui_merc_trader_root</Cell><Cell>상인</Cell><Cell>상인</Cell></Row>
+  <Row><Cell>ui_merc_trader_wares</Cell><Cell>물건을 보여주게.</Cell><Cell>물건을 보여주게.</Cell></Row>
+  <Row><Cell>merc_henry_trader_wares</Cell><Cell>뭐가 있는지 보세.</Cell><Cell>뭐가 있는지 보세.</Cell></Row>
+  <Row><Cell>merc_trader_wares_reply</Cell><Cell>좌판 위의 건 맘대로 가져가시고, 파실 건 거기 놀으십시오. 다 끝나면 셀셈을 맞추어 그때 정산하지요.</Cell><Cell>좌판 위의 건 맘대로 가져가시고, 파실 건 거기 놀으십시오. 다 끝나면 셀셈을 맞추어 그때 정산하지요.</Cell></Row>
+  <Row><Cell>ui_merc_trader_leave</Cell><Cell>지금은 되었네.</Cell><Cell>지금은 되었네.</Cell></Row>
+  <Row><Cell>merc_henry_trader_leave</Cell><Cell>다음에 보세.</Cell><Cell>다음에 보세.</Cell></Row>
 </Table>

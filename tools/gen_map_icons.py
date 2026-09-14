@@ -1,9 +1,10 @@
 """Build larger map-marker icons from vanilla ones.
 
-STATUS: NOT IN USE. The mod ships no icons of its own - mercenaries_mapmarker.lua passes
-vanilla icon names. A first attempt at 128x128 custom art drew markers with NO TEXTURE at
+STATUS: NOT IN USE. The mod ships no icons of its own - what is left of
+mercenaries_mapmarker.lua passes a vanilla icon name to the compass. A first attempt at 128x128 custom art drew markers with NO TEXTURE at
 all, and this file exists so the next attempt starts from what was learned rather than from
-scratch. Do not wire its output into MapMarkerRows until a marker has actually been seen to
+scratch. The mod no longer draws map POIs at all (see docs/map-marker.md), so nothing uses
+this; do not wire its output in until a marker has actually been seen to
 render in game.
 
 Why the first attempt failed

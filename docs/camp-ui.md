@@ -53,6 +53,25 @@ where they are) - see
 [command-ui.md](command-ui.md#where-it-sits-and-turning-it-off). The command nudge is
 suppressed entirely while the camp screen is open, so only one of them ever speaks.
 
+## One screen at a time
+
+The two screens are mutually exclusive, and opening one closes the other. `CUShow` hides the
+command interface and `BLShow` hides this one, so U-then-H and H-then-U both swap.
+
+That is an input rule before it is a layout one. The camp screen binds nothing of its own -
+it holds the command interface's keys and `BLKey`/`BLSelect` forward into `CUKey` while
+`CU.on` - so with both screens up, which of them a number key reaches comes down to which
+test runs first. Order matters in `BLShow` for the same reason: it closes the camp screen
+BEFORE taking the keys, because `CUReleaseKeys` hands them back to the game on its way out.
+
+A swap does not stack. Closing a screen closes it and nothing reopens behind it - there used
+to be a `restoreBL` flag that brought the command interface back when the camp screen shut,
+and a screen appearing without a keypress is exactly what players objected to. The corner
+prompt is what says the other screen is one key away.
+
+`tools/check_uistate.py` runs both drivers in a real Lua interpreter and presses the keys,
+so none of the above can quietly stop being true.
+
 ## Three states, and why "owned" exists
 
 An improvement is **for sale**, **stored**, or **built**. Stored is not a bookkeeping

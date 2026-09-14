@@ -18,6 +18,19 @@ mercenaries.RaidDayJitter   = 0.75    -- +/- this many days, so it is not clockw
 mercenaries.RaidMinCount    = 3
 mercenaries.RaidMaxCount    = 14
 mercenaries.RaidCampRange   = 45.0    -- the player must be this close to camp
+-- A camp has to settle before anyone marches on it: it must have STOOD for
+-- RaidCampGraceHours of world time, and the player must have been IN it for RaidDwellSecs
+-- of REAL time unbroken, which a sleep, a wait or a fast travel resets. See
+-- docs/walls-and-sieges.md, "A camp has to settle first".
+mercenaries.RaidCampGraceHours = 12.0
+mercenaries.RaidDwellSecs      = 60.0
+-- World seconds per real second above which the clock was SKIPPED rather than run. This
+-- build's normal ratio is 15 (measured, see mercenaries_travelwatch.lua).
+mercenaries.RaidSkipRatio      = 40.0
+mercenaries.RaidCampPitchTag   = "QMRaidCampAt"
+-- Which groups have raided lately, so they take turns (PickRotatingGroup). Saved: raids
+-- are days apart and a reload in between must not wipe the memory.
+mercenaries.RaidRecentTag      = "QMRaidRecent"
 mercenaries.RaidWallDist    = 120.0   -- they form up this far out when there is a wall
 mercenaries.RaidNoWallDist  = 50.0    -- ...and this close when there is not
 mercenaries.RaidTickMs      = 20000
@@ -78,7 +91,11 @@ end
 function mercenaries:RaidPick()
     local roster = self.RaidRoster or {}
     if #roster == 0 then return "bandit", self:RaidForceSize(1.0), 1.0 end
-    local r = roster[math.random(1, #roster)]
+    -- Not a flat draw: the same banner twice running reads as one enemy rather than a
+    -- world with six in it. PickRotatingGroup skips whoever raided last (mercenaries_spawning.lua).
+    local r = self:PickRotatingGroup("raid", roster,
+                                     function(e) return e.group end, self.RaidRecentTag)
+              or roster[math.random(1, #roster)]
     return r.group, self:RaidForceSize(r.share), (r.share or 1.0)
 end
 
@@ -103,6 +120,73 @@ function mercenaries:RaidPlayerInCamp()
     if not p then return false end
     local dx, dy = p.x - self.CampCenter.x, p.y - self.CampCenter.y
     return (dx * dx + dy * dy) <= (self.RaidCampRange * self.RaidCampRange)
+end
+
+-- REAL seconds. System.GetCurrTime runs on the engine clock, which a wait or a sleep runs
+-- ~29x fast - exactly the case the dwell has to notice - so the wall clock is used instead.
+local raidRealClock = (os and os.clock) or function() return 0 end
+
+-- Stamped when the camp is PITCHED. Not when it is rebuilt from the saved anchor on a
+-- load, or when buying an upgrade takes it down and puts it straight back up: the same
+-- camp coming back is not a new camp. Called from SpawnMercCamp.
+function mercenaries:RaidNoteCampPitched(fresh)
+    self._raidInCampSince = nil          -- a new camp is also a fresh minute to stand in it
+    if not fresh then return end
+    local t = self:LogiNow()
+    self.RaidCampAt = t
+    pcall(function() self:SaveString(self.RaidCampPitchTag, tostring(math.floor(t))) end)
+    raidLog(string.format("camp pitched - no raid for %.0f in-game hours", self.RaidCampGraceHours))
+end
+
+-- World hours the camp has stood, or nil for a camp that was already up before any of
+-- this existed - which counts as settled rather than blocking raids on it for ever.
+function mercenaries:RaidCampStoodHours()
+    if not self.RaidCampAt then
+        local s
+        pcall(function() s = self:LoadString(self.RaidCampPitchTag) end)
+        self.RaidCampAt = tonumber(s or "")
+        if not self.RaidCampAt then return nil end
+    end
+    local h = (self:LogiNow() - self.RaidCampAt) / 3600.0
+    -- The clock went backwards (an older save loaded): re-stamp rather than treat a
+    -- negative age as settled.
+    if h < 0 then self.RaidCampAt = self:LogiNow(); return 0 end
+    return h
+end
+
+-- Real seconds the player has stood in camp without a break. Must be called EVERY tick,
+-- before any other gate: this is also what notices him leaving, and a version that only
+-- ran while he was in camp kept a stale start time across an hour on the road.
+function mercenaries:RaidDwellUpdate()
+    local now, wt = raidRealClock(), self:LogiNow()
+    local lastR, lastW = self._raidClockReal, self._raidClockWorld
+    self._raidClockReal, self._raidClockWorld = now, wt
+
+    if not self:RaidPlayerInCamp() then self._raidInCampSince = nil; return 0 end
+
+    -- The world clock outrunning the wall clock is a sleep, a wait or a fast travel. The
+    -- minute in camp has to be a minute he actually sat through.
+    if lastR and lastW then
+        local dtR, dtW = now - lastR, wt - lastW
+        if dtR > 0.05 and (dtW / dtR) > self.RaidSkipRatio then
+            self._raidInCampSince = nil
+            return 0
+        end
+    end
+
+    if not self._raidInCampSince then self._raidInCampSince = now; return 0 end
+    return now - self._raidInCampSince
+end
+
+-- Everything above is session state about a camp and a clock that both belong to the save
+-- just left: the dwell must not survive a load (the loading screen alone would pay for it),
+-- and the two saved values have to be read again out of the save just loaded.
+function mercenaries:RaidOnLoad()
+    self._raidInCampSince, self._raidClockReal, self._raidClockWorld = nil, nil, nil
+    self.RaidCampAt  = nil
+    self.RaidNextDay = nil
+    self.EnemyRecent = self.EnemyRecent or {}
+    self.EnemyRecent["raid"] = nil
 end
 
 -- Shut gates no longer call the raid off. A raid marches on a gate whether it is barred
@@ -167,7 +251,14 @@ function mercenaries.RaidTickBody()
         if not self.RaidEnabled then return end
         -- The quartermaster's master switch for uninvited trouble.
         if self.EncountersOn and not self:EncountersOn() then return end
-        if not self:RaidPlayerInCamp() then return end
+        -- Every tick, ahead of every other gate: this is the call that tracks him leaving
+        -- camp and that resets on a time skip. It answers 0 when he is not in camp at all,
+        -- which is the old RaidPlayerInCamp gate as well.
+        if self:RaidDwellUpdate() < self.RaidDwellSecs then return end
+        -- ...and the camp itself must have stood a while. A band does not hear of a camp,
+        -- gather and march on it inside the hour it went up.
+        local stood = self:RaidCampStoodHours()
+        if stood and stood < self.RaidCampGraceHours then return end
         if self:RaidBusy() then return end
 
         local day = self:LogiUpkeepDay()
@@ -215,6 +306,14 @@ function mercenaries:RaidStatus()
     raidLog(string.format("day %d, next raid on day %s", day, tostring(self.RaidNextDay or self:RaidLoadNextDay() or "?")))
     raidLog("player in camp: " .. tostring(self:RaidPlayerInCamp()) .. ", busy: " .. tostring(self:RaidBusy())
         .. ", gates sealed: " .. tostring(self:RaidSealed()))
+    local stood = self:RaidCampStoodHours()
+    raidLog(string.format("camp has stood %s of %.0f in-game hours; %.0fs of %.0fs stood in it",
+        stood and string.format("%.1f", stood) or "?", self.RaidCampGraceHours,
+        self._raidInCampSince and (raidRealClock() - self._raidInCampSince) or 0,
+        self.RaidDwellSecs))
+    local recent = self:EnemyRecentList("raid", self.RaidRecentTag)
+    raidLog("last to raid (they will not draw again yet): " ..
+        (#recent > 0 and table.concat(recent, ", ") or "nobody"))
     -- The group is rolled at launch, so the best status can do is show the whole draw.
     local parts = {}
     for _, r in ipairs(self.RaidRoster or {}) do
@@ -245,4 +344,5 @@ function mercenaries:RaidNow()
 end
 
 mercenaries:DevCommand("merc_raid_status", "mercenaries:RaidStatus()",      "When the next raid is due, and what it will be")
+mercenaries:DevCommand("merc_enemy_rotation", "mercenaries:EnemyRotationStatus()", "Which enemy groups raided and patrolled last (they will not draw again yet)")
 mercenaries:DevCommand("merc_raid_arm",    "mercenaries:RaidSetEnabled(%line)", "Turn scheduled raids on or off: merc_raid_arm 0 | 1")

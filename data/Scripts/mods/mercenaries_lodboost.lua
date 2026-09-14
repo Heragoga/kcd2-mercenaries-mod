@@ -449,11 +449,12 @@ end
 -- See docs/performance.md, "The AI-LOD cvar boost".
 mercenaries.LodBoostPopRelease   = 50   -- boost may only drop once population is below this
 -- ...but for at most this long with no foes anywhere in the cache. The hold exists to cover
--- a battle's bodies while they still stand, so this has to clear PatrolCorpseSecs (180s)
+-- a battle's bodies while they still stand, so this has to clear PatrolCorpseSecs (1200s)
 -- with margin; it is a BOUND on the pathological case, not a tuning. A town's living
 -- population sits above LodBoostPopRelease permanently, so without it a boost armed there
--- never came down again.
-mercenaries.LodBoostPopHoldMax   = 240.0
+-- never came down again. It only runs at all while 50+ NPCs stand nearby, so the long
+-- bound costs nothing in the ordinary case of a field fight going quiet.
+mercenaries.LodBoostPopHoldMax   = 1320.0
 
 function mercenaries:LodBoostPopulation()
     if not player then return 0 end
@@ -532,8 +533,8 @@ function mercenaries:LodBoostTick()
         -- release line at all, so a boost armed there (by LodBoostPrime, say, for a town
         -- watch muster) would have held for the rest of the session.
         local dry = self._lodLastFoeAt and (now - self._lodLastFoeAt)
-                    or (self.LodBoostPopHoldMax or 240.0)
-        if pop >= self.LodBoostPopRelease and dry < (self.LodBoostPopHoldMax or 240.0) then
+                    or (self.LodBoostPopHoldMax or 1320.0)
+        if pop >= self.LodBoostPopRelease and dry < (self.LodBoostPopHoldMax or 1320.0) then
             return
         end
         if dry >= self.LodBoostHoldSecs then self:LodBoostOff() end

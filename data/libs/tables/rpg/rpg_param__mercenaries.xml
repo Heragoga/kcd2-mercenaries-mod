@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!-- How long any NPC body stays in the world. Both values are seconds of GAME time, so at
+     KCD2's day length they are worth roughly a twelfth of that in real minutes: vanilla's
+     3600 undiscovered is about five real minutes, and its 300 discovered is about twenty
+     real seconds. 21600 / 10800 are therefore about half an hour and a quarter of an hour
+     of real time. See docs/loot-sweep.md, "How long bodies stay".
+
+     Undiscovered is authored by the vanilla table, so that row is an OVERRIDE and the merge
+     is unverified for a duplicate key; Discovered is not authored anywhere and is a plain
+     insert, which is the case the __mercenaries merge is proven for. kcd.log says which:
+     look for "Table 'rpg_param' is patched by 'rpg_param__mercenaries'". Deleting this file
+     puts every body back on vanilla's clock. -->
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<rpg_params version="1">
+		<rpg_param rpg_param_key="CorpseDisappearanceTimeUndiscovered" rpg_param_value="21600" />
+		<rpg_param rpg_param_key="CorpseDisappearanceTimeDiscovered" rpg_param_value="10800" />
+	</rpg_params>
+</database>

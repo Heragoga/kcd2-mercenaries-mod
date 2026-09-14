@@ -60,8 +60,11 @@ function mercenaries:ForgeFindFlattest(center, avoid)
     for _, R in ipairs({ 4.5, 5.5, 6.5, 9.0, 13.0, 16.5, 20.0 }) do
         for a = 0, 7 do
             local ang = a * (math.pi / 4)
-            local cand = self:CampSnapToGround({ x = center.x + math.cos(ang) * R, y = center.y + math.sin(ang) * R, z = center.z })
-            local skip = false
+            local cand, candClear = self:CampSnapToGround({ x = center.x + math.cos(ang) * R, y = center.y + math.sin(ang) * R, z = center.z }, true)
+            -- Flatness alone said nothing about WHAT is flat: a roof, a cart bed and a wall
+            -- walk are all perfectly level, and a station whose ring happened to cross one
+            -- was built on it. Only candidates standing on open ground get scored now.
+            local skip = (candClear == false)
             if avoids then
                 for _, av in ipairs(avoids) do
                     if av and av.x then

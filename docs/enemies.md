@@ -35,6 +35,33 @@ Each pool is authored **worst-first** along a ramp (±6% for knights, ±30% for 
 
 **Heraldry.** Sigismund was King of Hungary, so his soldiers fly the `_mMagyar`/`_mUher` livery — the only Sigismund-army heraldry the game ships. Prague has a richer set (4 surcoats, a coat, 2 hoods, 2 coifs). Knights get one **noble house each** — Bergov, Nebak, Semin, Ruthart, Pisek, Krizovnik (Order of the Red Star), Teuton, Kuttenberg, Vavak, Cimburk, Papal, Leipa — so a line of them reads as a coalition rather than a regiment. Bandits, looters and Cumans wear no heraldry: they have no lord.
 
+## Which group turns up
+
+Clothing and weapons are rolled **per man**, so a band is already a mix within its own
+wardrobe. What used to repeat was the *group*: a flat draw gives the same banner twice
+running often enough that the six wardrobes read as one enemy.
+
+`PickRotatingGroup(channel, pool, keyOf, saveTag)` in `mercenaries_spawning.lua` fixes that.
+It drops every entry whose group is among the last few that **channel** fielded, then draws
+from what is left — so a pool that weights a group (the road pool lists bandits twice) still
+weights it among the groups that are eligible at all. A pool with nothing fresh left in it
+falls back to the whole thing: a rotation rule may never stop an encounter happening.
+
+| Channel | Pool | Depth | Memory |
+|---|---|---|---|
+| `raid` | `RaidRoster` (`mercenaries_raids.lua`) | 2 | saved as `QMRaidRecent` — raids are days apart |
+| `patrol` | `PatrolGroupPool` (`mercenaries_patrols_live.lua`) | 1 | session only, like `LivePatrols` itself |
+
+**The depth is per channel** (`EnemyRotateDepthBy`) because the pools are different sizes.
+Two back out of the raid roster's six groups still leaves four to draw from. Two back out of
+the road pool's four would leave only the two soldier groups every third gang — which would
+make Sigismund's men as ordinary on the roads as bandits, when the pool weights bandits and
+looters double precisely because they are what a road normally produces.
+
+Channels are separate on purpose: a bandit raid on the camp should not also keep bandits off
+the roads. A group forced by hand (`merc_patrol_bandit`) skips the rotation entirely and is
+not remembered, or calling it twice would refuse itself.
+
 ## Weapons and shields
 
 `grp.weapons` lists the `WeaponSets` categories a group may draw from. Categories **2 (sword+shield), 3 (axe+shield) and 5 (mace+shield) bundle a shield**; 4 (longsword), 6 (shortsword), 7 (mace) and 8 (axe) do not. A group whose list contains none of 2/3/5 can therefore never be handed a shield, however it rolls — that is how looters stay shieldless. Repeating a category weights it, which is how bandits get "a few shields, but not many" (one shield entry in six).

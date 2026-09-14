@@ -222,6 +222,130 @@ Related, same symptom, different cause: **`LogiRebuildCampForUpgrade`** (buying 
 rebuilds the camp) now calls `LoadCampOutParty` after `SpawnMercCamp`, the way
 `RestoreCampDelayed` does. Without it the rebuild silently recalled a party that was out.
 
+### …and a fourth: deploying a man who is asleep
+
+Point 3 above is right for a merc *standing* in camp and wrong for one inside a
+`StanceElement`. Deploy a man who is asleep in a bed and the eviction lands mid-pose, which
+does not end the element — it **orphans** it. The engine still owns his position, so he stays
+pinned to the bed with no tree left to unwind him, and every `SetPos` aimed at him is undone
+on the next animation update.
+
+Both hauls then fire at him in turn — `MonitorDistanceAndTeleport` once a second, and the
+stall ladder's `FollowEscalate` — and each one plays out as *blink to the player, snap back
+into the bed*, over and over, until the orphaned element finally lets go. That is the
+"a sleeping merc teleports to me and snaps back to his bed, then settles down" report.
+
+Three things, all keyed off one signal:
+
+* **`CampPoseLastAt`** — `CampActorYield` already stamps `CampPoseAt` while `$inCampAnim` is
+  raised, but it *clears* that stamp the moment he leaves a pose, so it can only answer "is he
+  posed right now". `CampPoseLastAt` is the same heartbeat **kept**, so it still answers after
+  the tree that was writing it has been destroyed. `InCampPose` reads the first
+  (`CampPoseFreshSecs`, 2.5 s); `LeavingCampPose` reads the second (`CampPoseGraceSecs`, 6 s)
+  and means "inside a pose *or* still shedding one".
+* **The eviction is deferred, not skipped.** `FollowStalled` takes an optional `delay`, applied
+  after its stagger slot is claimed so the men behind him are not held up. `CampTakeParty` and
+  `CampDeployOne` pass `CampPoseUnwindSecs` (3.5 s) for anyone `InCampPose` answers for. His
+  camp role is already gone by then, so `camp_actor` reads `campYield` on its own next cycle
+  and unwinds the element properly — the deferred eviction lands on a man who is on his feet.
+* **Nothing hauls a man inside the grace.** `MonitorDistanceAndTeleport`, `FollowEscalate` and
+  `LeaderUnstick` all test `LeavingCampPose` first. Bounded on purpose: a pose that never
+  releases must not exempt him for good, which is how a straggler becomes permanent. A stamp
+  that reads as being in the future (the engine clock restarting across a save load) is
+  dropped rather than trusted, for the same reason.
+
+One related correction to point 1: `CampTakeParty` clears `CampBusyUntil` for the out-party so
+the sortie has a fit anchor, and that stamp is a *guess* about who can walk — except for the
+man in a `StanceElement`, where it is a fact. He now keeps it, so the formation cannot be
+anchored on a merc who is asleep. `CampDeployOne`, which never ran `MarkCampBusyMercs` at all,
+lays one for `CampPoseUnwindSecs` instead of the 45 s a broken camp allows.
+
+#### That was not enough, because the pose is often orphaned *before* the deploy
+
+Deferring the eviction only helps a man whose `camp_actor` is still alive to be deferred. It
+very often is not: **any** interrupt fired over `camp_actor` orphans the pose — combat, a
+scheduler re-fire, a hire, a hold release — and once that has happened there is no tree left
+writing `CampPoseAt`, so `InCampPose` reads *false* and every stamp-based guard goes quiet.
+The merc is pinned to the bed while the camp tables say he is an ordinary follower, which is
+the reported "he does not even try to stand up, he just snaps to me and back to the bed lying".
+
+Every signal above is **inference** from mod state, and inference is wrong in exactly this
+case. The engine knows the answer and will give it up: `<GetStance Npc Stance StanceObject/>`
+reads any NPC's real stance, and the `stanceCategory` enum is `undefined, standing, lying,
+sitting, kneel, horse, crouch, cart` (recovered from `WHGame.dll`; vanilla only ever uses
+three of them, so it is not greppable out of `references/`). Vanilla polls it the same way in
+`references/AI/situation/gossip/situation_gossipGetStanceType.xml`.
+
+* **Both schedulers poll it once a second** and publish through `NoteStance` → `StanceDown` /
+  `StanceAt`. The schedulers are the right place: they are the always-on tree, still ticking
+  for a man whose every other tree is gone (the same property the GHOST LATCH sweep relies on).
+* **`IsGroundedStance`** is a live read, so unlike the stamps it needs no grace window and no
+  bound — "he is still lying down" stays true exactly as long as it is true. Its only test is
+  staleness (`StanceFreshSecs`, 4 s): a merc whose scheduler stopped reporting is not described
+  by an old sample. `LeavingCampPose` now answers from this first and the stamps second.
+* **The cure is `UnstanceAction`, retried until it takes.** `unstance` **names the action to
+  play** — it is not "un-stance from this" — and playing a *standing* action is what breaks a
+  seated or lying pose. We use `waiting_armsCrossed`, whose `In` fragment (`WaitingStandIn`) is
+  the transition that does it; it needs nothing in the hands, so `locationObject` stays empty.
+  (`FleeLookingAround`, vanilla's choice in `interrupt_flee`, has an *empty* `In` — it relies
+  on the flee movement to break the pose, so it is the wrong pick here.)
+
+  The first build fired it **once**, at the head of `follow.xml`. The log said plainly that this
+  does not work: `standUps=1` against men still lying down minutes later. So it moved to the
+  schedulers' stance loop and retried every poll — and the log said, just as plainly, that
+  **retrying does not work either**: `standing him up (attempt 30)` against men the engine still
+  reported as `lying`. `UnstanceAction` cannot break this pose, however many times it is played.
+
+  It is kept anyway, for the first few attempts: it costs one node and it does free some poses.
+  When it plainly is not working the ladder escalates, and stops playing the action so the two
+  are never fighting over the same man.
+* **The cure that works: own the pose again, then let it go.** A `StanceElement` binds the merc
+  to its smart object and **only ending the element releases him**. That is why playing an
+  action at him does nothing, and it is why the workaround found by hand — *send the stuck man
+  back to camp* — cures him instantly: a camp role makes `camp_actor` fire, and `camp_actor`
+  takes the pose back into a `StanceElement` it owns.
+
+  `PoseRescueAsk` automates exactly that. After `PoseRescueAfter` failed stand-ups it raises a
+  flag; `IsCampActor` answers **true** while that flag is up (checked first, because it has to
+  outrank "he holds no camp role" — that is the state he is being rescued *from*), so the
+  scheduler fires `camp_actor` at him. Its new first switch case re-enters the `StanceElement`
+  on the object `GetStance` says he is on, holds it 600 ms, and leaves — and *leaving* is what
+  plays the `Out` fragment and stands him up. The stance object never crosses into Lua.
+
+  Bounded at `PoseRescueMax` attempts, after which it logs him by name once and gives up rather
+  than counting forever. He stays lying, but nothing will teleport him while he is down, so the
+  worst case is a man asleep in a bed — not a man blinking between the bed and the player.
+
+  **A man getting up still reads as lying.** The stand-up is not instant, and for as long as it
+  plays `GetStance` reports the *old* stance — so judging him the moment the rescue ended counted
+  a success as a failure, asked for another, and that one re-entered the `StanceElement` on top
+  of the stand-up already running. The first build of the rescue measured exactly that: eight men
+  rescued, five needing a second go, four a third, one a fourth, each fired on the very next poll
+  — the rescue interrupting itself. Two windows fix it: `camp_actor` now holds him for 2 s *after*
+  the element exits and only then clears the flag (so a live tree owns him while he stands), and
+  `PoseRescueSettleSecs` covers the rest from the Lua side. With the rescue doing the real work,
+  `PoseRescueAfter` drops to 2 — the seconds spent playing an action at him first were mostly
+  just a man lying in a bed longer than he needed to.
+
+* **`camp_actor`'s yield gate was 3 s, and it ends in an unconditional `Fail`.** If the
+  stand-up takes longer than that, the gate tears off the very unwind it is waiting for —
+  manufacturing the orphaned pose this whole section is about. Raised to 10 s. It still ends
+  the instant `inCampAnim` clears, so a man merely standing about yields on the same tick.
+
+* **There were three ways out of camp, not two.** `CampTakeParty` and `CampDeployOne` were
+  only two of them: the order wheel's `BLLeaveCamp` (giving a quartered squad a ground order)
+  set the out-party flag and did *nothing else* — the man kept his bed record and his claim on
+  the shared bed, so the spot could never be reused, and nothing evicted the behaviour holding
+  him in it. He was marched out of camp on paper while still lying in it, which is the exact
+  case the log caught. It now does the same teardown as the other two. This is also why the
+  stand-up belongs in the scheduler rather than on any one of these paths — the invariant
+  ("no camp role means not on the furniture") holds however he left.
+
+* **`MonitorDistanceAndTeleport` now logs.** It previously logged nothing at all, which is why
+  the first attempt at this bug had to be reasoned about instead of read: there was no way to
+  tell a merc hauled every second from one nobody had touched. `merc_stance_dump` prints the
+  same state for the whole squad on demand.
+
 ---
 
 ## Upgrades stay where you put them
@@ -298,7 +422,7 @@ untouched.
 - **Guard patrol: the "refuse to move" bug is fixed, but the fix isn't playtested yet.** The freeze was traced to `Move`-ing to non-AI-navigable `BasicEntity` markers (plus `changeNPCState="false"`); patrol now `Move`s to raw `vec3` positions with `changeNPCState="true"` — see [How it works](#how-it-works). That's the highest-confidence fix (both halves have direct base-game precedent — `so_ladder.xml` for the vec3 `Move`, every point-move for `changeNPCState="true"`), but it still needs an in-game confirm. If guards *still* don't move, the next suspects are: the follow BT not firing for guards at all (add a log in the `$isCampGuard` case), `IsCampGuard` returning false (check `_G.MercInCamp` is set and the `CampPatrollers` key matches `entity.this.id`), or the Lua→`vec3` component assignment not taking. If they move but jankily: pause timing, or pathing on broken terrain. Key points: `IsCampGuard`/`GetPatrolWaypoint` in `mercenaries_camp.lua`, the `$isCampGuard` case in `camp_actor.xml`, and `$isIdle & ~$isCampGuard` in both schedulers.
 - **The fire-cell grid layout is new and unverified.** `CampClusterSpacing` (7m) and the seat/tent ring radii (0.9m/3.0m) are best-guess numbers tightened per feedback, not measured against the actual tent footprint in-game — expect to need to retune again once you've seen a multi-cell camp (12+ mercs), especially since tighter spacing raises the odds of clipping. Tent facing (`CampTentFacingFix`) and bed placement (`CampBedOffset`) are both confirmed correct now (see below).
 - **The player-tent-centered grid, the tent-ring gap, and the tent-side clutter offset are all brand new and none have been checked in-game.** The grid now orients itself off `player:GetDirectionVector()` at the moment camp is made rather than a fixed axis, `CampGridOffsets` has only been reasoned through (not run against a real multi-cluster camp), and `CampTentClutterOffset` is a first guess at where a sack/crate can sit beside a tent without overlapping the bed or the merc's own stand spot. Expect to need another tuning pass on all three once you've seen a camp go up.
-- **Cluster cells are now ground-validated, but individual props inside a cell aren't.** Camp cluster positions are probed and rejected if they land on a roof, a hillside, a tree, or a step (see [Ground validation](#ground-validation) below), so the whole camp no longer lands on a building. But *within* an accepted cell each prop is still only ground-snapped, not obstacle-routed — on broken terrain expect the odd clipped or floating prop inside an otherwise-valid cell. The player tent at the grid origin is placed where the player stood and is **not** itself validated (only the clusters around it are). Patrol waypoints are snapped but the path between them isn't guaranteed clear. Unverified in-game — use `merc_camp_scan` to eyeball what the validator accepts before trusting it.
+- **Cluster cells are now ground-validated, but individual props inside a cell aren't.** Camp cluster positions are probed and rejected if they land on a roof, a hillside, a tree, or a step (see [Ground validation](#ground-validation) below), so the whole camp no longer lands on a building. But *within* an accepted cell each prop is still only ground-snapped, not obstacle-routed — on broken terrain expect the odd clipped or floating prop inside an otherwise-valid cell. The player tent at the grid origin is placed where the player stood and is **not** itself validated (only the clusters around it are). Patrol waypoints are ground-validated now (they used to be snapped only, which put guards on rooftops — see [ground-guard.md](ground-guard.md)), but the path between them still isn't guaranteed clear. Unverified in-game — use `merc_camp_scan` to eyeball what the validator accepts before trusting it.
 - **Combat while camped inherits the existing Wait-state limitation**: non-guard mercs idling under `_G.MercIdle` don't fight back today regardless of cause (this isn't new to camp — the same applies if you just tell them to Wait). Recall or break camp if trouble shows up. Guards are different: because they run the `camp_actor` behavior, the schedulers' normal combat path (firing `combat_melee`) preempts their patrol the same way it preempts following, so a guard that picks up a target fights and then resumes patrol afterward — but the non-guard camp mercs standing by still won't.
 - Large squads (more than `CampMaxTents`, 10) won't get everyone a tent — see the caps above; excess mercs beyond the sort order just get the bed-on-an-outer-ring treatment, no tent/fire cell.
 
@@ -431,9 +555,162 @@ This is now wired into the live camp, not just a comparison row:
 
 ---
 
+## Prop footprints
+
+Every tent used to be validated against one hardcoded box — `CampTentFootHalf`, 1.0 × 2.25 —
+on the stated grounds that the five `CampTentVariants` entries "share the same footprint".
+Measured out of the paks (`tools/measure_camp_props.py`), they do not:
+
+| variant | mesh x | mesh y | off-centre | old box (w, h) | measured box (w, h) |
+|---|---|---|---|---|---|
+| `tent_small_forest_a` | 1.46 | 1.19 | 0.05 | 1.00, 2.25 | 1.56, 1.86 |
+| `tent_small_forest_b` | 1.83 | 0.92 | 0.44 | 1.00, 2.25 | 1.71, 2.57 |
+| `tent_small_forest_d` | 2.12 | 1.42 | **0.69** | 1.00, 2.25 | 2.46, 2.66 |
+| `tent_small_shabby_a` | 1.57 | 0.81 | 0.46 | 1.00, 2.25 | 1.62, 2.09 |
+| `tent_small_rustic_a` | **2.33** | **1.53** | 0.12 | 1.00, 2.25 | 1.98, 2.80 |
+
+`tent_small_rustic_a` is 60% longer than the box that approved its spot and half again as
+wide, and three of the five are not centred on their own origin at all. That is the "tents
+sometimes have a larger blueprint" report.
+
+Two bugs, not one. The second was that the variant was rolled **after** the nudge, so the
+ground was validated for a tent other than the one that got built there. The model is chosen
+first now.
+
+### From mesh to placement frame
+
+`tools/measure_camp_props.py` reads every mesh the camp names — `CampModels`,
+`CampTentVariants`, `CampTentClutterVariants`, `CampTrainingDummyModels`, the player tent,
+the fire overlay, the night lamp — and writes `mercenaries_camp_footprints.lua`, a generated
+table of half-extents, centre offset and height in **mesh space**. Re-run it after adding a
+model. `--print` shows the measurements without writing.
+
+Turning one into the placement frame needs no convention-guessing, because the spawn is a
+plain yaw: `SpawnCampPropModel` sets angles `{0, 0, angleZ}`, so the mesh's own +X axis ends
+up along `(cos angleZ, sin angleZ)` — which is exactly the `forward` that `CampFootprintStats`
+and `CampRelativeOffset` project along. So **depth = the mesh's X, width = the mesh's Y**, and
+the mesh's centre offset `(ox, oy)` is a `forward`/`right` offset of the same numbers. That
+falls out of the rotation rather than being tuned, and it agrees with the hand-tuned routing
+box it replaced: 1.05 × 1.45 against a mesh measuring y 1.19, x 1.46.
+
+Three forms, because three different questions:
+
+| | |
+|---|---|
+| `CampPropFootHalf(model)` | mesh **+ `CampPropFootSlack` (0.35 m)** — clear ground wanted. The box the map is asked about. |
+| `CampPropFootHalf(model, 0)` | the mesh's own extent — what a **routing** obstacle wants. Padding a tent obstacle closes the gaps the men walk between them. |
+| `CampPropClaimHalf(model)` | mesh **+ `CampPropClaimPad` (0.25 m)** — what the prop *occupies*. What neighbours are tested against. |
+
+The claim is deliberately not the footprint. Padding a claim with the ground slack as well
+would declare two tents 0.6 m apart overlapping, which they visibly are not.
+
+> An earlier version grew the box to reach an off-centre mesh (`half = |offset| + extent`) to
+> avoid needing the offset's sign. That is safe for a ground test and wrong for everything
+> else: it inflates the box in the direction the mesh *isn't*, and a tent inflated 0.69 m
+> toward its own campfire collides with it.
+
+### Nothing was checking tents against tents
+
+Measured footprints alone did not stop tents overlapping, because **nothing ever compared one
+prop's footprint with another's**. The map answers "is there decent ground here" and knows
+nothing about what the camp has already put down, so two tents on the same ring could each be
+nudged up to `CampNudgeMax × CampNudgeStep` (1.5 m) *toward* each other and both come out
+valid — 3 m of closing on a 0.4 m gap.
+
+`CampPlacedFoot` is the claim list, reset per pitch. Every tent, fire, training yard and the
+player tent claims its oriented box as it goes down, and `CampFootClaimed` tests a candidate
+against them with a separating-axis test on the four box axes.
+
+### Fences, and thin geometry generally
+
+A fence walks straight through a map that samples downward every half metre: its rails are a
+hand wide, so a run at an angle registers on some cells and not others, the flood fill leaks
+through the gaps, both sides read as one connected surface, and a tent gets pitched across it.
+Posts, thin walls, railings and cart shafts all do this, and sampling finer only moves the
+threshold.
+
+A fence crossing a footprint has to cross its **perimeter**, so the perimeter is what gets
+cast: four rays round the edges plus the two diagonals for anything standing alone in the
+middle, **horizontal**. A sideways ray is the one thing a downward grid can never be, however
+finely it is sampled. The mask excludes `ent_terrain` — a horizontal ray that can see the
+heightmap hits the hillside a few metres on and reports an obstruction that is just the ground
+rising.
+
+A ray that *starts* inside solid geometry may report nothing, which sounds like a hole in the
+perimeter and is not: an object covering a corner has to cross both edges meeting at it, and
+the other of those two is cast from its far end, outside the object. The only thing that
+escapes is something swallowing the whole box, which the ground map has already refused.
+
+**The heights matter as much as the sweep.** Two of them (0.45 m and 1.05 m) left a hole at
+0.7 m — exactly where a resting cart shaft sits. `CampClearHeights` samples the band at 0.35 m
+now: 0.25, 0.60, 0.95, 1.30, from below a fence's bottom rail to above its top one. Anything
+lower is the ground tests' business.
+
+### A safety margin, not better detection
+
+A cart's two thin handles are the case that settles this: a couple of centimetres across,
+sticking out well past the body, and no sampling scheme catches every one of them. So the box
+that gets swept is the footprint **grown by `CampClearMargin` (0.10 m)** — anything within a
+hand's breadth of where a tent is going counts as in the way, and a near miss becomes a miss.
+
+An earlier version *shrank* the box by 0.05 m to keep the corner rays off their own edge. That
+was the wrong direction, and unnecessary.
+
+### The order of the three tests
+
+`CampNudgeToValid` runs them cheapest-first, and the expensive one only on a spot the other
+two have already passed:
+
+1. **the ground** under the footprint — the map, free
+2. **what the camp has claimed** there — bookkeeping, free
+3. **anything thin** standing in it — six rays
+
+If nothing clean is within reach, the least-bad *ground* still wins, but a spot that would sit
+on something already placed is refused outright and the original is kept — a rough patch beats
+a tent inside another tent.
+
+### Knock-on effects
+
+**Which way round a tent sits on the ring** decides how the ring has to be sized, and it is
+not what it looks like. A tent is placed at `tentFaceAngle + pi + CampTentFacingFix`, and
+`CampRingPos`'s second return is the **radial** direction — so the tent's `forward` ends up at
+radial + 3π/2, a quarter turn off. **Forward is tangential.** Since forward is the mesh's X,
+the mesh's *long* axis lies along the ring and its short axis points at the fire.
+
+The first version of `CampTentRingRadiusFor` sized the ring by the short axis and computed
+4.08 m. Sized correctly it is **5.75 m**, and two constraints set it:
+
+| | |
+|---|---|
+| tangential | each of 7 slots needs `2 × claim.h` of arc → 5.75 m |
+| radial | the tent's inner edge must clear the fire's seating ring (`CampFireSeatRadius` + the weapon pile that dresses it) → 4.15 m |
+
+Both are taken off the **claim** box, the same one neighbours are tested against, so the ring
+and the overlap test can never disagree.
+
+That is a materially bigger fire circle than the 3.9 m it shipped with, and **the clusters
+have to spread with it** — two 5.75 m rings at the old 10.5 m spacing would grow into each
+other, which is the same overlap one tile further out. Spacing rises to `2R + CampClusterGap`
+= 13 m. Both numbers are logged on every pitch. If a tighter camp is wanted, the levers are
+`CampClusterTentRingSlots` (fewer tents per fire) or dropping the widest variant from
+`CampTentVariants` — not the radius, which is derived.
+
+It also removes a subtler problem: at 3.9 m a tent's swept box reached to ~1.4 m from the
+fire, *inside* the seating ring at 1.7 m, so every tent's obstruction sweep would have hit its
+own camp's seats — which are spawned first — and rejected itself. At 5.75 m the nearest swept
+edge is 3.77 m against a seat ring reaching 2.12 m.
+
+**The footprint slack scales with the box.** It was a flat two invalid cells against a flat
+box. A measured box can be twice the area, and two bad cells out of a hundred is a far harsher
+test than two out of fifty, so the allowance is `max(CampFootprintSlack, 4% of the box)`. 4% is
+what the old pair of numbers works out to on the box they were tuned against, so a small tent
+behaves exactly as before.
+
 ## Ground validation
 
-**The problem.** `CampSnapToGround` raycasts straight down against `ent_terrain + ent_static` and takes the first hit's Z. `ent_static` *is* the building geometry, so a cluster cell over a house snaps its whole fire-cell onto the roof — that's the "camp spawns on buildings" bug. Two non-fixes ruled out first: dropping `ent_static` snaps *through* the roof to the terrain floor inside the house (camp clips into walls), and buildings are brushes/render-nodes rather than entities, so `hitTable[1].entity` is `nil` for both terrain and buildings and can't tell them apart. The only robust signal is **geometry**.
+**The problem.** `CampSnapToGround` raycast straight down against `ent_terrain + ent_static` and took the first hit's Z. `ent_static` *is* the building geometry, so a cluster cell over a house snapped its whole fire-cell onto the roof — that's the "camp spawns on buildings" bug. One non-fix ruled out first: dropping `ent_static` snaps *through* the roof to the terrain floor inside the house (camp clips into walls).
+
+> **Correction.** This section used to go on to say that buildings are brushes rather than entities, so `hitTable[1].entity` is `nil` for both terrain and buildings and cannot tell them apart, and that geometry was therefore the only robust signal. The first half is true, and the hit table also carries **`renderNode`**, which a brush has and the terrain does not — so in principle `entity` / `renderNode` / neither separates the three in one test. **In practice those fields arrive empty and it does not work**, which was proved by building on them and watching the guard call logs and house floors firm ground. The verdict above therefore stands, for a better reason than it originally gave: geometry is the signal, and [ground-guard.md](ground-guard.md) is the geometric test — ring a point and see whether every side of it drops away. The heightmap classifier below is still the right tool for *layout* — which tile to build on — and both now run together.
 
 This is being built in two phases. **Phase 1 (done): the detector** — a dense heightmap classifier plus a debug visualiser, so the ground-reading can be verified in-game before anything depends on it. **Phase 2 (planned): the placement** — driving camp tile selection and prop placement off that classifier. Recorded below.
 
@@ -473,6 +750,43 @@ This is the breadth-first "no sharp edge from where I stand" test from the spec,
 
 ---
 
+## The sitter floated above his log
+
+Reported as "mercs sometimes sit one meter above the logs, their seats". The seat is a smart
+object, not a mesh test: the sitter's height is the `StanceSmartObject`'s world z plus the
+`Sit_1Place_Bench_Low` helper's baked offset, so a smart object placed above its stump puts
+the man in the air over it.
+
+`SpawnCampFurnitureSO` spawns two entities — the visual prop, then the smart object. Only the
+campfire log ring passes `soPosOverride`, and it is the only seat that ever floated. That
+nudge is `CampSitSOOffset` (`right = 0.2`), which exists to re-centre the pose on the stump
+because the helper is authored for a bench. Measured out of the pak (`tools/measure_camp_props.py`),
+`chair_trunk_c` is 0.32 m across, centred 0.16 m along its own +Y, and 0.47 m tall — and
+`CampRelativeOffset`'s `right` **is** that +Y axis. So the nudged point sits at local Y 0.20,
+inside a stump spanning 0.00–0.32: the smart object's own ground ray was being fired straight
+down onto the stump's top face, every seat, every camp.
+
+It only *showed* sometimes because [ground-guard.md](ground-guard.md) usually catches it.
+`GroundUnder` rejects a surface made of something other than the terrain under it and answers
+with the terrain height instead, so on open dirt the ray's stump hit is thrown out and the
+smart object lands correctly. The guard passes the stump when it cannot make that comparison:
+
+- the column has **no heightmap** (`GroundTerrainAt` returns nil), so there is nothing to
+  compare against and the top hit wins outright; or
+- the stump reads the **same surface type** as what it stands on — wood on the player house's
+  deck foundation, say — and then the height backstop decides, and `GroundSameRise` is 0.80 m
+  against a 0.47 m stump, so it passes too.
+
+In both cases the smart object bound half a metre up and the merc sat on nothing.
+
+**The fix**: a `soPosOverride` is a horizontal nudge inside the prop's own footprint by
+construction, so it no longer gets a ground ray at all. It takes the prop's height and carries
+across only the caller's deliberate `z` (still 0). The prop's height is now read back off the
+spawned entity with `GetWorldPos` rather than assumed from what it was asked for — the prop
+ground-snaps a second time inside `SpawnCampPropModel`, so the two could disagree. This also
+pins every bed smart object to its own bed frame. The offset itself is untouched: it was tuned
+by eye and moving it would move the pose.
+
 ## Positioning the bed under a tent
 
 `CampBedOffset` is `{ right = 0, forward = 0, z = 0, rotationDeg = 90 }`, against `tent_small_forest_a.cgf` (and by extension its four same-footprint siblings, `CampTentVariants`). (This paragraph used to claim 180 — the code has read 90 since the feature's first commit and the bump was never actually made. The value stands; the doc was wrong.)
@@ -503,6 +817,8 @@ Vanilla decides this per bed with `EntityModule.WillSleepingOnThisBedSave(id)` (
 
 The save is therefore made from Lua. `Game.SaveGameViaResting()` is the engine's own resting autosave (creates an `Auto` save; `Game.QuickSave()` is the fallback if the binding ever disappears). `CampBedSleepWatch`, called each second from `MonitorLoop`, is a two-state watcher on `player.player:IsLaying()`: on the transition into lying it arms only if the player is within `CampBedSleepRadius` (3.5 m) of the bed recorded by `SpawnCampBedTrigger` (`CampPlayerBed`), and on the transition back out it saves — but only if world time moved at least `CampBedSleepMinSeconds` (600 in-game seconds), so lying down and standing straight back up, or a sleep interrupted after a moment, doesn't save. The save is deferred 2 s so the wake-up animation finishes first. `CampPlayerBed.engineSaves` is queried once at spawn and suppresses our save if the engine ever does start saving on this bed by itself. The house upgrade's bed goes through the same `SpawnCampBedTrigger`, so it gets sleep-and-save too.
 
+**What else stands in the tent.** The player's own chest sits beside the bed, and a drying rack and a smokehouse stand beside the tent - all three are spawned with the camp and none of them needs an upgrade. See [camp-amenities.md](camp-amenities.md).
+
 **Placement fixed, twice.** First fix: it was clipping into merc tents (fixed `center + 12m` offset regardless of grid size) — given a reserved slot in the merc fire-cell grid instead. Second pass, per feedback: rather than being just another grid slot, the player tent is now the grid's own origin — every fire cell is placed relative to it, and the tile directly in front of it (along the direction the player was facing when camp was made) is always left empty. See [How it works](#how-it-works) above.
 
 **Facing**: the tent's angle is `worldForwardAngle + CampTentFacingFix + 75°`, where `worldForwardAngle` is the direction the player was facing when camp was made (the same "front" the empty grid tile is built around). The extra rotation is a direct ask from feedback - +45°, then +30° more (75° total) per follow-up feedback - on top of the usual `CampTentFacingFix` correction every tent gets. Not yet re-checked in-game against the empty tile.
@@ -520,6 +836,7 @@ The save is therefore made from Lua. `Game.SaveGameViaResting()` is the engine's
 | Camp activity cases in the main `ContinuousSwitch`: guard-patrol `Move` loop, sleeper/sitter `StanceElement`; role sensing; horse-suppression while `_G.MercInCamp` | `data/AI/camp_actor.xml` |
 | Route incamp actors into the follow branch (`$isIdle & ~$isCampActor` idle condition; `data.isCampActor` sensing); inert old sit/sleep `StanceElement` comment blocks | `data/AI/mercenary_scheduler.xml`, `data/AI/archer_scheduler.xml` |
 | Shared tier-from-name helper (`GetTierFromName`) | `data/Scripts/mods/mercenaries_util.lua` |
+| Camp-pose guards on everything that teleports a merc (`LeavingCampPose`), and the deferred eviction (`FollowStalled`'s `delay`) | `data/Scripts/mods/mercenaries_teleport.lua`, `data/Scripts/mods/mercenaries_formation.lua`, `data/Scripts/mods/mercenaries_formation_handler.lua` |
 | Script registration, tokens, `SetState` hook, recall keybind, `LowPriorityMonitorLoop`/`OnGameplayStarted` hooks | `data/Scripts/mods/mercenaries.lua` |
 | Camp tokens | `data/libs/tables/item/item__mercenaries.xml`, ids `...be65d` (make) / `...be66d` (break) |
 | Dialog entries (management hub → camp sub-hub) | `data/quests/mercenaries/kutnohorsko/mercenaries_background_quest/dismissal_dialog.xml` |

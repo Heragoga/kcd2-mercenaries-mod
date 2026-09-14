@@ -109,6 +109,32 @@ function mercenaries:TeleportKeepBehindLeader(pos)
     return out
 end
 
+-- This pass used to log NOTHING, which made the one report it is responsible for - "he
+-- teleports to me and snaps straight back" - impossible to diagnose from a log: there was no
+-- way to tell a merc being hauled every second from one nobody had touched. One line per
+-- haul, with the camp state that decides whether the haul was legitimate, rate-limited per
+-- merc so a man tripping the gate once a second cannot drown the log.
+mercenaries.TeleportLogEvery = 5.0
+mercenaries._tpLogAt = {}
+
+function mercenaries:LogTeleport(ent, name, distance, gate)
+    pcall(function()
+        local w  = ent.this and ent.this.id or ent.id
+        local ws = tostring(w)
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        local last = self._tpLogAt[ws]
+        if last and (now - last) < self.TeleportLogEvery then return end
+        self._tpLogAt[ws] = now
+        System.LogAlways(string.format(
+            '[MercTP] hauled %s - %.0fm (gate %.0fm) campOut=%s campActor=%s stance=%s pose=%s',
+            tostring(name), distance or -1, gate or -1,
+            tostring(self:IsCampOut(w)), tostring(self:IsCampActor(w)),
+            self:IsGroundedStance(w) and "DOWN" or "up",
+            tostring(self:LeavingCampPose(w))))
+    end)
+end
+
 -- Teleport any active merc that has fallen too far behind. One shared pass over
 -- the roster (from MonitorLoop, once/sec), replacing a per-merc BT raycast loop.
 function mercenaries:MonitorDistanceAndTeleport()
@@ -143,7 +169,24 @@ function mercenaries:MonitorDistanceAndTeleport()
             -- A merc who stayed in camp must never be teleported to the player.
             local inCampProper = false
             pcall(function() inCampProper = self:IsMercInCampProper(ent.this and ent.this.id or ent.id) end)
-            if ent and ent.actor and not inCampProper then
+            -- Nor may a man who is still shedding a camp pose. A StanceElement pins him to
+            -- its smart object, so SetPos is undone on the next animation update and all the
+            -- haul achieves is a blink to the player and a snap back into the bed, once a
+            -- second, for as long as the pose lasts. Bounded, so a pose that never releases
+            -- does not exempt him for good. See LeavingCampPose in mercenaries_camp.lua.
+            local shedding = false
+            pcall(function() shedding = self:LeavingCampPose(ent.this and ent.this.id or ent.id) end)
+            -- Nor a man parked outside a building the player walked into. Same reason as
+            -- hold and escort above: he is supposed to be away from the player, and
+            -- hauling him in would put him inside the house the park exists to keep him
+            -- out of. See mercenaries_interior.lua.
+            local parked = false
+            if self.InteriorParked then
+                pcall(function()
+                    parked = self.InteriorParked[tostring(ent.this and ent.this.id or ent.id)] and true or false
+                end)
+            end
+            if ent and ent.actor and not inCampProper and not shedding and not parked then
                 -- Don't teleport a merc out of a fight mid-swing.
                 local inCombat = false
                 pcall(function() inCombat = ent.soul:HasScriptContext("crime_interruptAttack") end)
@@ -180,7 +223,7 @@ function mercenaries:MonitorDistanceAndTeleport()
                             -- Validate the jittered spot so a straggler
                             -- isn't teleported onto a tree/rock (the jitter
                             -- and flat z alone could land on one).
-                            local tp = self:FindValidGround({
+                            local tp, tpOk = self:FindValidGround({
                                 x = sharedSafePos.x + (math.random() - 0.5) * 3.0,
                                 y = sharedSafePos.y + (math.random() - 0.5) * 3.0,
                                 z = sharedSafePos.z
@@ -194,9 +237,19 @@ function mercenaries:MonitorDistanceAndTeleport()
                             if not isLeader then
                                 tp = self:TeleportKeepBehindLeader(tp) or tp
                             end
-                            ent:SetPos(tp)
-                            if not isLeader then
-                                pcall(function() self:NoteTeleport(ent) end)
+                            -- No open ground anywhere near the player: he is in an alley, a
+                            -- doorway, a courtyard full of carts. Leave the straggler where
+                            -- he is and try again next pass rather than drop him on a roof
+                            -- or inside a house - this runs once a second and the player is
+                            -- usually somewhere sane a moment later.
+                            if tpOk == false then
+                                self:GroundNote('straggler teleport skipped - no open ground by the player')
+                            else
+                                self:LogTeleport(ent, name, distance, myGate)
+                                ent:SetPos(tp)
+                                if not isLeader then
+                                    pcall(function() self:NoteTeleport(ent) end)
+                                end
                             end
                         end
                     end

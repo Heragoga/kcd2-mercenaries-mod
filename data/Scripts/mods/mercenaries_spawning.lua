@@ -869,6 +869,72 @@ for gk in pairs(mercenaries.EnemyGroups) do
     mercenaries.EnemyArcherIndex[gk] = 1
 end
 
+-- ==== group rotation ====
+-- A draw skips any group this `channel` ("raid", "patrol") has fielded in its last few
+-- encounters, so the same band does not turn up twice running. Channels are separate, and
+-- `saveTag` persists the memory for a system whose encounters are days apart. Depth is per
+-- channel because the pools differ in size - see docs/enemies.md, "Which group turns up".
+mercenaries.EnemyRotateDepth   = 2
+mercenaries.EnemyRotateDepthBy = { patrol = 1 }
+mercenaries.EnemyRecent = {}     -- [channel] = { newest first }
+
+function mercenaries:EnemyRotateDepthFor(channel)
+    return (self.EnemyRotateDepthBy or {})[channel] or self.EnemyRotateDepth
+end
+
+function mercenaries:EnemyRecentList(channel, saveTag)
+    local list = self.EnemyRecent[channel]
+    if list then return list end
+    list = {}
+    if saveTag then
+        local s
+        pcall(function() s = self:LoadString(saveTag) end)
+        for k in tostring(s or ""):gmatch("[^,]+") do list[#list + 1] = k end
+    end
+    self.EnemyRecent[channel] = list
+    return list
+end
+
+function mercenaries:EnemyGroupNote(channel, key, saveTag)
+    if not key then return end
+    local list = self:EnemyRecentList(channel, saveTag)
+    table.insert(list, 1, key)
+    while #list > self:EnemyRotateDepthFor(channel) do table.remove(list) end
+    if saveTag then pcall(function() self:SaveString(saveTag, table.concat(list, ",")) end) end
+end
+
+-- Draw from `pool`, ignoring every entry whose group has just been fielded. `keyOf` reads
+-- the group name out of an entry, so a plain list of names and the raid roster's tables
+-- both work. A pool with nothing fresh left in it falls back to the whole thing: a
+-- rotation rule may never stop an encounter happening at all.
+function mercenaries:PickRotatingGroup(channel, pool, keyOf, saveTag)
+    if not pool or #pool == 0 then return nil end
+    keyOf = keyOf or function(e) return e end
+    local recent = self:EnemyRecentList(channel, saveTag)
+    local fresh = {}
+    for _, e in ipairs(pool) do
+        local key, seen = keyOf(e), false
+        for _, k in ipairs(recent) do if k == key then seen = true; break end end
+        if not seen then fresh[#fresh + 1] = e end
+    end
+    -- Drawn from the fresh subset, so a pool that weights a group (the road pool lists
+    -- bandits twice) still weights it among the groups that are eligible at all.
+    local src  = (#fresh > 0) and fresh or pool
+    local pick = src[math.random(1, #src)]
+    self:EnemyGroupNote(channel, keyOf(pick), saveTag)
+    return pick
+end
+
+function mercenaries:EnemyRotationStatus()
+    local any = false
+    for ch, list in pairs(self.EnemyRecent or {}) do
+        any = true
+        System.LogAlways("[Enemies] " .. ch .. " last fielded: " ..
+            (#list > 0 and table.concat(list, ", ") or "nothing yet"))
+    end
+    if not any then System.LogAlways("[Enemies] no encounter has rolled a group yet") end
+end
+
 -- Anti-swarm bookkeeping for enemies, kept separate from the mercs' pool.
 mercenaries.EnemySwarmCap = 2
 mercenaries.EnemyTargetOf = {}   -- [enemyWuidStr] = targetWuidStr

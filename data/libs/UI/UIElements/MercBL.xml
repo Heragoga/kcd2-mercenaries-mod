@@ -693,8 +693,8 @@
       <MovieClip name="w3_t_outfit_o3_papal" instancename="w3_t_outfit_o3_papal" />
       <MovieClip name="w3_i_tog_engage_default" instancename="w3_i_tog_engage_default" />
       <MovieClip name="w3_t_tog_engage_default" instancename="w3_t_tog_engage_default" />
-      <MovieClip name="w3_i_tog_engage_aggressive" instancename="w3_i_tog_engage_aggressive" />
-      <MovieClip name="w3_t_tog_engage_aggressive" instancename="w3_t_tog_engage_aggressive" />
+      <MovieClip name="w3_i_tog_engage_viking" instancename="w3_i_tog_engage_viking" />
+      <MovieClip name="w3_t_tog_engage_viking" instancename="w3_t_tog_engage_viking" />
       <MovieClip name="w3_i_tog_engage_defend" instancename="w3_i_tog_engage_defend" />
       <MovieClip name="w3_t_tog_engage_defend" instancename="w3_t_tog_engage_defend" />
       <MovieClip name="w3_i_tog_engage_hold" instancename="w3_i_tog_engage_hold" />

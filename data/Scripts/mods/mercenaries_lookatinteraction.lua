@@ -20,6 +20,10 @@ function mercenaries:InjectInteraction(entity)
     -- whole order wheel on this man. See mercenaries_orders.lua and docs/order-wheel.md.
     self:StripDirectionsChat(entity)
 
+    -- Every merc-family spawn path calls this, so it is where a new man stops colliding
+    -- with the player rather than waiting for the 5s sweep. docs/collision-ghosting.md.
+    if self.GhostCollisionOn and self:GhostCollisionOn() then self:ApplyCollisionGhost(entity) end
+
     local function mercWuid(self)
         local w = self._mercWuid
         if w == nil then

@@ -9,6 +9,35 @@
             <PresetItem Name="merc_banditcamp_letter" Amount="1"/>
         </InventoryPreset>
 
+        <!-- What the camp trader has on his stall. Composed out of the game's own shop
+             component presets so the stock rolls and restocks the way a real shop's does:
+             potions and bandages, food and drink, arrows and bolts, and basic gear a
+             company would actually buy. Applied to the counter Stash through its
+             Database.sInventoryPreset property (mercenaries_trader.lua), which is how
+             vanilla fills a container - see the bandit camp chest above. -->
+        <InventoryPreset Name="inventory_merc_trader_stock" Mode="All">
+            <InventoryPresetRef Name="inventory_commonHerbalistPotions" />
+            <InventoryPresetRef Name="inventory_commonBathhouseBandages" />
+            <InventoryPresetRef Name="inventory_commonInnkeeperFood" />
+            <InventoryPresetRef Name="inventory_commonInnkeeperDrink" />
+            <InventoryPresetRef Name="inventory_commonBlacksmithArrows" />
+            <InventoryPresetRef Name="inventory_commonBlacksmithBolts" />
+            <InventoryPresetRef Name="inventory_commonBlacksmithWeapons" />
+            <InventoryPresetRef Name="inventory_commonBlacksmithArmor" />
+            <InventoryPresetRef Name="inventory_commonBlacksmithHelemts" />
+            <InventoryPresetRef Name="inventory_commonBlacksmithRepairKits" />
+            <PresetItem Name="potion_saviourSchnapps" Amount="3" Health="1" />
+            <PresetItem Name="potion_marigold" Amount="4" Health="1" />
+            <PresetItem Name="bandage_classic" Amount="10" />
+            <PresetItem Name="bread" Amount="6" Health="1" />
+            <PresetItem Name="cheeseQuarterDried" Amount="4" Health="1" />
+            <PresetItem Name="spirits" Amount="4" />
+            <PresetItem Name="arrow_hunting" Amount="60" />
+            <PresetItem Name="arrow_piercing" Amount="40" />
+            <PresetItem Name="bolt_hunting" Amount="40" />
+            <PresetItem Name="repairKit_bowyerSmall" Amount="3" Health="1" />
+        </InventoryPreset>
+
         <InventoryPreset Name="inventory_mercenary_test">
             <ClothingPresetRef Name="soldier_generic_3_01"/>
             <WeaponPresetRef Name="longsword_3_01"/>

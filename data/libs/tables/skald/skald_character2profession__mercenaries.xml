@@ -27,6 +27,7 @@
 
 	<!-- Quartermaster -->
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_quartermaster" />
+	<skald_character2profession profession_name="pocestny" skald_character_name="char_mercenary_trader" />
 	<skald_character2profession profession_name="pocestny" skald_character_name="char_aleksej" />
 
 	<!-- Tower archers -->

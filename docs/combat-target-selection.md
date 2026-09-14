@@ -80,6 +80,90 @@ Two range bugs went with it:
   first and floors second. `MeleeTargetLeash` (flat 70, same defect) is read through
   `MeleeTargetLeashNow()` for the same reason.
 
+## The watch is never a target (`HostileKind`)
+
+**Read this first on any "my mercs attacked a guard / a villager / random NPCs" report.**
+
+The relationship floor below was doing two jobs it cannot tell apart. A bandit sits at −1
+to the player because he is a robber. **The town watch sits at −1 because the player is
+wanted** — and so does every townsman in a settlement that has turned on him. To
+`IsValidEnemy` those were the same number, and the drawn-weapon proof is waived on that
+path, so the squad opened on the watch with nobody having thrown a punch, on the **default
+stance**, with no order given.
+
+Hostility is therefore no longer a single number. `HostileKind(ent)` answers one of three:
+
+| verdict | who | may the squad fight him? |
+| --- | --- | --- |
+| `hostile` | an outlaw | yes, on every path |
+| `protected` | the watch, and the people they protect | the squad never *starts* on him — see below. `viking` is the one stance that ignores this |
+| `neutral` | neither | only on the ordinary hostile paths (−1, or confirmed fighting us), plus `viking` |
+
+`ClassifyHostility` decides it, in this order, and the result is **cached by WUID** (a
+man's faction and crime role do not change):
+
+1. anything this mod spawned as a hostile — `SpawnedEnemy_*`, `SpawnedFoe_*`,
+   `SpawnedPatrol*`, or a member of `BanditCampActors`;
+2. **`RPG.IsPublicEnemy`** — the primary test, and it is vanilla's own: `AnimStash.lua`
+   calls it to decide whether a body is looted or robbed, and it reads
+   `Labels="publicEnemy"` off the faction and nothing else
+   ([public-enemy.md](public-enemy.md)). Every bandit, Cuman and raider subtree carries
+   the label; no guard or townsman faction does; all three of the mod's hostile factions
+   were given it. One engine call, and the single most reliable "is this a bandit" answer
+   the game has;
+3. the mod's own factions by name;
+4. `CrimeClassify` — the crime watchdog's measured classifier
+   ([crime-watch.md](crime-watch.md)): hostile faction words first, then the
+   `crime_isAuthority` / `crime_isSecurity` script contexts, then the faction path, then
+   the name. `guard` and `civilian` both map to `protected`.
+
+**`protected` is a rule about who the squad may START something with, not about who it
+may fight.** The company defends the player and each other: anybody who has actually taken
+the player or a merc as his target is a legitimate target, guard or not. Three things get
+past the gate (`allowProtected`):
+
+- **he is fighting one of us** — see [a bump is not an assault](#a-bump-is-not-an-assault-aggressorconfirmed) below;
+- **he was already confirmed as an attacker this fight** (`IsRecentAttacker`). This is what
+  lets the *whole squad* turn on him, rather than leaving the one man he is hitting to
+  defend himself while the rest watch;
+- **a target the player called by name** (`merc_focus` / the order wheel). The gate exists
+  to stop the squad picking a fight nobody asked for, and an explicit order is not that.
+
+### A bump is not an assault (`AggressorConfirmed`)
+
+"He has taken one of ours as his target" is the whole of the rule above, so the quality of
+that signal is everything — and the raw signal is not good enough on its own. **The engine
+registers collisions as hits, constantly.** A villager walks into a merc, a horse clips
+somebody, the column shoulders through a market: each one can flicker an attacker
+relationship into existence for a moment. Acting on that instantly is how a bump becomes a
+dead townsman.
+
+An **outlaw** is taken the instant he is seen — nothing below applies to him, so the
+reaction against bandits is exactly as sharp as it was. Everyone else clears three bars:
+
+1. **weapon drawn.** The single strongest collision filter there is: nobody unsheathes to
+   bump into you. It cannot be the only test, because a halberdier's weapon is always in
+   his hands — hence 2 and 3.
+2. **a real combat state** — `crime_interruptAttack`, the same context every scheduler here
+   reads for `$inCombat`, or `IsInCombatDanger`. A collision does not open one.
+3. **it has to last, and on the same man.** A bump is a moment and its attention wanders; a
+   fight is continuous and it has one victim. The record is keyed *candidate>victim*, so
+   somebody shouldering down a column — flickering from merc to merc — never accumulates,
+   and only a man who has held the **same** one of ours for `AggressorConfirmSecs` clears
+   it. Real seconds (`os.clock`), not `System.GetCurrTime`: the engine clock runs ~29x fast
+   through a sleep and would collapse the window to nothing.
+
+The window is the one real trade-off. Too short and a bump-and-grumble from a halberdier
+reads as an assault; too long and a merc takes a few extra blows before his mates come. It
+defaults to **2 s** and is tunable live with `merc_aggro_confirm <seconds>`, so it can be
+dialled from inside a session rather than guessed at in the source.
+
+Every claim on somebody who is not an outlaw is logged once per merc/target pair as
+`[MercTarget] claim on a non-outlaw: <name> (<kind>)`, so a recurrence is a named line in
+the log rather than another report. `merc_target_dump` prints every NPC around you with
+its verdict, its relationship to the player, and whether it is in the cache or claimed
+right now.
+
 ## What counts as a valid enemy (`IsValidEnemy`)
 
 A candidate must be: not the player or the companion dog; alive and conscious; weapon drawn; not one of ours (regular-merc soul, archer soul, or custom hero companion); and not fleeing/surrendering/immortal (`combat_flee`, `combat_surrender`, `crime_interruptFlee`, `crime_fleeAfterSurrender`, `combat_immortalityProtection`).
@@ -255,8 +339,8 @@ every stance, including the default one.
 | `cand.soul:GetRelationship(attacker, "Current")` | Means | Verdict |
 | --- | --- | --- |
 | `<= -1` | he is fighting the same men we are | **never** a target |
-| `> 0` | he is allied with our enemy — he is in the band | take him |
-| `0`, or no answer | neither, or the engine declined | fall back to the soul id |
+| `>= 1` | he is allied with our enemy — he is in the band | take him |
+| between the two, or no answer | neither, or the engine declined | fall back to the soul id |
 
 The soul fallback is what keeps the pass doing its original job: a base-game bandit camp is
 ten generic bandits off **one roster entry**, so a shared soul id is real proof of a shared
@@ -267,8 +351,19 @@ An armed neutral in neither camp is now left alone, where before he was swept in
 too close to a brawl. Nothing is lost: if he draws on us he comes back through the lock-on
 path in his own right, which is a stronger proof than proximity ever was.
 
-> The aggressive stance (`merc_engage_aggressive`) still takes any armed NPC, relationship
-> waived, by design — that is what the stance is. It is opt-in and it is not this bug.
+**The threshold used to be `> 0`, and that was the same bug one step lower.** This mod's
+own relationship gate documents `0.5` as a *neutral* reading — it is an authored value in
+the vanilla faction tree — so every armed neutral near a brawl read as "allied with our
+enemy" and was swept in with the relationship floor waived. Allied now means `>= 1`, an
+explicit friendly relation, and `StandsWith` refuses a `protected` candidate outright
+before it asks the relationship at all: a bandit fighting the watch does not make the
+watch our enemy.
+
+> Initiative no longer takes any armed NPC either — see [the watch is never a
+> target](#the-watch-is-never-a-target-hostilekind). It needs positive proof of an outlaw
+> as well as the drawn weapon, because a guard carries a halberd in his hands all day and
+> "armed" is his resting state, not a threat. The one exception is the `viking` stance,
+> which is documented as attacking everybody and does exactly that.
 
 ### An unalerted bandit camp cannot hide a fight it has started
 

@@ -385,6 +385,14 @@ function mercenaries:SchedRegisterAll()
         fn = function(s) s:TravelWatchTick() end,
     })
 
+    -- One area-label lookup per firing, edge-logged. 300ms is well inside the time it
+    -- takes to walk through a doorway and costs nothing when the answer does not change.
+    self:SchedRegister("interior", {
+        periodMs = 300,
+        gate = function(s) return s.InteriorEnabled and player ~= nil end,
+        fn = function(s) s:InteriorTick() end,
+    })
+
     self:SchedRegister("lowpriority", {
         periodMs = 5000,
         fn = function(s) s:LowPriorityMonitorLoopBody() end,

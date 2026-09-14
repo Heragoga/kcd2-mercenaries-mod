@@ -390,7 +390,8 @@ mercenaries.CmdHelpSections = {
                       "merc_hire_archers", "merc_hire_army_small", "merc_hire_army_big" } },
     { "ORDERS",     { "merc_hold", "merc_hold_end", "merc_escort", "merc_escort_end",
                       "merc_focus", "merc_focus_clear",
-                      "merc_stance_attack", "merc_stance_default", "merc_stance_defend", "merc_stance_holdfire" } },
+                      "merc_stance_viking", "merc_stance_default", "merc_stance_defend", "merc_stance_holdfire",
+                      "merc_target_dump", "merc_aggro_confirm" } },
     { "FORMATION",  { "merc_form_column", "merc_form_line", "merc_form_square", "merc_form_wedge",
                       "merc_form_circle", "merc_form_escort", "merc_form_vanilla",
                       "merc_form_keepshape", "merc_form_relaxed", "merc_form_movehistory" } },
@@ -403,11 +404,11 @@ mercenaries.CmdHelpSections = {
     { "CAMP",       { "merc_camp_make", "merc_camp_break", "merc_camp_recall",
                       "merc_camp_deploy_all", "merc_camp_deploy_half", "merc_camp_return_all",
                       "merc_camp_remove", "merc_camp_party",
-                      "merc_camp_marker", "merc_camp_compass",
+                      "merc_camp_compass",
                       "merc_gate_open", "merc_gate_close" } },
     { "FIGHTS",     { "merc_battle", "merc_raborsch", "merc_raborsch_clear", "merc_clear_enemies", "merc_raid_now" } },
     { "OPTIONS",    { "merc_difficulty", "merc_upkeep", "merc_encounters", "merc_patrols", "merc_patrols_perday",
-                      "merc_status_icons", "merc_horses", "merc_horses_max", "merc_autodismount", "merc_lod_quality",
+                      "merc_status_icons", "merc_horses", "merc_horses_max", "merc_autodismount", "merc_nobump", "merc_lod_quality",
                       "merc_mqstash", "merc_travel_stow", "merc_travelprobe", "merc_travelstate", "merc_horsestats", "merc_whystand", "merc_formprobe", "merc_roster", "merc_roster_nosave",
                       "merc_hide_others" } },
     { "UNINSTALL",  { "merc_uninstall", "merc_save_audit", "merc_items",
@@ -474,10 +475,12 @@ cmd("merc_escort",     "mercenaries:EscortBegin()", "Escort whoever you are look
 cmd("merc_escort_end", "mercenaries:EscortEnd()",   "Stop escorting")
 cmd("merc_focus",      "mercenaries:OrderFocusTarget()",  "Call the target you are looking at for the whole company")
 cmd("merc_focus_clear","mercenaries:OrderFocusClear('console')", "Drop the called target")
-cmd("merc_stance_attack",  "mercenaries:SetEngageStance('aggressive')", "Attack anything hostile on sight")
+cmd("merc_stance_viking",  "mercenaries:SetEngageStance('viking')",     "VIKING: kill everyone in sight, townsfolk and guards included")
 cmd("merc_stance_default", "mercenaries:SetEngageStance('default')",    "Fight whoever fights you or the player")
 cmd("merc_stance_defend",  "mercenaries:SetEngageStance('defend')",     "Never start a fight; defend yourselves")
 cmd("merc_stance_holdfire","mercenaries:SetEngageStance('hold')",       "Hold fire even under attack")
+cmd("merc_target_dump",    "mercenaries:TargetDumpNearby()",            "Who the men are allowed to fight around you, and why")
+cmd("merc_aggro_confirm",  "mercenaries:AggressorConfirmSet('%line')",  "Seconds a non-outlaw must keep attacking before the men fight back (default 2)")
 
 -- formation
 cmd("merc_form_column", "mercenaries:SetFormationShape('column')", "Formation: column of twos")
@@ -565,11 +568,9 @@ cmd("merc_mqwatch",      "mercenaries:MQWReport()",    "Main-quest battle watchd
 cmd("merc_mqstash_now",  "mercenaries:MQWStashNow()",  "Force the company out of a battle now, without waiting for detection")
 cmd("merc_mqunstash_now","mercenaries:MQWUnstashNow()","Bring a stashed company back to you now")
 cmd("merc_status_icons", "mercenaries:StatusIconsSet(mercenaries:CmdBool('%line'))","Squad status icons on your HUD: 0 | 1")
--- The camp on the world map. On by default; it costs nothing until the map is opened.
-cmd("merc_camp_marker",  "mercenaries:CampMarkerSet(mercenaries:CmdBool('%line'))", "Show the camp on the world map: 0 | 1 (saved)")
 -- The compass marker is opt-in: its bearing carries an unverified offset (see
 -- mercenaries_mapmarker.lua) and it costs a four-times-a-second redraw while it is up.
-cmd("merc_camp_compass", "mercenaries:CampCompassSet(mercenaries:CmdBool('%line'))", "Also point at the camp on your compass: 0 | 1 (saved)")
+cmd("merc_camp_compass", "mercenaries:CampCompassSet(mercenaries:CmdBool('%line'))", "Point at the camp on your compass: 0 | 1 (saved)")
 cmd("merc_torches",      "mercenaries:CampTorchMaxSet('%line')", "Lit torches carried at night, 0 = none (each is a shadow-casting light): merc_torches 2")
 -- Performance experiment knobs. Player-tier on purpose: these are what a user with a weaker
 -- machine is told to try, and merc_dev should not stand between them and a playable framerate.
@@ -578,6 +579,7 @@ cmd("merc_torches",      "mercenaries:CampTorchMaxSet('%line')", "Lit torches ca
 cmd("merc_formation_off", "mercenaries:FormationEnabledSet(false)", "Engine formation OFF - squad reverts to the plain follow chain")
 cmd("merc_formation_on",  "mercenaries:FormationEnabledSet(true)",  "Engine formation back ON")
 cmd("merc_formation_status", "mercenaries:FormationEnabledStatus()", "Is the engine formation on, and if not, why")
+cmd("merc_stance_dump", "mercenaries:StanceDump()", "Who is off his feet (engine stance) and what every teleport guard makes of it")
 cmd("merc_render_lod",   "mercenaries:RenderLodSet('%line')",  "Merc mesh detail, higher = coarser sooner (100 default, 0 = engine): merc_render_lod 150")
 cmd("merc_render_pin",   "mercenaries:RenderPinSet('%line')",  "Never distance-cull mercs: merc_render_pin 1 | 0")
 -- Simulation budget. Player-tier and no-argument for the same reason as merc_formation_off:
@@ -605,6 +607,7 @@ cmd("merc_scan_tiny",  "mercenaries:ScanCandidatesSet(2)", "Combat: 2 candidates
 cmd("merc_autodismount", "mercenaries:AutoDismountSet('%line')","Mercs get off their horses to fight: 0 | 1")
 cmd("merc_horses",       "mercenaries:HorsesSet(mercenaries:CmdBool('%line'))", "Let the company use horses at all: 0 | 1 (saved)")
 cmd("merc_horses_max",   "mercenaries:HorsesMaxSet('%line')", "Men out with you above which nobody rides, 0 = no limit (default); no argument reports (saved)")
+cmd("merc_nobump",       "mercenaries:GhostCollisionSet(mercenaries:CmdBool('%line'))", "Your men and their mounts pass through you instead of shoving and trampling you: 0 | 1 (saved, default 1)")
 cmd("merc_whystand",     "mercenaries:FollowWhyStand()", "One line per merc: distance, whether he moved, both heartbeats, and a verdict on why he is standing")
 cmd("merc_formprobe",    "mercenaries:FormProbeSet(mercenaries:CmdBool('%line'))", "Log every formation-watch pass: who is flagged, how far from the player and the man ahead, and why")
 cmd("merc_horsestats",    "mercenaries:TravelStaminaReport()", "Every horse reading the detector can see: its own speed and velocity, stamina, health, plus the player's speed and stamina")
@@ -651,7 +654,7 @@ cmd("merc_hide_others",  "mercenaries:ToggleHideOthers()",     "Hide every NPC t
 -- 1. Classes that exist only because this mod defines them. Every instance is ours and
 --    no name test is wanted. These are also the WHITE PYRAMIDS a player sees in a save
 --    the mod no longer backs: the class is gone, so the engine has nothing to draw.
-mercenaries.UninstallOwnClasses = { "mercenaries_Prop", "mercenaries_Gate" }
+mercenaries.UninstallOwnClasses = { "mercenaries_Prop", "mercenaries_Gate", "mercenaries_Store" }
 
 -- 2. Vanilla classes we spawn INTO. Here only the name tells ours from the level's own,
 --    so the test has to be exact - deleting a vanilla Light or Stash damages the save.
@@ -1169,6 +1172,22 @@ function mercenaries:UninstallScrub(line)
     cLog("NOW: save the game, exit, and delete the mod. That save loads clean without it.")
 end
 
+-- Write a save from the console, for the load-time bisection harness (tools\loadbench.ps1).
+-- It exists because neither obvious route works from a console line: Game.QuickSave on its
+-- own has never produced a file here, and merc_lua cannot carry the chain because the
+-- console's parser swallows a Lua `=`. SaveGameViaResting is the binding the camp bed save
+-- has proven in live play, with QuickSave as the fallback - the same order CampBedSave uses.
+function mercenaries:BenchSave()
+    local ok = false
+    pcall(function() ok = Game.SaveGameViaResting() end)
+    if ok then
+        cLog("[BENCHSAVE] resting save accepted")
+    else
+        local q = pcall(function() Game.QuickSave() end)
+        cLog("[BENCHSAVE] resting save refused; QuickSave called (pcall ok=" .. tostring(q) .. ")")
+    end
+end
+
 -- uninstall + save-footprint diagnostics. Player-tier on purpose: merc_uninstall is the
 -- supported way to leave, and the audits are what a user is asked to paste into a bug
 -- report about load times. The two purge STAGES are the bisection kit - see the block
@@ -1188,16 +1207,11 @@ cmd("merc_purge_buffs", "mercenaries:PurgeBuffs('%line')", "Surgical: remove onl
 -- question comes up. merc_dev arms them; it needs -devmode.
 mercenaries:DevCommand("merc_outfit_matrix", "mercenaries:MatrixSpawn('%line')", "Parade ground: one man per style+tier. [first] [last] | clear")
 mercenaries:DevCommand("merc_save_probe", "mercenaries:SaveProbe('%line')", "Does the mod's save mechanism survive a reload? Write, then 'check' after reloading")
+mercenaries:DevCommand("merc_bench_save", "mercenaries:BenchSave()", "Write a save from the console (load-time bisection harness)")
 mercenaries:DevCommand("merc_kk_stage", "mercenaries:KKStageReport()", "Kleinkrieg: which encounter stage this save records")
 mercenaries:DevCommand("merc_battlecvar", "mercenaries:BattleCvarCmd('%line')", "Apply a scripted battle's render cvars one at a time: <n> | <n> <value> | all | off")
 mercenaries:DevCommand("merc_questprobe", "mercenaries:QuestProbe('%line')", "Can Lua read the active quest/objective? Enumerates the live state and says. Changes nothing")
 mercenaries:DevCommand("merc_mqsimulate", "mercenaries:MQWSimulate()", "Rehearse a scripted battle for 30s to prove detection->stash->unstash, no quest needed")
-mercenaries:DevCommand("merc_map_idbase", "mercenaries:MapIdBaseSet('%line')",
-                       "Marker id band start (default 666). Low ids crash the map, very high ones draw nothing; no argument reports")
-mercenaries:DevCommand("merc_map_pushes", "mercenaries:MapPushesSet('%line')",
-                       "How many times the markers are pushed per map opening (default 6); no argument reports")
-mercenaries:DevCommand("merc_map_probe", "mercenaries:MapProbeSet(mercenaries:CmdBool('%line'))",
-                       "Log every ApseMap event and the PoiMarkers readback while the camp marker draws: 0 | 1")
 mercenaries:DevCommand("merc_camp_compass_offset", "mercenaries:CampCompassOffsetSet('%line')",
                        "Turn the camp compass bearing while you watch it, in degrees (default 45); no argument reports")
 cmd("merc_dev",      "mercenaries:DevCommandsEnable()", "Register the authoring and diagnostic commands too")

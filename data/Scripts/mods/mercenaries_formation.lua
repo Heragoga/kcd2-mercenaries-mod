@@ -151,6 +151,15 @@ end
 -- The horse lifecycle re-mounts him on the spot - instantly, now that it ForceMounts.
 function mercenaries:LeaderUnstick(ent)
     if not ent then return end
+    -- A leader still coming out of a camp pose is not stuck, he is standing up, and the
+    -- StanceElement holding him undoes SetPos anyway (see LeavingCampPose).
+    local shedding = false
+    pcall(function() shedding = self:LeavingCampPose(ent.this and ent.this.id or ent.id) end)
+    if shedding then
+        System.LogAlways("[MercForm] stuck leader " .. tostring(ent and ent.GetName and ent:GetName()) ..
+                         " - not hauled, he is still coming out of a camp pose")
+        return
+    end
     local moved = false
     pcall(function()
         if ent.human and ent.human.IsMounted and ent.human:IsMounted() then

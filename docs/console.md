@@ -53,10 +53,12 @@ Hiring from the console is free and ignores the quartermaster; the companion cap
 | `merc_hold` / `merc_hold_end` | Hold this ground and stop chasing / release |
 | `merc_escort` / `merc_escort_end` | Escort whoever you are looking at / stop |
 | `merc_focus` / `merc_focus_clear` | Call a target for the whole company / drop it |
-| `merc_stance_attack` | Attack anything hostile on sight |
+| `merc_stance_viking` | **⚠ Kill everyone in sight**, townsfolk and guards included |
 | `merc_stance_default` | Fight whoever fights you or the player |
 | `merc_stance_defend` | Never start a fight; defend themselves |
 | `merc_stance_holdfire` | Hold fire even under attack |
+| `merc_target_dump` | Who the men are allowed to fight around you, and why (see [combat-target-selection.md](combat-target-selection.md)) |
+| `merc_aggro_confirm <s>` | Seconds a non-outlaw must keep attacking before the men fight back (default 2) |
 
 See docs/squad-orders.md for what each stance changes.
 
@@ -100,8 +102,7 @@ Weapon: `merc_archer_bow`, `merc_archer_crossbow`, `merc_archer_handcannon`.
 | `merc_camp_remove [1-11]` | Take ONE camp improvement down; no argument lists them |
 | `merc_camp_party [1-8]` | Set what a deployed party is made of (archer share, which foot); no argument lists them and prints what is set |
 | `merc_gate_open` / `merc_gate_close` | Work the camp gates |
-| `merc_camp_marker <0/1>` | Show the standing camp on the world map (default on, saved). See docs/map-marker.md |
-| `merc_camp_compass <0/1>` | Also point at the camp on your compass (default off, saved) - its bearing offset is unverified, see docs/map-marker.md |
+| `merc_camp_compass <0/1>` | Point at the camp on your compass (default off, saved) - its bearing offset is unverified, see docs/map-marker.md |
 
 ## Enemies
 
@@ -133,7 +134,11 @@ merc_battle 20 knight 6 45
 `merc_raborsch` raises the siege of Raborsch around you; `merc_raborsch_clear` strikes it.
 See docs/walls-and-sieges.md.
 
-`merc_raid_now` launches the next scheduled camp raid immediately.
+`merc_raid_now` launches the next scheduled camp raid immediately — it ignores the settling
+rules a scheduled raid waits for (a camp that has stood 12 in-game hours, and a minute spent
+standing in it without a time skip; see walls-and-sieges.md). `merc_raid_status` prints both
+clocks, and `merc_enemy_rotation` prints which groups raided and patrolled last and therefore
+cannot draw again yet.
 
 ## Options
 
@@ -151,6 +156,7 @@ See docs/walls-and-sieges.md.
 | `merc_autodismount <0/1>` | Mercs get off their horses to fight |
 | `merc_horses <0/1>` | Let the company use horses at all. Off = they march on foot whatever you ride. Saved; also in the quartermaster's Mod settings |
 | `merc_horses_max [n]` | Men out with you above which nobody rides, 0 = no limit (default - a hard cap was tried and made mounting worse than the problem it fixed, see docs/formations.md); no argument reports. Saved |
+| `merc_nobump <0/1>` | Your own men and their mounts pass through you instead of shoving and trampling you (default on). Saved. See docs/collision-ghosting.md |
 | `merc_lod_quality <preset>` | crisp, balanced (default), performance - how much mesh detail is cut in a big battle. Saved. See docs/npc-lod.md |
 | `merc_mqstash <0/1>` | Send the company out of a recognised main-quest battle and bring them back after (default on) - they cannot be rendered inside one, see docs/quest-override-battles.md. Saved |
 | `merc_travel_stow <0/1>` | Take the company out of the world while you fast travel or sleep, and put it back on arrival (default on). See docs/save-footprint.md, "The roster" |
@@ -219,6 +225,18 @@ What it counts on a fresh load is what the save actually stored — which is a d
 much more useful number than what the mod has put in the world since.
 
 
+
+## Where things are allowed to stand
+
+The mod refuses to put a prop or a man on anything that is not the ground - a roof, a wall
+top, a cart bed, one of its own tents. These three diagnose that guard; they need `merc_dev`
+first. See [ground-guard.md](ground-guard.md).
+
+| Command | What it does |
+|---|---|
+| `merc_groundprobe` | Every surface in the column under you and under the spot you are looking at, which of them count as ground, and the verdict |
+| `merc_groundscan [radius]` | Count open-ground vs blocked columns around you |
+| `merc_groundguard 0\|1` | Turn the guard off or back on, live |
 
 ## Advanced
 

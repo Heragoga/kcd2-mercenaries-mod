@@ -1112,7 +1112,7 @@
   <Row><Cell>ui_merc_escort</Cell><Cell>Escort him.</Cell><Cell>Escort him.</Cell></Row>
   <Row><Cell>ui_merc_wheel_engage</Cell><Cell>Rules of engagement</Cell><Cell>Rules of engagement</Cell></Row>
   <Row><Cell>ui_merc_engage_default</Cell><Cell>Engage at will.</Cell><Cell>Engage at will.</Cell></Row>
-  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Take on anyone who draws.</Cell><Cell>Take on anyone who draws.</Cell></Row>
+  <Row><Cell>ui_merc_engage_aggressive</Cell><Cell>Kill everyone in sight.</Cell><Cell>Kill everyone in sight.</Cell></Row>
   <Row><Cell>ui_merc_engage_defend</Cell><Cell>Only strike back.</Cell><Cell>Only strike back.</Cell></Row>
   <Row><Cell>ui_merc_engage_hold</Cell><Cell>Hold your blades.</Cell><Cell>Hold your blades.</Cell></Row>
   <Row><Cell>ui_merc_wheel_aggro</Cell><Cell>How to press them</Cell><Cell>How to press them</Cell></Row>
@@ -1125,6 +1125,14 @@
   <Row><Cell>merc_info_escort</Cell><Cell>Escorting.</Cell><Cell>Escorting.</Cell></Row>
   <Row><Cell>merc_info_escort_none</Cell><Cell>Nobody to escort.</Cell><Cell>Nobody to escort.</Cell></Row>
   <Row><Cell>merc_info_holdfire_hit</Cell><Cell>Your men are under attack and holding their blades.</Cell><Cell>Your men are under attack and holding their blades.</Cell></Row>
+  <Row><Cell>merc_info_engage_default</Cell><Cell>The men will engage at will.</Cell><Cell>The men will engage at will.</Cell></Row>
+  <Row><Cell>merc_info_engage_viking</Cell><Cell>The men will cut down every living soul in sight.</Cell><Cell>The men will cut down every living soul in sight.</Cell></Row>
+  <Row><Cell>merc_info_engage_defend</Cell><Cell>The men will defend themselves and no more.</Cell><Cell>The men will defend themselves and no more.</Cell></Row>
+  <Row><Cell>merc_info_engage_hold</Cell><Cell>The men will hold their blades.</Cell><Cell>The men will hold their blades.</Cell></Row>
+  <Row><Cell>merc_info_viking_warn</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell><Cell>They will kill anyone in sight - townsfolk, guards, travellers.</Cell></Row>
+  <Row><Cell>merc_info_aggro_tight</Cell><Cell>Tight ranks. One man to an enemy.</Cell><Cell>Tight ranks. One man to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_balanced</Cell><Cell>Balanced. Two men to an enemy.</Cell><Cell>Balanced. Two men to an enemy.</Cell></Row>
+  <Row><Cell>merc_info_aggro_loose</Cell><Cell>Swarm them. Three men to an enemy.</Cell><Cell>Swarm them. Three men to an enemy.</Cell></Row>
   <Row><Cell>ui_merc_fall_in</Cell><Cell>Fall in.</Cell><Cell>Fall in.</Cell></Row>
   <Row><Cell>ui_qm_settings_hub</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell><Cell>[Mod settings] Change how the company and the mod behave.</Cell></Row>
   <Row><Cell>merc_henry_qm_settings_hub</Cell><Cell>Let's talk about how the company runs.</Cell><Cell>Let's talk about how the company runs.</Cell></Row>
@@ -1163,6 +1171,10 @@
   <Row><Cell>merc_diff_extreme</Cell><Cell>Extreme</Cell><Cell>Extreme</Cell></Row>
   <Row><Cell>merc_diff_impossible</Cell><Cell>Impossible</Cell><Cell>Impossible</Cell></Row>
   <Row><Cell>merc_diff_horde</Cell><Cell>Horde</Cell><Cell>Horde</Cell></Row>
+  <Row><Cell>merc_info_upkeep_off</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell><Cell>Upkeep off. The men ask nothing of you.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_lenient</Cell><Cell>Lenient upkeep. The food goes further.</Cell><Cell>Lenient upkeep. The food goes further.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_standard</Cell><Cell>Standard upkeep.</Cell><Cell>Standard upkeep.</Cell></Row>
+  <Row><Cell>merc_info_upkeep_harsh</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell><Cell>Harsh upkeep. They eat more and the spoils go further apart.</Cell></Row>
   <Row><Cell>ui_qm_threat_cancel</Cell><Cell>Leave it as it stands.</Cell><Cell>Leave it as it stands.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>See that it's so.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Aye. I'll pass the word around.</Cell></Row>
@@ -1302,6 +1314,7 @@
   <Row><Cell>ui_qm_rm_archercart</Cell><Cell>The archer carts.</Cell><Cell>The archer carts.</Cell></Row>
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>The palisade.</Cell><Cell>The palisade.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>The gates.</Cell><Cell>The gates.</Cell></Row>
+  <Row><Cell>ui_qm_rm_trader</Cell><Cell>The trader's stall.</Cell><Cell>The trader's stall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>There's nothing of the sort standing in this camp.</Cell><Cell>There's nothing of the sort standing in this camp.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Let's settle who marches out with me.</Cell><Cell>Let's settle who marches out with me.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>When I take men out of camp, I want the right sort at my back.</Cell><Cell>When I take men out of camp, I want the right sort at my back.</Cell></Row>
@@ -1344,4 +1357,23 @@
   <Row><Cell>merc_ui_camp_marker</Cell><Cell>Mercenary camp</Cell><Cell>Mercenary camp</Cell></Row>
   <Row><Cell>merc_ui_wait_marker</Cell><Cell>Mercenaries waiting</Cell><Cell>Mercenaries waiting</Cell></Row>
   <Row><Cell>merc_ui_aleksej_marker</Cell><Cell>Aleksej of Zaslawye</Cell><Cell>Aleksej of Zaslawye</Cell></Row>
+  <!-- Camp trader -->
+  <Row><Cell>ui_mercenary_trade_action</Cell><Cell>Trade</Cell><Cell>Trade</Cell></Row>
+  <Row><Cell>char_mercenary_trader_uiName</Cell><Cell>Trader</Cell><Cell>Trader</Cell></Row>
+  <Row><Cell>char_mercenary_trader_fullName</Cell><Cell>Trader</Cell><Cell>Trader</Cell></Row>
+  <Row><Cell>char_mercenary_trader_description</Cell><Cell>The company sutler.</Cell><Cell>The company sutler.</Cell></Row>
+  <Row><Cell>merc_trader_closed</Cell><Cell>The stall is shut.</Cell><Cell>The stall is shut.</Cell></Row>
+  <Row><Cell>merc_trader_broke</Cell><Cell>The trader is out of coin - he couldn't pay for all of it.</Cell><Cell>The trader is out of coin - he couldn't pay for all of it.</Cell></Row>
+  <Row><Cell>merc_trader_short</Cell><Cell>You couldn't pay - the trader took back what you couldn't afford.</Cell><Cell>You couldn't pay - the trader took back what you couldn't afford.</Cell></Row>
+  <Row><Cell>merc_n_trpaid</Cell><Cell>The trader pays you:</Cell><Cell>The trader pays you:</Cell></Row>
+  <Row><Cell>merc_n_trspent</Cell><Cell>You pay the trader:</Cell><Cell>You pay the trader:</Cell></Row>
+  <Row><Cell>merc_n_trpurse</Cell><Cell>| his purse:</Cell><Cell>| his purse:</Cell></Row>
+  <Row><Cell>merc_info_chest_locked</Cell><Cell>Your stash isn't available yet.</Cell><Cell>Your stash isn't available yet.</Cell></Row>
+  <!-- Camp trader dialogue -->
+  <Row><Cell>ui_merc_trader_root</Cell><Cell>Trader</Cell><Cell>Trader</Cell></Row>
+  <Row><Cell>ui_merc_trader_wares</Cell><Cell>Show me your wares.</Cell><Cell>Show me your wares.</Cell></Row>
+  <Row><Cell>merc_henry_trader_wares</Cell><Cell>Show me what you've got.</Cell><Cell>Show me what you've got.</Cell></Row>
+  <Row><Cell>merc_trader_wares_reply</Cell><Cell>Help yourself to what's on the counter, and lay out whatever you're selling. I'll do the reckoning when you're done, and we'll square up then.</Cell><Cell>Help yourself to what's on the counter, and lay out whatever you're selling. I'll do the reckoning when you're done, and we'll square up then.</Cell></Row>
+  <Row><Cell>ui_merc_trader_leave</Cell><Cell>Not now.</Cell><Cell>Not now.</Cell></Row>
+  <Row><Cell>merc_henry_trader_leave</Cell><Cell>Another time.</Cell><Cell>Another time.</Cell></Row>
 </Table>

@@ -100,6 +100,8 @@ mercenaries.TokenIDQMCastleWall      = "679a655e-189d-4519-b437-ccc4b92bef5d"
 -- ChangeMercOutfit/ChangeMercWeapon already use). One token, one item row, one handler.
 mercenaries.TokenIDQMRemoveOne       = "679a655e-189d-4519-b437-ccc4b92bef1d"
 mercenaries.TokenIDQMComposition     = "679a655e-189d-4519-b437-ccc4b92bef2d"
+-- The camp sutler's "show me your wares": trader_dialog -> this -> TraderOpen.
+mercenaries.TokenIDTraderOpen        = "679a655e-189d-4519-b437-ccc4b92bef6d"
 
 --quartermaster deploy (take-N mercs out of camp) tokens
 mercenaries.TokenIDQMTakeAll         = "679a655e-189d-4519-b437-ccc4b92bee3d"
@@ -893,6 +895,10 @@ mercenaries.SoulIndex = { weak = 1, medium = 1, strong = 1 }
 -- bracket, so quotes in the line survive and loadstring gets CODE rather than the
 -- result of evaluating it - unquoted %line made every merc_lua call a silent no-op.
 function mercenaries:ExecString(text)
+    -- The console substitutes %line ALREADY QUOTED, so merc_lua received
+    -- "Game.QuickSave()" - quotes included - and every line failed to compile.
+    -- CmdClean is where the quotes come off for every other command.
+    if self.CmdClean then text = self:CmdClean(text) end
     if type(text) ~= "string" or text == "" then
         System.LogAlways("[MercCmd] merc_lua: nothing to run")
         return
@@ -907,6 +913,12 @@ function mercenaries:ExecString(text)
 end
 
 function mercenaries:SetState(state)
+    -- An explicit order outranks the doorway: hands back anyone the interior watch
+    -- parked, and stops it re-parking them while the player is still inside.
+    if self.InteriorOrderOverride then
+        pcall(function() self:InteriorOrderOverride(state) end)
+    end
+
     -- An explicit dismiss/follow order breaks camp first (silently - the
     -- order's own info text already tells the player what happened), since
     -- otherwise the camp props would stand there empty/unused.
@@ -1029,6 +1041,10 @@ mercenaries:DevCommand("merc_bark_test", "mercenaries:BarkTest('%1')", "Manually
 -- ignore this flag and keep camping. In-camp mercs are held by their roles, so a
 -- wait order only stops the sortie.
 function mercenaries:SetSortieWait(wait)
+    -- Same override as SetState: the player's own order beats the doorway.
+    if self.InteriorOrderOverride then
+        pcall(function() self:InteriorOrderOverride(wait and "wait" or "follow") end)
+    end
     -- Same hold order as SetState('wait'); see the note there for why MercIdle stays
     -- off. The men in camp are held by their roles either way.
     _G.MercIdle = false
@@ -1195,6 +1211,7 @@ function mercenaries:MonitorInventory()
     tok(self.TokenIDQMRemoveUpg,     function() self:LogiRemoveAllUpgrades() end)
     tok(self.TokenIDQMRemoveOne,     function(n) self:LogiRemoveUpgrade(n) end)
     tok(self.TokenIDQMComposition,   function(n) self:CampSetComposition(n) end)
+    tok(self.TokenIDTraderOpen,      function() self:TraderOpen() end)
     tok(self.TokenIDQMWall,          function() self:LogiBuyWall() end)
     tok(self.TokenIDQMGate,          function() self:LogiBuyGate() end)
     tok(self.TokenIDQMCastleWall,    function() self:LogiBuyCastleWall() end)
@@ -1294,6 +1311,11 @@ function mercenaries:MonitorLoopBody()
     -- Torches at night, camp or no camp: a company on a road after dark carries
     -- light too. The camp's own lamps stay on the camp tick.
     mercenaries:ProfCall("mon.NightTorches", "CampNightTorchTick")
+
+    -- One ray: does the "never place on an object" guard agree that the ground the player
+    -- is standing on is ground? If it keeps saying no, it is wrong about this world and
+    -- switches itself off. See docs/ground-guard.md.
+    mercenaries:ProfCall("mon.GroundSelfCheck", "GroundSelfCheck")
 
     if next(mercenaries.ActiveMercs) then
         -- One shared "fell too far behind" pass over the whole squad instead
@@ -1621,6 +1643,8 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     if self.MatrixOnLoad then pcall(function() self:MatrixOnLoad() end) end
     if self.RosterOnGameplayLoad then pcall(function() self:RosterOnGameplayLoad() end) end
     if self.TravelWatchOnLoad then pcall(function() self:TravelWatchOnLoad() end) end
+    -- The raid watch's dwell clock and camp age belong to the save being left.
+    if self.RaidOnLoad then pcall(function() self:RaidOnLoad() end) end
 
     -- ...and the same asymmetry one level up. Timers are not the only thing that dies with
     -- the level: so do the behaviour trees, the spawned entities and the siege. What does
@@ -1674,8 +1698,8 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Ahead of every LoadString below, so they read the carried state on a crossing.
     if self.RegionOnLoad then pcall(function() self:RegionOnLoad() end) end
 
-    -- ...and only now: MapMarkerOnLoad reads MercCampMarker/MercCampCompass, which are
-    -- LoadString tags and would otherwise answer out of the save before this one.
+    -- ...and only now: MapMarkerOnLoad reads MercCampCompass, which is a LoadString tag
+    -- and would otherwise answer out of the save before this one.
     if self.MapMarkerOnLoad then pcall(function() self:MapMarkerOnLoad() end) end
 
     -- Hook Player.OnAction (mouse input for tower placement). Delayed so that a mod
@@ -1731,6 +1755,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- squad that reloads still planted on ground he has since left reads as a bug.
     self:LoadOrderState()
     self.HoldActive, self.HoldStations, self.EscortEnt = false, {}, nil
+    -- Same reasoning for the interior park: the trees come back fresh, so nobody is
+    -- standing at a door, and the first sample re-establishes where the player is.
+    if self.InteriorOnLoad then pcall(function() self:InteriorOnLoad() end) end
 
     -- Company survival mode: this also rescales the consumption and spoils rates, so
     -- it has to run before the first logistics tick.
@@ -1869,6 +1896,9 @@ Script.LoadScript("Scripts/mods/mercenaries_questprobe.lua")
 Script.LoadScript("Scripts/mods/mercenaries_outfit_matrix.lua")
 Script.LoadScript("Scripts/mods/mercenaries_kk_stage.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
+-- What counts as "the ground". Every snap/validate helper below asks it, so it loads
+-- before all of them. See docs/ground-guard.md.
+Script.LoadScript("Scripts/mods/mercenaries_ground.lua")
 Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")
 Script.LoadScript("Scripts/mods/mercenaries_teleport.lua")
@@ -1883,9 +1913,15 @@ Script.LoadScript("Scripts/mods/mercenaries_main_quest_handler.lua")
 -- temp-despawn hangs off its hooks). Ticked from MonitorMainQuestLoop.
 Script.LoadScript("Scripts/mods/mercenaries_mainquest_watchdog.lua")
 Script.LoadScript("Scripts/mods/mercenaries_saving.lua")
+-- Candidate replacement for the saver entities above: one entity, one engine-
+-- serialised script table. Test build - nothing reads it yet, merc_store_* drives it.
+Script.LoadScript("Scripts/mods/mercenaries_store.lua")
 Script.LoadScript("Scripts/mods/mercenaries_lookatinteraction.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archers.lua")
 Script.LoadScript("Scripts/mods/mercenaries_female.lua")
+-- Generated from the object paks (tools/measure_camp_props.py): what every mesh the camp
+-- spawns actually measures. Pure data, so it loads before the camp that reads it.
+Script.LoadScript("Scripts/mods/mercenaries_camp_footprints.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp.lua")
 -- Draws the standing camp on the world map (and optionally the compass) by pushing a
 -- POI straight into the map's Scaleform element. See docs/map-marker.md.
@@ -1895,7 +1931,14 @@ Script.LoadScript("Scripts/mods/mercenaries_alchemy.lua")
 Script.LoadScript("Scripts/mods/mercenaries_hunting.lua")
 Script.LoadScript("Scripts/mods/mercenaries_inn.lua")
 Script.LoadScript("Scripts/mods/mercenaries_foodcart.lua")
+-- The camp trader: market stall, sutler, and a counter priced off the baked item
+-- price table below it. See docs/camp-trader.md.
+Script.LoadScript("Scripts/mods/mercenaries_price_data.lua")
+Script.LoadScript("Scripts/mods/mercenaries_trader.lua")
 Script.LoadScript("Scripts/mods/mercenaries_house.lua")
+-- The player's own chest by the bed, plus the drying rack and smokehouse beside
+-- the tent. After the house, whose bed it also has to sit next to.
+Script.LoadScript("Scripts/mods/mercenaries_amenities.lua")
 Script.LoadScript("Scripts/mods/mercenaries_tower.lua")
 Script.LoadScript("Scripts/mods/mercenaries_static_archer.lua")
 Script.LoadScript("Scripts/mods/mercenaries_archer_cart.lua")
@@ -1953,6 +1996,7 @@ Script.LoadScript("Scripts/mods/mercenaries_aleksej.lua")
 -- Last: every slot body it registers must already be defined.
 Script.LoadScript("Scripts/mods/mercenaries_roster.lua")
 Script.LoadScript("Scripts/mods/mercenaries_travelwatch.lua")
+Script.LoadScript("Scripts/mods/mercenaries_interior.lua")
 Script.LoadScript("Scripts/mods/mercenaries_scheduler.lua")
 Script.LoadScript("Scripts/mods/mercenaries_fttrace.lua")
 Script.LoadScript("Scripts/mods/mercenaries_bench.lua")
@@ -1990,11 +2034,12 @@ function mercenaries:PrintHelp()
         "merc_hold_formup 0|1                 hold shape: 1 draws them up in a block instead of standing fast",
         "merc_escort / merc_escort_end        escort whoever you are looking at, in column",
         "merc_focus / merc_focus_clear        call the target you are looking at (or locked onto) for the whole squad",
-        "merc_engage_default|aggressive|defend|hold   rules of engagement",
+        "merc_engage_default|viking|defend|hold   rules of engagement",
         "merc_aggro_tight|balanced|loose      how hard they pile onto one enemy",
         "merc_orders_status / merc_hold_status        report the squad's combat and standing orders",
         "merc_difficulty easy|medium|difficult|extreme|impossible|horde   raid/patrol/contract difficulty (docs/difficulty.md)",
         "merc_difficulty_status               the tier and the ceilings it implies",
+        "merc_enemy_rotation                  which enemy groups raided/patrolled last, and so cannot draw again yet",
         "merc_autodismount 0|1                mercs get off their horses to fight",
         "merc_formation_column|line|square|wedge|circle|escort|vanilla   marching shape (see docs/formations.md)",
         "merc_formation_relaxed|keepshape|movehistory              how followers hold the shape",

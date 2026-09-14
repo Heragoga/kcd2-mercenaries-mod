@@ -1,5 +1,14 @@
 # Putting your own marker on the world map
 
+> **The mod draws no map markers any more.** The camp, the waiting mercenaries and Aleksej
+> all had a POI; all three were removed on request, and with them `merc_camp_marker` and the
+> `merc_map_*` dev commands. `data/Scripts/mods/mercenaries_mapmarker.lua` now holds only the
+> compass marker (below), which is opt-in and was never on the map.
+>
+> Everything else on this page is kept as the record of how it works, because the mechanism
+> was expensive to find and is exactly what a future marker would need again. Read the crash
+> section before putting one back.
+
 **Short version:** the map is a Scaleform movie, not a game system with a script binding.
 `UIAction` talks to Scaleform. Nine values in an array and two calls, and there is a POI on
 the map at any world position you like.
@@ -9,10 +18,6 @@ UIAction.SetArray("ApseMap", -1, "PoiMarkers",
     { 1, "MERC_CAMP", "merc_ui_camp_marker", "camp", 1, false, 0, worldX, worldY })
 UIAction.CallFunction("ApseMap", -1, "AddPoiMarkers")
 ```
-
-That is the whole mechanism. In this mod it lives in
-`data/Scripts/mods/mercenaries_mapmarker.lua` and draws the standing camp
-(`merc_camp_marker 0 | 1`).
 
 ---
 
@@ -116,9 +121,9 @@ them next to vanilla's.
 
 `tools/gen_map_icons.py` now writes **legacy DXT5** instead — fourcc in the old header with
 no DX10 extension block, so none of those fields can be got wrong. It is written and
-documented but **not wired in**: `MapMarkerRows` passes vanilla icon names, which cannot fail
-this way. If the bigger icons are wanted, run the tool, point one row at its output, and
-confirm in game before doing the other two.
+documented but **not wired in**: nothing draws a map POI any more.
+If a marker is ever put back and bigger icons are wanted, run the tool, point one row at its
+output, and confirm in game before doing the rest.
 
 ```bash
 python tools/gen_map_icons.py 2.0      # build at 2x
@@ -189,8 +194,8 @@ Three rules follow, and they are cheap enough to just keep:
 3. **Push once per opening.** Re-adding the same markers repeatedly buys nothing once they
    render, and stacks clips at the same depths.
 
-`merc_camp_marker 0` disables the whole thing, and the setting is read before anything is
-pushed.
+`merc_camp_marker 0` used to disable the whole thing; the markers are now gone outright, so
+neither the command nor the setting exists.
 
 ## The compass
 
@@ -236,12 +241,13 @@ Whoever settles the correct value per level should write it down here.
 Unlike the map marker, the compass marker costs a repeating redraw — four times a second
 while it is up — which is the other reason it is off by default.
 
-## What this mod draws
+## What this mod used to draw
 
-Three POIs, all from one array in one push, each present only when it has somewhere to
-point (`mercenaries.MapMarkerRows`):
+Three POIs, all from one array in one push, each present only when it had somewhere to
+point (`mercenaries.MapMarkerRows`). **Removed** — kept here because the icon and labelling
+choices are the reusable part:
 
-| Marker | Icon | Where it points |
+| Marker | Icon | Where it pointed |
 |---|---|---|
 | The camp | `camp` (tents) | `CampBuildOrigin`, while a camp is standing |
 | Mercenaries waiting | `weaponsmiths` (crossed blades) | `HoldAnchor` under a "wait here" order, else the men's centroid while idle. Not drawn while they are in camp |
@@ -269,8 +275,7 @@ marker.
 
 | Command | What it does |
 |---|---|
-| `merc_camp_marker <0/1>` | Show the standing camp on the world map. Default on, saved |
-| `merc_camp_compass <0/1>` | Also point at it on the compass. Default off, saved |
+| `merc_camp_compass <0/1>` | Point at the standing camp on the compass. Default off, saved |
 | `merc_camp_compass_offset [deg]` | **dev** — turn the compass bearing offset; no argument reports |
 
 ## References

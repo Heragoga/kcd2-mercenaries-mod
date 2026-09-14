@@ -1,9 +1,215 @@
+-- ---------------------------------------------------------------------------
+-- OUTLAW, TOWNSMAN, OR NEITHER - the gate that sits above every other rule here.
+--
+-- The relationship floor (-1 to the player) was doing two jobs it cannot tell apart.
+-- A bandit sits at -1 because he is a robber. THE TOWN WATCH SITS AT -1 BECAUSE THE
+-- PLAYER IS WANTED - and so does every townsman in a settlement that has turned on him.
+-- To IsValidEnemy those two were the same number, the weapon gate is waived on that
+-- path, so the squad opened on the watch with nobody having thrown a punch. That is the
+-- "mercs attack guards or random NPCs even though the player is not fighting them and
+-- they are not attacking" report, and it needs no stance and no order to happen.
+--
+-- So hostility is no longer a single number. A man is:
+--   * "hostile"   - an outlaw. Fair game on every path, including the aggressive stance.
+--   * "protected" - the watch, or the people they protect. The squad never STARTS
+--                   anything with him, whatever the faction table, the stance or the
+--                   fight around him says. He becomes a target the moment he takes the
+--                   player or a merc as his own - see AggressorConfirmed.
+--   * "neutral"   - neither. Taken only on the ordinary hostile paths (relationship -1,
+--                   or confirmed fighting us); never picked up by the aggressive stance.
+--
+-- RPG.IsPublicEnemy is the primary test and it is vanilla's own: AnimStash.lua calls it
+-- to decide whether a body is looted or robbed, and it reads Labels="publicEnemy" off
+-- the faction and nothing else (docs/public-enemy.md). Every bandit, Cuman and raider
+-- subtree carries the label; no guard or townsman faction does; and all three of the
+-- mod's own hostile factions were given it. One engine call, and it is the single most
+-- reliable "is this a bandit" answer the game has.
+--
+-- Cached by WUID: a man's faction and crime role do not change, and this is asked per
+-- candidate per cache pass.
+-- ---------------------------------------------------------------------------
+mercenaries.HostileKindCache    = {}
+mercenaries.HostileKindCacheN   = 0
+mercenaries.HostileKindCacheMax = 1024
+
+function mercenaries:HostileKindClear()
+    self.HostileKindCache, self.HostileKindCacheN = {}, 0
+end
+
+function mercenaries:ClassifyHostility(ent)
+    local name = ""
+    pcall(function() name = ent:GetName() or "" end)
+
+    -- Anything this mod spawned as a hostile is one, whatever the world thinks of him.
+    if (self.IsModEnemyName and self:IsModEnemyName(name))
+    or string.find(name, "SpawnedFoe_", 1, true)
+    or string.find(name, "SpawnedPatrol", 1, true) then
+        return "hostile"
+    end
+
+    local wuidStr = nil
+    pcall(function() wuidStr = tostring(ent.this and ent.this.id or ent.id) end)
+    if wuidStr and self.BanditCampActors and self.BanditCampActors[wuidStr] then
+        return "hostile"
+    end
+
+    local pe = false
+    pcall(function()
+        local w = ent.this and ent.this.id or ent.id
+        pe = (RPG and RPG.IsPublicEnemy and RPG.IsPublicEnemy(w)) and true or false
+    end)
+    if not pe then pcall(function() pe = ent.soul:IsPublicEnemy() and true or false end) end
+    if pe then return "hostile" end
+
+    local faction = self.CrimeFactionOf and self:CrimeFactionOf(ent) or nil
+    if faction == "enemiesFaction" or faction == "foeFaction" or faction == "patrolFaction" then
+        return "hostile"
+    end
+    -- Our own spawns that reach here (quartermaster, test NPCs) are refused outright
+    -- rather than left to the name checks further up IsValidEnemy.
+    if faction and self.CrimeOwnFactions and self.CrimeOwnFactions[faction] then
+        return "protected"
+    end
+
+    -- Same classifier the crime watchdog uses, and it is the measured one: hostile
+    -- faction words first, then the crime_isAuthority/isSecurity contexts, then the
+    -- faction path, then the name (docs/crime-watch.md).
+    if self.CrimeClassify then
+        local kind = self:CrimeClassify(ent, name, faction)
+        if kind == "hostile" then return "hostile" end
+        if kind == "guard" or kind == "civilian" then return "protected" end
+    end
+
+    return "neutral"
+end
+
+function mercenaries:HostileKind(ent)
+    if not (ent and ent.soul) then return "neutral" end
+    local key
+    pcall(function() key = tostring(ent.this and ent.this.id or ent.id) end)
+    if key then
+        local hit = self.HostileKindCache[key]
+        if hit then return hit end
+    end
+    local kind = "neutral"
+    local ok, res = pcall(self.ClassifyHostility, self, ent)
+    if ok and res then kind = res end
+    if key then
+        if self.HostileKindCacheN >= self.HostileKindCacheMax then self:HostileKindClear() end
+        self.HostileKindCache[key] = kind
+        self.HostileKindCacheN = self.HostileKindCacheN + 1
+    end
+    return kind
+end
+
+-- The town watch and the people they protect. See ClassifyHostility.
+function mercenaries:IsProtectedNpc(ent)
+    return self:HostileKind(ent) == "protected"
+end
+
+-- ---------------------------------------------------------------------------
+-- IS HE ACTUALLY ATTACKING US, OR DID SOMEBODY JUST WALK INTO SOMEBODY?
+--
+-- The company defends the player and each other: ANYONE who has taken the player or a
+-- merc as his target is a legitimate target, guard or not. The `protected` verdict never
+-- blocks that - it only blocks the squad PICKING a fight with a man who is not in one.
+--
+-- Which makes the quality of "he has taken one of ours as his target" the whole thing,
+-- and the raw signal is not good enough on its own. THE ENGINE REGISTERS COLLISIONS AS
+-- HITS, constantly - a villager walks into a merc, a horse clips somebody, the column
+-- shoulders through a market - and each one can flicker an attacker relationship into
+-- existence for a moment. Acting on that instantly is how a bump becomes a dead townsman.
+--
+-- So a non-outlaw has to clear three bars before the squad will touch him:
+--
+--   1. WEAPON DRAWN. The single strongest collision filter there is: nobody unsheathes
+--      to bump into you. (A guard's halberd is always in his hands, which is why this
+--      cannot be the only test - see 2 and 3.)
+--   2. A REAL COMBAT STATE - crime_interruptAttack, the same context every scheduler
+--      here reads for $inCombat, or IsInCombatDanger. A collision does not open one.
+--   3. IT HAS TO LAST, AND ON THE SAME MAN. A bump is a moment and its attention
+--      wanders; a fight is continuous and it has one victim. The record is keyed
+--      candidate>victim, so a man who shoulders his way down a column - flickering
+--      from merc to merc - never accumulates, and only somebody who has held the SAME
+--      one of ours for AggressorConfirmSecs clears it.
+--
+-- An OUTLAW skips all three: he is fair game the instant he is seen, which is what keeps
+-- the reaction against bandits as sharp as it was. The delay is only ever paid on
+-- somebody the squad would otherwise have had no business touching.
+--
+-- REAL seconds (os.clock), not System.GetCurrTime: the engine clock runs ~29x fast
+-- through a sleep or a wait, which would collapse the window to nothing.
+--
+-- The window is the one real trade-off here - too short and a bump-and-grumble from a
+-- halberdier (whose weapon is ALWAYS in his hands, so bar 1 is free for him) reads as an
+-- assault; too long and a merc takes a few extra blows before his mates come. Tunable
+-- live with merc_aggro_confirm <seconds> so it can be dialled from inside a session
+-- rather than guessed at here.
+-- ---------------------------------------------------------------------------
+-- How many people the viking stance will hold in the cache at once. See `consider`.
+mercenaries.VikingCacheMax = 40
+
+mercenaries.AggressorConfirmSecs = 2.0
+mercenaries.AggressorSeen        = {}
+mercenaries.AggressorSeenN       = 0
+mercenaries.AggressorSeenMax     = 512
+
+local realClock = (os and os.clock) or function() return 0 end
+
+function mercenaries:AggressorClear()
+    self.AggressorSeen, self.AggressorSeenN = {}, 0
+end
+
+function mercenaries:AggressorForget(key)
+    if self.AggressorSeen[key] ~= nil then
+        self.AggressorSeen[key] = nil
+        self.AggressorSeenN = math.max(0, self.AggressorSeenN - 1)
+    end
+end
+
+function mercenaries:AggressorConfirmSet(secs)
+    self.AggressorConfirmSecs = math.max(0, tonumber(secs) or 2.0)
+    self:AggressorClear()
+    System.LogAlways("[MercTarget] a non-outlaw must hold one of ours as his target for "
+        .. tostring(self.AggressorConfirmSecs) .. "s before the squad will fight him")
+end
+
+function mercenaries:AggressorConfirmed(ent, wuid, victimWuidStr)
+    if not ent then return false end
+    if self:HostileKind(ent) == "hostile" then return true end
+
+    local key = tostring(wuid) .. ">" .. tostring(victimWuidStr)
+
+    local armed = false
+    pcall(function() armed = ent.human and ent.human:IsWeaponDrawn() or false end)
+    if not armed then self:AggressorForget(key) return false end
+
+    local fighting = false
+    pcall(function()
+        fighting = ent.soul:HasScriptContext("crime_interruptAttack")
+                or ent.soul:IsInCombatDanger() or false
+    end)
+    if not fighting then self:AggressorForget(key) return false end
+
+    local t = realClock()
+    local first = self.AggressorSeen[key]
+    if not first then
+        if self.AggressorSeenN >= self.AggressorSeenMax then self:AggressorClear() end
+        self.AggressorSeen[key] = t
+        self.AggressorSeenN = self.AggressorSeenN + 1
+        return false
+    end
+    return (t - first) >= self.AggressorConfirmSecs
+end
+
 -- Validate whether an entity is a valid enemy target. skipRelationshipCheck
 -- bypasses only the relationship gate, for whoever the player is already
 -- fighting; skipWeaponCheck bypasses only the weapon-drawn gate, for candidates
--- that are about to be judged on who they are targeting instead.
+-- that are about to be judged on who they are targeting instead; allowProtected
+-- bypasses the townsman/watch gate, for somebody confirmed to be fighting us or
+-- called by the player.
 -- See docs/combat-target-selection.md for the full ruleset.
-function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelationshipCheck, skipWeaponCheck)
+function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelationshipCheck, skipWeaponCheck, allowProtected)
     if ent.id == player.id then return false end
     if ent:GetName() == "companion_dog" then return false end
 
@@ -69,6 +275,22 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     if self:IsHeroName(ent:GetName() or '') then
         return false
     end
+
+    -- THE SQUAD NEVER STARTS ANYTHING WITH THE WATCH, OR WITH THE PEOPLE IT PROTECTS.
+    -- Checked above the relationship gate rather than inside it, because the relationship
+    -- gate is what gets it wrong: a wanted player drives every guard in the settlement to
+    -- exactly the same -1 floor a bandit sits at, and the drawn-weapon proof is waived on
+    -- that path, so the squad opened on the watch with nobody having thrown a punch. It
+    -- sits above the aggression ladder too - every rung of it is about outlaws.
+    --
+    -- It is NOT a rule about who may be fought. allowProtected is how the three things
+    -- that outrank it get through, and the first of them is the important one:
+    --   * he is actively fighting the player or a merc (AggressorConfirmed - and that is
+    --     where the collision filter lives, because a bump is not an assault);
+    --   * he has already been confirmed as an attacker this fight (IsRecentAttacker),
+    --     which is how the whole squad joins in rather than one man;
+    --   * the player called him by name.
+    if not allowProtected and self:IsProtectedNpc(ent) then return false end
 
     -- Must be genuinely hostile: relationship to the player pinned at exactly -1
     -- (the faction-hostile floor). Neutral/unresolved (0, 0.5, nil) is not fair
@@ -140,13 +362,22 @@ end
 -- means he is fighting our enemy too and is never a target; allied means he is in the
 -- band; neither answer available falls back to a shared soul, which is what a base-game
 -- camp is. See docs/combat-target-selection.md, "The fight group".
+--
+-- ALLIED MEANS 1, NOT "ANYTHING ABOVE ZERO". The old threshold was `rel > 0`, and this
+-- mod's own relationship gate documents 0.5 as a NEUTRAL reading - it is an authored
+-- value in the vanilla faction tree. So every armed neutral near a brawl read as "in the
+-- band" and was swept in with the relationship floor waived, which is the same caravan-
+-- guard bug this function was written to fix, reintroduced one threshold lower.
 function mercenaries:StandsWith(ent, a)
     if not (a and ent and ent.soul) then return false end
+    -- Never, whatever the numbers say: a bandit fighting the watch does not make the
+    -- watch our enemy. Cheaper than the relationship call, so it goes first.
+    if self:IsProtectedNpc(ent) then return false end
     local rel
     pcall(function() rel = ent.soul:GetRelationship(a.wuid, "Current") end)
     if rel ~= nil then
         if rel <= -1.0 then return false end
-        if rel > 0 then return true end
+        if rel >= 1.0 then return true end
     end
     local id
     pcall(function() id = tostring(ent.soul:GetId()) end)
@@ -195,6 +426,9 @@ function mercenaries:UpdateEnemyCache()
         -- after the last one, so a squad standing in a market is not sweeping 60m of NPCs.
         local radius = self.EnemyAlerted and self.EnemyAlertRadius or self.EnemyScanRadius
 
+        -- Read once per pass, not per candidate: `consider` below branches on it twice.
+        local vikingOn = (self:EngageCode() == 1)
+
         -- Where the men confirmed to be FIGHTING us are standing, and the armed
         -- candidates the normal gates turned away. Both feed the second pass below, and
         -- `maybe` is also published for ScanForEnemies to hand to the behaviour tree -
@@ -218,11 +452,22 @@ function mercenaries:UpdateEnemyCache()
             -- 300ms pass the moment he draws, or immediately via `confirmed` if he lands
             -- a blow. In a town this is the whole cost: ~10 engine calls per bystander
             -- per pass became 1. See docs/performance.md.
-            if not armed and not self:IsRecentAttacker(entWuid) then return end
+            -- ...unless the men have been told to kill everyone, in which case an unarmed
+            -- bystander is precisely who they are looking for. The early-out is the whole
+            -- reason a town is cheap, so viking is also the one stance that costs what a
+            -- town used to cost - which is what VikingCacheMax below is for.
+            if not armed and not vikingOn and not self:IsRecentAttacker(entWuid) then return end
             -- The engagement stance can widen this: see EngageCacheAccepts.
             local accept, viaLockOn =
                 self:EngageCacheAccepts(ent, playerWuid, armed, self:IsRecentAttacker(entWuid))
             if accept then
+                -- A CEILING ON THE MASSACRE, and it is a performance guard rather than a
+                -- mercy: viking admits every living soul in the alert radius, which in
+                -- Kuttenberg is hundreds, and PickCombatTarget sweeps the whole cache per
+                -- merc per tick. Fifty men have no use for more than this many targets at
+                -- once, and as each one dies the next pass admits another - so nothing is
+                -- spared, it just arrives in waves. Only viking is ever capped.
+                if vikingOn and #self.CachedEnemies >= (self.VikingCacheMax or 40) then return end
                 table.insert(self.CachedEnemies, { entity = ent, wuid = entWuid, armed = armed, pos = pos })
                 -- Identity, not just a position: StandsWith has to ask a candidate what
                 -- he thinks of THIS man.
@@ -424,6 +669,12 @@ function mercenaries:UpdateEnemyCache()
                     if horseEnt and horseEnt:GetName() then
                         local horseName = horseEnt:GetName()
                         if string.find(horseName, 'MercenaryHorse_', 1, true) then
+                            -- Re-applied here rather than only at mount: a horse that has been
+                            -- re-physicalised loses it. docs/collision-ghosting.md.
+                            if self:GhostCollisionOn() then
+                                self:ApplyCollisionGhost(horseEnt, self.GhostHorseMask)
+                            end
+
                             local mercName = string.sub(horseName, string.len('MercenaryHorse_') + 1)
                             local shouldDespawn = false
                             local reason = ""
@@ -709,6 +960,30 @@ function mercenaries:TryClaimTarget(bt_data, myWuid, targetWuid, force)
     bt_data.isFriendly = false
     bt_data.foundTarget = true
     self:MercSetClaim(tostring(myWuid), targetWuidStr)
+    -- Every claim on somebody who is not a recognised outlaw, named in the log. The
+    -- gates above should make this rare - a man genuinely swinging at a merc, or a
+    -- target the player called himself - so a burst of these lines IS the bug report
+    -- for "they attacked the watch again", with the name of who they went for.
+    -- Once per merc per target, or a whole fight writes a line every poll.
+    self.ClaimTraceSeen = self.ClaimTraceSeen or {}
+    self.ClaimTraceN    = self.ClaimTraceN or 0
+    -- Bounded: a long siege is thousands of distinct pairings, and an unbounded table
+    -- here would ride into the save like the timer flood did.
+    if self.ClaimTraceN >= 2048 then self.ClaimTraceSeen, self.ClaimTraceN = {}, 0 end
+    local traceKey = tostring(myWuid) .. ">" .. targetWuidStr
+    if not self.ClaimTraceSeen[traceKey] then
+        self.ClaimTraceSeen[traceKey] = true
+        self.ClaimTraceN = self.ClaimTraceN + 1
+        pcall(function()
+            local te = XGenAIModule.GetEntityByWUID(targetWuid)
+            if not te then return end
+            local kind = self:HostileKind(te)
+            if kind ~= "hostile" then
+                System.LogAlways("[MercTarget] claim on a non-outlaw: " ..
+                    tostring(te:GetName()) .. " (" .. kind .. ")")
+            end
+        end)
+    end
     return true
 end
 
@@ -741,7 +1016,23 @@ function mercenaries:EvaluateCombatTarget(bt_data, myWuid)
         pcall(function() cand = XGenAIModule.GetEntityByWUID(bt_data.candidate) end)
         if not cand then return end
         if self:IsOwnSide(cand) then return end
-        if not self:IsValidEnemy(cand, player, bt_data.playerWUID, true, true) then return end
+
+        -- THE COMPANY DEFENDS THE PLAYER AND EACH OTHER. Whoever this man is - guard,
+        -- villager, anyone - having taken the player or a merc as his target makes him a
+        -- legitimate target, and the `protected` verdict does not stand in the way of
+        -- that. It stands in the way of the squad STARTING something, which is a
+        -- different question answered further down in PickCombatTarget.
+        --
+        -- What it is not is a licence to act on the raw signal: an outlaw is taken on
+        -- sight, everyone else has to clear the collision filter first (weapon out, a
+        -- real combat state, and still on the same man a couple of seconds later). See
+        -- AggressorConfirmed -
+        -- the engine registers collisions as hits all day long, and a bump must not
+        -- read as an assault.
+        if not self:AggressorConfirmed(cand, bt_data.candidate, aggroOn) then return end
+        if not self:IsValidEnemy(cand, player, bt_data.playerWUID, true, true, true) then return end
+
+        local selfDefence = (aggroOn == tostring(myWuid))
 
         -- THE authoritative record of who is fighting us, and the only one that works:
         -- this is the engine's own GetTarget node's answer, not a Lua guess. The enemy
@@ -754,7 +1045,6 @@ function mercenaries:EvaluateCombatTarget(bt_data, myWuid)
         -- Someone swinging at ME overrides the swarm cap: refusing that claim leaves
         -- a merc standing still while he is being hit. Defending the PLAYER keeps the
         -- cap - spreading out still makes sense there.
-        local selfDefence = (aggroOn == tostring(myWuid))
         self:TryClaimTarget(bt_data, myWuid, bt_data.candidate, selfDefence)
     end)
 
@@ -786,7 +1076,11 @@ function mercenaries:PickCombatTarget(bt_data, myWuid)
         if focus then
             local fe
             pcall(function() fe = XGenAIModule.GetEntityByWUID(focus) end)
-            if fe and fe.soul and self:IsValidEnemy(fe, player, bt_data.playerWUID, true, false) then
+            -- allowProtected: the player pointed at this man and said "him". The
+            -- townsman gate exists to stop the squad PICKING a fight nobody asked for,
+            -- and an explicit called target is the one thing that is not that. It is
+            -- still logged by TryClaimTarget's trace.
+            if fe and fe.soul and self:IsValidEnemy(fe, player, bt_data.playerWUID, true, false, true) then
                 if self:TryClaimTarget(bt_data, myWuid, focus, true) then return end
             end
         end
@@ -1050,6 +1344,9 @@ end
 -- Which bind answered is logged once.
 function mercenaries:MercInstantMount(ent, horseEnt)
     if not (ent and horseEnt and horseEnt.id) then return false end
+    -- The mount is the body that would ride the player down, and this is the first tick it
+    -- exists - the 3-tick horse sweep is the backstop. docs/collision-ghosting.md.
+    if self:GhostCollisionOn() then self:ApplyCollisionGhost(horseEnt, self.GhostHorseMask) end
     local already = false
     pcall(function() already = ent.human and ent.human.IsMounted and ent.human:IsMounted() or false end)
     if already then return true end
@@ -1113,6 +1410,62 @@ function mercenaries:TargetingOnLoad()
     self.EnemyAlerted   = false
     self._alertAt       = nil
     self.EnemyAlertRadius = self.EnemyAlertRadiusDefault or 60
+    -- Keyed by WUID, and a load is the one moment WUIDs can be handed to different men.
+    self:HostileKindClear()
+    self:AggressorClear()
+    self.ClaimTraceSeen, self.ClaimTraceN = {}, 0
     _G.MercSquadThreat    = false
     _G.MercDismountThreat = false
+end
+
+-- ==== who may be fought, and why ====
+--
+-- Read-only. Every NPC within the current scan radius with the three answers that decide
+-- whether the company may raise a hand to him: the outlaw/townsman verdict, his
+-- relationship to the player, and whether he is in the cache right now. Run it standing
+-- where the men went for somebody they should not have.
+function mercenaries:TargetDumpNearby(radius)
+    local r = tonumber(radius) or (self.EnemyAlerted and self.EnemyAlertRadius or self.EnemyScanRadius) or 18
+    local pp = player and player:GetPos()
+    if not pp then return end
+
+    local cached = {}
+    for _, e in ipairs(self.CachedEnemies or {}) do cached[tostring(e.wuid)] = true end
+    local maybe = {}
+    for _, e in ipairs(self.MaybeEnemies or {}) do maybe[tostring(e.wuid)] = true end
+
+    local playerWuid = player.this and player.this.id or player.id
+    System.LogAlways(string.format(
+        "[MercTarget] within %.0fm - stance %s, alert %s", r,
+        tostring(_G.MercEngage or "default"), tostring(self.EnemyAlerted)))
+
+    local n = 0
+    for _, cls in ipairs({ "NPC", "NPC_Female", "NPC_NAI" }) do
+        local ents
+        pcall(function() ents = System.GetEntitiesInSphereByClass(pp, r, cls) end)
+        for _, ent in pairs(ents or {}) do
+            if ent and type(ent) == "table" and ent.soul then
+                local w = tostring(ent.this and ent.this.id or ent.id)
+                local rel, armed, name
+                pcall(function() rel = ent.soul:GetRelationship(playerWuid, "Current") end)
+                pcall(function() armed = ent.human and ent.human:IsWeaponDrawn() or false end)
+                pcall(function() name = ent:GetName() end)
+                n = n + 1
+                System.LogAlways(string.format(
+                    "  %-36s %-9s rel=%-6s %s%s%s%s",
+                    tostring(name), self:HostileKind(ent),
+                    rel and string.format("%.2f", rel) or "?",
+                    armed and "armed " or "",
+                    cached[w] and "CACHED " or "",
+                    maybe[w] and "maybe " or "",
+                    self.MercTargetOf and (function()
+                        for _, tw in pairs(self.MercTargetOf) do
+                            if tw == w then return "CLAIMED" end
+                        end
+                        return ""
+                    end)() or ""))
+            end
+        end
+    end
+    System.LogAlways("[MercTarget] " .. tostring(n) .. " NPC(s)")
 end
