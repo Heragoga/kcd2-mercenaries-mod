@@ -3,7 +3,7 @@
     <!-- The quartermaster's default behaviour: walk back to his post (after a raid
          the shared combat tree drags him toward the enemy), sheathe, face the tent,
          and stand there occasionally eating (eating_standing, a mode-2 activity).
-         Fired as an interrupt by quartermaster_scheduler.xml. See docs/quartermaster.md. -->
+         Fired as an interrupt by quartermaster_scheduler.xml. See docs/mercenaries/camp/quartermaster.md. -->
     <BehaviorTree name="quartermaster_idle" is_function="0">
         <Variables>
             <Variable name="postPos" type="vec3" values="" isPersistent="0" form="single" />

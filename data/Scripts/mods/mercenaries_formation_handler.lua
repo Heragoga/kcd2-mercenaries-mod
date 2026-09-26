@@ -2,7 +2,7 @@
 -- Each merc follows either the player or another merc a couple of places ahead,
 -- so the squad trails in a rough line.
 --
--- The squad's real formation is mercenaries_formation.lua (docs/formations.md):
+-- The squad's real formation is mercenaries_formation.lua (docs/mercenaries/ai/formations.md):
 -- one merc is elected to anchor an engine formation and everyone else joins it.
 -- This chain is what a merc falls back to when that is unavailable - leader in
 -- combat, mid-handoff, startup race, or a walled camp where the formation cannot
@@ -337,7 +337,7 @@ end
 --
 -- The gap widens with squad size (more interrupts per engine update), which is why it
 -- only bites at forty or fifty men, and it fires en masse on a hold release - the one
--- moment the whole squad re-fires at once. See docs/squad-orders.md.
+-- moment the whole squad re-fires at once. See docs/mercenaries/ai/squad-orders.md.
 --
 -- So: whoever queues an eviction stamps a block here, and the follow arm will not fire
 -- 'follow' until it expires. Deliberately time-based and self-expiring - a BT latch
@@ -557,7 +557,7 @@ end
 -- cause was unknown, and it cost what it was meant to save: forcing a teleport and
 -- a follow restart on mercs who were already following fine is itself a stall of a
 -- second or two, every time. Now that the mounted leader's flee-parameter bug is
--- fixed (docs/formations.md) the squad recovers on its own, so a dismount only
+-- fixed (docs/mercenaries/ai/formations.md) the squad recovers on its own, so a dismount only
 -- OPENS A VERIFICATION WINDOW, and only a merc who demonstrably fails to move is
 -- reset. Nothing happens at all in the normal case.
 --
@@ -584,7 +584,7 @@ mercenaries.DismountVerifyFar    = 22.0  -- ...or if he is simply this far away 
 -- How often the same sampler runs OUTSIDE those windows. The four triggers above only cover
 -- the moments a stall was known to be likely, and the scheduler's own self-heal needs the
 -- merc 35m away - so a man who halts beside the player was watched by nothing. 0 disables
--- the continuous watch. See docs/formations.md, "When a merc stops following".
+-- the continuous watch. See docs/mercenaries/ai/formations.md, "When a merc stops following".
 mercenaries.FollowWatchEvery = 4.0
 
 -- THE FAR TEST DOES NOT APPLY TO A MAN HOLDING A FORMATION SLOT. 22m is shorter than the

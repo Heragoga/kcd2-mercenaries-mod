@@ -1,6 +1,6 @@
 -- Invisible entity that exists only for its per-frame update. System.DrawText is a
 -- one-frame call, so anything drawn with it needs a real frame hook; the mod's own loops
--- are ~100ms timers. See docs/ui.md.
+-- are ~100ms timers. See docs/mercenaries/ui/ui.md.
 --
 -- The update handler MUST live in the Client (or Server) sub-table. A function called
 -- OnUpdate on the entity table itself is never called by the engine - vanilla does the

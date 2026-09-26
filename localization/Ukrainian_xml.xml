@@ -735,7 +735,7 @@
   <Row><Cell>ui_merc_wheel_report</Cell><Cell>Report</Cell><Cell>Звіт</Cell></Row>
   <Row><Cell>ui_merc_wheel_equipment</Cell><Cell>Equipment</Cell><Cell>Спорядження</Cell></Row>
   <Row><Cell>ui_merc_wheel_more</Cell><Cell>More options...</Cell><Cell>Ще варіанти...</Cell></Row>
-  <!-- Bandit-camp contract (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp contract (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>ui_qm_work</Cell><Cell>Any work going?</Cell><Cell>Є якась робота?</Cell></Row>
   <Row><Cell>merc_henry_qm_work</Cell><Cell>Anything that needs doing? Something with coin at the end of it.</Cell><Cell>Є щось, що треба зробити? Щось, за що заплатять.</Cell></Row>
   <Row><Cell>merc_qm_work</Cell><Cell>As it happens, there's always work for men who don't ask twice. Interested?</Cell><Cell>Як на те пішло, для людей, що двічі не питають, завжди знайдеться робота. Цікавить?</Cell></Row>
@@ -783,7 +783,7 @@
   <Row><Cell>char_alx_jezek_description</Cell><Cell>A knight in his own plate, a long way from home and on the wrong side of it.</Cell><Cell>Лицар у власних латах, далеко від дому і не на тому боці, на якому слід.</Cell></Row>
   <Row><Cell>char_alx_officer_fullName</Cell><Cell>Officer</Cell><Cell>Офіцер</Cell></Row>
   <Row><Cell>char_alx_officer_description</Cell><Cell>One of the captains who broke with Aleksej and took his plan to the field.</Cell><Cell>Один з отаманів, що порвав з Алексієм і втілив його план у полі.</Cell></Row>
-  <!-- Bandit-camp letter / hand-in (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp letter / hand-in (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>merc_banditcamp_letter_uiname</Cell><Cell>Bandit Leader's Letter</Cell><Cell>Лист ватажка розбійників</Cell></Row>
   <Row><Cell>merc_banditcamp_letter_uiinfo</Cell><Cell>A folded sheet of coarse paper, sealed once and broken open again. The hand is better than you would expect of a man living in a wood.</Cell><Cell>Складений аркуш грубого паперу, колись запечатаний і знову розкритий. Почерк кращий, ніж можна очікувати від людини, що живе в лісі.</Cell></Row>
   <Row><Cell>ui_qm_banditcamp_letter</Cell><Cell>About the job.</Cell><Cell>Про роботу.</Cell></Row>
@@ -1179,7 +1179,7 @@
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>Простеж, щоб так і було.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Гаразд. Поширю чутку.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_cancel</Cell><Cell>Never mind.</Cell><Cell>Не зважай.</Cell></Row>
-  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/custom-gear.md) -->
+  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/mercenaries/company/custom-gear.md) -->
   <Row><Cell>ui_qm_deliver_gear</Cell><Cell>Gear for the company</Cell><Cell>Спорядження для роти</Cell></Row>
   <Row><Cell>ui_merc_equip_custom</Cell><Cell>Our own kit</Cell><Cell>Наше власне спорядження</Cell></Row>
   <Row><Cell>merc_henry_equip_custom</Cell><Cell>Wear the kit I left with the quartermaster.</Cell><Cell>Носіть спорядження, яке я лишив у квартирмейстера.</Cell></Row>

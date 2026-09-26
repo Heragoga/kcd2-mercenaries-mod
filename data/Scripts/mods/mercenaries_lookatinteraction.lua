@@ -1,5 +1,5 @@
 -- Look-at prompts on a merc: a camp make/break/return option and a sortie
--- wait/follow toggle. See docs/camp.md "Look-at prompts on a merc".
+-- wait/follow toggle. See docs/mercenaries/camp/camp.md "Look-at prompts on a merc".
 --
 -- GetActions is called on the ENGINE'S INTERACTOR POLL, not once per prompt shown, so it
 -- honours the same three things vanilla does (BasicAIActions.GetActions:18-27): bail on a
@@ -17,11 +17,11 @@ function mercenaries:InjectInteraction(entity)
     entity._mercWuid = injected
 
     -- In hardcore mode the vanilla "ask for directions" chat would otherwise replace the
-    -- whole order wheel on this man. See mercenaries_orders.lua and docs/order-wheel.md.
+    -- whole order wheel on this man. See mercenaries_orders.lua and docs/mercenaries/ui/order-wheel.md.
     self:StripDirectionsChat(entity)
 
     -- Every merc-family spawn path calls this, so it is where a new man stops colliding
-    -- with the player rather than waiting for the 5s sweep. docs/collision-ghosting.md.
+    -- with the player rather than waiting for the 5s sweep. docs/mercenaries/ai/collision-ghosting.md.
     if self.GhostCollisionOn and self:GhostCollisionOn() then self:ApplyCollisionGhost(entity) end
 
     local function mercWuid(self)

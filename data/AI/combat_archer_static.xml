@@ -20,7 +20,7 @@
          never runs its OnFail, so the crime context and drawn bow stay on continuously
          (no combat-mode flicker). Re-targeting is the scheduler's job: FindStaticArcherTarget
          picks the next enemy and re-fires this with the new target, replacing the
-         instance via IgnorePriorityOnPreviousInterrupt. See docs/ai-modules.md. -->
+         instance via IgnorePriorityOnPreviousInterrupt. See docs/mercenaries/ai/ai-modules.md. -->
     <BehaviorTree name="combat_archer_static" is_function="0">
         <Variables>
             <Variable name="isTargetAlive"    type="_bool"  values="true"   isPersistent="0" form="single" />

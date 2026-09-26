@@ -3,7 +3,7 @@
     <!-- The quartermaster's switch (type 6): a "lobotomized merc" who stands and
          eats (quartermaster_idle, the default) and defends himself with the shared
          melee tree when raided. No follow/schedule/squad logic. Defensive target
-         pick only (FindQuartermasterTarget). See docs/quartermaster.md. -->
+         pick only (FindQuartermasterTarget). See docs/mercenaries/camp/quartermaster.md. -->
     <BehaviorTree name="onUpdate" is_function="0">
         <Variables>
             <Variable name="playerWUID" type="_wuid" values="" isPersistent="0" form="single" />
@@ -27,7 +27,7 @@
                  and two enemy schedulers fire that - so the arm has to live here as well. Kept for
                  the quartermaster himself even though he never issues a RequestForceTalk today;
                  Aleksej, who used to borrow this brain and is why this arm was added, now has the
-                 identical arm on his own aleksej_scheduler.xml (docs/aleksej.md). -->
+                 identical arm on his own aleksej_scheduler.xml (docs/mercenaries/quests/aleksej.md). -->
             <Variable name="fdWant" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="fdFired" type="_bool" values="false" isPersistent="0" form="single" />
             <Variable name="fdSeen" type="_int" values="0" isPersistent="0" form="single" />

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	FEMALE MERCENARIES - the appearance half. See docs/female-mercenaries.md.
+	FEMALE MERCENARIES - the appearance half. See docs/mercenaries/company/female-mercenaries.md.
 
 	Ten vanilla female heads and seven vanilla female hairstyles, mounted in the game's MALE
 	component tree so a male-bodied NPC can wear them. No new art: these are the shipped

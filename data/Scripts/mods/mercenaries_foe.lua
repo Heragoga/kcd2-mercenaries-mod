@@ -16,7 +16,7 @@
 -- forever. That is the structural fix for the old system's "some of them never
 -- engage": there, a failed AddInterrupt was invisible and nothing retried it.
 --
--- See docs/foe-ai.md.
+-- See docs/mercenaries/enemies/foe-ai.md.
 
 -- ---------------------------------------------------------------------------
 -- Tuning

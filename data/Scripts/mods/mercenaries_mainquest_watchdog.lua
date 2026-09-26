@@ -1,7 +1,7 @@
 -- ==== main-quest battle watchdog ====
 --
 -- "During main quests the mercs disappear" is the invisible-mercenaries problem
--- (docs/quest-override-battles.md), and the coming answer is to take the squad and the
+-- (docs/mercenaries/quests/quest-override-battles.md), and the coming answer is to take the squad and the
 -- patrols OFF the board while a scripted main-quest battle runs, then put them back.
 -- This file is the RECOGNISER for that: a state machine that decides "we are inside a
 -- main-quest fight right now", with entry/exit hooks the despawn/respawn will hang off.
@@ -12,7 +12,7 @@
 -- triangulated from three independent signals:
 --
 --   1. QUEST  - one of the twelve battle quests is started and not finished. The list is
---               the measured set from docs/quest-override-battles.md: exactly the quests
+--               the measured set from docs/mercenaries/quests/quest-override-battles.md: exactly the quests
 --               that carry battle machinery / SetGameContextPreset battleInProgress,
 --               derived two independent ways. QuestSystem.IsQuestStarted/IsQuestCompleted
 --               are documented scriptbinds (references/kcd2-mod-docs-main), first use in
@@ -67,7 +67,7 @@ mercenaries.MQWContexts = {
 -- it is not evidence - the same numbers can be pushed with no battle in sight.
 --
 -- The next thing to try is the ACTIVE OBJECTIVE, if the Lua state exposes one at all:
--- merc_questprobe answers that in one run. See docs/malesov-test.md.
+-- merc_questprobe answers that in one run. See docs/mercenaries/archive/malesov-test.md.
 
 mercenaries.MQWQuestPollSecs = 10.0  -- how often the 12-quest sweep runs (cached between)
 mercenaries.MQWEnterTicks    = 2     -- consecutive busy reads before entering (blip filter)
@@ -232,7 +232,7 @@ end
 -- ==== hooks ====
 -- _G.MercMQBattle is the flag other modules read (PlayerBusyForSpawns does, so patrols
 -- stay away during the battle). The stash below is the temporary answer to the company
--- fighting a scripted battle invisibly (docs/quest-override-battles.md): the men are put
+-- fighting a scripted battle invisibly (docs/mercenaries/quests/quest-override-battles.md): the men are put
 -- out of the battle and told to hold there, and come back when it is over.
 function mercenaries:MQWOnBattleEnter(why)
     _G.MercMQBattle = true
@@ -387,7 +387,7 @@ end
 -- or the stash itself may not work. Testing them together means a failed run cannot say
 -- which broke. These two force the mechanism so it can be proven on any quiet hillside,
 -- before Malesov, and they are player-tier because merc_dev is not something to be typing
--- with an assault under way. See docs/malesov-test.md.
+-- with an assault under way. See docs/mercenaries/archive/malesov-test.md.
 function mercenaries:MQWStashNow()
     self:MQWStash("forced by hand (merc_mqstash_now)", true)
 end

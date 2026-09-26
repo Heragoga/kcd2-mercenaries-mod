@@ -46,7 +46,7 @@
                                              away from the combat automation. -->
                                         <!-- CombatMoveDecorator (combat locomotion), no outer Loop, no
                                              MoveParamsDecorator - same correction as combat_melee.xml.
-                                             See docs/foe-ai.md. -->
+                                             See docs/mercenaries/enemies/foe-ai.md. -->
                                         <Parallel successMode="Any" failureMode="Any">
                                             <CombatMoveDecorator>
                                                 <MeleeOffenseAutomationDecorator active="$automation_offense">

@@ -735,7 +735,7 @@
   <Row><Cell>ui_merc_wheel_report</Cell><Cell>Report</Cell><Cell>報告</Cell></Row>
   <Row><Cell>ui_merc_wheel_equipment</Cell><Cell>Equipment</Cell><Cell>裝備</Cell></Row>
   <Row><Cell>ui_merc_wheel_more</Cell><Cell>More options...</Cell><Cell>更多選項……</Cell></Row>
-  <!-- Bandit-camp contract (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp contract (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>ui_qm_work</Cell><Cell>Any work going?</Cell><Cell>有工作嗎?</Cell></Row>
   <Row><Cell>merc_henry_qm_work</Cell><Cell>Anything that needs doing? Something with coin at the end of it.</Cell><Cell>有什麼需要做的嗎?最好是能賺錢的。</Cell></Row>
   <Row><Cell>merc_qm_work</Cell><Cell>As it happens, there's always work for men who don't ask twice. Interested?</Cell><Cell>正巧,對不多問的人來說總是有活幹。有興趣嗎?</Cell></Row>
@@ -783,7 +783,7 @@
   <Row><Cell>char_alx_jezek_description</Cell><Cell>A knight in his own plate, a long way from home and on the wrong side of it.</Cell><Cell>一位身披自家板甲的騎士,離家萬里,還站錯了邊。</Cell></Row>
   <Row><Cell>char_alx_officer_fullName</Cell><Cell>Officer</Cell><Cell>軍官</Cell></Row>
   <Row><Cell>char_alx_officer_description</Cell><Cell>One of the captains who broke with Aleksej and took his plan to the field.</Cell><Cell>與Aleksej決裂、把他的計畫付諸實行的隊長之一。</Cell></Row>
-  <!-- Bandit-camp letter / hand-in (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp letter / hand-in (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>merc_banditcamp_letter_uiname</Cell><Cell>Bandit Leader's Letter</Cell><Cell>強盜首領的信</Cell></Row>
   <Row><Cell>merc_banditcamp_letter_uiinfo</Cell><Cell>A folded sheet of coarse paper, sealed once and broken open again. The hand is better than you would expect of a man living in a wood.</Cell><Cell>一張折疊的粗紙,曾經封緘,如今已被拆開。字跡工整得不像是住在林子裡的人寫的。</Cell></Row>
   <Row><Cell>ui_qm_banditcamp_letter</Cell><Cell>About the job.</Cell><Cell>關於這份工作。</Cell></Row>
@@ -1179,7 +1179,7 @@
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>就這麼辦。</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>好。我會把話放出去。</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_cancel</Cell><Cell>Never mind.</Cell><Cell>算了。</Cell></Row>
-  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/custom-gear.md) -->
+  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/mercenaries/company/custom-gear.md) -->
   <Row><Cell>ui_qm_deliver_gear</Cell><Cell>Gear for the company</Cell><Cell>隊伍的裝備</Cell></Row>
   <Row><Cell>ui_merc_equip_custom</Cell><Cell>Our own kit</Cell><Cell>我們自己的行頭</Cell></Row>
   <Row><Cell>merc_henry_equip_custom</Cell><Cell>Wear the kit I left with the quartermaster.</Cell><Cell>穿上我留給軍需官的那套行頭。</Cell></Row>

@@ -6,7 +6,7 @@
          camp tables in mercenaries_camp.lua (IsCampGuard / GetCampFurniture /
          GetCampActivity / _G.MercCampChats), which are side-agnostic: populate
          them for any NPC - merc or bandit - and fire this behaviour on it.
-         Extracted from the old composite follow tree. See docs/ai-modules.md. -->
+         Extracted from the old composite follow tree. See docs/mercenaries/ai/ai-modules.md. -->
     <BehaviorTree name="camp_actor" is_function="0">
         <Variables>
             <!-- Marching column (bandit patrol contracts): follow the man ahead.
@@ -118,7 +118,7 @@
                                 </IfCondition>
                                 <!-- Guard/column/furniture/chat-pairing/activity refresh, merged into one
                                      ExecuteLua crossing instead of five - same calls, same order, only
-                                     after the yield gate above. See docs/performance.md. -->
+                                     after the yield gate above. See docs/mercenaries/tech/performance.md. -->
                                 <ExecuteLua code="
                                     data.poseRescue = mercenaries:PoseRescueWanted(entity.this.id)
                                     data.isCampGuard = mercenaries:IsCampGuard(entity.this.id)
@@ -289,7 +289,7 @@
 
                                 <!-- Camp conversations (first cases, so a paired merc turns and talks).
                                      The initiator (chatRole 1) drives a gossip polylog and ends the pair
-                                     itself (EndCampChat) when done. See docs/camp.md and the two-NPC gossip notes. -->
+                                     itself (EndCampChat) when done. See docs/mercenaries/camp/camp.md and the two-NPC gossip notes. -->
                                 <IfCondition failOnCondition="false" condition="$chatRole == 1.0">
                                     <Sequence>
                                         <!-- Only standing mercs turn to their partner: turning a merc seated on
@@ -375,7 +375,7 @@
                                      patrol/sit/sleep/follow). UnstanceElement plays $campActUnstance
                                      (a NPCStateUnstanceDatabase name) for as long as its children run,
                                      so leaving the arm plays the Out fragment - an UnstanceAction here
-                                     would leave the pose on the merc after the tree died. See docs/camp.md. -->
+                                     would leave the pose on the merc after the tree died. See docs/mercenaries/camp/camp.md. -->
 
                                 <!-- Mode 1: sit on the anchor seat, then play the action seated.
                                      The <WaitAction/> performs the sit-down. -->
@@ -460,7 +460,7 @@
                                     </Sequence>
                                 </IfCondition>
 
-                                <!-- Mode 10: camp smith (see mercenaries_forge.lua / docs/camp-forge.md).
+                                <!-- Mode 10: camp smith (see mercenaries_forge.lua / docs/mercenaries/camp/camp-forge.md).
                                      Conjure a sword into his hand once (CreateItem+EquipItem, guarded by
                                      $m10Equipped), sit on the bench, and play camper_knifeSharpening (a
                                      held-item camper anim). No Move - Lua teleports him onto the bench. -->
@@ -608,7 +608,7 @@
                                      doesn't navigate), then StanceElement lying against its WUID. The
                                      <WaitAction/> inside is REQUIRED - it plays the enter animation;
                                      without it the merc just stands on the furniture. The trailing Wait is
-                                     the hold before re-entering. See docs/camp.md. -->
+                                     the hold before re-entering. See docs/mercenaries/camp/camp.md. -->
                                 <IfCondition failOnCondition="false" condition="$isCampSleeper">
                                     <Sequence>
                                         <SuppressFailure>

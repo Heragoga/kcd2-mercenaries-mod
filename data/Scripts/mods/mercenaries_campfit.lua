@@ -21,7 +21,7 @@
 -- from a change that looked equally harmless. Height correction is safe for those and tilt
 -- is not, so they get neither until somebody can watch a merc lie down on a slope.
 --
--- See docs/camp-inspection.md.
+-- See docs/mercenaries/camp/camp-inspection.md.
 
 mercenaries.CampAlignToGround = true    -- master switch; merc_camp_align 0/1
 mercenaries.CampAlignMaxDeg   = 18      -- clamp. A tent at 25 degrees reads as broken even
@@ -721,7 +721,7 @@ mercenaries:DevCommand("merc_camp_retilt", "mercenaries:CampRetilt()",
 --
 -- It does NOT see the level's static brushes (the barn is not an entity) - that is what the
 -- collision-vs-terrain ray test is for - and it does not see vegetation, which has no physics
--- proxy at all and cannot be detected by anything (see docs/camp-inspection.md).
+-- proxy at all and cannot be detected by anything (see docs/mercenaries/camp/camp-inspection.md).
 --
 -- Classes that are solid and placed by the level. NPCs, the player, triggers and loose
 -- pickables are all excluded: they move, or you can walk through them, and rejecting ground

@@ -1252,7 +1252,7 @@
 <!-- end generated companions -->
 
         <!-- =====================================================================
-             FEMALE MERCENARIES (merc_hire_female). docs/female-mercenaries.md.
+             FEMALE MERCENARIES (merc_hire_female). docs/mercenaries/company/female-mercenaries.md.
 
              Female head and hair, male body, male armour, male animations. The
              components are vanilla f_head_* / f_hair_* mounted in the Male tree by

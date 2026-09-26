@@ -147,7 +147,7 @@ if not exist "%VOICE_SRC%" (
 
 :: ------------------------------------------------------------
 :: 6. OPTIONAL: Copy the baked lipsync paks -> data\
-::    Prebuilt by tools\build_facials.ps1 (see docs\lipsync.md), not repacked here:
+::    Prebuilt by tools\build_facials.ps1 (see docs\mercenaries\tech\lipsync.md), not repacked here:
 ::    mercenaries_facials.pak holds the whole 124 MB facial index and only stays a
 ::    sane size because it is deflated, which the store-only pack above is not.
 :: ------------------------------------------------------------

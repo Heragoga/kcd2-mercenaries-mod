@@ -3,7 +3,7 @@
 -- A gate is placed on its own (merc_gate_build / the quartermaster), independently of
 -- any wall, and can be opened or closed. A CLOSED gate is a piece of wall as far as
 -- pathing is concerned - it contributes a blocking segment - and a camp whose gates
--- are all shut is not raided. See docs/gates.md.
+-- are all shut is not raided. See docs/mercenaries/fortifications/gates.md.
 --
 -- The candidate grid at the bottom is the authoring tool the meshes were chosen with.
 --

@@ -186,7 +186,7 @@
                                      cadence the bodyguards reference mod uses for the SAME engine node
                                      (companion_scheduler.xml: Wait 1s +-300ms) - and that mod carries
                                      companions with no reported cost. GetTarget here is a real engine
-                                     call, not a Lua flag read (docs/combat-target-selection.md), so at
+                                     call, not a Lua flag read (docs/mercenaries/ai/combat-target-selection.md), so at
                                      50 mercs 300ms was ~167 engine calls/sec that scale with squad size,
                                      paid whether or not anything is happening.
                                      idleTicks below are counted in POLLS, so they are halved with the
@@ -217,7 +217,7 @@
 
                                         <Expression expressions="$playerTarget = $__null &#10; $mercTarget = $__null &#10; $playerWUID = $__player &#10; $foundTarget = false &#10; $isFriendly = true" />
 
-                                        <!-- Target acquisition is always on. See docs/combat-target-selection.md. -->
+                                        <!-- Target acquisition is always on. See docs/mercenaries/ai/combat-target-selection.md. -->
                                         <SuppressFailure>
                                             <IfCondition failOnCondition="false" condition="~$inCombat &amp; $doAcquire">
                                                 <Sequence>

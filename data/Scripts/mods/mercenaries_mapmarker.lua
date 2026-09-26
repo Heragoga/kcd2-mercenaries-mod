@@ -5,7 +5,7 @@
 -- The mod used to draw three POIs on the world map as well (the camp, the waiting men and
 -- Aleksej) by pushing rows into ApseMap's PoiMarkers array. They were removed on request;
 -- the whole mechanism, the crash it can cause and the icon research are kept in
--- docs/map-marker.md in case they are ever wanted back.
+-- docs/mercenaries/ui/map-marker.md in case they are ever wanted back.
 --
 -- What is left is the compass marker, which is a different Scaleform element (hud) and is
 -- opt-in: merc_camp_compass 1.

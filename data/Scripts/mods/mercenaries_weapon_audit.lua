@@ -1,7 +1,7 @@
 -- Weapon-preset audit. Spawns one NPC per weapon preset in a numbered grid and
 -- reports, per NPC, whether the preset's items actually reached his inventory -
 -- so a preset that arms nobody can be spotted by eye and by log at once.
--- Debug only; see docs/weapon-audit.md.
+-- Debug only; see docs/mercenaries/company/weapon-audit.md.
 
 mercenaries.WeaponAuditPrefix  = "MercWpnAudit_"
 mercenaries.WeaponAuditRowSize = 12

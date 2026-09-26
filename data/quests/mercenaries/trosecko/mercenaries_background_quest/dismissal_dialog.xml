@@ -383,7 +383,7 @@
 
                                                 <!-- The set the player handed the quartermaster. Second in the list
                                                      on purpose: it sits next to Generic as the other "our own kit"
-                                                     answer. See docs/custom-gear.md. -->
+                                                     answer. See docs/mercenaries/company/custom-gear.md. -->
                                                 <Sequence EndType="EndDialogue" Name="seq_equip_custom">
                                                     <UiPrompt StringName="ui_merc_equip_custom" />
                                                     <Elements>

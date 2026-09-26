@@ -14,7 +14,7 @@
 --     ent:SetViewDistRatio(0)
 --
 -- i.e. it set the maximum and then immediately the MINIMUM on the next line, so the function
--- named "always rendered" was culling mercs as hard as the engine allows. docs/npc-lod.md
+-- named "always rendered" was culling mercs as hard as the engine allows. docs/mercenaries/tech/npc-lod.md
 -- records the gap this leaves: a clean retry with no follow-up zeroing was never attempted.
 --
 -- Separate pcalls on purpose: these are entity-class methods and a missing one on the NPC
@@ -114,7 +114,7 @@ end
 -- each merc's IGNORE mask, and a collision that never happens deals nothing. Bits are from
 -- the engine's g_PhysicsCollisionClass table; these two are gcc_player_all, the whole of the
 -- player's body. gcc_player_type is deliberately not here - that bit belongs to the
--- avoidance family, not the physics body. See docs/collision-ghosting.md.
+-- avoidance family, not the physics body. See docs/mercenaries/ai/collision-ghosting.md.
 mercenaries.GccPlayerCapsule = 0x400
 mercenaries.GccPlayerBody    = 0x800
 mercenaries.GccHorse         = 0x10000
@@ -123,7 +123,7 @@ mercenaries.GhostMask      = 0x400 + 0x800
 -- A merc's mount ignores horses too: mounted, the body that gets rammed is your horse.
 mercenaries.GhostHorseMask = 0x400 + 0x800 + 0x10000
 -- A class bit of the mod's own, OR'd into every merc body and mount, and put on the PLAYER'S
--- MOUNT's ignore mask. Bits 10..27 are the game's (the table in docs/collision-ghosting.md);
+-- MOUNT's ignore mask. Bits 10..27 are the game's (the table in docs/mercenaries/ai/collision-ghosting.md);
 -- 28 is free. gcc_horse in the mount mask never stopped a company on foot from running into
 -- a mounted player's horse and bruising it - that contact is the merc's body against the
 -- horse, and the horse carries no class of the player's. Tagging our side and telling his
@@ -222,7 +222,7 @@ end
 -- Turning the pin off now actually un-pins the live squad, so this is a usable A/B:
 -- pinned mercs are never distance-culled and never LOD-reduced, which is the mod's
 -- largest standing per-merc engine cost. 100 is the entity default ratio (never pass 0,
--- that is the MINIMUM - see the note at the top of this file). docs/performance.md.
+-- that is the MINIMUM - see the note at the top of this file). docs/mercenaries/tech/performance.md.
 function mercenaries:RenderPinSet(v)
     self.RenderPin = (tostring(v or ''):match('1') ~= nil)
     if self.RenderPin then
@@ -621,7 +621,7 @@ function mercenaries:GetSafeSpawnPosition(pe, distance)
 end
 
 -- Where men hired INDOORS muster.
--- Full write-up: docs/spawning-npcs.md "Spawning while the player is indoors".
+-- Full write-up: docs/mercenaries/company/spawning-npcs.md "Spawning while the player is indoors".
 --
 -- GetSafeSpawnPosition only looks ~5m behind the player, so hiring from an
 -- innkeeper put the squad in the tavern with him - and its ground snap starts 5m
@@ -781,7 +781,7 @@ end
 -- frame. Keeping the fine 0.5m step preserves precision near the origin, where almost
 -- every call succeeds; the budget only truncates the hopeless case (dense forest), which
 -- then falls through to the plain ground snap below exactly as an exhausted spiral did.
--- See docs/performance.md.
+-- See docs/mercenaries/tech/performance.md.
 function mercenaries:FindValidGround(pos, refZ, maxRadius, step, maxTries)
     if not pos then return pos, false end
     refZ = refZ or pos.z
@@ -855,7 +855,7 @@ end
 -- bookkeeping paths keep IsAliveAndWell(ent, true), because "is he still on the
 -- books" is a different question - PruneMercCache schedules a despawn on a false
 -- answer, so a knocked-out merc must still read as alive there.
--- See docs/combat-target-selection.md.
+-- See docs/mercenaries/ai/combat-target-selection.md.
 function mercenaries:IsCombatViable(ent)
     return self:IsAliveAndWell(ent, false)
 end
@@ -915,7 +915,7 @@ end
 -- Move the HORSE instead and the rider comes along attached to it, which is how the player's
 -- own mount travels with him. A man on foot is moved himself, and any horse of his is brought
 -- along beside him so the ForceMount-by-name can only ever land him where he already is.
--- Nothing is dismounted and nothing is destroyed. See docs/travel-detection.md.
+-- Nothing is dismounted and nothing is destroyed. See docs/mercenaries/tech/travel-detection.md.
 function mercenaries:MercPlaceAt(ent, spot)
     if not (ent and spot) then return false end
     local mounted, h = false, nil
@@ -950,7 +950,7 @@ end
 -- problem until the player goes somewhere, and re-firing a follow tree against a frozen
 -- world cannot make it run - and all three want the same question, so it is asked once here.
 -- Same idiom and the same reasoning as PatrolPlayerMoving, which shipped for exactly this in
--- the patrol tick (docs/travel-detection.md, "The window no travel detector can close").
+-- the patrol tick (docs/mercenaries/tech/travel-detection.md, "The window no travel detector can close").
 --
 -- Answers TRUE with no history, so the first pass after a load behaves exactly as before.
 mercenaries.PlayerGoMinDist = 6.0    -- ground covered before he counts as under way

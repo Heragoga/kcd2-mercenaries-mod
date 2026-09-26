@@ -135,7 +135,7 @@
        <!-- Bandit camp leader: one per camp, and the quest's map-marker anchor
             (SoulAsset "banditcamp_leader" in bandit_camp_quest.xml). Its own soul so
             the marker resolves to exactly one NPC - the shared bandit souls above are
-            round-robined and several spawns can share one. See docs/bandit-camp-quest.md. -->
+            round-robined and several spawns can share one. See docs/mercenaries/quests/bandit-camp-quest.md. -->
        <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="1.1" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_banditcamp_leader" social_class_id="3" soul_archetype_id="0" soul_id="7a1c9e40-5d2b-4f83-9c16-8e5a3b7d0f21" soul_name="soul_banditcamp_leader" soul_vip_class_id="0" xp_multiplier="1" />
        <!-- The bounty camp's leader. Identical to the one above in every way that matters;
             he exists only so the two contracts' map markers have a soul each - a SoulAsset
@@ -224,7 +224,7 @@
             a post, eat now and then, defend himself, never wander. His post is read per
             entity (GetQuartermasterPost), so the two do not walk to the same spot. His
             skald_character has no role mapping, which is deliberate - pressing E on him
-            opens the trade prompts, not a conversation. See docs/camp-trader.md. -->
+            opens the trade prompts, not a conversation. See docs/mercenaries/camp/camp-trader.md. -->
        <soul brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_mercenary_trader" social_class_id="3" soul_archetype_id="0" soul_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7c01" soul_name="soul_merc_trader" soul_vip_class_id="12" xp_multiplier="0" />
 		<soul brain_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b04" combat_level="0.9" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_aleksej" social_class_id="3" soul_archetype_id="0" soul_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b01" soul_name="soul_aleksej" soul_vip_class_id="12" xp_multiplier="0" />
 		<!-- The marsh Aleksej. He was on mercenariesFaction with a VIP class and his own townsman
@@ -242,7 +242,7 @@
             but enemiesFaction so the camp does not attack its own tower, and a bandit skald
             character so they read as bandits rather than "mercenary archer".
             soul_vip_class_id is 0, NOT the 16 the merc towers use: these have to be killable
-            or the contract can never be completed. See docs/bandit-camp-quest.md. -->
+            or the contract can never be completed. See docs/mercenaries/quests/bandit-camp-quest.md. -->
 		<soul brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" combat_level="0.9" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_bandit_1" social_class_id="3" soul_archetype_id="0" soul_id="d1e2f3a4-5b6c-4d7e-8f90-1a2b3c4d5e01" soul_name="soul_enemy_tower_archer_1" soul_vip_class_id="0" xp_multiplier="1" />
 		<soul brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" combat_level="0.9" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_bandit_2" social_class_id="3" soul_archetype_id="0" soul_id="d1e2f3a4-5b6c-4d7e-8f90-1a2b3c4d5e02" soul_name="soul_enemy_tower_archer_2" soul_vip_class_id="0" xp_multiplier="1" />
 		<soul brain_id="7c1e9a42-5d3b-4f80-9a17-6b2d4e8c0f31" combat_level="0.9" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_bandit_3" social_class_id="3" soul_archetype_id="0" soul_id="d1e2f3a4-5b6c-4d7e-8f90-1a2b3c4d5e03" soul_name="soul_enemy_tower_archer_3" soul_vip_class_id="0" xp_multiplier="1" />
@@ -278,7 +278,7 @@
 		<soul brain_id="a71f4e93-2c85-4d16-8f3a-b62e94c17d08" combat_level="0.9" digestion_multiplier="0" factionName="patrolFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_prague_3" social_class_id="3" soul_archetype_id="0" soul_id="f1e2d3c4-0020-4a00-8b00-00000000002f" soul_name="soul_patrol_prague_3" soul_vip_class_id="0" xp_multiplier="1" />
 		<soul brain_id="a71f4e93-2c85-4d16-8f3a-b62e94c17d08" combat_level="1.0" digestion_multiplier="0" factionName="patrolFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_prague_1" social_class_id="3" soul_archetype_id="0" soul_id="f1e2d3c4-0020-4a00-8b00-000000000030" soul_name="soul_patrol_prague_4" soul_vip_class_id="0" xp_multiplier="1" />
 
-		<!-- Foe test souls (docs/foe-ai.md): foe_brain, foeFaction, six faces so a spawned
+		<!-- Foe test souls (docs/mercenaries/enemies/foe-ai.md): foe_brain, foeFaction, six faces so a spawned
 		     band is not six copies of one man. Lootable and worth XP like the enemy groups. -->
 		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.7" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_1" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000001" soul_name="soul_foe_1" soul_vip_class_id="0" xp_multiplier="1" />
 		<soul brain_id="f0e10000-1a2b-4c3d-8e4f-000000000001" combat_level="0.7" digestion_multiplier="0" factionName="foeFaction" initial_clothing_dirt="0" skald_character_name="char_foe_2" social_class_id="3" soul_archetype_id="0" soul_id="f0e15001-1a2b-4c3d-8e4f-000000000002" soul_name="soul_foe_2" soul_vip_class_id="0" xp_multiplier="1" />
@@ -327,7 +327,7 @@
        <soul brain_id="b3a1c7d2-4e9f-4a58-8b6d-1c3e7f9a2b40" combat_level="0.9" digestion_multiplier="0" factionName="enemiesFaction" initial_clothing_dirt="0" skald_character_name="char_enemy_townguard_1" social_class_id="3" soul_archetype_id="0" soul_id="7c9a1e50-0b21-5a01-9e10-4d1f0a7b000a" soul_name="soul_enemy_townguard_10" soul_vip_class_id="0" xp_multiplier="1" />
 <!-- END generated townguard -->
 
-		<!-- FEMALE MERCENARIES (merc_hire_female). docs/female-mercenaries.md.
+		<!-- FEMALE MERCENARIES (merc_hire_female). docs/mercenaries/company/female-mercenaries.md.
 		     Copies of the medium-tier soul in every respect that touches gameplay - same
 		     brain, same faction, same combat_level, same social class - so a woman hired
 		     here fights exactly as a seasoned man does. Only skald_character_name differs,
@@ -348,7 +348,7 @@
        <soul brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_mercenary_female_9" social_class_id="3" soul_archetype_id="0" soul_id="7f1c9a24-3b6e-4d51-9a08-2c5e71bd0409" soul_name="soul_merc_female_9" soul_vip_class_id="16" xp_multiplier="0" />
        <soul brain_id="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" combat_level="0.7" digestion_multiplier="0" factionName="mercenariesFaction" initial_clothing_dirt="0" skald_character_name="char_mercenary_female_10" social_class_id="3" soul_archetype_id="0" soul_id="7f1c9a24-3b6e-4d51-9a08-2c5e71bd040a" soul_name="soul_merc_female_10" soul_vip_class_id="16" xp_multiplier="0" />
     </souls>
-    <!-- Aleksej of Zaslawye (docs/aleksej.md). His own soul, character, role, brain and bindings -
+    <!-- Aleksej of Zaslawye (docs/mercenaries/quests/aleksej.md). His own soul, character, role, brain and bindings -
          nothing shared with the quartermaster. aleksej_brain is his own: same "lobotomized merc"
          shape (stand, eat, self-defend) as the quartermaster's, plus his own camp routine and
          forced-dialogue arms - see aleksej_scheduler.xml. combat_level is high because he has to

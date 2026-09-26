@@ -100,7 +100,7 @@ function mercenaries:NavObstWantsAll()
 end
 
 -- The per-agent half, through the engine's own AI script interface (the Lua global `AI`,
--- 265 live functions - see docs/walls-and-sieges.md). Two calls per man:
+-- 265 live functions - see docs/mercenaries/fortifications/walls-and-sieges.md). Two calls per man:
 --   SetAdjustPath                     - let HIS path bend round dynamic obstacles
 --   SetCollisionAvoidanceRadiusIncrement - give HIM a margin the global cvar cannot
 -- Everyone the collision layer already enumerates, which is every NPC within SolidRegion
@@ -628,7 +628,7 @@ end
 
 -- ==== does it change anything? ====
 -- The wall lab's test NPC is unusable (its walk order silently fails to take - see
--- docs/walls-and-sieges.md), so measure on the company, who follow the player with no
+-- docs/mercenaries/fortifications/walls-and-sieges.md), so measure on the company, who follow the player with no
 -- behaviour-tree interrupt in the way. Walk ALONG a wall of yours for two 15 s stretches:
 -- the first with the obstacles off, the second with them on. What is reported is how close
 -- the men let themselves get to the timber. If the avoidance layer is doing anything, the

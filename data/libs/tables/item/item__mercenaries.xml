@@ -14,7 +14,7 @@
              in mercenaries.Outfits: 1 generic, 2 bandit, 3 cuman, 4 Leipa, 5 Kuttenberg,
              6 Skalitz, 7 custom uniform, 8 Prague, 9 Sigismund, 10 Order of the Red Star,
              11 Bergov, 12 Nebakov, 13 Semine, 14 Pisek, 15 Teutonic, 16 Ruthard, 17 Papal.
-             See docs/outfits.md - do not renumber, EnemyOutfitOverride assumes these. -->
+             See docs/mercenaries/company/outfits.md - do not renumber, EnemyOutfitOverride assumes these. -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be47d" Name="loot_sackOfNails" />
         <!-- Item used to indicate the recruitment of a custom companion, one means custom companion 1, two custom companion 2 etc -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be48d" Name="loot_sackOfNails" />
@@ -145,7 +145,7 @@
         <!-- Aleksej forced-dialogue gates: player in range / out of range. -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bea5d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bea6d" Name="loot_sackOfNails" />
-        <!-- Aleksej of Zaslawye: the seven documents (docs/aleksej.md). No IsQuestItem -
+        <!-- Aleksej of Zaslawye: the seven documents (docs/mercenaries/quests/aleksej.md). No IsQuestItem -
              it blocks inventory:CreateItem, which is how these reach a corpse. -->
         <Document Type="5" IconId="letter_simple" UIInfo="merc_alx_doc1_uiinfo" UIName="merc_alx_doc1_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92beaad" Name="merc_alx_doc1">
             <DocumentContent Parts="merc_alx_doc1_part1 merc_alx_doc1_part2" />
@@ -175,7 +175,7 @@
              (mercenaries_aleksej.lua TokenIDAlxB1/TokenIDAlxB1Done..TokenIDAlxB9Done). Same
              "loot_sackOfNails" reusable token shape as the Kleinkrieg gates above - only beat
              1's open and every beat's done need a Lua-droppable item; beats 2-9's open gates
-             are pure graph edges (docs/aleksej.md). -->
+             are pure graph edges (docs/mercenaries/quests/aleksej.md). -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92beb1d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92beb2d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92beb3d" Name="loot_sackOfNails" />
@@ -202,7 +202,7 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bec7d" Name="loot_sackOfNails" />
         <!-- Beats 7, 8 and 9 need their own spawn tokens too: the rebuilt quest issues one
              per beat, both when the beat opens and again on every level wake while that
-             beat is the live one (docs/aleksej.md, "the camp is not save data"). -->
+             beat is the live one (docs/mercenaries/quests/aleksej.md, "the camp is not save data"). -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bec8d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bec9d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92becad" Name="loot_sackOfNails" />
@@ -223,7 +223,7 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bed6d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bed7d" Name="loot_sackOfNails" />
         <!-- "beat camp is up" and "re-arm the objective", Lua -> Skald. Sent after a wake rebuild so the
-             Started log fires again and its Marker binds to the RESPAWNED leader (docs/aleksej.md). -->
+             Started log fires again and its Marker binds to the RESPAWNED leader (docs/mercenaries/quests/aleksej.md). -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be00d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be01d" Name="loot_sackOfNails" />
         <!-- Cast silver. The base game has a full set of raw-silver meshes under
@@ -255,7 +255,7 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be9cd" Name="loot_sackOfNails" />
         <!-- Signals the END of the whole Kleinkrieg arc (last contract paid). -->
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92be8ed" Name="loot_sackOfNails" />
-        <!-- The Kleinkrieg story letters (docs/bandit-camp-quest.md). Letter 6 is
+        <!-- The Kleinkrieg story letters (docs/mercenaries/quests/bandit-camp-quest.md). Letter 6 is
              Raborsch's and arrives with that contract. No IsQuestItem - it blocks
              inventory:CreateItem, which is how these reach the leader's body. -->
         <Document Type="5" IconId="letter_simple" UIInfo="merc_kk_letter1_uiinfo" UIName="merc_kk_letter1_uiname" Model="characters/assets/parchment_folded/parchment_folded.cdf" EntityScript="Book" Weight="0.1" Price="50" FadeCoef="2.666667" VisibilityCoef="0" Id="679a655e-189d-4519-b437-ccc4b92be88d" Name="merc_kk_letter1">
@@ -294,7 +294,7 @@
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bedfd" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bee0d" Name="loot_sackOfNails" />
         <MiscItem Type="5" SubType="0" IconId="loot_sackOfNails" UIInfo="ui_in_common_sackOfNails" UIName="ui_nm_common_sackOfNails" Model="manmade/task_specific_props/construction/nails_bag_a.cgf" Weight="1.2" Price="120" FadeCoef="1.111111" VisibilityCoef="1" Id="679a655e-189d-4519-b437-ccc4b92bee1d" Name="loot_sackOfNails" />
-        <!-- Reinforced caftans: see docs/outfits.md. A Cuman wears a caftan
+        <!-- Reinforced caftans: see docs/mercenaries/company/outfits.md. A Cuman wears a caftan
              where a Bohemian wears a gambeson plus a mail shirt, so these
              carry that armour value themselves and let the Cuman styles hit
              their tier budget without being dressed as men-at-arms. -->

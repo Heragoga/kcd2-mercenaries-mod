@@ -313,7 +313,7 @@ mercenaries.SeatWatchSaid = {}
 function mercenaries:SeatWatchTick()
     if not self.SeatWatchOn then return end
     -- Engine time runs ~29x fast through a sleep/wait, so pace the work on the wall clock
-    -- and let the timer itself fire as often as it likes (see docs/performance.md).
+    -- and let the timer itself fire as often as it likes (see docs/mercenaries/tech/performance.md).
     local now = (os and os.clock) and os.clock() or nil
     local due = (not now) or (not self.SeatWatchLast) or (now - self.SeatWatchLast) >= 1.0
     if due then
@@ -362,7 +362,7 @@ function mercenaries:SeatWatchToggle()
     if self.SeatWatchOn then self:SeatWatchTick() end
 end
 
--- Visualise the heightmap classifier (see docs/camp.md "Ground validation"):
+-- Visualise the heightmap classifier (see docs/mercenaries/camp/camp.md "Ground validation"):
 -- drops a marker per cell - flag = valid ground (at its real height, so slope
 -- reads), barrel = small clump (tree/rock), crate = building; void = no marker.
 -- This is only the detector; the live camp spawn still uses per-cluster

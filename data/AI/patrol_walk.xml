@@ -12,7 +12,7 @@
 
          This is fired at Priority 200 and combat_melee at 160, so do NOT rely on the
          combat fire evicting it - that claim was here and is unproven either way (see
-         docs/patrols.md). Instead PatrolWalkTick sets $routeDone as soon as this man holds
+         docs/mercenaries/enemies/patrols.md). Instead PatrolWalkTick sets $routeDone as soon as this man holds
          a target, so the walk ends ITSELF and frees the slot; the scheduler re-fires it
          when the fight is over.
 

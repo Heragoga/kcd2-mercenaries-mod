@@ -30,7 +30,7 @@ mercenaries.WallTypeIdx = 3      -- the high palisade: the one that worked
 mercenaries.WallTypePalisade = 3 -- and what LogiBuyWall must always go back to
 
 -- Wall segments physicalise RIGID (resting) rather than static, which is the only way the
--- engine's obstacle system can see them at all - see docs/walls-and-sieges.md. Heavy and
+-- engine's obstacle system can see them at all - see docs/mercenaries/fortifications/walls-and-sieges.md. Heavy and
 -- asleep so they behave like the static ones did; merc_wall_rigid 0 puts them back.
 -- OFF. Rigid + sunk 3 m into the ground = physics ejects the segment out of the terrain
 -- and the tall thin ones topple. Confirmed in play. The obstacle visibility comes from

@@ -1,6 +1,6 @@
 -- Player-tent amenities: the personal chest by the bed, and a drying rack and a
 -- smokehouse beside the tent. All three stand for the camp's lifetime and are
--- rebuilt with it. See docs/camp-amenities.md.
+-- rebuilt with it. See docs/mercenaries/camp/camp-amenities.md.
 
 -- ---------------------------------------------------------------------------
 -- The personal chest
@@ -140,7 +140,7 @@ end
 -- Where the chest goes, and which way it faces. In the ROUND tent that is a
 -- bearing and a radius from the tent's own centre, with the chest laid tangent
 -- to the canvas; in the rectangular house it is an offset from the bed. See
--- AmenChestSpot and docs/camp-amenities.md.
+-- AmenChestSpot and docs/mercenaries/camp/camp-amenities.md.
 function mercenaries:AmenChestSpot(bedPos, bedAngle)
     -- House: a straight wall to stand against, so bed-relative is the natural
     -- frame. Against the far wall, square to it, front to the room.

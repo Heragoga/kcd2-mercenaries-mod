@@ -7,7 +7,7 @@
 -- non-null - so withholding a claim is enough to stand a man down, and no
 -- scheduler XML has to learn about stances at all.
 --
--- See docs/squad-orders.md.
+-- See docs/mercenaries/ai/squad-orders.md.
 
 -- ==== engagement stance ====
 --
@@ -144,7 +144,7 @@ end
 --
 -- The two hostility gates are never both waived on the RELATIONSHIP paths - the
 -- relationship floor and the drawn-weapon proof are each other's safety net (see
--- docs/combat-target-selection.md). LockedOntoUs is a third gate, not a waiver of
+-- docs/mercenaries/ai/combat-target-selection.md). LockedOntoUs is a third gate, not a waiver of
 -- those two: see below.
 -- Returns accepted, viaLockOn. The second tells UpdateEnemyCache this man is confirmed
 -- to be FIGHTING us, which is what its second pass grows the rest of the battle from.
@@ -672,7 +672,7 @@ end
 -- Taking the metarole off the man leaves the wheel as the only chat he has. Storm does the
 -- same thing declaratively with hardcoreMode_disableDirectionsChat
 -- (libs/Storm/contexts/mercenariescontexts.xml); this is the runtime half, so a man who is
--- already in the world when the rule has not run is covered too. See docs/order-wheel.md.
+-- already in the world when the rule has not run is covered too. See docs/mercenaries/ui/order-wheel.md.
 mercenaries.DirectionsChatRoles = { "MUZ_UKAZUJE_CESTU", "ZENA_UKAZUJE_CESTU" }
 
 function mercenaries:StripDirectionsChat(entity)

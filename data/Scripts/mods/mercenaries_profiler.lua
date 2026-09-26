@@ -7,7 +7,7 @@
 -- Run merc_prof_timer once before trusting a single number below.
 --
 -- Off by default; merc_prof 1 turns it on and instruments in one step.
--- See docs/performance.md.
+-- See docs/mercenaries/tech/performance.md.
 
 -- OFF by default. Instrumentation wraps ~74 functions and allocates a table per call
 -- to preserve return arity, which is real cost in normal play. merc_prof 1 turns it on
@@ -360,7 +360,7 @@ function mercenaries:ProfReport(sortByMax)
     -- with. This is how a duplicate chain is SEEN: a duplicated chain does not run slower or
     -- cost more per call, it just fires more often than it was scheduled to, and nothing else
     -- in this report says so. LivePatrolTick was found this way - 63 firings where 7 were due,
-    -- while LootSweepTick sat exactly on 1000ms in the same window. See docs/performance.md.
+    -- while LootSweepTick sat exactly on 1000ms in the same window. See docs/mercenaries/tech/performance.md.
     local scheduled = self.ProfTimerSchedule or {}
     for _, r in ipairs(rows) do
         local s = r.s

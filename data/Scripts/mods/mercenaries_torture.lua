@@ -2480,7 +2480,7 @@ function mercenaries:TortureBindKeys()
 end
 
 -- Dev-gated: automated tests, all of which quit the game when done. Not registered
--- until merc_dev, which itself only works in a -devmode launch. See docs/console.md.
+-- until merc_dev, which itself only works in a -devmode launch. See docs/mercenaries/tech/console.md.
 mercenaries:DevCommand("merc_torture",       "mercenaries:TortureStart(false)",      "Run the functional torture-test campaign")
 mercenaries:DevCommand("merc_torture_auto",  "mercenaries:TortureStart(true)",       "Run the torture campaign and QUIT when done (harness mode)")
 mercenaries:DevCommand("merc_torture_probe", "mercenaries:TortureStartProbe(true)",  "Adaptive scenario probe: observe this save's world and QUIT")

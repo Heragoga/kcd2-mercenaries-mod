@@ -1,5 +1,5 @@
 -- Camp alchemy bench: borrows a village AlchemyTable, moves it near camp, and
--- drags its dressing props along. See docs/camp-alchemy.md.
+-- drags its dressing props along. See docs/mercenaries/camp/camp-alchemy.md.
 
 mercenaries.CampAlchemy = nil
 mercenaries.CampAlchemyAutoPackDist = 30.0

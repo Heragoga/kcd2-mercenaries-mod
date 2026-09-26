@@ -1,14 +1,14 @@
 -- One master tick drives the always-on subsystems instead of each re-arming its own
 -- timer. Slots are phase-offset so they never land on the same frame, gated so they
 -- skip when there is nothing to do, and amortized (perNpc) so per-merc work is spread
--- across ticks rather than done for everyone at once. See docs/performance.md.
+-- across ticks rather than done for everyone at once. See docs/mercenaries/tech/performance.md.
 --
 -- merc_sched 0 falls back to the legacy independent timers without a code change.
 
 -- 50ms was tried and measured: Script.SetTimerForFunction will not go below roughly
 -- 100ms here (a 250ms timer landed at 252ms, a 50ms one at 113ms), so every slot ran
 -- ~2.3x slower than configured - combatscan at 678ms instead of 300ms. 100 is the
--- lowest base that the engine actually honours. See docs/performance.md.
+-- lowest base that the engine actually honours. See docs/mercenaries/tech/performance.md.
 mercenaries.MasterTickMs   = 100
 mercenaries.SchedTick      = 0
 mercenaries.SchedSlots     = {}
@@ -403,7 +403,7 @@ function mercenaries:SchedRegisterAll()
     -- the raid tick at 6545ms against 20000ms (three) - in a session where this scheduler's own
     -- tick was exactly right at 108ms against 100ms. A private self-arming chain has no way to
     -- count itself; a slot cannot be duplicated without duplicating the master tick, which the
-    -- watchdog already covers. So they moved here. See docs/performance.md.
+    -- watchdog already covers. So they moved here. See docs/mercenaries/tech/performance.md.
     --
     -- This matters far past the Lua: an extra patrol chain is another chance per period to
     -- spawn a GANG, and a gang spawn is NPC creation, ground raycasts and character assembly -

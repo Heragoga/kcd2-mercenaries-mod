@@ -9,7 +9,7 @@
 -- Ported from references/spawn house (villagebuilding_Prop), which in turn models
 -- the camping mod's DJB_PropEntity - but with save-by-game turned OFF: that mod
 -- wants its houses to persist, whereas the camp here is torn down and rebuilt from
--- scratch (see docs/camp.md). Left on, every house part got serialised into the
+-- scratch (see docs/mercenaries/camp/camp.md). Left on, every house part got serialised into the
 -- save and came back as a broken white placeholder mesh.
 -- =============================================================================
 
@@ -30,7 +30,7 @@ mercenaries_Prop = {
         -- wall segment is something NPCs steer around rather than walk into.
         --
         -- Needs `wh_ai_ObstaclesAddToCollisionAvoidance` >= 1 to be consumed; the mod arms
-        -- that near its own walls (mercenaries_navobst.lua). See docs/walls-and-sieges.md.
+        -- that near its own walls (mercenaries_navobst.lua). See docs/mercenaries/fortifications/walls-and-sieges.md.
         AI = {
             bUsedAsDynamicObstacle = 1,
         },

@@ -1,8 +1,23 @@
+---
+title: Making an NPC Brain
+summary: How do I connect a soul's brain_id to my own behaviour tree (brain, subbrain and mailbox tables), and register interrupt trees such as combat in the so_interrupt SmartEntity?
+tags: [ai, bt, data]
+kind: guide
+status: current
+scope: kcd2
+---
 # Making an NPC Brain
 
 This is the second part of creating a new NPC. If you have followed [add-new-npc.md](add-new-npc.md) correctly, this is your next step — if you want them to have a brain. If you want a brainless punching bag, go ahead and skip this, although the default brain in add-new-npc.md is capable of defending the NPC.
 
 This guide ties a behaviour tree to an NPC soul. It isn't the most complex part of creating an NPC, but it is honestly the most annoying. The correct way to do this took me a considerable amount of time to figure out, as the base game system is more complicated than necessary. All of this happens in `data\libs\tables\ai`. The only touching point between the brain and the soul is the soul definition itself — the `brain_id` attribute — which has to match the ID of your new brain. Let's dive in.
+
+## TL;DR
+
+- The chain is `brain` → `brain2subbrain` → `subbrain` → `subbrain_switching` (→ your tree file in `data/ai/`). Mailbox tables tie the brain to vanilla inboxes.
+- A basic NPC needs a **Switching** subbrain (type 6, your tree) and a **Scheduler** (type 9, reuse vanilla's).
+- Movement and combat don't run in the switch. They run as **interrupts**, registered by name in `SmartEntity__so_interrupt__yourmodid.xml`.
+- That SmartEntity file adds your templates to **vanilla's** `so_interrupt` entity, so it keeps vanilla's `BrainId` and `DatabaseId`. Don't put your own brain id there.
 
 ---
 
@@ -100,7 +115,7 @@ Now the interesting stuff. The subbrain is what actually connects your brain to 
 The type of Subbrain you select governs the type of commands you can run inside the brain. For example: a switch cannot run movement or combat nodes, tehy have to be inside a scheduler or a smart object. That's why it's necessary to call interrupts from a switch, to execute a behaviour tree of a different type.
 Other things are: I believe wait nodes cannot be called in some types (Behaviour tree for example). If you don't want to touch these incompatabilities I recommend replicating my approach. I spent enough time finding a combination that worked.
 
-The most relevant ones are **6 (Switching)** — which is what we're using — **9 (Scheduler)** for daily routines, and **3 (SmartObject)** for things like doors and a bunch of other things.
+The most relevant ones are **6 (Switching)** — which is what we're using — **9 (Scheduler)** for daily routines, and **4 (SmartObject)** for things like doors and a bunch of other things.
 
 The subbrain definition ties your subbrain ID (which `brain2subbrain` references) to a name and type:
 
@@ -138,7 +153,7 @@ When a behaviour tree fires an interrupt (e.g. `AddInterrupt_attack` with `Behav
 <?xml version="1.0" encoding="us-ascii"?>
 <database name="barbora" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../database.xsd">
     <SmartEntitys version="1">
-        <SmartEntityTemplate BrainId="e2a51ce4-449f-4a2e-83b9-c098c5b118cd" DatabaseId="43c857b4-032b-844f-3d1b-3cc90d5a2382" Name="so_interrupt" UpdatePriority="false">
+        <SmartEntityTemplate BrainId="ea3ff907-6743-4ad4-8723-2c14ac2a01f0" DatabaseId="43c857b4-032b-844f-3d1b-3cc90d5a2382" Name="so_interrupt" UpdatePriority="false">
             <BehaviorTemplates>
 
                 <SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="combat_melee" PreventsMonsterLod="true">
@@ -161,13 +176,13 @@ When a behaviour tree fires an interrupt (e.g. `AddInterrupt_attack` with `Behav
 
 Key attributes:
 
-- `BrainId` — must match your brain's `brain_id`
-- `DatabaseId` — a unique GUID for this SmartEntity entry; generate a fresh one
+- `BrainId` and `DatabaseId` — these identify vanilla's own `so_interrupt` SmartEntity (`Libs/Tables/ai/smartEntity/SmartEntity__so_interrupt.xml` in the vanilla files). Your file is a table patch that adds behaviour templates to it, so copy both values exactly as shown. Do **not** put your own brain's id or a fresh GUID here. An earlier version of this guide said to use your own `brain_id`; the file the mercenaries mod actually ships uses the vanilla values above.
+- Keep all your templates in **one** `SmartEntity__so_interrupt__yourmodid.xml`. When I split a template into a second file for the same entity, it never got registered, and the log said `Behavior ... requested by interrupt was not available`.
 - `Name` on `SmartBehaviorTemplate` — the string your behaviour tree references when firing the interrupt
 - `FileName` / `TreeName` in `TreeLocation` — the behaviour tree file and root node to execute
 - The `InboxId` values are vanilla mailbox IDs used by the combat system; copy them from the example above
 
-How to actually fire an interrupt from within a behaviour tree is covered in the behaviour tree guide.
+How to actually fire an interrupt from within a behaviour tree is covered in the behaviour tree guide: [Calling another behaviour tree](../behaviour-trees/basic-structure.md#functions-calling-another-behaviour-tree-interrupts).
 
 ---
 

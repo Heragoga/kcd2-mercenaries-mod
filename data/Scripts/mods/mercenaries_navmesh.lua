@@ -9,7 +9,7 @@
 -- Wall geometry comes from the wall builder's CORNERS (WallAllRuns), not
 -- from the individual segment props: the corners are the authoritative line, so
 -- blocking is exact 2D segment intersection - no raycasts, no navmesh introspection.
--- See docs/walls-and-sieges.md.
+-- See docs/mercenaries/fortifications/walls-and-sieges.md.
 
 mercenaries.NavSpacing      = 2.5     -- node grid step
 mercenaries.NavRadius       = 35.0    -- graph covers this far around the camp centre
@@ -1505,7 +1505,7 @@ function mercenaries:NavRefreshPatrolRings()
     local n, g = 0, 0
     local guards = {}
     -- Only the PLAYER's guards. CampPatrollers is shared with the bandit-camp contract
-    -- (docs/bandit-camp-quest.md), and those records belong to a camp on the other side of
+    -- (docs/mercenaries/quests/bandit-camp-quest.md), and those records belong to a camp on the other side of
     -- the map with no wall of its own - re-pointing them at this wall's gate posts would
     -- march them off to it.
     for k, rec in pairs(self.CampPatrollers) do
@@ -1658,7 +1658,7 @@ end
 -- engine be made to see a spawned wall", one console line at a time. Arming a global AI
 -- cvar as shipped behaviour is not something a mod should do.
 --
--- What the binary says exists (dumped from WHGame.dll, see docs/walls-and-sieges.md):
+-- What the binary says exists (dumped from WHGame.dll, see docs/mercenaries/fortifications/walls-and-sieges.md):
 --   wh_ai_ObstaclesAddToCollisionAvoidance  "Add static obstacles to the collision
 --                                            avoidance. 0 - no, 1 - yes, 2 - yes but
 --                                            exclude obstacles with ignore radius"

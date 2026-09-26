@@ -10,7 +10,7 @@
          restarts) a fight that had just begun. Here the running behaviour itself
          reports a heartbeat to Lua, and Lua alone decides when to fire again - so a
          fire that silently failed is retried ~1s later, forever, instead of leaving
-         the man standing there. See docs/foe-ai.md. -->
+         the man standing there. See docs/mercenaries/enemies/foe-ai.md. -->
     <BehaviorTree name="onUpdate" is_function="0">
         <Variables>
             <Variable name="foeTarget" type="_wuid" values="" isPersistent="0" form="single" />

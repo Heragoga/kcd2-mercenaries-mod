@@ -1,5 +1,5 @@
 -- The camp trader: a market stall, a sutler standing behind it, and a counter the player
--- can buy from and sell to. See docs/camp-trader.md.
+-- can buy from and sell to. See docs/mercenaries/camp/camp-trader.md.
 --
 -- The trade is the mod's own, not the game's shop screen, and that is not a shortcut - it is
 -- MEASURED. `Shops` exposes eleven functions and not one of them opens the trade UI; the
@@ -14,7 +14,7 @@
 --
 -- So what ships is the item-transfer window the food delivery and the wardrobe already use:
 -- the player moves goods either way across the counter, and the deal is settled in real
--- groschen at real prices when the window closes. See docs/camp-trader.md.
+-- groschen at real prices when the window closes. See docs/mercenaries/camp/camp-trader.md.
 --
 -- Prices come from ItemManager's own item object where that answers, and otherwise from
 -- mercenaries_price_data.lua, which is the game's `Price` column baked offline. That is

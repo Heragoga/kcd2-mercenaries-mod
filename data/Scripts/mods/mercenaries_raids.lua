@@ -10,7 +10,7 @@
 --
 -- If the camp has a gate they always make for it, gather in front of it, and force it
 -- open when the fight opens - barring the gate buys time to form up, not immunity.
--- See docs/walls-and-sieges.md.
+-- See docs/mercenaries/fortifications/walls-and-sieges.md.
 
 mercenaries.RaidEnabled     = true
 mercenaries.RaidDaysBetween = 2.0     -- average days between raids
@@ -21,7 +21,7 @@ mercenaries.RaidCampRange   = 45.0    -- the player must be this close to camp
 -- A camp has to settle before anyone marches on it: it must have STOOD for
 -- RaidCampGraceHours of world time, and the player must have been IN it for RaidDwellSecs
 -- of REAL time unbroken, which a sleep, a wait or a fast travel resets. See
--- docs/walls-and-sieges.md, "A camp has to settle first".
+-- docs/mercenaries/fortifications/walls-and-sieges.md, "A camp has to settle first".
 mercenaries.RaidCampGraceHours = 12.0
 mercenaries.RaidDwellSecs      = 60.0
 -- World seconds per real second above which the clock was SKIPPED rather than run. This

@@ -22,7 +22,7 @@
 -- ON. It was briefly off to test whether NPCs would route around the walls unaided; they
 -- cannot, and no data-only change makes a FIGHTING man do it (combat locomotion neither
 -- consumes ORCA nor requests paths, and its own obstacle weights are baked - see
--- docs/walls-and-sieges.md). Marshalling both sides to the gaps before blows are struck is
+-- docs/mercenaries/fortifications/walls-and-sieges.md). Marshalling both sides to the gaps before blows are struck is
 -- the mechanism the engine does support. Wall COLLISION is separate and stays on either way:
 -- mercenaries_solid.lua is what stops a man walking through the timber.
 -- merc_wb_enable 0 turns the staging off again.
@@ -90,7 +90,7 @@ local function wbKey(ent) return ent and tostring((ent.this and ent.this.id) or 
 local function nowT() local t = 0; pcall(function() t = System.GetCurrTime() or 0 end); return t end
 
 -- How far from the camp centre is the wall along this bearing? Nil if the ray escapes.
--- Muster points are placed off this, not off NavWallExtent(): see docs/walls-and-sieges.md.
+-- Muster points are placed off this, not off NavWallExtent(): see docs/mercenaries/fortifications/walls-and-sieges.md.
 function mercenaries:WBWallRayDist(c, ang, maxR)
     local segs = self:NavWallSegments()
     local ex, ey = math.cos(ang) * maxR, math.sin(ang) * maxR

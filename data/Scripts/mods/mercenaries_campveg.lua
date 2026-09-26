@@ -7,7 +7,7 @@
 -- apron, and not one of those spots failed a single runtime test. See merc_camp_sitescan.
 --
 -- So the vegetation is read OFFLINE, from the level files the game itself loads, and shipped
--- with the mod as a set of tiles (tools/bake_vegetation.py, docs/camp-inspection.md). Every
+-- with the mod as a set of tiles (tools/bake_vegetation.py, docs/mercenaries/camp/camp-inspection.md). Every
 -- tree, bush, bramble, stump, fallen trunk, rock and tall undergrowth on the map is in them,
 -- with the box it renders in. The camp asks these tables the question the engine cannot
 -- answer: "does anything grow here?"

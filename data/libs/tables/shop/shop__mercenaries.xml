@@ -6,7 +6,7 @@
 	     stalls are wired (references/Prefabs/profession/seller/shop_market.xml). Whether
 	     the engine picks that up for a RUNTIME-spawned keeper is not yet confirmed -
 	     `merc_trader_probe` is what answers it - so the trade the player actually gets
-	     is the Lua counter in mercenaries_trader.lua, not this. See docs/camp-trader.md.
+	     is the Lua counter in mercenaries_trader.lua, not this. See docs/mercenaries/camp/camp-trader.md.
 
 	     bOwnerIsSpawned is the flag the roadside-camp merchants carry (their keepers are
 	     spawned by the random-event system, and their Shop entities have no shopKeeper

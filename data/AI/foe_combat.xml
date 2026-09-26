@@ -5,7 +5,7 @@
          down), and it carries the alert shout.
 
          Target comes from $attackData.target, set by foe_scheduler.xml.
-         See docs/foe-ai.md. -->
+         See docs/mercenaries/enemies/foe-ai.md. -->
     <BehaviorTree name="foe_combat" is_function="0">
         <Variables>
             <Variable name="automation_defense" type="_bool" values="true" isPersistent="0" form="single" />
@@ -75,7 +75,7 @@
                                                  whole-fight action - under the offense/weapon automation
                                                  it closes, swings and keeps swinging until the target is
                                                  down. The watchdog sibling below is what keeps this
-                                                 Parallel (and so the fight) alive. See docs/ai-modules.md.
+                                                 Parallel (and so the fight) alive. See docs/mercenaries/ai/ai-modules.md.
 
                                                  The automation_* flags come from Lua on entry
                                                  (mercenaries.FoeAutomation / foe_auto) so each decorator

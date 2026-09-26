@@ -1,4 +1,4 @@
--- Crossing between Trosky and Kuttenberg. See docs/regions.md.
+-- Crossing between Trosky and Kuttenberg. See docs/mercenaries/camp/regions.md.
 --
 -- The two regions are separate LEVELS. Everything the mod spawns belongs to the level it
 -- was spawned in - the men, the camp props, the walls and towers, and the hidden saver

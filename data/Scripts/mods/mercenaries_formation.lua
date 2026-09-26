@@ -1,6 +1,6 @@
 -- Squad formation: which shape the squad marches in, who anchors it, and when it
 -- gets rebuilt. The behaviour-tree half is the two ENGINE FORMATION arms plus the
--- formation-owner loop in data/AI/follow.xml. Full write-up: docs/formations.md.
+-- formation-owner loop in data/AI/follow.xml. Full write-up: docs/mercenaries/ai/formations.md.
 --
 -- The engine anchors a formation on whatever entity ran MakeFormation, and the
 -- player has no behaviour tree, so one merc is elected to stand in for him: he
@@ -42,7 +42,7 @@ mercenaries.FormationSettleTicks = 3
 -- changes, the men still exist, still render, still fight, still run every other tick. Both
 -- halves of the teardown are automatic - the leader's MakeFormation subtree has an EndFormation
 -- Cleanup guarded on $useFormation, and every follower's epoch-watch loop fails on ~$useFormation
--- - so flipping this is safe mid-march and reversible. See docs/performance.md.
+-- - so flipping this is safe mid-march and reversible. See docs/mercenaries/tech/performance.md.
 mercenaries.FormationEnabled  = true
 
 mercenaries.FormationLeader   = nil
@@ -130,7 +130,7 @@ function mercenaries:FormationPresetName(size)
     -- catalogue, ours or the game's. It answers the one question the OK/NULL log
     -- line cannot answer on its own: if MakeFormation reports OK even for this,
     -- then the engine hands back a handle for any name at all and a null handle is
-    -- not a usable signal. See docs/formations.md.
+    -- not a usable signal. See docs/mercenaries/ai/formations.md.
     if self.FormationShape == "control" then
         return "merc_control_no_such_formation"
     end
@@ -584,7 +584,7 @@ mercenaries:DevCommand("merc_follow_stats", "mercenaries:FollowStatsSet('%line')
 
 -- Slot body: work only. The scheduler gates on ActiveMercs/player before calling
 -- this; FormationLoop below is the legacy self-arming path used when merc_sched is
--- off, so it keeps its own gate. See docs/performance.md.
+-- off, so it keeps its own gate. See docs/mercenaries/tech/performance.md.
 function mercenaries:FormationLoopBody()
     if not (next(mercenaries.ActiveMercs) and player) then return end
     -- Per call, not one block. These three run every ~0.22s, and when one threw (2026-09-19,
@@ -632,7 +632,7 @@ mercenaries:ChainDef("FormationLoop", "FormationLoopDrive")
 --
 -- The spot NAMES differ per shape, so this is derived from the live preset rather
 -- than hardcoded - a name that does not exist in the current formation is at best a
--- silent fallback and at worst a failed node (see docs/formations.md).
+-- silent fallback and at worst a failed node (see docs/mercenaries/ai/formations.md).
 mercenaries.FormationFrontSpotName = {
     column = "front", line = "front", square = "front", wedge = "front",
     circle = "inner",

@@ -8,7 +8,7 @@
 -- gangs, which do fight, so the tree's combat arms are gated on $patrolFights - set by
 -- PatrolRole, true only for a man belonging to a live roaming record.
 --
--- An earlier flag-gate attempt is on record as having failed (docs/patrols.md), but that
+-- An earlier flag-gate attempt is on record as having failed (docs/mercenaries/enemies/patrols.md), but that
 -- one gated Lua while the tester souls still sat on renegade_brain, whose own scheduler
 -- arms were never gated. patrol_brain now maps only to patrol_scheduler.xml, so these two
 -- arms are the only reachable combat path.
@@ -19,7 +19,7 @@
 -- EquipEnemy, which is clothing and weapons only and has nothing to do with faction.
 --
 -- Movement is testnpc_walk.xml's mechanism for the leader, and a CrimeFollower chain for
--- the rest (patrol_follow.xml); see docs/patrols.md.
+-- the rest (patrol_follow.xml); see docs/mercenaries/enemies/patrols.md.
 
 local function pLog(s) System.LogAlways("[Patrol] " .. s) end
 local function pKey(ent) return ent and tostring((ent.this and ent.this.id) or ent.id) or nil end
@@ -428,7 +428,7 @@ end
 function mercenaries:PatrolWalkTick(data, ent)
     -- The route YIELDS to a fight, and does so from the inside. patrol_walk is the
     -- incumbent interrupt at a HIGHER priority than combat_melee, so whether the
-    -- combat fire can evict it is uncertain (see docs/patrols.md); ending the walk
+    -- combat fire can evict it is uncertain (see docs/mercenaries/enemies/patrols.md); ending the walk
     -- ourselves the moment a target is claimed frees the slot either way, and is
     -- what stops the leader marching straight through a fight. The scheduler
     -- re-fires the walk once FindEnemyTarget drops the target again.

@@ -23,7 +23,7 @@
             <Variable name="followStuck"         type="_bool"                values="false"                             isPersistent="0" form="single" />
             <!-- No 'follow' interrupt while this is set. Mirrors mercenary_scheduler.xml -
                  see NoteFollowEviction in mercenaries_formation_handler.lua and
-                 docs/formations.md, "The eviction race". This file is a parallel copy of
+                 docs/mercenaries/ai/formations.md, "The eviction race". This file is a parallel copy of
                  that scheduler and needs every fix made there. -->
             <Variable name="refireBlock"         type="_bool"                values="false"                             isPersistent="0" form="single" />
 
@@ -143,7 +143,7 @@
                                         <!-- Target acquisition is always on, same rule as the melee mercs.
                                              The archer stance only picks the combat behaviour below -
                                              except "hold" (2), which means don't acquire at all.
-                                             See docs/combat-target-selection.md. -->
+                                             See docs/mercenaries/ai/combat-target-selection.md. -->
                                         <SuppressFailure>
                                             <IfCondition failOnCondition="false" condition="~$inCombat &amp; $stanceMode ~= 2 &amp; $doAcquire">
                                                 <Sequence>

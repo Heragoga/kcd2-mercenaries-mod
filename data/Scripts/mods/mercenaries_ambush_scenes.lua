@@ -1,5 +1,5 @@
 -- Authored ambush scenes: paste merc_ambush_dump output here.
--- Tools and workflow: docs/encounters.md.
+-- Tools and workflow: docs/mercenaries/quests/encounters.md.
 --
 -- level is informational. No level API is exposed to Lua, so "unknown" means
 -- "match any level" - a trigger box from the other map never contains the player.

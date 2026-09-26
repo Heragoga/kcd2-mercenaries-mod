@@ -19,7 +19,7 @@
 -- SaverValues as the read cache. SaverMap() refreshes that cache from the
 -- entity; everything after it is a table lookup, so the ~7ms full-BasicEntity
 -- scan that used to cost over 100ms in a single LogiSave frame is gone too.
--- See docs/save-footprint.md.
+-- See docs/mercenaries/tech/save-footprint.md.
 -- =============================================================================
 
 -- Legacy only: the prefix the old per-tag entities used. Migration and the

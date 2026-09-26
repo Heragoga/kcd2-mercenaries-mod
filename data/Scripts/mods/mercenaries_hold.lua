@@ -6,7 +6,7 @@
 -- two things these orders need: stand still, and put a named merc on a named side.
 -- This is the wall-battle staging pattern instead - one world point computed per merc
 -- in Lua, each man walked to it by NavGotoRequest and the stock nav_goto tree. Proven
--- under load with mixed melee/archer defenders; see docs/squad-orders.md.
+-- under load with mixed melee/archer defenders; see docs/mercenaries/ai/squad-orders.md.
 
 mercenaries.HoldActive   = false
 mercenaries.HoldAnchor   = nil    -- {x,y,z} the order was given at
@@ -514,7 +514,7 @@ function mercenaries:MercIsIdle(ent)
     -- Behaviour-tree liveness heartbeat. Both schedulers call this per merc every
     -- ~600ms, so a recent stamp is positive proof the trees are actually running -
     -- which is the one thing the follow watch cannot tell from positions alone.
-    -- See FollowWatchWorldFrozen and docs/formations.md.
+    -- See FollowWatchWorldFrozen and docs/mercenaries/ai/formations.md.
     self.BtHeartbeatAt = System.GetCurrTime()
     if _G.MercIdle then return true end
     -- Parked at a doorway: the player walked into a building and this man was following.

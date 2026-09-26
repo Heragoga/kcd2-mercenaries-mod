@@ -453,7 +453,7 @@ end
 -- HAND-IN: walk off the field (past BanditCampDespawnRange, so the camp is cleaned up and the
 -- contract can close), deliver, then check the purse and the counter. GiveMoney is chunked and
 -- honest, so the delta must be the reward exactly; the purse is printed either way because it
--- stops accepting created coin around 9-10k (bug 1 in docs/torture-test.md).
+-- stops accepting created coin around 9-10k (bug 1 in docs/mercenaries/testing/torture-test.md).
 function mercenaries:TortureQuestDeliverBody(S, tag, wantCleared)
     local KK  = self:TortureQuestKK()
     local now = qClock()

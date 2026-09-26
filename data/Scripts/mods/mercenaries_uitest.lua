@@ -1,6 +1,6 @@
 -- UI technique test bench. Every command here answers one question about what KCD2's
 -- Scaleform UI will let a mod do. Nothing in this file is used by the shipping mod.
--- Background and the API reference: docs/ui.md.
+-- Background and the API reference: docs/mercenaries/ui/ui.md.
 --
 -- merc_ui_off is the panic button - it restores the HUD and the action map.
 
@@ -910,7 +910,7 @@ function mercenaries:UIOff()
 end
 
 function mercenaries:UIHelp()
-    log("==== merc UI test bench (docs/ui.md) ====")
+    log("==== merc UI test bench (docs/mercenaries/ui/ui.md) ====")
     log("  merc_ui_probe        capabilities + the cvars that gate drawing")
     log("  merc_ui_menu         interactive screen (WORKS)")
     log("  merc_ui_modal        modal dialog;  merc_ui_modal_close dismisses it")
@@ -951,7 +951,7 @@ mercenaries:DevCommand("merc_ui_track",      "mercenaries:UITrack()",           
 -- One command per mode, argument baked in. Passing the mode as an argument goes through
 -- %line, which expands to the whole typed line and loses the quotes - the engine then
 -- tries to run `mercenaries:UIDraw(merc_ui_draw pixels)` and dies with a syntax error
--- that only the dev build reports. See docs/console.md.
+-- that only the dev build reports. See docs/mercenaries/tech/console.md.
 mercenaries:DevCommand("merc_ui_draw",        "mercenaries:UIDraw(nil)",          "Immediate-mode draw OFF")
 mercenaries:DevCommand("merc_ui_draw_calib",  "mercenaries:UIDraw(\"calib\")",    "Draw: a box that should hug the screen edge")
 mercenaries:DevCommand("merc_ui_draw_pixels", "mercenaries:UIDraw(\"pixels\")",   "Draw: checkerboard + gradient + 1px diagonal - the real pixel test")

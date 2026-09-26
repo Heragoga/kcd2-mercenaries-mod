@@ -7,11 +7,11 @@
 -- this tick writes records into LootActivities, GetCampActivity hands them to
 -- camp_actor.xml ahead of any real camp role, and mode 2 (walk, face, play an
 -- unstance) does the work. A custom ContinuousSwitch case was tried for the camp
--- smith and never fired reliably - see docs/camp-forge.md.
+-- smith and never fired reliably - see docs/mercenaries/camp/camp-forge.md.
 --
 -- Mercs finishing bodies off was attempted at length and is impossible: the mercy
 -- kill is a player-only action, and no unstance reads as a killing blow. The
--- measurements are in docs/loot-sweep.md so nobody retries it.
+-- measurements are in docs/mercenaries/ai/loot-sweep.md so nobody retries it.
 
 local function nowT() local t = 0; pcall(function() t = System.GetCurrTime() or 0 end); return t end
 
@@ -88,7 +88,7 @@ function mercenaries:IsCorpse(ent)
 end
 
 -- One full-class scan, once, at the moment the fight ends. GetEntitiesByClass is
--- the call confirmed to enumerate corpses (see docs/npc-lod.md's world census);
+-- the call confirmed to enumerate corpses (see docs/mercenaries/tech/npc-lod.md's world census);
 -- it is expensive, so the result is held for the whole sweep and never refreshed.
 function mercenaries:LootCaptureBodies(anchor)
     local out = {}
@@ -207,7 +207,7 @@ mercenaries.LootWasSweeping = {}       -- [mercWuidStr] = wuid
 --
 -- FollowStalled is the signal that evicts a running tree properly - teleport first, then
 -- follow - and it is queued, staggered and race-guarded, so kicking a handful of men
--- costs nothing. See docs/formations.md, "The eviction race".
+-- costs nothing. See docs/mercenaries/ai/formations.md, "The eviction race".
 function mercenaries:LootReleaseFinished()
     local now_, released = {}, 0
     for k, t in pairs(self.LootActivities) do now_[k] = t.wuid end
@@ -345,7 +345,7 @@ end
 -- the last stretch anyway. FindValidGround was called here at first and cost ~80
 -- raycasts per assignment (nine probes per ring, spiralling out to 2 m), every
 -- one of which logged a RayWorldIntersection parameter warning - it buried the
--- log during a sweep. See docs/loot-sweep.md.
+-- log during a sweep. See docs/mercenaries/ai/loot-sweep.md.
 local function standSpotFor(self, mercPos, corpsePos)
     local ax, ay = mercPos.x - corpsePos.x, mercPos.y - corpsePos.y
     local len = math.sqrt(ax * ax + ay * ay)

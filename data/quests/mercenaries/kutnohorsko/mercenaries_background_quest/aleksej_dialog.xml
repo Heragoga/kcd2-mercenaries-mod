@@ -56,7 +56,7 @@
                              voiced hire. Firing alx_hand_1 moves the int to 1 and retires this
                              sequence for good. Recordings 1,2,3,4,5 straight through - the two
                              Henry interjections that used to sit here (before L1, between L4/L5)
-                             had no usable vanilla line and were cut, see docs/aleksej.md. -->
+                             had no usable vanilla line and were cut, see docs/mercenaries/quests/aleksej.md. -->
                         <Sequence EndType="EndDialogue" Name="seq_alx_open" EntryCondition="Port('alx_beat') == 0">
                             <UiPrompt StringName="ui_alx_open" />
                             <Triggers><Port Name="alx_hand_1" /></Triggers>

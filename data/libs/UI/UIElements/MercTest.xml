@@ -17,7 +17,7 @@
             merc_lua mercenaries:UIElemProbe("MercTest")
 
      LockPicking is the right donor: it declares zero functions, so everything about it is
-     driven from outside by moving its named MovieClips - see docs/ui.md. -->
+     driven from outside by moving its named MovieClips - see docs/mercenaries/ui/ui.md. -->
 <UIElements name="MercTest">
 
   <UIElement name="MercTest" controller_input="1">

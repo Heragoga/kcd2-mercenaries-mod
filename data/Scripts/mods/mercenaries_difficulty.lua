@@ -12,7 +12,7 @@
 -- men asleep in camp, a bounty is fought only by whoever walked out. The tier is
 -- applied on top of whichever base the caller already uses.
 --
--- See docs/difficulty.md.
+-- See docs/mercenaries/enemies/difficulty.md.
 
 mercenaries.DifficultyOrder = { "easy", "medium", "difficult", "extreme", "impossible", "horde" }
 

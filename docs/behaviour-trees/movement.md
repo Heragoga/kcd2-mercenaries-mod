@@ -1,6 +1,21 @@
+---
+title: Movement with Behaviour Trees
+summary: How do I make an NPC walk somewhere or follow someone from a behaviour tree (Move, ExactMove, CrimeFollower), and how do I send it to raw XYZ coordinates?
+tags: [ai, bt]
+kind: guide
+status: current
+scope: kcd2
+---
 # Movement with Behaviour Trees
 
 If you haven't read [basic-structure](basic-structure.md) I highly recommend you do so now, as this guide only presents a few nodes and the surrounding details that enable movement.
+
+## TL;DR
+
+- `Move` walks one NPC to a destination: an entity (by WUID) or a `vec3` position. Several NPCs moving through the same space with `Move` get in each other's way and scatter.
+- `ExactMove` is `Move` with precise positioning and facing.
+- `CrimeFollower` is the node for a group following one entity: it keeps distance, catches up and doesn't turn the group into a mob.
+- For raw XYZ coordinates, fill a `vec3` variable from Lua and `Move` to it with `changeNPCState="true"`. Don't spawn a dummy entity as the target: a plain `BasicEntity` is invisible to AI pathfinding and the NPC won't move.
 
 ---
 
@@ -37,7 +52,7 @@ This is one of the ways you can make an NPC move. It is strictly: move to entity
 
 ### Parameter reference
 
-**`destinationSpecification`** — The most interesting part. This is a WUID pointing to a specific entity on the map — not XYZ coordinates, but an actual entity like an NPC, a chair, or a dummy entity you spawned yourself. If the entity moves, the pathfinding will adjust and the NPC will keep walking toward its new position.
+**`destinationSpecification`** — The most interesting part. Usually a WUID pointing to a specific entity on the map, like an NPC or a chair. If the entity moves, the pathfinding will adjust and the NPC will keep walking toward its new position. It can also be a `vec3` position — see [Moving to Specific XYZ Coordinates](#moving-to-specific-xyz-coordinates).
 
 **`destinationSpecification2`** — The distance from the goal the NPC should stop at. Leave empty if you want the NPC to walk all the way to the goal.
 
@@ -51,7 +66,7 @@ This is one of the ways you can make an NPC move. It is strictly: move to entity
 
 **`successDistance`** — How close the NPC needs to be to the goal for the Move node to exit successfully.
 
-**`changeNPCState`** — Very important. If this is set to `true` and your behaviour tree is a switch, it will crash. Always set it to `false`.
+**`changeNPCState`** — Very important. If this is set to `true` and your behaviour tree is a switch, it will crash, so in a switch always set it to `false`. `false` is also right for continuously following a moving entity. For a walk to a fixed point (from an interrupt tree), use `true` — see [Moving to Specific XYZ Coordinates](#moving-to-specific-xyz-coordinates).
 
 **`fastForwardIncludesMove`** — Decides whether this node executes when the player fast forwards time.
 
@@ -136,44 +151,41 @@ It maintains a set distance from the target automatically, adjusts speed to catc
 
 ## Moving to Specific XYZ Coordinates
 
-This is the tricky part. I have no doubt there is a very clean native way to do this somewhere in the game, but if so, I haven't found it. The best workaround I can offer is spawning a dummy entity at the target coordinates and using that as the movement destination.
+`destinationSpecification` does not have to be an entity. It also takes a `vec3` variable, which is how vanilla does it (for example `AI/world/so_ladder.xml` walks an NPC to the ladder's entry point this way).
 
-### Step 1: Spawn the target entity
+### Step 1: Declare a `vec3` variable
 
-```lua
--- Use a unique name tied to the NPC so you can clean it up later
--- Naming the NPC with a random number and embedding it in the
--- target entity's name is a clean way to handle this
-local targetName = "mytarget_destination_" .. tostring(npcRandomId)
-local searchPrefix = "mytarget_destination_" .. tostring(npcRandomId)
-
--- Clean up any existing entity with this name first
-local allEntities = System.GetEntitiesByClass("BasicEntity")
-if allEntities then
-    for i, ent in ipairs(allEntities) do
-        local name = ent:GetName()
-        if name and string.sub(name, 1, string.len(searchPrefix)) == searchPrefix then
-            System.RemoveEntity(ent.id)
-        end
-    end
-end
-
--- Spawn the new target entity at the desired coordinates
-System.SpawnEntity({
-    class    = "BasicEntity",
-    name     = targetName,
-    position = {x = x1, y = y1, z = z1}
-})
-
--- Retrieve the entity reference
-local targetEnt = System.GetEntityByName(targetName)
--- targetEnt.id or targetEnt.this.id is your movement target
+```xml
+<Variable name="moveTargetPos" type="vec3" values="" isPersistent="0" form="single" />
 ```
 
-### Step 2: Pass the entity into the Move node
+### Step 2: Fill it from Lua
 
-Pass `targetEnt.id` (or its WUID) into `destinationSpecification` on your Move node and the NPC will path to those coordinates as if it were any other entity.
+Set it component by component from an `ExecuteLua` node:
+
+```xml
+<ExecuteLua code="
+    pcall(function()
+        local p = yourmod:GetDestinationFor(entity)
+        data.moveTargetPos.x = p.x
+        data.moveTargetPos.y = p.y
+        data.moveTargetPos.z = p.z
+    end)
+" />
+```
+
+`yourmod:GetDestinationFor` stands for wherever your coordinates come from.
+
+### Step 3: Move to it
+
+```xml
+<Move stopWithinDistance="0.5" stopDistanceVariation="0.2" rayCasteFlee="false" successDistance="0.0"
+      changeNPCState="true" fastForwardIncludesMove="false"
+      destinationSpecification="$moveTargetPos" destinationSpecification2="" destinationSpecification3=""
+      speed="Walk" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+```
 
 ### Important
 
-Always despawn the target entity when the behaviour tree branch is done with it. Leaving dozens of invisible `BasicEntity` objects scattered across the map is a great way to make your future self very confused. The unique naming scheme mentioned in the comment above makes cleanup trivial — just search by prefix and remove anything that matches.
+- Use `changeNPCState="true"` for a move to a fixed point. Every vanilla move-to-a-point does; with `"false"` a standing NPC can stay frozen. `"false"` is for continuously following a moving actor. (This is not the switch tree, where `true` is said to crash — see the parameter reference above. Run this from an interrupt tree.)
+- An earlier version of this guide spawned an invisible `BasicEntity` at the coordinates and used it as the destination. Don't. Vanilla `BasicEntity` never registers itself as an AI target (its `MakeTargetableByAI` line is commented out in `Scripts/Entities/Physics/BasicEntity.lua`), so pathfinding can't resolve it and the `Move` silently does nothing. The mercenaries camp guards stood still for exactly this reason until they were switched to `vec3` waypoints.

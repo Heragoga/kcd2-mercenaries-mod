@@ -12,7 +12,7 @@
 --   * there is no letter and no leader gear: clear the camp, report back, get paid,
 --   * Kleinkrieg has first claim on the ground (BountyReservedSites / BountyYieldSite).
 --
--- Kuttenberg only. See docs/bounty.md.
+-- Kuttenberg only. See docs/mercenaries/quests/bounty.md.
 
 local function boLog(s) System.LogAlways("[Bounty] " .. s) end
 

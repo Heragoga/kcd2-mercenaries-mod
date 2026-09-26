@@ -45,7 +45,7 @@ end
 -- OFF by default. The crime watchdog and the town watch it feeds are unfinished and are
 -- shipped dormant: the scheduler gates on this flag, so while it is false neither costs a
 -- single scan. Turn the pair on for a session with `merc_dev` then `merc_townwatch_enable`
--- (mercenaries_townwatch.lua). See docs/town-watch.md.
+-- (mercenaries_townwatch.lua). See docs/mercenaries/enemies/town-watch.md.
 mercenaries.CrimeWatchEnabled = false
 
 mercenaries.CrimeScanRadius   = 45.0   -- census sphere around the player

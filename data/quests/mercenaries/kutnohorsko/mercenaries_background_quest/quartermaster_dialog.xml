@@ -181,7 +181,7 @@
                     <Sequences>
 
                         <!-- The Kleinkrieg contract loop is no longer OFFERED here. The nine-beat
-                             Aleksej quest (docs/aleksej.md) replaces it and carries the same
+                             Aleksej quest (docs/mercenaries/quests/aleksej.md) replaces it and carries the same
                              journal name, so the quartermaster handing out twelve numbered
                              contracts of his own was a second, competing "Kleinkrieg".
                              The report lines below are kept so an arc already in flight when
@@ -536,7 +536,7 @@
                                         </Decision>
                                     </Sequence>
 
-                                    <!-- Female mercenaries: their own category, one tier. See docs/female-mercenaries.md. -->
+                                    <!-- Female mercenaries: their own category, one tier. See docs/mercenaries/company/female-mercenaries.md. -->
                                     <Sequence EndType="Decision" Name="seq_female">
                                         <UiPrompt StringName="ui_mercenary_type_female" />
                                         <Elements>

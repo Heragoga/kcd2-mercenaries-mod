@@ -2,7 +2,7 @@
 -- all feeding one central MORALE stat (combat effectiveness, desertion and mutiny
 -- read off it) plus food, drink, wages and upgrades. Save-persistent across camp
 -- breaks. The numbers below are first-pass tunables. See
--- docs/quartermaster-logistics.md for the full model.
+-- docs/mercenaries/camp/quartermaster-logistics.md for the full model.
 
 -- ==== Tunables ====
 mercenaries.SecondsPerDay        = 86400

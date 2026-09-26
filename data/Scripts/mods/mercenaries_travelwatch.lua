@@ -52,7 +52,7 @@
 -- kept only so a build with nothing better still catches a gallop-speed crossing.
 
 -- Declared before anything that calls it: a Lua local binds downward only, so a helper
--- added above this line would get a nil global at runtime (see docs/patrols.md).
+-- added above this line would get a nil global at runtime (see docs/mercenaries/enemies/patrols.md).
 local function twLog(s) System.LogAlways("[Travel] " .. tostring(s)) end
 
 -- WALL TIME, and it matters here more than anywhere else in the mod.
@@ -542,7 +542,7 @@ mercenaries.TravelWith = {}
 -- countdown, and the orphan sweep requires the owner dead or the player on foot. There is
 -- even a DespawnHorseByName whose comment reads "deferred despawn". Twenty removals in one
 -- frame, one line after ForceDismount on each rider, broke that rule twenty times over.
--- See docs/travel-detection.md.
+-- See docs/mercenaries/tech/travel-detection.md.
 mercenaries.TravelCarryEvery = 3.0   -- seconds between re-placements during a crossing; 0 = far end only
 
 -- Scattered behind him rather than on him: a dozen men on one point is a physics pile, and

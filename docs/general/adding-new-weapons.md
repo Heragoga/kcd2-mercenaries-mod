@@ -1,3 +1,11 @@
+---
+title: Custom Weapon Presets
+summary: How do I give the mercenaries different weapons by adding a weapon_preset and pointing their inventory preset at it?
+tags: [data, assets]
+kind: guide
+status: current
+scope: kcd2
+---
 # Custom Weapon Presets
 
 This guide covers how to customize the weapons your mercenaries carry. Like clothing, weapons are dictated by the mercenary's soul/STORM role rather than saved per-NPC — so customizing them means defining a preset and pointing the mercenary at it.
@@ -8,13 +16,13 @@ This guide assumes you've already set up the workflow from the [Custom Equipment
 
 ## Step 1 — Create the Weapon Preset File
 
-Create a new file at:
+Open:
 
 ```
 data/libs/tables/item/weapon_preset__mercenaries.xml
 ```
 
-Paste in the following skeleton:
+The repository already ships this file with the mod's own presets. If you are starting a file from scratch for your own mod, this is the skeleton:
 
 ```xml
 <?xml version="1.0" encoding="us-ascii"?>
@@ -61,15 +69,15 @@ Install [cheat_add_all_items](https://www.nexusmods.com/kingdomcomedeliverance2/
 **Option B — Extract game files (more thorough)**
 Open:
 ```
-C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Data\IPL_GameData.pak
+C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Data\Tables.pak
 ```
-with 7-Zip or WinRAR, then search `tables/item/item.xml` for the weapons you want.
+with 7-Zip or WinRAR, then search `Libs/Tables/item/item.xml` for the weapons you want. Items are split across several files (`item.xml` plus `item__*.xml` parts), so search all of them.
 
 ---
 
 ## Step 3 — Point the Mercenary's Inventory Preset at Your Preset
 
-Open the mercenary's inventory preset and change the `weapon_preset` reference from `hammer_shield_5_01` (or whatever it currently uses) to the `weapon_preset_name` you defined in Step 2.
+Open `data/libs/tables/item/InventoryPreset__mercenaries.xml`, find the `<InventoryPreset>` of the mercenary type you want, and change its `<WeaponPresetRef Name="...">` from the current preset (`longsword_3_01`, say) to the `weapon_preset_name` you defined in Step 2.
 
 ---
 

@@ -1,3 +1,11 @@
+---
+title: "Skald: Top-Level Quest Structure"
+summary: How do I make my mod's dialogue and Skald logic exist in the game at all, with a silent background quest per level that fires into Lua?
+tags: [skald]
+kind: guide
+status: current
+scope: kcd2
+---
 # Skald: Top-Level Quest Structure
 
 I know my advice in [general/how-to-mod.md](../general/how-to-mod.md) may be something of an unpopular opinion, but it has contributed significantly to the retention of my sanity.
@@ -5,6 +13,12 @@ I know my advice in [general/how-to-mod.md](../general/how-to-mod.md) may be som
 Skald is a good piece of software if you have access to internal Warhorse documentation. We do not. Skald itself only allows editing the base game database `barbora` (or `brambora` — I hereby curse the developer that named the two things so similarly for all eternity), and editing the base game database means overwriting vanilla files, which means incompatibilities between mods. Just don't do it and you'll be fine.
 
 The recommended approach is to define a **global background quest** that runs silently at all times — no map markers, no journal entry. This quest acts as a hook: it loads whatever dialog you need for whatever NPC you need, and that dialog then triggers whatever functionality you're actually building. This is not a guide on making a full side quest (maybe later), but on how to make your mod present in the game alongside any other dialog or functionality you need.
+
+## TL;DR
+
+- Never edit vanilla Skald databases. Ship your own project file in `data/quests/`, one level file per map, and a `Type="Activity"` background quest.
+- Each level file's `OnWake` triggers the quest's `run` port. No level file for a map means your dialogue doesn't exist there.
+- The quest imports dialog files as `Definition`s and instantiates them as nodes; dialogue outputs drive `EventFunction` nodes, which is how Skald reaches Lua ([lua-skald-communication](../general/lua-skald-communication.md)).
 
 ---
 

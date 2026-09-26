@@ -3,7 +3,7 @@
     <Skald>
         <!-- The quartermaster's repeatable camp bounty. Modelled on bandit_camp_quest.xml and
              obeying the same rules: every node here is a primitive with NO Namespace attribute
-             (one namespaced node kills the whole mod quest graph - see docs/bandit-camp-quest.md),
+             (one namespaced node kills the whole mod quest graph - see docs/mercenaries/quests/bandit-camp-quest.md),
              and TypeT="wh::questmodule::QuestProgress" is an engine type string passed as a value,
              not a namespace reference.
 
@@ -12,7 +12,7 @@
              makes it infinitely repeatable - each accept reopens the same entry.
 
              Everything real happens in mercenaries_bounty.lua and the shared camp machinery in
-             mercenaries_banditcamp_quest.lua. See docs/bounty.md. -->
+             mercenaries_banditcamp_quest.lua. See docs/mercenaries/quests/bounty.md. -->
         <Quest Name="bounty_quest" Type="Side" Players="0" Repeatable="true">
             <Ports>
                 <Port Name="run" Direction="In" Type="trigger" />

@@ -1,6 +1,22 @@
+---
+title: Adding a New NPC to KCD2
+summary: Which table and Storm files do I need to define a custom NPC (soul, faction, role, Skald character, clothing and inventory presets, appearance), and what goes in each?
+tags: [data, engine]
+kind: guide
+status: current
+scope: kcd2
+---
 # Adding a New NPC to KCD2
 
 If you are reading this and are serious about adding a custom NPC, you are in for a wild ride. This basic workflow took me about 10 hours to figure out and master, so enjoy every word of this guide. You're welcome.
+
+## TL;DR
+
+- An NPC is data only: a **soul** (`tables/rpg/soul__`), a **faction** (`FactionTree__`), a **role** (`role__`), a **Skald character** (three `tables/skald/` files), **clothing and inventory presets** (`tables/item/`), and three **Storm** rule files that attach appearance, equipment and roles to the soul by name.
+- Every table file is a patch: name it `<vanillatable>__yourmod.xml`.
+- The soul's `factionName` must exactly match your faction's `Name`, and its `brain_id` links to the brain ([make-npc-brain](make-npc-brain.md)).
+- Two items in the same equipment slot in one clothing preset: the game equips neither.
+- Faction relations are one-directional: your faction's list says how *your* NPCs feel about others, not how others feel about them.
 
 ---
 
@@ -19,7 +35,7 @@ Here is a map of everything you will be touching. Keep it open in another tab.
 | `tables/skald/skald_character2profession__yourmod.xml` | Profession assignment |
 | `tables/skald/skald_character2role__yourmod.xml` | Ties Skald character to role |
 | `tables/item/clothing_preset__yourmod.xml` | What clothes the NPC wears |
-| `tables/item/item__yourmod.xml` | Inventory preset — weapons, carried items |
+| `tables/item/InventoryPreset__yourmod.xml` | Inventory preset — weapons, carried items |
 | `storm/storm__yourmod.xml` | Storm entry point |
 | `storm/appearance/yourmod_appearance.xml` | Body, head, hair, beard |
 | `storm/equipment/yourmod_equipment.xml` | Ties inventory preset to soul |
@@ -138,6 +154,8 @@ A faction defines who your NPC is friends with and who they will fight. The foll
 ```
 
 `reputation` is a float, but `1` and `-1` are all you need. The faction name must exactly match the `factionName` in your soul.
+
+Relations only go one way. This block decides how *your* faction treats the others; it does not make `players_enemies` treat your NPC as an enemy. Most of the time that doesn't matter, because anyone your NPC attacks fights back. It does matter when you expect other NPCs to start the fight with yours: they won't, unless *their* faction says so.
 
 ---
 
@@ -293,6 +311,8 @@ Comment every GUID. As you can see I neglected to do that in the actual example,
 
 ### Inventory preset
 
+`data/libs/tables/item/InventoryPreset__yourmod.xml`
+
 ```xml
 <InventoryPreset Name="inventory_mercenary_test">
     <ClothingPresetRef Name="clothing_preset_mercenary_test"/>
@@ -417,6 +437,6 @@ Assigns the role to the soul. A soul can have any number of `addRole` operations
 
 ## Finally
 
-This guide has been a doozy. If you followed all these steps correctly, you should have your own NPC! But you won't see them yet, because you still need to spawn them — that's covered in a separate guide. And you'll need to give them a proper brain, which is also in another guide, because the brain system alone is enough to break a person.
+This guide has been a doozy. If you followed all these steps correctly, you should have your own NPC! But you won't see them yet, because you still need to spawn them — that's covered in a separate guide. And you'll need to give them a proper brain, which is also in another guide ([make-npc-brain](make-npc-brain.md)), because the brain system alone is enough to break a person.
 
 But the foundation is done. Everything you've just defined will survive a game load, play nicely with the quest and crime systems, and respond correctly to factions and relationships. Go touch some grass and come back for the spawning guide.

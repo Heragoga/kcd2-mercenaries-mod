@@ -1,6 +1,23 @@
+---
+title: "Behaviour Trees: Basic Structure"
+summary: What does a KCD2 behaviour tree file look like, and how do variables, logic nodes, interrupts, ExecuteLua and Parallel/Wait work in it?
+tags: [ai, bt, lua]
+kind: guide
+status: current
+scope: kcd2
+---
 # Behaviour Trees: Basic Structure
 
 This is the part of KCD2 modding with the smallest amount of documentation. That being none. Everything I have learned is from reverse engineering vanilla behaviour trees. My knowledge may be incomplete and inaccurate, and my only credential is the mercenaries mod, which does what it is supposed to.
+
+## TL;DR
+
+- A tree file is `<BehaviorTrees>` → `<BehaviorTree name="...">` → `<Variables>` + `<Root>` → `<Behavior>`. The `name` must match the `tree_name` in your brain tables ([make-npc-brain](../xml/make-npc-brain.md)).
+- Variables are declared and typed. Write them with `Expression` (`$var = ...`) or from Lua with `data.var`.
+- Flow control: `Sequence`, `Loop`, `SuppressFailure`, `IfCondition` / `IfElseCondition`, `For`. Conditions need `&gt;` `&lt;` `&amp;` instead of `>` `<` `&`.
+- **Every loop needs a `Wait` with a non-zero duration**, or the game freezes.
+- Combat and other trees of a different type are started as **interrupts** (`AddInterrupt_attack`), not called directly.
+- `ExecuteLua` runs any Lua. Wrap it in `pcall`, and don't use `--` comments unless each line ends in `&#10;`.
 
 ---
 
@@ -237,7 +254,7 @@ A few important rules:
 - `data.varname` — reads and writes a variable declared in `<Variables>` from inside Lua. Use this instead of `$varname` syntax, which only works in `Expression` and condition strings.
 - `_G.YOURVARNAME` — sets a global variable that persists for the current session. Define it without a `local` keyword: `_G.MercenariesDismissed = true`. Functions defined in your mod's Lua scripts can be called normally.
 - Characters like `<` and `>` must be XML-encoded as `&lt;` and `&gt;` inside the `code` attribute, or the XML parser will error.
-- **Never use `--` Lua comments inside a `code=""` attribute.** The behaviour tree parser sees `--` and treats everything after it as a comment at the parser level, before Lua even runs. This produces uncompilable code that will spam your log at whatever rate the node ticks. Use XML `<!-- -->` comments outside the `ExecuteLua` node instead.
+- **Don't use `--` Lua comments inside a `code=""` attribute** unless every line ends in an encoded newline, `&#10;`. XML turns a literal line break inside an attribute into a space when the file is read, so your nicely formatted multi-line code reaches Lua as one long line, and the first `--` comments out everything after it. This produces uncompilable code that will spam your log at whatever rate the node ticks. Vanilla does use `--` comments, always terminated with `&#10;` (see `AI/crime/calculatePunishment.xml`). The simpler rule: put comments in XML `<!-- -->` outside the `ExecuteLua` node.
 - Wrap non-trivial code in `pcall` to prevent a Lua error from killing the entire behaviour tree tick.
 
 ```xml
@@ -313,4 +330,4 @@ The engine exposes a few built-in WUID variables you can use in expressions and 
 
 ## Where to Learn More
 
-Look at vanilla behaviour trees. They are a goldmine of information and will tell you everything you need to know to implement whatever feature you want. They live in `Libs/AI/` inside the game's data paks. Extract them with any compression program — every mechanic in the game is in there somewhere.
+Look at vanilla behaviour trees. They are a goldmine of information and will tell you everything you need to know to implement whatever feature you want. They live in the `AI/` folder inside `Scripts.pak` (see [Episode 01, the vanilla reference](../tutorials/episode-01-mod-setup.md#2-the-vanilla-reference)). Extract them with any compression program — every mechanic in the game is in there somewhere.

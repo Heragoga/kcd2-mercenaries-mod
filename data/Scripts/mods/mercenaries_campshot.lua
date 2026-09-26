@@ -28,12 +28,12 @@
 -- is fighting for it. CryAction.ResetToNormalCamera() hands it back.
 --
 -- NO KEYBOARD, NO FOREGROUND. Every command here is meant to arrive through the control
--- file poll (merc_dev, then merc_cmd_remote - see mercenaries_cmdui.lua and docs/ui.md),
+-- file poll (merc_dev, then merc_cmd_remote - see mercenaries_cmdui.lua and docs/mercenaries/ui/ui.md),
 -- so a host script drives a game it never has to focus or click. That poll re-executes the
 -- file once a second, so EVERY COMMAND BELOW IS IDEMPOTENT: a run already in progress
 -- ignores a second request to start it.
 --
--- See docs/camp-inspection.md.
+-- See docs/mercenaries/camp/camp-inspection.md.
 
 mercenaries.ShotRun        = nil     -- the live orbit, nil when idle
 mercenaries.ShotTickMs     = 60      -- camera re-apply rate
@@ -949,7 +949,7 @@ mercenaries:DevCommand("merc_shot_veg",   "mercenaries:ShotVeg(%line)",
 --
 -- Terrain SURFACE TYPE is the candidate signal, because that is what vegetation layers are
 -- keyed to: tall grass grows on the meadow material and not on the path material. The ground
--- guard already reads a surface id off every terrain ray (see docs/ground-guard.md, where it
+-- guard already reads a surface id off every terrain ray (see docs/mercenaries/camp/ground-guard.md, where it
 -- is what tells terrain from a woodpile) and System.GetSurfaceTypeNameById resolves it.
 --
 -- This command changes nothing. It reports what is actually under the camp and around it, so

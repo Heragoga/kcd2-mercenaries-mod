@@ -3,7 +3,7 @@
      KCD2's day length they are worth roughly a twelfth of that in real minutes: vanilla's
      3600 undiscovered is about five real minutes, and its 300 discovered is about twenty
      real seconds. 21600 / 10800 are therefore about half an hour and a quarter of an hour
-     of real time. See docs/loot-sweep.md, "How long bodies stay".
+     of real time. See docs/mercenaries/ai/loot-sweep.md, "How long bodies stay".
 
      Undiscovered is authored by the vanilla table, so that row is an OVERRIDE and the merge
      is unverified for a duplicate key; Discovered is not authored anywhere and is a plain
@@ -17,7 +17,7 @@
 		<!-- How much being outnumbered drags an NPC's morale down, and so how readily he
 		     breaks off and runs. Vanilla's weight routs whole bands against a company of
 		     mercs; 0 removes the headcount term. Absent from the vanilla table, so this
-		     row is an insert, not an override. See docs/enemy-morale.md. -->
+		     row is an insert, not an override. See docs/mercenaries/ai/enemy-morale.md. -->
 		<rpg_param rpg_param_key="SkirmishPredominanceWeight" rpg_param_value="0" />
 	</rpg_params>
 </database>

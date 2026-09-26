@@ -10,7 +10,7 @@
 --   be83d  Lua -> Skald    "the camp is standing"  (opens the journal entry)
 --   be82d  Lua -> Skald    "the camp is cleared"   (closes it)
 --
--- See docs/bandit-camp-quest.md.
+-- See docs/mercenaries/quests/bandit-camp-quest.md.
 
 local function qLog(s) System.LogAlways("[BanditCampQuest] " .. s) end
 
@@ -259,7 +259,7 @@ mercenaries.BanditCampLayouts.default = {
     -- mode, so they shoot the player and the mercs. Each one joins the kill count as soon as
     -- it spawns (the archer arrives on a delay), so the contract is not payable while a
     -- tower is still manned. They do consume the player's tower allowance - see
-    -- TowerMaxCount in docs/bandit-camp-quest.md.
+    -- TowerMaxCount in docs/mercenaries/quests/bandit-camp-quest.md.
     { kind = "tower", what = "archer tower (spawns an archer)", x = 1.58, y = -11.35, z = 0.00, yaw = -1.5172 },
     { kind = "tower", what = "archer tower (spawns an archer)", x = 11.10, y = -4.08, z = 0.01, yaw = -0.3342 },
 
@@ -870,7 +870,7 @@ function mercenaries:BanditCampFollowerCount()
 end
 
 -- ==== Kleinkrieg: the contract run ====
--- One story told almost entirely in numbers (docs/bandit-camp-quest.md): twelve contracts in
+-- One story told almost entirely in numbers (docs/mercenaries/quests/bandit-camp-quest.md): twelve contracts in
 -- a fixed order, alternating camps and patrols. Counts scale off the men ACTUALLY following
 -- the player via a per-contract ratio, so the company is sometimes the bigger side and
 -- sometimes not - the spikes and the dips are the storytelling. A lone player still gets
@@ -1200,7 +1200,7 @@ end
 -- Cheap precondition for the hot path. IsValidEnemy asks about suppression for EVERY nearby
 -- NPC on every 300ms combat scan, so in a crowd this runs dozens of times a tick - and the
 -- answer is "no camp is suppressing anything" in almost every session. Two table lookups,
--- no allocation, no string. See docs/performance.md "Costs that scale with NPC density".
+-- no allocation, no string. See docs/mercenaries/tech/performance.md "Costs that scale with NPC density".
 function mercenaries:BanditCampAnyUnalerted()
     local S = self.BCQ_KK
     if S and S.active and S.spawned and not S.alerted then return true end
@@ -1471,7 +1471,7 @@ end
 
 -- ==== gear ====
 -- A camp of twelve drawing on one group's ten outfits reads as a uniform, and half of them
--- are wearing the same thing. These are the pools the mod already ships (docs/enemies.md) -
+-- are wearing the same thing. These are the pools the mod already ships (docs/mercenaries/enemies/enemies.md) -
 -- looters and bandits are both ragged outlaws, and Sigismund's men are plausible as gear
 -- stripped off bodies - so the camp dresses from all three instead of one.
 mercenaries.BanditCampClothingGroups = { "bandit", "looter", "sigi" }
@@ -2003,7 +2003,7 @@ function mercenaries:SpawnBanditCampBand(site, group, count, archers, withLeader
 end
 
 -- Hand every bandit a camp role. This is the same WUID-keyed contract the merc camp uses
--- (docs/ai-modules.md): the enemy schedulers already fire `camp_actor` for anyone holding
+-- (docs/mercenaries/ai/ai-modules.md): the enemy schedulers already fire `camp_actor` for anyone holding
 -- one, and drop it for combat the moment they acquire a target.
 function mercenaries:AssignBanditCampRoles(origin)
     local S = self.BCQ
@@ -2843,7 +2843,7 @@ end
 function mercenaries:BanditCampCountDead()
     local S = self.BCQ
     -- A MISSING entity is not proof of death. The engine streams and despawns NPCs on its
-    -- own (docs/npc-lod.md - the mod already had to fight this for its own mercs), and
+    -- own (docs/mercenaries/tech/npc-lod.md - the mod already had to fight this for its own mercs), and
     -- S.killed only ever ratchets upward, so treating one nil lookup as a kill would let a
     -- streaming blip inflate the count permanently and eventually pay the contract out with
     -- bandits still standing. A body only counts once it has been missing for
@@ -2979,7 +2979,7 @@ function mercenaries:BanditCampDeliverLetter()
     self:BanditCampAdvance()
     -- ALWAYS closes the journal entry now, not just on the twelfth contract. The
     -- quartermaster no longer offers this run at all - Aleksej's nine beats are the
-    -- Kleinkrieg quest (docs/aleksej.md) - so a hand-in is the last thing that can happen
+    -- Kleinkrieg quest (docs/mercenaries/quests/aleksej.md) - so a hand-in is the last thing that can happen
     -- to it, and leaving the entry open waiting for a next contract that can never be
     -- taken would strand it in the journal forever.
     self:BanditCampSignal(self.TokenIDKKArcDone)

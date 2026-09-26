@@ -16,7 +16,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92be44d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92be45d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92be46d", tag = "MiscItem", name = "loot_sackOfNails" },
-    -- Item used to indicate which style should be chosen. The COUNT is the style index in mercenaries.Outfits: 1 generic, 2 bandit, 3 cuman, 4 Leipa, 5 Kuttenberg, 6 Skalitz, 7 custom uniform, 8 Prague, 9 Sigismund, 10 Order of the Red Star, 11 Bergov, 12 Nebakov, 13 Semine, 14 Pisek, 15 Teutonic, 16 Ruthard, 17 Papal. See docs/outfits.md - do not renumber, EnemyOutfitOverride assumes these.
+    -- Item used to indicate which style should be chosen. The COUNT is the style index in mercenaries.Outfits: 1 generic, 2 bandit, 3 cuman, 4 Leipa, 5 Kuttenberg, 6 Skalitz, 7 custom uniform, 8 Prague, 9 Sigismund, 10 Order of the Red Star, 11 Bergov, 12 Nebakov, 13 Semine, 14 Pisek, 15 Teutonic, 16 Ruthard, 17 Papal. See docs/mercenaries/company/outfits.md - do not renumber, EnemyOutfitOverride assumes these.
     { id = "679a655e-189d-4519-b437-ccc4b92be47d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Item used to indicate the recruitment of a custom companion, one means custom companion 1, two custom companion 2 etc
     { id = "679a655e-189d-4519-b437-ccc4b92be48d", tag = "MiscItem", name = "loot_sackOfNails" },
@@ -120,7 +120,7 @@ mercenaries.ModItemIds = {
     -- Aleksej forced-dialogue gates: player in range / out of range.
     { id = "679a655e-189d-4519-b437-ccc4b92bea5d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bea6d", tag = "MiscItem", name = "loot_sackOfNails" },
-    -- Aleksej of Zaslawye: the seven documents (docs/aleksej.md). No IsQuestItem - it blocks inventory:CreateItem, which is how these reach a corpse.
+    -- Aleksej of Zaslawye: the seven documents (docs/mercenaries/quests/aleksej.md). No IsQuestItem - it blocks inventory:CreateItem, which is how these reach a corpse.
     { id = "679a655e-189d-4519-b437-ccc4b92beaad", tag = "Document", name = "merc_alx_doc1" },
     { id = "679a655e-189d-4519-b437-ccc4b92beabd", tag = "Document", name = "merc_alx_doc2" },
     { id = "679a655e-189d-4519-b437-ccc4b92beacd", tag = "Document", name = "merc_alx_doc3" },
@@ -129,7 +129,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92beafd", tag = "Document", name = "merc_alx_doc6" },
     { id = "679a655e-189d-4519-b437-ccc4b92beb0d", tag = "Document", name = "merc_alx_doc7" },
     { id = "679a655e-189d-4519-b437-ccc4b92beb1e", tag = "Document", name = "merc_alx_doc8" },
-    -- Aleksej of Zaslawye: the nine-beat progression's Lua-to-Skald bridge tokens (mercenaries_aleksej.lua TokenIDAlxB1/TokenIDAlxB1Done..TokenIDAlxB9Done). Same 'loot_sackOfNails' reusable token shape as the Kleinkrieg gates above - only beat 1's open and every beat's done need a Lua-droppable item; beats 2-9's open gates are pure graph edges (docs/aleksej.md).
+    -- Aleksej of Zaslawye: the nine-beat progression's Lua-to-Skald bridge tokens (mercenaries_aleksej.lua TokenIDAlxB1/TokenIDAlxB1Done..TokenIDAlxB9Done). Same 'loot_sackOfNails' reusable token shape as the Kleinkrieg gates above - only beat 1's open and every beat's done need a Lua-droppable item; beats 2-9's open gates are pure graph edges (docs/mercenaries/quests/aleksej.md).
     { id = "679a655e-189d-4519-b437-ccc4b92beb1d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92beb2d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92beb3d", tag = "MiscItem", name = "loot_sackOfNails" },
@@ -147,7 +147,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92bec5d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bec6d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bec7d", tag = "MiscItem", name = "loot_sackOfNails" },
-    -- Beats 7, 8 and 9 need their own spawn tokens too: the rebuilt quest issues one per beat, both when the beat opens and again on every level wake while that beat is the live one (docs/aleksej.md, 'the camp is not save data').
+    -- Beats 7, 8 and 9 need their own spawn tokens too: the rebuilt quest issues one per beat, both when the beat opens and again on every level wake while that beat is the live one (docs/mercenaries/quests/aleksej.md, 'the camp is not save data').
     { id = "679a655e-189d-4519-b437-ccc4b92bec8d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bec9d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92becad", tag = "MiscItem", name = "loot_sackOfNails" },
@@ -166,7 +166,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92bed5d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bed6d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bed7d", tag = "MiscItem", name = "loot_sackOfNails" },
-    -- 'beat camp is up' and 're-arm the objective', Lua -> Skald. Sent after a wake rebuild so the Started log fires again and its Marker binds to the RESPAWNED leader (docs/aleksej.md).
+    -- 'beat camp is up' and 're-arm the objective', Lua -> Skald. Sent after a wake rebuild so the Started log fires again and its Marker binds to the RESPAWNED leader (docs/mercenaries/quests/aleksej.md).
     { id = "679a655e-189d-4519-b437-ccc4b92be00d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92be01d", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Cast silver. The base game has a full set of raw-silver meshes under metal_industry/silver, built to dress the Royal Silver quest's mint, and never wraps any of them as an item - so this is the first lootable silver in the game. Priced against loot_silverChalice (650 for 0.6 kg, with a craftsman's markup on top), so a plain cake of bullion sits a little under that per kilo.
@@ -191,7 +191,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92be9cd", tag = "MiscItem", name = "loot_sackOfNails" },
     -- Signals the END of the whole Kleinkrieg arc (last contract paid).
     { id = "679a655e-189d-4519-b437-ccc4b92be8ed", tag = "MiscItem", name = "loot_sackOfNails" },
-    -- The Kleinkrieg story letters (docs/bandit-camp-quest.md). Letter 6 is Raborsch's and arrives with that contract. No IsQuestItem - it blocks inventory:CreateItem, which is how these reach the leader's body.
+    -- The Kleinkrieg story letters (docs/mercenaries/quests/bandit-camp-quest.md). Letter 6 is Raborsch's and arrives with that contract. No IsQuestItem - it blocks inventory:CreateItem, which is how these reach the leader's body.
     { id = "679a655e-189d-4519-b437-ccc4b92be88d", tag = "Document", name = "merc_kk_letter1" },
     { id = "679a655e-189d-4519-b437-ccc4b92be89d", tag = "Document", name = "merc_kk_letter2" },
     { id = "679a655e-189d-4519-b437-ccc4b92be8ad", tag = "Document", name = "merc_kk_letter3" },
@@ -211,7 +211,7 @@ mercenaries.ModItemIds = {
     { id = "679a655e-189d-4519-b437-ccc4b92bedfd", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bee0d", tag = "MiscItem", name = "loot_sackOfNails" },
     { id = "679a655e-189d-4519-b437-ccc4b92bee1d", tag = "MiscItem", name = "loot_sackOfNails" },
-    -- Reinforced caftans: see docs/outfits.md. A Cuman wears a caftan where a Bohemian wears a gambeson plus a mail shirt, so these carry that armour value themselves and let the Cuman styles hit their tier budget without being dressed as men-at-arms.
+    -- Reinforced caftans: see docs/mercenaries/company/outfits.md. A Cuman wears a caftan where a Bohemian wears a gambeson plus a mail shirt, so these carry that armour value themselves and let the Cuman styles hit their tier budget without being dressed as men-at-arms.
     { id = "6d657263-caf7-4a00-9000-000000000001", tag = "Armor", name = "Caftan01_m02_D1_mercRnf" },
     { id = "6d657263-caf7-4a00-9000-000000000002", tag = "Armor", name = "Caftan01_m04_D1_mercRnf" },
     { id = "6d657263-caf7-4a00-9000-000000000003", tag = "Armor", name = "Caftan01_m06_D1_mercRnf" },

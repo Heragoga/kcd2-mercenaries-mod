@@ -20,7 +20,7 @@
 -- control methods, the extra solid collider, and the collision classes before them.
 -- Every one walked through at the control's own lateral. Turning this cvar off stopped
 -- the walker dead at the timber on both trials and pushed him 5.5 m along the wall face
--- where a straight line was 2.9 m. See docs/walls-and-sieges.md.
+-- where a straight line was 2.9 m. See docs/mercenaries/fortifications/walls-and-sieges.md.
 --
 -- ==== HOW IT IS SCOPED, AND WHY IT IS THIS WAY ROUND ====
 --

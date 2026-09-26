@@ -4,7 +4,7 @@
 -- testing merc/enemy behaviour without vanilla crowds in the way.
 --
 -- Hide()/Activate() are the same binds documented (never shipped) in
--- docs/npc-lod.md. The danger described there is something ELSE re-forcing a
+-- docs/mercenaries/tech/npc-lod.md. The danger described there is something ELSE re-forcing a
 -- hide every frame (AI LOD demoting a runtime-spawned actor); a hide WE apply
 -- and WE reverse via the same toggle does not hit that trap.
 --

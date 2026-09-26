@@ -735,7 +735,7 @@
   <Row><Cell>ui_merc_wheel_report</Cell><Cell>Report</Cell><Cell>Rapport</Cell></Row>
   <Row><Cell>ui_merc_wheel_equipment</Cell><Cell>Equipment</Cell><Cell>Équipement</Cell></Row>
   <Row><Cell>ui_merc_wheel_more</Cell><Cell>More options...</Cell><Cell>Plus d'options...</Cell></Row>
-  <!-- Bandit-camp contract (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp contract (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>ui_qm_work</Cell><Cell>Any work going?</Cell><Cell>Il y a du travail ?</Cell></Row>
   <Row><Cell>merc_henry_qm_work</Cell><Cell>Anything that needs doing? Something with coin at the end of it.</Cell><Cell>Quelque chose à faire ? Avec de l'argent à la clé.</Cell></Row>
   <Row><Cell>merc_qm_work</Cell><Cell>As it happens, there's always work for men who don't ask twice. Interested?</Cell><Cell>Justement, il y a toujours du travail pour ceux qui ne posent pas deux fois la question. Intéressé ?</Cell></Row>
@@ -783,7 +783,7 @@
   <Row><Cell>char_alx_jezek_description</Cell><Cell>A knight in his own plate, a long way from home and on the wrong side of it.</Cell><Cell>Un chevalier dans sa propre armure de plates, loin de chez lui et du mauvais côté.</Cell></Row>
   <Row><Cell>char_alx_officer_fullName</Cell><Cell>Officer</Cell><Cell>Officier</Cell></Row>
   <Row><Cell>char_alx_officer_description</Cell><Cell>One of the captains who broke with Aleksej and took his plan to the field.</Cell><Cell>Un des capitaines qui a rompu avec Aleksej et a porté son plan sur le terrain.</Cell></Row>
-  <!-- Bandit-camp letter / hand-in (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp letter / hand-in (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>merc_banditcamp_letter_uiname</Cell><Cell>Bandit Leader's Letter</Cell><Cell>Lettre du chef des bandits</Cell></Row>
   <Row><Cell>merc_banditcamp_letter_uiinfo</Cell><Cell>A folded sheet of coarse paper, sealed once and broken open again. The hand is better than you would expect of a man living in a wood.</Cell><Cell>Une feuille de papier grossier pliée, scellée puis rouverte. L'écriture est plus soignée qu'on ne l'attendrait d'un homme vivant dans les bois.</Cell></Row>
   <Row><Cell>ui_qm_banditcamp_letter</Cell><Cell>About the job.</Cell><Cell>À propos du travail.</Cell></Row>
@@ -1179,7 +1179,7 @@
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>Faites en sorte qu'il en soit ainsi.</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>Bien. Je vais faire passer le mot.</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_cancel</Cell><Cell>Never mind.</Cell><Cell>Laissez tomber.</Cell></Row>
-  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/custom-gear.md) -->
+  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/mercenaries/company/custom-gear.md) -->
   <Row><Cell>ui_qm_deliver_gear</Cell><Cell>Gear for the company</Cell><Cell>Équipement pour la compagnie</Cell></Row>
   <Row><Cell>ui_merc_equip_custom</Cell><Cell>Our own kit</Cell><Cell>Notre propre équipement</Cell></Row>
   <Row><Cell>merc_henry_equip_custom</Cell><Cell>Wear the kit I left with the quartermaster.</Cell><Cell>Portez l'équipement que j'ai laissé au fourrier.</Cell></Row>

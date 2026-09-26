@@ -42,11 +42,11 @@ mercenaries.StaticArcherEnemySoulIndex = 1
 
 -- What an enemy tower archer WEARS: a FIXED two-outfit set, not a roll from a group pool.
 -- A bowman perched on a platform should look like a lookout in rags rather than a
--- man-at-arms, so both are light looter kit (docs/enemies.md) - but the reason they are
+-- man-at-arms, so both are light looter kit (docs/mercenaries/enemies/enemies.md) - but the reason they are
 -- pinned is the tower descent: when the camp's ground is cleared the static archer is
 -- swapped for an ordinary bandit archer, and a random outfit on either end would change his
 -- clothes mid-fight. The chosen preset is recorded on his StaticArchers record so the
--- replacement can wear exactly the same thing. See docs/bandit-camp-quest.md.
+-- replacement can wear exactly the same thing. See docs/mercenaries/quests/bandit-camp-quest.md.
 mercenaries.StaticArcherEnemyOutfits = {
     "20aba0c4-1cfb-42de-97dd-939530d6240d",
     "2285cbe9-3962-4093-94a9-86f556e5bf2f",
@@ -404,7 +404,7 @@ end
 -- `enemyGroup` (optional) makes this somebody else's tower - a bandit-camp watchtower. It
 -- switches BOTH the soul (enemiesFaction + a bandit character, so the camp does not attack
 -- its own tower and it does not read as "mercenary archer") and the clothing. Who he shoots
--- is still `mode`. See docs/bandit-camp-quest.md.
+-- is still `mode`. See docs/mercenaries/quests/bandit-camp-quest.md.
 function mercenaries:SpawnStaticArcher(pos, mode, faceAngle, enemyGroup, elevated)
     if not pos then return nil end
     mode = (mode and self.StaticArcherModes[mode]) and mode or self.StaticArcherDefaultMode

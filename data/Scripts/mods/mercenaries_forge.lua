@@ -1,6 +1,6 @@
 -- Camp forge: borrows a village Smithery's minigame logic onto the flattest
 -- patch near camp, dresses it with props, and seats a merc smith. See
--- docs/camp-forge.md for the full design and the NPC-smith postmortem.
+-- docs/mercenaries/camp/camp-forge.md for the full design and the NPC-smith postmortem.
 
 -- Henry-relative prop layout (fwd = toward interaction anvil, lat = +left,
 -- up = height, yaw = deg CCW).
@@ -261,7 +261,7 @@ function mercenaries:SpawnCampForge(center)
     -- back up every five seconds for a minute before giving up. "Present for the first few
     -- seconds after a load, then flickering, then gone" (2026-09-03). The home is saved
     -- with the camp on the first borrow and read back whenever the entity is found
-    -- standing at the camp. See StationHome and docs/camp-forge.md.
+    -- standing at the camp. See StationHome and docs/mercenaries/camp/camp-forge.md.
     local smPos = self:StationHome("CampForgeHome", sm, anvilPos)
     local rec = { sm = sm, smPos = smPos, visuals = {}, stand = standPos, anvilPos = anvilPos }
     if self:StationHomeIsHere(smPos, anvilPos) then
@@ -445,7 +445,7 @@ function mercenaries:DespawnCampForge()
 end
 
 -- Camp smith: a merc seated by the anvil sharpening a conjured sword, driven as
--- camp activity mode 10 in camp_actor.xml. See docs/camp-forge.md.
+-- camp activity mode 10 in camp_actor.xml. See docs/mercenaries/camp/camp-forge.md.
 
 -- Spawn the smith's bench: a stool prop + a sitting StanceSmartObject (CampChairSO
 -- properties), by the anvil facing it. Entities tracked in rec.smithSeatIds.

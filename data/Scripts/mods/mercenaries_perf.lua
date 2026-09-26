@@ -1,6 +1,6 @@
 -- Shared caches every hot path reads from instead of re-deriving its own copy.
 -- Loaded first in the chain: nothing here calls into another mod module at load time.
--- See docs/performance.md.
+-- See docs/mercenaries/tech/performance.md.
 
 mercenaries.PerfPos           = {}    -- [wuidStr] = {x,y,z}; .player = player pos
 mercenaries.PerfNpcScan       = nil   -- {at, cx, cy, cz, r, list={{entity,wuid,pos},...}}
@@ -130,7 +130,7 @@ end
 
 -- Position tables are REUSED rather than rebuilt. This runs every master tick for every
 -- merc, so allocating a fresh {x,y,z} each time was a steady garbage stream feeding the
--- Lua collector - which runs on the main thread and pauses it. See docs/performance.md.
+-- Lua collector - which runs on the main thread and pauses it. See docs/mercenaries/tech/performance.md.
 function mercenaries:PerfScanMercs()
     local pos  = self.PerfPos
     local seen = self._perfPosSeen
@@ -195,7 +195,7 @@ function mercenaries:PerfScanNpcs()
     -- the rest of the session - even after that archer was gone, and even with the player
     -- nowhere near it. A 90m circle covers ~25x the area of an 18m one, so in a crowded
     -- city that is the difference between a handful of NPCs per pass and hundreds, each one
-    -- then run through IsValidEnemy. See docs/performance.md "Costs that scale with NPC
+    -- then run through IsValidEnemy. See docs/mercenaries/tech/performance.md "Costs that scale with NPC
     -- density".
     --
     -- "While static archers exist" was the second version of that bug, not the fix for it:

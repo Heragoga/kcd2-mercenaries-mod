@@ -1,6 +1,20 @@
+---
+title: Talking with Behaviour Trees
+summary: How do I make an NPC answer the E prompt and speak monologues or vanilla voice lines from a behaviour tree, and which vanilla metaroles are worth using?
+tags: [ai, bt, skald]
+kind: guide
+status: current
+scope: kcd2
+---
 # Talking with Behaviour Trees
 
 This will be a short entry compared to the behemoths that are combat, movement and basic structure. Talking is a straightforward affair and falls into two categories: direct dialog (when you look at an NPC and press E to talk), and everything else (monologs, ambient comments, NPC-to-NPC conversations where they stand facing each other and jabber at one another).
+
+## TL;DR
+
+- **E-dialog:** poll `Function_switch_handleDialog` in a `ProcessMessage` on `'dialogMailbox'`, at least once a second. Without it the E prompt shows but nothing happens.
+- **Monologs:** `Function_speech_schedulerMonolog` with `alias` set to a Skald `Decision` alias you defined ([add-dialog](../skald/add-dialog.md)).
+- **Vanilla voice lines:** the same node with `metarole` instead of `alias`. The table below lists useful metaroles by situation.
 
 ---
 
@@ -24,7 +38,7 @@ Playing a line with a single participant — the NPC talking to themselves or at
 
 ```xml
 <Function_speech_schedulerMonolog
-    alias="'bark_test_dialog_drink_4'"
+    alias="'bark_test_dialog_drink_3'"
     animationApproach="$enum:animationApproach.dontPlayDialogAnimations"
     context=""
     lookAtId="$__player"

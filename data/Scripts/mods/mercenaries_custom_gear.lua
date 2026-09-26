@@ -1,7 +1,7 @@
 -- The CUSTOM uniform. The player drops one set of gear into a chest, the mod
 -- remembers the item classes, hands the gear straight back and dresses the whole
 -- company in copies of it - every tier and the archers too. It is outfit style 7,
--- shown second in the equipment menu right after Generic. See docs/custom-gear.md.
+-- shown second in the equipment menu right after Generic. See docs/mercenaries/company/custom-gear.md.
 
 mercenaries.CustomOutfitIndex = 7
 mercenaries.GearSaveTag = "MercCustomGear"
@@ -164,7 +164,7 @@ end
 -- DATABASE NAME and read the clothing family off the front of it. Vanilla armour is
 -- named "<Family><NN>_m<NN>[_Q]" and the family is what decides the slot, so a modded
 -- piece whose author copied a vanilla row - which is how nearly all of them are made -
--- resolves correctly. There is no scriptbind that reports a slot (docs/custom-gear.md),
+-- resolves correctly. There is no scriptbind that reports a slot (docs/mercenaries/company/custom-gear.md),
 -- so this is a proxy, and a deliberately conservative one: anything it cannot parse
 -- stays unknown rather than guessing.
 --
@@ -470,7 +470,7 @@ mercenaries.GearPurgePass = 1
 -- Off by default, on purpose. An empty clothing preset applied after the pieces
 -- (generic_naked has no <Items> at all, so it can only redraw, never add) was tried in
 -- an earlier build as a way to force the character to rebuild, and it did not help -
--- see docs/custom-gear.md. It is kept behind merc_gear_redraw because it costs nothing
+-- see docs/mercenaries/company/custom-gear.md. It is kept behind merc_gear_redraw because it costs nothing
 -- to try again if a piece is ever equipped-but-invisible.
 mercenaries.GearRedraw = false
 mercenaries.GearRedrawPreset = "00000000-0000-0000-0000-000000000006"  -- generic_naked
@@ -490,7 +490,7 @@ mercenaries.GearRedrawPreset = "00000000-0000-0000-0000-000000000006"  -- generi
 -- or more equips a second, for ever, on any squad wearing the custom uniform - a repair pass
 -- running at the cadence of a combat loop. At 5s a twenty-man company is still fully
 -- re-asserted about every 25 seconds, which is far inside the time it takes anyone to
--- notice a missing piece. See docs/performance.md.
+-- notice a missing piece. See docs/mercenaries/tech/performance.md.
 mercenaries.GearKeepTickMs = 5000
 mercenaries.GearKeepPerTick = 4
 mercenaries.GearKeepArmed = false
@@ -971,7 +971,7 @@ mercenaries.GearChest = nil            -- { id, base, sig, idle, ticks }
 -- that nil is meaningful: it means "no known identity", not "slot 0".
 --
 -- It used to answer slot 0 for those. Slot 0 is a REAL slot with twelve vanilla items in
--- it (chain collars, spectacles, a painter's torso - see docs/custom-gear.md), so every
+-- it (chain collars, spectacles, a painter's torso - see docs/mercenaries/company/custom-gear.md), so every
 -- unknown modded piece collided with every other one AND with those twelve: whichever
 -- went into the chest last evicted all the rest, and a player who put in two modded
 -- pieces kept one. Callers must treat a nil slot as "unique to its own class".

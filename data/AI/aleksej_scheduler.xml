@@ -2,7 +2,7 @@
 <BehaviorTrees>
     <!-- Aleksej's own switch. Modelled on quartermaster_scheduler.xml (the two schedulers
          used to be the same file - Aleksej borrowed quartermaster_brain - and are now split
-         apart, docs/aleksej.md). Same shape: stand and occasionally eat (aleksej_idle, the
+         apart, docs/mercenaries/quests/aleksej.md). Same shape: stand and occasionally eat (aleksej_idle, the
          default), sit/sleep in his lodging (camp_actor, whenever the Lua camp-furniture
          tables have him assigned), defend himself with the shared melee tree when attacked,
          and start the beat-9 marsh speech on cue (forced_dialog). No follow/schedule/squad

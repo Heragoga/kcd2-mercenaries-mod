@@ -735,7 +735,7 @@
   <Row><Cell>ui_merc_wheel_report</Cell><Cell>Report</Cell><Cell>報告</Cell></Row>
   <Row><Cell>ui_merc_wheel_equipment</Cell><Cell>Equipment</Cell><Cell>装備</Cell></Row>
   <Row><Cell>ui_merc_wheel_more</Cell><Cell>More options...</Cell><Cell>その他の選択肢…</Cell></Row>
-  <!-- Bandit-camp contract (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp contract (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>ui_qm_work</Cell><Cell>Any work going?</Cell><Cell>何か仕事はあるか？</Cell></Row>
   <Row><Cell>merc_henry_qm_work</Cell><Cell>Anything that needs doing? Something with coin at the end of it.</Cell><Cell>何かやるべきことはあるか？金になる仕事が良い。</Cell></Row>
   <Row><Cell>merc_qm_work</Cell><Cell>As it happens, there's always work for men who don't ask twice. Interested?</Cell><Cell>ちょうど良い、二度と聞き返さない者には常に仕事があります。興味は？</Cell></Row>
@@ -783,7 +783,7 @@
   <Row><Cell>char_alx_jezek_description</Cell><Cell>A knight in his own plate, a long way from home and on the wrong side of it.</Cell><Cell>自前の板金鎧を纏った騎士、故郷から遠く離れ、しかも間違った側に立っている。</Cell></Row>
   <Row><Cell>char_alx_officer_fullName</Cell><Cell>Officer</Cell><Cell>士官</Cell></Row>
   <Row><Cell>char_alx_officer_description</Cell><Cell>One of the captains who broke with Aleksej and took his plan to the field.</Cell><Cell>アレクセイと袂を分かち、彼の計画を戦場へ持ち込んだ隊長の一人。</Cell></Row>
-  <!-- Bandit-camp letter / hand-in (docs/bandit-camp-quest.md) -->
+  <!-- Bandit-camp letter / hand-in (docs/mercenaries/quests/bandit-camp-quest.md) -->
   <Row><Cell>merc_banditcamp_letter_uiname</Cell><Cell>Bandit Leader's Letter</Cell><Cell>盗賊の頭目の手紙</Cell></Row>
   <Row><Cell>merc_banditcamp_letter_uiinfo</Cell><Cell>A folded sheet of coarse paper, sealed once and broken open again. The hand is better than you would expect of a man living in a wood.</Cell><Cell>粗い紙を折りたたんだもので、一度封をされ、また開封されている。筆跡は、森に暮らす男にしては意外なほど達筆だ。</Cell></Row>
   <Row><Cell>ui_qm_banditcamp_letter</Cell><Cell>About the job.</Cell><Cell>仕事について。</Cell></Row>
@@ -1179,7 +1179,7 @@
   <Row><Cell>merc_henry_qm_threat_set</Cell><Cell>See that it's so.</Cell><Cell>そうしてくれ。</Cell></Row>
   <Row><Cell>merc_qm_threat_set</Cell><Cell>Aye. I'll pass the word around.</Cell><Cell>分かった。言い広めておこう。</Cell></Row>
   <Row><Cell>merc_henry_qm_threat_cancel</Cell><Cell>Never mind.</Cell><Cell>やっぱりいい。</Cell></Row>
-  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/custom-gear.md) -->
+  <!-- Custom uniform: the gear set the quartermaster copies onto the company (docs/mercenaries/company/custom-gear.md) -->
   <Row><Cell>ui_qm_deliver_gear</Cell><Cell>Gear for the company</Cell><Cell>一党の装備について</Cell></Row>
   <Row><Cell>ui_merc_equip_custom</Cell><Cell>Our own kit</Cell><Cell>俺たち自身の装備</Cell></Row>
   <Row><Cell>merc_henry_equip_custom</Cell><Cell>Wear the kit I left with the quartermaster.</Cell><Cell>補給係に預けた装備を身につけろ。</Cell></Row>

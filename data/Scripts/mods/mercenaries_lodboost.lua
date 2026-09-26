@@ -4,7 +4,7 @@
 -- BUDGET (a count), not just a distance. Stock is WH_AI_LOD_MaxCountDetail = 70. An NPC that
 -- loses its Detail slot is demoted to LOD, where movement becomes fake jumps
 -- (wh_ai_Lod_MoveIntervalLOD, "Time between fake movement jumps in LOD") and behaviour is
--- coarsely simulated. See docs/npc-lod.md for the full measurements.
+-- coarsely simulated. See docs/mercenaries/tech/npc-lod.md for the full measurements.
 --
 -- The mod can field a 50-man squad, an enemy group, a wall battle and a roaming patrol at once,
 -- comfortably past 100 NPCs, so that 70-slot budget is oversubscribed and the losers are picked
@@ -12,7 +12,7 @@
 -- afterwards, because these are global engine settings and holding them high permanently is a
 -- framerate cost paid while nothing is happening.
 --
--- IMPORTANT - do not read this as a fix for merc invisibility. docs/npc-lod.md run 13 applied
+-- IMPORTANT - do not read this as a fix for merc invisibility. docs/mercenaries/tech/npc-lod.md run 13 applied
 -- this exact tier and ruled it out as the cause of that bug: mercs standing at 3m cannot be
 -- evicted from a 400m/300-slot Detail budget, and they were demoted anyway. This is only about
 -- keeping a big battle simulated properly.
@@ -30,7 +30,7 @@ mercenaries.LodBoostPinned   = false
 
 -- Mesh detail by crowd size. Bigger crowd -> HIGHER ratio (detail drops sooner) -> affordable.
 -- 100 is the engine default, 200 is medium, 300 leaves ~3m detailed and the rest clay figures;
--- docs/npc-lod.md separately records 255 as "puppets at arm's length".
+-- docs/mercenaries/tech/npc-lod.md separately records 255 as "puppets at arm's length".
 --
 -- BANDED, not interpolated, and only changed when the band changes: scaling a LOD ratio
 -- continuously off a live count is what caused pop-in the last time it was tried
@@ -83,7 +83,7 @@ mercenaries._lodRatioBand = nil
 -- The crowd count it keys off is live and noisy (CachedEnemies gains and loses entries
 -- every scan as enemies close, die or re-engage), so a fight sitting near 70, 100 or 150
 -- re-crossed the edge and paid that cost every 300ms tick. Hysteresis plus a dwell time
--- makes a band change a real event rather than jitter. See docs/performance.md.
+-- makes a band change a real event rather than jitter. See docs/mercenaries/tech/performance.md.
 mercenaries.LodRatioMargin    = 12     -- must clear the edge by this much to drop a band
 mercenaries.LodRatioDwellSecs = 8.0    -- and no two changes closer together than this
 mercenaries._lodRatioAt       = nil
@@ -103,9 +103,9 @@ end
 -- distance-unfiltered headcount, so at the old threshold of 8 simply HIRING that many mercs
 -- latched the boost on permanently - in town, in camp, everywhere. Same false-trigger the
 -- mesh-LOD ladder above already had and was banded to fix (see LodRatioBands and
--- docs/npc-lod.md:69-80). Mirrored here the same way: the threshold now sits well past
+-- docs/mercenaries/tech/npc-lod.md:69-80). Mirrored here the same way: the threshold now sits well past
 -- MaxCompanions, and mercs only join the count once there is something to fight. See
--- docs/performance.md, "The AI-LOD cvar boost".
+-- docs/mercenaries/tech/performance.md, "The AI-LOD cvar boost".
 mercenaries.LodBoostMinCrowd    = 70     -- our mercs + nearby hostiles past this = raise the budget
 mercenaries.LodBoostRequireFoes = true   -- mercs count toward crowd only while CachedEnemies is non-empty
 mercenaries.LodBoostHoldSecs = 20.0   -- stay boosted this long after it drops, so it cannot flap
@@ -139,7 +139,7 @@ mercenaries.LodBoostCvars = {
     { "wh_ai_Lod_MoveIntervalLOD",          0.05, ai = true, low =   1 },   -- stock 1   - fake movement jumps -> continuous
     { "wh_ai_Lod_MoveIntervalMonsterLOD",   0.05, ai = true, low =  10 },   -- stock 10
 
-    -- RENDERER side (docs/npc-lod.md section 4). These were missing, which is why raising the
+    -- RENDERER side (docs/mercenaries/tech/npc-lod.md section 4). These were missing, which is why raising the
     -- AI budget "did nothing": WH_AI_LOD_* governs how well an NPC is SIMULATED, not whether
     -- he is DRAWN. A live log measured e_ViewDistRatio = 50 and
     -- e_LodFaceAreaTargetSizeCharacterWH = 0.00305 - a battle context tightens both - so the
@@ -170,7 +170,7 @@ mercenaries.LodBoostCvars = {
     { "e_CharRenderLodMin",                    0, detail = true },
     { "e_CharLodMin",                          0, detail = true },
 
-    -- Clothing / uberlod distance (docs/npc-lod.md section 2). A KCD2 character is ASSEMBLED
+    -- Clothing / uberlod distance (docs/mercenaries/tech/npc-lod.md section 2). A KCD2 character is ASSEMBLED
     -- from skin attachments, and past a distance the engine swaps to a merged "uberlod" mesh
     -- or stops loading the outfit at all - which is a separate pipeline from both the AI tier
     -- and the view distance, and the likeliest remaining reason distant men look wrong when
@@ -270,7 +270,7 @@ end
 --
 -- Compare-before-write: read each cvar back and only call SetCVar when it actually differs, so
 -- a tick nothing has reset costs ~22 reads instead of ~22 writes. Cadence stays 300ms - that is
--- what stops the LOD popping this system exists to fix. docs/performance.md.
+-- what stops the LOD popping this system exists to fix. docs/mercenaries/tech/performance.md.
 function mercenaries:LodBoostReassert()
     if not self.LodBoostActive then return end
     for _, e in ipairs(self.LodBoostCvars) do
@@ -409,7 +409,7 @@ end
 
 -- crowd = mercs + nearby hostiles, but mercs only join the count once there is something to
 -- fight (LodBoostRequireFoes) - otherwise a big idle squad alone latches the boost on. Second
--- return is the foe count, for callers that want to explain the number. docs/performance.md.
+-- return is the foe count, for callers that want to explain the number. docs/mercenaries/tech/performance.md.
 -- Third return: the company ALONE armed it (see LodBoostCompanyMin) - the caller then raises
 -- only the AI half of the cvar set, never the renderer half.
 mercenaries.LodBoostCompanyMin = 30   -- a company this big is simulated in full even with nobody to fight; 0 = never
@@ -446,7 +446,7 @@ end
 -- NPCs with nobody fighting anybody, so arming on it meant walking into town overrode the
 -- player's own quality settings and then re-pushed them against the engine's CVarOverride
 -- three times a second. Crowd (which needs foes in it) is the only thing that arms.
--- See docs/performance.md, "The AI-LOD cvar boost".
+-- See docs/mercenaries/tech/performance.md, "The AI-LOD cvar boost".
 mercenaries.LodBoostPopRelease   = 50   -- boost may only drop once population is below this
 -- ...but for at most this long with no foes anywhere in the cache. The hold exists to cover
 -- a battle's bodies while they still stand, so this has to clear PatrolCorpseSecs (1200s)
@@ -486,7 +486,7 @@ function mercenaries:LodBoostTick()
     -- deliberately fighting the game's own CVarOverride: performanceDemandingArea.cfg
     -- clamps exactly these numbers, and the dense areas it clamps them for are cities.
     -- A pin nobody is holding is the difference between "the mod is heavy in Kuttenberg"
-    -- and not. See docs/performance.md.
+    -- and not. See docs/mercenaries/tech/performance.md.
     if self.LodBoostPinned then
         local held = true
         if self.LodBoostPinReason == "siege" then
@@ -592,7 +592,7 @@ end
 -- derived from its personal ViewDistRatio scaled by e_ViewDistRatio, so a global raise does
 -- nothing for an NPC whose own ratio is low. SetViewDistUnlimited is used on every prop this
 -- mod spawns (towers, carts, beds, the house) and on NO NPC anywhere - which is the one lever
--- in docs/npc-lod.md that has never actually been pulled for characters.
+-- in docs/mercenaries/tech/npc-lod.md that has never actually been pulled for characters.
 --
 -- NOTE the disproved experiment in that doc: the old EnsureMercIsAlwaysRendered called
 -- SetViewDistRatio(254) and then SetViewDistRatio(0) on the next line, clamping every merc to
@@ -770,7 +770,7 @@ end
 -- MEASURED AND REJECTED: cutting the AI Detail budget below stock (40 NPCs / 70m).
 -- On a 2-core siege bench it produced "massive pop in and out" and NO framerate change -
 -- 10-15fps at 40/70, at stock 70/120, and at the boost's own 260/250 alike. The AI tier
--- controls VISIBILITY as much as simulation (docs/npc-lod.md: four systems that stop an NPC
+-- controls VISIBILITY as much as simulation (docs/mercenaries/tech/npc-lod.md: four systems that stop an NPC
 -- rendering while it keeps fighting), so cutting it makes the battle flicker and buys nothing.
 -- Left here as a warning, deliberately empty: do not re-add an AI-budget cut to low spec.
 mercenaries.LowSpecCvars = {}
@@ -1279,7 +1279,7 @@ mercenaries.OptPlan = {
     { key="viewdistc",  cheap=-1, vcost=3 },
     { key="viewdist",   cheap=-1, vcost=3 },
     -- aidetail / aidist are deliberately absent: benched flat for framerate across a 6.5x
-    -- range, and cutting them makes NPCs pop in and out. See docs/performance.md.
+    -- range, and cutting them makes NPCs pop in and out. See docs/mercenaries/tech/performance.md.
 }
 
 local function optClock()
@@ -1695,7 +1695,7 @@ end
 -- meshes are drawn. Every wall segment, tower part, gate and house piece is spawned with
 -- SetViewDistUnlimited + SetViewDistRatio(255) so it never pops out; the cost is that a mature
 -- camp is a few hundred meshes all drawn at maximum detail with shadows, and none of them ever
--- LOD away. See docs/performance.md, "Known costs not yet addressed".
+-- LOD away. See docs/mercenaries/tech/performance.md, "Known costs not yet addressed".
 --
 -- Mode 0 is exactly what ships. 1 and 2 are for measuring whether that is what costs the frames.
 mercenaries.CampRenderMode = 0
@@ -1771,7 +1771,7 @@ mercenaries:DevCommand("merc_camp_render", "mercenaries:CampRenderSet('%line')",
 -- mercenaries_battle_cvars.lua, generated from the game's own files). One of them may well
 -- be why mercenaries vanish in those battles: e_LodFaceAreaTargetSizeCharacterWH is a
 -- CHARACTER lod lever that only changes when a battle cfg loads, and the ~44-session
--- investigation in docs/npc-lod.md ruled out the AI lod system but never this.
+-- investigation in docs/mercenaries/tech/npc-lod.md ruled out the AI lod system but never this.
 --
 -- So: apply them ONE AT A TIME in ordinary play, with the company standing in front of you,
 -- and watch for the moment they go. Values go through CvarOverride, not a bare SetCVar,

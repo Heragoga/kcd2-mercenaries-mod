@@ -3,7 +3,7 @@
 -- A hired merc is an NPC entity, and the engine writes every NPC into the save. Fifty of
 -- them is fifty NPCs, their souls, their inventories and their AI state in every save the
 -- player makes - which is the save footprint, and why a save made with the mod loads slowly
--- once the mod is gone (docs/save-footprint.md): the entities are still in it with nothing
+-- once the mod is gone (docs/mercenaries/tech/save-footprint.md): the entities are still in it with nothing
 -- left to explain them, which is what "white pyramids and generic townsmen" was.
 --
 -- The roster is the answer. The company is a LIST - tier and health per man - and the men
@@ -25,7 +25,7 @@
 -- Not wired to saving itself. There is no Lua hook the engine calls before it writes a
 -- save, so "despawn on save" cannot be done by watching for one; it is done by keeping the
 -- men out of the save in the first place (bSaved_by_game = false where they are spawned)
--- and rebuilding them here on load. See docs/save-footprint.md.
+-- and rebuilding them here on load. See docs/mercenaries/tech/save-footprint.md.
 
 mercenaries.RosterTag     = "MercRoster"
 mercenaries.RosterEnabled = true     -- merc_roster 0|1 (saved): the load-time rebuild

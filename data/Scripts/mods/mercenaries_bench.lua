@@ -1,4 +1,4 @@
--- Automated in-game benchmark + POP-IN DETECTOR. See docs/performance.md.
+-- Automated in-game benchmark + POP-IN DETECTOR. See docs/mercenaries/tech/performance.md.
 --
 -- Two jobs, one module:
 --   1. Run a scripted scenario chain (hire men, spawn a fight) with a real frame-time
@@ -509,7 +509,7 @@ end
 
 -- Dev-gated: the whole bench family is an automated-test surface (harness modes quit
 -- the game when done), so none of it is registered until merc_dev - which itself only
--- works in a -devmode launch. See docs/console.md.
+-- works in a -devmode launch. See docs/mercenaries/tech/console.md.
 mercenaries:DevCommand("merc_bench",      "mercenaries:BenchStart(false)", "Run the scripted perf bench + pop-in detector")
 mercenaries:DevCommand("merc_bench_auto", "mercenaries:BenchStart(true)",  "Run the bench and QUIT the game at the end (harness mode)")
 mercenaries:DevCommand("merc_bench_scale",      "mercenaries:BenchStart(false, mercenaries.BenchScalePlan)", "Per-merc cost ladder: 0/5/10/20 mercs + pin/btlod A-Bs + dismissal")

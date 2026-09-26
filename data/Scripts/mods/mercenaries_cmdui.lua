@@ -2,7 +2,7 @@
 -- wired to anything yet, they just light up and log.
 --
 -- Everything is drawn with System.DrawText, which is the only immediate-mode primitive
--- that renders in screen space in KCD2 (System.Draw2DLine does not - see docs/ui.md).
+-- that renders in screen space in KCD2 (System.Draw2DLine does not - see docs/mercenaries/ui/ui.md).
 -- That means there are no filled rectangles: a panel is rows of a repeated glyph, one
 -- DrawText call per row, so keep the glyph budget in mind.
 --

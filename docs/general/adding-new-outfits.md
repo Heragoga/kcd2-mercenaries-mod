@@ -1,3 +1,11 @@
+---
+title: Custom Equipment Presets
+summary: How do I add my own armour set to the mercenaries' outfit pool (a clothing_preset plus an entry in mercenaries.Outfits), and where do I find item GUIDs?
+tags: [data, assets]
+kind: guide
+status: current
+scope: kcd2
+---
 # Custom Equipment Presets
 
 This guide covers how to customize the armor your mercenaries wear. If you're wondering why there's no in-game inventory management feature for your squad, here's why:
@@ -7,6 +15,8 @@ This guide covers how to customize the armor your mercenaries wear. If you're wo
 **Micromanagement hell.** Individually dressing up six guys — sourcing matching waffenrocks, cloaks, and so on — just isn't fun.
 
 That said, you absolutely can customize their equipment. It just requires a small amount of manual work, which this guide walks you through.
+
+Since this was written, the mod did get one in-game route: the **custom uniform**. Ask the quartermaster (or any mercenary) "I want you to dress this way...", drop a set of gear in the chest, and the whole company wears copies of it. This guide is for the other route: adding a new preset to the outfit pool itself, so it ships with your build.
 
 > ⚠️ **Windows only.** The packaging script does not run on macOS or Linux.
 
@@ -93,9 +103,9 @@ Install [cheat_add_all_items](https://www.nexusmods.com/kingdomcomedeliverance2/
 **Option B — Extract game files (more thorough)**
 Navigate to:
 ```
-C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Data\IPL_GameData.pak
+C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Data\Tables.pak
 ```
-Open it with 7-Zip or WinRAR, extract it somewhere safe, then open `tables/item/item.xml` and search for the items you want.
+Open it with 7-Zip or WinRAR, extract it somewhere safe, then open `Libs/Tables/item/item.xml` and search for the items you want. Items are split across several files (`item.xml` plus `item__*.xml` parts), so search all of them.
 
 ---
 
@@ -133,7 +143,7 @@ mercenaries.Outfits = {
 
 This is the pool of clothing preset UUIDs for each mercenary tier. Pick the tier(s) you want your preset to apply to and paste in the UUID you generated in Step 3.
 
-Every tier (`weak`, `medium`, `strong`) must have **at least one** preset UUID — don't leave any empty.
+Give every tier (`weak`, `medium`, `strong`) **at least one** preset UUID. An empty `medium` or `strong` falls back to `weak` (and says so in `kcd.log`); with `weak` empty too, dressing fails with a Lua error. Don't leave any empty.
 
 ---
 

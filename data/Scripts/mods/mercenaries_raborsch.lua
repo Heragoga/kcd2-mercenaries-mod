@@ -1,6 +1,6 @@
 -- The siege of Raborsch.
 --
--- Authored with the siege builder (mercenaries_siege.lua, docs/siege-builder.md) and replayed
+-- Authored with the siege builder (mercenaries_siege.lua, docs/mercenaries/fortifications/siege-builder.md) and replayed
 -- here. The layout is the walls and the besiegers' camp; the MEN are generated, because their
 -- number follows the player's company rather than being fixed.
 --
@@ -15,7 +15,8 @@
 --   on the walls. The ordinary "hostile" mode spares every static archer so two towers never
 --   trade shots, which is right for a bandit camp and quite wrong for a siege.
 --
--- See docs/raborsch.md.
+-- See docs/mercenaries/fortifications/siege-builder.md "The siege of Raborsch" (layout, replay,
+-- who shoots whom) and docs/mercenaries/quests/aleksej.md (beat 8, company scaling).
 
 local function rLog(s) System.LogAlways("[Raborsch] " .. s) end
 
@@ -205,7 +206,7 @@ mercenaries.RaborschLayouts.initial = {
     { kind = "barricade", what = "pavise a", x = -25.87, y = -1.22, z = -0.15, yaw = -0.0747 },
 }
 
--- Absolute, not relative: a patrol walks real ground (docs/siege-builder.md).
+-- Absolute, not relative: a patrol walks real ground (docs/mercenaries/fortifications/siege-builder.md).
 mercenaries.RaborschPatrols.initial = {
     { name = "patrol1", pts = {
         { x = 1433.59, y = 3897.97, z = 116.30 },
@@ -249,7 +250,7 @@ mercenaries.RaborschFootMax   = 100
 -- Small-company relief for the siege (reported 2026-09-04: Raborsch is punishing with few men).
 --
 -- NOT the towers or carts: those are the GARRISON, and they duel the besiegers' archers on the
--- player's behalf ("The wall duels the archers, not the assault", docs/aleksej.md). Thinning
+-- player's behalf ("The wall duels the archers, not the assault", docs/mercenaries/quests/aleksej.md). Thinning
 -- them would make the fight HARDER, which is the opposite of what was asked.
 --
 -- The besiegers' own archers already scale (RaborschArcherRatio). What did not was the LEVY:
@@ -704,7 +705,7 @@ end
 -- ==== the men ====
 -- Two thirds live in the camp (sit, eat, sleep, snooze, gather); one third walks the route.
 -- Roles come from the SAME WUID-keyed tables the bandit camps and the merc camp use, so
--- camp_actor fires for them without a line of new behaviour-tree work (docs/ai-modules.md).
+-- camp_actor fires for them without a line of new behaviour-tree work (docs/mercenaries/ai/ai-modules.md).
 function mercenaries:RaborschSpawnFoot(origin)
     local S = self.RBQ
     local soldiers = self:RaborschFootCount()

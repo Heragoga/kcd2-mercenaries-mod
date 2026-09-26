@@ -1,7 +1,7 @@
 -- Ranged mercenaries (archers): a separate combat group with own souls, brain
 -- (archer_scheduler.xml) and stances (skirmish/melee/hold). Named
 -- "SpawnedFriend_archer_..." so they ride every squad system for free, with
--- '_archer_' branching the archer-specific bits. See docs/archers.md.
+-- '_archer_' branching the archer-specific bits. See docs/mercenaries/ai/archers.md.
 
 -- Tokens (skald dialog -> lua). Count on the hire token = how many to hire.
 mercenaries.TokenIDArcher = "679a655e-189d-4519-b437-ccc4b92be60d"
@@ -10,7 +10,7 @@ mercenaries.TokenIDArcherWeaponType = "679a655e-189d-4519-b437-ccc4b92be63d" -- 
 
 -- Archers are a single pool, no tiers. They still spawn under the melee mercs'
 -- "medium" tier name so the tier-keyed squad systems (outfits, camp housing)
--- resolve them without an archer-specific branch. See docs/archers.md.
+-- resolve them without an archer-specific branch. See docs/mercenaries/ai/archers.md.
 mercenaries.ArcherTier = "medium"
 mercenaries.ArcherPrice = 150
 
@@ -317,7 +317,7 @@ function mercenaries:GiveArcherAmmo(ent, weaponType, amount)
         -- call (Scripts/Utils/ItemUtils.lua, player.lua). The old two-step
         -- ItemManager.CreateItem(...) + inventory:AddItem(itemId) silently added
         -- nothing - a static archer ended up with only the single arrow his weapon
-        -- preset shipped, fired it, and stood there "out of ammo" (see docs/archers.md).
+        -- preset shipped, fired it, and stood there "out of ammo" (see docs/mercenaries/ai/archers.md).
         ent.inventory:CreateItem(ammoClass, 1.0, need)
         System.LogAlways('[Archer] Gave ' .. tostring(need) .. ' ammo to ' .. tostring(ent:GetName())
             .. ' (now ' .. tostring((ent.inventory:GetCountOfClass(ammoClass) or 0)) .. ')')

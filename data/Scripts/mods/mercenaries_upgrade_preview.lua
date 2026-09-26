@@ -1,7 +1,7 @@
 -- Console-only tooling: spawns candidate camp-upgrade props/prefabs in a row in
 -- front of the player (each on a flag-marked spot) so the models can be judged,
 -- and hosts the forge R&D experiments below (all superseded by the shipped camp
--- forge in mercenaries_forge.lua; the full postmortem is in docs/camp-forge.md).
+-- forge in mercenaries_forge.lua; the full postmortem is in docs/mercenaries/camp/camp-forge.md).
 -- Commands: merc_upgrade_preview / merc_forge_preview / merc_prefab_preview /
 -- merc_upgrade_preview_clear. None of this runs during normal play.
 mercenaries.UpgradePreviewEntities = {}
@@ -281,7 +281,7 @@ function mercenaries:ForgeBuildFunctional2(yaw)
 end
 
 -- Strategy C (merc_forge_func3): spawn the complete smithery rig and wire its
--- links (hammer/tongs/alignment/etc.) by hand. Dead end - see docs/camp-forge.md.
+-- links (hammer/tongs/alignment/etc.) by hand. Dead end - see docs/mercenaries/camp/camp-forge.md.
 mercenaries.ForgeRigLinks = {
     { link = "",                     class = "SmartObjectHolder", dx =  0.25, dy = 1.86,  dz = 0.00,  yaw = 0,
       props = { guidSmartObjectType = "a7daaa9f-8424-430d-80a6-e7996aed85a3", soclass_SmartObjectHelpers = "Blacksmith" } },
@@ -329,7 +329,7 @@ mercenaries.ForgeRigBrushes = {
 -- Game.SpawnPrefab brings a prefab's entities (links intact) but skips brushes
 -- and nested prefabs, so smithy_workshop_base (not _small) is what carries the
 -- Smithery + tool ItemSlots + alignment TagPoint; we supply the brush visuals.
--- Dead end - see docs/camp-forge.md.
+-- Dead end - see docs/mercenaries/camp/camp-forge.md.
 mercenaries.SmithyBasePrefabGuid = "bad22e6e-32ed-4c2a-9597-668243bb0724" -- smithy_workshop_base
 
 function mercenaries:ForgeBuildFunctional4(yaw)
@@ -369,7 +369,7 @@ function mercenaries:ForgeBuildFunctional4(yaw)
 end
 
 -- ItemSlot hijack recon (merc_itemslot_scan): enumerate loaded ItemSlots and what
--- they hold, to see if a streamed-in village smithy's slots can be borrowed. See docs/camp-forge.md.
+-- they hold, to see if a streamed-in village smithy's slots can be borrowed. See docs/mercenaries/camp/camp-forge.md.
 mercenaries.HammerItemGuid = "0502824d-a654-4471-9978-c1624860dde1"
 mercenaries.TongsItemGuid  = "f22b7bb9-fa73-4aa1-92e6-3943e2be7e69"
 
@@ -424,7 +424,7 @@ end
 -- merc_anvil_grab / _use / _restore: teleport a real loaded Smithery (+ its
 -- alignment holder and visible props) to camp while its invisible tool slots stay
 -- linked at the village and still supply the tools. This is the approach that
--- shipped (see mercenaries_forge.lua and docs/camp-forge.md).
+-- shipped (see mercenaries_forge.lua and docs/mercenaries/camp/camp-forge.md).
 mercenaries.AnvilBorrow = nil
 
 -- Henry-relative forge visuals: fwd = toward the anvil, lat = +left/-right,
@@ -634,7 +634,7 @@ end
 
 -- Strategy E (merc_forge_func5): spawn the base prefab, census what actually
 -- arrived, then spawn our own Smithery and CreateLink it to the arrived pieces.
--- Dead end - see docs/camp-forge.md.
+-- Dead end - see docs/mercenaries/camp/camp-forge.md.
 function mercenaries:ForgeBuildFunctional5(yaw)
     self:ForgeBuildFunctional4(yaw)   -- visuals + base prefab (also sets _fD below)
     self._forgeD = { yaw = tonumber(yaw) or 0 }

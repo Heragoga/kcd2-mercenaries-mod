@@ -1,8 +1,23 @@
+---
+title: Combat with Behaviour Trees
+summary: How do I make an NPC pick a target and start a fight from a behaviour tree, and what does a minimal working attack tree look like?
+tags: [ai, bt, combat]
+kind: guide
+status: current
+scope: kcd2
+---
 # Combat with Behaviour Trees
 
 Excellent, we are arriving at the interesting parts. You might be reading this expecting to learn how to write a perfect AI combatant that decides when to block, when to use a combo, and when to throw out a master strike. Let me disappoint you. We modders can only issue the command to start combat to the C++ engine — it handles everything else. It even handles target acquisition after the original target dies, which means any NPC you point at an enemy becomes a ruthless viking, slaughtering every guard, man, woman and even their dog and chicken on sight.
 
 You cannot call combat from a regular switch behaviour tree. It has to be called via the method described in [behaviour-tree-basics](basic-structure.md).
+
+## TL;DR
+
+- Combat runs as an **interrupt**: fire `AddInterrupt_attack` with `Behavior="'your_attack_tree'"` from the switch, and register that tree name in your `so_interrupt` SmartEntity ([make-npc-brain](../xml/make-npc-brain.md#smartentity-interrupts)).
+- Pick the target from a `hitReaction` message (self-defence), `GetTarget` (who is someone fighting?) or `GetSkirmishParticipants` (who is in the player's fight?).
+- The fight itself is one node, `CombatAction`, wrapped in the automation decorators. The engine does the rest, including picking a new target after a kill.
+- End the fight by failing the tree: run a watchdog loop next to `CombatAction` in a `Parallel`, and let `OnFail` sheathe the weapon.
 
 ---
 
@@ -189,7 +204,7 @@ Once you have a target, you need to actually start the fight. The whole thing lo
                                 <!-- Cleanup when combat ends or fails -->
                                 <OnFail canSkip="1">
                                     <Sequence>
-                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() entity.human:DrawWeapon(false) end)" />
+                                        <ExecuteLua code="pcall(function() entity.human:DrawWeapon(false) end)" />
                                         <Wait duration="'1s'" timeType="GameTime" doFail="false" variation="" />
                                     </Sequence>
                                 </OnFail>
@@ -219,7 +234,9 @@ Evidently this is what starts the fight. To get it to work you need a considerab
 
 **The leash loop** — The second loop running in the `Parallel` is purely to stop the NPC from chasing a fleeing enemy halfway across the map. If the NPC gets more than 30 meters from the player, the loop fails, which fails the `Parallel`, which triggers `OnFail`. Tune the distance threshold to taste.
 
-**`OnFail`** — Clears the NPC's target and sheathes their weapon when combat ends for any reason — whether the target died, the leash triggered, or something else caused the tree to fail. Without this, NPCs tend to stand there with their sword out looking angry at nothing.
+**`OnFail`** — Sheathes the NPC's weapon when combat ends for any reason — whether the target died, the leash triggered, or something else caused the tree to fail. Without this, NPCs tend to stand there with their sword out looking angry at nothing. There is nothing to "clear": failing the `Parallel` aborts `CombatAction`, and that is what ends the fight. An earlier version of this guide also called `entity.soul:SetTarget(nil)` here. `SetTarget` is not a Lua function on the soul in the retail game, so inside its `pcall` it silently did nothing; I removed it.
+
+Don't sheathe in `OnFail` if the NPC is about to be sent straight into another fight (an enemy with no leash, say). Every re-fire then costs a sheathe and a redraw.
 
 The variables at the top:
 

@@ -9,7 +9,7 @@
 --                    placement mode)
 --   merc_bl_cancel   leave placement mode without issuing
 --
--- See docs/command-ui.md.
+-- See docs/mercenaries/ui/command-ui.md.
 
 local BL = mercenaries.BL
 local function log(s) System.LogAlways("[MercOrder] " .. tostring(s)) end
@@ -238,7 +238,7 @@ end
 -- nothing evicted the camp behaviour holding him in it - he was marched out of camp on paper
 -- while still lying in it. Do what the other two paths do, and defer the eviction for anyone
 -- mid-pose so camp_actor unwinds the StanceElement instead of having it torn off.
--- See docs/camp.md, "That was not enough".
+-- See docs/mercenaries/camp/camp.md, "That was not enough".
 function mercenaries:BLLeaveCamp(sel)
     if not self.CampActive then return 0 end
     local n = 0
@@ -599,7 +599,7 @@ function mercenaries:BLWeapons(key)
     -- only thing that reads it. EquipMercenaryWeapon throws away the index it is handed for
     -- an archer and re-equips him from that setting instead, so a bow / crossbow / hand
     -- cannon sent down the per-man path below lit the wheel's icon and changed nothing:
-    -- the men kept the weapon they had. See docs/archers.md.
+    -- the men kept the weapon they had. See docs/mercenaries/ai/archers.md.
     if self.ArcherWeaponSets and self.ArcherWeaponSets[key] then
         pcall(function() self:SetArcherWeaponType(key) end)
         log("archer weapon type " .. key .. " (company-wide)")
@@ -623,7 +623,7 @@ function mercenaries:BLWeapons(key)
         key, idx, n, table.concat(sel, ",")))
 end
 
--- The Clothing wheel. ChangeMercOutfit takes the style number from docs/outfits.md, so the
+-- The Clothing wheel. ChangeMercOutfit takes the style number from docs/mercenaries/company/outfits.md, so the
 -- wheel's keys are mapped back to those indices rather than carrying numbers in the UI.
 mercenaries.BLOutfitIndex = {
     generic = 1, bandits = 2, cumans = 3, leipa = 4, kuttenberg = 5, skalitz = 6,
@@ -753,7 +753,7 @@ end
 -- by a save was contradicted the moment the screen opened: a company holding fire read
 -- "Firing at will", a wedge read "Line", horses off read "Mounted". Each entry below names
 -- the one place the mod really keeps that setting, and BLLayout re-reads all of them on
--- every draw. See docs/command-ui.md.
+-- every draw. See docs/mercenaries/ui/command-ui.md.
 
 -- Which keys a wheel actually has art for, taken from the atlas rather than restated here. A
 -- live setting with no entry - FormationShape "vanilla", ArcherStance "melee" - must never

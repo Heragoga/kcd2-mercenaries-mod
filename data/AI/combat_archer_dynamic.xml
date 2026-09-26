@@ -14,7 +14,7 @@
          Side rules live in Lua: merc archers leash to the player (40m) and
          obey the skirmish stance toggle; enemies leash to their own target
          (60m) and are stance-free. Target set from outside via attackData.
-         See docs/ai-modules.md. -->
+         See docs/mercenaries/ai/ai-modules.md. -->
     <BehaviorTree name="combat_archer_dynamic" is_function="0">
         <Variables>
             <Variable name="distanceToTarget"  type="_float" values="9999.0" isPersistent="0" form="single" />
@@ -58,7 +58,7 @@
                                                                  MOVING melee fight (the archer closes with his sidearm),
                                                                  and it is what puts him into combat locomotion. Without
                                                                  it the approach comes out in steps. See combat_melee.xml
-                                                                 and docs/foe-ai.md. The stand-fire branches below keep
+                                                                 and docs/mercenaries/enemies/foe-ai.md. The stand-fire branches below keep
                                                                  their AnyDecorator shape - they do not move. -->
                                                             <CombatMoveDecorator>
                                                                 <MeleeOffenseAutomationDecorator active="true">

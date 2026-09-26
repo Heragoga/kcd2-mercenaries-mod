@@ -15,7 +15,7 @@
 -- misses castles and churches, porches and gate passages, and everything the mod spawns
 -- itself (camp tents, the player house). For shelter, CampDetectRoof is the right test.
 -- The full write-up, including the behaviour-tree and Skald routes for when this drives
--- gameplay instead of a log line, is docs/interior-detection.md.
+-- gameplay instead of a log line, is docs/mercenaries/tech/interior-detection.md.
 
 local function inLog(s) System.LogAlways("[Interior] " .. tostring(s)) end
 
@@ -58,7 +58,7 @@ end
 
 -- The one engine call. true / false, or NIL when the bind does not answer - and nil must
 -- never be collapsed into "outdoors", which is how a detector ends up looking alive while
--- reporting nothing (see docs/travel-detection.md for the version of that bug we shipped).
+-- reporting nothing (see docs/mercenaries/tech/travel-detection.md for the version of that bug we shipped).
 function mercenaries:InteriorHasLabel(wuid, label)
     if not (wuid and label) then return nil end
     if not (XGenAIModule and XGenAIModule.IsPointInAreaWithLabelWUID) then return nil end
@@ -237,7 +237,7 @@ function mercenaries:InteriorTick()
         self._interiorNoAnswer = (self._interiorNoAnswer or 0) + 1
         if self._interiorNoAnswer == 5 then
             inLog("XGenAIModule.IsPointInAreaWithLabelWUID is not answering - detection is OFF.")
-            inLog("The behaviour-tree and Skald routes in docs/interior-detection.md do not")
+            inLog("The behaviour-tree and Skald routes in docs/mercenaries/tech/interior-detection.md do not")
             inLog("go through Lua at all.")
             -- Never leave men standing on an answer that stopped coming.
             self:InteriorReleaseParked("the area-label bind stopped answering")
@@ -351,7 +351,7 @@ function mercenaries:InteriorVerboseSet(on)
     inLog("verbose " .. (self.InteriorVerbose and "on - a line every sample" or "off"))
 end
 
--- Answer for one arbitrary label, for exploring the vocabulary in docs/interior-detection.md.
+-- Answer for one arbitrary label, for exploring the vocabulary in docs/mercenaries/tech/interior-detection.md.
 function mercenaries:InteriorLabelProbe(line)
     local label = tostring(line or ""):match("^%s*(%S+)")
     if not label then inLog("usage: merc_interior_label <label>   e.g. private, stealthArea_crouch"); return end

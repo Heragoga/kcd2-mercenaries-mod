@@ -7,7 +7,7 @@
          _wuid whose declared default is literally $__player, and 154 vanilla call sites pass
          $__player explicitly. Every vanilla case of an NPC accosting the player - arrest,
          frisk, trespass, ambush, the pre-duel taunt - uses this one node, differing only in
-         preset. See docs/aleksej.md for the six attempts that missed it.
+         preset. See docs/mercenaries/quests/aleksej.md for the six attempts that missed it.
 
          Rules this file obeys, all of them taken from vanilla call-site censuses:
            - alias ONLY. metarole and recipientMetaroles stay EMPTY. The player holds no metarole
@@ -23,7 +23,7 @@
            - ForceLook + a Turn loop around the call, as the pre-duel taunt tree does.
 
          What made the alias resolve was none of the above: the dialogue needed an INSTANCE NODE
-         in the quest's <Nodes>, not just a <Definition>. See docs/aleksej.md.
+         in the quest's <Nodes>, not just a <Definition>. See docs/mercenaries/quests/aleksej.md.
 
          Aliased from Lua so the preset can be settled in one sitting rather than guessed:
          alxPreset 1 = fader, 2 = chat, 3 = ingame. -->

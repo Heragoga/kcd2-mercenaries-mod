@@ -3,7 +3,7 @@
 --
 -- Written for judging whether the armour mods in references/armor mods/ are worth new
 -- styles, but it earns its keep on the 17 that already exist: the "Skalitz reverts to
--- generic" bug (docs/outfits.md) was two presets per tier being byte-identical, which is
+-- generic" bug (docs/mercenaries/company/outfits.md) was two presets per tier being byte-identical, which is
 -- invisible one merc at a time and obvious in a row of three.
 --
 --   merc_outfit_matrix          every style, all three tiers
@@ -56,7 +56,7 @@ function mercenaries:MatrixSpawnOne(style, tier, pos, yaw)
             position = pos,
             orientation = { x = math.cos(yaw + math.pi), y = math.sin(yaw + math.pi), z = 0 },
             -- Never written to a save: a parade ground is a diagnostic, and 51 NPCs in a
-            -- save file is exactly the residue docs/save-footprint.md spent a day on.
+            -- save file is exactly the residue docs/mercenaries/tech/save-footprint.md spent a day on.
             properties = self:NoSaveProps({ guidSharedSoulId = soul }),
         })
         ent = System.GetEntityByName(name)

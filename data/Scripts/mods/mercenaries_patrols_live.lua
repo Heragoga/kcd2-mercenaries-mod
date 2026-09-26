@@ -16,7 +16,7 @@
 
 mercenaries.LivePatrolsEnabled = true
 -- A gang materialises only inside the BAND between these two, never on top of the player.
--- See docs/patrols.md, "Never in your lap".
+-- See docs/mercenaries/enemies/patrols.md, "Never in your lap".
 -- Band pushed out from 200-250 (despawn 330): users watched gangs materialise in view.
 -- At 300m+ a spawn is over a hill or round a bend in almost all terrain, and the despawn
 -- edge keeps ~100m of hysteresis beyond the outer band edge.
@@ -28,10 +28,10 @@ mercenaries.PatrolDespawnRange = 500.0   -- ...and take it away again out here (
 -- the LEAD man - a player riding at the gang closes most of a 50m band in that time, and the
 -- rest of the column is laid out BEHIND the lead, which can be his side of it. So the floor
 -- is re-tested inside PatrolSpawnGang against a freshly read player position, and again for
--- every man's final ground-snapped spot. See docs/patrols.md, "Never in your lap".
+-- every man's final ground-snapped spot. See docs/mercenaries/enemies/patrols.md, "Never in your lap".
 -- 250, not 100: a galloping horse covers ~50m in the 3s between the band test and the men
 -- being created, and open road closer than this reads as "that just appeared". Raised
--- with the band (was 150 when the band was 200-250). See docs/patrols.md.
+-- with the band (was 150 when the band was 200-250). See docs/mercenaries/enemies/patrols.md.
 mercenaries.PatrolMinPlayerDist = 250.0
 -- What a player with no mercenaries meets: a handful of men, never a company.
 mercenaries.PatrolSoloMinMen   = 3
@@ -76,7 +76,7 @@ mercenaries.PatrolSpawnPerTick = 1
 
 -- Encounter pacing. The caps above bound how many gangs may STAND in the world at once;
 -- these bound how OFTEN a new one may appear. Without them a freed gang slot was refilled
--- on the next 3s tick, which at a junction is an endless conveyor. See docs/patrols.md,
+-- on the next 3s tick, which at a junction is an endless conveyor. See docs/mercenaries/enemies/patrols.md,
 -- "Pacing".
 mercenaries.PatrolQuietSecs     = 600.0   -- floor on the gap between any two gangs (was 180: six gangs in a day's ride)
 mercenaries.PatrolPostFightSecs = 480.0   -- ...and the longer silence a wipe buys
@@ -101,7 +101,7 @@ mercenaries.PatrolGroundTries = 6
 -- sum while fresh gangs kept spawning alongside them.
 -- 20 clears PatrolMaxMen (16), so one full wipe is never over the cap on its own. It is a
 -- population bound, not a linger time - raising it further is what reintroduced lag once
--- before (docs/performance.md, "A regression worth remembering").
+-- before (docs/mercenaries/tech/performance.md, "A regression worth remembering").
 mercenaries.PatrolMaxCorpses   = 20
 -- The pile the player just made is exempt from the CAP for this long, so the fight he has
 -- only just won is not swept out from under him. Recency, not distance: a "never evict
@@ -138,7 +138,7 @@ mercenaries.PatrolAlertMaxDist = 150.0
 -- A gang that is in a fight, far away, and not closing has stopped being an encounter and
 -- become a lock on the player's combat state - he cannot fast travel, rest or sleep until it
 -- lets go, and it never does. Measured at 16 men frozen at 137-145 m for ten minutes; see
--- tools' merc_combat_why and docs/patrols.md. All three conditions must hold, plus the player
+-- tools' merc_combat_why and docs/mercenaries/enemies/patrols.md. All three conditions must hold, plus the player
 -- actually being in combat, so a gang merely walking past at 150 m is never touched.
 mercenaries.PatrolStallSecs   = 25.0     -- how long it must stay stalled; 0 disables the leash
 mercenaries.PatrolStallDist   = 90.0     -- only ever applies beyond this - never to a live fight
@@ -894,7 +894,7 @@ function mercenaries:PatrolSpawnGang(rec, force)
         -- placed a couple of metres behind a lead whose ground is already validated, so the
         -- hopeless case is not worth 40 tries - and exhausting the budget falls through to
         -- the same plain ground snap an exhausted spiral did, with PatrolSpotClear below
-        -- still deciding whether the man exists at all. See docs/performance.md.
+        -- still deciding whether the man exists at all. See docs/mercenaries/tech/performance.md.
         if self.FindValidGround then
             q = self:FindValidGround(q, lead.z, nil, nil, self.PatrolGroundTries)
         end
@@ -1624,7 +1624,7 @@ end
 -- PatrolWalkTick takes the next point well before the leader reaches the current one -
 -- that lookahead is what makes the route walk smooth - so the nearest point is normally
 -- one or two behind the index, and putting it back republished a point he had already
--- walked past, braking and turning him. See docs/patrols.md.
+-- walked past, braking and turning him. See docs/mercenaries/enemies/patrols.md.
 function mercenaries:PatrolSyncIndex(rec, lp, force)
     local r = self:PatrolRouteOf(rec)
     if not r then return end

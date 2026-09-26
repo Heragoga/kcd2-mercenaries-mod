@@ -6,7 +6,7 @@
              "ask for directions" chat then clashes with the order wheel - both are
              Type="chat" ClashPriority="OpenWorld" and only one can win, so the wheel
              was replaced by that single option. hardcoreMode_disableDirectionsChat is
-             vanilla's own opt-out for it. See docs/order-wheel.md. -->
+             vanilla's own opt-out for it. See docs/mercenaries/ui/order-wheel.md. -->
         <rule name="mercenaries_disableDirectionsChat">
             <selectors>
                 <or>

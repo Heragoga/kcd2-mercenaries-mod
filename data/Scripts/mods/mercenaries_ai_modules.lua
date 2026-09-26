@@ -2,7 +2,7 @@
 -- combat_archer_dynamic, combat_archer_static, follow, camp_actor).
 -- One combat-data updater per module kind; side differences (merc vs enemy)
 -- are resolved here from the entity name, so the trees stay side-agnostic.
--- See docs/ai-modules.md.
+-- See docs/mercenaries/ai/ai-modules.md.
 
 -- Which side an AI-module NPC is on, from its spawn-name prefix.
 -- 'friend' = the player's people, 'enemy' = the hostile groups,
@@ -10,7 +10,7 @@
 -- How long an archer's kite-retreat point stays valid before it is searched again.
 mercenaries.RetreatCacheSecs = 2.0
 
--- Archer engagement bands, per ranged weapon. See docs/archers.md.
+-- Archer engagement bands, per ranged weapon. See docs/mercenaries/ai/archers.md.
 --   melee   - inside this, drop to the sidearm
 --   keepMin - inside this, step back (the kite band is melee..keepMin)
 --   keepMax - beyond this, walk in to keepMin before firing
@@ -42,7 +42,7 @@ mercenaries.EnemyPrefixes  = { "SpawnedEnemy_", "SpawnedRenegade_" }
 --     mid-fight on screen.
 -- They leash to their own TARGET instead, like the enemy archer does.
 -- Deliberately NOT added to ModEnemyPrefixes: loot sweep, wall battle and tower
--- archers are all documented as ignoring patrols (docs/patrols.md).
+-- archers are all documented as ignoring patrols (docs/mercenaries/enemies/patrols.md).
 mercenaries.PatrolPrefixes = { "SpawnedPatrolman_", "SpawnedPatrol_" }
 -- How far a patrolman may chase his own target before breaking off.
 mercenaries.PatrolCombatLeash = 120.0
@@ -262,7 +262,7 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
 
         -- ...but only if it is not already out. The explicit DrawAction is a full
         -- animation that halts the NPC, and combat_melee replays it on every re-fire,
-        -- which reads as a pause part-way through the charge. See docs/foe-ai.md.
+        -- which reads as a pause part-way through the charge. See docs/mercenaries/enemies/foe-ai.md.
         data.needsDraw = true
         if me and me.human then
             local drawn = false
@@ -271,12 +271,12 @@ function mercenaries:UpdateMeleeCombatData(data, myWuid)
         end
 
         -- THE COMBAT SHOUT, women only. See mercenaries_female.lua and
-        -- docs/female-mercenaries.md, "combat voice".
+        -- docs/mercenaries/company/female-mercenaries.md, "combat voice".
         --
         -- combat_melee.xml casts metarole NPC_VIDI_NEPRITELE_A_BUDE_UTOCIT with an EMPTY
         -- alias, exactly as foe_combat.xml does: the engine picks the line out of the base
         -- game's own pool on the speaker's own voice, so this ships no dialog, no .ogg and no
-        -- localisation. docs/squad-orders.md records the same node being built and REMOVED
+        -- localisation. docs/mercenaries/ai/squad-orders.md records the same node being built and REMOVED
         -- because it was mute on a merc - correct at the time, and now explained: the three
         -- male merc voices (sbar / phos2 / jcom) carry no recording for that metarole. The ten
         -- female voices carry the full combat set, so on them the same node speaks.
@@ -487,7 +487,7 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
                 -- rays, every BT cycle, per archer being kited. A retreat step is only
                 -- 4m, so a 1.2m search is ample. The result is also cached briefly: the
                 -- archer has not moved far between cycles, and recomputing it from
-                -- scratch every 300ms was the whole cost. See docs/performance.md.
+                -- scratch every 300ms was the whole cost. See docs/mercenaries/tech/performance.md.
                 local ground = nil
                 if not blocked then
                     local key   = tostring(myWuid)
@@ -518,7 +518,7 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
         -- Approach point: beyond keepMax the module used to stand and fire anyway, so
         -- the engagement distance was simply wherever the follow formation had left the
         -- archer. That is fine with a bow and useless with a hand cannon. Walk in to
-        -- just outside keepMin instead. See docs/archers.md.
+        -- just outside keepMin instead. See docs/mercenaries/ai/archers.md.
         if data.isTargetAlive and tp and myPos and not data.hasRetreat
            and data.distanceToTarget > band.keepMax then
             local ax, ay = myPos.x - tp.x, myPos.y - tp.y
@@ -546,7 +546,7 @@ function mercenaries:UpdateRangedCombatData(data, myWuid)
                 if allowed then
                     -- Cached on the same terms as the retreat point, and for the same
                     -- reason: FindValidGround is raycast-heavy and this runs per archer
-                    -- every BT cycle. See docs/performance.md.
+                    -- every BT cycle. See docs/mercenaries/tech/performance.md.
                     local key = tostring(myWuid)
                     local now = 0
                     pcall(function() now = System.GetCurrTime() or 0 end)

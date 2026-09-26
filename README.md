@@ -86,9 +86,11 @@ Everything else the mod adds is under its own names.
 
 ## Modding tutorials
 
-The `docs/` folder is a small set of general KCD2 modding guides written while building this
-mod: mod setup and the game's file structure, Skald quests and dialogue, adding NPCs and their
-brains, behaviour trees, and talking between Lua and Skald. Start at
+The `docs/` folder holds general KCD2 modding guides written while building this mod (mod setup
+and the game's file structure, Skald quests and dialogue, adding NPCs and their brains, behaviour
+trees, talking between Lua and Skald) and a **game knowledge base**, [docs/kcd2/](docs/kcd2/README.md):
+a searchable reference for any KCD2 mod, including a Lua API reference cross-checked against the
+retail game. Search it with `python tools/kb.py search "<keywords>"`. Start at
 [docs/README.md](docs/README.md).
 
 ## Building from source
@@ -120,7 +122,8 @@ new limit, or squads above the largest template share too few engine spots.
 | `data/libs/tables/` | Souls, items, outfits, weapon presets, buffs |
 | `data/quests/` | Skald quest graphs and dialogue |
 | `localization/` | 16 languages |
-| `docs/` | General KCD2 modding tutorials |
+| `docs/` | General KCD2 modding tutorials; `docs/kcd2/` is the game knowledge base |
+| `tools/kb.py` | Search, API/cvar lookup and a local web UI for the docs |
 
 ## Credits
 

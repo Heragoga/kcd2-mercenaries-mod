@@ -11,7 +11,7 @@
 	loaded at runtime with ActionMapManager.LoadFromXML, so it does NOT override
 	Libs/Config/defaultProfile.xml and cannot collide with another mod that ships its own copy.
 
-	See docs/command-ui.md.
+	See docs/mercenaries/ui/command-ui.md.
 -->
 <profile version="0">
 

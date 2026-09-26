@@ -501,7 +501,7 @@ end
 -- companions). One shared faction (enemiesFaction). Melee use renegade_brain;
 -- archers use enemy_archer_brain (missile). Souls/appearance/faction/skald are
 -- in data/libs (*__enemies.xml); combat_level per soul mirrors the merc tiers.
--- Spawned as "SpawnedEnemy_<group>_<tier>_<rand>_<guid>". See docs/enemies.md.
+-- Spawned as "SpawnedEnemy_<group>_<tier>_<rand>_<guid>". See docs/mercenaries/enemies/enemies.md.
 -- ============================================================================
 -- Pick an outfit index for SpawnTestBattle's enemy line that differs from the
 -- mercs' current one, so the two battle lines read as distinct at a glance.
@@ -883,7 +883,7 @@ end
 -- A draw skips any group this `channel` ("raid", "patrol") has fielded in its last few
 -- encounters, so the same band does not turn up twice running. Channels are separate, and
 -- `saveTag` persists the memory for a system whose encounters are days apart. Depth is per
--- channel because the pools differ in size - see docs/enemies.md, "Which group turns up".
+-- channel because the pools differ in size - see docs/mercenaries/enemies/enemies.md, "Which group turns up".
 mercenaries.EnemyRotateDepth   = 2
 mercenaries.EnemyRotateDepthBy = { patrol = 1 }
 mercenaries.EnemyRecent = {}     -- [channel] = { newest first }
@@ -1066,7 +1066,7 @@ function mercenaries:EquipEnemyShield(ent, grp)
 end
 
 -- Spawn ONE member of a group at an exact spot. The single spawn path for every
--- encounter (ambushes, patrols, bandit camps, the siege) - see docs/encounters.md.
+-- encounter (ambushes, patrols, bandit camps, the siege) - see docs/mercenaries/quests/encounters.md.
 -- Souls round-robin per group so repeats vary; the tier (or "archer") goes in the
 -- name because the weapon/AI code parses it back out of there.
 function mercenaries:SpawnEnemyAt(groupKey, isArcher, pos, yaw)
@@ -1180,7 +1180,7 @@ mercenaries.RenegadeSoulIndex = 1
 -- enemy_archer_scheduler.xml). Unlike the old renegades (who fought everyone),
 -- enemies ONLY target the player and the player's mercs/archers/companions -
 -- never vanilla NPCs and never each other. Swarm-capped; sticks to a close,
--- live target. See docs/combat-target-selection.md.
+-- live target. See docs/mercenaries/ai/combat-target-selection.md.
 -- ---------------------------------------------------------------------------
 -- Kept for compatibility; no longer gates target holding (see FindEnemyTarget).
 mercenaries.EnemyTargetStickRange = 5.0
@@ -1188,7 +1188,7 @@ mercenaries.EnemyTargetStickRange = 5.0
 -- How far an enemy will follow the target he has already committed to before giving
 -- up on him and re-acquiring. Deliberately as large as the acquisition radius: a
 -- fighter that re-picks mid-approach makes his scheduler re-fire, and a re-fire
--- restarts the approach. See the comment in FindEnemyTarget and docs/foe-ai.md.
+-- restarts the approach. See the comment in FindEnemyTarget and docs/mercenaries/enemies/foe-ai.md.
 mercenaries.EnemyTargetHoldRange = 60.0
 
 function mercenaries:IsEnemySpawnName(name)
@@ -1263,7 +1263,7 @@ function mercenaries:FindEnemyTarget(data, myWuid)
                     -- which trips the scheduler's `$currentTarget ~= $firedTarget` re-fire.
                     -- A re-fire REPLACES the running combat and runs its OnFail, so the
                     -- fighter restarts his approach roughly once a second: that is the
-                    -- step-pause-step. Enemies now behave like foes (docs/foe-ai.md) - the
+                    -- step-pause-step. Enemies now behave like foes (docs/mercenaries/enemies/foe-ai.md) - the
                     -- target is dropped only when he is dead, unreachable or walled off, and
                     -- the swarm cap applies at acquisition rather than shuffling anyone off
                     -- a man he is already fighting.
@@ -1355,7 +1355,7 @@ end
 -- so it can be pre-injected into specific SoulAssets - the normal Hire path
 -- cycles SoulIndex through the whole tier list. This spawns exactly one merc
 -- bound to mercenaries.TestSoulGuid: free, no cap check, no dismissal/idle
--- state changes. See docs/quest-override-test.md.
+-- state changes. See docs/mercenaries/archive/quest-override-test.md.
 mercenaries.TestSoulGuid = "e1f2a3b4-1234-4efa-c890-123456789012"
 
 

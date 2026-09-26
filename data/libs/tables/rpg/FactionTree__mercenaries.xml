@@ -17,7 +17,7 @@
 			</Relations>
 		</Faction>
 		<!-- Labels="publicEnemy" on every hostile faction is what makes their bodies free
-		     to loot and their deaths not a crime - see docs/public-enemy.md. -->
+		     to loot and their deaths not a crime - see docs/mercenaries/enemies/public-enemy.md. -->
 		<Faction Name="enemiesFaction" Labels="publicEnemy">
             <Relations>
                 <Relation target="player"              reputation="-1" />
@@ -40,7 +40,7 @@
 				<Relation target="players_friends" reputation="1" />
 			</Relations>
 		</Faction>
-		<!-- The rewritten hostile AI (docs/foe-ai.md). Its own faction so nothing it does
+		<!-- The rewritten hostile AI (docs/mercenaries/enemies/foe-ai.md). Its own faction so nothing it does
 		     can disturb enemiesFaction: hostile only to the player and to his mercs,
 		     archers and companions, silent about everything else so civilians and quest
 		     NPCs fall through to neutral. The player's mercs need the matching -1 above,

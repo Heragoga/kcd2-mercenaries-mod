@@ -8,7 +8,7 @@ mercenaries = {}
 -- Console commands: every command a PLAYER can type is registered in
 -- mercenaries_commands.lua. Modules collect their authoring and diagnostic commands
 -- here instead, and merc_dev registers those on demand. Defined this early because
--- modules - and this file, further down - call it while loading. See docs/console.md.
+-- modules - and this file, further down - call it while loading. See docs/mercenaries/tech/console.md.
 mercenaries.DevCommands = {}
 mercenaries.DevCommandsOn = false
 
@@ -140,7 +140,7 @@ mercenaries.EnemyAlerted       = false
 -- The shipped value, kept separately because the siege OVERWRITES EnemyAlertRadius with its
 -- own (160m) and only puts it back on the path where the siege is struck. Anything that has
 -- to restore the field - TargetingOnLoad - restores it from here, not from whatever the
--- field happens to hold. See docs/performance.md.
+-- field happens to hold. See docs/mercenaries/tech/performance.md.
 mercenaries.EnemyAlertRadiusDefault = 60
 
 -- Max number of mercs allowed to already be closer to a given enemy before
@@ -152,7 +152,7 @@ mercenaries.EnemyAlertRadiusDefault = 60
 -- UpdateEnemyCache pass) opens the cap up to SwarmCapMax when the squad outnumbers the
 -- enemy, so everyone has somewhere to go, and stays at SwarmCap when there is plenty to
 -- fight. PickCombatTarget then has an at-cap fallback behind that, bounded by
--- SwarmCapHard and SwarmOverflowRange - see docs/combat-target-selection.md.
+-- SwarmCapHard and SwarmOverflowRange - see docs/mercenaries/ai/combat-target-selection.md.
 mercenaries.SwarmCap = 2
 -- Ceiling when the squad only modestly outnumbers the enemy...
 mercenaries.SwarmCapMax = 4
@@ -179,7 +179,7 @@ mercenaries.FormationSlots = {} -- [tostring(wuid)] = {slot, followTarget, total
 -- plain table lookup. Write them ONLY through MercSetClaim / MercDropClaim, which keep
 -- the two in step: a load map that is merely rebuilt each pass is a pass out of date,
 -- and every merc evaluating inside that window then judges the cap against the same
--- stale snapshot. See docs/combat-target-selection.md.
+-- stale snapshot. See docs/mercenaries/ai/combat-target-selection.md.
 mercenaries.MercTargetOf = {} -- [myWuidStr] = targetWuidStr
 mercenaries.TargetLoad = {}   -- [targetWuidStr] = number of mercs currently on it
 
@@ -249,7 +249,7 @@ mercenaries.Souls = {
 -- Ten presets per style per tier, every one solved to the same armour
 -- budget for its tier (weak 600, medium 1300, strong 1850, sum of stab +
 -- slash + smash across the whole outfit), so switching style never
--- changes how tough a merc is - only how he looks. See docs/outfits.md.
+-- changes how tough a merc is - only how he looks. See docs/mercenaries/company/outfits.md.
 mercenaries.Outfits = {
     -- 1: Generic Mercs
     [1] = {
@@ -1308,7 +1308,7 @@ function mercenaries:MonitorInventory()
 end
 
 -- Slot body: work only. The scheduler calls this; MonitorLoop below is the
--- legacy self-arming path used when merc_sched is off. See docs/performance.md.
+-- legacy self-arming path used when merc_sched is off. See docs/mercenaries/tech/performance.md.
 function mercenaries:MonitorLoopBody()
 
     if player and player.inventory then
@@ -1328,7 +1328,7 @@ function mercenaries:MonitorLoopBody()
 
     -- One ray: does the "never place on an object" guard agree that the ground the player
     -- is standing on is ground? If it keeps saying no, it is wrong about this world and
-    -- switches itself off. See docs/ground-guard.md.
+    -- switches itself off. See docs/mercenaries/camp/ground-guard.md.
     mercenaries:ProfCall("mon.GroundSelfCheck", "GroundSelfCheck")
 
     if next(mercenaries.ActiveMercs) then
@@ -1346,20 +1346,21 @@ function mercenaries:MonitorLoopBody()
     mercenaries:ProfCall("mon.KeepStaticArchersUp", "KeepStaticArchersUp")
 
     -- Ambush trigger boxes. Independent of ActiveMercs - an ambush can catch a
-    -- player travelling alone. See docs/encounters.md.
+    -- player travelling alone. See docs/mercenaries/quests/encounters.md.
     mercenaries:ProfCall("mon.AmbushMonitor", "AmbushMonitor")
 
-    -- Sleeping in the camp bed saves the game (see docs/camp.md "The player tent").
+    -- Sleeping in the camp bed saves the game (see docs/mercenaries/camp/camp.md "The player tent").
     mercenaries:ProfCall("mon.CampBedSleepWatch", "CampBedSleepWatch")
 
     -- The bandit-camp contract: kill tracking, payout, and building/unloading the camp
-    -- as the player comes and goes. See docs/bandit-camp-quest.md.
+    -- as the player comes and goes. See docs/mercenaries/quests/bandit-camp-quest.md.
     mercenaries:ProfCall("mon.BanditCampMonitor", "BanditCampMonitor")
 
-    -- The siege of Raborsch: watches for the player closing on it. See docs/raborsch.md.
+    -- The siege of Raborsch: watches for the player closing on it.
+    -- See docs/mercenaries/fortifications/siege-builder.md "The siege of Raborsch".
     mercenaries:ProfCall("mon.RaborschMonitor", "RaborschMonitor")
 
-    -- The pre-combat speech test NPC (docs/aleksej.md).
+    -- The pre-combat speech test NPC (docs/mercenaries/quests/aleksej.md).
     mercenaries:ProfCall("mon.AlxTalkTick", "AlxTalkTick")
     mercenaries:ProfCall("mon.AlxLodgingTick", "AlxLodgingTick")
 end
@@ -1372,7 +1373,7 @@ end
 -- carried 5,899 of them (5,472 x RaidTick, 415 x MasterTick), each restored timer
 -- fired on load, and any that re-armed became a permanent extra chain. 415 master
 -- chains ran every subsystem at ~415x its designed rate: constant stutter, and a
--- fast travel's frozen-clock catch-up burst in one frame. See docs/performance.md.
+-- fast travel's frozen-clock catch-up burst in one frame. See docs/mercenaries/tech/performance.md.
 --
 -- The cure is the lootsweep pattern generalized: the LIVE chain runs on a name that
 -- carries the load generation ("mercenaries.XG3"), so a timer restored from a save -
@@ -1547,7 +1548,7 @@ function mercenaries:CombatScanLoopBody()
         -- consumer slice it by radius instead of running their own. It reads last
         -- pass's EnemyAlerted to size itself; on the tick the alert first rises the
         -- slice is too narrow, PerfNpcsNear returns nil and the consumer falls back
-        -- to its own query. See docs/performance.md.
+        -- to its own query. See docs/mercenaries/tech/performance.md.
         mercenaries:ProfCall("cmb.PerfScanNpcs", "PerfScanNpcs")
         mercenaries:ProfCall("cmb.UpdateEnemyCache", "UpdateEnemyCache")
         -- One squad-wide "is there a fight" flag, off the cache this pass just built.
@@ -1626,7 +1627,7 @@ function mercenaries:LowPriorityMonitorLoopBody()
     -- Quartermaster logistics: tiredness / food / drink / wages upkeep.
     mercenaries:ProfCall("low.LogiTick", "LogiTick")
 
-    -- Stamp which region holds the newer picture of the company (docs/regions.md).
+    -- Stamp which region holds the newer picture of the company (docs/mercenaries/camp/regions.md).
     mercenaries:ProfCall("low.RegionTick", "RegionTick")
 
     -- The camp's defences: put the layout back if its restore timer died with a level
@@ -1707,7 +1708,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- 160m alert radius and SiegePeace, and the pinned global LOD cvars. Left over, they
     -- make a fresh load pay a battle's costs with no battle on. Each module releases its own
     -- and every one of them is re-established from the live world within a tick if it is
-    -- genuinely still warranted. See docs/performance.md.
+    -- genuinely still warranted. See docs/mercenaries/tech/performance.md.
     -- Re-arms the command interface: its console binds and timers both died with the level.
     -- Also restores the time scale and any suppressed action map unconditionally - a crash or
     -- a save taken with the interface open would otherwise strand the game slowed down.
@@ -1738,7 +1739,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     if self.NavObstOnLoad then pcall(function() self:NavObstOnLoad() end) end
     if self.AIProbeOnLoad then pcall(function() self:AIProbeOnLoad() end) end
     -- Fast-travel / world-freeze tracer: verbose activity accounting around map screens,
-    -- teleports and time skips. See mercenaries_fttrace.lua and docs/performance.md.
+    -- teleports and time skips. See mercenaries_fttrace.lua and docs/mercenaries/tech/performance.md.
     if self.FtTraceOnLoad then pcall(function() self:FtTraceOnLoad() end) end
     if self.CombatWhyOn then pcall(function() self:ChainArm("CombatWhyTick", 2000) end) end
 
@@ -1746,7 +1747,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- before the LoadString calls below read from it. The map being dropped here is also
     -- the LAST look at the level being left, so the company is copied out of it first: on
     -- a Trosky <-> Kuttenberg crossing the level ahead holds none of the mod's entities at
-    -- all, and RegionOnLoad is what puts the company back. See docs/regions.md.
+    -- all, and RegionOnLoad is what puts the company back. See docs/mercenaries/camp/regions.md.
     if self.RegionCaptureTags then pcall(function() self:RegionCaptureTags() end) end
     if self.SaverForget then self:SaverForget() end
     -- Ahead of every LoadString below, so they read the carried state on a crossing.
@@ -1869,7 +1870,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Aleksej's camp is NOT save data and nothing here restores it: this drops whatever the last
     -- session left standing. The quest re-issues that beat's spawn token on the level's own
     -- OnWake if it is still live, and MonitorInventory stands the camp back up - no distance gate
-    -- anywhere in that path. See docs/aleksej.md.
+    -- anywhere in that path. See docs/mercenaries/quests/aleksej.md.
     pcall(function() mercenaries:AlxOnLoad() end)
     -- ...and then drop everything this session cached in memory rather than saved, so the
     -- quartermaster's dialog, the arc position and the marching column are all re-derived
@@ -1886,7 +1887,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     _G.PlayerMounted = false
 
     -- Drop every shared cache: entity handles, positions and the patrol index all
-    -- refer to the previous session. See docs/performance.md.
+    -- refer to the previous session. See docs/mercenaries/tech/performance.md.
     if self.PerfReset then self:PerfReset() end
 
     -- Wrap the BT hooks and the remaining timers with timing. Done here, not at load:
@@ -1918,7 +1919,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- (mercenaries_torture.lua) - and those commands exist only after merc_dev.
     -- One master tick drives these four instead of four independent timers, so they
     -- are phase-offset, gated and backed off when idle. merc_sched 0 restores the
-    -- legacy timers at the next load. See docs/performance.md.
+    -- legacy timers at the next load. See docs/mercenaries/tech/performance.md.
     if self.SchedEnabled and self.SchedRegisterAll then
         self:LoadStep("SchedRegisterAll", function() self:SchedRegisterAll() end)
         self:LoadStep("SchedStart", function() self:SchedStart() end)
@@ -1931,7 +1932,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
         self:ChainArm("FormationLoop", mercenaries.FormationTickMs)
     end
     -- Post-battle loot sweep. Own tick: it must keep watching CachedEnemies drain
-    -- even with no squad orders pending. See docs/loot-sweep.md.
+    -- even with no squad orders pending. See docs/mercenaries/ai/loot-sweep.md.
     -- One chain per load, and the previous load's chain retires itself. It used to be armed
     -- here unconditionally and re-arm itself unconditionally - the only loop in the mod with
     -- no guard at either end. See the note above LootSweepArm.
@@ -1970,13 +1971,13 @@ Script.LoadScript("Scripts/mods/mercenaries_outfit_matrix.lua")
 Script.LoadScript("Scripts/mods/mercenaries_kk_stage.lua")
 Script.LoadScript("Scripts/mods/mercenaries_util.lua")
 -- What counts as "the ground". Every snap/validate helper below asks it, so it loads
--- before all of them. See docs/ground-guard.md.
+-- before all of them. See docs/mercenaries/camp/ground-guard.md.
 Script.LoadScript("Scripts/mods/mercenaries_ground.lua")
 Script.LoadScript("Scripts/mods/mercenaries_management.lua")
 Script.LoadScript("Scripts/mods/mercenaries_target_selection.lua")
 Script.LoadScript("Scripts/mods/mercenaries_teleport.lua")
 -- Squad combat orders (engagement stance, aggression, called targets) and the two
--- standing orders that put the men somewhere specific. See docs/squad-orders.md.
+-- standing orders that put the men somewhere specific. See docs/mercenaries/ai/squad-orders.md.
 Script.LoadScript("Scripts/mods/mercenaries_orders.lua")
 Script.LoadScript("Scripts/mods/mercenaries_hold.lua")
 Script.LoadScript("Scripts/mods/mercenaries_formation_handler.lua")
@@ -2003,7 +2004,7 @@ Script.LoadScript("Scripts/mods/mercenaries_campfit.lua")
 -- (tools/bake_vegetation.py). After campfit: the fit and nudge helpers call into it.
 Script.LoadScript("Scripts/mods/mercenaries_campveg.lua")
 -- Draws the standing camp on the world map (and optionally the compass) by pushing a
--- POI straight into the map's Scaleform element. See docs/map-marker.md.
+-- POI straight into the map's Scaleform element. See docs/mercenaries/ui/map-marker.md.
 Script.LoadScript("Scripts/mods/mercenaries_mapmarker.lua")
 Script.LoadScript("Scripts/mods/mercenaries_forge.lua")
 Script.LoadScript("Scripts/mods/mercenaries_alchemy.lua")
@@ -2011,7 +2012,7 @@ Script.LoadScript("Scripts/mods/mercenaries_hunting.lua")
 Script.LoadScript("Scripts/mods/mercenaries_inn.lua")
 Script.LoadScript("Scripts/mods/mercenaries_foodcart.lua")
 -- The camp trader: market stall, sutler, and a counter priced off the baked item
--- price table below it. See docs/camp-trader.md.
+-- price table below it. See docs/mercenaries/camp/camp-trader.md.
 Script.LoadScript("Scripts/mods/mercenaries_price_data.lua")
 Script.LoadScript("Scripts/mods/mercenaries_trader.lua")
 Script.LoadScript("Scripts/mods/mercenaries_house.lua")
@@ -2044,12 +2045,12 @@ Script.LoadScript("Scripts/mods/mercenaries_navlab.lua")
 Script.LoadScript("Scripts/mods/mercenaries_weapon_audit.lua")
 Script.LoadScript("Scripts/mods/mercenaries_companion_lineup.lua")
 -- The rewritten hostile AI (idle until alerted, then everyone engages). Own brain,
--- souls, faction and trees - shares nothing with the enemy groups. See docs/foe-ai.md.
+-- souls, faction and trees - shares nothing with the enemy groups. See docs/mercenaries/enemies/foe-ai.md.
 Script.LoadScript("Scripts/mods/mercenaries_foe.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush.lua")
 Script.LoadScript("Scripts/mods/mercenaries_ambush_scenes.lua")
 Script.LoadScript("Scripts/mods/mercenaries_camp_debug.lua")
--- Camera + geometry audit for camp placement (docs/camp-inspection.md). After camp.lua,
+-- Camera + geometry audit for camp placement (docs/mercenaries/camp/camp-inspection.md). After camp.lua,
 -- because it reads the footprint helpers and the placement log that file writes.
 Script.LoadScript("Scripts/mods/mercenaries_campshot.lua")
 Script.LoadScript("Scripts/mods/mercenaries_upgrade_preview.lua")
@@ -2112,18 +2113,18 @@ function mercenaries:PrintHelp()
         "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
         "merc_camp_recall                     bring the whole squad to you from anywhere (doesn't break camp)",
         "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
-        "merc_hold / merc_hold_end            hold this ground: every man stands fast where he is, with a leash (docs/squad-orders.md)",
+        "merc_hold / merc_hold_end            hold this ground: every man stands fast where he is, with a leash (docs/mercenaries/ai/squad-orders.md)",
         "merc_hold_formup 0|1                 hold shape: 1 draws them up in a block instead of standing fast",
         "merc_escort / merc_escort_end        escort whoever you are looking at, in column",
         "merc_focus / merc_focus_clear        call the target you are looking at (or locked onto) for the whole squad",
         "merc_engage_default|viking|defend|hold   rules of engagement",
         "merc_aggro_tight|balanced|loose      how hard they pile onto one enemy",
         "merc_orders_status / merc_hold_status        report the squad's combat and standing orders",
-        "merc_difficulty easy|medium|difficult|extreme|impossible|horde   raid/patrol/contract difficulty (docs/difficulty.md)",
+        "merc_difficulty easy|medium|difficult|extreme|impossible|horde   raid/patrol/contract difficulty (docs/mercenaries/enemies/difficulty.md)",
         "merc_difficulty_status               the tier and the ceilings it implies",
         "merc_enemy_rotation                  which enemy groups raided/patrolled last, and so cannot draw again yet",
         "merc_autodismount 0|1                mercs get off their horses to fight",
-        "merc_formation_column|line|square|wedge|circle|escort|vanilla   marching shape (see docs/formations.md)",
+        "merc_formation_column|line|square|wedge|circle|escort|vanilla   marching shape (see docs/mercenaries/ai/formations.md)",
         "merc_formation_relaxed|keepshape|movehistory              how followers hold the shape",
         "merc_formation_relocate_on|off / merc_formation_status    crowding + diagnostics",
         "merc_formation_control / merc_follow_stats 1   is the squad REALLY in formation, or on the chain?",
@@ -2134,18 +2135,18 @@ function mercenaries:PrintHelp()
         "archer_weapon_bow|crossbow|handcannon    archer ranged weapon type",
         "enemy_spawn_looters|bandits|sigi|prague|cumans|knights[_1|_20]   spawn an enemy group; base = row of 10 (debug)",
         "enemy_spawn_heinrich[_3]            spawn the overpowered Heinrich boss (debug)",
-        "foe_spawn[_1|_20] / foe_spawn_scout  new hostile AI: unalerted foes that shout and all engage (docs/foe-ai.md)",
+        "foe_spawn[_1|_20] / foe_spawn_scout  new hostile AI: unalerted foes that shout and all engage (docs/mercenaries/enemies/foe-ai.md)",
         "foe_status / foe_alert / foe_calm / foe_clear / foe_ranges   foe AI state, engage delays and tuning",
-        "merc_banditcamp_start|status|abandon|clear   the quartermaster's bandit-camp contract (docs/bandit-camp-quest.md)",
-        "merc_bounty_start|status|report|clear|abandon   the quartermaster's repeatable camp bounty (docs/bounty.md)",
+        "merc_banditcamp_start|status|abandon|clear   the quartermaster's bandit-camp contract (docs/mercenaries/quests/bandit-camp-quest.md)",
+        "merc_bounty_start|status|report|clear|abandon   the quartermaster's repeatable camp bounty (docs/mercenaries/quests/bounty.md)",
         "merc_bcamp_site_here                 print a BanditCampSites row for where you stand",
         "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",
         "merc_buff_list                       squad status HUD icons (auto-driven by logistics); merc_buff_all tests them, merc_buff_auto hands back",
-        "merc_wpn_audit[_p1..p5|_enemy]       lineup with one NPC per weapon preset; _who names the one beside you, _report/_static list the broken ones (docs/weapon-audit.md)",
+        "merc_wpn_audit[_p1..p5|_enemy]       lineup with one NPC per weapon preset; _who names the one beside you, _report/_static list the broken ones (docs/mercenaries/company/weapon-audit.md)",
         "merc_cc_lineup[_p1..p4]              lineup with one NPC per custom companion; _who names the one beside you, _draw arms them, _clear despawns",
         "merc_cc_diag                        why a companion is not behaving like a merc: every gate, next to a regular merc as a control",
         "merc_recount                         re-sync the merc counter",
-        "merc_face [clip]                     play a facial animation on the quartermaster (docs/lipsync.md)",
+        "merc_face [clip]                     play a facial animation on the quartermaster (docs/mercenaries/tech/lipsync.md)",
         "merc_lua <code>                      run raw Lua (debug)",
     }
     for _, line in ipairs(lines) do
@@ -2153,10 +2154,10 @@ function mercenaries:PrintHelp()
     end
 end
 
--- Lipsync diagnostics (docs/lipsync.md). No arg = generic talking clip.
+-- Lipsync diagnostics (docs/mercenaries/tech/lipsync.md). No arg = generic talking clip.
 mercenaries:DevCommand("merc_face", "mercenaries:FaceTest(\"%line\")", "Play a facial animation on the quartermaster (arg=clip name, default fa_cin_talk_neutral_01)")
 
-mercenaries:DevCommand("merc_testmerc", "mercenaries:SpawnTestMerc()", "Control test: spawn ONE merc on the fixed test soul guid (free, no cap). See docs/quest-override-test.md")
+mercenaries:DevCommand("merc_testmerc", "mercenaries:SpawnTestMerc()", "Control test: spawn ONE merc on the fixed test soul guid (free, no cap). See docs/mercenaries/archive/quest-override-test.md")
 mercenaries:DevCommand("merc_recount", "mercenaries:Recount()", "")
 
 -- Player status buffs: cosmetic HUD/inventory indicators for the management layer.

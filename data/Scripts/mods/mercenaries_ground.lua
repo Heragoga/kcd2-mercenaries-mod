@@ -43,7 +43,7 @@
 -- `merc_groundprobe` prints all of it, surface NAMES included, so the next surprise is one
 -- command away rather than three rewrites away.
 --
--- See docs/ground-guard.md.
+-- See docs/mercenaries/camp/ground-guard.md.
 
 mercenaries.GroundGuard = true        -- master switch, merc_groundguard
 
@@ -124,7 +124,7 @@ mercenaries.GroundLogEvery  = 5.0     -- seconds between rejection log lines
 function mercenaries:GroundNote(msg)
     self.GroundRejects = (self.GroundRejects or 0) + 1
     -- Wall clock, not the engine's: engine time runs ~29x fast through a wait/sleep and the
-    -- throttle would stop throttling exactly when a rebuild floods it. See docs/performance.md.
+    -- throttle would stop throttling exactly when a rebuild floods it. See docs/mercenaries/tech/performance.md.
     local now = (os and os.clock) and os.clock() or nil
     if now and self.GroundLastLogAt and (now - self.GroundLastLogAt) < self.GroundLogEvery then return end
     self.GroundLastLogAt = now

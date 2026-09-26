@@ -6,7 +6,7 @@
              payout) is Lua in mercenaries_banditcamp_quest.lua; this graph exists only to
              put an entry in the journal and a marker on the map.
 
-             Nothing here carries a Namespace attribute - see docs/bandit-camp-quest.md for
+             Nothing here carries a Namespace attribute - see docs/mercenaries/quests/bandit-camp-quest.md for
              why that matters. TypeT="wh::questmodule::QuestProgress" is an engine type
              string, not a namespace reference. -->
         <Quest Name="bandit_camp_quest" Type="Side" Players="0" Repeatable="false">

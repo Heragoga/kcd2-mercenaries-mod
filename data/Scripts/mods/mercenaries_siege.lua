@@ -17,7 +17,7 @@
 -- merc_siege_binds takes the F-keys (they are shared with the camp builder and the route
 -- recorder); merc_bcamp_binds and merc_binds_routes take them back.
 --
--- See docs/siege-builder.md.
+-- See docs/mercenaries/fortifications/siege-builder.md.
 
 local function sLog(s) System.LogAlways("[Siege] " .. s) end
 

@@ -1,7 +1,7 @@
 -- Ambush authoring toolkit: mark archer spots, melee spots and trigger areas in
 -- the world with barrels, then dump them as pasteable Lua. Authoring only - the
 -- runtime that fires an ambush comes later and reads AmbushScenes.
--- Workflow and the encounter roadmap: docs/encounters.md.
+-- Workflow and the encounter roadmap: docs/mercenaries/quests/encounters.md.
 
 -- All barrels: they stand upright and read at a distance. The flag marker used
 -- before lies flat on the ground and is easy to walk past.

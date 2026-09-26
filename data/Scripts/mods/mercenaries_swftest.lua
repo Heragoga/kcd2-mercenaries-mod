@@ -4,7 +4,7 @@
 -- data/libs/UI/MercUI.swf (48 named sprites, zero ActionScript) and the matching
 -- data/libs/UI/UIElements/MercUI.xml. If this works, a mod owns real vector rectangles at
 -- arbitrary position, size, rotation and opacity - the primitive the ASCII-underscore panel
--- hack existed only because we lacked. See docs/ui.md.
+-- hack existed only because we lacked. See docs/mercenaries/ui/ui.md.
 --
 -- Two things the disassembly says must hold, and this checks:
 --   * wh_gfx_useSWF must be 1, or the loader never tries the .swf at all (RVA 0x0088FC39)
@@ -35,7 +35,7 @@ local SWF = mercenaries.SWF
 local function log(s) System.LogAlways("[MercSWF] " .. tostring(s)) end
 local function clip(i) return string.format("mc_%02d", i) end
 
--- %line reaches Lua with its surrounding quotes intact (see docs/console.md), so a bare
+-- %line reaches Lua with its surrounding quotes intact (see docs/mercenaries/tech/console.md), so a bare
 -- "%S+" capture picks up the quote characters and the name matches no element at all.
 local QUOTES = string.char(34) .. string.char(39)     -- " and '
 local function unquote(s)

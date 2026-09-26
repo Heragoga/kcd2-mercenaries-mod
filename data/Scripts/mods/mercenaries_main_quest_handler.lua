@@ -192,7 +192,7 @@ function mercenaries:PlayerBusyForSpawns()
     end
 
     -- In a fight of his own - which is what a scripted/quest battle looks like from here,
-    -- there being no Lua-readable "a main quest battle is running" flag (docs/quest-override-battles.md).
+    -- there being no Lua-readable "a main quest battle is running" flag (docs/mercenaries/quests/quest-override-battles.md).
     if not reason then
         pcall(function()
             if player and player.soul and player.soul:IsInCombatDanger() then reason = "in combat" end

@@ -4,7 +4,7 @@
            * FORMATION (the default, on foot and mounted). One merc is elected
              leader: a sibling loop below holds the formation open while he leads,
              he follows the player, and everyone else FormationFollowers off him.
-             See docs/formations.md.
+             See docs/mercenaries/ai/formations.md.
            * FOLLOW CHAIN (waiting, NPC-led patrols, near a walled camp, and any
              merc the formation cannot seat). Target comes from
              CalculateFormationTarget: NpcFormations first, then the player-squad
@@ -14,7 +14,7 @@
          and every CrimeFollower here is time-boxed so a merc can always be
          reclaimed into the formation.
          Also owns the horse lifecycle for mounted following and the order-bark
-         consumer. Camp roles moved to camp_actor.xml. See docs/ai-modules.md. -->
+         consumer. Camp roles moved to camp_actor.xml. See docs/mercenaries/ai/ai-modules.md. -->
     <BehaviorTree name="follow" is_function="0">
         <Variables>
             <Variable name="followTarget" type="_wuid" values="" isPersistent="0" form="single" />
@@ -40,7 +40,7 @@
             <!-- Mounted gait: 3 Sprint, 2 Dash, 1 Run, 0 Walk, -1 hold. Set by
                  MountedLeaderGait from the player's measured speed. -->
             <Variable name="mountGait" type="_int" values="0" isPersistent="0" form="single" />
-            <!-- Engine formation (docs/formations.md). One merc is elected to run
+            <!-- Engine formation (docs/mercenaries/ai/formations.md). One merc is elected to run
                  MakeFormation and follow the player; the rest FormationFollower off
                  him. Kept deliberately dumb: the leader is latched and the preset is
                  latched, because anything that changes here rebuilds the formation and
@@ -201,7 +201,7 @@
                                      despawn countdown. Poll and debounce are a PAIR. Both halves are
                                      in mercenaries_target_selection.lua - MercPlayerMountSeen also
                                      holds the global false while the no-horses setting is on. See
-                                     docs/formations.md. -->
+                                     docs/mercenaries/ai/formations.md. -->
                                 <StanceCheck soul="$__player" stance="horse" smartObject="" negate="false" failOnCondition="false" saveVersion="2">
                                     <Then canSkip="1"><ExecuteLua code="mercenaries:MercPlayerMountSeen()" /></Then>
                                     <Else canSkip="1"><ExecuteLua code="mercenaries:MercPlayerMountLost()" /></Else>
@@ -226,7 +226,7 @@
                                      a transient mount out of the save.
                                      PerfEntityByName replaces the raw System.GetEntityByName here: same
                                      lookup, cached after the first resolve instead of a full scan every
-                                     500ms for a merc's whole lifetime. See docs/performance.md.
+                                     500ms for a merc's whole lifetime. See docs/mercenaries/tech/performance.md.
                                      NO LUA LINE COMMENTS INSIDE THIS code ATTRIBUTE: XML collapses the
                                      newlines to spaces, so the whole script is one line at runtime and a
                                      line comment swallows everything after it. -->

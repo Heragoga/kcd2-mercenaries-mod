@@ -615,7 +615,7 @@
         </clothing_preset>
 
         <!-- Generated squad wardrobe: 10 presets per style per tier, each
-             solved to its tier armour budget. See docs/outfits.md. -->
+             solved to its tier armour budget. See docs/mercenaries/company/outfits.md. -->
         <clothing_preset clothing_preset_id="6d657263-0101-4b00-9000-000000000001" clothing_preset_name="merc_generic_weak_01" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>
                 <Guid>95fd0f07-3682-470c-96f2-adcaaf417a04</Guid>
@@ -2929,7 +2929,7 @@
         </clothing_preset>
         <!-- Enemy-group wardrobes: one identity per group, each built to its own
              armour budget. Quality/Condition carry the wear (rusty bandits vs
-             polished knights). See docs/enemies.md. -->
+             polished knights). See docs/mercenaries/enemies/enemies.md. -->
         <!-- Looters: armour budget 40, quality 1, condition 0.14-0.30 -->
         <clothing_preset clothing_preset_id="6d657263-e001-4c00-9000-000000000001" clothing_preset_name="enemy_looter_01" gender="Male" prefers_hood_on="false" social_class_id="3" Quality="1" Condition="0.12" ConditionVariation="0.20">
             <Items>
@@ -4965,7 +4965,7 @@
         </clothing_preset>
         <!-- Noble houses and military orders (styles 10-17). Surcoat-led:
              the livery is the heraldry, the kit underneath is the standard
-             soldier build for the tier. See docs/outfits.md. -->
+             soldier build for the tier. See docs/mercenaries/company/outfits.md. -->
         <!-- 10: Order of the Red Star -->
         <clothing_preset clothing_preset_id="6d657263-1001-4b00-9000-000000000001" clothing_preset_name="merc_krizovnik_weak_01" gender="Male" prefers_hood_on="false" social_class_id="3">
             <Items>

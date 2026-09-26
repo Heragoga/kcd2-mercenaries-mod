@@ -6,7 +6,7 @@
          disengage, none of that for enemies) are resolved in Lua by
          UpdateMeleeCombatData from the entity name. Archers fired into melee
          get WeaponChange=melee (sheathe bow, draw sidearm); everyone else
-         keeps their weapon. See docs/ai-modules.md. -->
+         keeps their weapon. See docs/mercenaries/ai/ai-modules.md. -->
     <BehaviorTree name="combat_melee" is_function="0">
         <Variables>
             <Variable name="automation_defense" type="_bool" values="true" isPersistent="0" form="single" />
@@ -75,7 +75,7 @@
                                                  references/AI/crime/friendlyFight.xml. Three things here
                                                  were all wrong at once and together made an approaching
                                                  fighter close in visible steps - step, pause, step. Proven
-                                                 out on foe_combat.xml first; see docs/foe-ai.md.
+                                                 out on foe_combat.xml first; see docs/mercenaries/enemies/foe-ai.md.
 
                                                  1. CombatMoveDecorator is what puts the NPC into COMBAT
                                                     LOCOMOTION. It was missing everywhere in this mod.
@@ -171,7 +171,7 @@
                                              second. Sheathing him meant every re-fire cost a sheathe AND
                                              a re-draw - which is what still made convoy fighters close in
                                              steps after the draw was already made conditional. foe_combat
-                                             never sheathes for the same reason. See docs/foe-ai.md.
+                                             never sheathes for the same reason. See docs/mercenaries/enemies/foe-ai.md.
                                              CombatMaySheathe carries the same reasoning over to a MERC with
                                              the battle still going on around him: this tree ends every time
                                              his TARGET dies, so in a big fight the old unconditional sheathe

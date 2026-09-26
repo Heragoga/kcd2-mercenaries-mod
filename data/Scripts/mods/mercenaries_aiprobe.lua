@@ -373,7 +373,7 @@ end
 -- ships off. So: turn it on, put a wall in the world, and watch the engine's own log. It
 -- prints "Building navigation:" from the tile generator and "NavMesh generation background
 -- thread started" from the thread, so the answer arrives in its words, not ours.
-mercenaries.AIProbeMNMTest = false     -- settled: no rebuild happens, see docs/walls-and-sieges.md
+mercenaries.AIProbeMNMTest = false     -- settled: no rebuild happens, see docs/mercenaries/fortifications/walls-and-sieges.md
 mercenaries.AIProbeMNMEnts = {}
 
 function mercenaries:AIProbeMNMSpawnWall(n, dist)

@@ -7,7 +7,7 @@
 --   merc_squads          print the current division
 --   merc_squads_rebuild  re-deal the company from scratch
 --
--- See docs/command-ui.md.
+-- See docs/mercenaries/ui/command-ui.md.
 
 -- Four squads, always: two melee and two archer. An army with no archers fields two
 -- empty archer cards rather than renumbering everything.

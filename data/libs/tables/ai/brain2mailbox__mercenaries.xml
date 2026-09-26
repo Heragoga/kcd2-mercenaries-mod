@@ -86,7 +86,7 @@
 		<brain2mailbox brain_id="7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a11" mailbox_id="eb69e9da-d2a7-4103-bfef-3f7d33be0aaf" priority="0" />
 
 		<!-- Aleksej: the full list, same as the quartermaster above - he must be
-		     talkable (aleksej_dialog.xml, docs/aleksej.md). -->
+		     talkable (aleksej_dialog.xml, docs/mercenaries/quests/aleksej.md). -->
 		<brain2mailbox brain_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b04" mailbox_id="0be79f74-4e05-48c1-906d-0b4c7a2d8c76" priority="0" />
 		<brain2mailbox brain_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b04" mailbox_id="08d8287d-d563-4e11-ba53-3af4ee30c266" priority="0" />
 		<brain2mailbox brain_id="a1e50000-1c4b-4e6a-9f01-3b8c5d2e7b04" mailbox_id="0cdd99cb-44f3-40b2-81e2-940073888dd6" priority="0" />

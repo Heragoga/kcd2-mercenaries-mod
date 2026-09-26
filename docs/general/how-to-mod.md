@@ -1,3 +1,11 @@
+---
+title: "How to Mod KCD2: The Real Way"
+summary: Should I build my mod in the official Modding Tools or against the retail game, and where in the vanilla files do I start looking?
+tags: [tooling, lua, engine]
+kind: guide
+status: current
+scope: kcd2
+---
 # How to Mod KCD2: The Real Way
 
 Alright, so you decided to create a KCD2 mod. Cool. You might wonder: *How do I create a mod?* The short answer is to look at the official guide: [The Modding Tools](https://warhorse.youtrack.cloud/articles/KM-A-55/The-Modding-Tools). It covers setting up the folder structure, installing the modding tools, etc.
@@ -25,7 +33,7 @@ You might wonder why I am flaming the official modding tools so badly. Here is w
 Let's say you have set up your mod folder in the vanilla game files. The very first thing you need to do is set up a **Base Game Reference**—a folder where you extract the vanilla files so they are quickly accessible.
 
 1. Go to `C:\Program Files\Steam\steamapps\common\KingdomComeDeliverance2\Data\`
-2. Take `Tables.pak`, `Scripts.pak`, and `IPL_GameData.pak` and extract them somewhere safe. 
+2. Take `Tables.pak`, `Scripts.pak`, and `IPL_GameData.pak` and extract them somewhere safe. Which pak holds what, and why the target path should be short, is in [Episode 01: The vanilla reference](../tutorials/episode-01-mod-setup.md#2-the-vanilla-reference).
 3. **Use Total Commander** (or another power-user file explorer) to search through these extracted files. It enables lightning-fast searching inside files. *Under no circumstance should you use Windows Explorer for this.*
 
 If you want to do something (add a buff, quest, etc.), always start by looking through these base game files. Search for keywords, extract the lines containing those keywords, and feed them into your LLM/chatbot of preference. Feed your chatbot the files that seem to do what you want and ask it to adapt them. Trust me, it's a highly efficient way to mod.
@@ -34,7 +42,7 @@ If you want to do something (add a buff, quest, etc.), always start by looking t
 
 ## Vanilla File Breakdown
 
-Here is a basic overview of what you will find inside those extracted vanilla files:
+The complete folder-by-folder map of the extracted files is in [Episode 01: The vanilla reference](../tutorials/episode-01-mod-setup.md#2-the-vanilla-reference). This is just where I would start looking in each:
 
 ### `AI/` (Behavior Trees)
 Contains all behavior trees—the "brains" of basically everything in the game, from soldiers, beggars, and nobles to horses, dogs, and doors. Almost everything of interest is located in `AI\npc\basic\switch\`.
@@ -44,9 +52,9 @@ Contains all behavior trees—the "brains" of basically everything in the game, 
 ### `Libs/` (Definitions)
 This contains all basic definitions (NPCs, who wears what, prefabs, items, buffs, etc.). The most interesting folders are `tables` and `storm`. They basically contain everything of interest for a large majority of mods.
 * **Storm:** You have to create your own rules, which are merged into the base game files.
-* **Tables:** You have to create patches using a very specific naming convention: `fileyouwanttoedit__yourmodid.xml` (note the **two underscores**—this is very important). 
+* **Tables:** You have to create patches using a very specific naming convention: `fileyouwanttoedit__yourmodid.xml` (note the **two underscores**—this is very important). The rules are in [Episode 01: Table patches](../tutorials/episode-01-mod-setup.md#7-table-patches-__modid).
 
-### `Quest/`
+### `Quests/`
 This contains all base game quests, random encounters, activities, and dialog definitions. `Final\Barbora` is the most interesting part; explore it at your leisure. 
 * *Note:* This is usually edited with Skald, but I advise against using Skald directly for this. If you want to add a completely new Skald file, I recommend defining the files manually. Feed a bunch of reference files into a chatbot and tell it what you want. In Skald, you can see nodes and add them, but the nodes themselves aren't very informative, and you'll have to guess at their meaning. A basic overview will be provided in the "How to add a quest" guide.
 

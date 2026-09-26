@@ -1,5 +1,5 @@
 -- Aleksej of Zaslawye: his lodging, a pre-combat speech test, and the 9-beat runner
--- (docs/aleksej.md). Three parts:
+-- (docs/mercenaries/quests/aleksej.md). Three parts:
 --
 -- 1. A PLACEMENT editor for his room. He needs a spawn point, a stool, a bed and a chest, and
 --    the chest is the beat 6 reveal, so its position matters as much as his.
@@ -26,7 +26,7 @@
 --    ForcedDialog module (gated by its own bool port, fired by dropping a token when the player
 --    closed to range) also proved unnecessary once RequestForceTalk/forced_dialog.xml was
 --    working - it never touches the production beat 9 path and has been removed
---    (docs/aleksej.md).
+--    (docs/mercenaries/quests/aleksej.md).
 --
 -- 3. THE BEAT RUNNER (bottom of the file). Nine beats, replacing mercenaries.KleinkriegContracts.
 --    It does NOT touch that table or mercenaries.BCQ - the Kleinkrieg runner (mercenaries_
@@ -316,7 +316,7 @@ function mercenaries:AlxTalkFire()
     aLog(("requested alias=[%s] preset=[%s %s] dist=%.1fm"):format(
         tostring(self.AlxTalkAlias), tostring(self.AlxTalkPreset), pn, self:AlxTestDist()))
     aLog("  watch for [fd] lines: scheduler firing / entered / dialogInitiator / returned")
-    aLog("  'alias not found' = Skald side (Definition without an instance node, docs/aleksej.md)")
+    aLog("  'alias not found' = Skald side (Definition without an instance node, docs/mercenaries/quests/aleksej.md)")
     aLog("  plays but feels wrong = merc_alx_preset 1 (fader) 2 (chat) 3 (ingame)")
 end
 
@@ -766,7 +766,7 @@ mercenaries.AlxBeats = {
     [4] = { name = "burnt mill camp",   site = "south_camp",     group = "looter",
             ratio = 1.0, min = 5, archerFrac = 0.05,
             -- Aleksej names Kunes in the report line; the man actually in charge is not him -
-            -- that mismatch IS the beat (docs/aleksej.md). Keep this name off any Kunes line.
+            -- that mismatch IS the beat (docs/mercenaries/quests/aleksej.md). Keep this name off any Kunes line.
             leaderName = "Bartos", leaderSoul = mercenaries.AlxLeaderSouls.bartos,
             leaderSurcoat = true, combat = true },
     [5] = { name = "Sigismund patrol",  site = "patrol_company", group = "sigi",
@@ -894,7 +894,7 @@ function mercenaries:AlxLodgingThought()
 end
 
 -- How many consecutive 1 Hz polls a body must be un-findable before it counts as gone. The
--- engine drops a handle for a tick without the NPC being dead (docs/npc-lod.md); without this
+-- engine drops a handle for a tick without the NPC being dead (docs/mercenaries/tech/npc-lod.md); without this
 -- the camp would fold itself up mid-fight.
 mercenaries.AlxMissingTicks = 5
 
@@ -1226,7 +1226,7 @@ end
 
 -- Sit / eat / sleep / walk the perimeter, so the camp reads as lived in rather than as a ring of
 -- men facing outwards. Same borrow: AssignBanditCampRoles is written against the BCQ tables and
--- hands out the WUID-keyed camp roles the enemy schedulers already run (docs/ai-modules.md).
+-- hands out the WUID-keyed camp roles the enemy schedulers already run (docs/mercenaries/ai/ai-modules.md).
 function mercenaries:AlxAssignCampRoles(C, origin)
     local S = self.BCQ
     local keep = { bandits = S.bandits, seats = S.seats, beds = S.beds, spots = S.spots,

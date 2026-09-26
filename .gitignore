@@ -1,7 +1,8 @@
 # Per-machine game path for tools/Find-KCD2.ps1 (copy tools/local.paths.txt.example)
 tools/local.paths.txt
 
-# Build output
+# Build output (tools/out/ holds the kb.py search index)
+tools/out/
 release/
 *.zip
 

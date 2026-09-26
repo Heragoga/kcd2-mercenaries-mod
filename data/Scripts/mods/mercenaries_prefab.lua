@@ -1,6 +1,6 @@
 -- Prefabs: a knot of props arranged in Blender, spawned as one thing.
 --
--- The layout is done in the Blender workspace (docs/blender-workspace.md): drag props
+-- The layout is done in the Blender workspace (docs/mercenaries/tech/blender-workspace.md): drag props
 -- out of the KCD2 asset library, place them, and `prefab_export.py` writes the result to
 -- data/Scripts/mods/prefabs/<name>.lua as a list of model + position + rotation. Nothing
 -- in that folder is hand-written.

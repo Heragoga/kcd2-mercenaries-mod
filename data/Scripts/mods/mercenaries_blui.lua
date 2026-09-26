@@ -6,7 +6,7 @@
 --   merc_bl_demo     cycle the placeholder squad roster, to exercise the card states
 --
 -- The art, the geometry and the order tree all come from mercenaries_blatlas.lua, which
--- tools/make_bl.py generates alongside MercBL.swf. See docs/command-ui.md.
+-- tools/make_bl.py generates alongside MercBL.swf. See docs/mercenaries/ui/command-ui.md.
 
 mercenaries.BL = mercenaries.BL or {}
 local BL = mercenaries.BL
@@ -15,7 +15,7 @@ local EL = "MercBL"
 local function log(s) System.LogAlways("[MercBL] " .. tostring(s)) end
 local function atlas() return mercenaries.BLAtlas end
 
--- %line reaches Lua with its surrounding quotes intact - see docs/console.md.
+-- %line reaches Lua with its surrounding quotes intact - see docs/mercenaries/tech/console.md.
 local QUOTES = string.char(34) .. string.char(39)
 local function unquote(s)
     return (string.gsub(tostring(s or ""), "[" .. QUOTES .. "]", ""))
@@ -29,7 +29,7 @@ BL.frame = BL.frame or {}
 -- not the settings themselves: BLReadState refreshes every entry from the mod on each draw,
 -- so these values only ever stand in for the frame before the behaviour layer has loaded.
 -- They were the whole state once, and the screen duly reported a wedge as a line and a
--- company holding fire as firing at will. See docs/command-ui.md.
+-- company holding fire as firing at will. See docs/mercenaries/ui/command-ui.md.
 BL.state = BL.state or {
     move = "follow", form = "line",
     fire = "on", mount = "off", engage = "default", swarm = "balanced",

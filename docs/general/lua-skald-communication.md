@@ -1,4 +1,19 @@
+---
+title: Skald ↔ Lua Communication via Inventory Tokens
+summary: How can a Skald quest or dialogue choice trigger my Lua code, given there is no direct call, and how do I run the Lua polling loop without it multiplying across saves?
+tags: [lua, skald, data]
+kind: guide
+status: current
+scope: kcd2
+---
 # Skald ↔ Lua Communication via Inventory Tokens
+
+## TL;DR
+
+- There is no direct Skald → Lua call in the retail game. The console-command node that looks like one does nothing.
+- Skald gives the player a token item (`EventFunction` → `wh::entitymodule::CreatePlayerReward`); a Lua timer loop finds it, deletes it, and acts. The item's **amount** carries a value.
+- Delete the token before acting on it.
+- Timers run on the engine clock (much faster while the player sleeps or waits), and a timer that is pending when the game saves is **stored in the save and restored on load**. A plain "already started" flag doesn't stop that from piling up duplicate loops; use the generation pattern below.
  
 ## The Problem
  
@@ -169,21 +184,42 @@ UIAction.RegisterEventSystemListener(yourmodid, "", "OnGameplayStarted", "OnGame
  
 **Always delete the token before executing the action**, not after. If your handler errors out partway through, you don't want the token sitting in the inventory and firing again on the next poll cycle.
  
-**The timer is in real milliseconds, not game time.** 1000ms means one real-world second. The polling interval is a tradeoff between responsiveness and overhead — 500ms feels more immediate, 2000ms is cheaper. For most quest triggers 1000ms is fine since dialog interactions are human-speed.
- 
-**`OnGameplayStarted` fires on every load, not just the initial game launch.** This means `SetTimerForFunction` will be called every time the player loads a save. If you're not careful you'll stack multiple parallel polling loops that each reschedule themselves forever. Guard against this:
- 
+**The timer runs on the engine clock.** In normal play 1000 ms is one real second. While the player sleeps, waits or fast-travels, the engine clock runs far faster (about 29 times, measured in the mercenaries mod), and your loop fires that much more often. The polling interval is a tradeoff between responsiveness and overhead — 500ms feels more immediate, 2000ms is cheaper. For most quest triggers 1000ms is fine since dialog interactions are human-speed.
+
+**`OnGameplayStarted` fires on every load, not just the initial game launch, and timers ride along in the save.** Two things happen when the player loads a save:
+
+- The loop that was running before the load is gone. But your Lua tables are *not* reset, so a flag like `_loopStarted = true` is still set and would stop you from starting a new loop.
+- Every timer that was pending when that save was written is stored in the save file and fires again after the load, whatever your flags say. Start one more loop on top of it on every load, and the duplicates pile up save after save. The mercenaries mod once found 5,899 of them in a single long-running save, and the game stuttered accordingly.
+
+An earlier version of this guide suggested a `_loopStarted` flag. It fails both ways. What works is putting a **load generation in the timer's function name**, so a timer restored from the save calls a stale name and simply stops:
+
 ```lua
-yourmodid._loopStarted = false
- 
-function yourmodid:OnGameplayStarted(actionName, eventName, argTable)
-    if not yourmodid._loopStarted then
-        yourmodid._loopStarted = true
-        Script.SetTimerForFunction(1000, "yourmodid.MonitorLoop")
+yourmodid.gen = 0
+
+-- Eight entry points, MonitorLoopG0 .. MonitorLoopG7. Only the one for the
+-- current generation runs the loop; any other is a stale timer (restored from
+-- a save, or left over from an earlier load) and returns without re-arming.
+for g = 0, 7 do
+    yourmodid["MonitorLoopG" .. g] = function()
+        if g ~= yourmodid.gen % 8 then return end
+        yourmodid.MonitorLoop()
     end
 end
+
+function yourmodid.ArmMonitor(ms)
+    Script.SetTimerForFunction(ms, "yourmodid.MonitorLoopG" .. (yourmodid.gen % 8))
+end
+
+function yourmodid:OnGameplayStarted(actionName, eventName, argTable)
+    yourmodid.gen = yourmodid.gen + 1   -- a new generation on every load
+    yourmodid.ArmMonitor(1000)
+end
 ```
- 
+
+and at the end of `MonitorLoop`, re-arm with `yourmodid.ArmMonitor(1000)` instead of calling `Script.SetTimerForFunction(1000, "yourmodid.MonitorLoop")` directly.
+
+One gap remains: a restored timer whose generation happens to match the current one (mod 8) still gets through. The mercenaries mod covers that with a watchdog that counts firings per few seconds and restarts the chain when there are too many. Also: don't pass a third argument to `SetTimerForFunction`. The official docs describe one, but in the game it never reaches the callback and can stop the loop re-firing.
+
 **`GetCountOfClass` returns nil if the item class doesn't exist in the game's item registry at all**, not just 0 if the player doesn't have it. Always check for nil before comparing to 0, as shown in the example.
  
 ---

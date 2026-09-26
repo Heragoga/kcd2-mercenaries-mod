@@ -1302,7 +1302,7 @@
          roles are what the dialogues bind to, so a soul with no rule in this file has no
          dialogue options at all - which is exactly how the first build shipped them.
          They are muted in RequestBark and skipped by the camp-chat pairing instead; the
-         voice is off, the dialogue is not. See docs/female-mercenaries.md. -->
+         voice is off, the dialogue is not. See docs/mercenaries/company/female-mercenaries.md. -->
     <rule name="mercenary_female_1_role">
       <selectors>
         <hasName name="soul_merc_female_1" />
@@ -1397,7 +1397,7 @@
          ================================================================================
          The mercs' souls are soul_archetype_id="0" - male, deliberately, because archetype 1
          would hand them the female animation set and that set has no combat in it at all
-         (docs/female-mercenaries.md). The engine therefore reads them as <isMan />, and
+         (docs/mercenaries/company/female-mercenaries.md). The engine therefore reads them as <isMan />, and
          vanilla's own Libs/Storm/roles/world/combat.xml hands every isMan NPC the MALE combat
          roles:
 

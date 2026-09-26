@@ -20,7 +20,7 @@
 --
 -- RPG.IsPublicEnemy is the primary test and it is vanilla's own: AnimStash.lua calls it
 -- to decide whether a body is looted or robbed, and it reads Labels="publicEnemy" off
--- the faction and nothing else (docs/public-enemy.md). Every bandit, Cuman and raider
+-- the faction and nothing else (docs/mercenaries/enemies/public-enemy.md). Every bandit, Cuman and raider
 -- subtree carries the label; no guard or townsman faction does; and all three of the
 -- mod's own hostile factions were given it. One engine call, and it is the single most
 -- reliable "is this a bandit" answer the game has.
@@ -73,7 +73,7 @@ function mercenaries:ClassifyHostility(ent)
 
     -- Same classifier the crime watchdog uses, and it is the measured one: hostile
     -- faction words first, then the crime_isAuthority/isSecurity contexts, then the
-    -- faction path, then the name (docs/crime-watch.md).
+    -- faction path, then the name (docs/mercenaries/enemies/crime-watch.md).
     if self.CrimeClassify then
         local kind = self:CrimeClassify(ent, name, faction)
         if kind == "hostile" then return "hostile" end
@@ -203,7 +203,7 @@ function mercenaries:AggressorConfirmed(ent, wuid, victimWuidStr)
 end
 
 -- Whether the squad keeps fighting an enemy who has broken and run. Off puts routed
--- enemies back out of reach of every merc. docs/enemy-morale.md.
+-- enemies back out of reach of every merc. docs/mercenaries/ai/enemy-morale.md.
 mercenaries.ChaseFleeingEnemies = true
 
 -- Validate whether an entity is a valid enemy target. skipRelationshipCheck
@@ -212,7 +212,7 @@ mercenaries.ChaseFleeingEnemies = true
 -- that are about to be judged on who they are targeting instead; allowProtected
 -- bypasses the townsman/watch gate, for somebody confirmed to be fighting us or
 -- called by the player.
--- See docs/combat-target-selection.md for the full ruleset.
+-- See docs/mercenaries/ai/combat-target-selection.md for the full ruleset.
 function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelationshipCheck, skipWeaponCheck, allowProtected)
     if ent.id == player.id then return false end
     if ent:GetName() == "companion_dog" then return false end
@@ -316,7 +316,7 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     or ent.soul:HasScriptContext("combat_immortalityProtection") then
         return false
     end
-    -- A routed enemy is still an enemy - see docs/enemy-morale.md for why they rout at
+    -- A routed enemy is still an enemy - see docs/mercenaries/ai/enemy-morale.md for why they rout at
     -- all. Pursuit is bounded by the melee module's own leashes, so this cannot walk the
     -- company off the map.
     if not self.ChaseFleeingEnemies
@@ -372,7 +372,7 @@ end
 -- Is this man on the SAME SIDE as the one confirmed to be fighting us? Hostile to him
 -- means he is fighting our enemy too and is never a target; allied means he is in the
 -- band; neither answer available falls back to a shared soul, which is what a base-game
--- camp is. See docs/combat-target-selection.md, "The fight group".
+-- camp is. See docs/mercenaries/ai/combat-target-selection.md, "The fight group".
 --
 -- ALLIED MEANS 1, NOT "ANYTHING ABOVE ZERO". The old threshold was `rel > 0`, and this
 -- mod's own relationship gate documents 0.5 as a NEUTRAL reading - it is an authored
@@ -462,7 +462,7 @@ function mercenaries:UpdateEnemyCache()
             -- floor entering the cache as a non-threat - and he enters on the very next
             -- 300ms pass the moment he draws, or immediately via `confirmed` if he lands
             -- a blow. In a town this is the whole cost: ~10 engine calls per bystander
-            -- per pass became 1. See docs/performance.md.
+            -- per pass became 1. See docs/mercenaries/tech/performance.md.
             -- ...unless the men have been told to kill everyone, in which case an unarmed
             -- bystander is precisely who they are looking for. The early-out is the whole
             -- reason a town is cheap, so viking is also the one stance that costs what a
@@ -494,7 +494,7 @@ function mercenaries:UpdateEnemyCache()
         end
 
         -- Shared player-centered scan covers this exact (pos, radius) - see
-        -- mercenaries_perf.lua and docs/performance.md #4. A nil return means
+        -- mercenaries_perf.lua and docs/mercenaries/tech/performance.md #4. A nil return means
         -- not covered/stale, never "nobody there", so the fallback is the
         -- original box query, unchanged.
         local shared = self:PerfNpcsNear(playerPos, radius, 400)
@@ -681,7 +681,7 @@ function mercenaries:UpdateEnemyCache()
                         local horseName = horseEnt:GetName()
                         if string.find(horseName, 'MercenaryHorse_', 1, true) then
                             -- Re-applied here rather than only at mount: a horse that has been
-                            -- re-physicalised loses it. docs/collision-ghosting.md.
+                            -- re-physicalised loses it. docs/mercenaries/ai/collision-ghosting.md.
                             if self:GhostCollisionOn() then
                                 self:ApplyCollisionGhost(horseEnt, self.GhostHorseMask)
                             end
@@ -1266,7 +1266,7 @@ end
 -- and hanging the horse lifecycle off it directly would churn mounts continuously.
 -- An earlier attempt to fail the mounted branch on it broke mounted following
 -- outright, because that Parallel is failureMode="Any" and the arm fired almost
--- constantly (docs/formations.md).
+-- constantly (docs/mercenaries/ai/formations.md).
 --
 -- So this one is armed enemies only, closer in, and latched on BOTH edges: it has to
 -- hold for a couple of seconds before they get down, and stay clear for a good while
@@ -1331,7 +1331,7 @@ end
 --
 -- Mounting is instant, dismounting is debounced: a single missed StanceCheck would
 -- otherwise flip this global false for the WHOLE squad, dismounting everyone and starting
--- every horse's despawn countdown. Poll and debounce are a pair - see docs/formations.md.
+-- every horse's despawn countdown. Poll and debounce are a pair - see docs/mercenaries/ai/formations.md.
 mercenaries.MountDebounceSecs = 1.2
 
 function mercenaries:MercPlayerMountSeen()
@@ -1408,7 +1408,7 @@ end
 function mercenaries:MercInstantMount(ent, horseEnt)
     if not (ent and horseEnt and horseEnt.id) then return false end
     -- The mount is the body that would ride the player down, and this is the first tick it
-    -- exists - the 3-tick horse sweep is the backstop. docs/collision-ghosting.md.
+    -- exists - the 3-tick horse sweep is the backstop. docs/mercenaries/ai/collision-ghosting.md.
     if self:GhostCollisionOn() then self:ApplyCollisionGhost(horseEnt, self.GhostHorseMask) end
     local already = false
     pcall(function() already = ent.human and ent.human.IsMounted and ent.human:IsMounted() or false end)
@@ -1462,7 +1462,7 @@ end
 --
 -- Nothing is lost by clearing it: every table here is rebuilt from the world within one
 -- CombatScan pass, and a fight that is genuinely still on re-raises the alert immediately.
--- See docs/performance.md.
+-- See docs/mercenaries/tech/performance.md.
 function mercenaries:TargetingOnLoad()
     self.CachedEnemies  = {}
     self.MaybeEnemies   = {}

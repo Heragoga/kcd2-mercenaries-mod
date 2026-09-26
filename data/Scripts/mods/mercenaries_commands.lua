@@ -1,4 +1,4 @@
--- Every console command a player can type, in one file. See docs/console.md.
+-- Every console command a player can type, in one file. See docs/mercenaries/tech/console.md.
 --
 -- Loaded FIRST (mercenaries.lua's LoadScript block), because every other module
 -- registers its authoring/diagnostic commands through mercenaries:DevCommand as it
@@ -134,7 +134,7 @@ end
 -- The cap was 6 and stayed there while eleven more liveries were added, so the console
 -- could not reach styles 8-17 that the dialogue wheel offers. 17 is the real ceiling;
 -- 7 is the custom uniform, which is not a wardrobe entry and is rejected by name.
--- See docs/outfits.md for the numbering (do not renumber - EnemyOutfitOverride and the
+-- See docs/mercenaries/company/outfits.md for the numbering (do not renumber - EnemyOutfitOverride and the
 -- merc_battle commands assume it).
 mercenaries.CmdOutfitMax = 17
 
@@ -430,7 +430,7 @@ function mercenaries:PrintHelp()
     System.LogAlways("  merc_raid_<group> [n]    they form up at distance and come for you (default 12)")
     System.LogAlways("  merc_patrol_<group>      a gang of them walking a road nearby")
     System.LogAlways("  merc_spawn_heinrich      one overpowered champion")
-    System.LogAlways("=== see docs/console.md for the full reference ===")
+    System.LogAlways("=== see docs/mercenaries/tech/console.md for the full reference ===")
 end
 
 function mercenaries:CmdGroupWords()
@@ -568,7 +568,7 @@ cmd("merc_patrols",      "mercenaries:LivePatrolSetEnabled(%line)", "Roaming roa
 cmd("merc_patrols_perday", "mercenaries:PatrolPerDaySet('%line')", "Roaming gangs per day at most, 0 = no cap; no argument reports (saved)")
 cmd("merc_mqstash",      "mercenaries:MQWStashSet(mercenaries:CmdBool('%line'))", "Send the company out of main-quest battles: 0 | 1 (saved)")
 -- Player-tier on purpose: these are the instruments for the Malesov battle-stash test and
--- nobody should be typing merc_dev with an assault under way. See docs/malesov-test.md.
+-- nobody should be typing merc_dev with an assault under way. See docs/mercenaries/archive/malesov-test.md.
 cmd("merc_mqwatch",      "mercenaries:MQWReport()",    "Main-quest battle watchdog: state + every probe's answer. Changes nothing")
 cmd("merc_mqstash_now",  "mercenaries:MQWStashNow()",  "Force the company out of a battle now, without waiting for detection")
 cmd("merc_mqunstash_now","mercenaries:MQWUnstashNow()","Bring a stashed company back to you now")
@@ -628,7 +628,7 @@ cmd("merc_travelprobe", "mercenaries:TravelProbeSet(mercenaries:CmdBool('%line')
 cmd("merc_travel_stow",  "mercenaries:TravelStowSet(mercenaries:CmdBool('%line'))", "Bring the men who are with you along when you fast travel or sleep: 0 | 1 (saved)")
 cmd("merc_travel_carry", "mercenaries:TravelCarrySet('%line')", "Seconds between keeping the company with you mid-crossing; 0 = far end only")
 cmd("merc_roster",       "mercenaries:RosterSet(mercenaries:CmdBool('%line'))", "Rebuild the company from the saved roster on load: 0 | 1 (saved)")
-cmd("merc_roster_nosave", "mercenaries:RosterNoSaveSet(mercenaries:CmdBool('%line'))", "Keep hired mercs out of the save entirely and rebuild them from the roster: 0 | 1 (saved). See docs/save-footprint.md")
+cmd("merc_roster_nosave", "mercenaries:RosterNoSaveSet(mercenaries:CmdBool('%line'))", "Keep hired mercs out of the save entirely and rebuild them from the roster: 0 | 1 (saved). See docs/mercenaries/tech/save-footprint.md")
 cmd("merc_lod_quality",  "mercenaries:LodQualitySet('%line')", "Mesh detail in big battles: crisp | balanced | performance")
 cmd("merc_hide_others",  "mercenaries:ToggleHideOthers()",     "Hide every NPC that is not yours (clean shots)")
 
@@ -641,7 +641,7 @@ cmd("merc_hide_others",  "mercenaries:ToggleHideOthers()",     "Hide every NPC t
 --   A. NPCs, horses and serialising props. Every merc/patrolman/enemy is a full NPC
 --      entity whose soul, brain, faction and skald character are defined in this mod's
 --      XML tables. Without the mod those lookups all fail, per entity. Saves have been
---      measured holding 50 mercs + 27 patrolmen with a live roster of 8 (docs/performance.md).
+--      measured holding 50 mercs + 27 patrolmen with a live roster of 8 (docs/mercenaries/tech/performance.md).
 --   B. The saver entities. ~60 hidden BasicEntity objects whose NAMES carry the mod's
 --      state (mercenaries_saving.lua). BasicEntity is a VANILLA class, so these resolve
 --      fine without the mod - they are the cheap suspect, and the one most likely to be
@@ -1233,7 +1233,7 @@ end
 -- uninstall + save-footprint diagnostics. Player-tier on purpose: merc_uninstall is the
 -- supported way to leave, and the audits are what a user is asked to paste into a bug
 -- report about load times. The two purge STAGES are the bisection kit - see the block
--- above and docs/save-footprint.md.
+-- above and docs/mercenaries/tech/save-footprint.md.
 cmd("merc_uninstall",   "mercenaries:UninstallScrub('%line')", "Prepare this save for REMOVING the mod (type merc_uninstall for details)")
 cmd("merc_save_audit",  "mercenaries:SaveAudit()", "Count everything the mod would leave in a save (changes nothing)")
 cmd("merc_items",       "mercenaries:ItemAudit()", "List the mod's items in Henry's inventory (changes nothing)")

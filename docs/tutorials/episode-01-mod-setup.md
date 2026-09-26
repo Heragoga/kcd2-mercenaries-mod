@@ -1,8 +1,27 @@
+---
+title: "KCD2 Modding 01: Mod Setup and Game File Structure"
+summary: How is a KCD2 mod laid out, packaged and loaded (manifest, load order, pak building, table patches, overrides, localization, the Lua init script), and how do I find out why it isn't working?
+tags: [tooling, data, lua, engine]
+kind: guide
+status: current
+scope: kcd2
+verified: release_1_5
+---
 # KCD2 Modding 01: Mod Setup and Game File Structure
 
 Written companion to Episode 1 of the *KCD2 Modding* video series. Everything the video skips is here, with exact paths and file contents.
 
 Game version at time of writing: **1.5.6**. Warhorse's official knowledge base is linked where it covers a topic: <https://warhorse.youtrack.cloud/articles/KM-A-1>
+
+## TL;DR
+
+- A mod is `Mods/<folder>/mod.manifest` plus `.pak` files in `Mods/<folder>/Data/`. The retail game reads **only paks** (and loose `.cfg`); loose XML and Lua are ignored.
+- A pak is a zip, **Store** compression, with `Libs/`, `Scripts/`, ... at the archive root. A wrapping folder inside the zip is the classic silent failure.
+- `modid` is lowercase letters and underscores. Watch the `supports` string match (`1.2.*` does not match `1.2`) and Warhorse's reserved part names.
+- Change tables with **patches** named `<table>__<modid>.xml` at the vanilla path. Old-style tables need the whole row; new tables only the key plus changed properties.
+- Without `mod_order.txt`, mods load Workshop first, then `Mods/` alphabetically. With it, unlisted mods don't load at all.
+- One Lua file runs by itself: `Scripts/Mods/<modid>.lua`. Do gameplay setup in `OnGameplayStarted`.
+- When something doesn't work, read `kcd.log` (§12).
 
 ---
 
@@ -256,7 +275,7 @@ end
 UIAction.RegisterEventSystemListener(pack_mule, "", "OnGameplayStarted", "OnGameplayStarted")
 ```
 
-- Code at the top level of the file runs at startup, before the main menu, when no level or player exists yet. Put gameplay setup in `OnGameplayStarted`, which fires every time a save finishes loading.
+- Code at the top level of the file runs at startup, before the main menu, when no level or player exists yet. Put gameplay setup in `OnGameplayStarted`, which fires every time a save finishes loading, and again after every region change. Loading a save does not reset your Lua tables, so clear your own state there. If you run timer loops, read [how timers behave across saves](../general/lua-skald-communication.md#key-points-about-the-lua-side) first.
 - More files: load them from the init script, e.g. `Script.LoadScript("Scripts/Mods/pack_mule_util.lua")`. Prefix them with your modid, because all mods share one `Scripts/Mods/` namespace.
 - All mods share one Lua state. Keep everything inside one global table named after your mod.
 - Wrap risky calls in `pcall`. One uncaught error aborts the rest of the function silently.

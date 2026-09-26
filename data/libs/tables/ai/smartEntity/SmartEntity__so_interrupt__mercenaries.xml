@@ -25,7 +25,7 @@
 				<!-- Aleksej's own stand-and-eat default behaviour (aleksej_scheduler.xml).
 				     Not quartermaster_idle: that tree walks to mercenaries:GetQuartermasterPost,
 				     which would drag Aleksej over to the quartermaster's own spot. See
-				     aleksej_idle.xml / docs/aleksej.md. -->
+				     aleksej_idle.xml / docs/mercenaries/quests/aleksej.md. -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="aleksej_idle" PreventsMonsterLod="true">
 					<TreeLocation FileName="aleksej_idle.xml" TreeName="aleksej_idle" />
 					<Inboxes>
@@ -68,7 +68,7 @@
 				</SmartBehaviorTemplate>
 
 				<!-- Patrol follower. Must be a BEHAVIOUR, not a scheduler arm: follower nodes
-				     refuse to run outside a SchedulerSubbrain. See docs/patrols.md. -->
+				     refuse to run outside a SchedulerSubbrain. See docs/mercenaries/enemies/patrols.md. -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="patrol_follow" PreventsMonsterLod="true">
 					<TreeLocation FileName="patrol_follow.xml" TreeName="patrol_follow" />
 					<Inboxes>
@@ -83,7 +83,7 @@
 
 				<!-- Patrol leader's route walk. A BEHAVIOUR so combat can replace it;
 				     as a scheduler arm its Move held movement and the leader never
-				     entered a fight. See docs/patrols.md. -->
+				     entered a fight. See docs/mercenaries/enemies/patrols.md. -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="patrol_walk" PreventsMonsterLod="true">
 					<TreeLocation FileName="patrol_walk.xml" TreeName="patrol_walk" />
 					<Inboxes>
@@ -190,7 +190,7 @@
 				<!-- Forced dialogue: makes an NPC start a conversation the player cannot decline
 				     (Function_speech_dialogInitiator). A BEHAVIOUR because AddInterrupt can only
 				     fire a registered one - without this row the fire logs
-				     "Specified behavior doesn't exist on any smart entity". See docs/aleksej.md. -->
+				     "Specified behavior doesn't exist on any smart entity". See docs/mercenaries/quests/aleksej.md. -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="forced_dialog" PreventsMonsterLod="true">
 					<TreeLocation FileName="forced_dialog.xml" TreeName="forced_dialog" />
 					<Inboxes>
@@ -204,7 +204,7 @@
 				</SmartBehaviorTemplate>
 
 				<!-- Foe combat: the rewritten hostile melee tree. Own tree, no leash,
-				     carries the alert shout. See docs/foe-ai.md. -->
+				     carries the alert shout. See docs/mercenaries/enemies/foe-ai.md. -->
 				<SmartBehaviorTemplate InitialState="Enabled" MaxInstances="-1" Name="foe_combat" PreventsMonsterLod="true">
 					<TreeLocation FileName="foe_combat.xml" TreeName="foe_combat" />
 					<Inboxes>

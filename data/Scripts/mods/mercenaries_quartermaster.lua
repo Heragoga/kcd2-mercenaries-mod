@@ -1,6 +1,6 @@
 -- Quartermaster: an immortal camp NPC that serves as the talking interface, with
 -- a stripped-down "lobotomized merc" brain (stand, eat, self-defend only). See
--- docs/quartermaster.md for the brain/soul/scheduler wiring.
+-- docs/mercenaries/camp/quartermaster.md for the brain/soul/scheduler wiring.
 
 mercenaries.QuartermasterSoul = "7a3d1f88-2c4b-4e6a-9f01-3b8c5d2e7a44"
 
@@ -208,7 +208,7 @@ end
 
 -- Play a facial animation on the quartermaster. Isolates where lipsync breaks:
 -- a generic library clip proves the pipeline runs at all, one of our retargeted
--- clip names proves the shipped .dba loaded. See docs/lipsync.md.
+-- clip names proves the shipped .dba loaded. See docs/mercenaries/tech/lipsync.md.
 function mercenaries:FaceTest(name)
     if not name or name == '' or name == '%line' then name = 'fa_cin_talk_neutral_01' end
 

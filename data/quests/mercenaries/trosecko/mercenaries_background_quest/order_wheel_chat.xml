@@ -4,7 +4,7 @@
         <!-- Silent squad-order wheel, modelled on Mutt's command menu
              (vanilla open_world/dog/chat/ovladani_chatem.xml). Hold the chat key
              while looking at a merc and the options appear without a dialog
-             camera or a spoken line - see docs/order-wheel.md.
+             camera or a spoken line - see docs/mercenaries/ui/order-wheel.md.
 
              Type="chat" + Initiator="Player" is what makes it a wheel instead of
              a dialog; ForceMood="noScope" keeps the camera free; responses with

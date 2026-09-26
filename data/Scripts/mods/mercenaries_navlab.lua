@@ -9,7 +9,7 @@
 -- avoiding the wall and not our own steering flattering the result.
 --
 -- Nothing here is shipped behaviour. It arms global AI cvars, and it puts every one of
--- them back when the run ends or is stopped. See docs/walls-and-sieges.md.
+-- them back when the run ends or is stopped. See docs/mercenaries/fortifications/walls-and-sieges.md.
 
 local function labSay(s) System.LogAlways("[NavLab] " .. s) end
 

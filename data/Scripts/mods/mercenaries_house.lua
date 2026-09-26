@@ -91,7 +91,7 @@ function mercenaries:SpawnHousePart(model, pos, rx, ry, rz, scale, namePrefix, t
         position = pos,
         orientation = { x = rx, y = ry, z = rz },
         -- Never serialised: the camp is rebuilt from scratch on load, and saved
-        -- house parts came back as broken white placeholders (see docs/camp.md).
+        -- house parts came back as broken white placeholders (see docs/mercenaries/camp/camp.md).
         properties = { object_Model = model, bMissionCritical = false,
                        bSaved_by_game = false, bSerialize = false },
     }

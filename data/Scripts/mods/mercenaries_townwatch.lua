@@ -8,8 +8,8 @@
 -- Everything about the muster is deliberately OURS, not the game's. Vanilla town guards
 -- would fight the player and ignore the mercs entirely - no vanilla faction declares any
 -- relation to mercenariesFaction, so the fight would be one-sided and the squad would stop
--- rendering (see docs/npc-lod.md). These men are enemiesFaction, like every other force
--- the mod fields, so both sides can see each other. See docs/town-watch.md.
+-- rendering (see docs/mercenaries/tech/npc-lod.md). These men are enemiesFaction, like every other force
+-- the mod fields, so both sides can see each other. See docs/mercenaries/enemies/town-watch.md.
 --
 -- Three waves, escalating, and the town only gives up after the third. See TWWaves.
 --

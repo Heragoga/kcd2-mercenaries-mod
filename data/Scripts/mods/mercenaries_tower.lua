@@ -265,7 +265,7 @@ mercenaries.TowerSink = 0.0
 -- Every box below is traced onto watchtower_a's OWN $physics_proxy geometry, measured out
 -- of the pak - so collision only ever sits where there is visible timber, never in mid-air.
 -- The two deck plates are the exception in one axis only: their footprints are the mesh's,
--- their top height is the old hand-tuned one. See docs/archers.md.
+-- their top height is the old hand-tuned one. See docs/mercenaries/ai/archers.md.
 mercenaries.TowerColliderModel = "objects/manmade/common_furniture/crates/crate_low_a.cgf"
 mercenaries.TowerCollidersVisible = false   -- merc_tower_col_show 1 to see them while tuning
 mercenaries.TowerColliders = {

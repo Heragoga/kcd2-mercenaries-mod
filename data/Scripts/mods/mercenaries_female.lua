@@ -27,7 +27,7 @@
 --      recorded by a man and playing one out of a woman is worse than silence.
 --
 --      This is the custom companions' arrangement exactly - see IsHeroName and
---      docs/companions.md, "Never talks is the whole rule" - and it is deliberately the same
+--      docs/mercenaries/company/companions.md, "Never talks is the whole rule" - and it is deliberately the same
 --      two choke points, not a new mechanism. An earlier build skipped InjectInteraction
 --      outright, which took the order wheel away with the voice; that was wrong.
 --
@@ -35,7 +35,7 @@
 --
 --   4. FEMALE HEADS, HAIR AND VOICES, which is soul and appearance data rather than code -
 --      soul__mercenaries.xml, mercenariesappearance.xml, skald_character__mercenaries.xml and
---      CharacterComponent__mercenaries.xml. See docs/female-mercenaries.md.
+--      CharacterComponent__mercenaries.xml. See docs/mercenaries/company/female-mercenaries.md.
 --
 -- The souls stay soul_archetype_id="0" (male). Archetype 1 is NPC_Female, which would hand the
 -- NPC the female skeleton, the female clothing config and the female animation set - and that

@@ -6,7 +6,7 @@
 -- The art, the geometry, the improvement list and the action tables all come from
 -- mercenaries_campatlas.lua, which tools/make_camp.py generates alongside MercCamp.swf.
 -- Every figure shown is read from mercenaries_logistics.lua; nothing here keeps its own
--- copy of the company's state. See docs/camp-ui.md.
+-- copy of the company's state. See docs/mercenaries/ui/camp-ui.md.
 
 mercenaries.CU = mercenaries.CU or {}
 local CU = mercenaries.CU
@@ -19,7 +19,7 @@ local function atlas() return mercenaries.CampAtlas end
 --
 -- SetScale and SetAlpha are PERCENT, and the atlas bakes a 1/ss shrink into every clip's
 -- authored matrix, so a scale call has to re-apply that shrink or the clip jumps to ss
--- times its intended size. Same contract as the command interface - see docs/command-ui.md.
+-- times its intended size. Same contract as the command interface - see docs/mercenaries/ui/command-ui.md.
 
 local function sc(m) return m * 100.0 / atlas().ss end
 
@@ -157,7 +157,7 @@ function mercenaries:CUStowSave()
     -- A space when storage is EMPTY, never "": SaveString refuses an empty string, so
     -- taking the last thing back out of storage never cleared the tag and a reload handed
     -- it straight back - a free second gate, for ever. Same sentinel DefForget uses, and
-    -- CUStowLoad reads a space as nothing stowed. See docs/gates.md.
+    -- CUStowLoad reads a space as nothing stowed. See docs/mercenaries/fortifications/gates.md.
     local packed = table.concat(out, ",")
     pcall(function() self:SaveString("MercCampStowed", packed ~= "" and packed or " ") end)
 end
@@ -673,7 +673,7 @@ function mercenaries:CUPlaceSpec(key, label)
         -- the world and the projection was simply invisible.
         sink = 0.0,
         -- No material override: a single-submaterial ghost .mtl hides the submeshes of a
-        -- multi-part prop (see docs/camp-forge.md), and the pink placeholder always draws
+        -- multi-part prop (see docs/mercenaries/camp/camp-forge.md), and the pink placeholder always draws
         -- the whole mesh, so the projection is legible either way.
         validMaterial = nil,
         isValid = function(s, pos) return s:CUSpotIsValid(pos) end,
@@ -763,7 +763,7 @@ end
 -- Tower, cart, gate and wall end their placement through their own code, which never calls
 -- CUPlaceConfirm - so without this the screen would stay hidden until U was pressed. Single
 -- instance and capped: timer chains are serialised into saves, so one that re-arms forever
--- is a save-bloat bug waiting to happen (see docs/performance.md).
+-- is a save-bloat bug waiting to happen (see docs/mercenaries/tech/performance.md).
 mercenaries.CUPlaceWatchArmed = false
 mercenaries.CUPlaceWatchTicks = 0
 
@@ -1036,7 +1036,7 @@ function mercenaries:CUOnLoad()
     CU.qamHeld = false
     -- A placement that was running when the game was saved is not running now, but the
     -- watchdog timer that puts the screen back up afterwards IS serialised into the save
-    -- (docs/performance.md). Left armed, it opened the screen a few seconds into a load,
+    -- (docs/mercenaries/tech/performance.md). Left armed, it opened the screen a few seconds into a load,
     -- unasked.
     CU.on, CU.open, CU.placing = false, nil, false
     self.CUPlaceWatchArmed = false

@@ -1,6 +1,21 @@
+---
+title: Adding Dialog
+summary: How do I write a player-NPC dialogue or an NPC monolog as Skald XML (decisions, sequences, responses, ports, animations), and how does a line get its voice and lipsync?
+tags: [skald, ui, audio]
+kind: guide
+status: current
+scope: kcd2
+---
 # Adding Dialog
 
 I will mostly cover this from the perspective of behaviour trees, as that is the part I am most interested in, but it extends to everything else as well. You can technically do this via the Skald writer GUI and whatnot, but I'd advise against it. The best approach I've found is giving a chatbot (Claude, Gemini, whatever you prefer) a few vanilla dialog examples, telling it what you want the dialog to say, and letting it cook. It's a far more reliable and less painful system than writing the XML yourself, so just feed this guide to your chatbot of choice and get writing.
+
+## TL;DR
+
+- A player dialogue is a `Dialog` → `Dialogue` → `Decision` → `Sequence` → `Elements` (`Response` lines). `Ports` connect it to the rest of Skald.
+- A line's text is a `StringName`. If a voice file matches the speaker's voice abbreviation plus that `StringName`, it plays; the lipsync clip is found by the same name.
+- A monolog is a `Dialogue Type="ingame monolog"` with an `Alias` on its `Decision`; behaviour trees play it by that alias.
+- `Commands` add facial moods, animations and camera shots to a response.
 
 ---
 
@@ -125,7 +140,7 @@ Elements are the individual lines spoken by each participant, dictated by the `R
 
 `Delay` is in seconds from the start of that response. `Variant` selects between different animations within the same fragment. For a full catalogue of what's available, browse the vanilla dialog files — with enough creativity there's a considerable amount you can do to liven things up.
 
-**Lips:** this used to say lip sync was a proprietary pipeline we couldn't touch. It isn't — it's stock CryEngine, and a line's facial clip is bound to it purely by name (`<voiceAbbrev>_<StringName>`, at the same relative path as the line's `.ogg`). You can retarget a vanilla lipsync clip onto your own line, or force a generic talking face from Lua.
+**Lips:** this used to say lip sync was a proprietary pipeline we couldn't touch. It isn't — it's stock CryEngine, and a line's facial clip is bound to it purely by name (`<voiceAbbrev>_<StringName>`, under `Animations/humans/facials/dialog/` at the same relative path as the line's `.ogg`), looked up through the global index `Animations/FacialAnimations.img`. The route that works is baking your own clips with Warhorse's phoneme recogniser from the Modding Tools, driven by the community [KCD2 Lipsync Tool](https://www.nexusmods.com/kingdomcomedeliverance2/mods/3648); a clip the index doesn't name is never found. Retargeting a vanilla clip onto your line needs an index entry too, so it saves nothing. For a generic moving mouth on any line, call `entity:EnableProceduralFacialAnimation(false)` and then `entity:PlayFacialAnimation("fa_cin_talk_neutral_01", true)` from Lua.
 
 ---
 

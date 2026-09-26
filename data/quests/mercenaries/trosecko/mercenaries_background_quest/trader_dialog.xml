@@ -6,7 +6,7 @@
              routes it to TraderOpen, which opens the counter.
 
              His reply is doing real work. The mod cannot open the game's own trade screen for a
-             spawned merchant (docs/camp-trader.md), so the deal is settled from what moved
+             spawned merchant (docs/mercenaries/camp/camp-trader.md), so the deal is settled from what moved
              across the counter once the window closes - which needs saying out loud, or the
              player has no idea when they are being charged. He says it. -->
         <FaderDialog Name="trader_dialog">
