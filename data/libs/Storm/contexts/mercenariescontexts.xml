@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE storm SYSTEM "..\storm.dtd">
+<storm>
+    <rules>
+        <!-- Hardcore mode hands every friendly man the MUZ_UKAZUJE_CESTU role, and its
+             "ask for directions" chat then clashes with the order wheel - both are
+             Type="chat" ClashPriority="OpenWorld" and only one can win, so the wheel
+             was replaced by that single option. hardcoreMode_disableDirectionsChat is
+             vanilla's own opt-out for it. See docs/order-wheel.md. -->
+        <rule name="mercenaries_disableDirectionsChat">
+            <selectors>
+                <or>
+                    <hasFaction name="mercenariesFaction" />
+                    <hasName name="soul_merc*" />
+                    <hasName name="soul_static_archer_*" />
+                    <hasName name="soul_quartermaster" />
+                    <hasName name="soul_aleksej" />
+                </or>
+            </selectors>
+            <operations>
+                <addContext name="hardcoreMode_disableDirectionsChat" />
+            </operations>
+        </rule>
+    </rules>
+</storm>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_34">
+            <Text StringName="gossip_merc_34_name" Text="Mercenary Gossip 34 - The Failed Bull Theft" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_34" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_34">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_34">
+                            <DesignName StringName="gossip_merc_34_name" Text="The Failed Bull Theft" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="zele_zelejov_o_ten_olbram_pvUD" Text="Olbram's bull's been rather quiet lately, ain't it?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="zele_zelejov_o_jeste_aby__QB5T" Text="No wonder, Olbram takes such good care of it." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="zele_zelejov_o_pamatujes__Ned8" Text="Remember when they tried to steal Olbram's bull?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="zele_zelejov_o_jo_jo_tezk_AwDv" Text="How could I forget?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="zele_zelejov_o_ti_pitomci_ZDid" Text="Those idiots made so much noise, they woke up half the village! Even the bull was making a racket! I reckon it didn't want to go anywhere." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="zele_zelejov_o_jo_to_si_p_DOv2" Text="Aye, I remember that. Poor Olbram! They say he had to call the Tachov blacksmith to help him calm the beast down." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="zele_zelejov_o_to_jo_jest_Y6Js" Text="Still, Olbram's been overdoing it ever since. Keeping the bull guarded all night?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="zele_zelejov_o_to_by_je_n_yD2t" Text="Right? The fellahs don't get any sleep, then they fall on their faces during the day." /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

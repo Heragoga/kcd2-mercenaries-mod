@@ -1,0 +1,27 @@
+<UIElements name="MercDemo">
+
+  <UIElement name="MercDemo" layer="36" mouseevents="0" keyevents="0" cursor="0">
+
+    <GFx file="MercDemo.gfx" layer="36">
+      <Constraints>
+        <Align mode="fullscreen" />
+      </Constraints>
+    </GFx>
+
+    <functions>
+    </functions>
+
+    <events>
+    </events>
+
+    <MovieClips>
+      <MovieClip name="panel" instancename="panel" />
+      <MovieClip name="ico_inf" instancename="ico_inf" />
+      <MovieClip name="ico_arc" instancename="ico_arc" />
+      <MovieClip name="ico_cav" instancename="ico_cav" />
+      <MovieClip name="lbl_demo" instancename="lbl_demo" />
+    </MovieClips>
+
+  </UIElement>
+
+</UIElements>

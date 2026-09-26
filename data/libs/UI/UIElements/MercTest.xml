@@ -1,0 +1,48 @@
+<!-- Proof that a mod can ADD a Scaleform element, not just override a vanilla one.
+
+     From the disassembly: CFlashUI::vf4 -> sub_19A6FF8 builds "<base>/UIElements" and scans
+     it for "*.xml" through CryPak (CCryPak::FindFirst/FindNext/FindClose, vtable slots
+     63/64/65, with bAllowUseFileSystem=0 so mod folders and paks are both on the search
+     path). CFlashUI::vf11 then parses each file, reads the element identity from the
+     name= attribute as a RUNTIME STRING (GetAttr("name") at RVA 0x563B37), allocates a
+     0x250-byte CFlashUIElement and inserts it into GUIModule's UIElementsByName map.
+     Nothing resolves element names against a compiled-in list.
+
+     So this file should register an element called MercTest. It deliberately binds to a
+     VANILLA movie (LockPicking.gfx) so the test isolates one question - does a new element
+     register? - without also depending on authoring our own .gfx.
+
+     Test:  merc_dev
+            merc_lua UIAction.ShowElement("MercTest", 0)
+            merc_lua mercenaries:UIElemProbe("MercTest")
+
+     LockPicking is the right donor: it declares zero functions, so everything about it is
+     driven from outside by moving its named MovieClips - see docs/ui.md. -->
+<UIElements name="MercTest">
+
+  <UIElement name="MercTest" controller_input="1">
+
+    <GFx file="LockPicking.gfx" layer="10">
+      <Constraints>
+        <Align mode="dynamic" valign="center" halign="center" scale="1" max="0" />
+      </Constraints>
+    </GFx>
+
+    <functions>
+    </functions>
+
+    <events>
+    </events>
+
+    <MovieClips>
+      <MovieClip name="LockPick" instancename="mc_LockPick" />
+      <MovieClip name="Cursor"   instancename="mc_LockPick.mc_Cursor" />
+      <MovieClip name="Point"    instancename="mc_LockPick.mc_Cursor.mc_Point" />
+      <MovieClip name="Lock"     instancename="mc_LockPick.mc_Lock" />
+      <MovieClip name="Pin"      instancename="mc_LockPick.mc_Lock.mc_Inside.mc_Pin" />
+      <MovieClip name="Debug"    instancename="mc_LockPick.mc_Debug" />
+    </MovieClips>
+
+  </UIElement>
+
+</UIElements>

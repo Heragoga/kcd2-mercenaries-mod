@@ -1,0 +1,151 @@
+-- Look-at prompts on a merc: a camp make/break/return option and a sortie
+-- wait/follow toggle. See docs/camp.md "Look-at prompts on a merc".
+--
+-- GetActions is called on the ENGINE'S INTERACTOR POLL, not once per prompt shown, so it
+-- honours the same three things vanilla does (BasicAIActions.GetActions:18-27): bail on a
+-- nil user, bail when the player cannot interact with this entity at all, and treat
+-- firstFast as "one action is enough". Skipping those meant building two Action objects
+-- per merc on every poll, including for mercs far out of reach and on the cheap survey
+-- pass. AddInteractorAction RETURNS firstFast - that is how vanilla knows to stop.
+function mercenaries:InjectInteraction(entity)
+    if not entity then return end
+
+    -- Resolved once at injection rather than per call: that was a pcall and a fresh closure
+    -- on every poll. Re-injected at hire and on every cache rebuild, so it stays current.
+    local injected = nil
+    pcall(function() injected = XGenAIModule.GetMyWUID(entity) end)
+    entity._mercWuid = injected
+
+    -- In hardcore mode the vanilla "ask for directions" chat would otherwise replace the
+    -- whole order wheel on this man. See mercenaries_orders.lua and docs/order-wheel.md.
+    self:StripDirectionsChat(entity)
+
+    -- Every merc-family spawn path calls this, so it is where a new man stops colliding
+    -- with the player rather than waiting for the 5s sweep. docs/collision-ghosting.md.
+    if self.GhostCollisionOn and self:GhostCollisionOn() then self:ApplyCollisionGhost(entity) end
+
+    local function mercWuid(self)
+        local w = self._mercWuid
+        if w == nil then
+            pcall(function() w = XGenAIModule.GetMyWUID(self) end)
+            self._mercWuid = w
+        end
+        return w
+    end
+
+    entity.CampContextAction = function(self, user)
+        local wuid = mercWuid(self)
+        local barkWuid = self.this and self.this.id or self.id   -- entity id, matches the BT bark lookup
+
+        if not mercenaries.CampActive then
+            -- Pitch the camp on the man who was asked, not behind the player.
+            mercenaries:CampSetAnchorEnt(self)
+            mercenaries:SpawnMercCamp()
+            mercenaries:RequestBark(barkWuid, "merc_bark_ack")
+        elseif wuid and mercenaries:IsCampOut(wuid) then
+            mercenaries:CampReturnAll()
+        else
+            mercenaries:BreakMercCamp()
+            mercenaries:RequestBark(barkWuid, "merc_bark_ack")
+        end
+    end
+
+    -- Camp up: pull THIS man out of it, or send him back - the camp keeps standing
+    -- either way. It is the only way to pick a particular man (the quartermaster's
+    -- Deploy menu takes a fraction, best tier first, so archers never make the cut).
+    entity.CampJoinToggle = function(self, user)
+        local barkWuid = self.this and self.this.id or self.id
+        local wuid = mercWuid(self)
+        if wuid and mercenaries:IsCampOut(wuid) then
+            if mercenaries:CampStayOne(self) then
+                mercenaries:RequestBark(barkWuid, "merc_bark_wait")
+            end
+        else
+            if mercenaries:CampDeployOne(self) then
+                mercenaries:RequestBark(barkWuid, "merc_bark_follow")
+            end
+        end
+    end
+
+    entity.SortieWaitToggle = function(self, user)
+        local barkWuid = self.this and self.this.id or self.id
+        local newWait = not mercenaries:SquadIsWaiting()
+        mercenaries:SetSortieWait(newWait)
+        mercenaries:RequestBark(barkWuid, newWait and "merc_bark_wait" or "merc_bark_follow")
+    end
+
+    entity.GetActions = function(self, user, firstFast)
+        -- Vanilla's own two gates, before any work at all.
+        if user == nil then return {} end
+        if not (user.actor and user.actor:CanInteractWith(self.id)) then return {} end
+
+        -- Vanilla's list, appended to rather than copied into a second table.
+        local output = {}
+        if BasicAIActions and BasicAIActions.GetActions then
+            output = BasicAIActions.GetActions(self, user, firstFast) or {}
+        end
+
+        -- The survey pass only wants to know there IS an action, and ours are appended
+        -- after vanilla's, so they could never be the first one it reads.
+        if firstFast and #output > 0 then return output end
+
+        if self.actor and not self.actor:IsDead() and not self.actor:IsUnconscious() then
+            local wuid = mercWuid(self)
+            local inSortie = (not wuid) or mercenaries:IsMercInSortie(wuid)
+
+            -- Camp option: make / break / back-to-camp, gated on CampActive.
+            local campText = "ui_mercenary_make_camp_action"
+            if mercenaries.CampActive then
+                if wuid and mercenaries:IsCampOut(wuid) then
+                    campText = "ui_mercenary_return_camp_action"
+                else
+                    campText = "ui_mercenary_break_camp_action"
+                end
+            end
+            if AddInteractorAction(
+                output, firstFast,
+                Action()
+                    :hint(campText)
+                    :hintType(AHT_HOLD)
+                    :action("use_other")
+                    :uiOrder(3)
+                    :func(self.CampContextAction)
+                    :interaction(inr_loot)
+            ) then return output end
+
+            -- Join me / stay in camp: only while a camp is standing, and never for the
+            -- quartermaster's own men or anyone the camp does not own.
+            if mercenaries.CampActive and wuid then
+                local joinText = mercenaries:IsCampOut(wuid)
+                    and "ui_mercenary_camp_stay_action" or "ui_mercenary_camp_join_action"
+                if AddInteractorAction(
+                    output, firstFast,
+                    Action()
+                        :hint(joinText)
+                        :hintType(AHT_HOLD)
+                        :action("use")
+                        :uiOrder(5)
+                        :func(self.CampJoinToggle)
+                        :interaction(inr_loot)
+                ) then return output end
+            end
+
+            -- Wait / follow toggle: sortie mercs only.
+            if inSortie then
+                local waitText = mercenaries:SquadIsWaiting() and "ui_mercenary_follow_action" or "ui_mercenary_wait_action"
+                if AddInteractorAction(
+                    output, firstFast,
+                    Action()
+                        :hint(waitText)
+                        :hintType(AHT_HOLD)
+                        :action("companion_bond")
+                        :uiOrder(4)
+                        :func(self.SortieWaitToggle)
+                        :interaction(inr_loot)
+                ) then return output end
+            end
+        end
+
+        return output
+    end
+end

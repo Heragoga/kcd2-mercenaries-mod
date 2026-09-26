@@ -1,0 +1,70 @@
+<UIElements name="MercUIb">
+
+  <UIElement name="MercUIb" layer="36" mouseevents="0" keyevents="0" cursor="0">
+
+    <GFx file="MercUIb.gfx" layer="36">
+      <Constraints>
+        <Align mode="fullscreen" />
+      </Constraints>
+    </GFx>
+
+    <functions>
+    </functions>
+
+    <events>
+    </events>
+
+    <MovieClips>
+      <MovieClip name="mc_00" instancename="mc_00" />
+      <MovieClip name="mc_01" instancename="mc_01" />
+      <MovieClip name="mc_02" instancename="mc_02" />
+      <MovieClip name="mc_03" instancename="mc_03" />
+      <MovieClip name="mc_04" instancename="mc_04" />
+      <MovieClip name="mc_05" instancename="mc_05" />
+      <MovieClip name="mc_06" instancename="mc_06" />
+      <MovieClip name="mc_07" instancename="mc_07" />
+      <MovieClip name="mc_08" instancename="mc_08" />
+      <MovieClip name="mc_09" instancename="mc_09" />
+      <MovieClip name="mc_10" instancename="mc_10" />
+      <MovieClip name="mc_11" instancename="mc_11" />
+      <MovieClip name="mc_12" instancename="mc_12" />
+      <MovieClip name="mc_13" instancename="mc_13" />
+      <MovieClip name="mc_14" instancename="mc_14" />
+      <MovieClip name="mc_15" instancename="mc_15" />
+      <MovieClip name="mc_16" instancename="mc_16" />
+      <MovieClip name="mc_17" instancename="mc_17" />
+      <MovieClip name="mc_18" instancename="mc_18" />
+      <MovieClip name="mc_19" instancename="mc_19" />
+      <MovieClip name="mc_20" instancename="mc_20" />
+      <MovieClip name="mc_21" instancename="mc_21" />
+      <MovieClip name="mc_22" instancename="mc_22" />
+      <MovieClip name="mc_23" instancename="mc_23" />
+      <MovieClip name="mc_24" instancename="mc_24" />
+      <MovieClip name="mc_25" instancename="mc_25" />
+      <MovieClip name="mc_26" instancename="mc_26" />
+      <MovieClip name="mc_27" instancename="mc_27" />
+      <MovieClip name="mc_28" instancename="mc_28" />
+      <MovieClip name="mc_29" instancename="mc_29" />
+      <MovieClip name="mc_30" instancename="mc_30" />
+      <MovieClip name="mc_31" instancename="mc_31" />
+      <MovieClip name="mc_32" instancename="mc_32" />
+      <MovieClip name="mc_33" instancename="mc_33" />
+      <MovieClip name="mc_34" instancename="mc_34" />
+      <MovieClip name="mc_35" instancename="mc_35" />
+      <MovieClip name="mc_36" instancename="mc_36" />
+      <MovieClip name="mc_37" instancename="mc_37" />
+      <MovieClip name="mc_38" instancename="mc_38" />
+      <MovieClip name="mc_39" instancename="mc_39" />
+      <MovieClip name="mc_40" instancename="mc_40" />
+      <MovieClip name="mc_41" instancename="mc_41" />
+      <MovieClip name="mc_42" instancename="mc_42" />
+      <MovieClip name="mc_43" instancename="mc_43" />
+      <MovieClip name="mc_44" instancename="mc_44" />
+      <MovieClip name="mc_45" instancename="mc_45" />
+      <MovieClip name="mc_46" instancename="mc_46" />
+      <MovieClip name="mc_47" instancename="mc_47" />
+    </MovieClips>
+
+  </UIElement>
+
+</UIElements>

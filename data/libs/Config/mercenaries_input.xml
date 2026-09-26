@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	A narrow action filter for the command interface.
+
+	The game's own `no_qam_weapons` filter blocks exactly what we need - the quick-slot weapon
+	draw on 1-4 - but it also blocks `toggle_holster_qam_weapon`, which is the B key, i.e. the
+	player's whole quick-access weapon wheel. Holding the interface open would then cost them
+	the ability to draw a weapon at all.
+
+	This declares the same idea minus the B key: the four quick slots and nothing else. It is
+	loaded at runtime with ActionMapManager.LoadFromXML, so it does NOT override
+	Libs/Config/defaultProfile.xml and cannot collide with another mod that ships its own copy.
+
+	See docs/command-ui.md.
+-->
+<profile version="0">
+
+	<actionfilter name="merc_no_qam_slots">
+		<action name="action_qam_1"/>
+		<action name="action_qam_2"/>
+		<action name="action_qam_3"/>
+		<action name="action_qam_4"/>
+	</actionfilter>
+
+</profile>

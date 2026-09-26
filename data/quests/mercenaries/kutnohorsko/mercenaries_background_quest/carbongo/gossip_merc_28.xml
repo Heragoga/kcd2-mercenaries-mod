@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_28">
+            <Text StringName="gossip_merc_28_name" Text="Mercenary Gossip 28 - Nearly Caught" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_28" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_28">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_28">
+                            <DesignName StringName="gossip_merc_28_name" Text="Nearly Caught" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="band_event_cri_nejde_naho_KACS" Text="Anybody coming?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="band_event_cri_ne_GTzV" Text="No." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="band_event_cri_ty_ses_ale_fvOK" Text="You're such a prick! My heart's already pounding and you're fucking with me!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="band_event_cri_haha_jo_FOKK" Text="Ha ha! Yes!" /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="story_8_monolog">
+            <Text StringName="a614a_story8" Text="Mercenary Story Bark 8" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_story_8" Priority="General" Alias="a614a_story8">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_story_8">
+                            <DesignName StringName="a614a_story8" Text="I don't drink to forget, I drink because the water ... looks ambitious." />
+                            <Elements>
+                                <Response Role="role_mercenary_test"><Text StringName="a614a_story8"/></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

@@ -1,0 +1,1464 @@
+<?xml version="1.0"?>
+<!DOCTYPE storm SYSTEM "../../storm.dtd">
+<storm>
+  <rules>
+    <rule name="soul_mercenary_test">
+      <selectors>
+        <hasName name="soul_mercenary_test" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_mercenary_test_1">
+      <selectors>
+        <hasName name="soul_mercenary_test_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_mercenary_test_2">
+      <selectors>
+        <hasName name="soul_mercenary_test_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_mercenary_test_3">
+      <selectors>
+        <hasName name="soul_mercenary_test_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="soul_merc_weak_1">
+      <selectors>
+        <hasName name="soul_merc_weak_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_2">
+      <selectors>
+        <hasName name="soul_merc_weak_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_3">
+      <selectors>
+        <hasName name="soul_merc_weak_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_4">
+      <selectors>
+        <hasName name="soul_merc_weak_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_5">
+      <selectors>
+        <hasName name="soul_merc_weak_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_6">
+      <selectors>
+        <hasName name="soul_merc_weak_6" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_7">
+      <selectors>
+        <hasName name="soul_merc_weak_7" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_8">
+      <selectors>
+        <hasName name="soul_merc_weak_8" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_9">
+      <selectors>
+        <hasName name="soul_merc_weak_9" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_weak_10">
+      <selectors>
+        <hasName name="soul_merc_weak_10" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="soul_merc_medium_1">
+      <selectors>
+        <hasName name="soul_merc_medium_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_2">
+      <selectors>
+        <hasName name="soul_merc_medium_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_3">
+      <selectors>
+        <hasName name="soul_merc_medium_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_4">
+      <selectors>
+        <hasName name="soul_merc_medium_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_5">
+      <selectors>
+        <hasName name="soul_merc_medium_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_6">
+      <selectors>
+        <hasName name="soul_merc_medium_6" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_7">
+      <selectors>
+        <hasName name="soul_merc_medium_7" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_8">
+      <selectors>
+        <hasName name="soul_merc_medium_8" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_9">
+      <selectors>
+        <hasName name="soul_merc_medium_9" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_medium_10">
+      <selectors>
+        <hasName name="soul_merc_medium_10" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="soul_merc_good_1">
+      <selectors>
+        <hasName name="soul_merc_good_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_2">
+      <selectors>
+        <hasName name="soul_merc_good_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_3">
+      <selectors>
+        <hasName name="soul_merc_good_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_4">
+      <selectors>
+        <hasName name="soul_merc_good_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_5">
+      <selectors>
+        <hasName name="soul_merc_good_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_6">
+      <selectors>
+        <hasName name="soul_merc_good_6" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_7">
+      <selectors>
+        <hasName name="soul_merc_good_7" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_8">
+      <selectors>
+        <hasName name="soul_merc_good_8" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_9">
+      <selectors>
+        <hasName name="soul_merc_good_9" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_10">
+      <selectors>
+        <hasName name="soul_merc_good_10" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_11">
+      <selectors>
+        <hasName name="soul_merc_good_11" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_12">
+      <selectors>
+        <hasName name="soul_merc_good_12" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_13">
+      <selectors>
+        <hasName name="soul_merc_good_13" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_14">
+      <selectors>
+        <hasName name="soul_merc_good_14" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_15">
+      <selectors>
+        <hasName name="soul_merc_good_15" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_16">
+      <selectors>
+        <hasName name="soul_merc_good_16" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_17">
+      <selectors>
+        <hasName name="soul_merc_good_17" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_18">
+      <selectors>
+        <hasName name="soul_merc_good_18" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_19">
+      <selectors>
+        <hasName name="soul_merc_good_19" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_20">
+      <selectors>
+        <hasName name="soul_merc_good_20" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_21">
+      <selectors>
+        <hasName name="soul_merc_good_21" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_22">
+      <selectors>
+        <hasName name="soul_merc_good_22" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_23">
+      <selectors>
+        <hasName name="soul_merc_good_23" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_24">
+      <selectors>
+        <hasName name="soul_merc_good_24" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_25">
+      <selectors>
+        <hasName name="soul_merc_good_25" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_26">
+      <selectors>
+        <hasName name="soul_merc_good_26" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_27">
+      <selectors>
+        <hasName name="soul_merc_good_27" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_28">
+      <selectors>
+        <hasName name="soul_merc_good_28" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_29">
+      <selectors>
+        <hasName name="soul_merc_good_29" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_good_30">
+      <selectors>
+        <hasName name="soul_merc_good_30" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <!-- Camp quartermaster: his own dialog role only (not role_mercenary_test),
+         so his interface is separate from the squad-orders dialog. -->
+    <rule name="soul_quartermaster">
+      <selectors>
+        <hasName name="soul_quartermaster" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_quartermaster" />
+      </operations>
+    </rule>
+
+    <rule name="soul_merc_trader">
+      <selectors>
+        <hasName name="soul_merc_trader" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_trader" />
+      </operations>
+    </rule>
+
+    <!-- Aleksej of Zaslawye: his own talk-to role. soul_aleksej_double (the body double who
+         dies at beat 9) deliberately has no rule here - he is never talked to. -->
+    <rule name="soul_aleksej">
+      <selectors>
+        <hasName name="soul_aleksej" />
+      </selectors>
+      <operations>
+        <addRole name="role_aleksej" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kcer_innkeeper">
+      <selectors>
+        <hasName name="kcer_innkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_ksta_innkeeper">
+      <selectors>
+        <hasName name="ksta_innkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kpri_innkeeper">
+      <selectors>
+        <hasName name="kpri_innkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kpec_innkeeper">
+      <selectors>
+        <hasName name="kpec_innkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kmis_innkeeper">
+      <selectors>
+        <hasName name="kmis_innkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kmal_innkeeper">
+      <selectors>
+        <hasName name="kmal_innkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kkut_innkeeperAdamsBathhouse">
+      <selectors>
+        <hasName name="kkut_innkeeperAdamsBathhouse" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kbyl_innkeeper">
+      <selectors>
+        <hasName name="kbyl_innkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kkut_geldstyk">
+      <selectors>
+        <hasName name="kkut_geldstyk" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kgru_gros">
+      <selectors>
+        <hasName name="kgru_gros" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kkut_hospodskySvatych">
+      <selectors>
+        <hasName name="kkut_hospodskySvatych" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kkut_samuel">
+      <selectors>
+        <hasName name="kkut_samuel" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kkut_skvira">
+      <selectors>
+        <hasName name="kkut_skvira" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_ttac_procek">
+      <selectors>
+        <hasName name="ttac_procek" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_tzel_vavrinec">
+      <selectors>
+        <hasName name="tzel_vavrinec" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_ttkc_inkeeper">
+      <selectors>
+        <hasName name="ttkc_inkeeper" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_ksuc_man_11">
+      <selectors>
+        <hasName name="ksuc_man_11" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    <rule name="mercenary_provider_kkut_man_121_weighman">
+      <selectors>
+        <hasName name="kkut_man_121" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+<rule name="mercenary_provider_kkut_woman_110">
+      <selectors>
+        <hasName name="kkut_woman_110" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_woman_21">
+      <selectors>
+        <hasName name="kkut_woman_21" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_woman_20">
+      <selectors>
+        <hasName name="kkut_woman_20" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_man_26">
+      <selectors>
+        <hasName name="kkut_man_26" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_woman_225">
+      <selectors>
+        <hasName name="kkut_woman_225" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_woman_29">
+      <selectors>
+        <hasName name="kkut_woman_29" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_woman_71">
+      <selectors>
+        <hasName name="kkut_woman_71" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_man_121">
+      <selectors>
+        <hasName name="kkut_man_121" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_woman_109">
+      <selectors>
+        <hasName name="kkut_woman_109" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_provider_kkut_woman_224">
+      <selectors>
+        <hasName name="kkut_woman_224" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_provider" />
+      </operations>
+    </rule>
+    
+
+    <!-- Custom companions -->
+
+    <rule name="mercenary_kubenka_role">
+      <selectors>
+        <hasName name="soul_merc_kubyenka" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_vasko_role">
+      <selectors>
+        <hasName name="soul_merc_vasko" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_jasak_role">
+      <selectors>
+        <hasName name="soul_merc_jasak" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_black_bartosch_role">
+      <selectors>
+        <hasName name="soul_merc_black_bartosch" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_gnarly_role">
+      <selectors>
+        <hasName name="soul_merc_gnarly" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_jan_posy_role">
+      <selectors>
+        <hasName name="soul_merc_jan_posy" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_miroslav_role">
+      <selectors>
+        <hasName name="soul_merc_miroslav" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_menhard_role">
+      <selectors>
+        <hasName name="soul_merc_menhard" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_arne_role">
+      <selectors>
+        <hasName name="soul_merc_arne" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_janek_role">
+      <selectors>
+        <hasName name="soul_merc_janek" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_jaroslav_role">
+      <selectors>
+        <hasName name="soul_merc_jaroslav" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_adder_role">
+      <selectors>
+        <hasName name="soul_merc_adder" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_janosh_role">
+      <selectors>
+        <hasName name="soul_merc_janosh" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_mathew_role">
+      <selectors>
+        <hasName name="soul_merc_mathew" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_zizka_role">
+      <selectors>
+        <hasName name="soul_merc_zizka" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_devil_role">
+      <selectors>
+        <hasName name="soul_merc_devil" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_godwin_role">
+      <selectors>
+        <hasName name="soul_merc_godwin" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_hans_capon_role">
+      <selectors>
+        <hasName name="soul_merc_hans_capon" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    
+
+
+    
+
+  
+    <!-- Ranged mercenaries (archers) -->
+    <rule name="soul_merc_archer_1">
+      <selectors>
+        <hasName name="soul_merc_archer_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_2">
+      <selectors>
+        <hasName name="soul_merc_archer_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_3">
+      <selectors>
+        <hasName name="soul_merc_archer_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_4">
+      <selectors>
+        <hasName name="soul_merc_archer_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_5">
+      <selectors>
+        <hasName name="soul_merc_archer_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_6">
+      <selectors>
+        <hasName name="soul_merc_archer_6" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_7">
+      <selectors>
+        <hasName name="soul_merc_archer_7" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_8">
+      <selectors>
+        <hasName name="soul_merc_archer_8" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_9">
+      <selectors>
+        <hasName name="soul_merc_archer_9" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="soul_merc_archer_10">
+      <selectors>
+        <hasName name="soul_merc_archer_10" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+<!-- generated companions - tools/gen_companions.py - do not edit by hand -->
+    <rule name="mercenary_radzig_role">
+      <selectors>
+        <hasName name="soul_merc_radzig" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_hanush_role">
+      <selectors>
+        <hasName name="soul_merc_hanush" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_erik_role">
+      <selectors>
+        <hasName name="soul_merc_erik" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_aulitz_role">
+      <selectors>
+        <hasName name="soul_merc_aulitz" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_jobst_role">
+      <selectors>
+        <hasName name="soul_merc_jobst" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_bergov_role">
+      <selectors>
+        <hasName name="soul_merc_bergov" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_vavak_role">
+      <selectors>
+        <hasName name="soul_merc_vavak" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_ruthard_role">
+      <selectors>
+        <hasName name="soul_merc_ruthard" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_samuel_role">
+      <selectors>
+        <hasName name="soul_merc_samuel" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_oderin_role">
+      <selectors>
+        <hasName name="soul_merc_oderin" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_istvan_role">
+      <selectors>
+        <hasName name="soul_merc_istvan" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_chamberlain_role">
+      <selectors>
+        <hasName name="soul_merc_chamberlain" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_sigismund_role">
+      <selectors>
+        <hasName name="soul_merc_sigismund" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_lichtenstein_role">
+      <selectors>
+        <hasName name="soul_merc_lichtenstein" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_brabant_role">
+      <selectors>
+        <hasName name="soul_merc_brabant" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_musa_role">
+      <selectors>
+        <hasName name="soul_merc_musa" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_zacharias_role">
+      <selectors>
+        <hasName name="soul_merc_zacharias" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_martin_role">
+      <selectors>
+        <hasName name="soul_merc_martin" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_bocek_role">
+      <selectors>
+        <hasName name="soul_merc_bocek" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_pisek_role">
+      <selectors>
+        <hasName name="soul_merc_pisek" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_painter_role">
+      <selectors>
+        <hasName name="soul_merc_painter" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_hertl_role">
+      <selectors>
+        <hasName name="soul_merc_hertl" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_pelcl_role">
+      <selectors>
+        <hasName name="soul_merc_pelcl" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_marek_role">
+      <selectors>
+        <hasName name="soul_merc_marek" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_cverk_role">
+      <selectors>
+        <hasName name="soul_merc_cverk" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+
+    <rule name="mercenary_volek_role">
+      <selectors>
+        <hasName name="soul_merc_volek" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+<!-- end generated companions -->
+    <!-- FEMALE MERCENARIES. The same two roles every other merc gets, and that is the point:
+         roles are what the dialogues bind to, so a soul with no rule in this file has no
+         dialogue options at all - which is exactly how the first build shipped them.
+         They are muted in RequestBark and skipped by the camp-chat pairing instead; the
+         voice is off, the dialogue is not. See docs/female-mercenaries.md. -->
+    <rule name="mercenary_female_1_role">
+      <selectors>
+        <hasName name="soul_merc_female_1" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_2_role">
+      <selectors>
+        <hasName name="soul_merc_female_2" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_3_role">
+      <selectors>
+        <hasName name="soul_merc_female_3" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_4_role">
+      <selectors>
+        <hasName name="soul_merc_female_4" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_5_role">
+      <selectors>
+        <hasName name="soul_merc_female_5" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_6_role">
+      <selectors>
+        <hasName name="soul_merc_female_6" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_7_role">
+      <selectors>
+        <hasName name="soul_merc_female_7" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_8_role">
+      <selectors>
+        <hasName name="soul_merc_female_8" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_9_role">
+      <selectors>
+        <hasName name="soul_merc_female_9" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <rule name="mercenary_female_10_role">
+      <selectors>
+        <hasName name="soul_merc_female_10" />
+      </selectors>
+      <operations>
+        <addRole name="role_mercenary_test" />
+        <addRole name="role_mercenary_test2" />
+      </operations>
+    </rule>
+    <!-- FEMALE MERCENARIES: the combat voice.
+         ================================================================================
+         The mercs' souls are soul_archetype_id="0" - male, deliberately, because archetype 1
+         would hand them the female animation set and that set has no combat in it at all
+         (docs/female-mercenaries.md). The engine therefore reads them as <isMan />, and
+         vanilla's own Libs/Storm/roles/world/combat.xml hands every isMan NPC the MALE combat
+         roles:
+
+             combat_man                   -> ZASAH_ZBRANI_SILNY_MUZ, ZASAH_ZBRANI_SLABY_MUZ, ...
+             combat_man_killingInCombat   -> RANENY_NA_ZEMI_MUZ, SMRTELNY_ZASAH_MUZ
+             combat_man_murderingSilently -> TICHE_ZABITI_V_CLINCHI_MUZ, HLASITE_ZABITI_V_CLINCHI_MUZ
+
+         while the ZENA variants - the ones the actresses actually recorded - go to <isWoman />
+         only. So a female merc sits in the male slots holding a female voice, and the lines she
+         can be cast into are ones her voice never recorded.
+
+         This swaps the six gendered ones. It is not cosmetic: those roles ARE the hit grunts,
+         the death cry and the wounded-on-the-ground lines. Counted in the extracted VO, every
+         one of the ten voices assigned to these souls carries exactly the set this unlocks -
+         8 inkasovany_zasah (weapon hit), 3 smrtelny (death), 3 tezce raneny (wounded), 2 tiche
+         and 2 hlasite zabiti (quiet / loud kill) = the 18 files in open_world/boj_a_zraneni.
+
+         Nothing is shipped for this: no dialog, no .ogg, no localisation. The recordings are
+         the base game's, cast on the speaker's own voice.
+
+         The UNGENDERED roles from combat_man (BOJ_HEKANI, HEKANI_PRI_POHYBU, HEKANI_V_CLINCHI,
+         BOJ_ODDYCHOVANI, SKRCENI_V_CLINCHI...) are deliberately left alone. They are safe to
+         hold: voice.xml's fallback_voice_id chains are gender-closed - every female voice falls
+         back only to other women, ending at fejka - so the worst a woman can do on a line her
+         voice never recorded is fall back to another woman or go quiet. She can never emit a
+         man's voice. Removing them could only lose grunts we might be getting for free.
+
+         If the removeRole half does not take (Storm applies files in order, and this one has to
+         run after vanilla's combat.xml), the addRole half still works on its own: she would hold
+         both sets and be cast into a male line some of the time, which by the fallback rule above
+         is silence rather than a man's voice. The add is the part that matters; the remove is
+         tidiness. Worth listening for. -->
+    <rule name="mercenary_female_combat_voice">
+      <selectors>
+        <or>
+          <hasName name="soul_merc_female_1" />
+          <hasName name="soul_merc_female_2" />
+          <hasName name="soul_merc_female_3" />
+          <hasName name="soul_merc_female_4" />
+          <hasName name="soul_merc_female_5" />
+          <hasName name="soul_merc_female_6" />
+          <hasName name="soul_merc_female_7" />
+          <hasName name="soul_merc_female_8" />
+          <hasName name="soul_merc_female_9" />
+          <hasName name="soul_merc_female_10" />
+        </or>
+      </selectors>
+      <operations>
+        <removeRole name="ZASAH_ZBRANI_SILNY_MUZ" />
+        <removeRole name="ZASAH_ZBRANI_SLABY_MUZ" />
+        <removeRole name="RANENY_NA_ZEMI_MUZ" />
+        <removeRole name="SMRTELNY_ZASAH_MUZ" />
+        <removeRole name="TICHE_ZABITI_V_CLINCHI_MUZ" />
+        <removeRole name="HLASITE_ZABITI_V_CLINCHI_MUZ" />
+        <addRole name="ZASAH_ZBRANI_SILNY_ZENA" />
+        <addRole name="ZASAH_ZBRANI_SLABY_ZENA" />
+        <addRole name="RANENY_NA_ZEMI_ZENA" />
+        <addRole name="SMRTELNY_ZASAH_ZENA" />
+        <addRole name="TICHE_ZABITI_V_CLINCHI_ZENA" />
+        <addRole name="HLASITE_ZABITI_V_CLINCHI_ZENA" />
+      </operations>
+    </rule>
+</rules>
+</storm>

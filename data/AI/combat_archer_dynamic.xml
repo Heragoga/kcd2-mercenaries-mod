@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<BehaviorTrees>
+    <!-- Dynamic archer module: shoot at the right distance. Four states,
+         re-evaluated every cycle from UpdateRangedCombatData, with every
+         threshold coming from mercenaries.ArcherBands (bow and hand cannon
+         fight at very different ranges):
+           * fire  - standFire (vanilla battle-archer pattern), WeaponChange
+                     missile so the automation never swaps to a sidearm
+           * approach - beyond keepMax: walk in to just outside keepMin, then fire
+           * retreat - inside keepMin and Lua found clear ground: step back to
+                     the edge of the band, then resume firing
+           * melee - inside meleeRange or out of ammo: sidearm burst until the
+                     gap reopens past reengageRange or the target dies
+         Side rules live in Lua: merc archers leash to the player (40m) and
+         obey the skirmish stance toggle; enemies leash to their own target
+         (60m) and are stance-free. Target set from outside via attackData.
+         See docs/ai-modules.md. -->
+    <BehaviorTree name="combat_archer_dynamic" is_function="0">
+        <Variables>
+            <Variable name="distanceToTarget"  type="_float" values="9999.0" isPersistent="0" form="single" />
+            <Variable name="isTargetAlive"     type="_bool"  values="true"   isPersistent="0" form="single" />
+            <Variable name="outOfAmmo"         type="_bool"  values="false"  isPersistent="0" form="single" />
+            <Variable name="stanceValid"       type="_bool"  values="true"   isPersistent="0" form="single" />
+            <Variable name="leashExceeded"     type="_bool"  values="false"  isPersistent="0" form="single" />
+            <Variable name="hasRetreat"        type="_bool"  values="false"  isPersistent="0" form="single" />
+            <Variable name="retreatPos"        type="vec3"   values=""       isPersistent="0" form="single" />
+            <Variable name="hasApproach"       type="_bool"  values="false"  isPersistent="0" form="single" />
+            <Variable name="approachPos"       type="vec3"   values=""       isPersistent="0" form="single" />
+            <!-- Band edges, published every cycle by UpdateRangedCombatData from
+                 mercenaries.ArcherBands - a hand cannon fights much closer than a bow. -->
+            <Variable name="meleeRange"        type="_float" values="4.5"    isPersistent="0" form="single" />
+            <Variable name="reengageRange"     type="_float" values="12.0"   isPersistent="0" form="single" />
+        </Variables>
+        <Parameters>
+            <Variable name="attackData" type="switch:interruptData:attack" values="" isPersistent="0" form="single" requirementType="In" />
+        </Parameters>
+        <Root OneTimeOnly="false" FailState="Recoverable" saveVersion="2">
+            <Behavior canSkip="1">
+                <EntityContext context="crime_preventDespawn" target="">
+                    <EntityContextElement context="crime_interrupt" enabled="true">
+                        <EntityContext context="crime_interruptAttack" target="$this.id">
+                            <FuseBox StatusPropagation="Child" OneCleanup="true" saveVersion="2">
+                                <Child canSkip="1">
+                                    <Loop count="-1">
+                                        <Sequence>
+                                            <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
+                                            <ExecuteLua code="mercenaries:UpdateRangedCombatData(data, entity.this.id)" />
+                                            <IfCondition failOnCondition="false" condition="~$isTargetAlive | ~$stanceValid | $leashExceeded">
+                                                <Fail />
+                                            </IfCondition>
+
+                                            <IfElseCondition failOnCondition="false" condition="$distanceToTarget &lt; $meleeRange | $outOfAmmo" saveVersion="2">
+                                                <Then canSkip="1">
+                                                    <!-- Melee fallback burst -->
+                                                    <SuppressFailure>
+                                                        <Parallel successMode="Any" failureMode="Any">
+                                                            <!-- CombatMoveDecorator, not MoveParamsDecorator: this is a
+                                                                 MOVING melee fight (the archer closes with his sidearm),
+                                                                 and it is what puts him into combat locomotion. Without
+                                                                 it the approach comes out in steps. See combat_melee.xml
+                                                                 and docs/foe-ai.md. The stand-fire branches below keep
+                                                                 their AnyDecorator shape - they do not move. -->
+                                                            <CombatMoveDecorator>
+                                                                <MeleeOffenseAutomationDecorator active="true">
+                                                                    <MeleeDefenseAutomationDecorator active="true">
+                                                                        <MeleeGuardAutomationDecorator GuardMode="automate" active="true">
+                                                                            <WeaponAutomationDecorator WeaponChange="melee" active="true">
+                                                                                <CombatFollowerDecorator ProbablisticDrivenSweetSpot="true" RPGSweetSpotArcDriver="true" active="true">
+                                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                                </CombatFollowerDecorator>
+                                                                            </WeaponAutomationDecorator>
+                                                                        </MeleeGuardAutomationDecorator>
+                                                                    </MeleeDefenseAutomationDecorator>
+                                                                </MeleeOffenseAutomationDecorator>
+                                                            </CombatMoveDecorator>
+                                                            <Loop count="-1">
+                                                                <Sequence>
+                                                                    <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'280ms'" />
+                                                                    <ExecuteLua code="mercenaries:UpdateRangedCombatData(data, entity.this.id)" />
+                                                                    <IfCondition failOnCondition="false" condition="(~$outOfAmmo &amp; $distanceToTarget &gt; $reengageRange) | ~$isTargetAlive | ~$stanceValid | $leashExceeded">
+                                                                        <Fail />
+                                                                    </IfCondition>
+                                                                </Sequence>
+                                                            </Loop>
+                                                        </Parallel>
+                                                    </SuppressFailure>
+                                                </Then>
+                                                <Else canSkip="1">
+                                                    <IfElseCondition failOnCondition="false" condition="$hasApproach" saveVersion="2">
+                                                        <Then canSkip="1">
+                                                            <!-- Close the gap first. Without this arm the module never advanced, so the
+                                                                 engagement range was whatever the follow formation happened to leave the
+                                                                 archer at - fine with a bow, useless with a hand cannon. The walk ends the
+                                                                 moment Lua stops offering an approach point (i.e. he is inside the band). -->
+                                                            <Sequence>
+                                                                <SuppressFailure>
+                                                                    <Parallel successMode="Any" failureMode="Any">
+                                                                        <Move stopWithinDistance="1.500000" stopDistanceVariation="0.500000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$approachPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                                        <Loop count="-1">
+                                                                            <Sequence>
+                                                                                <Wait duration="'400ms'" timeType="GameTime" doFail="false" variation="'160ms'" />
+                                                                                <ExecuteLua code="mercenaries:UpdateRangedCombatData(data, entity.this.id)" />
+                                                                                <IfCondition failOnCondition="false" condition="~$hasApproach | ~$isTargetAlive | ~$stanceValid | $outOfAmmo | $leashExceeded">
+                                                                                    <Fail />
+                                                                                </IfCondition>
+                                                                            </Sequence>
+                                                                        </Loop>
+                                                                    </Parallel>
+                                                                </SuppressFailure>
+                                                                <SuppressFailure>
+                                                                    <Parallel successMode="Any" failureMode="Any">
+                                                                        <AnyDecorator preset="crime_keepStateAndItems">
+                                                                            <MeleeOffenseAutomationDecorator active="true">
+                                                                                <WeaponAutomationDecorator WeaponChange="missile" active="true">
+                                                                                    <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                                </WeaponAutomationDecorator>
+                                                                            </MeleeOffenseAutomationDecorator>
+                                                                        </AnyDecorator>
+                                                                        <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
+                                                                        <Loop count="-1">
+                                                                            <Sequence>
+                                                                                <Wait duration="'400ms'" timeType="GameTime" doFail="false" variation="'160ms'" />
+                                                                                <ExecuteLua code="mercenaries:UpdateRangedCombatData(data, entity.this.id)" />
+                                                                                <IfCondition failOnCondition="false" condition="$distanceToTarget &lt; $meleeRange | $hasApproach | ~$isTargetAlive | ~$stanceValid | $outOfAmmo | $leashExceeded">
+                                                                                    <Fail />
+                                                                                </IfCondition>
+                                                                            </Sequence>
+                                                                        </Loop>
+                                                                    </Parallel>
+                                                                </SuppressFailure>
+                                                            </Sequence>
+                                                        </Then>
+                                                        <Else canSkip="1">
+                                                            <IfElseCondition failOnCondition="false" condition="$hasRetreat" saveVersion="2">
+                                                                <Then canSkip="1">
+                                                                    <!-- Kite: one short step away (a blocked path is fine - it's
+                                                                         suppressed), THEN always fire a burst. The old version
+                                                                         retreated *instead* of firing and re-tried the step every
+                                                                         cycle, so an archer whose retreat was blocked by allies or
+                                                                         terrain just stood there and never shot. Firing after the
+                                                                         step (burst capped at ~1.5s, or ended early when the target
+                                                                         closes/dies) guarantees shots and gives real step-fire kiting. -->
+                                                                    <Sequence>
+                                                                        <SuppressFailure>
+                                                                            <Move stopWithinDistance="0.800000" stopDistanceVariation="0.300000" rayCasteFlee="false" successDistance="0.000000" changeNPCState="true" fastForwardIncludesMove="false" destinationSpecification="$retreatPos" destinationSpecification2="" destinationSpecification3="" speed="Run" additionalParams="" pathFindingParams="" staminaPolicy="" pathInfo="" />
+                                                                        </SuppressFailure>
+                                                                        <SuppressFailure>
+                                                                            <Parallel successMode="Any" failureMode="Any">
+                                                                                <AnyDecorator preset="crime_keepStateAndItems">
+                                                                                    <MeleeOffenseAutomationDecorator active="true">
+                                                                                        <WeaponAutomationDecorator WeaponChange="missile" active="true">
+                                                                                            <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                                        </WeaponAutomationDecorator>
+                                                                                    </MeleeOffenseAutomationDecorator>
+                                                                                </AnyDecorator>
+                                                                                <Wait duration="'1500ms'" timeType="GameTime" doFail="false" variation="'600ms'" />
+                                                                                <Loop count="-1">
+                                                                                    <Sequence>
+                                                                                        <Wait duration="'400ms'" timeType="GameTime" doFail="false" variation="'160ms'" />
+                                                                                        <ExecuteLua code="mercenaries:UpdateRangedCombatData(data, entity.this.id)" />
+                                                                                        <IfCondition failOnCondition="false" condition="$distanceToTarget &lt; $meleeRange | ~$isTargetAlive | ~$stanceValid | $outOfAmmo | $leashExceeded">
+                                                                                            <Fail />
+                                                                                        </IfCondition>
+                                                                                    </Sequence>
+                                                                                </Loop>
+                                                                            </Parallel>
+                                                                        </SuppressFailure>
+                                                                    </Sequence>
+                                                                </Then>
+                                                                <Else canSkip="1">
+                                                                    <!-- Stand and fire, vanilla standFire style -->
+                                                                    <SuppressFailure>
+                                                                        <Parallel successMode="Any" failureMode="Any">
+                                                                            <AnyDecorator preset="crime_keepStateAndItems">
+                                                                                <MeleeOffenseAutomationDecorator active="true">
+                                                                                    <WeaponAutomationDecorator WeaponChange="missile" active="true">
+                                                                                        <CombatAction TargetNPC="$attackData.target" RelationOverride="Hostile" />
+                                                                                    </WeaponAutomationDecorator>
+                                                                                </MeleeOffenseAutomationDecorator>
+                                                                            </AnyDecorator>
+                                                                            <Loop count="-1">
+                                                                                <Sequence>
+                                                                                    <Wait duration="'700ms'" timeType="GameTime" doFail="false" variation="'280ms'" />
+                                                                                    <ExecuteLua code="mercenaries:UpdateRangedCombatData(data, entity.this.id)" />
+                                                                                    <IfCondition failOnCondition="false" condition="$distanceToTarget &lt; $meleeRange | $hasRetreat | $hasApproach | ~$isTargetAlive | ~$stanceValid | $outOfAmmo | $leashExceeded">
+                                                                                        <Fail />
+                                                                                    </IfCondition>
+                                                                                </Sequence>
+                                                                            </Loop>
+                                                                        </Parallel>
+                                                                    </SuppressFailure>
+                                                                </Else>
+                                                            </IfElseCondition>
+                                                        </Else>
+                                                    </IfElseCondition>
+                                                </Else>
+                                            </IfElseCondition>
+                                        </Sequence>
+                                    </Loop>
+                                </Child>
+
+                                <OnFail canSkip="1">
+                                    <Sequence>
+                                        <ExecuteLua code="pcall(function() entity.soul:SetTarget(nil) end); pcall(function() if mercenaries:CombatMaySheathe(data, entity) then entity.human:DrawWeapon(false) end end); pcall(function() mercenaries:ClearCombatClaim(entity.this.id) end)" />
+                                        <!-- Inside the crime_interruptAttack context = counted as $inCombat by
+                                             every scheduler. 300ms matches the CombatScanLoop. See combat_melee.xml. -->
+                                        <Wait duration="'300ms'" timeType="GameTime" doFail="false" variation="'120ms'" />
+                                    </Sequence>
+                                </OnFail>
+                            </FuseBox>
+                        </EntityContext>
+                    </EntityContextElement>
+                </EntityContext>
+            </Behavior>
+        </Root>
+    </BehaviorTree>
+</BehaviorTrees>

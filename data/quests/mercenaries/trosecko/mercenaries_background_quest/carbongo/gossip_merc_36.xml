@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_36">
+            <Text StringName="gossip_merc_36_name" Text="Mercenary Gossip 36 - Dreaming of Kuttenberg" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_36" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_36">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_36">
+                            <DesignName StringName="gossip_merc_36_name" Text="Dreaming of Kuttenberg" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_se_kutna_hora_ZWdG" Text="Kuttenberg... Where the roads are paved with silver..." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="dial_david_tam_bych_holky_p5PQ" Text="And oh, the lovely wenches there, how I'd love to stroke their titties!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_se_kde_lide_t_kb5r" Text="Where the citizens spend their time discussing poetry instead of base labour!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="dial_david_s_panickama_z__9SKT" Text="The little wives of Kuttenberg, they love the chink of coin, their shafts are damp and wealthy blokes they welcome in their mine!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_se_a_tak_chyt_ZJ0G" Text="And so clever that talking to them is a balm to the soul!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="dial_david_ale_ted_jeste__Rta4" Text="Well, we ain't in the 'Berg yet. And if we don't do something about it soon, we'll never be!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_se_tak_dopije_pzM6" Text="Drink up so we can hit the road!" /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

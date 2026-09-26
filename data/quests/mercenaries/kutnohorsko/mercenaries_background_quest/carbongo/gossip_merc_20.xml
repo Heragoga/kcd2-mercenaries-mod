@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_20">
+            <Text StringName="gossip_merc_20_name" Text="Mercenary Gossip 20 - Sell It or Bury It" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_20" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_20">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_20">
+                            <DesignName StringName="gossip_merc_20_name" Text="Sell It or Bury It" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="band_event_cri_tak_a_je_t_kj9H" Text="That's it, done, we can get out of here." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="band_event_cri_kde_to_pro_uMrr" Text="Where are we going to sell it? You know anyone?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="band_event_cri_chces_to_h_4GlJ" Text="Do you want to sell it now, or should we bury it and wait for things to die down?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="band_event_cri_v_tabore_t_X7Zy" Text="Are we going to tell them back at camp, though?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="band_event_cri_pro_zbytek_HZ02" Text="I'll be back for the rest." /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

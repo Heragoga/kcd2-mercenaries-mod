@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_35">
+            <Text StringName="gossip_merc_35_name" Text="Mercenary Gossip 35 - The Two Poets Argue" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_35" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_35">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_35">
+                            <DesignName StringName="gossip_merc_35_name" Text="The Two Poets Argue" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_tomu_rikas_ba_51EB" Text="You call that poetry?! It's the bleating of a goat!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="dial_david_ale_rozumi_tom_x1vI" Text="It's a poem that every man Jack can understand, unlike that airy-fairy lovesick whining of yours that not even the parish priest can make head or tail of. And he's nearly educated!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_umeni_pro_ume_PDka" Text="Art for its own sake! That is the true goal of real poetry!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="dial_david_to_slovo_zni_m_ByvB" Text="The word is fuck! F-U-C-K! To hell with your meter and stanzas. It's about getting to the point!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_odporny_krupa_9eFl" Text="You foul vulgarian!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="dial_david_barbar_to_by_s_zmVX" Text="Barbarian? Yes, and proud of it! Let's drink to that!" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="dial_michal_napijem_at_te_wi0U" Text="Aye, let the ale flow and wash away the bitter taste of discord!" /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

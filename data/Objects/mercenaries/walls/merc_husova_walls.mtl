@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Material MtlFlags="524544" vertModifType="0">
+	<SubMaterials>
+		<Material CustomSortPriority="9" Diffuse="0.02310356,1,0.0006381828" GenMask="20000000000000" LayerAct="1" MatTemplate="" MtlFlags="525440" Name="proxy_rock" Opacity="1" Shader="NoDraw" Shininess="9.999999" Specular="0,0,0" StringGenMask="" SurfaceType="mat_rock" vertModifType="0">
+			<Textures />
+			<PublicParams EmittanceMapGamma="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SSSIndex="0" />
+		</Material>
+		<Material CustomSortPriority="7" Diffuse="0.3864295,0.3864295,0.3864295" GenMask="20800812002080" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="walls_stones" Opacity="1" Shader="Illum" Shininess="255" Specular="0.02955684,0.02955684,0.02955684" StringGenMask="%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%OFFSET_BUMP_MAPPING%SNDUVS%SUBSURFACE_SCATTERING%USE_FIRST_UV_DETMAP" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/structures/walls/stone_wall/wall_b_4x4_diff.tif" Map="Diffuse" />
+				<Texture File="textures/structures/walls/stone_wall/wall_b_4x4_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/14_14_stone_03_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_b_4x4_displ.tif" Map="Heightmap" />
+				<Texture File="./walls_maingate_2uvs_diff.tif" Map="Opacity" />
+			</Textures>
+			<PublicParams ColorizingBrightness="1.12" ColorizingHue="0" ColorizingSaturation="1.61" DetailBumpScale="1.23" DetailDiffuseScale="1" DetailFadeoutDistance="0" DetailGlossScale="0.5" EmittanceMapGamma="1" HeightBias="0.5" ObmDisplacement="0.025" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SelfShadowStrength="3" SndUVsTileU="1" SndUVsTileV="1" SSSIndex="0" />
+		</Material>
+		<Material AlphaTest="0.94" CustomSortPriority="6" Diffuse="0.6172066,0.6172066,0.6172066" GenMask="20000810000080" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="decals" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%COLORIZING%NORMAL_MAP%SNDUVS%SUBSURFACE_SCATTERING" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="objects/intermediates/elements/textures/stone_wall_b_corner_diff.tif" Map="Diffuse" />
+				<Texture File="objects/intermediates/elements/textures/stone_wall_b_corner_ddna.tif" Map="Bumpmap" />
+				<Texture File="./walls_maingate_2uvs_diff.tif" Map="Opacity" />
+			</Textures>
+			<PublicParams ColorizingBrightness="1.12" ColorizingHue="-11.3" ColorizingSaturation="1.18" EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SndUVsTileU="1" SndUVsTileV="1" SSSIndex="0" />
+		</Material>
+		<Material AlphaTest="0.05" CustomSortPriority="5" Diffuse="1,1,1" GenMask="20800818002000" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="wall_stones_decals" Opacity="1" Shader="Illum" Shininess="255" Specular="0.02955684,0.02955684,0.02955684" StringGenMask="%DETAIL_MAPPING%NORMAL_MAP%PARALLAX_OCCLUSION_MAPPING%SNDUVS%SUBSURFACE_SCATTERING%USE_FIRST_UV_DETMAP" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="objects/intermediates/elements/textures/stone_wall_b_corner_diff.tif" Map="Diffuse" />
+				<Texture File="objects/intermediates/elements/textures/stone_wall_b_corner_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+				<Texture File="textures/structures/brick/stone_wall_02_decals_displ.tif" Map="Heightmap" />
+				<Texture File="objects/buildings/walls/walls_rataje/walls_maingate_2uvs_diff.tif" Map="Opacity" />
+			</Textures>
+			<PublicParams DetailBumpScale="1.08" DetailDiffuseScale="1" DetailFadeoutDistance="0" DetailGlossScale="0.5" EmittanceMapGamma="1" HeightBias="0.275" PomDisplacement="0.0072" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SelfShadowStrength="3" SndUVsTileU="1" SndUVsTileV="1" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="4" Diffuse="0.1221388,0.1119324,0.1046165" GenMask="20000000000000" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="shadowproxy" Shader="Illum" Specular="0,0,0" StringGenMask="%SUBSURFACE_SCATTERING" SurfaceType="" vertModifType="0" VoxelCoverage="0">
+			<Textures>
+				<Texture File="engineassets/textures/white.tif" Map="Diffuse" />
+			</Textures>
+			<PublicParams EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="3" Diffuse="1,1,1" GenMask="20000012000000" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="roof" Opacity="1" Shader="Illum" Shininess="255" Specular="0.02624122,0.02624122,0.02624122" StringGenMask="%NORMAL_MAP%OFFSET_BUMP_MAPPING%SUBSURFACE_SCATTERING" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/structures/roof/roof_wood_shingles_2x2_diff.tif" Map="Diffuse" />
+				<Texture File="textures/structures/roof/roof_wood_shingles_2x2_ddna.tif" Map="Bumpmap" />
+				<Texture File="textures/structures/roof/roof_wood_shingles_2x2_displ.tif" Map="Heightmap" />
+			</Textures>
+			<PublicParams EmittanceMapGamma="1" HeightBias="0.5" ObmDisplacement="0.025" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SelfShadowStrength="3" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="2" Diffuse="0.5332764,0.5332764,0.5332764" GenMask="24000010002180" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="planks" Opacity="1" Shader="Illum" Shininess="255" Specular="0.02624122,0.02624122,0.02624122" StringGenMask="%COLORIZING%COLORIZING_WITH_MASK%DETAIL_MAPPING%NORMAL_MAP%SPECULAR_MAP%SUBSURFACE_SCATTERING" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/structures/wood/planks_c_simple_2x2_diff.tif" Map="Diffuse" />
+				<Texture File="textures/structures/wood/planks_c_simple_2x2_ddna.tif" Map="Bumpmap" />
+				<Texture File="textures/structures/wood/planks_c_simple_2x2_spec.tif" Map="Specular" />
+				<Texture File="engineassets/textures/detailatlas/17_wood_01_detail_v_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+				<Texture File="textures/structures/wood/planks_c_simple_2x2_displ.tif" Map="Heightmap" />
+			</Textures>
+			<PublicParams ColorizingBrightness="0.6" ColorizingHue="-6.4" ColorizingSaturation="0.51" DetailBumpScale="1" DetailDiffuseScale="1" DetailFadeoutDistance="0" DetailGlossScale="0.5" EmittanceMapGamma="1" MaskBrightness1="0.54" MaskBrightness2="0.31" MaskBrightness3="0.38" MaskHue1="0" MaskHue2="0" MaskHue3="-10.4" MaskSaturation1="0.49" MaskSaturation2="0.6" MaskSaturation3="0.38" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="1" Diffuse="1,1,1" GenMask="20000010000200" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="beams" Opacity="1" Shader="Illum" Shininess="255" Specular="0.02624122,0.02624122,0.02624122" StringGenMask="%DETAIL_ATLAS%NORMAL_MAP%SUBSURFACE_SCATTERING" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="objects/intermediates/plankomatic/textures/wood_beam_a_diff.tif" Map="Diffuse" />
+				<Texture File="objects/intermediates/plankomatic/textures/wood_beam_a_ddna.tif" Map="Bumpmap" />
+				<Texture File="objects/intermediates/plankomatic/textures/wood_beam_a_dtmask.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+			</Textures>
+			<PublicParams DetailBumpScale="1" DetailDiffuseScale="1" DetailFadeoutDistance="0" DetailGlossScale="0.5" EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" Diffuse="1,1,1" GenMask="0" LayerAct="1" MatTemplate="" MtlFlags="525440" Name="proxy_wood" Opacity="1" Shader="Nodraw" Shininess="10" Specular="0,0,0" StringGenMask="" SurfaceType="mat_wood" vertModifType="0">
+			<Textures />
+		</Material>
+	</SubMaterials>
+	<PublicParams EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SSSIndex="0" />
+</Material>

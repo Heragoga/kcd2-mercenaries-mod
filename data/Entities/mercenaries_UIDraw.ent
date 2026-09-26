@@ -1,0 +1,4 @@
+<Entity
+    Name="mercenaries_UIDraw"
+    Script="Scripts/Entities/mercenaries_UIDraw.lua"
+/>

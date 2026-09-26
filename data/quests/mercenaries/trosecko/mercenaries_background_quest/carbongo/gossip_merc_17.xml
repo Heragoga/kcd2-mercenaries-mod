@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_17">
+            <Text StringName="gossip_merc_17_name" Text="Mercenary Gossip 17 - Tonda's Burns" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_17" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_17">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_17">
+                            <DesignName StringName="gossip_merc_17_name" Text="Tonda's Burns" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_ha_slysels_o__Of1V" Text="Did you hear about Tonda?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_ha_lidi_rikaj_vnls" Text="Seems his lamp dripped onto his uniform down the pit and it went up like that." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_ha_jo_je_cele_FYTe" Text="Yeah, he burnt himself and he's got terrible injuries." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_ha_navic_se_p_ZPPT" Text="On top of that, the poor bugger banged his head on the rock and couldn't make it up top on his own." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_ha_vytahli_ho_EGzg" Text="He was scorched black when they pulled him out." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_ha_to_je_hroz_YXoZ" Text="That's horrible... Tonda was always a clumsy youngster, but I wouldn't wish that on anyone." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_ha_ten_je_na__iF76" Text="He's in a bad way... Ever since then he reckons he's going to get a nasty disease." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_ha_to_naposle_hnND" Text="Yeah, except that fire underground is dangerous and now nobody wants to risk a rock fall." /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

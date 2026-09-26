@@ -1,0 +1,202 @@
+@echo off
+setlocal enabledelayedexpansion
+
+:: ============================================================
+::  KCD2 Mercenaries Mod - Package Script
+::  Run from the root of the repository.
+:: ============================================================
+
+set "REPO_ROOT=%~dp0"
+set "REPO_ROOT=%REPO_ROOT:~0,-1%"
+
+:: Where the game is, asked rather than assumed - this used to be a hardcoded
+:: "C:\Program Files\Steam\...", which is wrong on any machine whose Steam lives
+:: anywhere else. tools\Find-KCD2.ps1 checks KCD2_DIR, tools\local.paths.txt, then
+:: every Steam library. It prints the path on stdout and its notes on stderr, so the
+:: capture below stays clean while the notes still reach the console.
+set "GAME_DIR="
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\tools\Find-KCD2.ps1"`) do set "GAME_DIR=%%i"
+if not defined GAME_DIR (
+    echo.
+    echo ERROR: Kingdom Come Deliverance 2 was not found - nothing was packaged.
+    echo        Set it once for this machine, then re-run:
+    echo            set KCD2_DIR=D:\path\to\KingdomComeDeliverance2
+    echo        or add   game=D:\path\to\KingdomComeDeliverance2   to tools\local.paths.txt
+    exit /b 1
+)
+set "MODS_DIR=%GAME_DIR%\Mods"
+set "OUT_DIR=%MODS_DIR%\mercenaries"
+
+echo ============================================================
+echo  KCD2 Mercenaries Mod Packager
+echo ============================================================
+echo  Repo:   %REPO_ROOT%
+echo  Output: %OUT_DIR%
+echo.
+
+:: ------------------------------------------------------------
+:: 1. Create/recreate output folder
+:: ------------------------------------------------------------
+echo [1/6] Preparing output folder...
+:: !VAR! rather than %VAR% everywhere inside a parenthesised block. A path holding
+:: brackets - "C:\Program Files (x86)\..." on any machine whose Steam is 32-bit-default -
+:: is expanded at PARSE time by %VAR%, and its ")" closes the block early: the packer
+:: died with "...was unexpected at this time" the first time it resolved a real x86 path.
+if exist "%OUT_DIR%" (
+    echo       Deleting existing folder...
+    rd /s /q "!OUT_DIR!"
+)
+mkdir "%OUT_DIR%"
+mkdir "%OUT_DIR%\data"
+mkdir "%OUT_DIR%\localization"
+echo       Done.
+
+:: ------------------------------------------------------------
+:: 2. Copy manifest
+:: ------------------------------------------------------------
+echo [2/6] Copying mod.manifest...
+copy /y "%REPO_ROOT%\mod.manifest" "%OUT_DIR%\mod.manifest" >nul
+copy /y "%REPO_ROOT%\mod.cfg" "%OUT_DIR%\mod.cfg" >nul
+echo       Done.
+
+:: ------------------------------------------------------------
+:: 3. Pack data folder -> data\mercenaries.pak (store / 0 compression)
+:: ------------------------------------------------------------
+echo [3/6] Packing data folder...
+set "DATA_SRC=%REPO_ROOT%\data"
+set "DATA_PAK=%OUT_DIR%\data\mercenaries.pak"
+
+if not exist "%DATA_SRC%" (
+    echo       WARNING: data folder not found, skipping.
+) else (
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!DATA_SRC!', '!DATA_PAK!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+    if errorlevel 1 (
+        echo       ERROR: Failed to create data pak.
+        goto :error
+    )
+    echo       Created: !DATA_PAK!
+)
+
+:: ------------------------------------------------------------
+:: 4. Pack each localization file -> localization\<lang>.pak
+::    File inside the archive is always: test__mercenaries.xml
+:: ------------------------------------------------------------
+echo [4/6] Packing localization files...
+set "LOC_SRC=%REPO_ROOT%\localization"
+set "LOC_OUT=%OUT_DIR%\localization"
+
+if not exist "%LOC_SRC%" (
+    echo       WARNING: localization folder not found, skipping.
+) else (
+    for %%L in (Chineses_xml Chineset_xml Czech_xml English_xml French_xml German_xml Italian_xml Japanese_xml Korean_xml Polish_xml Portuguese_xml Russian_xml Spanish_xml Turkish_xml Ukrainian_xml Vietnamese_xml) do (
+        set "SRC_FILE=!LOC_SRC!\%%L.xml"
+        set "PAK_FILE=!LOC_OUT!\%%L.pak"
+        set "TMP_LOC=!TEMP!\kcd2_loc_%%L"
+
+        if not exist "!SRC_FILE!" (
+            echo       WARNING: !SRC_FILE! not found, skipping %%L.
+        ) else (
+            if exist "!TMP_LOC!" rd /s /q "!TMP_LOC!"
+            mkdir "!TMP_LOC!"
+            copy /y "!SRC_FILE!" "!TMP_LOC!\test__mercenaries.xml" >nul
+
+            powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!TMP_LOC!', '!PAK_FILE!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+            rd /s /q "!TMP_LOC!"
+
+            if errorlevel 1 (
+                echo       ERROR: Failed to pack %%L.
+                goto :error
+            )
+            echo       Created: %%L.pak
+        )
+    )
+)
+
+:: ------------------------------------------------------------
+:: 5. OPTIONAL: Pack voice files -> localization\english.pak
+::    Flattens all subfolders, .ogg only.
+::    Internal path: dialog/mercenaries_background_quest/<file>.ogg
+:: ------------------------------------------------------------
+echo [5/6] Packing voice files (optional)...
+set "VOICE_SRC=%REPO_ROOT%\voice"
+set "VOICE_PAK=%LOC_OUT%\english.pak"
+
+:: Declared outside the if block, and read back with !var! inside it - see the note in
+:: step 1 about brackets in the path.
+set "TMP_VOICE=%TEMP%\kcd2_voice_tmp"
+set "TMP_VOICE_INNER=%TEMP%\kcd2_voice_tmp\dialog\mercenaries_background_quest"
+
+if not exist "%VOICE_SRC%" (
+    echo       No voice folder found, skipping.
+) else (
+    if exist "!TMP_VOICE!" rd /s /q "!TMP_VOICE!"
+    mkdir "!TMP_VOICE_INNER!"
+
+    powershell -NoProfile -Command "Get-ChildItem -Path '!VOICE_SRC!' -Recurse -Filter '*.ogg' | ForEach-Object { Copy-Item $_.FullName -Destination '!TMP_VOICE_INNER!\' }; $n = (Get-ChildItem '!TMP_VOICE_INNER!').Count; Write-Host ('Copied ' + $n + ' .ogg file(s).')"
+
+    powershell -NoProfile -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('!TMP_VOICE!', '!VOICE_PAK!', [System.IO.Compression.CompressionLevel]::NoCompression, $false)"
+
+    rd /s /q "!TMP_VOICE!"
+
+    if errorlevel 1 (
+        echo       ERROR: Failed to create english.pak.
+        goto :error
+    )
+    echo       Created: !VOICE_PAK!
+)
+
+:: ------------------------------------------------------------
+:: 6. OPTIONAL: Copy the baked lipsync paks -> data\
+::    Prebuilt by tools\build_facials.ps1 (see docs\lipsync.md), not repacked here:
+::    mercenaries_facials.pak holds the whole 124 MB facial index and only stays a
+::    sane size because it is deflated, which the store-only pack above is not.
+:: ------------------------------------------------------------
+echo [6/6] Copying lipsync paks (optional)...
+set "FACIALS_SRC=%REPO_ROOT%\facials"
+
+if not exist "%FACIALS_SRC%" (
+    echo       No facials folder found, skipping - custom lines will have frozen faces.
+) else (
+    set "COPIED=0"
+    for %%F in (mercenaries_anims.pak mercenaries_facials.pak) do (
+        if exist "!FACIALS_SRC!\%%F" (
+            copy /y "!FACIALS_SRC!\%%F" "!OUT_DIR!\data\%%F" >nul
+            if errorlevel 1 (
+                echo       ERROR: Failed to copy %%F.
+                goto :error
+            )
+            echo       Copied: %%F
+            set /a COPIED+=1
+        ) else (
+            echo       WARNING: !FACIALS_SRC!\%%F not found.
+        )
+    )
+    rem Both or neither: the index names clips that only exist in the anims pak,
+    rem and an index with nothing behind it costs vanilla NPCs their lipsync too.
+    if not "!COPIED!"=="2" (
+        echo       ERROR: lipsync needs BOTH paks - ship them together or not at all.
+        goto :error
+    )
+)
+
+:: ------------------------------------------------------------
+echo.
+echo ============================================================
+echo  Packaging complete!
+echo  Output: %OUT_DIR%
+echo ============================================================
+:: Game launch removed: the autobench harness (tools\autobench.ps1) owns launching now,
+:: and a packager-launched instance sat un-automated in the main menu while the harness
+:: stalled behind it. Launch manually or via the harness.
+:: start "" "%GAME_DIR%\Bin\Win64MasterMasterSteamPGO\KingdomCome.exe"
+goto :end
+
+:error
+echo.
+echo ============================================================
+echo  Packaging FAILED. See errors above.
+echo ============================================================
+exit /b 1
+
+:end
+endlocal

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="gossip_merc_7">
+            <Text StringName="gossip_merc_7_name" Text="Mercenary Gossip 7 - What Happened to Johan" />
+            <Dialogue Type="ingame" TechnicalStatus="Enabled" Hearing="35" Initiator="NonPlayer" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_1" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="GOSSIP_OBECNY_MUZ_2" Voice="phos2" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_gossip_merc_7" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="GOSSIP_OBECNY_MUZ_1 GOSSIP_OBECNY_MUZ_2" Alias="merc_gossip_7">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Cooldown="10m" Name="seq_gossip_merc_7">
+                            <DesignName StringName="gossip_merc_7_name" Text="What Happened to Johan" />
+                            <Elements>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_hu_doplnit01_K8bC" Text="Where is Johan? It's been ages since I saw him at work." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_hu_doplnit02_APVg" Text="He doesn't work at the forge anymore." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_hu_ne_a_co_de_oV5G" Text="Doesn't he? What does he do, then?" /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_hu_odesel_do__NVpq" Text="He went to Kuttenberg, seems he's selling some tat on the streets." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_hu_no_a_ted_s_osvS" Text="And now he's making more from begging in Kuttenberg than he did here. No, he planned it all along." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_hu_do_johana__XI9i" Text="Johan's the last person I'd expect to go in for that kind of caper. He was never one for risks." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_hu_stejne_si__JULK" Text="I still think he did it on purpose." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_2" ReferenceLength="3"><Text StringName="goss_gossip_hu_no_jo_ale__d4He" Text="Yeah, but he burnt himself on the furnace, and he wasn't so keen on the work after that." /></Response>
+                                <Response Role="GOSSIP_OBECNY_MUZ_1" ReferenceLength="3"><Text StringName="goss_gossip_hu_to_mas_zas_EOWJ" Text="You're right... I hope he's happy in Kuttenberg. He's a good bloke." /></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

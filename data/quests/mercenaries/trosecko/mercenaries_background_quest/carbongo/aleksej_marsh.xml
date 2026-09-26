@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <!-- Aleksej's speech before the marsh (beat 9), played by mercenaries:RequestForceTalk /
+             data/AI/forced_dialog.xml via Function_speech_dialogInitiator. Modelled on the
+             shipped forced dialogue references/.../hrac_opousti_lokaci_hrobky/
+             forced_dialog_s_rytiri_u_hrobky.xml, but flattened to a single linear Sequence
+             (no player choice, no branching) exactly like the mod's own NPC-to-NPC gossip
+             files (carbongo/gossip_merc_2.xml) - Henry's two lines are pacing beats in one
+             man's speech, not a real decision point, so Autoselect handles them without any
+             nested Decision/UiPrompt scaffolding.
+
+             Every attribute here was earned by a failure. In order:
+
+             1. INSTANCE NODE. A <Definition File=...> only makes the module type available; the
+                <aleksej_marsh .../> node in the quest's <Nodes> is what registers this Decision
+                with the dialogue manager. Without it: "Unable to find decision for alias".
+                The mod has 144 aliased dialogs, all instanced; vanilla 3779, zero orphans.
+
+             2. Alias on the Decision. It is the only handle a behaviour tree has.
+
+             3. NO Type attribute. Type scopes the dialogue kind and must agree with the preset:
+                preset=chat against Type="ingame" logs "Dialogue chat mode is not consistent with
+                its decisions branch type". A forced dialogue - player control taken, preset
+                fader - is the plain untyped kind; 284 shipped aliased NonPlayer-initiated
+                Decisions carry no Type.
+
+             4. SelectedSouls for BOTH roles, with a voice each. A mod cannot record voiceover,
+                and a role with no voice bank stalls the request until it times out.
+                Voice="fejk" Type="Computed" is what the shipped file above uses for its
+                unrecorded roles; HENRY is tomMcKay (Voice="henry" does not exist anywhere).
+
+             5. VoiceoverFallbackLevel + VoiceoverFallbackLevelRoles listing every role, and
+                ReferenceLength (seconds) on every spoken line - the gossip files next door carry
+                both and play unvoiced. Aleksej's lengths are the sum of nothing (one recording
+                per line here, unlike the merged beat 1-5 turns) - straight from
+                voicelines/aleksej_script.md's `len` column for lines 39-44. Henry's two lines
+                (H8/H9) reuse the already-localised ui_alx_9_who / ui_alx_9_men keys, same
+                one-key-two-jobs convention as aleksej_dialog.xml.
+
+             BEAT 9 SPECIAL RULE (combat lock): mercenaries_aleksej.lua suppresses every spawned
+             wuid (AlxSuppressed) from the moment they spawn until ForceTalkDone reports this
+             Decision has finished (AlxMarshSpeechDone) - nobody attacks and nobody is attacked
+             for the full 39-44 sequence below, whatever the player does in the meantime. -->
+        <Dialog Name="aleksej_marsh">
+            <Text StringName="aleksej_marsh_name" Text="Aleksej - Before the Marsh" />
+            <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false" Initiator="NonPlayer">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_aleksej" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="HENRY" Voice="tomMcKay" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_aleksej_marsh" Priority="General" Autoselect="true" VoiceoverFallbackLevel="2" VoiceoverFallbackLevelRoles="role_aleksej HENRY" Alias="aleksej_marsh">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_aleksej_marsh">
+                            <DesignName StringName="aleksej_marsh_name" Text="Before the Marsh" />
+                            <Elements>
+                                <Response Role="role_aleksej" ReferenceLength="10"><Text StringName="merc_alx_L39" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="17"><Text StringName="merc_alx_L40" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="HENRY" ReferenceLength="3"><Text StringName="rozl_henry_no_v8xY" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="12"><Text StringName="merc_alx_L41" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="9"><Text StringName="merc_alx_L42" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="HENRY" ReferenceLength="3"><Text StringName="rozh_henry_co_pdeI" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="17"><Text StringName="merc_alx_L43" /><Commands><CameraCommand /></Commands></Response>
+                                <Response Role="role_aleksej" ReferenceLength="17"><Text StringName="merc_alx_L44" /><Commands><CameraCommand /></Commands></Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='us-ascii'?>
+<Material MtlFlags="524544" vertModifType="0"><SubMaterials><Material CloakAmount="0" CustomSortPriority="2" Diffuse="0.9046612,0.8796224,0.838799" GenMask="1002048002090" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="wall_04" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%BLENDLAYER%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%PARALLAX_OCCLUSION_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/nature/bark_fagus_4x4_diff.tif" Map="Diffuse">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="2" TexMod_TexGenType="0" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="4" TileV="4" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_displ.tif" Map="Heightmap" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_displ.tif" Map="SubSurface" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_diff.tif" Map="Custom">
+					<TexMod OffsetU="1" OffsetV="1" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_ddna.tif" Map="[1] Custom" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_mask.tif" Map="Opacity" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Emittance">
+					<TexMod RotateU="7.998047" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+			</Textures>
+			<PublicParams BlendFactor="1" BlendFalloff="3" BlendLayer2Specular="0.04" BlendLayer2Tiling="0.5" BlendMaskTiling="0.5" ColorizingBrightness="0.9" ColorizingHue="1" ColorizingSaturation="1" Detail2BumpScale="0.5" Detail2DiffuseScale="0.4" Detail2GlossScale="0.3" DetailBumpScale="1" DetailDiffuseScale="0.399" DetailFadeoutDistance="15" DetailGlossScale="1" EmittanceMapGamma="1" HeightBias="0.5" PomDisplacement="0.015" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0.05" RockDarkeningStrength="0.1" RockDarkeningThreshold="0.07" SelfShadowStrength="3" SSSIndex="0" />
+		</Material>
+		</SubMaterials><PublicParams EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SSSIndex="0" />
+</Material>

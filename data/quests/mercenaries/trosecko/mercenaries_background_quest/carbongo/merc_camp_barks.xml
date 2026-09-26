@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <Dialog Name="merc_camp_barks">
+            <Text StringName="merc_camp_barks_name" Text="Mercenary merc_camp_barks" />
+            <Dialogue Type="ingame monolog" TechnicalStatus="Enabled" Initiator="NonPlayer" ForceMood="noScope" ClashPriority="OpenWorld" GesturesNotNeeded="true">
+                <SelectedSouls>
+                    <SelectedSoul Role="role_mercenary_test" Voice="jcom" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="phos2" Type="Wave" Language="ENG" />
+                    <SelectedSoul Role="role_mercenary_test" Voice="sbar" Type="Wave" Language="ENG" />
+                </SelectedSouls>
+                <Decision Name="dec_merc_camp_barks" Priority="General" Autoselect="true" Alias="merc_camp_barks">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_1">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_echrm_ehm__6hKH" Text="Echrm... Ehm, fucking night shift." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_2">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_zas_nocni__IcFR" Text="Night shift again... Hrmph, pff." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_3">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_pff_sluzba_DBUO" Text="Pfff, this fucking job... damn it." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_4">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_posrana_sl_b2gl" Text="Fucking job... Eh." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_5">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_zase_ja_ac_vW4T" Text="Grrr, why me..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_6">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_to_je_zas__L0YK" Text="What a night." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_7">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_to_je_no_t_iXWE" Text="Ugh... Not this again." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_8">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_mor_a_chol_jpVA" Text="Gloom and doom, hrmph..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_9">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="reme_remeslnik_pff_uz_na__cYDW" Text="Fuck it, that's enough for today." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_10">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="reme_remeslnik_jo_dneska__oWjK" Text="Seems to be going alright today." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_11">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="reme_remeslnik_boze_tak_c_LEOX" Text="God, what's it gonna be today?" /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_12">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="reme_remeslnik_tak_co_dne_zmVE" Text="So, what do we have today... ehh." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_13">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_eh_sral_by_BbsH" Text="Ehhh, I could use a shit..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_14">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_na_mam_kocovi_hJOQ" Text="Quiet down! I've got a hell of a hangover..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_15">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_na_asi_zkusim_jN8u" Text="You know what? I think I'm going to take a little nap..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_16">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="roln_rolnik_sa_uf_stacilo_5z1t" Text="Oof, that's enough of that... Christ." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_17">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="reme_remeslnik_uf_kdyby_s_rYSj" Text="Oof, if only I felt like it..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_18">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_to_me_poser_W3co" Text="Fuck me..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_19">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_ja_se_z_to_nwKe" Text="Bloody hell..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_20">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_kurva_no_co_uPYx" Text="Eh, fuck, whatever..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_21">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_mrdat_jezk_d0KR" Text="Ah, fuck a duck... damn it." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_22">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_ech_zasrane_IgnQ" Text="Ugh, damn it..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_23">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_boze_muj_t_qOZF" Text="Christ, what now..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_24">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_boze_sakra_zlhn" Text="Christ, damn it... ugh." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_25">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_aah_boze_xI6W" Text="Ahh... Christ." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_26">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_no_jo_no_EIgS" Text="Eh, oh well..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_27">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="stra_strazny_s_proc_ach_jo_02Qs" Text="Ugh, why..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_28">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="obec_povzdech__eh_boze_PEVa" Text="Urgh, Christ." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_29">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="obec_povzdech__ugh_kurva_4hCW" Text="Ugh, kurva..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_30">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="samo_samomluva_hm_tak_zno_6VbZ" Text="Hmm, let's try this again." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_31">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="samo_samomluva__tak_znova_m0Lt" Text="Let's try this again..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_32">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="samo_samomluva_no_tak_pojd_rTVT" Text="Come on now..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_33">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="samo_samomluva_uff_tak_je_DHyt" Text="Oof, just a bit more..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_34">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="samo_samomluva_no_tak_jes_4yYx" Text="Eh, one more time then." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_35">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="reme_remeslnik_tohle_a_ko_HDPZ" Text="I'll finish this and I'm done." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_36">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="zada_hajny_vos_a_vis_jak__7lL7" Text="And you know how much I like a drink when I'm taking a break on the bench behind my house." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_37">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="zada_hajny_vos_pac_vi_ze__BT6I" Text="He probably knows I like to sleep in and spend my evenings having a drink. So I won't be trudging round the pond at those times." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_38">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="zada_hajny_vos_clovek_jak_X2xK" Text="And someone like me who likes a drink... Well, you know..." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_39">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="pytl_hajny_vos_asi_se_na__W2ty" Text="And now I'll drink to it, I reckon." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_40">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="dial_david_pujdeme_se_nap_v0LU" Text="Have a drink, old pal. It'll put some sense back into your head and chase away the demons." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_41">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="dial_david_barbar_to_by_s_zmVX" Text="Barbarian? Yes, and proud of it! Let's drink to that!" /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_42">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_ho_daj_daj_al_M16w" Text="Aye, they put out... But then they leave." /></Response></Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_43">
+                            <Elements><Response Role="role_mercenary_test"><Text StringName="goss_gossip_ho_neser_se_d_aiBp" Text="Mind your own fucking business! I just... don't want to be alone." /></Response></Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </Dialog>
+    </Skald>
+</Database>

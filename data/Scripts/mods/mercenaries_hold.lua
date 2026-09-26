@@ -1,0 +1,812 @@
+-- Standing orders that put the squad somewhere specific: hold this ground, or
+-- escort that man.
+--
+-- Neither is an engine formation. MakeFormation anchors on whichever entity ran it
+-- and the engine chooses which man lands in which spot, so it can do neither of the
+-- two things these orders need: stand still, and put a named merc on a named side.
+-- This is the wall-battle staging pattern instead - one world point computed per merc
+-- in Lua, each man walked to it by NavGotoRequest and the stock nav_goto tree. Proven
+-- under load with mixed melee/archer defenders; see docs/squad-orders.md.
+
+mercenaries.HoldActive   = false
+mercenaries.HoldAnchor   = nil    -- {x,y,z} the order was given at
+mercenaries.HoldFacing   = nil    -- unit {x,y}: the way the player was looking
+mercenaries.HoldStations = {}     -- [wuidStr] = {x,y,z}
+mercenaries.HoldMembers  = nil    -- [wuidStr] = true, whom the standing order binds
+
+-- How far a holding man may leave his own station to take a fight. This is the whole
+-- point of the order: the squad stops chasing. Measured from his STATION, not from
+-- the player, so the line does not drift downfield with him.
+--
+-- It has to clear an ARCHER'S range, not a swordsman's. At 13m the men held their
+-- ground perfectly and were shot to pieces by bowmen standing 25m off who were never
+-- inside anyone's leash. This is "hold this ground", not "stand here and die".
+mercenaries.HoldLeash       = 30.0
+mercenaries.HoldArriveDist  = 2.2
+-- Deliberately wider than HoldArriveDist. "Close enough to stop walking" and "close
+-- enough to count as standing on my mark" must not be the same number, or a man
+-- parked a hair outside it flips between idling and re-walking every poll.
+mercenaries.HoldStationSlack = 4.0
+
+-- The shape: a square block of melee centred on the anchor, with the archers in two
+-- files on its flanks. Spacing between neighbouring men, and the gap between the edge
+-- of the block and the archer files.
+mercenaries.HoldPitch       = 2.2
+mercenaries.HoldArcherFlank = 3.0
+
+mercenaries.TokenIDEscort = "679a655e-189d-4519-b437-ccc4b92bee7d"
+mercenaries.EscortEnt     = nil
+mercenaries.EscortSpacing = 3.2
+mercenaries.EscortWidth   = 2
+
+-- NOTE ON THE "WAIT HERE" LABEL: the prompt whose text changes is the LOOK-AT
+-- interactor action in mercenaries_lookatinteraction.lua, not the Skald order wheel.
+-- It labels itself from mercenaries:SquadIsWaiting() below. An earlier attempt drove
+-- the wheel's label instead, through a marker item and an ItemDescriptorTrigger, and
+-- was backed out: it was the wrong menu, and it left a visible item in the player's
+-- inventory for as long as the order stood.
+local function holdLog(s) System.LogAlways("[MercHold] " .. s) end
+
+local function navKeyOf(ent)
+    if not ent then return nil end
+    return tostring((ent.this and ent.this.id) or ent.id)
+end
+
+-- ==== who is eligible ====
+-- The men actually out with the player. Anyone holding the camp keeps holding it:
+-- a hold order is for the sortie, not for the cooks.
+-- Men hired AFTER the order was given are deliberately not in it. HoldMembers is
+-- snapshotted at HoldBegin, and without it a hire during a standing "wait here" was a
+-- silent trap: the new man is in ActiveMercs, so the next station rebuild stamps him a
+-- stand-fast station ON HIS SPAWN POINT, MercIsIdle goes true, and the scheduler's idle
+-- arm parks him there for good. He reads as "he spawned and never followed me", and no
+-- later order fixes it short of re-issuing follow. Nobody told HIM to wait.
+-- `only` overrides HoldMembers, so a caller can work on one group of a multi-group order.
+function mercenaries:HoldRoster(only)
+    local out = {}
+    local members = only or self.HoldMembers
+    pcall(function()
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local wuid = ent and (ent.this and ent.this.id or ent.id)
+            if wuid and self:IsAliveAndWell(ent, false)
+               and (members == nil or members[tostring(wuid)])
+               and not self:IsMercInCampProper(wuid)
+               and not self:IsCampActor(wuid) then
+                table.insert(out, { ent = ent, wuid = wuid, key = tostring(wuid) })
+            end
+        end
+    end)
+    -- Sorted by key so the same man draws the same station every time the line is
+    -- rebuilt. Rebuilding into a reshuffled lattice is what makes a squad mill about.
+    table.sort(out, function(a, b) return a.key < b.key end)
+    return out
+end
+
+function mercenaries:HoldIsArcher(rec)
+    local n
+    pcall(function() n = rec.ent:GetName() end)
+    return (n ~= nil) and self:IsArcherName(n) or false
+end
+
+-- ==== the shape ====
+-- STAND FAST is the default: every man's station is the ground he is already standing
+-- on when the order is given. Nobody walks anywhere, which is the whole point of
+-- "wait here" - the previous behaviour marched the entire squad into a square block
+-- centred on the player and shuffled the archers out to the flanks, so giving the
+-- order made everyone move at the moment you wanted them to stop.
+--
+-- The leash and the defend-yourself rules are untouched: HoldLeash still lets a man
+-- step off his mark to fight what comes to him and walks him back afterwards.
+--
+-- The old block is kept behind HoldFormUp for anyone who wants a drawn-up line
+-- (merc_hold_formup 1); HoldBuildStationsBlock below is that code, unchanged.
+mercenaries.HoldFormUp = false      -- false = stand fast, true = block, "shape" = the company's own formation
+
+function mercenaries:HoldBuildStations()
+    if self.HoldFormUp == "shape" then return self:HoldBuildStationsShape() end
+    if self.HoldFormUp then return self:HoldBuildStationsBlock() end
+
+    -- A man who ALREADY has a station keeps it. This is not an optimisation, it is the
+    -- difference between working and not: unlike the block - which is a fixed lattice
+    -- off a fixed anchor, so redrawing it lands every man on the same point again -
+    -- stand-fast stations are wherever the men happened to be, and a rebuild is
+    -- triggered whenever anyone lacks one (see HoldStationOf). Re-stamping the whole
+    -- roster there would move the station of every man who had stepped off his mark to
+    -- fight, to wherever the fight had taken him, and he would never walk back. The
+    -- ground each man was told to hold is set once, when he is first given the order.
+    local st = self.HoldStations or {}
+    local added, kept = 0, 0
+    for _, r in ipairs(self:HoldRoster()) do
+        if st[r.key] then
+            kept = kept + 1
+        else
+            local p
+            pcall(function() p = r.ent:GetWorldPos() end)
+            if p then
+                st[r.key] = { x = p.x, y = p.y, z = p.z }
+                added = added + 1
+            end
+        end
+    end
+    self.HoldStations = st
+    holdLog(string.format("standing fast: %d man/men hold the ground they are on (%d kept)",
+        added + kept, kept))
+end
+
+-- Scoped form: (members, anchor, facing) lays one group out around its OWN anchor and merges
+-- the result into HoldStations instead of replacing it, which is what lets two squads stand on
+-- two different pieces of ground at once.
+function mercenaries:HoldBuildStationsBlock(members, anchor, facing)
+    local a = anchor or self.HoldAnchor
+    local f = facing or self.HoldFacing
+    if not (a and f) then return end
+
+    -- Forward and right, in the plane. Everything below is anchor + fwd*ahead + right*lat.
+    local fx, fy = f.x, f.y
+    local rx, ry = fy, -fx
+
+    local archers, melee = {}, {}
+    for _, r in ipairs(self:HoldRoster(members)) do
+        if self:HoldIsArcher(r) then table.insert(archers, r) else table.insert(melee, r) end
+    end
+
+    local st = {}
+    local function place(rec, ahead, lat)
+        st[rec.key] = { x = a.x + fx * ahead + rx * lat,
+                        y = a.y + fy * ahead + ry * lat,
+                        z = a.z }
+    end
+
+    -- The block. side x side, centred both ways on the anchor, filled front rank
+    -- first. A part-filled back rank is centred on its own count so it does not sit
+    -- lopsided under the ranks above it.
+    local n    = #melee
+    local side = math.max(1, math.ceil(math.sqrt(n)))
+    local rows = math.max(1, math.ceil(n / side))
+    local halfRow = (rows - 1) / 2
+    for i, r in ipairs(melee) do
+        local row   = math.floor((i - 1) / side)
+        local col   = (i - 1) % side
+        local inRow = math.min(side, n - row * side)
+        place(r, (halfRow - row) * self.HoldPitch,
+                 (col - (inRow - 1) / 2) * self.HoldPitch)
+    end
+
+    -- Archers: a file down each flank, clear of the block's edge so they are shooting
+    -- past it rather than over their own front rank. Alternating sides keeps the two
+    -- files even.
+    local edge = ((side - 1) / 2) * self.HoldPitch + self.HoldArcherFlank
+    for i, r in ipairs(archers) do
+        local sideSign = ((i % 2) == 1) and 1 or -1
+        local depth    = math.floor((i - 1) / 2)
+        place(r, (halfRow * self.HoldPitch) - depth * self.HoldPitch, sideSign * edge)
+    end
+
+    if members then
+        self.HoldStations = self.HoldStations or {}
+        for k, v in pairs(st) do self.HoldStations[k] = v end
+    else
+        self.HoldStations = st
+    end
+    holdLog(string.format("square formed: %d melee (%dx%d), %d archers on the flanks",
+        n, side, rows, #archers))
+end
+
+-- Hold IN THE FORMATION THE COMPANY MARCHES IN - a line holds as a line, a wedge as a wedge,
+-- a circle as a circle - drawn up on the spot the order was given, facing the way the player
+-- faced. "Hold position in a formation, not just randomly": stand-fast keeps each man where
+-- he happens to be, which reads as a scatter when the order comes mid-march, and the block
+-- is always a block. merc_hold_formup shape. Column and square are the block; the archers
+-- go where each shape wants them.
+function mercenaries:HoldBuildStationsShape(members, anchor, facing)
+    local shape = _G.PlayerMounted and "column" or (self.FormationShape or "column")
+    if shape == "column" or shape == "square" or shape == "mounted" or shape == "escort" then
+        return self:HoldBuildStationsBlock(members, anchor, facing)
+    end
+    local a = anchor or self.HoldAnchor
+    local f = facing or self.HoldFacing
+    if not (a and f) then return end
+    local fx, fy = f.x, f.y
+    local rx, ry = fy, -fx
+    local archers, melee = {}, {}
+    for _, r in ipairs(self:HoldRoster(members)) do
+        if self:HoldIsArcher(r) then table.insert(archers, r) else table.insert(melee, r) end
+    end
+    local st = {}
+    local pitch = self.HoldPitch or 2.2
+    local function place(rec, ahead, lat)
+        st[rec.key] = { x = a.x + fx * ahead + rx * lat, y = a.y + fy * ahead + ry * lat, z = a.z }
+    end
+    local n = #melee
+    if shape == "line" then
+        -- One rank across the anchor; past twelve men a second rank behind it. The
+        -- archers stand a rank further back, centred, shooting over the line.
+        local perRank = math.max(1, math.min(n, 12))
+        local ranks = math.max(1, math.ceil(n / perRank))
+        for i, r in ipairs(melee) do
+            local rank = math.floor((i - 1) / perRank)
+            local col = (i - 1) % perRank
+            local inRank = math.min(perRank, n - rank * perRank)
+            place(r, -rank * pitch, (col - (inRank - 1) / 2) * pitch)
+        end
+        for i, r in ipairs(archers) do
+            place(r, -(ranks + 0.5) * pitch, (i - (#archers + 1) / 2) * pitch)
+        end
+    elseif shape == "wedge" then
+        -- Point man on the anchor, the rest down two arms behind him, alternating sides.
+        -- The archers fill the inside of the V from the back.
+        for i, r in ipairs(melee) do
+            local k = math.floor(i / 2)
+            local side = ((i % 2) == 0) and 1 or -1
+            if i == 1 then place(r, 0, 0)
+            else place(r, -k * pitch * 0.85, side * k * pitch * 0.8) end
+        end
+        local depth = math.floor(n / 2)
+        for i, r in ipairs(archers) do
+            local k = math.floor((i - 1) / 2)
+            local side = ((i % 2) == 1) and 1 or -1
+            place(r, -(depth - k) * pitch * 0.85 + pitch * 0.4, side * math.max(0.5, (depth - k - 1)) * pitch * 0.4)
+        end
+    else  -- circle
+        -- Melee round the anchor, shoulder to shoulder, facing out; archers inside.
+        local R = math.max(2.5, n * pitch / (2 * math.pi))
+        for i, r in ipairs(melee) do
+            local th = (i - 1) / math.max(n, 1) * 2 * math.pi
+            place(r, R * math.cos(th), R * math.sin(th))
+        end
+        local na = #archers
+        local Ri = (na > 1) and math.max(0.8, na * pitch / (2 * math.pi)) or 0
+        for i, r in ipairs(archers) do
+            local th = (i - 1) / math.max(na, 1) * 2 * math.pi + math.pi / math.max(na, 1)
+            place(r, Ri * math.cos(th), Ri * math.sin(th))
+        end
+    end
+    if members then
+        self.HoldStations = self.HoldStations or {}
+        for k, v in pairs(st) do self.HoldStations[k] = v end
+    else
+        self.HoldStations = st
+    end
+    holdLog(string.format("%s formed: %d melee, %d archers", shape, n, #archers))
+end
+
+-- ==== orders ====
+-- `members` (a set of WUID strings) scopes the order to part of the company. It has to
+-- be applied BEFORE HoldBuildStations, which stations everyone it finds in HoldMembers -
+-- narrowing the set afterwards leaves the unselected men already walking.
+function mercenaries:HoldBegin(pos, facing, members)
+    local a = pos
+    if not a then pcall(function() a = player:GetWorldPos() end) end
+    if not a then holdLog("no anchor"); return false end
+
+    local f = facing
+    if not f then
+        pcall(function()
+            local d = player:GetDirectionVector()
+            if d then
+                local L = math.sqrt(d.x * d.x + d.y * d.y)
+                if L > 1e-3 then f = { x = d.x / L, y = d.y / L } end
+            end
+        end)
+    end
+    f = f or { x = 0, y = 1 }
+
+    self.HoldAnchor = { x = a.x, y = a.y, z = a.z }
+    self.HoldFacing = f
+    self.HoldActive = true
+    self.EscortEnt  = nil
+    self._holdBuiltAt, self._escRoster = nil, nil
+    -- Cleared so a re-issued order re-stamps on the ground they are standing on NOW.
+    -- HoldBuildStations deliberately keeps stations it already has (see the note
+    -- there), which is right for its mid-order rebuilds and wrong for a fresh order:
+    -- without this, giving "wait here" a second time somewhere else would silently
+    -- hold them to the first spot.
+    self.HoldStations = {}
+    -- Whom this order binds, fixed for its lifetime. See HoldRoster.
+    self.HoldMembers = {}
+    if members then
+        for k in pairs(members) do self.HoldMembers[k] = true end
+    else
+        pcall(function()
+            for _, ent in pairs(self.ActiveMercs or {}) do
+                local w = ent and (ent.this and ent.this.id or ent.id)
+                if w then self.HoldMembers[tostring(w)] = true end
+            end
+        end)
+    end
+    self:HoldBuildStations()
+
+    -- The engine formation and the straggler sweep both pull men back to the player,
+    -- which is exactly what a hold order must not do. Both check HoldActive.
+    Game.SendInfoText('merc_info_hold', false, 0, 3)
+    self:OrderBarkSome("merc_bark_wait", 2)
+    holdLog(string.format("holding at %.1f, %.1f", a.x, a.y))
+    return true
+end
+
+function mercenaries:HoldEnd(silent)
+    if not self.HoldActive then return end
+    self.HoldActive   = false
+    self.HoldAnchor   = nil
+    self.HoldStations = {}
+    self.HoldMembers  = nil
+    self.HoldLeashOverride = {}
+    self:HoldReleaseAll()
+    if not silent then
+        Game.SendInfoText('merc_info_following', false, 0, 3)
+        holdLog("released")
+    end
+end
+
+-- Is only PART of the company under a ground order? Several squads can be held on different
+-- ground while the rest still follow, and those men must keep their engine formation - the
+-- squad-wide stand-down is only right when the order binds everyone.
+function mercenaries:HoldIsPartial()
+    if not self.HoldActive then return false end
+    local held, free = 0, 0
+    pcall(function()
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w and self:IsAliveAndWell(ent, false) then
+                if self.HoldStations and self.HoldStations[tostring(w)] then
+                    held = held + 1
+                else
+                    free = free + 1
+                end
+            end
+        end
+    end)
+    return held > 0 and free > 0
+end
+
+-- ==== forced ground orders ====
+-- A move order issued mid-fight has to actually move them. These men get navOrderForce, which
+-- fires the scheduler's 170-priority nav arm over the attack interrupt's 160, and are refused
+-- combat claims until they arrive so they do not simply re-engage on the way.
+mercenaries.MarchForce = mercenaries.MarchForce or {}
+
+function mercenaries:MarchSet(members, on)
+    for k in pairs(members or {}) do
+        self.MarchForce[k] = on or nil
+        if on and self.ClearCombatClaim then
+            pcall(function() self:ClearCombatClaim(k) end)
+        end
+    end
+end
+
+function mercenaries:MarchClearArrived()
+    if not next(self.MarchForce) then return end
+    local st = self.HoldStations or {}
+    pcall(function()
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            local k = w and tostring(w)
+            if k and self.MarchForce[k] then
+                local s2 = st[k]
+                if not s2 then
+                    self.MarchForce[k] = nil
+                else
+                    local p
+                    pcall(function() p = ent:GetWorldPos() end)
+                    if p then
+                        local dx, dy = p.x - s2.x, p.y - s2.y
+                        if (dx * dx + dy * dy) <= (self.HoldArriveDist * self.HoldArriveDist) then
+                            self.MarchForce[k] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- ==== groups ====
+-- Several squads can be under ground orders at once, each on its own anchor. The station is
+-- already per-man, so a group is just "these men, stationed around this point" merged into the
+-- one live hold - the alternative, a second HoldBegin, wipes HoldStations and drops the first
+-- squad back to following, which is exactly the bug this exists to fix.
+
+function mercenaries:HoldAddGroup(members, pos, facing)
+    if not members or not next(members) then return false end
+    if not self.HoldActive then
+        return self:HoldBegin(pos, facing, members)
+    end
+    local a = pos or self.HoldAnchor
+    if not a then return false end
+    local f = facing or self.HoldFacing or { x = 0, y = 1 }
+    self.HoldMembers = self.HoldMembers or {}
+    self.HoldStations = self.HoldStations or {}
+    for k in pairs(members) do
+        self.HoldMembers[k] = true
+        self.HoldStations[k] = nil          -- re-stamp THESE men, leave the others alone
+    end
+    self.HoldAnchor, self.HoldFacing = { x = a.x, y = a.y, z = a.z }, f
+    self:HoldBuildStationsBlock(members, a, f)
+    holdLog(string.format("group added at %.1f, %.1f", a.x, a.y))
+    return true
+end
+
+-- Take a group out of the order without ending it for everyone else.
+function mercenaries:HoldDropGroup(members)
+    if not (self.HoldActive and members) then return end
+    self:HoldSetLeash(members, nil)
+    for k in pairs(members) do
+        if self.HoldMembers then self.HoldMembers[k] = nil end
+        if self.HoldStations then self.HoldStations[k] = nil end
+    end
+    self:HoldReleaseAll(members)
+    if not (self.HoldMembers and next(self.HoldMembers)) then self:HoldEnd(true) end
+end
+
+-- A nav order leaves the scheduler still believing follow is running, so the men
+-- stand where they were released. FollowStalled is the existing one-shot signal for
+-- exactly that: it evicts the stale tree and re-fires follow.
+--
+-- ONLY THE MEN WHO WERE ACTUALLY UNDER A NAV ORDER GET IT. It used to be raised on the
+-- whole squad, and that is what broke "follow me" after "wait here" at forty or fifty
+-- men. A man stood on his station is idle, so the scheduler's idle arm has already
+-- evicted his follow tree and cleared the latch, and he re-fires by himself the moment
+-- the order drops. Flagging him as well queued a SECOND eviction about a second later -
+-- one that lands after he has started walking - and whenever that eviction was applied
+-- just after the re-fire had set the latch, he was left latched "following" with
+-- nothing running and stood there for good. That is the third of the squad that used
+-- to freeze. See NoteFollowEviction in mercenaries_formation_handler.lua.
+--
+-- The two things everyone still gets are harmless and are what make the release safe at
+-- scale: a staggered start, so fifty follow interrupts do not land in the same half
+-- second, and a verification window that re-fires anyone who demonstrably fails to
+-- start walking.
+-- `only` releases just that group; everyone else stays on their station.
+function mercenaries:HoldReleaseAll(only)
+    local total, navMen = 0, 0
+    pcall(function()
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            -- No goto: this is Lua 5.1.
+            if only == nil or (w and only[tostring(w)]) then
+                total = total + 1
+                local k   = navKeyOf(ent)
+                local rec = k and self.NavGoto and self.NavGoto[k] or nil
+                local m   = rec and rec.mode
+                if m == "hold" or m == "escort" then
+                    self.NavGoto[k] = nil
+                    navMen = navMen + 1
+                    pcall(function() self:FollowStalled(ent) end)
+                end
+            end
+        end
+    end)
+
+    local spread = 0
+    pcall(function() spread = self:FollowStaggerSquad() or 0 end)
+    pcall(function() self:BeginFollowVerify("order released") end)
+
+    holdLog(string.format("released %d man/men over %.1fs (%d re-fire follow)", total, spread, navMen))
+end
+
+-- Is this man standing on his mark?
+function mercenaries:HoldAtStation(ent)
+    if not (self.HoldActive and ent) then return false end
+    local st = self.HoldStations[tostring((ent.this and ent.this.id) or ent.id)]
+    if not st then return false end
+    local p
+    pcall(function() p = ent:GetWorldPos() end)
+    if not p then return false end
+    local dx, dy = p.x - st.x, p.y - st.y
+    return (dx * dx + dy * dy) <= (self.HoldStationSlack * self.HoldStationSlack)
+end
+
+-- What the schedulers ask instead of reading _G.MercIdle directly.
+--
+-- The idle arm is the PROVEN way to make a merc stand: it evicts the follow tree and
+-- parks him on an endless Wait. A hold order needs exactly that, but only once the
+-- man is actually on his station - idle him before he gets there and he stands
+-- wherever the order caught him.
+--
+-- Getting this wrong is what broke "wait here": with nothing holding an arrived merc,
+-- nav_goto ended, the scheduler re-fired follow, and he walked straight back to the
+-- player. The two states are mutually exclusive by construction - walking, or stood
+-- on the mark - so the nav arm and the idle arm can never fight over him.
+-- Wrapped: this runs for every merc on every scheduler tick, and it is read straight
+-- into a BT variable. An error here would fail the ExecuteLua, and its Sequence, and
+-- the arm - which in a failureMode="Any" Parallel takes the whole tree with it.
+function mercenaries:MercIsIdle(ent)
+    -- Behaviour-tree liveness heartbeat. Both schedulers call this per merc every
+    -- ~600ms, so a recent stamp is positive proof the trees are actually running -
+    -- which is the one thing the follow watch cannot tell from positions alone.
+    -- See FollowWatchWorldFrozen and docs/formations.md.
+    self.BtHeartbeatAt = System.GetCurrTime()
+    if _G.MercIdle then return true end
+    -- Parked at a doorway: the player walked into a building and this man was following.
+    -- Cleared when he comes back out, and the merc re-fires follow himself off the back
+    -- of this going false. See mercenaries_interior.lua.
+    -- ...but never over a fight. The scheduler's idle arm sits AHEAD of its combat arm in
+    -- the same ContinuousSwitch, so a parked man who has claimed a target would stand
+    -- there and be cut down. MercTargetOf is the mod's existing "has a target" cache, so
+    -- this stays a table lookup - no engine call in a per-merc, per-tick path. He fights,
+    -- then goes back to standing; the park itself is untouched either way.
+    if self.InteriorParked then
+        local k
+        pcall(function() k = tostring((ent.this and ent.this.id) or ent.id) end)
+        if k and self.InteriorParked[k] and (self.MercTargetOf or {})[k] == nil then
+            return true
+        end
+    end
+    local ok, idle = pcall(function()
+        if not self.HoldActive then return false end
+        return self:HoldAtStation(ent)
+    end)
+    return (ok and idle) or false
+end
+
+-- "Are the men stopped?", for anything that has to label a toggle or decide which way
+-- one should go.
+--
+-- ASK THIS, never _G.MercPersistentIdleFlag on its own. A hold order deliberately
+-- leaves that flag false (see MercIsIdle), so a caller reading it alone thinks the
+-- squad is following no matter what - which pinned the look-at prompt to "Wait here"
+-- and made every press compute "not false" and order another halt.
+function mercenaries:SquadIsWaiting()
+    return (self.HoldActive == true) or (_G.MercPersistentIdleFlag == true)
+end
+
+-- ==== the leash ====
+-- Called from TryClaimTarget, the single choke point every claim goes through, so
+-- there is no acquisition path that can smuggle a man off his station.
+-- Per-man leash override, in metres. A retreating squad gets a very short one: they have been
+-- pulled out of a fight, and a man who claims anything within the ordinary 30m simply walks
+-- back into it. Cleared when the order changes.
+mercenaries.HoldLeashOverride = mercenaries.HoldLeashOverride or {}
+
+function mercenaries:HoldSetLeash(members, metres)
+    for k in pairs(members or {}) do
+        self.HoldLeashOverride[k] = metres or nil
+    end
+end
+
+function mercenaries:HoldLeashOf(key)
+    return self.HoldLeashOverride[key] or self.HoldLeash
+end
+
+function mercenaries:HoldOutOfLeash(myWuid, targetWuid)
+    if not self.HoldActive then return false end
+    local key = tostring(myWuid)
+    local st = self.HoldStations[key]
+    if not st then return false end
+
+    local tp
+    pcall(function()
+        local te = XGenAIModule.GetEntityByWUID(targetWuid)
+        tp = te and te:GetWorldPos()
+    end)
+    if not tp then return false end
+
+    local leash = self:HoldLeashOf(key)
+    local dx, dy = tp.x - st.x, tp.y - st.y
+    return (dx * dx + dy * dy) > (leash * leash)
+end
+
+-- ==== escort ====
+function mercenaries:EscortBegin(ent)
+    ent = ent or self:OrderRememberedEntity()
+    if not ent then
+        Game.SendInfoText('merc_info_escort_none', false, 0, 3)
+        holdLog("escort: nothing to escort")
+        return false
+    end
+    self.EscortEnt  = ent
+    self.HoldActive = false
+    -- With the order gone the anchor is history, and anything still reading it treats the
+    -- company as holding ground for the rest of the session.
+    self.HoldAnchor = nil
+    self.HoldStations = {}
+    -- Escort takes the LIVE roster: the column is being formed now, so a man hired
+    -- during it belongs in it.
+    self.HoldMembers = nil
+    self._holdBuiltAt, self._escRoster = nil, nil
+    local nm = "him"
+    pcall(function() nm = ent:GetName() or nm end)
+    Game.SendInfoText('merc_info_escort', false, 0, 3)
+    self:OrderBarkSome("merc_bark_ack", 2)
+    holdLog("escorting " .. tostring(nm))
+    return true
+end
+
+function mercenaries:EscortEnd(silent)
+    if not self.EscortEnt then return end
+    self.EscortEnt = nil
+    self:HoldReleaseAll()
+    if not silent then
+        Game.SendInfoText('merc_info_following', false, 0, 3)
+        holdLog("escort ended")
+    end
+end
+
+-- targetPosOf reads trailDir and trailAim off the live record every tick, so
+-- refreshing them in place turns the whole column with the man being escorted
+-- without tearing down anyone's route and restarting them from a standstill.
+function mercenaries:EscortRefresh(ent, dir, aim)
+    local k = navKeyOf(ent)
+    local rec = k and self.NavGoto and self.NavGoto[k]
+    if not rec or not rec.trailEnt then return false end
+    if dir then rec.trailDir = dir end
+    rec.trailAim = aim
+    return true
+end
+
+-- ==== per-merc poll, from the scheduler ====
+function mercenaries:HoldPoll(bt_data, ent)
+    local wuid = ent and (ent.this and ent.this.id or ent.id)
+    if not wuid then return end
+    local key = tostring(wuid)
+
+    local st = self.HoldStations[key]
+    if not st then
+        -- Someone joined the squad, or came back up, after the line was drawn.
+        -- Throttled: a man who is never eligible for a station (a camp actor, say)
+        -- would otherwise ask for a full rebuild on every poll, and a rebuild walks
+        -- the whole roster - that is O(squad^2) a second at fifty men.
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        if (now - (self._holdBuiltAt or -999)) < 2.0 then return end
+        self._holdBuiltAt = now
+        self:HoldBuildStations()
+        st = self.HoldStations[key]
+        if not st then return end
+    end
+
+    -- Already stood on his mark: do not re-issue, or he restarts the walk every poll
+    -- and shuffles on the spot forever.
+    local p
+    pcall(function() p = ent:GetWorldPos() end)
+    if p then
+        local dx, dy = p.x - st.x, p.y - st.y
+        if (dx * dx + dy * dy) <= (self.HoldArriveDist * self.HoldArriveDist) then
+            -- Standing on his mark: he may fight again. Cleared here rather than on the slow
+            -- squad tick so he does not refuse a claim for seconds after arriving.
+            self.MarchForce[key] = nil
+            return
+        end
+    end
+
+    if self:IsNavGotoActive(ent) and self:NavGotoMode(ent) == "hold" then
+        bt_data.navOrderGo = false
+        return
+    end
+
+    if self:NavGotoRequest(ent, { x = st.x, y = st.y, z = st.z }, { mode = "hold" }) then
+        bt_data.navOrderGo = true
+    end
+end
+
+function mercenaries:EscortPoll(bt_data, ent)
+    local subject = self.EscortEnt
+    if not subject then return end
+
+    local sp, sd
+    pcall(function() sp = subject:GetWorldPos() end)
+    if not sp then self:EscortEnd(); return end
+    pcall(function() sd = subject:GetDirectionVector() end)
+
+    local dir = { x = 0, y = 1 }
+    if sd then
+        local L = math.sqrt(sd.x * sd.x + sd.y * sd.y)
+        if L > 1e-3 then dir = { x = sd.x / L, y = sd.y / L } end
+    end
+    -- Aim at a point ahead of him rather than at him: targetPosOf measures the
+    -- column's heading off this, and a heading of zero collapses the whole file
+    -- onto his own position.
+    local aim = { x = sp.x + dir.x * 10.0, y = sp.y + dir.y * 10.0 }
+
+    if self:IsNavGotoActive(ent) and self:NavGotoMode(ent) == "escort" then
+        self:EscortRefresh(ent, dir, aim)
+        bt_data.navOrderGo = false
+        return
+    end
+
+    -- Rank and file, stable per merc so the column keeps its order. The roster is
+    -- cached for a beat: this runs per merc, and rebuilding it each time is
+    -- O(squad^2) for a list that barely changes.
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    if not self._escRoster or (now - (self._escRosterAt or -999)) > 2.0 then
+        self._escRoster, self._escRosterAt = self:HoldRoster(), now
+    end
+    local roster, idx = self._escRoster, 0
+    local myKey = tostring(ent.this and ent.this.id or ent.id)
+    for i, r in ipairs(roster) do if r.key == myKey then idx = i break end end
+    if idx == 0 then return end
+
+    -- A RING round him, not a column behind him. The column was two files at his back,
+    -- which "just follows him like in column formation" - the whole point of an escort is
+    -- men at his sides and his back with the way ahead left open. The ring turns with him
+    -- (targetPosOf reads his heading every tick), the front quarter stays clear so he can
+    -- walk, and the radius grows a little with the company so the men are not stacked.
+    local n = #roster
+    local R = math.min(6.0, (self.EscortRingRadius or 2.6) + 0.22 * n)
+    local arc0, arc1 = math.rad(45), math.rad(315)
+    local theta = arc0 + (arc1 - arc0) * ((idx - 0.5) / n)   -- 0 = straight ahead of him
+    local back = -R * math.cos(theta)                        -- positive = behind him
+    local lat  =  R * math.sin(theta)                        -- positive = his left
+
+    if self:NavGotoRequest(ent, nil, {
+        mode      = "escort",
+        trailEnt  = subject,
+        trailBack = back,
+        trailLat  = lat,
+        trailAim  = aim,
+        trailDir  = dir,
+    }) then
+        bt_data.navOrderGo = true
+    end
+end
+
+-- The one entry point the schedulers call. Keeps the BT ignorant of which order is
+-- running: it only ever learns "fire nav_goto now" or "do not".
+function mercenaries:NavOrderPoll(bt_data, ent)
+    bt_data.navOrderGo = false
+    local w = ent and (ent.this and ent.this.id or ent.id)
+    bt_data.navOrderForce = (w ~= nil) and (self.MarchForce[tostring(w)] == true) or false
+    if _G.MercenariesDismissed then return end
+    local ok, err = pcall(function()
+        if self.HoldActive then
+            self:HoldPoll(bt_data, ent)
+        elseif self.EscortEnt then
+            self:EscortPoll(bt_data, ent)
+        end
+    end)
+    if not ok then holdLog("NavOrderPoll error: " .. tostring(err)) end
+end
+
+function mercenaries:MonitorHoldTokens(p)
+    local n = p:GetCountOfClass(self.TokenIDEscort)
+    if n and n > 0 then
+        p:DeleteItemOfClass(self.TokenIDEscort, n)
+        self:EscortBegin()
+    end
+end
+
+function mercenaries:HoldStatus()
+    holdLog(string.format("hold=%s escort=%s stations=%d leash=%.1f",
+        tostring(self.HoldActive),
+        self.EscortEnt and "yes" or "no",
+        (function() local c = 0 for _ in pairs(self.HoldStations or {}) do c = c + 1 end return c end)(),
+        self.HoldLeash))
+    if self.HoldAnchor then
+        holdLog(string.format("anchor %.1f, %.1f facing %.2f, %.2f",
+            self.HoldAnchor.x, self.HoldAnchor.y,
+            (self.HoldFacing or {}).x or 0, (self.HoldFacing or {}).y or 0))
+    end
+    -- How well the men are on their marks: the proof a formed hold actually formed.
+    local n, onMark, worst, sum = 0, 0, 0, 0
+    for _, r in ipairs(self:HoldRoster()) do
+        local s = (self.HoldStations or {})[r.key]
+        local p
+        pcall(function() p = r.ent:GetWorldPos() end)
+        if s and p then
+            local d = math.sqrt((p.x - s.x) ^ 2 + (p.y - s.y) ^ 2)
+            n = n + 1; sum = sum + d
+            if d <= 1.5 then onMark = onMark + 1 end
+            if d > worst then worst = d end
+        end
+    end
+    if n > 0 then
+        holdLog(string.format("on their marks: %d of %d within 1.5 m, mean %.1f m, worst %.1f m (shape=%s)",
+            onMark, n, sum / n, worst, tostring(self.HoldFormUp)))
+    end
+end
+
+function mercenaries:HoldFormUpSet(v)
+    local w = string.lower(tostring(v or ''))
+    if w:match('shape') or w:match('form') then self.HoldFormUp = "shape"
+    else self.HoldFormUp = (w:match('1') ~= nil) end
+    pcall(function() self:SaveString("MercHoldFormUp", self.HoldFormUp == "shape" and "shape" or (self.HoldFormUp and "1" or "0")) end)
+    holdLog("hold shape = " .. (self.HoldFormUp == "shape" and "the company's own formation"
+        or (self.HoldFormUp and "drawn-up block" or "stand fast (default)")))
+    -- Re-draw immediately if an order is already standing, so the change is visible
+    -- now rather than at whatever the next rebuild happens to be.
+    if self.HoldActive then self:HoldBuildStations() end
+end
+
+-- Player-tier, in mercenaries_commands.lua: merc_hold_formup 0 | 1 | shape.
+mercenaries:DevCommand("merc_hold_status", "mercenaries:HoldStatus()",  "Report the hold/escort order state")

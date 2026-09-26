@@ -1,0 +1,4 @@
+<Entity
+    Name="mercenaries_Store"
+    Script="Scripts/Entities/mercenaries_Store.lua"
+/>

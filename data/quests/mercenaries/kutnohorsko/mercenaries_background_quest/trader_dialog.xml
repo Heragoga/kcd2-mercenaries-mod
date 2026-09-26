@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+    <Skald>
+        <!-- The camp sutler. Two options and no submenu: he is a shop, not an interface.
+             "Show me your wares" fires trader_open -> the quest grants a token -> mercenaries.lua
+             routes it to TraderOpen, which opens the counter.
+
+             His reply is doing real work. The mod cannot open the game's own trade screen for a
+             spawned merchant (docs/camp-trader.md), so the deal is settled from what moved
+             across the counter once the window closes - which needs saying out loud, or the
+             player has no idea when they are being charged. He says it. -->
+        <FaderDialog Name="trader_dialog">
+            <Ports>
+                <Port Name="trader_open" Direction="Out" Type="trigger" />
+            </Ports>
+            <Text StringName="ui_merc_trader_root" />
+            <Dialogue TechnicalStatus="Enabled" AllowFarewell="false" AllowGreeting="false">
+                <Decision Name="dec_merc_trader" Priority="General">
+                    <Sequences>
+                        <Sequence EndType="EndDialogue" Name="seq_merc_trader_wares">
+                            <UiPrompt StringName="ui_merc_trader_wares" />
+                            <Triggers><Port Name="trader_open" /></Triggers>
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_trader_wares" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                                <Response Role="role_mercenary_trader">
+                                    <Text StringName="merc_trader_wares_reply" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                        </Sequence>
+                        <Sequence EndType="EndDialogue" Name="seq_merc_trader_leave">
+                            <UiPrompt StringName="ui_merc_trader_leave" />
+                            <Elements>
+                                <Response Role="HENRY">
+                                    <Text StringName="merc_henry_trader_leave" />
+                                    <Commands><CameraCommand /></Commands>
+                                </Response>
+                            </Elements>
+                        </Sequence>
+                    </Sequences>
+                </Decision>
+            </Dialogue>
+        </FaderDialog>
+    </Skald>
+</Database>

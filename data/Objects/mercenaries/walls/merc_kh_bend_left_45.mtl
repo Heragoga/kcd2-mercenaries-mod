@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='us-ascii'?>
+<Material MtlFlags="524544" vertModifType="0"><SubMaterials><Material CloakAmount="0" CustomSortPriority="30" Diffuse="1,1,1" GenMask="1002048002090" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="wall_03" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%BLENDLAYER%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%PARALLAX_OCCLUSION_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_diff.tif" Map="Diffuse">
+					<TexMod OffsetU="0.002" OffsetV="-0.001" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="0.75" TileV="0.75" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="4" TileV="2" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_displ.tif" Map="Heightmap" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_displ.tif" Map="SubSurface" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_diff.tif" Map="Custom" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_ddna.tif" Map="[1] Custom" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_mask.tif" Map="Opacity" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Emittance">
+					<TexMod RotateU="7.998047" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+			</Textures>
+			<PublicParams BlendFactor="1" BlendFalloff="3" BlendLayer2Specular="0.04" BlendLayer2Tiling="0.665" BlendMaskTiling="0.665" ColorizingBrightness="2.2" ColorizingHue="1" ColorizingSaturation="1.1" Detail2BumpScale="0.5" Detail2DiffuseScale="0.3" Detail2GlossScale="0.3" DetailBumpScale="0.5" DetailDiffuseScale="0.399" DetailFadeoutDistance="15" DetailGlossScale="1" EmittanceMapGamma="1" HeightBias="0.5" PomDisplacement="0.015" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0.05" RockDarkeningStrength="0.25" RockDarkeningThreshold="0.1" SelfShadowStrength="3" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="48" Diffuse="0.791298,0.791298,0.791298" GenMask="100204A002090" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="floor" Opacity="1" Shader="Illum" Shininess="193" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%BLENDLAYER%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%OFFSET_BUMP_MAPPING%PARALLAX_OCCLUSION_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/terrain/soil/soil_dry_diff.tif" Map="Diffuse">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="0.5" TileV="0.5" />
+				</Texture>
+				<Texture File="textures/terrain/soil/soil_dry_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+				<Texture File="textures/terrain/soil/soil_dry_displ.tif" Map="Heightmap" />
+				<Texture File="textures/structures/cobble_stones/cobble_stones_d_4x4_displ.tif" Map="SubSurface" />
+				<Texture File="textures/structures/cobble_stones/cobble_stones_d_4x4_diff.tif" Map="Custom" />
+				<Texture File="textures/structures/cobble_stones/cobble_stones_d_4x4_ddna.tif" Map="[1] Custom" />
+				<Texture File="textures/structures/cobble_stones/cobble_stones_d_4x4_displ.tif" Map="Opacity" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Emittance">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="4" TileV="4" />
+				</Texture>
+			</Textures>
+			<PublicParams BlendFactor="1.5" BlendFalloff="4" BlendLayer2Specular="0.0372" BlendLayer2Tiling="0.5" BlendMaskTiling="0.5" ColorizingBrightness="2" ColorizingHue="5.6" ColorizingSaturation="1" Detail2BumpScale="1.5" Detail2DiffuseScale="0.8" Detail2GlossScale="1" DetailBumpScale="5" DetailDiffuseScale="0.8" DetailFadeoutDistance="15" DetailGlossScale="0.5" EmittanceMapGamma="1" HeightBias="0.5" ObmDisplacement="0.016" PomDisplacement="0.0211" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SelfShadowStrength="2.133" SSSIndex="0" />
+		</Material>
+		<Material AlphaTest="0.5" CustomSortPriority="99" Diffuse="0.5775805,0.5775805,0.5775805" GenMask="1002042002090" LayerAct="1" MatTemplate="" MtlFlags="524418" Name="small_stones_corner" Opacity="1" Shader="Illum" Shininess="130" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%BLENDLAYER%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%OFFSET_BUMP_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="objects/intermediates/cornerer/textures/stones_small_diff.tif" Map="Diffuse" />
+				<Texture File="objects/intermediates/cornerer/textures/stones_small_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+				<Texture File="textures/structures/walls/plaster/plaster_b_1x1_displ.tif" Map="Heightmap" />
+				<Texture File="textures/structures/walls/plaster/plaster_b_1x1_displ.tif" Map="SubSurface" />
+				<Texture File="textures/decals/decal_plaster_washed_a_diff.tif" Map="Custom" />
+				<Texture File="textures/structures/walls/plaster/plaster_b_1x1_ddna.tif" Map="[1] Custom" />
+				<Texture File="objects/intermediates/cornerer/textures/stones_small_trosky_diff.tif" Map="Opacity" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Emittance">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+			</Textures>
+			<PublicParams BlendFactor="10" BlendFalloff="10" BlendLayer2Specular="0.04" BlendLayer2Tiling="1" BlendMaskTiling="1" ColorizingBrightness="3.8" ColorizingHue="-38.8" ColorizingSaturation="1" Detail2BumpScale="1.5" Detail2DiffuseScale="0.2" Detail2GlossScale="0.5" DetailBumpScale="1" DetailDiffuseScale="0.5" DetailFadeoutDistance="15" DetailGlossScale="0.5" EmittanceMapGamma="1" HeightBias="0.5" ObmDisplacement="0.015" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SelfShadowStrength="3" SSSIndex="0" />
+		</Material>
+		<Material AlphaTest="0.5" CustomSortPriority="90" Diffuse="0.462077,0.4396572,0.4072402" GenMask="1002042002880" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="small_stones_corner_decal" Opacity="1" Shader="Illum" Shininess="130" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%COLORIZING%DECAL%DETAIL_MAPPING%NORMAL_MAP%OFFSET_BUMP_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="objects/intermediates/cornerer/textures/stones_small_diff.tif" Map="Diffuse" />
+				<Texture File="objects/intermediates/cornerer/textures/stones_small_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="4" TileV="4" />
+				</Texture>
+			</Textures>
+			<PublicParams ColorizingBrightness="8" ColorizingHue="1" ColorizingSaturation="0.5" DecalAlphaMult="1" DecalAngleBasedFading="1" DecalDiffuseOpacity="1" DecalFalloff="1" DecalNormalOpacity="1" DecalSpecularOpacity="1" DetailBumpScale="4" DetailDiffuseScale="0.2" DetailFadeoutDistance="15" DetailGlossScale="0.5" EmittanceMapGamma="1" HeightBias="1" ObmDisplacement="0.004" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SelfShadowStrength="1.272" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="95" Diffuse="0.791298,0.7156935,0.6239604" GenMask="1002042000880" LayerAct="1" MatTemplate="" MtlFlags="524448" Name="decal_plaster" Opacity="1" Shader="Illum" Specular="0,0,0" StringGenMask="%COLORIZING%DECAL%NORMAL_MAP%OFFSET_BUMP_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/decals/decal_plaster_damage_a_diff.tif" Map="Diffuse" />
+				<Texture File="textures/decals/decal_plaster_damage_a_ddna.tif" Map="Bumpmap" />
+			</Textures>
+			<PublicParams ColorizingBrightness="5" ColorizingHue="0" ColorizingSaturation="0.34" DecalAlphaMult="2" DecalAngleBasedFading="1" DecalDiffuseOpacity="0.37" DecalFalloff="2" DecalNormalOpacity="0" DecalSpecularOpacity="0" EmittanceMapGamma="1" HeightBias="1" ObmDisplacement="0.004" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SelfShadowStrength="3" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="98" Diffuse="0.06662595,0.0451862,0.009721218" GenMask="1002040000880" LayerAct="1" MatTemplate="" MtlFlags="524448" Name="decal_dark_leaks_big" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03820437,0.03820437,0.03820437" StringGenMask="%COLORIZING%DECAL%NORMAL_MAP%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/decals/decal_moss_leaking_a_diff.tif" Map="Diffuse" />
+				<Texture File="textures/decals/decal_moss_leaking_a_ddna.tif" Map="Bumpmap" />
+			</Textures>
+			<PublicParams ColorizingBrightness="2" ColorizingHue="0" ColorizingSaturation="1.5" DecalAlphaMult="3" DecalAngleBasedFading="1" DecalDiffuseOpacity="0.6" DecalFalloff="0.4" DecalNormalOpacity="0.1" DecalSpecularOpacity="1" EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="5" Diffuse="1,1,1" GenMask="1002048002090" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="wall_02" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%BLENDLAYER%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%PARALLAX_OCCLUSION_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_diff.tif" Map="Diffuse">
+					<TexMod OffsetU="0.002" OffsetV="-0.001" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="0.75" TileV="0.75" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="4" TileV="4" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_displ.tif" Map="Heightmap" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_b_displ.tif" Map="SubSurface" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_b_diff.tif" Map="Custom" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_b_ddna.tif" Map="[1] Custom" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_mask.tif" Map="Opacity" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Emittance">
+					<TexMod RotateU="7.998047" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+			</Textures>
+			<PublicParams BlendFactor="1" BlendFalloff="3" BlendLayer2Specular="0.04" BlendLayer2Tiling="1.333" BlendMaskTiling="1.333" ColorizingBrightness="2.3" ColorizingHue="1" ColorizingSaturation="0.6" Detail2BumpScale="0.3" Detail2DiffuseScale="0.4" Detail2GlossScale="0.28" DetailBumpScale="0.5" DetailDiffuseScale="0.399" DetailFadeoutDistance="15" DetailGlossScale="1" EmittanceMapGamma="1" HeightBias="0.5" PomDisplacement="0.008" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0.08" RockDarkeningStrength="0.2" RockDarkeningThreshold="0.1" SelfShadowStrength="3" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="3" Diffuse="1,1,1" GenMask="1002048002090" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="wall_01" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%BLENDLAYER%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%PARALLAX_OCCLUSION_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/decals/decal_plaster_washed_a_diff.tif" Map="Diffuse">
+					<TexMod OffsetU="0.002" OffsetV="-0.001" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="0.75" TileV="0.75" />
+				</Texture>
+				<Texture File="textures/structures/walls/plaster/plaster_a_2x2_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="4" TileV="4" />
+				</Texture>
+				<Texture File="textures/structures/walls/plaster/plaster_b_1x1_displ.tif" Map="Heightmap" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_b_displ.tif" Map="SubSurface" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_b_diff.tif" Map="Custom">
+					<TexMod OffsetU="1" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_b_ddna.tif" Map="[1] Custom" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_mask.tif" Map="Opacity" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Emittance">
+					<TexMod RotateU="7.998047" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+			</Textures>
+			<PublicParams BlendFactor="6" BlendFalloff="1" BlendLayer2Specular="0.04" BlendLayer2Tiling="1.333" BlendMaskTiling="1.333" ColorizingBrightness="0.5" ColorizingHue="-10" ColorizingSaturation="0.8" Detail2BumpScale="0.1" Detail2DiffuseScale="0.4" Detail2GlossScale="0.3" DetailBumpScale="2" DetailDiffuseScale="0.399" DetailFadeoutDistance="15" DetailGlossScale="1" EmittanceMapGamma="1" HeightBias="0.5" PomDisplacement="0.008" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0.05" RockDarkeningStrength="0.2" RockDarkeningThreshold="0.2" SelfShadowStrength="3" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="2" Diffuse="0.9046612,0.8796224,0.838799" GenMask="1002048002090" LayerAct="1" MatTemplate="" MtlFlags="524416" Name="wall_04" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03189603,0.03189603,0.03189603" StringGenMask="%BLENDLAYER%COLORIZING%DETAIL_MAPPING%NORMAL_MAP%PARALLAX_OCCLUSION_MAPPING%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/nature/bark_fagus_4x4_diff.tif" Map="Diffuse">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="2" TexMod_TexGenType="0" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_ddna.tif" Map="Bumpmap" />
+				<Texture File="engineassets/textures/detailatlas/12_soil_detail_dt.tif" Map="Detail">
+					<TexMod TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="4" TileV="4" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_decal_displ.tif" Map="Heightmap" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_displ.tif" Map="SubSurface" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_a_4x4_diff.tif" Map="Custom">
+					<TexMod OffsetU="1" OffsetV="1" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" />
+				</Texture>
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_ddna.tif" Map="[1] Custom" />
+				<Texture File="textures/structures/walls/stone_wall/wall_kh_b_4x4_mask.tif" Map="Opacity" />
+				<Texture File="engineassets/textures/detailatlas/14_stone_03_detail_dt.tif" Map="Emittance">
+					<TexMod RotateU="7.998047" TexMod_bTexGenProjected="0" TexMod_RotateType="0" TexMod_TexGenType="0" TileU="8" TileV="8" />
+				</Texture>
+			</Textures>
+			<PublicParams BlendFactor="1" BlendFalloff="3" BlendLayer2Specular="0.04" BlendLayer2Tiling="0.5" BlendMaskTiling="0.5" ColorizingBrightness="0.9" ColorizingHue="1" ColorizingSaturation="1" Detail2BumpScale="0.5" Detail2DiffuseScale="0.4" Detail2GlossScale="0.3" DetailBumpScale="1" DetailDiffuseScale="0.399" DetailFadeoutDistance="15" DetailGlossScale="1" EmittanceMapGamma="1" HeightBias="0.5" PomDisplacement="0.015" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0.05" RockDarkeningStrength="0.1" RockDarkeningThreshold="0.07" SelfShadowStrength="3" SSSIndex="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="97" Diffuse="1,1,1" GenMask="1002040000880" LayerAct="1" MatTemplate="" MtlFlags="524448" Name="SubMtl30" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03820437,0.03820437,0.03820437" StringGenMask="%COLORIZING%DECAL%NORMAL_MAP%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/decals/decal_moss_leaking_a_diff.tif" Map="Diffuse" />
+				<Texture File="textures/decals/decal_moss_leaking_a_ddna.tif" Map="Bumpmap" />
+			</Textures>
+			<PublicParams ColorizingBrightness="1" ColorizingHue="0" ColorizingSaturation="0.5" DecalAlphaMult="3" DecalAngleBasedFading="1" DecalDiffuseOpacity="0.5" DecalFalloff="1" DecalNormalOpacity="0.1" DecalSpecularOpacity="0.5" EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" />
+		</Material>
+		<Material CloakAmount="0" CustomSortPriority="97" Diffuse="1,1,1" GenMask="1002040000880" LayerAct="1" MatTemplate="" MtlFlags="524448" Name="SubMtl31" Opacity="1" Shader="Illum" Shininess="255" Specular="0.03820437,0.03820437,0.03820437" StringGenMask="%COLORIZING%DECAL%NORMAL_MAP%SUBSURFACE_SCATTERING%VERTCOLORS" SurfaceType="" vertModifType="0">
+			<Textures>
+				<Texture File="textures/decals/decal_moss_leaking_a_diff.tif" Map="Diffuse" />
+				<Texture File="textures/decals/decal_moss_leaking_a_ddna.tif" Map="Bumpmap" />
+			</Textures>
+			<PublicParams ColorizingBrightness="0.15" ColorizingHue="0" ColorizingSaturation="1.15" DecalAlphaMult="3" DecalAngleBasedFading="1" DecalDiffuseOpacity="0.15" DecalFalloff="3" DecalNormalOpacity="0.1" DecalSpecularOpacity="0.2" EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" />
+		</Material>
+	</SubMaterials><PublicParams EmittanceMapGamma="1" RockDarkeningPrePostDetail="1" RockDarkeningSoftEdge="0" RockDarkeningStrength="0" RockDarkeningThreshold="0" SSSIndex="0" />
+</Material>

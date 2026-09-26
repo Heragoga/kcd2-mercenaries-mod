@@ -1,0 +1,1058 @@
+-- Merc cache: RebuildMercCache does the only full NPC scan (on load);
+-- PruneMercCache drops dead refs each second. Hot paths iterate ActiveMercs.
+
+-- Pin a merc's RENDERER view distance, so he is never culled by distance.
+--
+-- This is separate from the AI LOD tiers (mercenaries_lodboost.lua): that decides how much
+-- an NPC is SIMULATED, this decides whether he is DRAWN. Same three calls that already fixed
+-- wall segments, towers and camp props dropping out at distance (mercenaries_wall.lua).
+--
+-- It was previously a no-op, on the strength of "forcing RenderAlways caused more trouble
+-- than it solved". That verdict came from a broken test - the original body was, verbatim:
+--
+--     ent:SetViewDistRatio(254)
+--     ent:SetViewDistRatio(0)
+--
+-- i.e. it set the maximum and then immediately the MINIMUM on the next line, so the function
+-- named "always rendered" was culling mercs as hard as the engine allows. docs/npc-lod.md
+-- records the gap this leaves: a clean retry with no follow-up zeroing was never attempted.
+--
+-- Separate pcalls on purpose: these are entity-class methods and a missing one on the NPC
+-- class must not skip the others. No RenderShadow here - fifty extra shadow casters is a real
+-- cost and shadows are not the reported symptom.
+--
+-- View distance decides WHETHER a merc is drawn; the LOD ratio decides WHICH MESH LOD. They
+-- are separate knobs, and ONLY THE VIEW DISTANCE IS TOUCHED. That is the configuration that
+-- was measured good in game: everybody renders, detail is the engine's own choice.
+--
+-- DO NOT drive SetLodRatio from a crowd count. It was tried - a ratio interpolated 100..130
+-- from (mercs + nearby hostiles), re-applied to every merc on the 5s sweep - and it brought
+-- back the popping in and out that the view-distance pin had fixed. Two reasons, and both
+-- would apply to any variant of the idea:
+--   * the crowd count moves constantly, so the ratio moves with it, and every change makes
+--     every merc re-evaluate which mesh LOD to draw;
+--   * it was re-applied on a timer even when unchanged, so the churn had a floor.
+-- KCD2 assembles characters from clothing skins and swaps in a merged "uberlod" from a
+-- configurable LOD number, so nudging LOD selection on a character is nothing like doing it
+-- on a wall segment - which is where these calls were copied from. 255 made mercs low-detail
+-- puppets at arm's length; leaving it alone looks right.
+--
+-- If mesh detail ever genuinely needs cutting for performance, do it with a FIXED value set
+-- once (merc_render_lod), never a value that tracks a live count.
+--
+-- Separate pcalls on purpose: these are entity-class methods and a missing one on the NPC
+-- class must not skip the others. No RenderShadow here - fifty extra shadow casters is a real
+-- cost and shadows are not the reported symptom.
+mercenaries.RenderPin      = true
+mercenaries.RenderLodRatio = nil     -- nil = leave mesh LOD to the engine (the good state)
+
+function mercenaries:EnsureMercIsAlwaysRendered(ent)
+    if not (ent and self.RenderPin) then return end
+    pcall(function() ent:SetViewDistUnlimited() end)
+    pcall(function() ent:SetViewDistRatio(255) end)
+    -- Only ever a fixed, manually-set value, and only when one has been asked for.
+    if self.RenderLodRatio then
+        pcall(function() ent:SetLodRatio(self.RenderLodRatio) end)
+    end
+end
+
+-- merc_render_lod <n>  - pin mesh detail to a fixed ratio (higher drops detail sooner).
+-- merc_render_lod      - or 0/off: hand mesh LOD back to the engine. This is the default and
+--                        the state that looked right in game.
+-- Applies LIVE in both directions, which is what makes it usable as an A/B. Clearing it used
+-- to be a no-op until respawn ("cannot be un-applied"), which is wrong: 100 IS the entity
+-- default ratio, so writing 100 restores engine behaviour on a live NPC. Never 0 - that is the
+-- MINIMUM and is what sabotaged the original render experiment (see the note at the top).
+function mercenaries:RenderLodSet(v)
+    local raw = string.gsub(mercenaries:CmdClean(v), '%s+', '')
+    if raw == '' then
+        System.LogAlways('[Mercenary Jeff] merc_render_lod <n> - mesh detail, higher drops detail sooner. ' ..
+            '100 = engine default, 130 mild, 180 aggressive, 255 puppet-grade. 0/off = hand back to the engine. ' ..
+            '(now: ' .. (self.RenderLodRatio and tostring(self.RenderLodRatio) or 'engine default') .. ')')
+        return
+    end
+    local n = tonumber(raw:match('%d+'))
+    if n == 0 then n = nil end
+    self.RenderLodRatio = n
+    local applied = (n or 100)
+    local ok = 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if pcall(function() ent:SetLodRatio(applied) end) then ok = ok + 1 end
+    end
+    System.LogAlways('[Mercenary Jeff] merc mesh LOD = ' ..
+        (n and tostring(n) or 'engine default (100)') .. ' on ' .. ok .. ' merc(s). ' ..
+        'Higher drops detail sooner; watch the frame buckets, not the fps counter.')
+end
+
+-- Registered at PLAYER tier in mercenaries_commands.lua (no merc_dev needed).
+
+-- Movement speed + stamina, so the squad can stay with a sprinting player. Dash is the
+-- highest RelativeSpeedLimit the engine has, so raising actual movement speed is the only
+-- lever left. Applied once per entity and tracked here: AddBuff would otherwise stack a
+-- fresh instance every refresh. Generic on purpose: RefreshRenderPins applies KeepUpBuff to
+-- every merc's own soul, and follow.xml's horse lifecycle applies HorseKeepUpBuff (a
+-- separate, stronger buff - 1.3x on the rider was not enough once mounted) to a mounted
+-- merc's HORSE soul instead - riding, the merc's own rms is irrelevant, only the horse's
+-- speed carries him, and vanilla's own horse gear buffs (item_horse_shoe, item_bridle) use
+-- these same rms/mst codes, confirming they apply to horse souls exactly like human ones.
+mercenaries.KeepUpBuff = "e5a10011-2c4b-4e6a-9f01-000000000011"
+mercenaries.HorseKeepUpBuff = "e5a10013-2c4b-4e6a-9f01-000000000013"
+mercenaries.KeepUpBuffOn = true
+mercenaries._keepUpDone = {}
+
+function mercenaries:ApplyKeepUpBuff(ent, buffId)
+    if not (ent and ent.soul and self.KeepUpBuffOn) then return end
+    local k = tostring((ent.this and ent.this.id) or ent.id)
+    if self._keepUpDone[k] then return end
+    local ok = pcall(function() ent.soul:AddBuff(buffId or self.KeepUpBuff) end)
+    if ok then self._keepUpDone[k] = true end
+end
+
+-- The company stops body-checking the player: no shove, no trample, no collision damage.
+-- Nothing in the game exposes "collision damage" as a switch, so the collision itself is
+-- what gets filtered out - the physics classes the player's own body carries are added to
+-- each merc's IGNORE mask, and a collision that never happens deals nothing. Bits are from
+-- the engine's g_PhysicsCollisionClass table; these two are gcc_player_all, the whole of the
+-- player's body. gcc_player_type is deliberately not here - that bit belongs to the
+-- avoidance family, not the physics body. See docs/collision-ghosting.md.
+mercenaries.GccPlayerCapsule = 0x400
+mercenaries.GccPlayerBody    = 0x800
+mercenaries.GccHorse         = 0x10000
+
+mercenaries.GhostMask      = 0x400 + 0x800
+-- A merc's mount ignores horses too: mounted, the body that gets rammed is your horse.
+mercenaries.GhostHorseMask = 0x400 + 0x800 + 0x10000
+-- A class bit of the mod's own, OR'd into every merc body and mount, and put on the PLAYER'S
+-- MOUNT's ignore mask. Bits 10..27 are the game's (the table in docs/collision-ghosting.md);
+-- 28 is free. gcc_horse in the mount mask never stopped a company on foot from running into
+-- a mounted player's horse and bruising it - that contact is the merc's body against the
+-- horse, and the horse carries no class of the player's. Tagging our side and telling his
+-- horse to ignore the tag filters exactly that pair and nothing else.
+mercenaries.GccMercTag     = 0x10000000
+mercenaries.GhostCollision = true
+
+function mercenaries:GhostCollisionOn()
+    if self._ghostLoaded == nil then
+        local v
+        pcall(function() v = self:LoadString("MercGhostCollision") end)
+        self.GhostCollision = (v ~= "0")
+        self._ghostLoaded = true
+    end
+    return self.GhostCollision
+end
+
+-- collisionClass* keys OR bits in, the *UNSET keys clear them, so this is additive in both
+-- directions and never disturbs the classes the entity was physicalised with.
+function mercenaries:ApplyCollisionGhost(ent, mask)
+    if not (ent and ent.SetPhysicParams and PHYSICPARAM_COLLISION_CLASS) then return false end
+    local on = self:GhostCollisionOn()
+    local key = on and "collisionClassIgnore" or "collisionClassIgnoreUNSET"
+    local tag = on and "collisionClass" or "collisionClassUNSET"
+    return pcall(function()
+        ent:SetPhysicParams(PHYSICPARAM_COLLISION_CLASS, { [key] = mask or self.GhostMask, [tag] = self.GccMercTag })
+    end)
+end
+
+-- The player's own horse ignores the company's tag (see GccMercTag). GetHorse answers with
+-- the horse he owns whether or not he is in the saddle, so this reaches it either way; it
+-- is re-run on the 5 s sweep because a new horse, or one re-physicalised by a mount, starts
+-- without it.
+function mercenaries:GhostPlayerMount()
+    local e
+    pcall(function()
+        local h = player and player.human and player.human:GetHorse()
+        e = h and XGenAIModule.GetEntityByWUID(h)
+    end)
+    if not (e and e.id and e.SetPhysicParams and PHYSICPARAM_COLLISION_CLASS) then return false end
+    if self._ghostMountId ~= e.id then
+        self._ghostMountId = e.id
+        System.LogAlways("[Mercenary Jeff] player's horse " .. tostring(e:GetName()) .. " now "
+            .. (self:GhostCollisionOn() and "ignores" or "collides with") .. " the company's bodies")
+    end
+    local key = self:GhostCollisionOn() and "collisionClassIgnore" or "collisionClassIgnoreUNSET"
+    return pcall(function() e:SetPhysicParams(PHYSICPARAM_COLLISION_CLASS, { [key] = self.GccMercTag }) end)
+end
+
+-- Horses are spawned by follow.xml's mount lifecycle, not by any Lua spawn path, so they are
+-- caught by name off the same query the orphan sweep already pays for.
+function mercenaries:GhostCollisionHorses()
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
+    if not pp then return 0 end
+    local n = 0
+    local horses = System.GetPhysicalEntitiesInBoxByClass(pp, 150.0, "Horse")
+    for _, h in pairs(horses or {}) do
+        local nm = h and h.GetName and h:GetName() or ""
+        if string.find(nm, 'MercenaryHorse_', 1, true) then
+            if self:ApplyCollisionGhost(h, self.GhostHorseMask) then n = n + 1 end
+        end
+    end
+    return n
+end
+
+function mercenaries:GhostCollisionSet(on)
+    self.GhostCollision = on and true or false
+    self._ghostLoaded = true
+    pcall(function() self:SaveString("MercGhostCollision", self.GhostCollision and "1" or "0") end)
+    local n = 0
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if self:ApplyCollisionGhost(ent) then n = n + 1 end
+    end
+    n = n + self:GhostCollisionHorses()
+    self._ghostMountId = nil
+    self:GhostPlayerMount()
+    System.LogAlways('[Mercenary Jeff] merc collision with the player '
+        .. (self.GhostCollision and 'OFF - they pass through you' or 'ON - they are solid again')
+        .. ' (' .. n .. ' body/mount)')
+end
+
+-- Re-applied on a slow tick as well as at spawn: equipping clothing, a save/load, or anything
+-- that rebuilds the entity can drop these, and the whole symptom is something undoing render
+-- state behind us. The keep-up buff rides along on the same sweep so newly hired mercs and
+-- reloaded saves pick it up without another loop.
+function mercenaries:RefreshRenderPins()
+    for _, ent in pairs(self.ActiveMercs or {}) do
+        if self.RenderPin then self:EnsureMercIsAlwaysRendered(ent) end
+        self:ApplyKeepUpBuff(ent)
+        if self:GhostCollisionOn() then self:ApplyCollisionGhost(ent) end
+    end
+    if self:GhostCollisionOn() then self:GhostPlayerMount() end
+end
+
+-- Turning the pin off now actually un-pins the live squad, so this is a usable A/B:
+-- pinned mercs are never distance-culled and never LOD-reduced, which is the mod's
+-- largest standing per-merc engine cost. 100 is the entity default ratio (never pass 0,
+-- that is the MINIMUM - see the note at the top of this file). docs/performance.md.
+function mercenaries:RenderPinSet(v)
+    self.RenderPin = (tostring(v or ''):match('1') ~= nil)
+    if self.RenderPin then
+        self:RefreshRenderPins()
+        System.LogAlways('[Mercenary Jeff] render pin ON')
+    else
+        local n = 0
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            if pcall(function() ent:SetViewDistRatio(100) end) then n = n + 1 end
+        end
+        System.LogAlways('[Mercenary Jeff] render pin OFF - restored default view distance on '
+                         .. n .. ' merc(s); they can be distance-culled again')
+    end
+end
+
+-- Registered at PLAYER tier in mercenaries_commands.lua (no merc_dev needed).
+-- Runtime NPCs whose RECORDS live in plain Lua and therefore die with every load, while the
+-- ENTITIES are serialised into the save and come back without them. Nothing else ever removes
+-- one of these: DespawnMerc fires only for a roster member who dies THIS session, the patrol
+-- sweep is a 600m box, and the quartermaster sweep a 200m one. Measured across one playline:
+-- 10 -> 41 -> 50 SpawnedFriend entities baked into consecutive saves of a squad that never
+-- exceeded 8 - plus up to 27 patrolmen - every one of them respawned on every load as a full,
+-- unmanaged NPC. That is the population the whole 2026-08 lag hunt could not see, because
+-- neither MercCount nor ActiveMercs counts them. Swept once per load, from the full-class scan
+-- this function already pays for. Their owners respawn what is genuinely wanted right after:
+-- camp restore brings back the quartermaster and tower archers at +4s, patrols re-roll fresh.
+mercenaries.LoadSweepPrefixes = {
+    "SpawnedPatrolman_", "SpawnedPatrol_", "SpawnedTower_archer_",
+    "MercQuartermaster_", "SpawnedEnemy_", "SpawnedRenegade_", "SpawnedFoe_",
+}
+
+function mercenaries:IsLoadSweepName(name)
+    if not name or name == "" then return false end
+    for _, p in ipairs(self.LoadSweepPrefixes) do
+        if string.find(name, p, 1, true) then return true end
+    end
+    return false
+end
+
+-- Taken SYNCHRONOUSLY at the head of the load chain, before any owner rebuilds anything:
+-- the set of mod NPCs the save itself carried. The sweep two seconds later removes only
+-- these. Measured 2026-09-04: Aleksej's beat camp is rebuilt from its Skald wake token
+-- BEFORE the 2000ms sweep timer fires, and the sweep - matching "SpawnedEnemy_" by name -
+-- deleted the freshly spawned looters and leader as stale ("removed 6 stale mod NPC(s)"
+-- three lines after "camp up ... 4 standing"). Empty camp, tower archers descending onto
+-- cleared ground, and a leader judged down five ticks after the player arrived. The
+-- sweep's own comment assumed every owner respawns AFTER it; the wake path does not.
+function mercenaries:LoadSweepSnapshot()
+    self._loadSweepIds = {}
+    local n = 0
+    pcall(function()
+        for _, e in pairs(System.GetEntitiesByClass('NPC') or {}) do
+            local name = e and e:GetName() or ""
+            if self:IsLoadSweepName(name) or string.find(name, 'SpawnedFriend')
+               or string.find(name, 'MercenaryCustomCompanion') then
+                self._loadSweepIds[e.id] = true
+                n = n + 1
+            end
+        end
+    end)
+    System.LogAlways('[Mercenary Jeff] load snapshot: ' .. n .. ' mod NPC(s) carried by the save')
+end
+
+-- Ids a live system owns right now. Belt and braces over the snapshot: a system that
+-- respawned its men before the sweep is exempt even if the snapshot somehow missed them.
+function mercenaries:LoadSweepProtected()
+    local keep = {}
+    local function add(id) if id then keep[id] = true end end
+    pcall(function() for id in pairs(self.KeepAcrossLoad or {}) do add(id) end end)
+    pcall(function() for _, id in ipairs((self.AlxCamp and self.AlxCamp.ids) or {}) do add(id) end end)
+    pcall(function() add(self.AlxLodgingId) end)
+    for _, S in ipairs({ self.BCQ_KK, self.BCQ_BO }) do
+        pcall(function()
+            for _, id in ipairs((S and S.bandits) or {}) do add(id) end
+            add(S and S.leaderId)
+        end)
+    end
+    pcall(function()
+        for _, rec in pairs(self.LivePatrols or {}) do
+            for _, m in ipairs(rec.men or {}) do add(type(m) == "table" and m.id or m) end
+        end
+    end)
+    pcall(function()
+        for _, list in ipairs({ self.RBQ and self.RBQ.foot, self.RBQ and self.RBQ.archers }) do
+            for _, id in ipairs(list or {}) do add(id) end
+        end
+    end)
+    return keep
+end
+
+function mercenaries:RebuildMercCache()
+    self.ActiveMercs = {}
+    local carried = self._loadSweepIds or {}
+    local protected = self:LoadSweepProtected()
+    -- Dismissed no longer skips the scan: the scan is also the load sweep, and a dismissed
+    -- company is exactly the case with the most stale entities to remove - SetState pays the
+    -- men off but the engine has already saved them, so they came back with this load.
+    local dismissed = _G.MercenariesDismissed
+    if dismissed then
+        System.LogAlways('[Mercenary Jeff] Mercs dismissed - rebuilding nothing, sweeping instead.')
+    end
+    local stale = {}
+    local ents = System.GetEntitiesByClass('NPC')
+    if ents then
+        for _, e in pairs(ents) do
+            local name = e and e:GetName() or ""
+            if string.find(name, 'SpawnedFriend') or string.find(name, 'MercenaryCustomCompanion') then
+                -- Only cache entities that are actually alive
+                if not dismissed and self:IsAliveAndWell(e, true) then
+                    self.ActiveMercs[name] = e
+                    mercenaries:EnsureMercIsAlwaysRendered(e)
+                    -- Restore the interaction button that was injected at hire time.
+                    -- Without this, GetActions is never overridden after a save/load.
+                    self:InjectInteraction(e)
+                    self:EquipMercenary(e, _G.MercCurrentOutfit or 1)
+                    self:EquipMercenaryWeapon(e, _G.MercCurrentWeapon or 1)
+                else
+                    -- A corpse from a previous session, or a man who was paid off before the
+                    -- save was written. Neither has any owner left to remove him. Same rule
+                    -- as below: only if the save carried him.
+                    if not self._loadSweep or carried[e.id] then stale[#stale + 1] = e.id end
+                end
+            elseif self._loadSweep and self:IsLoadSweepName(name) then
+                -- Only what the save carried, and nothing a live owner has claimed since.
+                if carried[e.id] and not protected[e.id] then
+                    stale[#stale + 1] = e.id
+                end
+            end
+        end
+    end
+    self._loadSweep = false
+    if #stale > 0 then
+        for _, id in ipairs(stale) do
+            pcall(function() System.RemoveEntity(id) end)
+        end
+        System.LogAlways('[Mercenary Jeff] load sweep: removed ' .. #stale ..
+                         ' stale mod NPC(s) the save carried with no record behind them')
+    end
+    -- Always recount after rebuild so MercCount reflects reality
+    local c = 0
+    for _ in pairs(self.ActiveMercs) do c = c + 1 end
+    _G.MercCount = c
+    System.LogAlways('[Mercenary Jeff] Merc cache rebuilt. Active mercs: ' .. tostring(_G.MercCount))
+end
+function mercenaries.RebuildMercCacheDelayed()
+    -- Armed only on the LOAD path: a mid-session rebuild (if one is ever added) must not
+    -- delete live encounters, only the load may treat recordless NPCs as stale.
+    mercenaries._loadSweep = true
+    mercenaries:RebuildMercCache()
+    mercenaries:Recount()
+    -- ActiveMercs now holds whatever the engine really restored, which is the only moment
+    -- the roster can tell how many men the world is short. See mercenaries_roster.lua.
+    if mercenaries.RosterOnLoad then pcall(function() mercenaries:RosterOnLoad() end) end
+    mercenaries:Recount()
+    -- The roster is only now known, so this is the first moment a torch left burning by the
+    -- previous session can be taken off anyone. See CampTorchOnLoad.
+    if mercenaries.CampTorchOnLoad then pcall(function() mercenaries:CampTorchOnLoad() end) end
+end
+
+-- How long a dead merc's body stays on the ground before it is removed. He is off the
+-- roster the moment he dies (RebuildMercCache never re-adopts a corpse, and the load sweep
+-- clears any the save carried), so this is purely how long the battlefield keeps its dead.
+mercenaries.MercCorpseSecs = 600
+function mercenaries:PruneMercCache()
+    for name, ent in pairs(self.ActiveMercs) do
+        if not self:IsAliveAndWell(ent, true) then
+            self.ActiveMercs[name] = nil
+            self:MercDropClaim(ent.this and ent.this.id or ent.id)
+            Script.SetTimerForFunction((self.MercCorpseSecs or 600) * 1000, "mercenaries.DespawnMerc", ent.id)
+        elseif not self:IsCombatViable(ent) then
+            -- Knocked out: keeps his roster slot (a false answer above schedules a
+            -- despawn), but he is not fighting and must not hold a swarm-cap slot.
+            self:MercDropClaim(ent.this and ent.this.id or ent.id)
+        end
+    end
+end
+
+-- Combat claims are released by the combat modules' OnFail, which does not run
+-- when an NPC simply dies or is streamed out. The load tables are rebuilt from
+-- these every pass, so a ghost claim permanently eats a swarm-cap slot and the
+-- caps quietly stop binding - one of the ways a fighter ends up with no target
+-- and stands there. Swept from LowPriorityMonitorLoop.
+function mercenaries:PruneCombatClaims()
+    for k, w in pairs(self.EnemyClaimWuid or {}) do
+        local live = false
+        pcall(function()
+            local e = XGenAIModule.GetEntityByWUID(w)
+            live = (e ~= nil) and self:IsAliveAndWell(e, true)
+        end)
+        if not live then
+            self.EnemyTargetOf[k] = nil
+            self.EnemyClaimWuid[k] = nil
+            if self.ForcedTargetOf then self.ForcedTargetOf[k] = nil end
+        end
+    end
+
+    -- ...and the MERC side of the same bookkeeping. Nothing else prunes it: a claim is
+    -- released by combat_melee's OnFail, which never runs for a merc who was KILLED
+    -- holding one - so his entry sat in MercTargetOf for the rest of the session,
+    -- counting against that enemy's swarm cap and quietly benching a living man.
+    --
+    -- Both keys here are tostring(wuid), not wuids, so they cannot be resolved back to
+    -- entities; the live set is built from ActiveMercs instead. The TARGET side needs no
+    -- pruning of its own - a claim on a dead enemy is released by the OnFail of the merc
+    -- holding it, and that merc is alive by construction.
+    if self.MercSetClaim then
+        local live, ents = {}, {}
+        for _, ent in pairs(self.ActiveMercs or {}) do
+            local w = ent and (ent.this and ent.this.id or ent.id)
+            if w and self:IsAliveAndWell(ent, true) then
+                live[tostring(w)] = true
+                ents[tostring(w)] = ent
+            end
+        end
+        local now = 0
+        pcall(function() now = System.GetCurrTime() or 0 end)
+        for k in pairs(self.MercTargetOf or {}) do
+            if not live[k] then
+                self:MercSetClaim(k, nil)
+            else
+                -- A LIVING merc can hold a claim for ever too. OnFail is the only thing that
+                -- releases one, and it does not run when his tree is evicted by another
+                -- interrupt, swallowed by camp_actor, or simply replaced by the load of a
+                -- save. That single orphaned entry is enough to hold EnemyAlerted true - see
+                -- the MercTargetOf clause in UpdateEnemyCache - which pins the shared scan at
+                -- EnemyAlertRadius for the rest of the session.
+                --
+                -- Time-boxed rather than immediate: a merc crossing open ground to a target
+                -- is legitimately not in combat danger yet, and evicting him there would
+                -- cancel every long approach. MercClaimGraceSecs is well past any of them.
+                local at = (self.MercClaimAt or {})[k]
+                if at and (now - at) > (self.MercClaimGraceSecs or 45.0) then
+                    local fighting = false
+                    pcall(function() fighting = ents[k].soul:IsInCombatDanger() end)
+                    if not fighting then self:MercSetClaim(k, nil) end
+                end
+            end
+        end
+    end
+end
+
+-- Dot syntax on purpose: invoked by name from Script.SetTimerForFunction,
+-- which passes the entity id as the FIRST argument. With colon syntax the
+-- id would land in `self` and entID would always be nil (corpses would
+-- never despawn).
+function mercenaries.DespawnMerc(entID)
+    if entID then
+        System.RemoveEntity(entID)
+    end
+end
+
+-- Internal helper — counts entries in any table
+function mercenaries:_TableCount(t)
+    local c = 0
+    for _ in pairs(t) do c = c + 1 end
+    return c
+end
+
+-- Recount using the already-pruned cache — no world scan needed
+function mercenaries:Recount()
+    self:PruneMercCache()
+    local c = 0
+    for _ in pairs(self.ActiveMercs) do c = c + 1 end
+    _G.MercCount = c
+end
+
+-- Helper function to identify a mercenary's tier based on their GUID
+function mercenaries:GetMercTier(soulGuidStr)
+    if not soulGuidStr then return "weak" end
+
+    for tierName, guidList in pairs(self.Souls) do
+        for _, guid in ipairs(guidList) do
+            if string.find(soulGuidStr, guid) then
+                return tierName
+            end
+        end
+    end
+    return "weak" -- Failsafe default for confirmed mercs
+end
+
+-- Parses tier straight from an entity's spawn name (every merc/archer/
+-- renegade is spawned as "..._<tier>_..." - see Hire/HireArcher/
+-- SpawnRenegade), instead of matching against a soul GUID list. Shared by
+-- the archer equipment code and the camp housing-tier assignment.
+function mercenaries:GetTierFromName(name)
+    name = name or ''
+    if string.find(name, '_medium_') then return "medium" end
+    if string.find(name, '_strong_') then return "strong" end
+    return "weak"
+end
+
+-- Very important helper function, used in merc spawning and emergency teleport
+function mercenaries:GetSafeSpawnPosition(pe, distance)
+    if not pe then return nil, nil end
+    distance = distance or 3
+
+    local playerPos = pe:GetWorldPos()
+    local playerDir = pe:GetDirectionVector()
+    local playerRot = pe:GetAngles()
+
+    -- Guard: if direction is zero (cutscene, transition), bail out
+    if not playerDir or (playerDir.x == 0 and playerDir.y == 0) then
+        return nil, nil
+    end
+
+    local eyePos = { x = playerPos.x, y = playerPos.y, z = playerPos.z + 1.6 }
+    local rayDistance = distance + 2
+    local hitTable = {}
+    local numRays = 10
+    local arcAngle = 100
+    local startAngle = -arcAngle / 2
+    local angleStep = arcAngle / (numRays - 1)
+    local bestDir = nil
+    local bestDist = -1
+    local backDir = { x = -playerDir.x, y = -playerDir.y, z = -playerDir.z }
+
+    for i = 0, numRays - 1 do
+        local angleOffset = startAngle + (i * angleStep)
+        local rotatedDir = VectorUtils.Rotate2D(backDir, angleOffset)
+        if rotatedDir then
+            local checkVec = VectorUtils.Scale(rotatedDir, rayDistance)
+            -- GroundMask: terrain, static geometry and rigid bodies - so a parked cart or a
+            -- woodpile blocks a bearing - but never ent_living, so a merc or a horse standing
+            -- in the way does not, which is what this comment always meant to say.
+            -- Param 5 is a skip-entity ID, not an entity table. Passing the table made
+            -- the engine log a parameter-type warning per ray AND ignore the skip, so the
+            -- ray could hit the very entity it was cast from. Vanilla passes self.id.
+            local hits = Physics.RayWorldIntersection(eyePos, checkVec, 2,
+                self.GroundMask and self:GroundMask() or (ent_terrain + ent_static),
+                (pe and pe.id) or nil, nil, hitTable)
+
+            local clearDist = rayDistance
+            if hits > 0 and hitTable[1] and hitTable[1].dist then
+                clearDist = hitTable[1].dist
+            end
+
+            -- Prefer directions more directly behind the player
+            local anglePenalty = (math.abs(angleOffset) / arcAngle) * 0.5
+            local score = clearDist * (1.0 - anglePenalty)
+
+            if score > bestDist then
+                bestDist = score
+                bestDir = rotatedDir
+            end
+        end
+    end
+
+    -- Guard: no valid direction found
+    if not bestDir then return nil, nil end
+
+    -- Calculate spawn distance: pull back from geometry, don't exceed requested distance
+    local spawnDist
+    if bestDist < rayDistance then
+        -- Clamp: stay 0.5m clear of the nearest hit, but don't exceed requested distance
+        spawnDist = math.max(math.min(bestDist - 0.5, distance), 0.8)
+    else
+        spawnDist = distance
+    end
+
+    local spawnPos = {
+        x = playerPos.x + bestDir.x * spawnDist,
+        y = playerPos.y + bestDir.y * spawnDist,
+        z = playerPos.z,
+    }
+
+    -- Ground snap. This used to take the first surface a ray met 5m above the player's own
+    -- height, which is fine in a field and wrong next to a building: a one-storey roof sits
+    -- inside that 5m, so the ray found the roof and the man was put on it. That is where
+    -- the teleported stragglers were ending up. GroundSnap looks at the whole column and
+    -- answers with the ground.
+    --
+    -- When the chosen bearing turns out to be blocked by something standing on the ground -
+    -- a cart, a wall, a house - walk back in along it: the bearing was picked for clearance
+    -- at chest height, which says nothing about what is under foot further out. If the whole
+    -- bearing is blocked, keep the outermost answer, which is at least at GROUND level
+    -- rather than on top of the obstruction. Never the player's own spot: that is known-good
+    -- ground but it is also where he is standing, and a man put there is inside him.
+    local step = math.max(0.8, spawnDist / 4)
+    local d = spawnDist
+    local first = true
+    while self.GroundSnap and d >= 0.8 - 1e-6 do
+        local cand = { x = playerPos.x + bestDir.x * d, y = playerPos.y + bestDir.y * d, z = playerPos.z }
+        local g, clear = self:GroundSnap(cand)
+        if g and clear then
+            spawnPos = g
+            break
+        end
+        -- Nothing open along the bearing yet: keep the outermost ground-level answer, which
+        -- still beats the top of whatever is in the way.
+        if g and first then spawnPos = g end
+        first = false
+        d = d - step
+    end
+
+    return spawnPos, playerRot
+end
+
+-- Where men hired INDOORS muster.
+-- Full write-up: docs/spawning-npcs.md "Spawning while the player is indoors".
+--
+-- GetSafeSpawnPosition only looks ~5m behind the player, so hiring from an
+-- innkeeper put the squad in the tavern with him - and its ground snap starts 5m
+-- above his feet, which inside a building is usually above the ceiling, so the
+-- downward ray hits the roof and the men were placed on top of it. That is the
+-- "they don't spawn at all" report: they did spawn, over the player's head.
+--
+-- So when the player is under a roof the muster point moves outside: rings of
+-- bearings at growing radius, keeping the first candidate with open sky over it
+-- and ground a man can stand on. Rejecting an indoor candidate costs ONE ray
+-- (the roof probe), so the inside-the-building half of the search is cheap; only
+-- open-sky candidates pay for CampValidateSpot's nine-ray footprint check.
+--
+-- The two checks use DIFFERENT reference heights on purpose:
+--   * the roof probe is deliberately player-relative. The question it answers is
+--     "is there still something over my head at this bearing", i.e. have we left
+--     the building, and that is measured from the floor he is standing on.
+--   * the standability check is candidate-relative, against the ground actually
+--     under the candidate. Hired upstairs the street is several metres down, and
+--     judging it against his floor would reject the whole street.
+-- The cost of the player-relative roof probe is a slope bias: open ground more
+-- than CampRoofDetectHeight (3m) ABOVE his feet reads as roofed and is skipped.
+-- That is the safe direction to err in - it drops some bearings on hilly ground,
+-- and there are 16 per ring - and it is not worth "fixing" by snapping first,
+-- because a snap taken indoors lands on the roof and would make a rooftop
+-- candidate look like open sky, which is the bug this whole function exists for.
+mercenaries.OutdoorAnchorMin   = 4.0    -- first ring (still inside, but cheap to reject)
+-- Far enough to clear a tavern common room, deliberately no further: men put down 30m
+-- away can end up round the back of the building with an awkward path back, and the
+-- ring search returns the NEAREST hit anyway, so a large cap only changes the
+-- give-up case.
+mercenaries.OutdoorAnchorMax   = 20.0   -- give up past this and let the caller fall back
+mercenaries.OutdoorAnchorStep  = 2.0
+mercenaries.OutdoorAnchorRays  = 16     -- bearings per ring
+mercenaries.OutdoorAnchorDrop  = 10.0   -- ...but never this far above/below the player (cliff, wrong storey)
+mercenaries.OutdoorAnchorTries = 24     -- footprint checks before giving up (bounds the raycast burst)
+mercenaries.HireIndoorOffset   = 2.0    -- enclosed interior: how far behind the player to place them
+
+-- Returns spot, underRoof:
+--   nil, false  the player is outdoors - leave the normal placement alone
+--   pos, true   he is indoors and this is the open ground to muster on
+--   nil, true   he is indoors and there is no open ground within reach
+function mercenaries:FindOutdoorSpawnAnchor(from)
+    if not (from and self.CampDetectRoof) then return nil, false end
+    local roofed = false
+    pcall(function() roofed = self:CampDetectRoof(from) and true or false end)
+    if not roofed then return nil, false end
+
+    local ok, res = pcall(function()
+        local tries, ring = 0, 0
+        local r = self.OutdoorAnchorMin
+        while r <= self.OutdoorAnchorMax + 1e-6 do
+            ring = ring + 1
+            -- Half-step alternate rings so the samples never line up in spokes,
+            -- which would keep probing the same wall all the way out.
+            local base = (ring % 2 == 0) and (math.pi / self.OutdoorAnchorRays) or 0
+            for k = 0, self.OutdoorAnchorRays - 1 do
+                local a  = base + (k / self.OutdoorAnchorRays) * 2 * math.pi
+                local cx = from.x + math.cos(a) * r
+                local cy = from.y + math.sin(a) * r
+                if not self:CampDetectRoof({ x = cx, y = cy, z = from.z }) then
+                    local g = self:CampSnapToGround({ x = cx, y = cy, z = from.z })
+                    if g and math.abs(g.z - from.z) <= self.OutdoorAnchorDrop then
+                        tries = tries + 1
+                        local valid = self:CampValidateSpot({ x = cx, y = cy, z = g.z }, g.z,
+                                                            self.CampMercFootprint)
+                        if valid then return { x = cx, y = cy, z = g.z } end
+                        if tries >= self.OutdoorAnchorTries then return nil end
+                    end
+                end
+            end
+            r = r + self.OutdoorAnchorStep
+        end
+        return nil
+    end)
+
+    return (ok and res) or nil, true
+end
+
+-- The single muster point every hire path uses. Returns nil only when there is no
+-- player to measure from.
+--
+--   { pos =, rot =, outside =, snap = }
+--
+-- `snap = false` means "place them exactly here, do NOT ground-snap or validate".
+-- That is the enclosed case - a mine, a keep, a cellar - where the player is under
+-- a roof and no open ground is within reach. Falling through to the normal
+-- placement there is what put men on the roof: both CampSnapToGround and
+-- CampValidateSpot probe from above, so indoors they find the building's roof
+-- rather than the floor the player is standing on. His own z is the one height we
+-- know is a real floor, so we use it verbatim.
+function mercenaries:HireSpawnAnchor()
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
+
+    local base, rot = self:GetSafeSpawnPosition(player, 3)
+    if not rot then pcall(function() rot = player and player:GetAngles() end) end
+    if not pp then
+        if not base then return nil end
+        return { pos = base, rot = rot, outside = false, snap = true }
+    end
+
+    local out, underRoof = self:FindOutdoorSpawnAnchor(pp)
+    -- Logged because which of the three branches fired is otherwise invisible, and the
+    -- two indoor ones move men somewhere the player is not looking.
+    if out then
+        System.LogAlways(string.format(
+            '[Mercenaries] hire indoors - mustering outside at %.1fm',
+            math.sqrt((out.x - pp.x) ^ 2 + (out.y - pp.y) ^ 2)))
+        return { pos = out, rot = rot, outside = true, snap = true }
+    end
+    if not underRoof then
+        if not base then return nil end
+        return { pos = base, rot = rot, outside = false, snap = true }
+    end
+    System.LogAlways('[Mercenaries] hire indoors with no open ground in reach - ' ..
+                     'mustering on the player\'s own floor, unvalidated')
+
+    -- Enclosed interior. This spot gets NO validation - every ground probe in the mod
+    -- fires from above and would find the roof - so it has to be somewhere we already
+    -- know is good rather than somewhere merely plausible.
+    --
+    -- The player's own feet are the only such point: he is standing on walkable floor,
+    -- on the navmesh, by definition. GetSafeSpawnPosition's x/y is NOT good enough on
+    -- its own - it picks a bearing by a SCORE (clear distance scaled by an angle
+    -- penalty), not by true clearance, so in a cramped room its 0.5m margin can be
+    -- optimistic, and an unvalidated spawn there can put a man inside geometry or off
+    -- the mesh. An NPC off the navmesh cannot walk at all, which reads as "he never
+    -- follows" rather than as a placement bug.
+    --
+    -- So: keep GetSafeSpawnPosition's BEARING (behind the player, away from the wall it
+    -- liked least) but only step HireIndoorOffset along it. A couple of metres from a
+    -- known-good point is as safe as placement gets without a navmesh query.
+    local ox, oy = 0, 0
+    if base then
+        local dx, dy = base.x - pp.x, base.y - pp.y
+        local L = math.sqrt(dx * dx + dy * dy)
+        if L > 1e-3 then
+            local r = math.min(L, self.HireIndoorOffset)
+            ox, oy = (dx / L) * r, (dy / L) * r
+        end
+    end
+    return {
+        pos  = { x = pp.x + ox, y = pp.y + oy, z = pp.z },
+        rot  = rot, outside = false, snap = false,
+    }
+end
+
+-- Snap a position onto valid, obstacle-free ground: CampValidateSpot rejects
+-- tree/rock/roof tops, and if blocked we spiral out in `step` rings up to
+-- `maxRadius` for a clear tile. Pass the squad's z as `refZ` so "valid" means
+-- near their level, not a ledge above. Falls back to a plain snap.
+-- maxTries bounds the WORST case. Each candidate costs up to 9 physics raycasts via
+-- CampValidateSpot, and the full 3.0m/0.5m spiral is 132 candidates - 1,188 rays for a
+-- single call, synchronous, and 19 call sites used the bare defaults. The burst callers
+-- are the problem: a camp raid places up to 14 units and an ambush scene 12, all in one
+-- frame. Keeping the fine 0.5m step preserves precision near the origin, where almost
+-- every call succeeds; the budget only truncates the hopeless case (dense forest), which
+-- then falls through to the plain ground snap below exactly as an exhausted spiral did.
+-- See docs/performance.md.
+function mercenaries:FindValidGround(pos, refZ, maxRadius, step, maxTries)
+    if not pos then return pos, false end
+    refZ = refZ or pos.z
+    maxRadius = maxRadius or 3.0
+    step = step or 0.5
+    maxTries = maxTries or 40
+    local foot = self.CampMercFootprint or 0.6
+    local tries = 0
+
+    -- The validator's edge test is the one part of it that fires rays of its own, so the
+    -- spiral runs without it and the winner pays for it once. A candidate that passes
+    -- everything else and then turns out to be the top of a log is rejected here and the
+    -- spiral carries on, which is the same answer at a fraction of the cost.
+    local function try(x, y)
+        if tries >= maxTries then return nil end
+        tries = tries + 1
+        local okv, v, gz = pcall(function()
+            local valid, groundZ = self:CampValidateSpot({ x = x, y = y, z = refZ }, refZ, foot, true)
+            return valid, groundZ
+        end)
+        if not (okv and v) then return nil end
+        if self.GroundEdgeCheck and self.GroundGuard
+           and self:GroundEdgeCheck(x, y, gz, self.GroundEdgeFast, self.GroundEdgeFast) then
+            self:GroundNote(string.format('%.1f, %.1f is the top of something - looking further out', x, y))
+            return nil
+        end
+        return { x = x, y = y, z = gz }
+    end
+
+    local hit = try(pos.x, pos.y)
+    if hit then return hit, true end
+
+    local r = step
+    while r <= maxRadius + 1e-6 and tries < maxTries do
+        local n = math.max(8, math.floor((2 * math.pi * r) / step))
+        for k = 0, n - 1 do
+            local a = (k / n) * 2 * math.pi
+            hit = try(pos.x + math.cos(a) * r, pos.y + math.sin(a) * r)
+            if hit then return hit, true end
+            if tries >= maxTries then break end
+        end
+        r = r + step
+    end
+
+    -- Nothing clear nearby: best-effort plain snap. The second return value says the search
+    -- failed, so a caller that can afford to wait (the straggler teleport) can decline to
+    -- put a man down here rather than drop him under a house. Callers that ignore it are no
+    -- worse off than before - the snap is at ground level, never on an object's roof.
+    local ok, snapped = pcall(self.CampSnapToGround, self, { x = pos.x, y = pos.y, z = refZ })
+    if ok and snapped then return snapped, false end
+    return pos, false
+end
+
+-- Check that an entity is alive and well (engine death/unconscious + health).
+function mercenaries:IsAliveAndWell(ent, allowUnconscious)
+    if not ent or not ent.actor or not ent.soul then return false end
+
+    if ent.actor.IsDead and ent.actor:IsDead() then return false end
+    if not allowUnconscious and ent.actor:IsUnconscious() then return false end
+
+    -- pcall(method, obj, arg) rather than pcall(function() ... end): the closure form
+    -- allocates on every call, and this is the single most-called predicate in the mod -
+    -- once per nearby NPC per combat scan, so its garbage scales with crowd density.
+    local ok, hp = pcall(ent.soul.GetState, ent.soul, 'health')
+    if not ok or hp == nil or hp <= 0 then return false end
+
+    return true
+end
+
+-- A downed man is not an opponent. Every COMBAT path asks this; roster and
+-- bookkeeping paths keep IsAliveAndWell(ent, true), because "is he still on the
+-- books" is a different question - PruneMercCache schedules a despawn on a false
+-- answer, so a knocked-out merc must still read as alive there.
+-- See docs/combat-target-selection.md.
+function mercenaries:IsCombatViable(ent)
+    return self:IsAliveAndWell(ent, false)
+end
+
+-- A named companion. They are spawned as "SpawnedFriend_hero_<soul>_<n>" precisely so
+-- that every system keying on SpawnedFriend picks them up for free - camp membership,
+-- the look-at prompts, formations, the LOD boost, orders, the lot - exactly the trick
+-- the archers use. `_hero_` then marks the two things they must NOT share: they keep
+-- their own gear rather than the squad's, and they never talk.
+--
+-- "MercenaryCustomCompanion" was the old name. Saves taken before the rename still hold
+-- entities called that, so it is still recognised here and nowhere else.
+mercenaries.HeroNameMark = "_hero_"
+mercenaries.HeroLegacyPrefix = "MercenaryCustomCompanion"
+
+function mercenaries:IsHeroName(name)
+    if not name or name == '' then return false end
+    return string.find(name, self.HeroNameMark, 1, true) ~= nil
+        or string.find(name, self.HeroLegacyPrefix, 1, true) ~= nil
+end
+
+function mercenaries:IsHero(ent)
+    return ent ~= nil and self:IsHeroName(ent.GetName and ent:GetName() or '')
+end
+
+-- The entity-level twin of IsFemaleName (mercenaries_female.lua), for the same reason IsHero
+-- exists next to IsHeroName: the bark queue and the camp-chat pairing hold entities, not names.
+function mercenaries:IsFemale(ent)
+    return ent ~= nil and self.IsFemaleName ~= nil
+        and self:IsFemaleName(ent.GetName and ent:GetName() or '')
+end
+
+-- Identify whether an entity is a mercenary, returning its type or nil.
+function mercenaries:GetMercType(ent)
+    if not ent then return nil end
+    local name = ent:GetName() or ''
+
+    if self:IsHeroName(name) then return "hero" end
+    if string.find(name, 'SpawnedFriend') then
+        if string.find(name, '_archer_') then return "archer" end
+        return "regular"
+    end
+
+    return nil -- Not a mercenary
+end
+
+-- ==== putting a merc somewhere, safely ====
+--
+-- NEVER SetPos A RIDER, AND NEVER DISMOUNT HIM TO DO IT. Both are silently wrong and one of
+-- them crashes:
+--
+--   * the horse is a separate entity and does not follow him, and follow.xml's lifecycle
+--     re-finds MercenaryHorse_<name> BY NAME anywhere in the world and ForceMounts him back
+--     onto it - so the teleport is undone inside one 500ms poll;
+--   * ForceDismount followed by RemoveEntity on the horse crashed the game (2026-09-19).
+--
+-- Move the HORSE instead and the rider comes along attached to it, which is how the player's
+-- own mount travels with him. A man on foot is moved himself, and any horse of his is brought
+-- along beside him so the ForceMount-by-name can only ever land him where he already is.
+-- Nothing is dismounted and nothing is destroyed. See docs/travel-detection.md.
+function mercenaries:MercPlaceAt(ent, spot)
+    if not (ent and spot) then return false end
+    local mounted, h = false, nil
+    pcall(function() mounted = ent.human and ent.human.IsMounted and ent.human:IsMounted() or false end)
+    pcall(function() h = self:PerfEntityByName("MercenaryHorse_" .. tostring(ent:GetName())) end)
+    local ok = false
+    if mounted and h then
+        pcall(function() h:SetPos(spot); ok = true end)
+    else
+        pcall(function() ent:SetPos(spot); ok = true end)
+        if h then
+            pcall(function()
+                h:SetPos({ x = spot.x + (math.random() - 0.5) * 4.0,
+                           y = spot.y + (math.random() - 0.5) * 4.0, z = spot.z })
+            end)
+        end
+    end
+    return ok
+end
+
+-- ==== "is he actually going anywhere?" ====
+--
+-- What is certainly true while any full-screen menu is open - the map, the inventory, a
+-- level-up screen - is that Henry does not move. In those windows the FOLLOW trees stop
+-- stamping while the SCHEDULER trees keep ticking, so every man reads as "far, stationary,
+-- follow tree silent" at once, and the teleporter, the follow watch and the ghost-latch
+-- sweep all fire on the whole company every pass for as long as the menu is up. Measured
+-- across one 67s map window: 1,140 hauls (each a FindValidGround raycast plus a SetPos) and
+-- 713 evict-and-re-fires, ~30 and ~11 per second. That is the fast-travel stutter.
+--
+-- None of the three is worth anything while he is standing still - a straggler is not a
+-- problem until the player goes somewhere, and re-firing a follow tree against a frozen
+-- world cannot make it run - and all three want the same question, so it is asked once here.
+-- Same idiom and the same reasoning as PatrolPlayerMoving, which shipped for exactly this in
+-- the patrol tick (docs/travel-detection.md, "The window no travel detector can close").
+--
+-- Answers TRUE with no history, so the first pass after a load behaves exactly as before.
+mercenaries.PlayerGoMinDist = 6.0    -- ground covered before he counts as under way
+mercenaries.PlayerGoWindow  = 8.0    -- ...and how long that answer stands after he stops
+
+function mercenaries:PlayerGoingSomewhere()
+    local pp
+    pcall(function() pp = player and player:GetWorldPos() end)
+    if not pp then return true end
+    local now = 0
+    pcall(function() now = System.GetCurrTime() or 0 end)
+    local a = self._pgoPos
+    if not a then
+        self._pgoPos, self._pgoAt = { x = pp.x, y = pp.y }, now
+        return true
+    end
+    local dx, dy = pp.x - a.x, pp.y - a.y
+    if math.sqrt(dx * dx + dy * dy) >= (self.PlayerGoMinDist or 6.0) then
+        a.x, a.y, self._pgoAt = pp.x, pp.y, now
+        return true
+    end
+    return (self._pgoAt ~= nil) and ((now - self._pgoAt) < (self.PlayerGoWindow or 8.0))
+end
+
+-- One line when the answer flips, not one per pass per subsystem.
+function mercenaries:PlayerStandingNote(who, still)
+    self._pgoNoted = self._pgoNoted or {}
+    if still == (self._pgoNoted[who] or false) then return end
+    self._pgoNoted[who] = still
+    System.LogAlways("[MercStill] " .. who .. (still
+        and " stands down - the player is not going anywhere (a menu, or standing still)"
+        or " resumes - the player is under way again"))
+end
+
+-- Global speaking lock release — called via Script.SetTimerForFunction.
+-- Safe to call even if the lock has already been reassigned (e.g. owner died).
+function mercenaries.ReleaseSpeakingLock()
+    _G.MercSpeakingLock = false
+    _G.MercSpeakingOwner = nil
+    -- System.LogAlways('[Mercenary] Speaking lock released.')
+end
+
+function mercenaries.DespawnHorseByName(horseName)
+    if not horseName then return end
+    local horseEnt = System.GetEntityByName(horseName)
+    if horseEnt then
+        if mercenaries.PerfUnregister then mercenaries:PerfUnregister(horseName) end
+        System.RemoveEntity(horseEnt.id)
+        System.LogAlways('[MercHorse] Deferred despawn complete: ' .. horseName)
+    else
+        System.LogAlways('[MercHorse] Deferred despawn: already gone: ' .. horseName)
+    end
+end
+
+-- ==== paying the player ====
+-- player.inventory:AddMoney DOES NOT EXIST. Every call to it in this mod sat inside a pcall,
+-- threw, and was swallowed - the bandit-camp contract, the logistics coffer and Aleksej's beats
+-- all reported success and paid nothing. GetMoney/RemoveMoney are real (the hire and heal costs
+-- have always used them), so money goes IN as the vanilla money item - item__system.xml, one
+-- groschen a unit, divisible, which is the same class the camp chests are stocked with - and the
+-- transfer is verified by reading the purse back rather than assumed.
+mercenaries.MoneyItemClass = "5ef63059-322e-4e1b-abe8-926e100c770e"
+
+function mercenaries:GiveMoney(amount)
+    amount = math.floor(tonumber(amount) or 0)
+    if amount <= 0 then return true, 0 end
+    if not (player and player.inventory) then return false, 0 end
+
+    local before = 0
+    pcall(function() before = player.inventory:GetMoney() or 0 end)
+
+    -- ONE CreateItem does not reliably mint a large sum: the torture run asked for
+    -- 60000 and the purse moved by only a fraction (a stack cap somewhere below the
+    -- engine), silently - the verification here read "purse moved" and called that
+    -- success. So the sum is created in chunks, the purse read back after each, and
+    -- the loop keeps going until the target is reached or the purse stops moving.
+    local target, tries = before + amount, 0
+    local now = before
+    -- Half a groschen of slack: GetMoney answers a FLOAT, and minting 275 into an empty
+    -- purse read back as 274.99. A strict `now < target` then spent one more pass minting
+    -- a 0.01 fraction - which creates nothing - and the quest test's floor()ed read called
+    -- a full payment "274 of 275". Within half a coin is paid.
+    -- Every hand-in in every torture session paid exactly one groschen short (275 asked,
+    -- 274.1 landed) - not the half-coin float noise the comment above already covers, a
+    -- whole coin. GetMoney drifts to a float baseline (274.1, not 274 or 275), so the FINAL
+    -- chunk's `need` is a fraction under 1 - and CreateItem mints a coin STACK, an integer
+    -- count, so a sub-1 request silently creates nothing. `after <= now` then reads as
+    -- "purse stopped moving" and the loop gives up one coin short. Rounding the request up
+    -- guarantees every chunk, including the last, asks for a whole coin.
+    while (target - now) > 0.5 and tries < 100 do
+        tries = tries + 1
+        local need = math.ceil(target - now)
+        pcall(function() player.inventory:CreateItem(self.MoneyItemClass, 1, math.min(need, 1000)) end)
+        local after = now
+        pcall(function() after = player.inventory:GetMoney() or after end)
+        if after <= now then break end   -- not moving: stop rather than spin
+        now = after
+    end
+
+    local got = now - before
+    if got >= amount then return true, got end
+    System.LogAlways("[Mercenaries] GiveMoney: asked " .. tostring(amount) .. ", purse took only "
+                     .. tostring(got) .. " (" .. tostring(tries) .. " chunk(s)) - check MoneyItemClass")
+    return got > 0, got
+end
