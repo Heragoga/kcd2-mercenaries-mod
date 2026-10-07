@@ -300,14 +300,19 @@ function mercenaries:MQWStash(why, force)
         end
     end
     local n = 0
+    local moved = {}
     for _, ent in pairs(self.ActiveMercs or {}) do
         pcall(function()
+            -- Men quartered in camp are not in the battle: they stay where they are.
+            local w = ent.this and ent.this.id or ent.id
+            if self:IsMercInCampProper(w) then return end
             ent:SetPos({ x = spot.x + (math.random() - 0.5) * 12.0, y = spot.y + (math.random() - 0.5) * 12.0, z = spot.z })
             if self.NoteTeleport then self:NoteTeleport(ent) end
+            moved[tostring(w)] = true
             n = n + 1
         end)
     end
-    pcall(function() self:HoldBegin(spot) end)
+    if next(moved) then pcall(function() self:HoldBegin(spot, nil, moved) end) end
     local gangs = 0
     for _, rec in pairs(self.LivePatrols or {}) do
         if rec.spawned then
@@ -332,13 +337,22 @@ function mercenaries:MQWUnstash(why)
     if pp then
         for _, ent in pairs(self.ActiveMercs or {}) do
             pcall(function()
+                local w = ent.this and ent.this.id or ent.id
+                if self:IsMercInCampProper(w) then return end      -- camp residents stay in camp
                 ent:SetPos({ x = pp.x + (math.random() - 0.5) * 16.0, y = pp.y + (math.random() - 0.5) * 16.0, z = pp.z })
                 if self.NoteTeleport then self:NoteTeleport(ent) end
                 n = n + 1
             end)
         end
     end
-    pcall(function() self:SetState("follow") end)
+    -- SetState("follow") BREAKS the camp - every main-quest battle used to end with the
+    -- player's camp torn down and its men marched off after him. With a camp standing, only
+    -- the party that was out is put back to following.
+    if self.CampActive then
+        pcall(function() self:SetSortieWait(false) end)
+    else
+        pcall(function() self:SetState("follow") end)
+    end
     wLog(string.format("%s - %d men brought back to the player and following", tostring(why), n))
 end
 
@@ -370,6 +384,11 @@ function mercenaries:MQWOnLoad()
     S.active, S.enterCount, S.lastBusyAt, S.enteredAt = false, 0, nil, nil
     -- A new level applies its own CVarOverride, so last level's baseline means nothing.
     S.cvar, S.cvarWhy, S._traceAt = nil, nil, nil
+    -- Engine-clock marks: System.GetCurrTime restarts on a load, so a mark from the previous
+    -- session reads as "in the future" - the quest scan kept its stale cache for the rest of
+    -- the session, and the spawn guard could hold for as long as the old session had run.
+    S._questAt, S.quest = nil, nil
+    self._spawnBusyUntil = nil
     _G.MercMQBattle = false
     local v; pcall(function() v = self:LoadString("MQWStash") end)
     S.stashed = (v == "1")

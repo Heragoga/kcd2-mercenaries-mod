@@ -453,6 +453,8 @@ function mercenaries:SpawnTestBattle(mercCounts, mercOutfit, mercWeapon, enemyCo
             end
 
             local entityName = "SpawnedRenegade_" .. tier .. "_" .. tostring(math.random(10000, 99999)) .. "_" .. soulGuid
+            -- A test battle's renegade: removed by ResetAllTestState on the next load.
+            self:TestTrack(entityName)
 
             System.SpawnEntity({
                 class = "NPC",
@@ -1107,7 +1109,7 @@ end
 
 -- Spawn `amount` members of an enemy group behind the player. Mostly melee, with
 -- roughly every 4th unit an archer when the group has any (knights have none).
-function mercenaries:SpawnEnemyGroup(groupKey, amount)
+function mercenaries:SpawnEnemyGroup(groupKey, amount, real)
     amount = tonumber(amount) or 1
     local grp = self.EnemyGroups[groupKey]
     if not grp then
@@ -1146,7 +1148,11 @@ function mercenaries:SpawnEnemyGroup(groupKey, amount)
             local unitPos = self:FindValidGround({ x = px, y = py, z = spawnPos.z }, spawnPos.z)
 
             -- No manual DrawWeapon(): the attack tree's automation owns weapon draw.
-            self:SpawnEnemyAt(groupKey, (i % 4 == 0), unitPos, playerRot.z)
+            local spawned = self:SpawnEnemyAt(groupKey, (i % 4 == 0), unitPos, playerRot.z)
+            -- Everything this sandbox/test spawner makes is a TEST spawn (enemy_spawn_*, the
+            -- torture and bench plans, the renegade tokens): removed on the next load by
+            -- ResetAllTestState. `real` is the one genuine caller, the mutiny in logistics.
+            if spawned and not real then self:TestTrack(spawned) end
         end
     end)
 
@@ -1160,8 +1166,8 @@ end
 -- ---------------------------------------------------------------------------
 mercenaries.RenegadeTierToGroup = { weak = "looter", medium = "bandit", strong = "knight" }
 
-function mercenaries:SpawnRenegade(amount, _outfit, tier, _weapon)
-    self:SpawnEnemyGroup(self.RenegadeTierToGroup[tier or "strong"] or "bandit", amount or 1)
+function mercenaries:SpawnRenegade(amount, _outfit, tier, _weapon, real)
+    self:SpawnEnemyGroup(self.RenegadeTierToGroup[tier or "strong"] or "bandit", amount or 1, real)
 end
 
 -- (LodBoostPrime is called from SpawnEnemyGroup below - see mercenaries_lodboost.lua.)
@@ -1387,6 +1393,8 @@ function mercenaries:SpawnTestMerc()
             return
         end
 
+        -- Tracked: the control-test merc (fixed test soul) is a test spawn, removed on load.
+        self:TestTrack(entityName)
         self:EquipMercenary(ent, _G.MercCurrentOutfit or 1)
         self:EquipMercenaryWeapon(ent, _G.MercCurrentWeapon or 1, _G.MercCurrentOutfit or 1)
         self.ActiveMercs[entityName] = ent

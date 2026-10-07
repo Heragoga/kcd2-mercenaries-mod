@@ -313,7 +313,14 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     -- visible on the dev build. crime_indifferentFlee is the real neighbouring one.
     if ent.soul:HasScriptContext("combat_surrender")
     or ent.soul:HasScriptContext("crime_indifferentFlee")
-    or ent.soul:HasScriptContext("combat_immortalityProtection") then
+    or ent.soul:HasScriptContext("combat_immortalityProtection")
+    -- Quest outlaws the player is meant to spare, take the surrender of, or spar with
+    -- (TODO: "mercs attack bandits that are part of quests"). All three are real contexts in
+    -- ScriptContext.xml. NOT combat_fightInQuestSkirmish / combat_arrangedFight: vanilla
+    -- puts those on the main-quest battles (the synagogue, the walls) the company joins.
+    or ent.soul:HasScriptContext("crime_questMercy")
+    or ent.soul:HasScriptContext("crime_questSurrender")
+    or ent.soul:HasScriptContext("combat_inPracticeFight") then
         return false
     end
     -- A routed enemy is still an enemy - see docs/mercenaries/ai/enemy-morale.md for why they rout at
@@ -1182,10 +1189,16 @@ function mercenaries:PickCombatTarget(bt_data, myWuid)
         -- one perched archer standing closer than the foot around him used to blank the whole
         -- pass and leave a melee merc with no target at all.
         local iAmArcher = self:MercIsArcherWuid(myWuid)
+        -- Same reasoning for a man holding ground: an enemy outside his leash is refused by
+        -- TryClaimTarget anyway, so picking it as `best` just blanked the pass while an
+        -- enemy he could take stood beside it.
+        local holdKey = (self.HoldActive and self.HoldStations and self.HoldStations[tostring(myWuid)])
+                        and tostring(myWuid) or nil
         for _, entry in ipairs(self.CachedEnemies or {}) do
             local ep = entry.pos or (entry.entity and entry.entity:GetPos())
             local ws = tostring(entry.wuid)
-            if ep and self:MercMayClaim(myWuid, ws, iAmArcher) then
+            if ep and self:MercMayClaim(myWuid, ws, iAmArcher)
+               and not (holdKey and self:HoldPosOutOfLeash(holdKey, ep)) then
                 local dx, dy, dz = ep.x - myPos.x, ep.y - myPos.y, ep.z - myPos.z
                 local d = dx*dx + dy*dy + dz*dz
                 local load = self.TargetLoad[ws] or 0

@@ -271,6 +271,7 @@ mercenaries.GearNonGearBlobs = {
 -- the layer order and the gambeson-under-plate rule, without which plate is
 -- silently refused. A miss just means slot unknown, which is still wearable.
 mercenaries.GearNamePrefixSlots = {
+    { "BrigandineArm", 39 },
     { "BascinetVisorHans", 34 },
     { "BascinetAlberich", 34 },
     { "F_VeilAndWimple", 33 },

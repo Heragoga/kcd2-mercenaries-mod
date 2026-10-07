@@ -155,9 +155,29 @@ function mercenaries:GearIsWearableClass(cls)
     return false, "not equipment"
 end
 
+-- The baked table files the vanilla BrigandineArm* pieces under slot 38 (body plate): the
+-- generator's longest-prefix match reads "BrigandineArm05" as a Brigandine, but the engine
+-- (CharacterComponent.xml) has them as ArmBrigandine - sleeves, slot 39. Vanilla's own
+-- Black Bartosch wears Brigandine05 AND BrigandineArm05. Filed as one slot, a cuirass and arm
+-- pieces in the custom uniform evicted each other. Corrected here until the table is rebaked
+-- (tools/gen_gear_table.py now maps the prefix); the name lookup is cached per class.
+mercenaries.GearArmFixCache = {}
+
 function mercenaries:GearSlotOf(cls)
     self:GearBuildIndex()
-    return self.GearSlot[self:GearKey(cls)]
+    local k = self:GearKey(cls)
+    local s = self.GearSlot[k]
+    if s == 38 and k then
+        local fixed = self.GearArmFixCache[k]
+        if fixed == nil then
+            local nm
+            pcall(function() nm = ItemManager.GetItemName(cls) end)
+            fixed = (type(nm) == "string" and string.find(nm, "^BrigandineArm") ~= nil) and 39 or false
+            self.GearArmFixCache[k] = fixed
+        end
+        if fixed then return fixed end
+    end
+    return s
 end
 
 -- Last resort for an item the baked table has never heard of: ask the engine for its
@@ -651,8 +671,11 @@ function mercenaries.GearFinishTick()
             -- to be free BEFORE the pattern is offered for them, or the pattern's own
             -- layer is refused and the plate ends up sitting on gear that is about to
             -- be deleted underneath it.
+            -- Never strip a man for a pattern with no armour in it: the purge would take his
+            -- base kit and nothing would go on in its place ("all my archers in the towers
+            -- and carts were naked").
             local purged = 0
-            if purging then purged = self:GearPurgeArmour(ent, keep) end
+            if purging and #plan.armour > 0 then purged = self:GearPurgeArmour(ent, keep) end
 
             -- The purge pass re-runs phase one, and for the same reason: the slots it
             -- just emptied need the pattern's OWN under layers in them, and a plate
@@ -678,6 +701,12 @@ function mercenaries.GearFinishTick()
                                    name, self.GearFinishPass, purged,
                                    self:GearCountItems(ent), tostring(base)))
             elseif last then
+                -- Safety net: every piece refused means he stands there in whatever the purge
+                -- left - put his base preset back rather than leave him in his shirt.
+                if #plan.armour > 0 and #failed == #plan.armour and type(base) == "string" and base ~= "" then
+                    pcall(function() ent.actor:EquipClothingPreset(base) end)
+                    gLog(name .. ": no pattern piece would go on - back in base preset " .. base)
+                end
                 local names = {}
                 for _, piece in ipairs(failed) do
                     names[#names + 1] = piece.slot .. ":" .. self:GearDbName(piece.cls)
@@ -745,7 +774,18 @@ end
 -- Put a named companion back in his own gear, if some earlier build of this left him
 -- in the company uniform. Cheap when there is nothing to do - one FindItem per pattern
 -- piece and out - which is what it will be every time after the first.
+--
+-- RETIRED (3.2): no build since puts the pattern on a companion (EquipMercenary and
+-- GearWantsCustom both exempt heroes), so all this could still do was harm. Its "is he
+-- wearing the pattern" test is a FindItem per pattern CLASS, and a uniform built from stock
+-- vanilla pieces shares classes with a companion's own kit - Black Bartosch's padded hose.
+-- He read as "dressed", every pattern class was deleted from him, his own hose with it, and
+-- GetInitialClothingPreset (empty for a soul-dressed NPC) put nothing back: no hose, so no
+-- leg armour either ("standing around in his braies", reported against 2.5.1).
+mercenaries.GearHeroRestoreOn = false
+
 function mercenaries:GearHeroRestore(ent)
+    if not self.GearHeroRestoreOn then return end
     if not (ent and ent.inventory and ent.actor) then return end
     local dressed = false
     for _, cls in ipairs(self:GearLoadSet()) do

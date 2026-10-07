@@ -480,6 +480,8 @@ end
 -- puts it back. Run from the low-priority tick: at most GateMax records, one GetEntity
 -- each, every 5s.
 function mercenaries:GateWatchdog()
+    -- Never re-hang a gate for a camp that is not up (a stale record would come back).
+    if not self.CampActive then return end
     local gs = self.Gates or {}
     if #gs == 0 then return end
     local rebuilt = 0

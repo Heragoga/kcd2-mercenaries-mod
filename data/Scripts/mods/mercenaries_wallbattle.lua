@@ -325,11 +325,34 @@ function mercenaries:WBAttackersNearCamp()
     return out
 end
 
+-- Is this man free to be marched to the wall? A man sitting, asleep, or at a camp activity
+-- (harvesting, eating, at the anvil...) is left exactly where he is: every way of getting him
+-- up for the march either tore the pose off - he slid to the gate lying down - or sat him back
+-- down again. He is still in camp, and the camp's own combat yield stands him up the moment a
+-- raider is on him, which is the one case that already works.
+function mercenaries:WBDefenderFree(ent)
+    local w = ent and ((ent.this and ent.this.id) or ent.id)
+    if not w then return false end
+    local busy = false
+    pcall(function()
+        busy = (self.IsGroundedStance and self:IsGroundedStance(w))
+            or (self.InCampPose and self:InCampPose(w))
+            or (self.LeavingCampPose and self:LeavingCampPose(w))
+        -- The live pose, not the camp tables: a bed or an activity is assigned to a man who
+        -- is up and walking about too, and reading those would have left nobody to defend.
+    end)
+    return not busy
+end
+
 function mercenaries:WBDefenders()
     local out = {}
+    local left = 0
     for _, m in pairs(self.ActiveMercs or {}) do
-        if m and self:IsAliveAndWell(m, true) then table.insert(out, m) end
+        if m and self:IsAliveAndWell(m, true) then
+            if self:WBDefenderFree(m) then table.insert(out, m) else left = left + 1 end
+        end
     end
+    if left > 0 then wbLog(left .. " man/men sitting, asleep or at work in camp - left where they are") end
     -- the quartermaster defends his own camp too, and is not in ActiveMercs
     if self.QuartermasterName then
         local qm
@@ -648,6 +671,7 @@ end
 function mercenaries:WBSetPhase(p)
     if self.WBPhase == p then return end
     self.WBPhase = p
+    self.WBPoseHoldFrom = {}        -- the stand-up waits are per staging (see WBStagePoll)
     wbLog("phase -> " .. p)
     if p == "battle" then
         -- This raid force has had its march; from here it fights like anything else.
@@ -739,6 +763,30 @@ function mercenaries:WBStagePoll(data, ent)
     if a.lead and self.WBHold and self.WBHold[wbKey(ent)] then
         if self:IsNavGotoActive(ent) then self:NavGotoEnd(ent, "waiting for the column") end
         return
+    end
+
+    -- A defender who was sitting or asleep in camp stands up FIRST. nav_goto is fired with
+    -- IgnorePriorityOnPreviousInterrupt, and fired at a man still inside a camp pose it tears
+    -- camp_actor off mid-StanceElement: the pose is orphaned rather than ended and he walks to
+    -- the gate sitting or lying. CampActorYield has already told camp_actor to let go of him
+    -- (he has an assignment), so the wait is only the stand-up. Same cure as the camp deploy
+    -- (CampPoseUnwindSecs there); bounded, because a man who never gets there is worse.
+    if a.side ~= "enemy" and self.IsGroundedStance and self.InCampPose then
+        local w = (ent.this and ent.this.id) or ent.id
+        if self:IsGroundedStance(w) or self:InCampPose(w) then
+            self.WBPoseHoldFrom = self.WBPoseHoldFrom or {}
+            local from = self.WBPoseHoldFrom[k]
+            -- a mark from before a load reads as "in the future": the clock restarted
+            if from and nowT() < from then from = nil end
+            if not from then
+                self.WBPoseHoldFrom[k] = nowT()
+                return
+            end
+            if (nowT() - from) < (self.WBPoseMaxHoldSecs or 8.0) then return end
+            wbLog(tostring(k) .. " would not leave his camp pose in " ..
+                  tostring(self.WBPoseMaxHoldSecs or 8.0) .. "s - sending him anyway")
+        end
+        if self.WBPoseHoldFrom then self.WBPoseHoldFrom[k] = nil end
     end
 
     local lead, la = self:WBColumnLeader(a)
@@ -990,7 +1038,10 @@ function mercenaries:WBRaid(line)
         -- 16 tries, not the default 40: a raid places up to 14 units in a single frame.
         if self.FindValidGround then p = self:FindValidGround(p, origin.z, 3.0, 0.5, 16) end
         local e = self:SpawnEnemyAt(group, (i % 4 == 0), p, yaw)
-        if e then table.insert(force, e) end
+        if e then
+            table.insert(force, e)
+            self:TestTrack(e)       -- merc_wb_raid is a test raid: removed by ResetAllTestState on load
+        end
     end
 
     if #force == 0 then wbLog("raid spawned nobody"); return end

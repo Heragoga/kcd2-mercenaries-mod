@@ -371,6 +371,35 @@ end
 -- record - an older save's roster blob has none.
 function mercenaries:RosterRespawnNamed(name, pos, yaw)
     name = tostring(name or "")
+    -- A named companion carries his soul in the MIDDLE: "SpawnedFriend_hero_<soul>_<n>"
+    -- (HireCustomCompanion). The trailing-guid match below never saw it, so he fell
+    -- through to SpawnMercAt("hero"), which has no soul list of its own and rebuilt him
+    -- as an anonymous weak merc. He is rebuilt in his own name format, and not dressed:
+    -- a companion wears his soul's own gear.
+    local heroGuid = string.match(name, "_hero_([0-9a-fA-F%-]+)_%d+$")
+    if heroGuid and string.len(heroGuid) >= 32 then
+        local heroName = "SpawnedFriend_hero_" .. heroGuid .. "_" .. tostring(math.random(10000, 99999))
+        local hent
+        local hok, herr = pcall(function()
+            System.SpawnEntity({
+                class = "NPC", name = heroName, position = pos,
+                orientation = { x = 0, y = 0, z = yaw or 0 },
+                properties = self:RosterSpawnProps(heroGuid),
+            })
+            hent = System.GetEntityByName(heroName)
+            self:NoSaveEntity(hent)
+            if not hent then return end
+            self.ActiveMercs[heroName] = hent
+            pcall(function()
+                self:EnsureMercIsAlwaysRendered(hent)
+                self:InjectInteraction(hent)
+                self:CampOnMercJoined(hent)
+            end)
+            Script.SetTimerForFunction(1000, "mercenaries.CCReinject", hent.id)
+        end)
+        if not hok then rLog("companion respawn failed for " .. heroName .. ": " .. tostring(herr)) end
+        return hent
+    end
     -- The trailing 36-character guid, if the name carries one.
     local soulGuid = string.match(name, "([0-9a-fA-F][0-9a-fA-F-]+)$")
     if not soulGuid or string.len(soulGuid) < 36 then return nil end
@@ -633,6 +662,10 @@ end
 -- clock running far above real time - the same proxy the spawn guard uses for sleeping.
 --
 function mercenaries:RosterOnGameplayLoad()
+    -- A batch spawn interrupted by a load leaves its queue behind, and its timer died with
+    -- the level: RosterCapture would refuse to write for good and the next RosterSpawn
+    -- would never arm the drain (only the first batch would ever appear).
+    self.RosterSpawnQueue, self._rosterQueueArmed = nil, false
     self._travelPP, self._travelT = nil, nil
     self._travelSeen, self._travelQuiet = 0, 0
     local v

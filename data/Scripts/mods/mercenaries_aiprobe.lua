@@ -427,7 +427,7 @@ function mercenaries:AIProbeMNM()
     local before = "?"
     pcall(function() before = tostring(System.GetCVar("wh_ai_AutomaticMNMRebuild")) end)
     aiLog("wh_ai_AutomaticMNMRebuild was " .. before .. "; setting it to 1")
-    pcall(function() System.SetCVar("wh_ai_AutomaticMNMRebuild", 1) end)
+    self:TestCvarSet("wh_ai_AutomaticMNMRebuild", 1)    -- recorded: put back on the next load
     local after = "?"
     pcall(function() after = tostring(System.GetCVar("wh_ai_AutomaticMNMRebuild")) end)
     aiLog("wh_ai_AutomaticMNMRebuild now reads " .. after
@@ -439,7 +439,7 @@ function mercenaries:AIProbeMNM()
     local cn = "?"
     pcall(function() cn = tostring(System.GetCVar("wh_ai_CryNavigationSystemEnabled")) end)
     aiLog("wh_ai_CryNavigationSystemEnabled was " .. cn .. "; setting it to 1")
-    pcall(function() System.SetCVar("wh_ai_CryNavigationSystemEnabled", 1) end)
+    self:TestCvarSet("wh_ai_CryNavigationSystemEnabled", 1)    -- recorded: put back on the next load
     pcall(function() aiLog("   it now reads " .. tostring(System.GetCVar("wh_ai_CryNavigationSystemEnabled"))) end)
     self:AIProbeMNMSpawnWall(8, 10)
     aiLog("watch kcd.log for 'Building navigation' / 'NavMesh generation' over the next few seconds")

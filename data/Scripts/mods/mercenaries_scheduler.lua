@@ -253,6 +253,9 @@ mercenaries.TimerLatches = {
     -- Not a latch in the same sense: LootSweepArm is idempotent per load on its own. Cleared
     -- here so the arm is unambiguous rather than depending on the generation compare alone.
     "LootSweepArmed",
+    -- Re-armed on demand by AttachStaticArcher; left true by the previous load it never
+    -- came back, and re-attached tower archers strolled off the deck.
+    "StaticArcherPinActive",
 }
 
 function mercenaries:SchedOnLoad()

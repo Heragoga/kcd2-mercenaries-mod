@@ -1,13 +1,16 @@
 -- Bandit camp BUILDER - an in-game placement editor.
 --
--- F5-F8 each own a CATEGORY. Pressing a category key selects it; pressing the same key again
--- CYCLES to the next variant within it. The ghost follows wherever you look. Left-click
--- places, right-click takes back the last thing placed.
+-- Four CATEGORIES, each a console command. Running a category command selects it; running
+-- the same command again CYCLES to the next variant within it. The ghost follows wherever
+-- you look. Left-click places, right-click takes back the last thing placed.
 --
---   F5  tents (incl. the player house)      F9   new camp (clear and start over)
---   F6  beds, stools, chairs, tables        F10  save camp
---   F7  fire, crates, chests, sacks...      F11  dump layout
---   F8  camp upgrades (all but the wall)
+--   merc_bcamp_tents      tents (incl. the player house)    merc_bcamp_new   new camp (clear and start over)
+--   merc_bcamp_furniture  beds, stools, chairs, tables      merc_bcamp_save  save camp
+--   merc_bcamp_props      fire, crates, chests, sacks...    merc_bcamp_dump  dump layout
+--   merc_bcamp_upgrades   camp upgrades (all but the wall)
+--
+-- NO KEYS ARE BOUND: this mod never binds an F key. Bind your own non-F key to a command if
+-- you want a hotkey.
 --
 -- IMPORTANT: left/right click reach this through Player.OnAction as `attack_primary_mouse`
 -- and `block`, and those only fire WITH A WEAPON DRAWN. That is a property of the input map
@@ -73,7 +76,7 @@ function mercenaries:BCampCatalogue()
 
     local loose = {
         -- The vanilla fireplace prefab: fire, particles and a real light. No seating ring -
-        -- seats are furniture, placed individually on F6 where you actually want them.
+        -- seats are furniture, placed individually (merc_bcamp_furniture) where you actually want them.
         { label = "campfire (light)", fire = true,
           ghost = T .. "task_specific_props/food_processing/cooking/camp_cooking_c_old.cgf" },
         -- A standalone light. The lamp mesh alone does not illuminate anything - a bare .cgf
@@ -215,7 +218,7 @@ function mercenaries:BCampPlace(pos, yaw)
     local ents = {}
 
     if item.fire then
-        -- Fire only. Seats are furniture (F6) and go where you want them, not in a ring.
+        -- Fire only. Seats are furniture (merc_bcamp_furniture) and go where you want them, not in a ring.
         pcall(function() self:SpawnCampFirePrefab(pos, 0) end)
 
     elseif item.stash then
@@ -346,7 +349,7 @@ function mercenaries:BCampUndo()
 end
 
 -- ==== camp-level commands ====
--- F9. Clears the site and ENTERS build mode, so "new camp" leaves you ready to place.
+-- merc_bcamp_new. Clears the site and ENTERS build mode, so "new camp" leaves you ready to place.
 function mercenaries:BCampNew()
     for _, p in ipairs(self.BCampPieces) do
         for _, id in ipairs(p.ents or {}) do pcall(function() System.RemoveEntity(id) end) end
@@ -415,10 +418,10 @@ function mercenaries:BCampStop()
 end
 
 function mercenaries:BCampHelp()
-    bLog("F5 tents (incl. house)   F6 furniture   F7 props   F8 upgrades")
-    bLog("  press the same key again to cycle variants; the ghost follows your aim")
+    bLog("merc_bcamp_tents (incl. house)   merc_bcamp_furniture   merc_bcamp_props   merc_bcamp_upgrades")
+    bLog("  run the same command again to cycle variants; the ghost follows your aim")
     bLog("LEFT CLICK places, RIGHT CLICK undoes - both need a weapon drawn (engine input map)")
-    bLog("F9 new camp   F10 save camp   F11 dump layout")
+    bLog("merc_bcamp_new new camp   merc_bcamp_save save camp   merc_bcamp_dump dump layout")
     bLog("merc_bcamp_list shows the current category, merc_bcamp_off leaves the editor")
     bLog("walls are their own tool: merc_wall_build / merc_wall_close")
 end
@@ -426,7 +429,7 @@ end
 function mercenaries:BCampList()
     local cats = self:BCampCatalogue()
     local c = cats[self.BCampCat]
-    if not c then bLog("no category selected - press F5-F8"); return end
+    if not c then bLog("no category selected - run merc_bcamp_tents / _furniture / _props / _upgrades"); return end
     local sel = ((self.BCampSel[self.BCampCat] - 1) % #c.items) + 1
     bLog(c.name .. ":")
     for i, it in ipairs(c.items) do
@@ -435,12 +438,9 @@ function mercenaries:BCampList()
 end
 
 -- ==== keys ====
--- F5-F8 are also wanted by the patrol route recorder. merc_binds_routes lends them back for a
--- recording session; merc_bcamp_binds takes them again.
--- Three tools want F5-F11: this builder, the siege builder and the route recorder. Only one
--- may hold them, and the choice is REMEMBERED - the load hook used to hand them back to this
--- builder every single time, so anyone using another tool lost the keys on every reload and
--- found the camp editor still answering them.
+-- NO KEYS ARE BOUND (this mod never binds an F key). The editor-ownership bookkeeping below
+-- is kept because the editors still stop each other (a stale ghost must not answer another
+-- editor's commands), but it no longer owns any key.
 function mercenaries:EditorOwner(who)
     if who then pcall(function() self:SaveString("EditorOwner", who) end) end
     local v
@@ -469,62 +469,35 @@ function mercenaries:EditorWho()
     local name = ({ bcamp = "the bandit-camp builder (merc_bcamp_*)",
                     siege = "the siege builder (merc_siege_*)",
                     routes = "the patrol route recorder (merc_route_*)" })[who] or who
-    bLog("F5-F11 belong to " .. name)
-    bLog("  merc_bcamp_binds / merc_siege_binds / merc_binds_routes hand them over")
-    bLog("  the choice is remembered across loads")
+    bLog("last editor selected: " .. name .. " (no keys are bound; every editor is console-only)")
 end
 
--- DISABLED while the siege of Raborsch is being authored: F5-F11 belong to the siege builder
--- (mercenaries_siege.lua) and this kept taking them back. Every merc_bcamp_* command still
--- works from the console - only the key grab is off.
---
--- TO RESTORE: uncomment the block below and comment out the SiegeBinds call in the load hook
--- in mercenaries.lua.
+-- NO KEYS. This mod never binds an F key, so the camp builder has no key map: every
+-- merc_bcamp_* command is typed in the console. The command stays so old habits get an answer.
 function mercenaries:BCampBinds(quiet)
-    bLog("key binding is OFF for the camp builder - F5-F11 belong to the siege builder.")
-    bLog("  every merc_bcamp_* command still works from the console")
-    bLog("  to restore: uncomment BCampBinds in mercenaries_banditcamp.lua")
-    -- self:EditorOwner("bcamp")
-    -- self:EditorsStopExcept("bcamp")
-    -- pcall(function()
-    --     System.ExecuteCommand("bind f5 merc_bcamp_tents")
-    --     System.ExecuteCommand("bind f6 merc_bcamp_furniture")
-    --     System.ExecuteCommand("bind f7 merc_bcamp_props")
-    --     System.ExecuteCommand("bind f8 merc_bcamp_upgrades")
-    --     System.ExecuteCommand("bind f9 merc_bcamp_new")
-    --     System.ExecuteCommand("bind f10 merc_bcamp_save")
-    --     System.ExecuteCommand("bind f11 merc_bcamp_dump")
-    -- end)
-    -- if not quiet then self:BCampHelp() end
+    bLog("no keys are bound for the camp builder (this mod never binds F keys).")
+    bLog("  every merc_bcamp_* command works from the console")
+    if not quiet then self:BCampHelp() end
 end
 
--- DISABLED with every other editor binder: the F-keys stay free for the game.
--- Every merc_route_* command still works from the console.
+-- Same for the route recorder: every merc_route_* command is console-only.
 function mercenaries:BCampRouteBinds()
-    bLog("key binding is OFF for the route recorder - nothing holds F5-F8.")
-    bLog("  every merc_route_* command still works from the console")
-    -- self:EditorOwner("routes")
-    -- self:EditorsStopExcept("routes")
-    -- pcall(function()
-    --     System.ExecuteCommand("bind f5 merc_route_new")
-    --     System.ExecuteCommand("bind f6 merc_route_save")
-    --     System.ExecuteCommand("bind f7 merc_route_cancel")
-    --     System.ExecuteCommand("bind f8 merc_route_dump")
-    -- end)
+    bLog("no keys are bound for the route recorder (this mod never binds F keys).")
+    bLog("  every merc_route_* command works from the console")
 end
 
-mercenaries:DevCommand("merc_bcamp_tents",     "mercenaries:BCampPick(1)",  "Tents category / cycle (F5)")
-mercenaries:DevCommand("merc_bcamp_furniture", "mercenaries:BCampPick(2)",  "Furniture category / cycle (F6)")
-mercenaries:DevCommand("merc_bcamp_props",     "mercenaries:BCampPick(3)",  "Props category / cycle (F7)")
-mercenaries:DevCommand("merc_bcamp_upgrades",  "mercenaries:BCampPick(4)",  "Upgrades category / cycle (F8)")
-mercenaries:DevCommand("merc_bcamp_new",       "mercenaries:BCampNew()",    "New camp: clear everything placed (F9)")
-mercenaries:DevCommand("merc_bcamp_save",      "mercenaries:BCampSave()",   "Save the camp layout (F10)")
-mercenaries:DevCommand("merc_bcamp_dump",      "mercenaries:BCampDump()",   "Dump the layout as a Lua table (F11)")
+mercenaries:DevCommand("merc_bcamp_tents",     "mercenaries:BCampPick(1)",  "Tents category / cycle")
+mercenaries:DevCommand("merc_bcamp_furniture", "mercenaries:BCampPick(2)",  "Furniture category / cycle")
+mercenaries:DevCommand("merc_bcamp_props",     "mercenaries:BCampPick(3)",  "Props category / cycle")
+mercenaries:DevCommand("merc_bcamp_upgrades",  "mercenaries:BCampPick(4)",  "Upgrades category / cycle")
+mercenaries:DevCommand("merc_bcamp_new",       "mercenaries:BCampNew()",    "New camp: clear everything placed")
+mercenaries:DevCommand("merc_bcamp_save",      "mercenaries:BCampSave()",   "Save the camp layout")
+mercenaries:DevCommand("merc_bcamp_dump",      "mercenaries:BCampDump()",   "Dump the layout as a Lua table")
 mercenaries:DevCommand("merc_bcamp_place",     "mercenaries:BCampPlace()",  "Place the current selection (same as left-click)")
 mercenaries:DevCommand("merc_bcamp_undo",      "mercenaries:BCampUndo()",   "Undo the last piece (same as right-click)")
 mercenaries:DevCommand("merc_bcamp_list",      "mercenaries:BCampList()",   "List the current category's variants")
 mercenaries:DevCommand("merc_bcamp_off",       "mercenaries:BCampStop()",   "Leave the builder")
-mercenaries:DevCommand("merc_bcamp_help",      "mercenaries:BCampHelp()",   "Builder keys")
-mercenaries:DevCommand("merc_bcamp_binds",     "mercenaries:BCampBinds()",  "Bind F5-F11 to the builder")
-mercenaries:DevCommand("merc_binds_who",       "mercenaries:EditorWho()",   "Which editor owns F5-F11")
-mercenaries:DevCommand("merc_binds_routes",    "mercenaries:BCampRouteBinds()", "Lend F5-F8 to the route recorder")
+mercenaries:DevCommand("merc_bcamp_help",      "mercenaries:BCampHelp()",   "Builder commands")
+mercenaries:DevCommand("merc_bcamp_binds",     "mercenaries:BCampBinds()",  "Camp builder help (no keys are bound)")
+mercenaries:DevCommand("merc_binds_who",       "mercenaries:EditorWho()",   "Which editor was last selected (no keys are bound)")
+mercenaries:DevCommand("merc_binds_routes",    "mercenaries:BCampRouteBinds()", "Route recorder help (no keys are bound)")

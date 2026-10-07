@@ -767,7 +767,10 @@ function mercenaries:WallRefitCorners()
         -- exactly (merc_castle_square) would be pulled off the grid by the very pass
         -- meant to put it on the grid.
         if not r.closed then
-            moved = moved + self:WallRefitRun(r.pts, r.flushEnd)
+            local restoreType = self:WallUseRunType(r)
+            local ok, n = pcall(function() return self:WallRefitRun(r.pts, r.flushEnd) end)
+            restoreType()
+            moved = moved + ((ok and n) or 0)
         end
     end
     return moved
@@ -983,6 +986,7 @@ function mercenaries:WallBuildCornerPosts()
     if not self.WallPosts then return 0 end
     local count = 0
     for _, r in ipairs(self:WallAllRuns()) do
+        local restoreType = self:WallUseRunType(r)
         local m = r.pts
         if #m >= 3 then
             local n = #m
@@ -998,6 +1002,7 @@ function mercenaries:WallBuildCornerPosts()
                 end
             end
         end
+        restoreType()
     end
     return count
 end
@@ -1074,6 +1079,41 @@ function mercenaries:WallRunLevel(r)
     return raised, "raised", highest - raised
 end
 
+-- ==== one camp, two kinds of wall ====
+-- Every run records the type it was built with (r.wtype), but everything that DRAWS a run read
+-- the one current type. So the moment a stone wall was started, the standing palisade was
+-- re-tiled as stone - a different piece, a different length - and came back half missing:
+-- "building a stone wall removed the palisade and replaced it with stone, half of it gone".
+-- This puts a run's own type in force for the length of the work done on it and returns the
+-- function that puts the current type back. Only the per-type DRAWING settings are swapped,
+-- never through WallSetType (which rebuilds), and a run of the current type is left alone -
+-- so a hand-tuned length or offset on the type being built still applies to it.
+local RUN_TYPE_FIELDS = { "WallTypeIdx", "WallSegLen", "WallUp", "WallLat", "WallOx",
+                          "WallYawFix", "CastleTowerEvery", "WallSnapAngle" }
+function mercenaries:WallUseRunType(r)
+    local want = r and r.wtype
+    if not want or want == self.WallTypeIdx or not self.WallTypes[want] then
+        return function() end
+    end
+    local saved = {}
+    for _, k in ipairs(RUN_TYPE_FIELDS) do saved[k] = self[k] end
+    local t = self.WallTypes[want]
+    self.WallTypeIdx = want
+    self.WallSegLen = nil
+    self.WallUp, self.WallLat, self.WallOx = t.up or 0, t.lat or 0, t.ox or 0
+    self.WallYawFix = t.yaw or 0
+    self.CastleTowerEvery = (t.towerEvery ~= nil) and t.towerEvery
+                            or self.CastleTowerEveryDefault or 2
+    pcall(function()
+        if self.CastleSnapAngleFor then
+            self.WallSnapAngle = self:CastleSnapAngleFor(t) or self.WallSnapAngleDefault or 0
+        end
+    end)
+    return function()
+        for _, k in ipairs(RUN_TYPE_FIELDS) do self[k] = saved[k] end
+    end
+end
+
 -- Re-render every edge from the marker list with the current parameters.
 function mercenaries:WallRebuild()
     pcall(function() if self.WallTouched then self:WallTouched() end end)
@@ -1096,6 +1136,7 @@ function mercenaries:WallRebuild()
     local total, corners = 0, 0
     local levelled = nil
     for _, r in ipairs(runs) do
+        local restoreType = self:WallUseRunType(r)
         local m = r.pts
         corners = corners + #m
         local z, how, slack = self:WallRunLevel(r)
@@ -1153,6 +1194,7 @@ function mercenaries:WallRebuild()
                 total = total + (self:WallSpawnCap(wt.cap.finish, lastSeg) and 1 or 0)
             end
         end
+        restoreType()
     end
     total = total + self:WallBuildCornerPosts()
     pcall(function()
@@ -1336,7 +1378,15 @@ function mercenaries:WallMark()
     -- Back at the corner the run started from: this click CLOSES the ring rather than
     -- marking another corner. A camp wants a wall the whole way round, and bringing the
     -- run home is how you ask for one.
-    if self:WallCloseSnapAt(pos) then
+    -- ...unless the gap being closed is a GATE: then this click marks the last corner and
+    -- the run stays open, the gate standing in the gap between its two ends.
+    local shut = self:WallCloseSnapAt(pos)
+    local gated = false
+    if shut then
+        local last = self.WallMarks[#self.WallMarks]
+        gated = self:WallEdgeCrossesGate(pos, shut) or self:WallEdgeCrossesGate(last, shut)
+    end
+    if shut and not gated then
         self:WallCloseRing()
         self:EndWallBuild(true)
         Game.SendInfoText('merc_info_wall_done', false, 0, 3)
@@ -1416,6 +1466,11 @@ function mercenaries:WallMark()
         if yaw then self:WallSpawnCornerPost(m[#m - 1], yaw + math.rad(self.WallYawFix or 0)) end
     end
     System.LogAlways("[Wall] corner " .. #self.WallMarks .. " marked")
+    if gated then
+        System.LogAlways("[Wall] back at the start across a gate - the run ends here, open, the gate fills the gap")
+        self:EndWallBuild(true)
+        Game.SendInfoText('merc_info_wall_done', false, 0, 3)
+    end
 end
 
 -- ==== closing the ring ====
@@ -1430,6 +1485,22 @@ function mercenaries:WallCloseDist()
 end
 
 -- The first corner, when the aim is close enough to it to be asking for a ring.
+-- Would a wall from a to b run through a gate the player hung on its own? The ring close
+-- joins the last corner to the first in a straight line, and nothing checked what stood
+-- between them: start a run beside a gate, walk round, come back to the gate's other side,
+-- and the close built a wall straight across the gateway. (Reported against 2.5.1.)
+-- Gateways are tiles of a stone wall, not something a run passes, so they are skipped.
+function mercenaries:WallEdgeCrossesGate(a, b)
+    if not (a and b) then return false end
+    for _, g in ipairs(self.Gates or {}) do
+        if g.tag ~= "gateway" and g.x and g.y then
+            local half = self:GateWidth(g) * 0.5 + 0.75
+            if ptSegDist2D(g.x, g.y, a.x, a.y, b.x, b.y) < half then return true end
+        end
+    end
+    return false
+end
+
 function mercenaries:WallCloseSnapAt(pos)
     local m = self.WallMarks or {}
     if not pos or #m < 3 then return nil end
@@ -2022,6 +2093,52 @@ function mercenaries:WallClearAll()
     System.LogAlways("[Wall] cleared")
 end
 
+-- Take down only the palisade (stone=false) or only the stone wall (stone=true), and leave
+-- the other standing. Returns true when there was any of that kind. Taking the palisade down
+-- takes the gates hung on it; taking the stone down takes its gateways (they are tiles OF
+-- it). With nothing of the other kind left this is just the old clear-everything.
+function mercenaries:WallRemoveKind(stone)
+    local base = self.CastleWallBase or 0
+    local function isStone(r) return base > 0 and (r.wtype or 0) > base end
+    local keep, had = {}, false
+    for _, r in ipairs(self.WallRuns or {}) do
+        if isStone(r) == (stone == true) then had = true else keep[#keep + 1] = r end
+    end
+    -- a run still being drawn counts as the kind being built
+    if self.WallMarks and #self.WallMarks >= 2 then
+        local cur = base > 0 and (self.WallTypeIdx or 0) > base
+        if cur == (stone == true) then had = true end
+    end
+    if stone then
+        pcall(function() self.CastleGateways = {} end)
+    else
+        pcall(function()
+            for i = #(self.Gates or {}), 1, -1 do
+                if self.Gates[i].tag ~= "gateway" then self:GateRemoveAt(i) end
+            end
+            self:GateTouched()
+        end)
+    end
+    if #keep == 0 then
+        pcall(function() self.CastleGateways = {} end)
+        pcall(function() self:GateClearAll() end)
+        self:WallClearAll()
+        return had
+    end
+    -- the other kind stays: drop the half-drawn run, keep the committed ones, re-render
+    self:WallPreviewClear()
+    self:WallClearStartMarker()
+    for _, mk in ipairs(self.WallMarks or {}) do
+        if mk.ent then pcall(function() System.RemoveEntity(mk.ent.id) end) end
+    end
+    self.WallMarks, self.WallClosed = {}, false
+    self.WallRuns = keep
+    self:WallRebuild()
+    System.LogAlways("[Wall] " .. (stone and "stone wall" or "palisade") .. " taken down, " ..
+                     #keep .. " run(s) of the other kind kept")
+    return had
+end
+
 -- Take the marker barrels away, keeping the walls (the "done building" step).
 function mercenaries:WallHideMarkers()
     for _, mk in ipairs(self.WallMarks or {}) do
@@ -2167,6 +2284,11 @@ function mercenaries.WallBuildTick()
         local blocked = snap and (self:GateCount() or 0) >= self.GateMax
         if blocked then snap = nil end
         local shut = (not (snap or blocked)) and pos and self:WallCloseSnapAt(pos) or nil
+        -- the preview must not promise a close WallMark will refuse (a gate in the gap)
+        if shut and (self:WallEdgeCrossesGate(pos, shut)
+                     or self:WallEdgeCrossesGate(self.WallMarks[#self.WallMarks], shut)) then
+            shut = nil
+        end
         if shut then pos = { x = shut.x, y = shut.y, z = shut.z } end
         self.WallGateSnapPose = snap
         -- The run this edge is ABOUT to become: every mark already down, plus the one

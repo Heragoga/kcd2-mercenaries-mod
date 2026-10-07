@@ -673,7 +673,7 @@ function mercenaries:LabList()
     for i, c in ipairs(self.LabCasesBroad) do
         labSay(string.format("%2d %-16s %-6s", i, c.n, c.build))
     end
-    labSay("--- physics set (merc_wall_lab_phys / F11) ---")
+    labSay("--- physics set (merc_wall_lab_phys) ---")
     for i, c in ipairs(self.LabCasesPhys) do
         labSay(string.format("%2d %-16s %-6s %s", i, c.n, c.build, c.cclass or ""))
     end
@@ -1287,7 +1287,7 @@ mercenaries:ChainDef("LabLocator", "LabLocateTick")
 -- Registered outright (not as a dev command, which only exist after merc_dev) so a
 -- harness can bind a key to it at load. Finds a lane, runs the physics set, quits.
 mercenaries.LabAutoQuit = false
-mercenaries.LabAutoSet  = "solid2"    -- which set F11 / the harness runs
+mercenaries.LabAutoSet  = "solid2"    -- which set the harness runs
 
 function mercenaries:LabAuto()
     if self.LabRun or self.LabLocate then labSay("already going"); return end
@@ -1300,7 +1300,7 @@ function mercenaries:LabAuto()
 end
 
 System.AddCCommand("merc_wall_lab_auto", "mercenaries:LabAuto()",
-    "Harness entry: find a lane, run the physics wall lab, quit the game when it reports (also F11)")
+    "Harness entry: find a lane, run the physics wall lab, quit the game when it reports (also numpad 9 under -devmode)")
 
 -- Zero-argument entry points: nothing to quote, nothing to substitute. These are what
 -- to reach for from merc_lua.
@@ -1320,7 +1320,7 @@ mercenaries:DevCommand("merc_wall_lab",        "mercenaries:LabStart('%line')",
 mercenaries:DevCommand("merc_wall_lab_broad",  "mercenaries:LabStartSet('broad', '%line')",
     "Run the original broad sweep instead")
 mercenaries:DevCommand("merc_wall_lab_phys",   "mercenaries:LabStartSet('phys', '%line')",
-    "Run the physics/collision-class set (what F11 runs)")
+    "Run the physics/collision-class set (what the harness runs)")
 mercenaries:DevCommand("merc_wall_lab_binds",  "mercenaries:LabStartSet('binds', '%line')",
     "Run the AI-bind probe set: what the engine answers and accepts")
 mercenaries:DevCommand("merc_wall_lab_see",    "mercenaries:LabStartSet('see', '%line')",
@@ -1344,13 +1344,12 @@ mercenaries:DevCommand("merc_wall_lab_show",   "mercenaries:LabShow(%line)",
 mercenaries:DevCommand("merc_wall_lab_clear",  "mercenaries:LabClearWall()",
     "Remove a wall left standing by merc_wall_lab_show")
 
--- The harness keys exist only under -devmode: a shipped mod must not take F11 and
--- numpad-9 off every player for a test rig.
+-- The harness key exists only under -devmode: a shipped mod must not take numpad-9 off every
+-- player for a test rig. No F key is ever bound (it used to take F11 as well).
 do
     local devmode = false
     pcall(function() devmode = System.IsDevModeEnable() end)
     if devmode then
-        pcall(function() System.ExecuteCommand("bind f11 merc_wall_lab_auto") end)
-        pcall(function() System.ExecuteCommand("bind np_9 merc_wall_lab_auto") end)
+        mercenaries:BindKey("np_9", "merc_wall_lab_auto")
     end
 end

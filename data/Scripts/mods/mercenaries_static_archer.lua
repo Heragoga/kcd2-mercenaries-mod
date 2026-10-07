@@ -461,6 +461,7 @@ function mercenaries:SpawnStaticArcher(pos, mode, faceAngle, enemyGroup, elevate
             if outfit then pcall(function() ent.actor:EquipClothingPreset(outfit) end) end
         else
             self:EquipMercenary(ent, _G.MercCurrentOutfit or 1)
+            pcall(function() self:BlockPickpocket(ent) end)   -- one of ours: never robbed
         end
         -- EquipArcherWeapon has to run either way: the bow and its 40 rounds are separate
         -- from clothing, and an archer with no ammo looses once and then stands there.

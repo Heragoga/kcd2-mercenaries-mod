@@ -991,10 +991,23 @@ function mercenaries.TowerClearInputSwallow() mercenaries._swallowInput = false 
 function mercenaries:HandlePlacementAction(action, activation)
     if not self.TowerSwallowActions[action] then return false end
     local wall = self.WallBuildActive
-    if not (self.ActivePlacement or wall or self._swallowInput) then return false end
+    -- The command screen's Move order. It sited its flag on a console bind of mouse1, and a
+    -- console bind on a mouse button never fires in this game: "left clicking does nothing".
+    -- It takes the same route as the towers - left click or the interact key sets it, crouch
+    -- cancels (H still cancels too).
+    local blPlacing = self.BL and self.BL.placing
+    if not (self.ActivePlacement or wall or blPlacing or self._swallowInput) then return false end
 
     if activation == "press" then
-        if self.ActivePlacement then
+        if blPlacing and not (self.ActivePlacement or wall) then
+            if self.TowerPlaceActions[action] then
+                pcall(function() self:BLPlaceConfirm() end)
+            elseif self.TowerCancelActions[action] then
+                pcall(function() self:BLPlaceCancel() end)
+                self._swallowInput = true
+                Script.SetTimerForFunction(400, "mercenaries.TowerClearInputSwallow")
+            end
+        elseif self.ActivePlacement then
             if self.TowerPlaceActions[action] then
                 self:ConfirmPlacement()           -- stays in placement mode for the next one
             elseif self.TowerCancelActions[action] then
@@ -1565,6 +1578,7 @@ mercenaries.TowerWatchdogEvery = 30.0
 mercenaries.TowerWatchdogLast  = nil
 
 function mercenaries:TowerWatchdog()
+    if not self.CampActive then return end
     local sts = self.TowerStations or {}
     if #sts == 0 then return end
     local t = 0

@@ -567,6 +567,7 @@ function mercenaries:FoeSpawnAt(pos, yaw, tier)
         })
         ent = System.GetEntityByName(name)
         if ent then
+            self:TestTrack(name)    -- foe_spawn is a sandbox command: removed by ResetAllTestState on load
             self:FoeEquip(ent)
             self:FoeRegister(ent)
         end

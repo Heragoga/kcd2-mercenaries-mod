@@ -7,6 +7,53 @@
 -- firstFast as "one action is enough". Skipping those meant building two Action objects
 -- per merc on every poll, including for mercs far out of reach and on the cheap survey
 -- pass. AddInteractorAction RETURNS firstFast - that is how vanilla knows to stop.
+-- ==== no pickpocketing the company ====
+-- Nobody in the company can be robbed: every merc, archer, woman and named companion, the
+-- camp's tower archers, the quartermaster and the sutler. Vanilla offers "Steal" from
+-- BasicAIActions.GetActions (action "pickpocketing", interaction inr_steal) to anyone whose
+-- soul allows it, and the company's souls carry loot protection (16), not pickpocket
+-- protection - the declared classes have no "loot + pickpocket" without attack protection
+-- or immortality as well. So the prompt is taken out of the list instead: no prompt, no
+-- minigame, no theft.
+function mercenaries:StripStealActions(out)
+    if type(out) ~= "table" then return {} end
+    local kept, removed = {}, false
+    for _, a in ipairs(out) do
+        if type(a) == "table" and (a.action == "pickpocketing"
+           or (inr_steal ~= nil and a.interactionName == inr_steal)) then
+            removed = true
+        else
+            kept[#kept + 1] = a
+        end
+    end
+    return removed and kept or out
+end
+
+-- `base(ent, user, firstFast)` minus the steal. On the fast survey pass vanilla stops at its
+-- first action; if that was the steal, ask again in full so whatever stood behind it (talk)
+-- still counts.
+function mercenaries:ActionsNoSteal(base, ent, user, firstFast)
+    if type(base) ~= "function" then return {} end
+    local out = self:StripStealActions(base(ent, user, firstFast) or {})
+    if firstFast and #out == 0 then
+        out = self:StripStealActions(base(ent, user, false) or {})
+    end
+    return out
+end
+
+-- For company NPCs that keep their stock interaction list (tower archers, the quartermaster,
+-- a sutler without the trade prompt): wrap whatever GetActions they have.
+function mercenaries:BlockPickpocket(ent)
+    if type(ent) ~= "table" or ent._mercNoSteal then return end
+    local base = ent.GetActions
+    if type(base) ~= "function" and BasicAIActions then base = BasicAIActions.GetActions end
+    if type(base) ~= "function" then return end
+    ent._mercNoSteal = true
+    ent.GetActions = function(this, user, firstFast)
+        return mercenaries:ActionsNoSteal(base, this, user, firstFast)
+    end
+end
+
 function mercenaries:InjectInteraction(entity)
     if not entity then return end
 
@@ -79,10 +126,10 @@ function mercenaries:InjectInteraction(entity)
         if user == nil then return {} end
         if not (user.actor and user.actor:CanInteractWith(self.id)) then return {} end
 
-        -- Vanilla's list, appended to rather than copied into a second table.
+        -- Vanilla's list minus "Steal", appended to rather than copied into a second table.
         local output = {}
         if BasicAIActions and BasicAIActions.GetActions then
-            output = BasicAIActions.GetActions(self, user, firstFast) or {}
+            output = mercenaries:ActionsNoSteal(BasicAIActions.GetActions, self, user, firstFast)
         end
 
         -- The survey pass only wants to know there IS an action, and ours are appended

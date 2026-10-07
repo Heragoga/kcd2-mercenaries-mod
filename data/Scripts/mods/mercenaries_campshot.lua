@@ -63,6 +63,13 @@ local function log(fmt, ...)
 end
 
 local function cvar(cmd)
+    -- Through the test-cvar registry, so the value a capture session found (HUD, debug overlay,
+    -- grass, vegetation) is put back by ResetAllTestState on every load. r_GetScreenShot is a
+    -- one-shot trigger, not a setting, so it is not recorded.
+    if mercenaries.TestCvarExec and not string.find(tostring(cmd), "^%s*r_GetScreenShot") then
+        mercenaries:TestCvarExec(cmd)
+        return
+    end
     pcall(function() System.ExecuteCommand(cmd) end)
 end
 
@@ -244,6 +251,7 @@ end
 -- ====================================================================== camera
 
 function mercenaries:ShotCam(pos, dir)
+    self._shotCamTouched = true     -- ResetAllTestState hands the camera back if this is set
     local ok = pcall(function() CryAction.SetViewCamera(pos, dir) end)
     if not ok then
         -- Reported once, not once per tick: a failure here is structural, and sixteen

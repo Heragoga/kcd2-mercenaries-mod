@@ -27,6 +27,295 @@ function mercenaries:PlayerCommand(name, body, desc)
     pcall(function() System.AddCCommand(name, body, desc or "") end)
 end
 
+-- KEY POLICY: THIS MOD NEVER BINDS AN F KEY (F1-F12). Players use them for the game's own
+-- functions and for other mods. Every console `bind` the mod issues goes through BindKey and
+-- every release through UnbindKey; both refuse F keys, so a future edit that names one fails
+-- loudly in the log instead of taking the key off somebody. The console has no `unbind`, so a
+-- release re-binds the key to merc_noop (or to a restore command) - and UnbindKey only ever
+-- does that to a key BindKey bound, so nothing the player or another mod owns is touched.
+mercenaries.BoundKeys = mercenaries.BoundKeys or {}
+
+function mercenaries:IsFunctionKey(k)
+    if type(k) ~= "string" then return false end
+    local s = string.lower(k)
+    s = string.gsub(s, "[%s\"']", "")
+    return string.match(s, "^f%d+$") ~= nil
+end
+
+-- A key name a player may choose (merc_cmd_key / merc_camp_key). Returns the lower-case name,
+-- or nil and the reason.
+function mercenaries:ValidUserKey(k)
+    if type(k) ~= "string" then return nil, "not a key name" end
+    k = string.lower(k)
+    if not string.match(k, "^[%w_]+$") then return nil, "'" .. k .. "' is not a key name" end
+    if self:IsFunctionKey(k) then
+        return nil, "'" .. k .. "' is a function key - this mod never binds F1-F12"
+    end
+    return k
+end
+
+function mercenaries:BindKey(k, cmd)
+    if self:IsFunctionKey(k) then
+        System.LogAlways("[Keys] REFUSED to bind '" .. tostring(k) .. "' to " .. tostring(cmd)
+            .. ": this mod never binds F keys")
+        return false
+    end
+    pcall(function() System.ExecuteCommand("bind " .. tostring(k) .. " " .. tostring(cmd)) end)
+    self.BoundKeys[string.lower(tostring(k))] = true
+    return true
+end
+
+function mercenaries:UnbindKey(k, back)
+    if self:IsFunctionKey(k) then return false end
+    local lk = string.lower(tostring(k))
+    if not self.BoundKeys[lk] then return false end
+    self.BoundKeys[lk] = nil
+    pcall(function() System.ExecuteCommand("bind " .. tostring(k) .. " " .. (back or "merc_noop")) end)
+    return true
+end
+
+-- =============================================================================
+-- TEST / HARNESS / DEV STATE RESET.
+--
+-- HARD RULE: a save that is loaded while any test, harness, probe or editor is active - or
+-- that was WRITTEN while one was - must come up clean. Nothing a test changed may survive:
+-- no ticking harness, no test NPCs, no changed cvars, no camera override, no immortal or
+-- parked player, no test UI, no test key binds, no test flag read back out of the save.
+--
+-- Why it is needed at all. The Lua VM is NOT restarted by a save load (docs/kcd2/lua-scripting.md
+-- "What survives what"): every plain table, latch and flag outlives the load, and so do the
+-- engine cvars. Pending Script timers are serialised INTO the save and re-armed on load. So a
+-- harness that was mid-run keeps its Running flag, and its restored timer carries on in the
+-- loaded game; a cvar a test raised stays raised; a stamp the harness wrote into the store is
+-- read straight back.
+--
+-- How. Each test module registers ONE reset function (mercenaries_testreset.lua, loaded last,
+-- via RegisterTestReset). ResetAllTestState runs every one of them - each pcall'd, so a failure
+-- cannot stop the rest - then the shared steps: remove the entities the tests TRACKED, put every
+-- cvar a test changed back to the value it had BEFORE the first change, release test binds, and
+-- take the harness stamps out of the store. OnGameplayStarted calls it first, before any
+-- restore step, on every load, new game and region change.
+-- =============================================================================
+mercenaries.TestResets        = {}     -- ordered { name =, fn = }
+mercenaries.TestCvarStock     = {}     -- [cvar] = the value it held before the first test change
+mercenaries.TestSpawned       = {}     -- [entity name] = true: spawned by a test, removed on reset
+mercenaries.TestBoundKeys     = {}     -- [key] = true: bound by a test through BindKey
+mercenaries.TestStampQuarantine = {}   -- harness stamps lifted out of the store on load (dev-gated)
+
+-- Test-only entity name prefixes. An entity is removed BY ID only when its name carries one of
+-- these: entity ids are recycled across a load, so a stale id can name a vanilla NPC.
+mercenaries.TestEntityPrefixes = {
+    "SpawnedTestNpc_", "MercNavLab_", "MercNavDbg_", "MercNavObstMeasure_", "MercNavBlocker_",
+    "MercMNMTest_", "MercCrossWall_", "MercBlockerCheck_", "MercExtent_",
+    "MercWpnAudit_", "MercCCLineup_", "MercActTest_", "MercCampScan_",
+    "MercUpgPreview_", "MercUpgPrefab_", "MercSmithAlign_", "MercSmithyBase_", "MercAnvilAlign_",
+    "MercForgeRig_", "MercPart_", "MercRouteMk_", "MercPlaceGhost_",
+    "merc_uidraw_", "merc_swfstress_", "merc_swfpin_", "merc_imgspin_",
+}
+
+-- Store tags that only a harness or an editor writes. Exact names plus prefixes.
+mercenaries.TestStampTags = {
+    TortureStage = true, TortureSquad = true, TortureOut = true, TortureTiles = true,
+    TortureQSquad = true, TortureQSiege = true, EditorOwner = true, SaveProbe = true,
+}
+mercenaries.TestStampPrefixes = { "Torture" }
+
+function mercenaries:IsTestStampTag(tag)
+    tag = tostring(tag or "")
+    if self.TestStampTags[tag] then return true end
+    for _, p in ipairs(self.TestStampPrefixes) do
+        if string.sub(tag, 1, #p) == p then return true end
+    end
+    return false
+end
+
+local function trLog(s) System.LogAlways("[Merc] " .. tostring(s)) end
+
+function mercenaries:RegisterTestReset(name, fn)
+    for _, r in ipairs(self.TestResets) do
+        if r.name == name then r.fn = fn; return end
+    end
+    table.insert(self.TestResets, { name = name, fn = fn })
+end
+
+-- ---- cvars -------------------------------------------------------------------------
+-- Remember the value a cvar had before the FIRST test change, put it back on reset.
+function mercenaries:TestCvarNote(name)
+    if not name or self.TestCvarStock[name] ~= nil then return end
+    local v
+    pcall(function() v = System.GetCVar(name) end)
+    if v ~= nil then self.TestCvarStock[name] = v end
+end
+
+function mercenaries:TestCvarSet(name, value)
+    self:TestCvarNote(name)
+    local ok = pcall(function() System.SetCVar(name, value) end)
+    if not ok then pcall(function() System.ExecuteCommand(tostring(name) .. " " .. tostring(value)) end) end
+end
+
+-- "name value" through the console, for the callers that always went through it.
+function mercenaries:TestCvarExec(cmd)
+    local name = string.match(tostring(cmd or ""), "^%s*(%S+)")
+    if name then self:TestCvarNote(name) end
+    pcall(function() System.ExecuteCommand(cmd) end)
+end
+
+function mercenaries:TestCvarRestore(reason)
+    local n = 0
+    for name, v in pairs(self.TestCvarStock) do
+        local ok = pcall(function() System.SetCVar(name, v) end)
+        if not ok then pcall(function() System.ExecuteCommand(tostring(name) .. " " .. tostring(v)) end) end
+        n = n + 1
+    end
+    self.TestCvarStock = {}
+    if n > 0 then trLog("test reset: " .. n .. " cvar(s) put back to their pre-test value") end
+    return n
+end
+
+-- ---- entities ----------------------------------------------------------------------
+-- A test spawned this one: it is removed on reset. By NAME, which survives a load; an id does not.
+function mercenaries:TestTrack(entOrName)
+    local nm = entOrName
+    if type(entOrName) == "table" then
+        nm = nil
+        pcall(function() nm = entOrName:GetName() end)
+    end
+    if type(nm) == "string" and nm ~= "" then self.TestSpawned[nm] = true end
+    return entOrName
+end
+
+-- Remove an entity by id ONLY if its name carries a test prefix (see TestEntityPrefixes).
+-- Accepts an id or an entity table; anything that does not resolve, or resolves to something
+-- that is not ours, is left alone.
+function mercenaries:TestRemoveById(idOrEnt, prefixes)
+    local id = idOrEnt
+    if type(idOrEnt) == "table" then id = idOrEnt.id end
+    if id == nil then return false end
+    local ent
+    pcall(function() ent = System.GetEntity(id) end)
+    if not ent then return false end
+    local nm
+    pcall(function() nm = ent:GetName() end)
+    if type(nm) ~= "string" then return false end
+    for _, p in ipairs(prefixes or self.TestEntityPrefixes) do
+        if string.sub(nm, 1, #p) == p then
+            pcall(function() System.RemoveEntity(ent.id) end)
+            return true
+        end
+    end
+    return false
+end
+
+function mercenaries:TestRemoveTracked(reason)
+    local n, mercs = 0, false
+    local names = {}
+    for nm in pairs(self.TestSpawned) do names[#names + 1] = nm end
+    self.TestSpawned = {}
+    if #names > 0 then
+        local want, seen = {}, {}
+        for _, nm in ipairs(names) do want[nm] = true end
+        -- One pass over the NPC class (every tracked spawn is an NPC) rather than a linear
+        -- GetEntityByName scan per name: a test battle tracks dozens.
+        pcall(function()
+            for _, e in pairs(System.GetEntitiesByClass("NPC") or {}) do
+                local nm
+                pcall(function() nm = e:GetName() end)
+                if nm and want[nm] then
+                    seen[nm] = true
+                    pcall(function() System.RemoveEntity(e.id) end)
+                    n = n + 1
+                end
+            end
+        end)
+        for _, nm in ipairs(names) do
+            if not seen[nm] and #names <= 8 then
+                local ent
+                pcall(function() ent = System.GetEntityByName(nm) end)
+                if ent then
+                    pcall(function() System.RemoveEntity(ent.id) end)
+                    n = n + 1
+                end
+            end
+            if self.ActiveMercs and self.ActiveMercs[nm] then self.ActiveMercs[nm] = nil; mercs = true end
+        end
+    end
+    if mercs and self.Recount then pcall(function() self:Recount() end) end
+    if n > 0 then trLog("test reset: removed " .. n .. " test-spawned entit(ies)") end
+    return n
+end
+
+-- ---- key binds ---------------------------------------------------------------------
+-- The only way a test may bind a key. Never an F key (BindKey refuses those); released on reset.
+function mercenaries:TestBindKey(k, cmd)
+    if self:BindKey(k, cmd) then
+        self.TestBoundKeys[string.lower(tostring(k))] = true
+        return true
+    end
+    return false
+end
+
+function mercenaries:TestUnbindAll(reason)
+    local n = 0
+    for k in pairs(self.TestBoundKeys) do
+        if self:UnbindKey(k) then n = n + 1 end
+    end
+    self.TestBoundKeys = {}
+    if n > 0 then trLog("test reset: released " .. n .. " test key bind(s)") end
+    return n
+end
+
+-- ---- harness stamps in the save ----------------------------------------------------
+-- The harness stamps its stage into the store so a relaunch can resume ("TortureStage"). Read
+-- back on an ordinary load, that is a test flag riding in the player's save. So on every load
+-- the stamps are LIFTED out of the store and the read cache (a save written from here on is clean)
+-- and held in memory only; TortureLoad serves them back to the harness's own resume command,
+-- and only while merc_dev is on (a -devmode launch). Nothing else ever sees them.
+function mercenaries:TestStampsQuarantine(reason)
+    self.TestStampQuarantine = {}
+    if not self.SaverTakeTags then return 0 end
+    local took = self:SaverTakeTags(function(tag) return self:IsTestStampTag(tag) end)
+    local n = 0
+    for k, v in pairs(took) do self.TestStampQuarantine[k] = v; n = n + 1 end
+    if n > 0 then trLog("test reset: " .. n .. " harness stamp(s) lifted out of the save data") end
+    return n
+end
+
+-- A harness stamp, for the harness's own resume path: the store first (stamps written this
+-- session), then the quarantine - but the quarantine only under merc_dev.
+function mercenaries:TortureLoad(tag)
+    local v
+    pcall(function() v = self:LoadString(tag) end)
+    if v ~= nil then return v end
+    if self.DevCommandsOn then return self.TestStampQuarantine[tag] end
+    return nil
+end
+
+-- ---- the one entry point -----------------------------------------------------------
+-- Called FIRST in OnGameplayStarted (every save load, new game, region change) and by
+-- merc_test_reset. Safe to call at any time and any number of times.
+function mercenaries:ResetAllTestState(reason)
+    reason = tostring(reason or "manual")
+    self.TestResetCount = (self.TestResetCount or 0) + 1
+    local ran, failed = 0, 0
+    local function step(label, fn)
+        local ok, err
+        if mercenaries.TracedCall then ok, err = mercenaries.TracedCall(fn)
+        else ok, err = pcall(fn) end
+        if ok then ran = ran + 1 else
+            failed = failed + 1
+            trLog('test reset step "' .. tostring(label) .. '" FAILED: ' .. tostring(err))
+        end
+    end
+    for _, r in ipairs(self.TestResets) do
+        step(r.name, function() r.fn(self, reason) end)
+    end
+    step("tracked entities", function() self:TestRemoveTracked(reason) end)
+    step("cvars",            function() self:TestCvarRestore(reason) end)
+    step("key binds",        function() self:TestUnbindAll(reason) end)
+    step("harness stamps",   function() self:TestStampsQuarantine(reason) end)
+    trLog(string.format("test reset (%s): %d step(s) ran, %d failed", reason, ran, failed))
+end
+
 
 -- Hire Tokens
 mercenaries.TokenIDWeak = "679a655e-189d-4519-b437-ccc4b92be41d"
@@ -1243,7 +1532,8 @@ function mercenaries:MonitorInventory()
         tok(cls, function() self:AlxSpawnBeat(n) end)
     end
     tok(self.TokenIDAlxLodgingGone, function()
-        if not self.AlxLodgingGone then self:AlxLodgingRemove() end
+        -- 3.2: Aleksej stays at his spot for good unless the lodging search is switched back on.
+        if self.AlxBeat6Search and not self.AlxLodgingGone then self:AlxLodgingRemove() end
     end)
     tok(self.TokenIDQMTakeAll,       function() self:CampTakeParty(1.0) end)
     tok(self.TokenIDQMTakeThreeQtr,  function() self:CampTakeParty(0.75) end)
@@ -1690,10 +1980,40 @@ end
 function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     System.LogAlways("[Mercenaries] Game loaded! Starting the inventory monitor loop...")
 
+    -- VERY FIRST: undo everything a test, harness, probe or editor changed. The Lua VM and the
+    -- cvars survive a load, and a save written mid-test carries test stamps, so a loaded game
+    -- must not inherit any of it. Before every restore step below, so none of them reads a
+    -- test's leftovers. See ResetAllTestState.
+    pcall(function() self:ResetAllTestState("gameplay_started") end)
+
     -- FIRST, before anything arms a timer: every Script.SetTimerForFunction chain died
     -- with the level we just left, so the latches guarding them have to be cleared or
     -- they lock the timers out for the rest of the session. See SchedOnLoad.
     if self.SchedOnLoad then self:SchedOnLoad() end
+
+    -- Saver entities belong to the save just loaded, so the tag map must be rebuilt
+    -- before ANY LoadString reads from it - MQWOnLoad, RosterOnGameplayLoad, SolidOnLoad and
+    -- the perf switches below all read the store, and used to run before this, answering the
+    -- second load of a session out of the PREVIOUS save (its stash flag, roster switches and
+    -- solid mode). The map being dropped here is also the LAST look at the level being left,
+    -- so the company is copied out of it first: on a Trosky <-> Kuttenberg crossing the level
+    -- ahead holds none of the mod's entities at all, and RegionOnLoad is what puts the
+    -- company back. See docs/mercenaries/camp/regions.md.
+    if self.RegionCaptureTags then pcall(function() self:RegionCaptureTags() end) end
+    if self.SaverForget then self:SaverForget() end
+    -- Ahead of every LoadString below, so they read the carried state on a crossing.
+    if self.RegionOnLoad then pcall(function() self:RegionOnLoad() end) end
+
+    -- The per-save settings are read lazily ONCE and latched, and the latches are plain Lua
+    -- that outlives a load: save B inherited save A's difficulty, upkeep, encounters, barks,
+    -- horses, ghost collision, LOD quality and perf switch. Re-arm every latch and put the
+    -- shipped default back (several loaders only write a NON-default value), so each is read
+    -- again from the save just loaded. MapMarkerOnLoad does the same for its own latch.
+    self._difficultyLoaded, self._upkeepLoaded, self._encountersLoaded = nil, nil, nil
+    self._statusIconsLoaded, self._horsesLoaded, self._barksLoaded = nil, nil, nil
+    self._ghostLoaded, self._lodQualityLoaded, self._perfDefaultsRead = nil, false, false
+    self.Difficulty, self.Upkeep, self.BarksOn, self.PerfDefaultsOn = "medium", "standard", true, true
+    self.HorsesMaxCompany = 0
     if self.MQWOnLoad then pcall(function() self:MQWOnLoad() end) end
     if self.MatrixOnLoad then pcall(function() self:MatrixOnLoad() end) end
     if self.RosterOnGameplayLoad then pcall(function() self:RosterOnGameplayLoad() end) end
@@ -1715,6 +2035,18 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     if self.BLOnLoad then pcall(function() self:BLOnLoad() end) end
     if self.CUOnLoad then pcall(function() self:CUOnLoad() end) end
     if self.DelSweep then pcall(function() self:DelSweep() end) end
+    -- Handles and latches that belong to the level being left. Left set, a placement in
+    -- progress at the moment of a load ate the first E / left click afterwards and built a
+    -- free tower or gate at the old spot, a bought wall or tower refused to start ("already"),
+    -- and the delivery chest and the trader's counter answered "already open" for the rest of
+    -- the session. Fields only: EndPlacement's GhostClear would remove entities by stale ids.
+    pcall(function()
+        self.ActivePlacement, self.PlacePos, self.PlaceValid = nil, nil, nil
+        self.GhostParts = {}
+        self.WallBuildActive, self._swallowInput, self._wallGateGhost = false, false, nil
+        self.DelChest, self.DelTickArmed = nil, false
+        self.TraderDeal, self.TraderTickArmed = nil, false
+    end)
     if self.RaborschOnLoad  then pcall(function() self:RaborschOnLoad()  end) end
     if self.TargetingOnLoad then pcall(function() self:TargetingOnLoad() end) end
     if self.LodBoostOnLoad  then pcall(function() self:LodBoostOnLoad()  end) end
@@ -1742,16 +2074,6 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- teleports and time skips. See mercenaries_fttrace.lua and docs/mercenaries/tech/performance.md.
     if self.FtTraceOnLoad then pcall(function() self:FtTraceOnLoad() end) end
     if self.CombatWhyOn then pcall(function() self:ChainArm("CombatWhyTick", 2000) end) end
-
-    -- Saver entities belong to the save just loaded, so the tag map must be rebuilt
-    -- before the LoadString calls below read from it. The map being dropped here is also
-    -- the LAST look at the level being left, so the company is copied out of it first: on
-    -- a Trosky <-> Kuttenberg crossing the level ahead holds none of the mod's entities at
-    -- all, and RegionOnLoad is what puts the company back. See docs/mercenaries/camp/regions.md.
-    if self.RegionCaptureTags then pcall(function() self:RegionCaptureTags() end) end
-    if self.SaverForget then self:SaverForget() end
-    -- Ahead of every LoadString below, so they read the carried state on a crossing.
-    if self.RegionOnLoad then pcall(function() self:RegionOnLoad() end) end
 
     -- ...and only now: MapMarkerOnLoad reads MercCampCompass, which is a LoadString tag
     -- and would otherwise answer out of the save before this one.
@@ -1794,7 +2116,9 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     local savedOutfit = mercenaries:LoadString("MercOutfitPersistent")
     if savedOutfit and tonumber(savedOutfit) and tonumber(savedOutfit) > 0 then
         _G.MercCurrentOutfit = tonumber(savedOutfit)
-        self:ChangeMercOutfit(_G.MercCurrentOutfit, true)
+        -- LoadStep: ActiveMercs still holds the previous level's entities until the cache
+        -- rebuild, and a throw here used to skip every restore step after it.
+        self:LoadStep("OutfitLoad", function() self:ChangeMercOutfit(_G.MercCurrentOutfit, true) end)
     else
         _G.MercCurrentOutfit = 1
     end
@@ -1803,7 +2127,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     local savedWeapon = mercenaries:LoadString("MercWeaponPersistent")
     if savedWeapon and tonumber(savedWeapon) and tonumber(savedWeapon) > 0 then
         _G.MercCurrentWeapon = tonumber(savedWeapon)
-        self:ChangeMercWeapon(_G.MercCurrentWeapon, true)
+        self:LoadStep("WeaponLoad", function() self:ChangeMercWeapon(_G.MercCurrentWeapon, true) end)
     else
         _G.MercCurrentWeapon = 1
     end
@@ -1836,6 +2160,19 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- lingered. The camp itself IS persistent: only its anchor is saved, and
     -- RestoreCampDelayed below rebuilds it there once the merc cache exists.
     self:LoadStep("ClearAnyLeftoverCamp", function() self:ClearAnyLeftoverCamp() end)
+    -- The camp's DEFENCE records are plain Lua too and outlive the load: a gate hung after the
+    -- save being loaded stayed in Gates, GateWatchdog re-hung it within seconds and the next
+    -- DefSave wrote it into the loaded save ("I reverted to a save from before the gate and
+    -- it is still there - baked into every save"). The loaded save's own defences come back
+    -- from its tags in RestoreCampDelayed (DefRestore), so the lists start empty here.
+    -- Lists only, here and not in ClearAnyLeftoverCamp (the upgrade rebuild calls that mid-
+    -- session): DefClearWorld would RemoveEntity ids that may already be recycled.
+    pcall(function()
+        self.Gates, self.CastleGateways = {}, {}
+        self.WallRuns, self.WallMarks, self.WallSegEnts, self.WallClosed = {}, {}, {}, false
+        self.TowerStations, self.ArcherCarts = {}, {}
+        self.CampBuildOrigin = nil
+    end)
 
     -- Load the quartermaster logistics state (tiredness / food / drink / wages).
     self:LoadStep("LogiLoad", function() self:LogiLoad() end)
@@ -1843,17 +2180,13 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- NO F-KEY IS EVER BOUND. The mod used to bind F4 (recall) plus the bench/torture
     -- triggers on F6-F10, and players kept firing test campaigns - some of which QUIT
     -- the game - by accident. Recall is the console command merc_camp_recall (players
-    -- can bind it themselves: bind <key> merc_camp_recall). The test harness re-binds
-    -- its keys through merc_bench_bindkeys / merc_torture_bindkeys, which exist only
-    -- after merc_dev - and merc_dev itself refuses outside a -devmode launch.
+    -- can bind it themselves: bind <key> merc_camp_recall). The test harness TYPES its
+    -- triggers into the console (merc_bench_bindkeys / merc_torture_bindkeys are no-ops now).
+    -- Every console bind goes through mercenaries:BindKey, which refuses F1-F12.
 
-    -- F5-F11 ARE NOT BOUND. Four in-game editors want them - the bandit camp builder
-    -- (docs/bandit-camps.md), the siege builder, the Aleksej lodging editor and the patrol
-    -- route recorder - and every one of their binders is commented out in its own module, so
-    -- the F-keys stay free for the game. Every merc_bcamp_* / merc_siege_* / merc_alx_* /
-    -- merc_route_* command still works from the console. To re-enable ONE editor: uncomment
-    -- its binder body, then uncomment the matching call below.
-    -- pcall(function() mercenaries:AlxBinds(true) end)
+    -- The four in-game editors (bandit camp builder, siege builder, Aleksej lodging editor,
+    -- patrol route recorder) bind NO keys at all: every merc_bcamp_* / merc_siege_* /
+    -- merc_alx_* / merc_route_* command is typed in the console.
     -- FIRST, before any owner rebuilds: what did the save carry? (see LoadSweepSnapshot)
     pcall(function() mercenaries:LoadSweepSnapshot() end)
     pcall(function() mercenaries:RouteLoad() end)
@@ -2098,67 +2431,21 @@ Script.LoadScript("Scripts/mods/mercenaries_combatwhy.lua")
 -- Immediately after it: the quest plan reuses the torture framework's step machine, its
 -- safety arming and its walk/log helpers, all of which the file above defines.
 Script.LoadScript("Scripts/mods/mercenaries_torture_quest.lua")
+-- Last of all: it names every test module above, so every field it resets already exists.
+-- Registers one reset per test/harness/dev module with ResetAllTestState (top of this file).
+-- Pre-release self-test (merc_selftest): automated checks plus visual steps.
+Script.LoadScript("Scripts/mods/mercenaries_selftest.lua")
+Script.LoadScript("Scripts/mods/mercenaries_testreset.lua")
 
--- Prints every merc console command with a one-line description.
-function mercenaries:PrintHelp()
-    local lines = {
-        "===== Mercenaries mod commands =====",
-        "The mod's SETTINGS live in the quartermaster's dialogue, under \"[Mod settings]\":",
-        "  difficulty, random encounters, upkeep, the HUD icons and the corner key prompts. Everything below is the console equivalent.",
-        "merc_status                          one-line squad report (count, health, orders, archer stance)",
-        "merc_hints on|off                    the [H] Command / [U] Camp prompts in the corner",
-        "merc_hints_pos topright|topleft|bottomright|bottomleft|<x> <y>   where they sit (1280x720 stage)",
-        "merc_heal                            heal & wash the squad (flat " .. tostring(self.HealCost) .. " groschen)",
-        "merc_wait / merc_follow / merc_dismiss   squad orders",
-        "merc_camp_make / merc_camp_break     spawn/break a procedural camp for the squad",
-        "merc_camp_recall                     bring the whole squad to you from anywhere (doesn't break camp)",
-        "merc_camp_scan [radius] [spacing]    classify the ground around you (flag=valid, barrel=tree/rock, crate=building); merc_camp_scan_clear to remove",
-        "merc_hold / merc_hold_end            hold this ground: every man stands fast where he is, with a leash (docs/mercenaries/ai/squad-orders.md)",
-        "merc_hold_formup 0|1                 hold shape: 1 draws them up in a block instead of standing fast",
-        "merc_escort / merc_escort_end        escort whoever you are looking at, in column",
-        "merc_focus / merc_focus_clear        call the target you are looking at (or locked onto) for the whole squad",
-        "merc_engage_default|viking|defend|hold   rules of engagement",
-        "merc_aggro_tight|balanced|loose      how hard they pile onto one enemy",
-        "merc_orders_status / merc_hold_status        report the squad's combat and standing orders",
-        "merc_difficulty easy|medium|difficult|extreme|impossible|horde   raid/patrol/contract difficulty (docs/mercenaries/enemies/difficulty.md)",
-        "merc_difficulty_status               the tier and the ceilings it implies",
-        "merc_enemy_rotation                  which enemy groups raided/patrolled last, and so cannot draw again yet",
-        "merc_autodismount 0|1                mercs get off their horses to fight",
-        "merc_formation_column|line|square|wedge|circle|escort|vanilla   marching shape (see docs/mercenaries/ai/formations.md)",
-        "merc_formation_relaxed|keepshape|movehistory              how followers hold the shape",
-        "merc_formation_relocate_on|off / merc_formation_status    crowding + diagnostics",
-        "merc_formation_control / merc_follow_stats 1   is the squad REALLY in formation, or on the chain?",
-        "merc_hire_w1/w2/w3, d1/d2/d3, p1/p2/p3   hire weak/medium/strong mercs (debug, free)",
-        "merc_weapon_random|swordshield|axeshield|longsword|maceshield|shortsword|mace|axe|polearm   melee loadout",
-        "archer_hire_1/3                     hire archers (debug, free)",
-        "archer_stance_skirmish|melee|hold   archer combat stance (default: skirmish)",
-        "archer_weapon_bow|crossbow|handcannon    archer ranged weapon type",
-        "enemy_spawn_looters|bandits|sigi|prague|cumans|knights[_1|_20]   spawn an enemy group; base = row of 10 (debug)",
-        "enemy_spawn_heinrich[_3]            spawn the overpowered Heinrich boss (debug)",
-        "foe_spawn[_1|_20] / foe_spawn_scout  new hostile AI: unalerted foes that shout and all engage (docs/mercenaries/enemies/foe-ai.md)",
-        "foe_status / foe_alert / foe_calm / foe_clear / foe_ranges   foe AI state, engage delays and tuning",
-        "merc_banditcamp_start|status|abandon|clear   the quartermaster's bandit-camp contract (docs/mercenaries/quests/bandit-camp-quest.md)",
-        "merc_bounty_start|status|report|clear|abandon   the quartermaster's repeatable camp bounty (docs/mercenaries/quests/bounty.md)",
-        "merc_bcamp_site_here                 print a BanditCampSites row for where you stand",
-        "merc_spawn_battle / merc_battle      spawn a full test battle (debug)",
-        "merc_buff_list                       squad status HUD icons (auto-driven by logistics); merc_buff_all tests them, merc_buff_auto hands back",
-        "merc_wpn_audit[_p1..p5|_enemy]       lineup with one NPC per weapon preset; _who names the one beside you, _report/_static list the broken ones (docs/mercenaries/company/weapon-audit.md)",
-        "merc_cc_lineup[_p1..p4]              lineup with one NPC per custom companion; _who names the one beside you, _draw arms them, _clear despawns",
-        "merc_cc_diag                        why a companion is not behaving like a merc: every gate, next to a regular merc as a control",
-        "merc_recount                         re-sync the merc counter",
-        "merc_face [clip]                     play a facial animation on the quartermaster (docs/mercenaries/tech/lipsync.md)",
-        "merc_lua <code>                      run raw Lua (debug)",
-    }
-    for _, line in ipairs(lines) do
-        System.LogAlways(line)
-    end
-end
+-- (merc_help is mercenaries_commands.lua's PrintHelp: an older copy here, defined later, used
+-- to override it and print commands that no longer exist.)
 
 -- Lipsync diagnostics (docs/mercenaries/tech/lipsync.md). No arg = generic talking clip.
 mercenaries:DevCommand("merc_face", "mercenaries:FaceTest(\"%line\")", "Play a facial animation on the quartermaster (arg=clip name, default fa_cin_talk_neutral_01)")
 
 mercenaries:DevCommand("merc_testmerc", "mercenaries:SpawnTestMerc()", "Control test: spawn ONE merc on the fixed test soul guid (free, no cap). See docs/mercenaries/archive/quest-override-test.md")
 mercenaries:DevCommand("merc_recount", "mercenaries:Recount()", "")
+mercenaries:DevCommand("merc_test_reset", "mercenaries:ResetAllTestState('console')", "Undo every test/harness/dev change: stop harnesses, remove test spawns, restore test cvars, release test binds")
 
 -- Player status buffs: cosmetic HUD/inventory indicators for the management layer.
 -- One no-arg command per variant (merc_buff_1 .. merc_buff_9), each clearing the

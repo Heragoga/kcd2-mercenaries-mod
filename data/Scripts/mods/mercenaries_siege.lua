@@ -4,18 +4,20 @@
 -- underlying placement engine, but a catalogue built for a siege rather than a camp: men on
 -- both sides, field defences to put them behind, and stations you can place more than one of.
 --
---   F5  defenders (friendly)      F9   props and furniture
---   F6  attackers (hostile)       F10  stations (carts, taverns, towers)
---   F7  barricades                F11  dump layout
---   F8  tents and the camp circle
+--   merc_siege_defenders   (friendly)        merc_siege_props     props and furniture
+--   merc_siege_attackers   (hostile)         merc_siege_stations  stations (carts, taverns, towers)
+--   merc_siege_barricades                    merc_siege_dump      dump layout
+--   merc_siege_tents       tents and the camp circle
 --
--- Press a category key to select it; press it again to CYCLE variants. The ghost follows your
+-- NO KEYS ARE BOUND: this mod never binds an F key. Bind your own non-F key to a command if
+-- you want a hotkey.
+--
+-- Run a category command to select it; run it again to CYCLE variants. The ghost follows your
 -- aim, LEFT CLICK places, RIGHT CLICK takes back the last piece. Both clicks reach us through
 -- Player.OnAction, which only fires WITH A WEAPON DRAWN - draw one before building, or use
 -- merc_siege_place / merc_siege_undo from the console.
 --
--- merc_siege_binds takes the F-keys (they are shared with the camp builder and the route
--- recorder); merc_bcamp_binds and merc_binds_routes take them back.
+-- merc_siege_binds binds nothing (no F key is ever bound); it just prints the command list.
 --
 -- See docs/mercenaries/fortifications/siege-builder.md.
 
@@ -647,7 +649,7 @@ end
 function mercenaries:SiegeList()
     local cats = self:SiegeCatalogue()
     local c = cats[self.SiegeCat]
-    if not c then sLog("no category selected - press F5-F10"); return end
+    if not c then sLog("no category selected - run merc_siege_defenders .. merc_siege_stations"); return end
     local sel = ((self.SiegeSel[self.SiegeCat] - 1) % #c.items) + 1
     sLog(c.name .. ":")
     for i, it in ipairs(c.items) do
@@ -656,55 +658,39 @@ function mercenaries:SiegeList()
 end
 
 function mercenaries:SiegeHelp()
-    sLog("F5 defender towers/carts   F6 attacker archers + patrol waypoints")
-    sLog("F7 barricades & gates   F8 tents/camp circle")
-    sLog("F9 props & furniture   F10 stations (carts, taverns, towers)   F11 dump")
-    sLog("  press the same key again to cycle variants; the ghost follows your aim")
+    sLog("merc_siege_defenders towers/carts   merc_siege_attackers archers + patrol waypoints")
+    sLog("merc_siege_barricades barricades & gates   merc_siege_tents tents/camp circle")
+    sLog("merc_siege_props props & furniture   merc_siege_stations (carts, taverns, towers)   merc_siege_dump")
+    sLog("  run the same command again to cycle variants; the ghost follows your aim")
     sLog("LEFT CLICK places, RIGHT CLICK undoes - both need a weapon drawn (engine input map)")
     sLog("merc_siege_group [name] picks who the attackers are (" .. table.concat(mercenaries.SiegeEnemyGroups, ", ") .. ")")
-    sLog("merc_siege_patrol starts a new patrol route - waypoints on F6 join the current one")
+    sLog("merc_siege_patrol starts a new patrol route - waypoints placed with merc_siege_attackers join the current one")
     sLog("merc_siege_try <path> drops any .cgf to see whether it exists")
     sLog("merc_siege_tents_gallery lays out every candidate big tent in a row")
     sLog("PEACE is ON while building - merc_siege_go lets them fight, merc_siege_hold stops them")
     sLog("merc_siege_new clears   merc_siege_list shows the category   merc_siege_off leaves")
-    sLog("merc_bcamp_binds gives the F-keys back to the camp builder")
 end
 
--- DISABLED. F5-F11 belong to the Aleksej lodging editor (mercenaries_aleksej.lua) while that
--- room is being authored. Every merc_siege_* command still works from the console - only the
--- key grab is off.
---
--- TO RESTORE: uncomment the block below, and point the load hook in mercenaries.lua back at
--- SiegeBinds instead of AlxBinds.
+-- NO KEYS. This mod never binds an F key, so the siege builder has no key map: every
+-- merc_siege_* command is typed in the console. The command stays so old habits get an answer.
 function mercenaries:SiegeBinds(quiet)
     self.SiegePeace = true
     aLogSiegeBindsOff()
-    -- self:EditorOwner("siege")
-    -- self:EditorsStopExcept("siege")
-    -- pcall(function()
-    --     System.ExecuteCommand("bind f5 merc_siege_defenders")
-    --     System.ExecuteCommand("bind f6 merc_siege_attackers")
-    --     System.ExecuteCommand("bind f7 merc_siege_barricades")
-    --     System.ExecuteCommand("bind f8 merc_siege_tents")
-    --     System.ExecuteCommand("bind f9 merc_siege_props")
-    --     System.ExecuteCommand("bind f10 merc_siege_stations")
-    --     System.ExecuteCommand("bind f11 merc_siege_dump")
-    -- end)
-    -- if not quiet then self:SiegeHelp() end
+    if not quiet then self:SiegeHelp() end
 end
 
 function aLogSiegeBindsOff()
-    sLog("key binding is OFF for the siege builder - F5-F11 belong to the lodging editor.")
-    sLog("  every merc_siege_* command still works from the console")
+    sLog("no keys are bound for the siege builder (this mod never binds F keys).")
+    sLog("  every merc_siege_* command works from the console")
 end
 
-mercenaries:DevCommand("merc_siege_defenders",  "mercenaries:SiegePick(1)", "F5 - defenders")
-mercenaries:DevCommand("merc_siege_attackers",  "mercenaries:SiegePick(2)", "F6 - attackers")
-mercenaries:DevCommand("merc_siege_barricades", "mercenaries:SiegePick(3)", "F7 - barricades")
-mercenaries:DevCommand("merc_siege_tents",      "mercenaries:SiegePick(4)", "F8 - tents and the camp circle")
-mercenaries:DevCommand("merc_siege_props",      "mercenaries:SiegePick(5)", "F9 - props and furniture")
-mercenaries:DevCommand("merc_siege_stations",   "mercenaries:SiegePick(6)", "F10 - carts, taverns, towers")
-mercenaries:DevCommand("merc_siege_dump",       "mercenaries:SiegeDump()",  "F11 - print the layout")
+mercenaries:DevCommand("merc_siege_defenders",  "mercenaries:SiegePick(1)", "Defenders")
+mercenaries:DevCommand("merc_siege_attackers",  "mercenaries:SiegePick(2)", "Attackers")
+mercenaries:DevCommand("merc_siege_barricades", "mercenaries:SiegePick(3)", "Barricades")
+mercenaries:DevCommand("merc_siege_tents",      "mercenaries:SiegePick(4)", "Tents and the camp circle")
+mercenaries:DevCommand("merc_siege_props",      "mercenaries:SiegePick(5)", "Props and furniture")
+mercenaries:DevCommand("merc_siege_stations",   "mercenaries:SiegePick(6)", "Carts, taverns, towers")
+mercenaries:DevCommand("merc_siege_dump",       "mercenaries:SiegeDump()",  "Print the layout")
 mercenaries:DevCommand("merc_siege_tents_gallery", "mercenaries:SiegeTentGallery(%line)", "Lay out every candidate tent mesh in a row: whatever renders exists")
 mercenaries:DevCommand("merc_siege_tents_clear",   "mercenaries:SiegeTentGalleryClear()", "Remove the tent gallery")
 mercenaries:DevCommand("merc_siege_go",        "mercenaries:SiegeGo()",   "Let the placed men fight (peace off)")
@@ -716,6 +702,6 @@ mercenaries:DevCommand("merc_siege_undo",       "mercenaries:SiegeUndo()",  "Tak
 mercenaries:DevCommand("merc_siege_group",      "mercenaries:SiegeGroup(%line)", "Who the attackers are: merc_siege_group sigi|bandit|looter|knight|cuman|prague")
 mercenaries:DevCommand("merc_siege_try",        "mercenaries:SiegeTry(%line)", "Drop any .cgf at your aim point to see if it exists: merc_siege_try <path>")
 mercenaries:DevCommand("merc_siege_list",       "mercenaries:SiegeList()",  "List the current category")
-mercenaries:DevCommand("merc_siege_help",       "mercenaries:SiegeHelp()",  "Key map and commands")
+mercenaries:DevCommand("merc_siege_help",       "mercenaries:SiegeHelp()",  "Command list")
 mercenaries:DevCommand("merc_siege_off",        "mercenaries:SiegeStop()",  "Leave the editor")
-mercenaries:DevCommand("merc_siege_binds",      "mercenaries:SiegeBinds()", "Give F5-F11 to the siege builder")
+mercenaries:DevCommand("merc_siege_binds",      "mercenaries:SiegeBinds()", "Siege builder help (no keys are bound)")

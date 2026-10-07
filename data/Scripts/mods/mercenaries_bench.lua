@@ -2,7 +2,7 @@
 --
 -- Two jobs, one module:
 --   1. Run a scripted scenario chain (hire men, spawn a fight) with a real frame-time
---      histogram per scenario - no human, no console typing: F9 starts it, F10 starts it
+--      histogram per scenario - no human: merc_bench starts it, merc_bench_auto starts it
 --      and QUITS THE GAME when done, so an external harness can cycle launch->bench->parse.
 --   2. Measure the pop-in complaint OBJECTIVELY. Every sampled NPC is polled 4x/sec for the
 --      three render states merc_lod_probe reads - IsHidden(), IsSlotCharacter(0) and
@@ -176,14 +176,14 @@ mercenaries.BenchPoolPlan = {
     { name = "p5rand",   settle = 20, secs = 20, hover = true, setup = function(self)
                              self:Hire(0, 5, "medium") end },
     { name = "ppool",    settle = 20, secs = 25, hover = true, setup = function(self)
-                             pcall(function() System.SetCVar("r_TexturesStreamPoolSize", 1200) end) end },
+                             pcall(function() self:TestCvarSet("r_TexturesStreamPoolSize",1200) end) end },
     { name = "ppool2",   settle = 4,  secs = 20, hover = true, setup = function(self) end },
     { name = "p20",      settle = 25, secs = 25, hover = true, setup = function(self)
                              self:Hire(0, 15, "medium") end },
     { name = "ppoolback",settle = 20, secs = 25, hover = true, setup = function(self)
-                             pcall(function() System.SetCVar("r_TexturesStreamPoolSize", 2536) end) end },
+                             pcall(function() self:TestCvarSet("r_TexturesStreamPoolSize",2536) end) end },
     { name = "ppoolre",  settle = 20, secs = 25, hover = true, setup = function(self)
-                             pcall(function() System.SetCVar("r_TexturesStreamPoolSize", 1200) end) end },
+                             pcall(function() self:TestCvarSet("r_TexturesStreamPoolSize",1200) end) end },
     { name = "pdis",     settle = 45, secs = 20, hover = true, setup = function(self)
                              self:SetState('dismiss') end },
     { name = "prec",     settle = 30, secs = 20, hover = true, setup = function(self) end },
@@ -496,15 +496,13 @@ function mercenaries:BenchStart(autoquit, planTable)
     Script.SetTimerForFunction(self.BenchTickMs, "mercenaries.BenchTick" .. self.BenchSlot)
 end
 
--- Test-harness convenience: put the bench triggers back on F8/F9/F10 for a session.
--- NEVER called automatically - several of these QUIT the game, and players kept firing
--- them by accident when the binds were applied on every load. The harness types
--- merc_dev + merc_bench_bindkeys into the console (or just runs the command itself).
+-- NO KEYS. The bench used to take F8/F9/F10 for a session; this mod never binds an F key now
+-- (several triggers QUIT the game, and players fired them by accident). The harness TYPES the
+-- command it wants into the console (tools/autobench.ps1 -ConsoleCmd). merc_bench_bindkeys is
+-- kept only so an old harness that still types it gets an answer instead of an unknown command.
 function mercenaries:BenchBindKeys()
-    pcall(function() System.ExecuteCommand("bind f9 merc_bench") end)
-    pcall(function() System.ExecuteCommand("bind f10 merc_bench_auto") end)
-    pcall(function() System.ExecuteCommand("bind f8 merc_bench_scale_auto") end)
-    System.LogAlways("[Bench] dev binds applied: F9=merc_bench F10=merc_bench_auto F8=merc_bench_scale_auto")
+    System.LogAlways("[Bench] no keys are bound (this mod never binds F keys) - type merc_bench, "
+        .. "merc_bench_auto or merc_bench_scale_auto in the console")
 end
 
 -- Dev-gated: the whole bench family is an automated-test surface (harness modes quit
@@ -520,4 +518,4 @@ mercenaries:DevCommand("merc_bench_tex",      "mercenaries:BenchStart(false, mer
 mercenaries:DevCommand("merc_bench_tex_auto", "mercenaries:BenchStart(true,  mercenaries.BenchTexPlan)", "The texture plan, then QUIT (harness mode)")
 mercenaries:DevCommand("merc_bench_pool",      "mercenaries:BenchStart(false, mercenaries.BenchPoolPlan)", "Texture stream pool clamp A/B/A against the hire ladder")
 mercenaries:DevCommand("merc_bench_pool_auto", "mercenaries:BenchStart(true,  mercenaries.BenchPoolPlan)", "The pool plan, then QUIT (harness mode)")
-mercenaries:DevCommand("merc_bench_bindkeys", "mercenaries:BenchBindKeys()", "Bind F9/F10/F8 to the bench triggers for this session (harness use)")
+mercenaries:DevCommand("merc_bench_bindkeys", "mercenaries:BenchBindKeys()", "No-op kept for old harnesses: the bench has no key binds, type the commands")

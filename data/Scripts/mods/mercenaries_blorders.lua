@@ -194,10 +194,14 @@ end
 function mercenaries:BLPlaceBegin()
     if BL.placing then return end
     BL.placing = true
-    self:BLAttackBlock(true)
+    -- NO attack block here. It switches on the game's `no_attack` filter, and that filter
+    -- removes the left click before Player.OnAction ever sees it - so the click that was
+    -- meant to plant the flag arrived nowhere ("left clicking with the move order does
+    -- nothing"). The tower route is used instead (HandlePlacementAction): the click is
+    -- consumed there, so it plants the flag and never reaches the sword.
     pcall(function() System.ExecuteCommand("bind mouse1 merc_bl_place") end)
-    log("siting the order - left click to set it, " ..
-        string.upper(BL.hideKey or "h") .. " to cancel")
+    log("siting the order - left click or E to set it, " ..
+        string.upper(BL.hideKey or "h") .. " or crouch to cancel")
     self:BLPlaceTick()
 end
 
@@ -344,10 +348,23 @@ function mercenaries:BLOrder(key)
     elseif key == "stop" then
         -- HoldBegin with no anchor is stand-fast: every man's station is the ground he is
         -- already on, which is exactly "stop".
+        -- A second HoldBegin would wipe every OTHER squad's stations too (see HoldAddGroup),
+        -- so while another squad still holds, only these men are stamped where they stand.
         if self.HoldActive then
             self:HoldDropGroup(keys)
         end
-        self:HoldBegin(nil, nil, keys)
+        if self.HoldActive then
+            self.HoldMembers = self.HoldMembers or {}
+            self.HoldStations = self.HoldStations or {}
+            for k in pairs(keys) do self.HoldMembers[k] = true end
+            for _, r in ipairs(self:HoldRoster(keys)) do
+                local p
+                pcall(function() p = r.ent:GetWorldPos() end)
+                if p then self.HoldStations[r.key] = { x = p.x, y = p.y, z = p.z } end
+            end
+        else
+            self:HoldBegin(nil, nil, keys)
+        end
     elseif key == "charge" then
         self:HoldDropGroup(keys)
         self:MarchSet(keys, false)
@@ -404,7 +421,11 @@ function mercenaries:BLCharge()
     pcall(function() self._alertAt = System.GetCurrTime() or 0 end)
     self._blChargeGen = (self._blChargeGen or 0) + 1
     local gen = self._blChargeGen
-    mercenaries._blChargeRestore = function()
+    -- One timer name per charge: SetTimerForFunction resolves the name when it FIRES, so a
+    -- shared name let the first charge's timer run the second charge's restore 30 s early.
+    local fname = "_blChargeRestore" .. gen
+    mercenaries[fname] = function()
+        mercenaries[fname] = nil
         if gen ~= mercenaries._blChargeGen then return end
         -- Never leave the 140m query running: it is the expensive one.
         mercenaries.EnemyAlertRadius = mercenaries.EnemyAlertRadiusDefault or 60
@@ -419,7 +440,7 @@ function mercenaries:BLCharge()
             .. tostring(mercenaries.EnemyAlertRadius) .. "m, engagement back to "
             .. tostring(_G.MercEngage))
     end
-    Script.SetTimerForFunction(self.BLChargeSecs * 1000, "mercenaries._blChargeRestore")
+    Script.SetTimerForFunction(self.BLChargeSecs * 1000, "mercenaries." .. fname)
     log(string.format("charge: kill everything in sight, scan radius %dm for %ds",
         self.EnemyAlertRadius, self.BLChargeSecs))
 end

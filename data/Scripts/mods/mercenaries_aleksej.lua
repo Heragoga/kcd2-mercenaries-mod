@@ -4,12 +4,12 @@
 -- 1. A PLACEMENT editor for his room. He needs a spawn point, a stool, a bed and a chest, and
 --    the chest is the beat 6 reveal, so its position matters as much as his.
 --
---      F5  Aleksej's spawn point      F8   chest
---      F6  stool                      F9   dump the four positions
---      F7  bed                        F10  clear what has been placed
+--      merc_alx_spawn  Aleksej's spawn point      merc_alx_chest  chest
+--      merc_alx_stool  stool                      merc_alx_dump   dump the four positions
+--      merc_alx_bed    bed                        merc_alx_clear  clear what has been placed
 --
---    merc_alx_binds takes the F-keys off whatever holds them (the camp builder, the siege
---    builder, the route recorder); merc_bcamp_binds / merc_siege_binds take them back.
+--    No keys are bound: this mod never binds an F key (or any editor key). Everything is a
+--    console command; bind your own non-F key to one if you want a hotkey.
 --
 -- 2. A FORCED-DIALOGUE test, for the marsh speech (beat 9).
 --
@@ -190,7 +190,7 @@ local function alxArg(v)
     return (t:gsub("^%s*(.-)%s*$", "%1"))
 end
 
--- Aleksej's lodging in Kuttenberg, placed with the F5-F11 editor and dumped with merc_alx_dump.
+-- Aleksej's lodging in Kuttenberg, placed with the merc_alx_* editor and dumped with merc_alx_dump.
 -- These are exact interior floor points: never pass them through CampSnapToGround.
 mercenaries.AlxLodgingLevel = "kutnohorsko"
 mercenaries.AlxLodging = {
@@ -351,35 +351,18 @@ function mercenaries:AlxTalkClear()
     alxSignal(self, self.AlxTokenFar)
 end
 
--- DISABLED. No editor holds F5-F11 any more: all three binders are commented out so the
--- F-keys stay free for the game. Every merc_alx_* command still works from the console -
--- only the key grab is off.
---
--- TO RESTORE: uncomment the block below and uncomment the AlxBinds call in the load hook in
--- mercenaries.lua.
+-- NO KEYS. This mod never binds an F key, so the editor has no key map: every merc_alx_*
+-- command is typed in the console. The command stays so old muscle memory gets an answer.
 function mercenaries:AlxBinds(quiet)
-    aLog("key binding is OFF for the lodging editor - nothing holds F5-F11.")
-    aLog("  every merc_alx_* command still works from the console")
-    aLog("  to restore: uncomment AlxBinds in mercenaries_aleksej.lua")
-    -- self:EditorOwner("aleksej")
-    -- self:EditorsStopExcept("aleksej")
-    -- pcall(function()
-    --     System.ExecuteCommand("bind f5 merc_alx_spawn")
-    --     System.ExecuteCommand("bind f6 merc_alx_stool")
-    --     System.ExecuteCommand("bind f7 merc_alx_bed")
-    --     System.ExecuteCommand("bind f8 merc_alx_chest")
-    --     System.ExecuteCommand("bind f9 merc_alx_dump")
-    --     System.ExecuteCommand("bind f10 merc_alx_clear")
-    --     System.ExecuteCommand("bind f11 merc_alx_undo")
-    -- end)
-    -- if not quiet then self:AlxHelp() end
+    aLog("no keys are bound for the lodging editor (this mod never binds F keys).")
+    aLog("  every merc_alx_* command works from the console")
+    if not quiet then self:AlxHelp() end
 end
 
 function mercenaries:AlxHelp()
-    aLog("F5 Aleksej's spawn   F6 stool   F7 bed   F8 chest")
-    aLog("F9 dump the positions   F10 clear   F11 undo the last piece")
+    aLog("merc_alx_spawn Aleksej's spawn   merc_alx_stool   merc_alx_bed   merc_alx_chest")
+    aLog("merc_alx_dump the positions   merc_alx_clear   merc_alx_undo the last piece")
     aLog("LEFT CLICK places, RIGHT CLICK undoes - both need a weapon drawn (engine input map)")
-    aLog("merc_bcamp_binds / merc_siege_binds take the F-keys back")
     aLog("merc_alx_talk [alias] spawns the pre-combat speech test NPC")
     aLog("merc_alx_beat <n>   jump to beat n of the 9-beat runner (testing)")
     aLog("merc_alx_status     what the runner is doing right now")
@@ -387,16 +370,16 @@ end
 
 mercenaries:DevCommand("merc_alx_lodging",    "mercenaries:AlxLodgingSpawn()",  "Spawn Aleksej and his room (Kuttenberg)")
 mercenaries:DevCommand("merc_alx_lodging_off","mercenaries:AlxLodgingRemove()", "Remove Aleksej and his room")
-mercenaries:DevCommand("merc_alx_spawn",      "mercenaries:AlxPick(1)",   "F5 - Aleksej's spawn point")
-mercenaries:DevCommand("merc_alx_stool",      "mercenaries:AlxPick(2)",   "F6 - stool")
-mercenaries:DevCommand("merc_alx_bed",        "mercenaries:AlxPick(3)",   "F7 - bed")
-mercenaries:DevCommand("merc_alx_chest",      "mercenaries:AlxPick(4)",   "F8 - chest")
-mercenaries:DevCommand("merc_alx_dump",       "mercenaries:AlxDump()",    "F9 - print the four positions")
-mercenaries:DevCommand("merc_alx_clear",      "mercenaries:AlxClear()",   "F10 - remove what has been placed")
-mercenaries:DevCommand("merc_alx_undo",       "mercenaries:AlxUndo()",    "F11 - undo the last piece")
+mercenaries:DevCommand("merc_alx_spawn",      "mercenaries:AlxPick(1)",   "Aleksej's spawn point")
+mercenaries:DevCommand("merc_alx_stool",      "mercenaries:AlxPick(2)",   "Stool")
+mercenaries:DevCommand("merc_alx_bed",        "mercenaries:AlxPick(3)",   "Bed")
+mercenaries:DevCommand("merc_alx_chest",      "mercenaries:AlxPick(4)",   "Chest")
+mercenaries:DevCommand("merc_alx_dump",       "mercenaries:AlxDump()",    "Print the four positions")
+mercenaries:DevCommand("merc_alx_clear",      "mercenaries:AlxClear()",   "Remove what has been placed")
+mercenaries:DevCommand("merc_alx_undo",       "mercenaries:AlxUndo()",    "Undo the last piece")
 mercenaries:DevCommand("merc_alx_place",      "mercenaries:AlxPlace()",   "Place at your aim point (console)")
-mercenaries:DevCommand("merc_alx_binds",      "mercenaries:AlxBinds()",   "Take F5-F11 for the lodging editor")
-mercenaries:DevCommand("merc_alx_help",       "mercenaries:AlxHelp()",    "Key map")
+mercenaries:DevCommand("merc_alx_binds",      "mercenaries:AlxBinds()",   "Lodging editor help (no keys are bound)")
+mercenaries:DevCommand("merc_alx_help",       "mercenaries:AlxHelp()",    "Command list")
 mercenaries:DevCommand("merc_alx_talk",       "mercenaries:AlxTalkTest('%line')", "Pre-combat speech test: spawn an NPC that speaks when approached")
 mercenaries:DevCommand("merc_alx_talk_now",   "mercenaries:AlxTalkFire()",  "Force the test line without walking up")
 mercenaries:DevCommand("merc_alx_preset",     "mercenaries:AlxTalkPresetSet('%line')", "Forced-dialogue preset: 1 fader, 2 chat, 3 ingame")
@@ -1411,9 +1394,21 @@ function mercenaries:AlxSpawnBeat(n)
 
     if n == 6 then
         self.AlxBeat6Done, self.AlxBeat6Live = false, true
-        self:AlxLodgingRemove()
+        if self.AlxBeat6Search then self:AlxLodgingRemove() end
     end
     if not beat.combat then
+        -- Beat 6 is live too, for AlxRebuildAfterLoad: the wake token can be serviced BEFORE
+        -- AlxOnLoad, whose lodging sweep then takes the stocked chest away again - and with no
+        -- live-beat tag nothing put it back, so "Search Aleksej's lodging" had no chest to find.
+        if n == 6 then self:AlxLiveBeatWrite(6) end
+        if n == 6 and not self.AlxBeat6Search then
+            -- No search: both documents (and the chest's coin and roll) straight into the
+            -- pack. AlxTick sees them on its next pass and reports the beat done to Skald.
+            -- Guarded by the pack, so the token reissued on a level wake grants nothing twice.
+            self:AlxGrantBeat6Items()
+            aLog("beat 6: documents handed to the player (no lodging search)")
+            return
+        end
         self:AlxBeat6Start()
         return
     end
@@ -1715,6 +1710,14 @@ end
 -- fire it).
 mercenaries.AlxWakeHour  = 6
 mercenaries.AlxSleepHour = 21
+-- 3.2: he keeps ONE spot. With the routine on he went to bed at night, and a player who came
+-- by after dark found the stool empty and read it as "Aleksej disappeared". Off: on his stool
+-- at every hour. True puts the day/night routine back.
+mercenaries.AlxLodgingRoutine = false
+-- 3.2: beat 6 no longer sends the player to search the empty lodging. The documents are
+-- handed over the moment the beat opens, and Aleksej stays where he is (the "he is gone"
+-- token is ignored). True puts the search - and his disappearance - back.
+mercenaries.AlxBeat6Search = false
 
 function mercenaries:AlxLodgingHere()
     local lvl
@@ -1821,6 +1824,11 @@ function mercenaries:AlxLodgingResetOnLoad()
     self.AlxKeptLodging = nil
     do
         local nm; pcall(function() nm = self:LoadString(self.AlxLodgingNameTag) end)
+        -- "Gone" is plain Lua and outlived the load: a post-beat-6 save loaded after another
+        -- one had him standing again (the wake token's handler skips while Gone is already
+        -- true), and a pre-beat-6 save loaded after beat 6 never got him back. The tag says
+        -- which this save is - AlxLodgingRemove writes "0".
+        self.AlxLodgingGone = self.AlxBeat6Search and (nm == "0") or false
         if nm and nm ~= "" and nm ~= "0" then
             local e; pcall(function() e = System.GetEntityByName(nm) end)
             local alive = e and ((e.actor == nil) or self:IsAliveAndWell(e, true))
@@ -1861,6 +1869,7 @@ function mercenaries:AlxLodgingResetOnLoad()
     -- the tick's respawn resolves to nothing - which is the report "Aleksej has no tipster,
     -- he spawned after the quest tried to apply it" (2026-09-04), and it was right. The
     -- tick's own "already standing" guard makes this safe to do twice.
+    if self.AlxLodgingGone then return end
     pcall(function() self:AlxLodgingSpawn() end)
 end
 
@@ -1883,7 +1892,7 @@ function mercenaries:AlxLodgingTick()
     local h
     local ok = pcall(function() h = Calendar.GetWorldHourOfDay() end)
     if not (ok and h) then return end
-    local day = (h >= self.AlxWakeHour and h < self.AlxSleepHour)
+    local day = (not self.AlxLodgingRoutine) or (h >= self.AlxWakeHour and h < self.AlxSleepHour)
     if day == self.AlxLodgingDay then return end
     self.AlxLodgingDay = day
     self.BanditCampActors[ws] = true
@@ -1909,7 +1918,7 @@ function mercenaries:AlxLodgingSpawn()
     local L = self.AlxLodging
     local spawnPos = L and L.spawn
     if not spawnPos then
-        aLog("beat 1: mercenaries.AlxLodging.spawn is not set - place the room with the F5-F11 " ..
+        aLog("beat 1: mercenaries.AlxLodging.spawn is not set - place the room with the merc_alx_* " ..
              "editor and merc_alx_dump, then bake the printed position in here. Aleksej will not " ..
              "be standing anywhere yet, so his talk-to menu (aleksej_dialog.xml) has nobody to " ..
              "open it on until this is done.")
@@ -2038,7 +2047,7 @@ function mercenaries:AlxBeat6Start()
     local L = self.AlxLodging
     local chestPos = L and L.chest
     if not chestPos then
-        aLog("beat 6: mercenaries.AlxLodging.chest is not set - place the room with the F5-F11 " ..
+        aLog("beat 6: mercenaries.AlxLodging.chest is not set - place the room with the merc_alx_* " ..
              "editor and merc_alx_dump, then bake the printed position in here. Granting the " ..
              "beat's items to the player directly so the quest is not blocked meanwhile.")
         self:AlxGrantBeat6Items()
@@ -2094,6 +2103,7 @@ function mercenaries:AlxTick()
         pcall(function() has4 = player.inventory:GetCountOfClass(self.AlxDocs.doc4) or 0 end)
         if has3 > 0 and has4 > 0 then
             self.AlxBeat6Done, self.AlxBeat6Live = true, false
+            self:AlxLiveBeatWrite(0)
             self:AlxSignalToken(self.TokenIDAlxB6Done)
             aLog("beat 6: both documents in hand - told Skald")
         end
@@ -2239,8 +2249,8 @@ function mercenaries:AlxGoto()
         ok and "moved" or "SetPos failed"))
 end
 
--- NOT merc_alx_spawn / merc_alx_clear: those are already the lodging editor's F5 and F10
--- (AlxPick(1) / AlxClear), bound by AlxBinds on every load. Registering the same names twice
+-- NOT merc_alx_spawn / merc_alx_clear: those are already the lodging editor's commands
+-- (AlxPick(1) / AlxClear). Registering the same names twice
 -- silently broke one feature or the other depending on which registration won.
 mercenaries:DevCommand("merc_alx_beat",   "mercenaries:AlxSpawnBeat('%line')", "TEST: stand beat N's camp up (Skald normally asks)")
 mercenaries:DevCommand("merc_alx_beat_clear", "mercenaries:AlxDespawnCamp()",  "TEST: take the standing camp down")

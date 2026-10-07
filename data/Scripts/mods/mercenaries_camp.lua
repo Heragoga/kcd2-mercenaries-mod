@@ -2867,6 +2867,7 @@ function mercenaries:CampActorYield(data, entity)
 
     -- Or he has a fight on: a target of his own, one handed to him, or one he is claiming.
     if self:CampHasFightTarget(ws) then data.campYield = true end
+
 end
 
 -- Forced dialogue AT THE PLAYER, run from camp_actor exactly the way the two-NPC gossip is.
@@ -4324,6 +4325,10 @@ function mercenaries:CampSaveCircles()
 end
 
 function mercenaries:CampLoadCircles(origin)
+    -- First, before any early return: a moved practice yard from the PREVIOUS camp used to
+    -- survive every "no saved layout / other anchor" return below, and the yard of a camp
+    -- pitched elsewhere was built at the old camp's spot.
+    self.CampTrainPlaced = nil
     local raw = self:LoadString("MercCampCircles")
     if not (raw and origin) then return {} end
     local head, body = string.match(raw, "^([^|]*)|(.*)$")
@@ -4334,7 +4339,6 @@ function mercenaries:CampLoadCircles(origin)
     local dx, dy = origin.x - ax, origin.y - ay
     if (dx * dx + dy * dy) > (self.CampTileAnchorEps * self.CampTileAnchorEps) then return {} end
     local out = {}
-    self.CampTrainPlaced = nil
     for chunk in string.gmatch(body or "", "[^;]+") do
         local name, rest = string.match(chunk, "^([^:]+):(.*)$")
         local x, y, z = string.match(rest or "", "([^,]+),([^,]+),([^,]+)")

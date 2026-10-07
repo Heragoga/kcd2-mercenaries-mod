@@ -1482,13 +1482,13 @@
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_buy_food" To="Exec" />
                 </EventFunction>
-                <EventFunction Name="exec_qm_ask_food" PositionY="-240" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                <EventFunction Name="exec_qm_ask_stats" PositionY="-240" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be6bd" />
                     <Constant Name="Amount" Value="1" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_ask_stats" To="Exec" />
                 </EventFunction>
-                <EventFunction Name="exec_qm_ask_drink" PositionY="-200" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                <EventFunction Name="exec_qm_deposit" PositionY="-200" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be6cd" />
                     <Constant Name="Amount" Value="1" />
                     <Constant Name="ShowUINotification" Value="false" />
@@ -3403,7 +3403,7 @@
                         <!-- No Marker: he has left, and a marker on a soul with no live NPC points at
                              nothing. The room is the destination and the player has been to it five
                              times, so the objective names it instead. -->
-                        <EnumLog Type="Started" Name="Active">
+                        <EnumLog Type="Started" Name="Active" IsTracked="true">
                             <Log StringName="obj_alx_6" Text="Search Aleksej's lodging in Kuttenberg." />
                         </EnumLog>
                         <EnumLog Type="Completed" Name="Done">

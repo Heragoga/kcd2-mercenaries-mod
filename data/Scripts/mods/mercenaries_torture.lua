@@ -3,7 +3,7 @@
 -- deploy composition, the sit/sleep combat handoff, the time-skip guards, single-upgrade
 -- removal, and - across a quicksave the harness reloads mid-run - camp persistence.
 --
--- Runs unattended: F8 / merc_torture_auto starts it, every step logs
+-- Runs unattended: merc_torture_auto starts it, every step logs
 -- [Torture] PASS/FAIL/INFO lines the harness (tools/torturetest.ps1) collects, and the
 -- run quits the game when done so the harness can cycle. The player is held ~16m above
 -- the field in god mode for the whole run - no test may ever endanger or need Henry.
@@ -131,7 +131,7 @@ end
 -- ---------------------------------------------------------------------------
 
 -- Arm the safety NOW, before the first tick - not on it. A run where the trigger did not
--- take (the game's own bindings shadow the F-keys, so a tapped F8 can do nothing at all)
+-- take (the game's own bindings shadow the F-keys, so a tapped key can do nothing at all)
 -- left Henry standing unprotected in the open and he was killed, because god mode was only
 -- ever armed by a tick that never came. Arming it in the starter means the worst a dead
 -- trigger can now cost is time.
@@ -740,11 +740,15 @@ function mercenaries:TortureStart(autoquit)
     -- A stamped save means this is the harness's SECOND merc_torture_auto, after its
     -- relaunch: run the persistence checks instead of a fresh campaign. It only ever happens
     -- because somebody asked for it - a player loading a stamped save is never hijacked.
-    local stage = self:LoadString("TortureStage")
+    local stage = self:TortureLoad("TortureStage")
     if stage == "B" then
         self:SaveString("TortureStage", "done")
         tLog("=== phase B: verifying the reloaded world (merc_torture_auto on a stamped save) ===")
         pcall(function() System.ExecuteCommand("god 1") end)
+        -- Armed flag: a timer is serialised into the save and re-armed by a load, and phase B
+        -- QUITS THE GAME. Only a timer this call armed may run it; ResetAllTestState clears
+        -- the flag on every load, so a restored or stale one is a no-op.
+        self._torturePhaseBArmed = true
         Script.SetTimerForFunction(12000, "mercenaries.TorturePhaseB")
         return
     end
@@ -793,25 +797,27 @@ function mercenaries.TortureOnLoad() end
 
 function mercenaries.TorturePhaseB()
     local self = mercenaries
+    if not self._torturePhaseBArmed then return end     -- stale / save-restored timer: do nothing
+    self._torturePhaseBArmed = false
     local ok, err = pcall(function()
         self._tortureState = self._tortureState or { pass = 0, fail = 0 }
 
         self:TortureCheck("B_camp_restored", self.CampActive == true,
             self.CampActive ~= true and "CampActive false after reload" or nil)
 
-        local wantSquad = tonumber(self:LoadString("TortureSquad") or "") or -1
+        local wantSquad = tonumber(self:TortureLoad("TortureSquad") or "") or -1
         local haveSquad = squadCount(self)
         self:TortureCheck("B_squad_restored", wantSquad < 0 or haveSquad >= wantSquad - 1,
             "saved " .. wantSquad .. ", have " .. haveSquad)
 
-        local wantOut = tonumber(self:LoadString("TortureOut") or "") or -1
+        local wantOut = tonumber(self:TortureLoad("TortureOut") or "") or -1
         local haveOut = select(1, outPartyStats(self))
         self:TortureCheck("B_outparty_restored", wantOut < 0 or haveOut == wantOut,
             "saved " .. wantOut .. " deployed, have " .. haveOut)
 
         -- Tiles: every station saved before the reload must be within a metre of where
         -- it was. This is the whole "upgrades shuffle around after a reload" regression.
-        local saved = self:LoadString("TortureTiles")
+        local saved = self:TortureLoad("TortureTiles")
         local worst, worstName, missing = 0, nil, {}
         if saved then
             local body = string.match(saved, "^[^|]*|(.*)$") or ""
@@ -850,10 +856,10 @@ function mercenaries.TorturePhaseB()
 end
 
 -- ---------------------------------------------------------------------------
--- THE ADAPTIVE SCENARIO PROBE (F7 / merc_torture_probe).
+-- THE ADAPTIVE SCENARIO PROBE (merc_torture_probe).
 --
 -- For the purpose-built saves (a vanilla bandit camp, mid-Kuttenberg, the fortified
--- 50-merc camp, an ambush in progress, Trosky): load one, press F7, and it reads the
+-- 50-merc camp, an ambush in progress, Trosky): load one, run merc_torture_probe, and it reads the
 -- world it landed in and runs only the checks that apply. Observation first: it never
 -- saves, never breaks a camp, never normalises anything - the save stays exactly as
 -- the player made it. Henry hovers in god mode throughout, as ever.
@@ -1080,7 +1086,7 @@ mercenaries.TortureProbePlan = {
           return false, "wall battle still in phase '" .. ph .. "' at timeout"
       end },
 
-    -- ARMED ONLY BY F6 (the aggro probe), never by F7: send five mercs at the nearest
+    -- ARMED ONLY BY merc_torture_probe_aggro, never by merc_torture_probe: send five mercs at the nearest
     -- non-mod NPC. On the bandit-camp save that is a kgru bandit and this is the
     -- merc-versus-vanilla combat test; on a civilian save it would be an atrocity,
     -- which is why the arming is a separate keybind rather than a heuristic.
@@ -1124,7 +1130,7 @@ mercenaries.TortureProbePlan = {
       end,
       check = function(self, S)
           if not S.provoke then
-              self:TortureInfo("provoke", "not armed (F7 probe) - skipped")
+              self:TortureInfo("provoke", "not armed (merc_torture_probe) - skipped")
               return true
           end
           if not S.targetName then
@@ -1248,18 +1254,26 @@ mercenaries.TortureLogEvery       = 5.0    -- seconds between POS traces while w
 -- harness reports nothing at all, and a truncated report is worth more than no report.
 mercenaries.TortureFieldDeadline  = 1620   -- happy path ~1300-1400s at 15fps once the loot window was added
 
--- Ground height under (x,y). System.GetTerrainElevation is the engine's cheap answer and is
--- pcalled because it is the one call in this file with no prior use anywhere in the mod; the
--- camp's own downward ray (CampSnapToGround, behind every prop placement in the game) is the
--- proven fallback, and the walker's previous z is the last resort. A walk that steps a metre
--- wrong is still a walk; a walk that drops Henry through the world is not.
+-- Ground height under (x,y). System.GetTerrainElevation returns NOTHING in this build (not
+-- even nil), so the answer is a terrain-only ray: first the usual window round prevZ, then -
+-- when prevZ is far off the ground, e.g. Henry parked under a look camera - one ray down
+-- the whole column. Without that second ray a miss fell back to prevZ, and every battle
+-- started at Henry's floating height and parked him higher still: battles in the air.
+-- CampSnapToGround (every prop placement) and prevZ are the last resorts.
 function mercenaries:TortureGroundZ(x, y, prevZ)
     local z
     pcall(function() z = System.GetTerrainElevation(x, y) end)
     if type(z) == "number" and z > 0 then return z + 0.05 end
-    local snap
-    pcall(function() snap = self:CampSnapToGround({ x = x, y = y, z = prevZ }) end)
-    if snap and type(snap.z) == "number" then return snap.z + 0.05 end
+    pcall(function() z = self:GroundTerrainAt(x, y, prevZ or 0) end)
+    if type(z) == "number" then return z + 0.05 end
+    pcall(function()
+        local h = self:GroundRawHits(x, y, 2000, 2100, 1, ent_terrain)[1]
+        z = h and h.pos and h.pos.z
+    end)
+    if type(z) == "number" then return z + 0.05 end
+    local snap, _, kind
+    pcall(function() snap, _, kind = self:CampSnapToGround({ x = x, y = y, z = prevZ }) end)
+    if kind and snap and type(snap.z) == "number" then return snap.z + 0.05 end
     return prevZ
 end
 
@@ -2462,10 +2476,9 @@ end
 -- wiring
 -- ---------------------------------------------------------------------------
 
--- MANUAL convenience only: put the torture triggers back on F6/F7/F8 for a session.
--- NEVER called automatically - every one of these ends in quit, and F6 sends the squad
--- at an innocent NPC. Players firing them by accident is exactly the bug that got the
--- automatic binds removed.
+-- NO KEYS. The torture triggers used to be bindable on F6/F7/F8; this mod never binds an F key
+-- now (every trigger ends in quit, and the aggro probe sends the squad at an innocent NPC).
+-- merc_torture_bindkeys is kept only so an old harness that still types it gets an answer.
 --
 -- The HARNESS no longer uses this at all. Measured: a run typed merc_dev and
 -- merc_torture_bindkeys, logged "dev binds applied", tapped F8 - and nothing happened, not
@@ -2473,10 +2486,8 @@ end
 -- autobench's -ConsoleCmd was added for). Every trigger the harness fires is TYPED into the
 -- console now; a typed command cannot be shadowed by a keybind.
 function mercenaries:TortureBindKeys()
-    pcall(function() System.ExecuteCommand("bind f8 merc_torture_auto") end)
-    pcall(function() System.ExecuteCommand("bind f7 merc_torture_probe") end)
-    pcall(function() System.ExecuteCommand("bind f6 merc_torture_probe_aggro") end)
-    System.LogAlways("[Torture] dev binds applied: F8=merc_torture_auto F7=merc_torture_probe F6=merc_torture_probe_aggro")
+    System.LogAlways("[Torture] no keys are bound (this mod never binds F keys) - type "
+        .. "merc_torture_auto / merc_torture_probe / merc_torture_probe_aggro in the console")
 end
 
 -- Dev-gated: automated tests, all of which quit the game when done. Not registered
@@ -2485,7 +2496,7 @@ mercenaries:DevCommand("merc_torture",       "mercenaries:TortureStart(false)", 
 mercenaries:DevCommand("merc_torture_auto",  "mercenaries:TortureStart(true)",       "Run the torture campaign and QUIT when done (harness mode)")
 mercenaries:DevCommand("merc_torture_probe", "mercenaries:TortureStartProbe(true)",  "Adaptive scenario probe: observe this save's world and QUIT")
 mercenaries:DevCommand("merc_torture_probe_aggro", "mercenaries:TortureStartProbe(true, true)", "Scenario probe + call the squad onto the nearest vanilla NPC (bandit saves ONLY)")
-mercenaries:DevCommand("merc_torture_bindkeys", "mercenaries:TortureBindKeys()", "Bind F8/F7/F6 to the torture triggers for this session (harness use)")
+mercenaries:DevCommand("merc_torture_bindkeys", "mercenaries:TortureBindKeys()", "No-op kept for old harnesses: the torture triggers have no key binds, type the commands")
 -- The field plan is typed into the console by the harness, never bound to a key: it is a
 -- single-session plan with no reload, so it needs no keystroke arming, and the release
 -- policy is that nothing here takes an F-key.

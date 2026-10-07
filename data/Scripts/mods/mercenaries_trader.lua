@@ -742,7 +742,7 @@ mercenaries.TraderUsePrompt = false
 
 function mercenaries:TraderInjectInteraction(entity)
     if not entity then return end
-    if not self.TraderUsePrompt then return end
+    if not self.TraderUsePrompt then self:BlockPickpocket(entity); return end
 
     entity.TraderTradeAction = function(_self, _user)
         mercenaries:TraderOpen()
@@ -754,7 +754,7 @@ function mercenaries:TraderInjectInteraction(entity)
 
         local output = {}
         if BasicAIActions and BasicAIActions.GetActions then
-            output = BasicAIActions.GetActions(this, user, firstFast) or {}
+            output = mercenaries:ActionsNoSteal(BasicAIActions.GetActions, this, user, firstFast)
         end
         if firstFast and #output > 0 then return output end
 

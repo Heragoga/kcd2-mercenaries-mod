@@ -141,15 +141,18 @@ end
 -- him.
 function mercenaries:RegionParseMan(name)
     if not name or name == "" then return nil end
-    local soul = string.match(name, "([0-9a-fA-F%-]+)$")
-    if not (soul and string.len(soul) >= 32) then return nil end
-    local kind = "foot"
+    -- A companion's soul sits in the MIDDLE ("SpawnedFriend_hero_<soul>_<n>"): his name
+    -- ends in the random suffix, so the trailing match below finds five digits and he was
+    -- refused - named companions never crossed between Trosky and Kuttenberg.
+    local soul, kind = nil, "foot"
     if string.find(name, "_hero_", 1, true) then
         kind = "hero"
-        soul = string.match(name, "_hero_([0-9a-fA-F%-]+)_") or soul
-    elseif string.find(name, "_archer_", 1, true) then
-        kind = "archer"
+        soul = string.match(name, "_hero_([0-9a-fA-F%-]+)_")
+    else
+        soul = string.match(name, "([0-9a-fA-F%-]+)$")
+        if string.find(name, "_archer_", 1, true) then kind = "archer" end
     end
+    if not (soul and string.len(soul) >= 32) then return nil end
     return { kind = kind, soul = soul }
 end
 

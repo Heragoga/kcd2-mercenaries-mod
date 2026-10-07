@@ -126,6 +126,35 @@ function mercenaries:SaverForget()
     self.StoreLegacyDone = false
 end
 
+-- Lift every tag `isTest(tag)` accepts OUT of the live store and the read cache, and return
+-- them as { [tag] = value }. This is how the test reset (ResetAllTestState) keeps harness stamps
+-- out of the player's save without losing them for the harness's own resume. Never creates the
+-- store; a store with nothing to lift is left untouched.
+function mercenaries:SaverTakeTags(isTest)
+    local out = {}
+    if type(isTest) ~= "function" then return out end
+    pcall(function()
+        local t = storeTable(self, false)
+        if t then
+            local keys = {}
+            for k in pairs(t) do
+                if isTest(k) then keys[#keys + 1] = k end
+            end
+            for _, k in ipairs(keys) do out[k] = t[k]; t[k] = nil end
+        end
+    end)
+    pcall(function()
+        local keys = {}
+        for k in pairs(self.SaverValues or {}) do
+            if isTest(k) then keys[#keys + 1] = k end
+        end
+        -- Removed only: this cache may still hold the PREVIOUS save's values (it is dropped
+        -- later in OnGameplayStarted), so it must not feed the quarantine.
+        for _, k in ipairs(keys) do self.SaverValues[k] = nil end
+    end)
+    return out
+end
+
 -- The scrub latch is a SILENT kill switch: merc_purge_savers and merc_uninstall set
 -- UninstallScrubbed so nothing writes state back before the player saves, which is right,
 -- but from that moment the mod persists NOTHING and used to say nothing about it. A

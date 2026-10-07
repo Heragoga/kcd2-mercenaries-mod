@@ -1236,7 +1236,7 @@ mercenaries.TortureQuestPlanQ3 = {
           local KK = self:TortureQuestKK()
           S.siteAnchor = self:BanditCampSiteAnchor(KK.site)
           S.before = "?"
-          pcall(function() S.before = tostring(self:LoadString("TortureQSiege")) end)
+          pcall(function() S.before = tostring(self:TortureLoad("TortureQSiege")) end)
           local pt, d, how = self:TortureQuestApproachPoint(S.siteAnchor, self.TortureQuestApproachM)
           self:TortureQuestJump(S, pt, "q3_siege_rebuild",
               string.format("%s, %.0fm from Raborsch (the siege before the save was %s foot/archers)",
@@ -1444,7 +1444,7 @@ function mercenaries:TortureStartQuest(autoquit)
     unwrapAlxSignal(self)
 
     local stamp
-    pcall(function() stamp = self:LoadString("TortureStage") end)
+    pcall(function() stamp = self:TortureLoad("TortureStage") end)
     local stage = (stamp and self.TortureQuestStages[stamp]) and stamp or "Q1"
     self._tortureQuestStage = stage
     self._tortureQuestAuto  = (autoquit == true)
@@ -1454,6 +1454,7 @@ function mercenaries:TortureStartQuest(autoquit)
          .. (stamp and (", save stamp='" .. tostring(stamp) .. "'") or ", no stamp") .. " ===")
 
     if stage == "Q1" then
+        self._tortureQuestBeginArmed = true     -- the direct start is also an armed start
         mercenaries.TortureQuestBegin()
         return
     end
@@ -1462,11 +1463,16 @@ function mercenaries:TortureStartQuest(autoquit)
     -- BanditCampResync, RaborschOnLoad, the camp restore) time to land before the first tick.
     pcall(function() self:SaveString("TortureStage", "done") end)
     pcall(function() System.ExecuteCommand("god 1") end)
+    -- Armed flag: only a timer THIS call armed may start the stage. A timer restored from a
+    -- save (or left from before a load) finds it cleared by ResetAllTestState and does nothing.
+    self._tortureQuestBeginArmed = true
     Script.SetTimerForFunction(12000, "mercenaries.TortureQuestBegin")
 end
 
 function mercenaries.TortureQuestBegin()
     local self  = mercenaries
+    if not self._tortureQuestBeginArmed then return end     -- stale / save-restored timer: do nothing
+    self._tortureQuestBeginArmed = false
     local stage = self._tortureQuestStage or "Q1"
     local list  = self.TortureQuestStages[stage]
     if not list then tLog("no such quest stage: " .. tostring(stage)); return end

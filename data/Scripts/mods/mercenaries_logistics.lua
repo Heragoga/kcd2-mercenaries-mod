@@ -366,6 +366,10 @@ function mercenaries:LogiLoad()
     local L = self:LogiState()
     local function num(tag, d) local s = self:LoadString(tag); return (s and tonumber(s)) or d end
     L.morale          = num("QMMorale", 0)
+    -- The warning level is not saved: start it where the loaded morale already stands, so a
+    -- low-morale save does not re-announce "morale is low" on every load.
+    L.warnLevel = (L.morale <= (self.MoraleMutinyAt or -999)) and 2
+               or ((L.morale < (self.MoraleLowWarnAt or -999)) and 1 or 0)
     L.tiredness       = num("QMTiredness", 0)
     L.food            = num("QMFood", 0)
     L.drink           = num("QMDrink", 0)
@@ -546,7 +550,7 @@ function mercenaries:LogiAfterActionReport()
     local drinkDays = (L.fightLootDrink or 0) / perDay
     local wageDays  = (wageDay > 0) and ((L.fightLootCoin or 0) / wageDay) or 0
 
-    self:LogiInfo("@merc_n_capfood " .. fmtDays(foodDays)
+    self:LogiNotify("@merc_n_capfood " .. fmtDays(foodDays)
         .. " @merc_n_capdrink " .. fmtDays(drinkDays)
         .. " @merc_n_capwage "  .. fmtDays(wageDays))
 
@@ -581,8 +585,8 @@ function mercenaries:LogiMoraleTick(dt)
     if L.morale <= self.MoraleMutinyAt then lvl = 2
     elseif L.morale < self.MoraleLowWarnAt then lvl = 1 end
     if lvl > (L.warnLevel or 0) then
-        if lvl == 1 then Game.SendInfoText('merc_logi_morale_low', false, 0, 4)
-        elseif lvl == 2 then Game.SendInfoText('merc_logi_morale_mutiny', false, 0, 4) end
+        if lvl == 1 then self:LogiNotify('merc_logi_morale_low', 4)
+        elseif lvl == 2 then self:LogiNotify('merc_logi_morale_mutiny', 4) end
     end
     L.warnLevel = lvl
 end
@@ -604,7 +608,8 @@ function mercenaries:LogiRemoveOneMerc(mutiny)
                     -- The merc turns on you: reappears as a hostile renegade in
                     -- the current squad's colours.
                     pcall(function()
-                        self:SpawnRenegade(1, _G.MercCurrentOutfit or 1, tier, _G.MercCurrentWeapon or 1)
+                        -- real = true: a genuine mutiny, not a test spawn (see SpawnEnemyGroup)
+                        self:SpawnRenegade(1, _G.MercCurrentOutfit or 1, tier, _G.MercCurrentWeapon or 1, true)
                     end)
                 end
                 self:Recount()
@@ -666,7 +671,7 @@ function mercenaries:LogiProcessUpkeep()
         L.starving = false
     else
         L.starving = true
-        Game.SendInfoText('merc_logi_hungry', false, 0, 4)
+        self:LogiNotify('merc_logi_hungry', 4)
     end
 
     -- Drink (inn covers it, else drink units). Optional - no penalty when short.
@@ -760,6 +765,21 @@ function mercenaries:LogiInfo(s)
     pcall(function() Game.SendInfoText(s, false, 0, 5) end)
 end
 
+-- The reports nobody asked for: the evening summary, the after-action line, the morale and
+-- hunger warnings, a wage shortfall. The quartermaster's "Keep reporting the company's state" /
+-- "Spare me. I'll ask when I want to know" switch (StatusIconsOn) used to silence only the HUD
+-- icons, so a player who chose "spare me" kept getting every one of these ("I can't get rid of
+-- the pop-ups"). And never over a cutscene, a sleep or a dialogue: the evening tick lands in
+-- exactly those, which is how the summary used to pop up mid-cutscene. Answers to the player's
+-- own questions and purchases still go through LogiInfo.
+function mercenaries:LogiNotify(s, secs)
+    if self.StatusIconsOn and not self:StatusIconsOn() then return end
+    local busy = false
+    if self.PlayerBusyForSpawns then pcall(function() busy = self:PlayerBusyForSpawns() end) end
+    if busy then return end
+    pcall(function() Game.SendInfoText(s, false, 0, secs or 5) end)
+end
+
 function mercenaries:LogiProcessWages()
     local L = self:LogiState()
     -- Reset the per-evening record the summary reads.
@@ -781,7 +801,7 @@ function mercenaries:LogiProcessWages()
     else
         L.unpaid = true
         L.lastWageTotal = total
-        self:LogiInfo("@merc_n_wshort " .. (total - (coffer + money)))
+        self:LogiNotify("@merc_n_wshort " .. (total - (coffer + money)))
     end
 end
 
@@ -846,8 +866,7 @@ function mercenaries:LogiCampRegen(dt)
             local hp = qm.soul:GetState('health')
             if hp and hp < 100 then qm.soul:SetState('health', math.min(100, hp + qmHeal)) end
             if self._qmImmortalId ~= qm.id and self.MakeImmortal then
-                self._qmImmortalId = qm.id
-                self:MakeImmortal(qm, "the quartermaster")
+                if self:MakeImmortal(qm, "the quartermaster") then self._qmImmortalId = qm.id end
             end
         end
     end)
@@ -1142,6 +1161,8 @@ mercenaries.UpgRemovable = {
     { key = "wall",       label = "palisade" },
     { key = "gate",       label = "gates" },
     { key = "trader",     label = "trader's stall" },
+    -- Appended, never inserted: the dialogue's remove ports are by index.
+    { key = "stonewall",  label = "stone wall" },
 }
 
 function mercenaries:LogiRemoveUpgrade(which)
@@ -1202,9 +1223,14 @@ function mercenaries:LogiRemoveUpgrade(which)
         -- a gate left behind is a doorway standing in a field with nothing either side of
         -- it. The gateway is a tile OF the wall and goes the same way. Gates keep their
         -- own entry in UpgRemovable for taking them out of a wall that stays.
-        pcall(function() self.CastleGateways = {} end)
-        pcall(function() self:GateClearAll() end)
-        pcall(function() self:WallClearAll() end)
+        -- Only the palisade now: a stone wall standing beside it stays (it has its own entry,
+        -- "stonewall"). It used to take every run down, which made the palisade entry the
+        -- only way to remove stone - and took the stone with any palisade.
+        local any = false
+        pcall(function() any = self:WallRemoveKind(false) end)
+        had = had or any
+    elseif k == "stonewall" then
+        pcall(function() had = self:WallRemoveKind(true) end)
     elseif k == "gate" then
         had = (self:GateCount() or 0) > 0
         pcall(function() self:GateClearAll() end)
@@ -1441,17 +1467,17 @@ function mercenaries:LogiEveningSummary()
     local L = self:LogiState()
     if (L.lastWageTotal or 0) > 0 and not L.unpaid then
         if (L.lastWagePurse or 0) > 0 and (L.lastWageCoffer or 0) > 0 then
-            self:LogiInfo("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_fromchest " .. L.lastWageCoffer .. " @merc_n_frompurse " .. L.lastWagePurse
+            self:LogiNotify("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_fromchest " .. L.lastWageCoffer .. " @merc_n_frompurse " .. L.lastWagePurse
                 .. " @merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_morale " .. math.floor(L.morale))
         elseif (L.lastWagePurse or 0) > 0 then
-            self:LogiInfo("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_frompurse " .. L.lastWageTotal
+            self:LogiNotify("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_frompurse " .. L.lastWageTotal
                 .. " @merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_morale " .. math.floor(L.morale))
         else
-            self:LogiInfo("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_fromchest " .. L.lastWageTotal
+            self:LogiNotify("@merc_n_ewages " .. L.lastWageTotal .. " @merc_n_fromchest " .. L.lastWageTotal
                 .. " @merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_morale " .. math.floor(L.morale))
         end
     else
-        self:LogiInfo("@merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_cnow " .. (L.coffer or 0) .. " @merc_n_morale " .. math.floor(L.morale))
+        self:LogiNotify("@merc_n_food " .. L.food .. " @merc_n_drink " .. L.drink .. " @merc_n_cnow " .. (L.coffer or 0) .. " @merc_n_morale " .. math.floor(L.morale))
     end
 end
 

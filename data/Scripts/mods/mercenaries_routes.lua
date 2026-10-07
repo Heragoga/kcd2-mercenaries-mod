@@ -1,8 +1,9 @@
 -- Patrol route recorder.
 --
 -- Ride the route you want a patrol to walk and it drops a marker every PatrolRouteStep
--- metres. F5 starts a new recording, F6 keeps it, F7 throws it away, F8 dumps everything
--- recorded so far in a form that can be pasted into the mod.
+-- metres. merc_route_new starts a new recording, merc_route_save keeps it, merc_route_cancel
+-- throws it away, merc_route_dump dumps everything recorded so far in a form that can be
+-- pasted into the mod. Console commands only: this mod never binds an F key.
 --
 -- Routes are saved as flat text (SaveString "QMRoutes") so they survive a reload while
 -- they are being collected. They are working data for authoring, not a shipping feature -
@@ -10,7 +11,7 @@
 -- exists to produce.
 
 mercenaries.PatrolRoutes     = {}     -- { { name=, pts={ {x,y,z}, ... } }, ... }
-mercenaries.RouteRecording   = nil    -- { name=, pts={}, ents={} } while F5 is active
+mercenaries.RouteRecording   = nil    -- { name=, pts={}, ents={} } while merc_route_new is active
 mercenaries.PatrolRouteStep  = 10.0   -- metres between markers
 mercenaries.RouteTickMs      = 250
 
@@ -35,7 +36,7 @@ end
 -- ==== recording ====
 function mercenaries:RouteNew()
     if self.RouteRecording then
-        rLog("already recording '" .. tostring(self.RouteRecording.name) .. "' - F6 saves, F7 cancels")
+        rLog("already recording '" .. tostring(self.RouteRecording.name) .. "' - merc_route_save saves, merc_route_cancel cancels")
         return
     end
     if not player then return end
@@ -45,7 +46,7 @@ function mercenaries:RouteNew()
     self:RouteDrop()                       -- the spot you start from is the first point
     self:RouteStart()
     rLog("recording '" .. self.RouteRecording.name .. "' - a marker every " ..
-         self.PatrolRouteStep .. "m. F6 save, F7 cancel")
+         self.PatrolRouteStep .. "m. merc_route_save saves, merc_route_cancel cancels")
 end
 
 function mercenaries:RouteDrop()
@@ -83,9 +84,9 @@ end
 
 function mercenaries:RouteSave()
     local rec = self.RouteRecording
-    if not rec then rLog("not recording - F5 starts a route"); return end
+    if not rec then rLog("not recording - merc_route_new starts a route"); return end
     if #rec.pts < 2 then
-        rLog("only " .. #rec.pts .. " point(s) - ride further before saving, or F7 to cancel")
+        rLog("only " .. #rec.pts .. " point(s) - ride further before saving, or merc_route_cancel to cancel")
         return
     end
     -- markers stay standing so the finished route is visible; merc_route_clear removes them
@@ -107,7 +108,7 @@ end
 -- Prints the routes as a Lua table, ready to paste into the mod once the shapes are right.
 function mercenaries:RouteDump()
     if #self.PatrolRoutes == 0 and not self.RouteRecording then
-        rLog("no routes recorded yet - F5 starts one")
+        rLog("no routes recorded yet - merc_route_new starts one")
         return
     end
     rLog("---- " .. #self.PatrolRoutes .. " route(s) ----")
@@ -229,10 +230,10 @@ function mercenaries:RouteSetStep(v)
     rLog("marker every " .. self.PatrolRouteStep .. "m")
 end
 
-mercenaries:DevCommand("merc_route_new",    "mercenaries:RouteNew()",       "F5 - start recording a patrol route")
-mercenaries:DevCommand("merc_route_save",   "mercenaries:RouteSave()",      "F6 - keep the route being recorded")
-mercenaries:DevCommand("merc_route_cancel", "mercenaries:RouteCancel()",    "F7 - discard the route being recorded")
-mercenaries:DevCommand("merc_route_dump",   "mercenaries:RouteDump()",      "F8 - print every recorded route")
+mercenaries:DevCommand("merc_route_new",    "mercenaries:RouteNew()",       "Start recording a patrol route")
+mercenaries:DevCommand("merc_route_save",   "mercenaries:RouteSave()",      "Keep the route being recorded")
+mercenaries:DevCommand("merc_route_cancel", "mercenaries:RouteCancel()",    "Discard the route being recorded")
+mercenaries:DevCommand("merc_route_dump",   "mercenaries:RouteDump()",      "Print every recorded route")
 mercenaries:DevCommand("merc_route_status", "mercenaries:RouteStatus()",    "How many routes, and what is being recorded")
 mercenaries:DevCommand("merc_route_show",   "mercenaries:RouteShow(%line)", "Re-place the markers: merc_route_show [n]")
 mercenaries:DevCommand("merc_route_hide",   "mercenaries:RouteHide()",      "Remove the markers, keep the routes")

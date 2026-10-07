@@ -142,8 +142,13 @@ local RESTORE = {
     archercart = function(_s, L) L.hasArcherCart = true end,
     -- These have no flag to restore; putting them back means running their own
     -- aim-and-click build again, which is free the second time because it was paid for.
-    wall       = function(s) pcall(function() s:StartWallBuild() end) end,
+    -- palisade type first: a stone wall leaves its own type selected behind it (LogiBuyWall)
+    wall       = function(s)
+        pcall(function() s:WallSetType(s.WallTypePalisade or 3) end)
+        pcall(function() s:StartWallBuild() end)
+    end,
     gate       = function(s) pcall(function() s:StartGatePlacement() end) end,
+    stonewall  = function(s) pcall(function() s:CastleBuild() end) end,
     tower      = function(_s, L) L.hasTower = true end,
 }
 
@@ -922,18 +927,16 @@ CU.useConsoleBinds = (CU.useConsoleBinds ~= false)
 
 takeKey = function(k, cmd)
     if not CU.useConsoleBinds or CU.held[k] then return end
-    pcall(function() System.ExecuteCommand("bind " .. k .. " " .. cmd) end)
+    if not mercenaries:BindKey(k, cmd) then return end     -- refuses F keys
     CU.held[k] = true
 end
 
 giveKey = function(k)
     if not CU.held[k] then return end
     CU.held[k] = nil
-    local back = mercenaries.CURestore[k]
-    pcall(function()
-        if back then System.ExecuteCommand("bind " .. k .. " " .. back)
-        else System.ExecuteCommand("bind " .. k .. " merc_noop") end   -- the console has no unbind
-    end)
+    -- UnbindKey only touches a key BindKey bound (the console has no unbind, so the key
+    -- lands on merc_noop or the restore command) and never an F key.
+    mercenaries:UnbindKey(k, mercenaries.CURestore[k])
 end
 
 function mercenaries:CUAcquireKeys()
@@ -1425,8 +1428,10 @@ function mercenaries:UiKeyLoad(tag)
     local v
     pcall(function() v = self:LoadString(tag) end)
     if type(v) ~= "string" then return nil end
-    v = string.lower(v)
-    if not string.match(v, "^[%w_]+$") then return nil end
+    -- A key saved by an older build may be an F key: this mod never binds those, so it falls
+    -- back to the shipped default.
+    v = mercenaries:ValidUserKey(v)
+    if not v then return nil end
     -- Nothing longer than a key name ("np_enter" is 8) and nothing of ours is a key.
     if string.find(v, "^merc_") or string.len(v) > 12 then return nil end
     return v
@@ -1443,8 +1448,9 @@ function mercenaries:CampUiKeySet(line)
         log("the camp screen is on '" .. tostring(A.hideKey[1]) .. "' - merc_camp_key <key> to change it")
         return
     end
-    k = string.lower(k)
-    if not string.match(k, "^[%w_]+$") then log("'" .. k .. "' is not a key name"); return end
+    local why
+    k, why = self:ValidUserKey(k)
+    if not k then log(tostring(why)); return end
     if CU.held[A.hideKey[1]] then giveKey(A.hideKey[1]) end
     pcall(function() self:SaveString("MercCampKey", k) end)
     A.hideKey = { k, string.upper(k) }

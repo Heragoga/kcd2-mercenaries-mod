@@ -1132,11 +1132,16 @@ end
 function mercenaries:CastleBuildVertices()
     local count = 0
     for _, r in ipairs(self:WallAllRuns()) do
-        for i = 1, #r.pts do
-            local pl = self:CastleVertexPlan(r, i)
-            local z = r.vertexZ and r.vertexZ[i]
-            if pl and self:CastleSpawnVertex(pl, r.pts[i], z) then count = count + 1 end
-        end
+        -- each run's corner pieces are its OWN type's (see WallUseRunType)
+        local restoreType = self.WallUseRunType and self:WallUseRunType(r) or function() end
+        pcall(function()
+            for i = 1, #r.pts do
+                local pl = self:CastleVertexPlan(r, i)
+                local z = r.vertexZ and r.vertexZ[i]
+                if pl and self:CastleSpawnVertex(pl, r.pts[i], z) then count = count + 1 end
+            end
+        end)
+        restoreType()
     end
     return count
 end

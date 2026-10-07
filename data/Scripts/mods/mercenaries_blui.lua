@@ -45,7 +45,7 @@ BL.keys, BL.keyName = {}, {}
 for i, kv in ipairs(mercenaries.BLAtlas and mercenaries.BLAtlas.bind or {}) do
     BL.keys[i], BL.keyName[i] = kv[1], kv[2]
 end
-BL.hideKey = (mercenaries.BLAtlas and mercenaries.BLAtlas.hideKey or { "f11" })[1]
+BL.hideKey = (mercenaries.BLAtlas and mercenaries.BLAtlas.hideKey or { "h" })[1]
 -- ESC is deliberately NOT taken. A console bind on it closes the interface but the
 -- pause menu still opens underneath, and the only map that could stop that is `player`,
 -- which costs mouse look. H does open / close / back instead.
@@ -486,7 +486,7 @@ function mercenaries:BLLayout()
         local v = bottomVariant(b)
         place(p .. "i_" .. v, cx, cy, m)
         place(p .. "t_" .. v, cx, cy + L.btnLabelDY)
-        -- While a wheel is open the F-keys address the wheel, so the row drops its badges.
+        -- While a wheel is open the number keys address the wheel, so the row drops its badges.
         if not BL.open then
             place(p .. "chip", cx, cy + L.btnBadgeDY)
             place(p .. "k_" .. BL.keyName[i], cx, cy + L.btnBadgeDY)
@@ -762,7 +762,7 @@ function mercenaries:BLOnLoad()
     BL.held, BL.on, BL.open, BL.userClosed = {}, false, nil, false
     BL.elUp, BL.shown, BL.frame = false, {}, {}
     -- A key the player chose (merc_cmd_key) beats the shipped one.
-    local ov = self.UiKeyLoad and self:UiKeyLoad("MercCmdKey")
+    local ov = self.UiKeyLoad and self:UiKeyLoad("MercCmdKey")   -- never an F key
     if ov then
         BL.hideKey = ov
         if self.BLAtlas then self.BLAtlas.hideKey = { ov, string.upper(ov) } end
@@ -841,7 +841,7 @@ end
 -- dead, so releasing a key cannot by itself restore a binding another mod installed. List
 -- any such binding in BLRestore and it is re-issued when we hand the key back.
 --
---     mercenaries.BLRestore = { f4 = "wh_camera_thirdperson_toggle" }
+--     mercenaries.BLRestore = { j = "some_other_mod_command" }
 
 mercenaries.BLRestore = mercenaries.BLRestore or {}
 BL.held = BL.held or {}
@@ -853,21 +853,16 @@ BL.useConsoleBinds = (BL.useConsoleBinds ~= false)
 
 takeKey = function(k, cmd)
     if not BL.useConsoleBinds or BL.held[k] then return end
-    pcall(function() System.ExecuteCommand("bind " .. k .. " " .. cmd) end)
+    if not mercenaries:BindKey(k, cmd) then return end     -- refuses F keys
     BL.held[k] = true
 end
 
 giveKey = function(k)
     if not BL.held[k] then return end
     BL.held[k] = nil
-    local back = mercenaries.BLRestore[k]
-    pcall(function()
-        if back then
-            System.ExecuteCommand("bind " .. k .. " " .. back)
-        else
-            System.ExecuteCommand("bind " .. k .. " merc_noop") -- the console has no unbind
-        end
-    end)
+    -- UnbindKey only touches a key BindKey bound (the console has no unbind, so the key
+    -- lands on merc_noop or the restore command) and never an F key.
+    mercenaries:UnbindKey(k, mercenaries.BLRestore[k])
 end
 
 -- Held only while the interface is on screen.
@@ -1050,7 +1045,7 @@ end
 -- KCD2 Keybinder scans mod Lua for these annotations, merges what it finds into the game's
 -- own Libs/Config/defaultProfile.xml and keybindSuperactions.xml, and writes the result as a
 -- generated pak. The commands then become real action-map actions the player assigns in the
--- game's keybind options - so two mods can no longer silently take the same F-key, which is
+-- game's keybind options - so two mods can no longer silently take the same key, which is
 -- what console binds do.
 --
 -- It matches ---@bindingMap <word> and ---@bindingCommand <word>, one per line. The pair is
@@ -1127,8 +1122,9 @@ function mercenaries:BLKeySet(line)
         System.LogAlways("[BL] the command screen is on '" .. tostring(BL.hideKey) .. "' - merc_cmd_key <key> to change it")
         return
     end
-    k = string.lower(k)
-    if not string.match(k, "^[%w_]+$") then System.LogAlways("[BL] '" .. k .. "' is not a key name"); return end
+    local why
+    k, why = self:ValidUserKey(k)
+    if not k then System.LogAlways("[BL] " .. tostring(why)); return end
     if BL.held[BL.hideKey] then giveKey(BL.hideKey) end
     pcall(function() self:SaveString("MercCmdKey", k) end)
     BL.hideKey = k

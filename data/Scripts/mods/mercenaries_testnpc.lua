@@ -113,6 +113,8 @@ function mercenaries:SpawnTestNpc(dist)
     if not ok then System.LogAlways("[TestNpc] spawn error: " .. tostring(err)) end
     if ent then
         table.insert(self.TestNpcs, ent)
+        self:TestTrack(name)        -- by NAME: removed by ResetAllTestState even after a load
+
         System.LogAlways("[TestNpc] spawned '" .. name .. "' " .. dist .. "m ahead - he should come at you")
     else
         System.LogAlways("[TestNpc] spawn FAILED")

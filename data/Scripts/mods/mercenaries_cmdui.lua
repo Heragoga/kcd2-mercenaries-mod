@@ -6,7 +6,7 @@
 -- That means there are no filled rectangles: a panel is rows of a repeated glyph, one
 -- DrawText call per row, so keep the glyph budget in mind.
 --
---   merc_cmd_keys   bind F1-F10 and the numpad, and turn the interface on
+--   merc_cmd_keys   bind the number row + numpad (never an F key), and turn the interface on
 --   merc_cmd        toggle it
 --   merc_cmd_off    hide it and release the keys
 --   merc_cmd_cal    glyph metric ruler, if the panels look wrong
@@ -70,13 +70,17 @@ mercenaries.CMD.L = mercenaries.CMD.L or {
 local CMD = mercenaries.CMD
 local function log(s) System.LogAlways("[MercCmd] " .. tostring(s)) end
 
--- Slot -> key. F1 is taken by the game and F12 by Steam's screenshot, so neither can be
--- bound; F5 is deliberately left alone so quicksave keeps working. Seven slots, which is
--- what the longest order list needs.
+-- Slot -> key. THIS MOD NEVER BINDS AN F KEY (see mercenaries:BindKey in mercenaries.lua):
+-- players use F1-F12 for the game and for other mods. The seven category / order slots ride
+-- the number row, as the Bannerlord-style screen (mercenaries_blui.lua) does; squads are
+-- toggled on the numpad (np_1.. np_5, np_0 for all), np_8 backs out / hides, np_7 turns the
+-- interface off. Seven slots, which is what the longest order list needs.
 CMD.keys = {
-    { "f2", "F2" }, { "f3", "F3" }, { "f4", "F4" },
-    { "f6", "F6" }, { "f7", "F7" }, { "f8", "F8" }, { "f11", "F11" },
+    { "1", "1" }, { "2", "2" }, { "3", "3" }, { "4", "4" },
+    { "5", "5" }, { "6", "6" }, { "7", "7" },
 }
+CMD.backKey, CMD.offKey = "np_8", "np_7"
+CMD.backName, CMD.offName = "NP8", "NP7"
 local function keyLabel(i)
     local k = CMD.keys[i]
     return k and k[2] or ("#" .. i)
@@ -146,7 +150,7 @@ local function panel(x, y, w, h, sel)
     end
 end
 
--- Draw "F2  Movement" centred inside a cell of width w, key in gold and label in tc.
+-- Draw "1  Movement" centred inside a cell of width w, key in gold and label in tc.
 -- The font is monospace, so the width is just character count x size x charW.
 local function pairLabel(x, y, w, key, name, size, charW, tc, keycol)
     keycol = keycol or { 0.90, 0.76, 0.36 }
@@ -279,12 +283,12 @@ function mercenaries:CmdDraw(dt)
             L.sLast, GOLD[1], GOLD[2], GOLD[3], 1)
     else
         label(left + L.hintX * S, headY + L.headHintY * S,
-            ((C.cat ~= nil) and "F2-F4, F6-F8 order" or "F2-F4, F6 category")
+            ((C.cat ~= nil) and "1-7 order" or "1-4 category")
             .. "  |  numpad 1-" .. #C.groups .. " select, 0 all",
             L.sHint, 0.72, 0.72, 0.70, 1)
     end
-    -- F9 is contextual: back out of an open category, or hide the whole thing
-    local dismiss = (C.cat ~= nil) and "F9 back" or "F9 hide"
+    -- np_8 is contextual: back out of an open category, or hide the whole thing
+    local dismiss = (C.cat ~= nil) and (C.backName .. " back") or (C.backName .. " hide")
     labelR(left + BW - 8 * S, headY + L.headHintY * S, dismiss, L.sHint, L.charW * S,
         0.55, 0.53, 0.49, 1)
     -- summary names what is selected rather than counting it
@@ -324,7 +328,7 @@ local function selectedNames()
     return table.concat(t, ", ")
 end
 
--- F1..F7: pick the category when none is open, pick the order when one is
+-- Slots 1..7: pick the category when none is open, pick the order when one is
 function mercenaries:CmdKey(i)
     local C = self.CMD
     if not C.on then return end
@@ -368,7 +372,7 @@ function mercenaries:CmdSelect(i)
     log("selection: " .. selectedNames())
 end
 
--- F9: step back out of an open category first, only hide when nothing is open
+-- np_8: step back out of an open category first, only hide when nothing is open
 function mercenaries:CmdBack()
     if self.CMD.on and self.CMD.cat ~= nil then
         self.CMD.cat = nil
@@ -418,25 +422,20 @@ function mercenaries:CmdOff()
         pcall(function() System.RemoveEntity(C.ent) end)
         C.ent = nil
     end
-    for _, k in ipairs(CMD.keys) do
-        pcall(function() System.ExecuteCommand("bind " .. k[1] .. " merc_noop") end)
-    end
-    for _, k in ipairs({ "f9", "f10", "np_1", "np_2", "np_3", "np_4", "np_5", "np_0" }) do
-        pcall(function() System.ExecuteCommand("bind " .. k .. " merc_noop") end)
+    -- UnbindKey only releases a key this mod bound, and never an F key.
+    for _, k in ipairs(CMD.keys) do self:UnbindKey(k[1]) end
+    for _, k in ipairs({ CMD.backKey, CMD.offKey, "np_1", "np_2", "np_3", "np_4", "np_5", "np_0" }) do
+        self:UnbindKey(k)
     end
     log("command interface off, keys released")
 end
 
 function mercenaries:CmdKeys()
-    for i, k in ipairs(CMD.keys) do
-        pcall(function() System.ExecuteCommand("bind " .. k[1] .. " merc_cmd_f" .. i) end)
-    end
-    for i = 1, #CMD.groups do
-        pcall(function() System.ExecuteCommand("bind np_" .. i .. " merc_cmd_sel" .. i) end)
-    end
-    pcall(function() System.ExecuteCommand("bind np_0 merc_cmd_sel0") end)
-    pcall(function() System.ExecuteCommand("bind f9 merc_cmd_back") end)
-    pcall(function() System.ExecuteCommand("bind f10 merc_cmd_off") end)
+    for i, k in ipairs(CMD.keys) do self:BindKey(k[1], "merc_cmd_f" .. i) end
+    for i = 1, #CMD.groups do self:BindKey("np_" .. i, "merc_cmd_sel" .. i) end
+    self:BindKey("np_0", "merc_cmd_sel0")
+    self:BindKey(CMD.backKey, "merc_cmd_back")
+    self:BindKey(CMD.offKey, "merc_cmd_off")
 
     local cats, orders = {}, {}
     for i = 1, #CMD.cats do cats[#cats + 1] = keyLabel(i) end
@@ -445,8 +444,8 @@ function mercenaries:CmdKeys()
     log("  " .. table.concat(cats, " ") .. "   open an order category")
     log("  " .. table.concat(orders, " ") .. "  pick the order once a category is open")
     log("  np 1-" .. #CMD.groups .. "  toggle a squad, np 0  all/none")
-    log("  F9      back out of a category, or show/hide;  F10  off and unbind")
-    log("  F1 (game-reserved), F5 (quicksave) and F12 (Steam) are deliberately not used.")
+    log("  " .. CMD.backName .. "     back out of a category, or show/hide;  " .. CMD.offName .. "  off and unbind")
+    log("  No F key is ever bound: F1-F12 stay free for the game and other mods.")
     if not self.CMD.on then self:CmdToggle() end
 end
 
@@ -579,7 +578,7 @@ end
 
 mercenaries:DevCommand("merc_cmd",       "mercenaries:CmdToggle()", "Battle command interface: show/hide")
 mercenaries:DevCommand("merc_cmd_back",  "mercenaries:CmdBack()",   "Back out of an open category, or hide the interface")
-mercenaries:DevCommand("merc_cmd_keys",  "mercenaries:CmdKeys()",   "Bind F1-F10 + numpad and turn the interface on")
+mercenaries:DevCommand("merc_cmd_keys",  "mercenaries:CmdKeys()",   "Bind the number row + numpad (never F keys) and turn the interface on")
 mercenaries:DevCommand("merc_cmd_off",   "mercenaries:CmdOff()",    "Hide the interface and release the keys")
 mercenaries:DevCommand("merc_cmd_cal",   "mercenaries:CmdCal()",    "Glyph metric ruler - use if the panels look wrong")
 mercenaries:DevCommand("merc_cmd_chars", "mercenaries:CmdChars()",  "Show which block characters the debug font actually has")
@@ -590,7 +589,7 @@ mercenaries:DevCommand("merc_cmd_yoff",  "mercenaries:CmdYOff('%line')",  "Shift
 mercenaries:DevCommand("merc_cmd_row",   "mercenaries:CmdRow('%line')",   "Set pixels between fill rows: <px> (smaller = more solid)")
 mercenaries:DevCommand("merc_cmd_glyph", "mercenaries:CmdGlyph('%line')", "Set the fill glyph: <char> [fillSize]")
 for i = 1, 7 do
-    mercenaries:DevCommand("merc_cmd_f" .. i, "mercenaries:CmdKey(" .. i .. ")", "Command interface key F" .. i)
+    mercenaries:DevCommand("merc_cmd_f" .. i, "mercenaries:CmdKey(" .. i .. ")", "Command interface slot " .. i)
 end
 for i = 0, 5 do
     mercenaries:DevCommand("merc_cmd_sel" .. i, "mercenaries:CmdSelect(" .. i .. ")", "Command interface: select formation " .. i)

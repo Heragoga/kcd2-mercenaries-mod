@@ -52,6 +52,10 @@ function mercenaries:HideOthersSweep()
                         pcall(function() ent:Hide(1) end)
                         pcall(function() ent:Activate(0) end)
                         self.HiddenOthersSet[key] = ent.id
+                        -- The NAME too: ids are recycled across a load, a name is not. This is
+                        -- what lets ResetAllTestState un-hide the right man after a load.
+                        self.HiddenOthersNames = self.HiddenOthersNames or {}
+                        self.HiddenOthersNames[key] = name
                         hidCount = hidCount + 1
                     end
                 end

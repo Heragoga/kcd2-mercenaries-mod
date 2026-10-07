@@ -93,6 +93,8 @@ function mercenaries:SwfOn()
     -- that already loaded. UnloadElement + ReloadElement forces the loader to run again with
     -- the cvar now set - that is the only way to pick up the .swf without a restart.
     local before = cvar("wh_gfx_useSWF")
+    -- Deliberately NOT through TestCvarSet: the shipping command UI and camp UI set this same
+    -- cvar to 1 themselves whenever they open, so rolling it back on a load could only break them.
     pcall(function() System.SetCVar("wh_gfx_useSWF", 1) end)
     log("wh_gfx_useSWF " .. tostring(before) .. " -> " .. tostring(cvar("wh_gfx_useSWF")))
 
@@ -320,8 +322,8 @@ mercenaries:DevCommand("merc_swf_bisect", "mercenaries:SwfBisect()",     "Print 
 
 function mercenaries:SwfDebug(line)
     local v = tonumber(string.match(unquote(line), "%d+") or "") or 1
-    pcall(function() System.SetCVar("gfx_debugdraw", v) end)
-    pcall(function() System.SetCVar("gfx_draw", 1) end)
+    mercenaries:TestCvarSet("gfx_debugdraw", v)
+    mercenaries:TestCvarSet("gfx_draw", 1)
     log("gfx_debugdraw = " .. tostring(cvar("gfx_debugdraw"))
         .. "   gfx_draw = " .. tostring(cvar("gfx_draw")))
     log("  1 lists UIElements. If " .. SWF.element .. " is NOT in that list, the element")
@@ -510,6 +512,8 @@ local function imgset(fn) pcall(fn) end
 
 function mercenaries:ImgOn()
     local I = self.IMG
+    -- Deliberately NOT through TestCvarSet: the shipping command UI and camp UI set this same
+    -- cvar to 1 themselves whenever they open, so rolling it back on a load could only break them.
     pcall(function() System.SetCVar("wh_gfx_useSWF", 1) end)
     pcall(function() UIAction.ShowElement(I.element, 0) end)
     log("ShowElement(" .. I.element .. ", 0) - layout deferred past movie creation")

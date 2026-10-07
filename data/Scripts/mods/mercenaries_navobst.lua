@@ -617,12 +617,12 @@ end
 function mercenaries:NavObstDebugDraw(line)
     local name = tostring(line or ""):match("%S+")
     if not name then
-        pcall(function() System.SetCVar("ai_DebugDrawCollisionAvoidanceObstaclesForAgent", 0) end)
+        mercenaries:TestCvarSet("ai_DebugDrawCollisionAvoidanceObstaclesForAgent", 0)
         obstSay("obstacle debug draw off")
         return
     end
-    pcall(function() System.SetCVar("ai_DebugDrawCollisionAvoidanceAgentName", name) end)
-    pcall(function() System.SetCVar("ai_DebugDrawCollisionAvoidanceObstaclesForAgent", 1) end)
+    mercenaries:TestCvarSet("ai_DebugDrawCollisionAvoidanceAgentName", name)
+    mercenaries:TestCvarSet("ai_DebugDrawCollisionAvoidanceObstaclesForAgent", 1)
     obstSay("drawing collision-avoidance obstacles for '" .. name .. "'")
 end
 

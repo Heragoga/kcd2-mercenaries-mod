@@ -150,7 +150,13 @@ end
 -- to be FIGHTING us, which is what its second pass grows the rest of the battle from.
 -- `armed` is read once by the caller and handed down rather than re-queried here.
 function mercenaries:EngageCacheAccepts(ent, playerWuid, armed, confirmed)
-    if self:IsValidEnemy(ent, player, playerWuid, false, true) then return true, false end
+    -- The drawn-weapon proof is waived only for a classified OUTLAW. Anyone else who merely
+    -- sits at the relationship floor (a wanted player, a stray faction) has to draw first:
+    -- with the waiver on everybody, unarmed bystanders at -1 - travellers, caravans, quest
+    -- folk - were picked as targets ("the mercs attack random people without an order").
+    local outlaw = false
+    pcall(function() outlaw = (self:HostileKind(ent) == "hostile") end)
+    if self:IsValidEnemy(ent, player, playerWuid, false, outlaw) then return true, false end
     -- Someone with his weapon out and OUR name on it, whatever the relationship table
     -- says. This is what base-game enemies need: the relationship floor demands exactly
     -- -1 to the player, and a vanilla hostile does not necessarily sit there until he has

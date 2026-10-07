@@ -212,6 +212,7 @@ function mercenaries:CmdRaid(groupKey, line)
         if self.FindValidGround then p = self:FindValidGround(p, origin.z, 3.0, 0.5, 16) end
         local e = self:SpawnEnemyAt(groupKey, (i % 4 == 0), p, yaw)
         if e then
+            self:TestTrack(e)       -- a sandbox raid: removed by ResetAllTestState on load
             spawned = spawned + 1
             if tgt and self.ForcedTargetOf then
                 if e.this and e.this.id then self.ForcedTargetOf[tostring(e.this.id)] = tgt end
@@ -356,11 +357,12 @@ function mercenaries:CmdBattle(line)
         end
         for i = 1, foot do
             local lat, back = slot(i, foot, 1)
-            self:SpawnEnemyAt(group, false, place(half, lat, back), enemyYaw)
+            -- the enemy line is a TEST spawn: removed by ResetAllTestState on the next load
+            self:TestTrack(self:SpawnEnemyAt(group, false, place(half, lat, back), enemyYaw))
         end
         for i = 1, archers do
             local lat, back = slot(i, archers, 1)
-            self:SpawnEnemyAt(group, true, place(half, lat, back + self.CmdBattleArcherBack), enemyYaw)
+            self:TestTrack(self:SpawnEnemyAt(group, true, place(half, lat, back + self.CmdBattleArcherBack), enemyYaw))
         end
     end)
     if not ok then cLog("battle error: " .. tostring(err)); return end

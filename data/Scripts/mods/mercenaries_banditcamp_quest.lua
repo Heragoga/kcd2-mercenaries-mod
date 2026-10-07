@@ -2909,7 +2909,9 @@ end
 function mercenaries:BanditCampComplete()
     local S = self.BCQ
     if S.cleared then return end
-    if self.KKStageWrite then pcall(function() self:KKStageWrite(2, "camp cleared") end) end
+    -- Not for a bounty: KKStageWrite serialises the (idle) Kleinkrieg slot, and KKStageRecover
+    -- then raised a phantom contract on every later load of that save.
+    if S.kind ~= "bounty" and self.KKStageWrite then pcall(function() self:KKStageWrite(2, "camp cleared") end) end
     S.cleared = true
 
     -- The bounty is its own quest with its own two objectives and nothing to find on the

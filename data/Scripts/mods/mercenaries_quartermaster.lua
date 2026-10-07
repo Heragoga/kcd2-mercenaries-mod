@@ -91,9 +91,13 @@ function mercenaries:SpawnQuartermaster(centerPos, facingAngle)
         local ent = System.GetEntityByName(entityName)
         if ent then
             self.QuartermasterId = ent.id
+            pcall(function() self:BlockPickpocket(ent) end)   -- the company is never robbed
             self.QuartermasterName = entityName   -- so logistics can find him (health regen, food inventory)
-            self:MakeImmortal(ent, "the quartermaster")
-            self._qmImmortalId = ent.id   -- the logistics tick need not do it again
+            -- Latched only if it took: on the spawn frame the soul may not be ready, and the
+            -- logistics tick retries while the latch is unset.
+            if self:MakeImmortal(ent, "the quartermaster") then
+                self._qmImmortalId = ent.id   -- the logistics tick need not do it again
+            end
             pcall(function() self:EnsureMercIsAlwaysRendered(ent) end)
             if ent.actor then
                 pcall(function() ent.actor:EquipClothingPreset(self.QuartermasterClothing) end)

@@ -31,6 +31,9 @@ local function cvar(n)
 end
 
 local function setcvar(n, v)
+    -- Through the test-cvar registry: the value it had before is put back by
+    -- ResetAllTestState on every load (mercenaries.lua).
+    if mercenaries.TestCvarSet then mercenaries:TestCvarSet(n, v); return end
     local ok = pcall(function() System.SetCVar(n, v) end)
     if not ok then pcall(function() System.ExecuteCommand(n .. " " .. tostring(v)) end) end
 end
@@ -123,6 +126,7 @@ end
 
 function mercenaries:UIMenu(page)
     if not UIAction then log("UIAction is nil - run merc_ui_probe"); return end
+    self.UIT.dirty = true        -- a test screen is up: the load-time reset must hide it
     page = page or "main"
 
     local pid = self.UIT.PID
@@ -242,6 +246,7 @@ end
 
 function mercenaries:UIModal()
     if not UIAction then log("UIAction is nil"); return end
+    self.UIT.dirty = true        -- a test dialog is up: the load-time reset must close it
     pcall(function()
         UIAction.ShowElement("ApseModalDialog", 0)
         for _, ev in ipairs({ "OnConfirm", "OnClose", "OnCancel", "OnAnswer" }) do
@@ -289,6 +294,7 @@ function mercenaries:UILock(line)
 
     pcall(function() UIAction.ShowElement("LockPicking", 0) end)
     self.UIT.lockOn = true
+    self.UIT.dirty = true
     for _, mc in ipairs({ "LockPick", "Cursor", "Point", "Lock", "Pin", "Debug" }) do
         local p, s, v
         pcall(function() p = UIAction.GetPos("LockPicking", 0, mc) end)
@@ -832,22 +838,23 @@ end
 
 function mercenaries:UIKeys()
     local binds = {
-        { "f6", "merc_ui_ov",      "toggle the overlay" },
-        { "f7", "merc_ui_ov_next", "cycle the selected merc" },
-        { "f8", "merc_ui_ov_cmd",  "issue a test order" },
-        { "f9", "merc_ui_off",     "PANIC" },
+        { "np_6", "merc_ui_ov",      "toggle the overlay" },
+        { "np_7", "merc_ui_ov_next", "cycle the selected merc" },
+        { "np_8", "merc_ui_ov_cmd",  "issue a test order" },
+        { "np_9", "merc_ui_off",     "PANIC" },
     }
     for _, b in ipairs(binds) do
-        pcall(function() System.ExecuteCommand("bind " .. b[1] .. " " .. b[2]) end)
-        log(string.format("  %-4s %-18s %s", b[1], b[2], b[3]))
+        if self:BindKey(b[1], b[2]) then
+            self.UIT.keysBound = true      -- ResetAllTestState releases them on a load
+            log(string.format("  %-6s %-18s %s", b[1], b[2], b[3]))
+        end
     end
 end
 
 function mercenaries:UIUnbind()
-    for _, k in ipairs({ "f6", "f7", "f8", "f9" }) do
-        pcall(function() System.ExecuteCommand("unbind " .. k) end)
-    end
-    log("tried to unbind F6-F9 (binds are session-only anyway)")
+    -- The console has no unbind: UnbindKey re-binds a key it bound to merc_noop.
+    for _, k in ipairs({ "np_6", "np_7", "np_8", "np_9" }) do self:UnbindKey(k) end
+    log("released numpad 6-9 (binds are session-only anyway)")
 end
 
 function mercenaries:UIOverlay()
@@ -857,7 +864,7 @@ function mercenaries:UIOverlay()
         if not self.UIT.tracking then self:UITrack() end
         pcall(function()
             UIAction.CallFunction("hud", -1, "ShowInfoText",
-                "COMMAND MODE  -  F7 cycle  -  F8 order  -  F6 exit", 9, 600000, true)
+                "COMMAND MODE  -  NP7 cycle  -  NP8 order  -  NP6 exit", 9, 600000, true)
         end)
         log("overlay ON")
     else
@@ -965,8 +972,8 @@ mercenaries:DevCommand("merc_ui_draw_bitmap", "mercenaries:UIDraw(\"bitmap\")", 
 mercenaries:DevCommand("merc_ui_px",          "mercenaries:UIPx('%line')",        "Tune the raster: <size> <step> [glyph], e.g. merc_ui_px 1 2")
 mercenaries:DevCommand("merc_ui_autoscale_off", "mercenaries:UIAutoScale(false)", "Disable the 4K debug-font enlargement (makes glyphs smaller)")
 mercenaries:DevCommand("merc_ui_autoscale_on",  "mercenaries:UIAutoScale(true)",  "Restore the 4K debug-font enlargement")
-mercenaries:DevCommand("merc_ui_keys",       "mercenaries:UIKeys()",              "Bind F6-F9 to the keyboard overlay")
-mercenaries:DevCommand("merc_ui_unbind",     "mercenaries:UIUnbind()",            "Remove the F6-F9 bindings")
+mercenaries:DevCommand("merc_ui_keys",       "mercenaries:UIKeys()",              "Bind numpad 6-9 to the keyboard overlay")
+mercenaries:DevCommand("merc_ui_unbind",     "mercenaries:UIUnbind()",            "Remove the numpad 6-9 bindings")
 mercenaries:DevCommand("merc_ui_ov",         "mercenaries:UIOverlay()",           "Toggle the keyboard-driven command overlay")
 mercenaries:DevCommand("merc_ui_ov_next",    "mercenaries:UIOverlayNext()",       "Overlay: cycle the selected merc")
 mercenaries:DevCommand("merc_ui_ov_cmd",     "mercenaries:UIOverlayCmd()",        "Overlay: issue a test order")

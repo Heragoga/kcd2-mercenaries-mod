@@ -248,7 +248,7 @@
                                                                  and IgnorePriorityOnPreviousInterrupt would replace the
                                                                  combat we just started (its OnFail sheathes + drops the
                                                                  target, leaving the archer stood there disarmed). -->
-                                                            <IfCondition failOnCondition="false" condition="~$campPoseHold"><Expression expressions="$inCombat = true" /></IfCondition>
+                                                            <IfCondition failOnCondition="false" condition="~$campPoseHold"><Expression expressions="$inCombat = true &#10; $isFollowingActive = false" /></IfCondition>
                                                         </Sequence>
                                                     </Then>
                                                     <Else canSkip="1">
@@ -379,7 +379,9 @@
                                 <IfCondition failOnCondition="false" condition="$isIdle &amp; ~$isCampActor">
                                     <EntityContext context="crime_suppressBehavioralReaction" target="$this.id">
                                         <Sequence>
-                                            <IfCondition failOnCondition="false" condition="$isFollowingActive">
+                                            <!-- ~inCombat: as in mercenary_scheduler.xml - this eviction is Instant at 160, and
+                                                 aimed at a held archer who is FIGHTING it tears his combat down without its OnFail. -->
+                                            <IfCondition failOnCondition="false" condition="$isFollowingActive &amp; ~$inCombat">
                                                 <Sequence>
                                                     <Expression expressions="$isFollowingActive = false &#10; $refireBlock = true" />
                                                     <ExecuteLua code="mercenaries:NoteFollowEviction(entity.this.id)" />

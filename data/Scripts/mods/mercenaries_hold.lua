@@ -581,9 +581,33 @@ function mercenaries:HoldOutOfLeash(myWuid, targetWuid)
     end)
     if not tp then return false end
 
+    return self:HoldPosOutOfLeash(key, tp)
+end
+
+-- The leash test on a position. A man may take an enemy within his own leash - or one
+-- that is AT THE LINE: within leash of any other held station and within leash plus one
+-- rank of his own. Without that allowance a rear-rank man in a drawn-up line never had a
+-- claim at all: the enemies pressing the front rank stand 3-4 m from his station and
+-- usually a little to one side, so with a short leash the whole back rank sat the fight
+-- out (battle test, 2026-09-23: held men spent 12.7 s of 67 in melee against 35 s free).
+mercenaries.HoldRankSlack = 2.5
+
+function mercenaries:HoldPosOutOfLeash(key, tp)
+    local st = self.HoldStations[key]
+    if not (st and tp) then return false end
     local leash = self:HoldLeashOf(key)
     local dx, dy = tp.x - st.x, tp.y - st.y
-    return (dx * dx + dy * dy) > (leash * leash)
+    local d2 = dx * dx + dy * dy
+    if d2 <= leash * leash then return false end
+    local ext = leash + (self.HoldRankSlack or 0)
+    if d2 > ext * ext then return true end
+    for k2, s2 in pairs(self.HoldStations) do
+        if k2 ~= key then
+            local ex, ey = tp.x - s2.x, tp.y - s2.y
+            if ex * ex + ey * ey <= leash * leash then return false end
+        end
+    end
+    return true
 end
 
 -- ==== escort ====
