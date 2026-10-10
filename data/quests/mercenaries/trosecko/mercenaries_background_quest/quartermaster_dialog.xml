@@ -43,7 +43,6 @@
                 <Port Name="quartermaster_inn"      Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_hunter"   Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_smithy"   Direction="Out" Type="trigger" />
-                <Port Name="quartermaster_alchemy"  Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_practice" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_house"    Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_tower"    Direction="Out" Type="trigger" />
@@ -74,6 +73,7 @@
                 <Port Name="quartermaster_rm_wall" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_rm_gate" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_rm_trader" Direction="Out" Type="trigger" />
+                <Port Name="quartermaster_rm_stonewall" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_comp_arch_same" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_comp_arch_none" Direction="Out" Type="trigger" />
                 <Port Name="quartermaster_comp_arch_qtr" Direction="Out" Type="trigger" />
@@ -1014,11 +1014,6 @@
                                         <Triggers><Port Name="quartermaster_smithy" /></Triggers>
                                         <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_smithy" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_smithy" /></Response></Elements>
                                     </Sequence>
-                                    <Sequence EndType="EndDialogue" Name="seq_qm_alchemy">
-                                        <UiPrompt StringName="ui_qm_alchemy" />
-                                        <Triggers><Port Name="quartermaster_alchemy" /></Triggers>
-                                        <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_alchemy" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_alchemy" /></Response></Elements>
-                                    </Sequence>
                                     <Sequence EndType="EndDialogue" Name="seq_qm_practice">
                                         <UiPrompt StringName="ui_qm_practice" />
                                         <Triggers><Port Name="quartermaster_practice" /></Triggers>
@@ -1125,6 +1120,11 @@
                                                 <Sequence EndType="EndDialogue" Name="seq_qm_rm_trader">
                                                     <UiPrompt StringName="ui_qm_rm_trader" />
                                                     <Triggers><Port Name="quartermaster_rm_trader" /></Triggers>
+                                                    <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
+                                                </Sequence>
+                                                <Sequence EndType="EndDialogue" Name="seq_qm_rm_stonewall">
+                                                    <UiPrompt StringName="ui_qm_rm_stonewall" />
+                                                    <Triggers><Port Name="quartermaster_rm_stonewall" /></Triggers>
                                                     <Elements><Response Role="HENRY"><Text StringName="merc_henry_qm_rm" /></Response><Response Role="role_mercenary_quartermaster"><Text StringName="merc_qm_rm" /></Response></Elements>
                                                 </Sequence>
                                                 <Sequence EndType="GoTo" GoToDecision="dec_qm_upgrades" Name="seq_qm_removeone_back">

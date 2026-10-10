@@ -75,7 +75,6 @@ mercenaries.CampAtlas = {
         { key = "inn", label = "Tavern", cost = "UpgInnCost" },
         { key = "hunter", label = "Hunter's Station", cost = "UpgHunterCost" },
         { key = "smithy", label = "Smithy", cost = "UpgSmithyCost" },
-        { key = "alchemy", label = "Alchemy Bench", cost = "UpgAlchemyCost" },
         { key = "trader", label = "Trader", cost = "UpgTraderCost" },
         { key = "practice", label = "Practice Yard", cost = "UpgPracticeCost" },
         { key = "house", label = "Player House", cost = "UpgHouseCost" },

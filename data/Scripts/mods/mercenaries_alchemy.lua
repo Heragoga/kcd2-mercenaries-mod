@@ -2,13 +2,52 @@
 -- drags its dressing props along. See docs/mercenaries/camp/camp-alchemy.md.
 
 mercenaries.CampAlchemy = nil
+-- REMOVED in 3.2.1. The bench was a real village AlchemyTable carried to the camp, and the
+-- brewing minigame never accepted the move: the pot vanished the moment you brewed at camp,
+-- and the village it came from was left without a working bench. Off: nothing is borrowed any
+-- more, and AlchemyRetire (run on every load) refunds a bench a save still owns and sends a
+-- table an older version borrowed back to its village, reset.
+mercenaries.CampAlchemyEnabled = false
 mercenaries.CampAlchemyAutoPackDist = 30.0
 mercenaries.CampAlchemyTableModel = "objects/manmade/task_specific_props/alchemy/alchemy_table_a/alchemy_table_a.cgf"
 mercenaries.CampAlchemyPropClasses = { "AlchemyItem", "ParticleEffect", "Light", "GeomEntity" }
 mercenaries.CampAlchemyPropRadius = 3.5
+-- How far from the table a LINKED entity may stand and still be one of its own (see below).
+mercenaries.CampAlchemyLinkRadius = 12.0
+
+-- Everything the table is LINKED to - the same lesson as the forge's `alignment` link. The
+-- brewing minigame (Alchemy.StartAlchemy) drives the entities the table links to: its pot,
+-- its tools, the point the player is stood at. Moving only what stood within a few metres
+-- of the table left any linked piece further out behind in the village, so the moment you
+-- brewed at camp the pot "disappeared" (it was being used where it had always been), and
+-- that village's bench was left short of it too. Every linked entity near the table now
+-- travels with it and comes home with it. NPCs are never moved.
+local function linkedEntities(at, home, radius)
+    local out = {}
+    pcall(function()
+        local n = at:CountLinks() or 0
+        for i = 0, n - 1 do
+            local l
+            pcall(function() l = at:GetLink(i) end)
+            if l and l.id and l ~= at then
+                local cls, nm, p = "", "", nil
+                pcall(function() cls = l.class or (l.GetClass and l:GetClass()) or "" end)
+                pcall(function() nm = l.GetName and l:GetName() or "" end)
+                pcall(function() p = l:GetWorldPos() end)
+                local d = p and home and math.sqrt((p.x - home.x) ^ 2 + (p.y - home.y) ^ 2 + (p.z - home.z) ^ 2) or -1
+                local take = p and cls ~= "NPC" and d >= 0 and d <= radius
+                System.LogAlways(string.format("[CampAlchemy] link %d: %s '%s' %.1fm from home%s",
+                    i, tostring(cls), tostring(nm), d, take and "" or " - left alone"))
+                if take then out[#out + 1] = { e = l, pos = p } end
+            end
+        end
+    end)
+    return out
+end
 
 -- Build the camp alchemy bench near `center`. Returns true on success.
 function mercenaries:SpawnCampAlchemy(center)
+    if not self.CampAlchemyEnabled then return false end
     if self.CampAlchemy then return true end
     if not center then return false end
     local at, dist = self:ForgeFindNearest("AlchemyTable")
@@ -60,6 +99,23 @@ function mercenaries:SpawnCampAlchemy(center)
         end
     end
 
+    -- Then everything the table is linked to (see linkedEntities), wherever it stands.
+    -- After a load the table is already at camp but its links may not be - a 2.5 bench left
+    -- its pot in the village - so they are measured from the table's HOME and moved by the
+    -- same delta, which brings a stranded pot to the bench as well.
+    local seen = {}
+    for _, m in ipairs(rec.moved) do seen[m.e.id] = true end
+    local nlinks = 0
+    for _, lk in ipairs(linkedEntities(at, origPos, self.CampAlchemyLinkRadius)) do
+        if not seen[lk.e.id] then
+            seen[lk.e.id] = true
+            table.insert(rec.moved, { e = lk.e, origPos = lk.pos })
+            pcall(function() lk.e:SetWorldPos({ x = lk.pos.x + dx, y = lk.pos.y + dy, z = lk.pos.z + dz }) end)
+            nlinks = nlinks + 1
+        end
+    end
+    if nlinks > 0 then System.LogAlways("[CampAlchemy] " .. nlinks .. " linked entit(ies) moved with the table") end
+
     -- Move the table last (the proximity search above needed its real pos).
     pcall(function() at:SetWorldPos(spot) end)
 
@@ -110,8 +166,16 @@ function mercenaries:DespawnCampAlchemy()
                 end
             end
         end
+        -- ...and the table's linked entities still standing at camp from an earlier session.
+        for _, lk in ipairs(linkedEntities(rec.at, rec.spot, self.CampAlchemyLinkRadius)) do
+            pcall(function() lk.e:SetWorldPos({ x = lk.pos.x + dx, y = lk.pos.y + dy, z = lk.pos.z + dz }) end)
+            sent = sent + 1
+        end
         if sent > 0 then System.LogAlways("[CampAlchemy] " .. sent .. " item(s) left from an earlier session sent home") end
     end
+    -- The game's own reset: every linked alchemy item back on its default spot at the
+    -- village bench, whatever the camp or an interrupted brew left it doing.
+    pcall(function() Alchemy.ResetTable(rec.at.id) end)
     for _, id in ipairs(rec.spawned or {}) do
         pcall(function() System.RemoveEntity(id) end)
     end
@@ -138,4 +202,77 @@ function mercenaries.CampAlchemyMonitor()
         end
     end)
     if self.CampAlchemy and not restore then Script.SetTimerForFunction(2000, "mercenaries.CampAlchemyMonitor") end
+end
+
+-- ==== retiring the bench (3.2.1) ====
+local function dist2d(a, b) return math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2) end
+
+function mercenaries:AlchemyRetire()
+    if self.CampAlchemyEnabled then return end
+    -- 1. A save that owns the upgrade: the money back into the war chest, once.
+    pcall(function()
+        local L = self:LogiState()
+        if L.hasAlchemy then
+            L.hasAlchemy = false
+            L.coffer = (L.coffer or 0) + (self.UpgAlchemyCost or 0)
+            self:LogiSave()
+            System.LogAlways("[CampAlchemy] the alchemy bench is gone from the mod - "
+                .. tostring(self.UpgAlchemyCost or 0) .. " groschen refunded to the war chest")
+        end
+    end)
+    -- 2. A village table an older version carried to the camp: the engine restored it there.
+    local home = self:StationHomeLoad("CampAlchemyHome")
+    if not home then return end
+    local cx, cy
+    pcall(function()
+        cx = tonumber(self:LoadString("MercCampX"))
+        cy = tonumber(self:LoadString("MercCampY"))
+    end)
+    if not (cx and cy) then return end
+    local best, bestD
+    pcall(function()
+        for _, t in pairs(System.GetEntitiesByClass("AlchemyTable") or {}) do
+            local p = t:GetWorldPos()
+            if p and dist2d(p, home) > 5 then
+                local d = dist2d(p, { x = cx, y = cy })
+                if d <= (self.StationHomeNearCamp or 60) + 20 and (not bestD or d < bestD) then
+                    best, bestD = t, d
+                end
+            end
+        end
+    end)
+    if not best then
+        self:StationHomeForget("CampAlchemyHome")
+        return
+    end
+    local at = best:GetWorldPos()
+    local dx, dy, dz = home.x - at.x, home.y - at.y, home.z - at.z
+    local sent = 0
+    local function send(e)
+        local p
+        pcall(function() p = e:GetWorldPos() end)
+        if p then
+            pcall(function() e:SetWorldPos({ x = p.x + dx, y = p.y + dy, z = p.z + dz }) end)
+            sent = sent + 1
+        end
+    end
+    local seen = {}
+    pcall(function()
+        for _, e in pairs(System.GetEntitiesByClass("AlchemyItem") or {}) do
+            local p = e:GetWorldPos()
+            if p and dist2d(p, at) <= (self.CampAlchemyPropRadius or 3.5) then seen[e.id] = true; send(e) end
+        end
+    end)
+    for _, lk in ipairs(linkedEntities(best, at, self.CampAlchemyLinkRadius or 12)) do
+        if not seen[lk.e.id] then seen[lk.e.id] = true; send(lk.e) end
+    end
+    pcall(function() best:SetWorldPos(home) end)
+    pcall(function() Alchemy.ResetTable(best.id) end)
+    self:StationHomeForget("CampAlchemyHome")
+    System.LogAlways(string.format("[CampAlchemy] borrowed AlchemyTable sent home (%.0f, %.0f) with %d item(s), and reset",
+                                   home.x, home.y, sent))
+end
+
+function mercenaries.AlchemyRetireTick()
+    pcall(function() mercenaries:AlchemyRetire() end)
 end

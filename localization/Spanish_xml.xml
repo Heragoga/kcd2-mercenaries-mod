@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>La empalizada.</Cell><Cell>La empalizada.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Las puertas.</Cell><Cell>Las puertas.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>El puesto del mercader.</Cell><Cell>El puesto del mercader.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>No hay nada de eso en este campamento.</Cell><Cell>No hay nada de eso en este campamento.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Decidamos quién marcha conmigo.</Cell><Cell>Decidamos quién marcha conmigo.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Cuando saco hombres del campamento, quiero a los adecuados a mi espalda.</Cell><Cell>Cuando saco hombres del campamento, quiero a los adecuados a mi espalda.</Cell></Row>

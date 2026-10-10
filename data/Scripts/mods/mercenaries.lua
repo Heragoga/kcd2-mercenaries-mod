@@ -2176,6 +2176,11 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
 
     -- Load the quartermaster logistics state (tiredness / food / drink / wages).
     self:LoadStep("LogiLoad", function() self:LogiLoad() end)
+    -- The alchemy bench is gone (3.2.1): refund a bench this save owns before the camp restore
+    -- asks for it, and send home a village table an older version borrowed (again a beat later,
+    -- once the level's entities have settled).
+    self:LoadStep("AlchemyRetire", function() if self.AlchemyRetire then self:AlchemyRetire() end end)
+    Script.SetTimerForFunction(6000, "mercenaries.AlchemyRetireTick")
 
     -- NO F-KEY IS EVER BOUND. The mod used to bind F4 (recall) plus the bench/torture
     -- triggers on F6-F10, and players kept firing test campaigns - some of which QUIT

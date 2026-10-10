@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Palanka.</Cell><Cell>Palanka.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Kapılar.</Cell><Cell>Kapılar.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>Tüccarın tezgâhı.</Cell><Cell>Tüccarın tezgâhı.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Bu kampta böyle bir şey yok.</Cell><Cell>Bu kampta böyle bir şey yok.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Benimle kimin yola çıkacağına karar verelim.</Cell><Cell>Benimle kimin yola çıkacağına karar verelim.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Kamptan adam çıkardığımda, arkamda doğru adamları istiyorum.</Cell><Cell>Kamptan adam çıkardığımda, arkamda doğru adamları istiyorum.</Cell></Row>

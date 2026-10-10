@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Palisada.</Cell><Cell>Palisada.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Bramy.</Cell><Cell>Bramy.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>Stragan kupca.</Cell><Cell>Stragan kupca.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Nic takiego w tym obozie nie stoi.</Cell><Cell>Nic takiego w tym obozie nie stoi.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Ustalmy, kto wyrusza ze mną.</Cell><Cell>Ustalmy, kto wyrusza ze mną.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Gdy zabieram ludzi z obozu, chcę mieć za plecami tych, których trzeba.</Cell><Cell>Gdy zabieram ludzi z obozu, chcę mieć za plecami tych, których trzeba.</Cell></Row>

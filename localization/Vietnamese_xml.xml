@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Hàng rào gỗ.</Cell><Cell>Hàng rào gỗ.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Cổng trại.</Cell><Cell>Cổng trại.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>Quầy của thương nhân.</Cell><Cell>Quầy của thương nhân.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Trong trại này chẳng có thứ đó.</Cell><Cell>Trong trại này chẳng có thứ đó.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Hãy quyết xem ai sẽ theo ta ra trận.</Cell><Cell>Hãy quyết xem ai sẽ theo ta ra trận.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Khi ta dẫn người rời trại, ta muốn có đúng người sau lưng mình.</Cell><Cell>Khi ta dẫn người rời trại, ta muốn có đúng người sau lưng mình.</Cell></Row>

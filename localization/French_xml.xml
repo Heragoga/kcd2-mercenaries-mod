@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>La palissade.</Cell><Cell>La palissade.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Les portes.</Cell><Cell>Les portes.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>L'étal du marchand.</Cell><Cell>L'étal du marchand.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Il n'y a rien de tel dans ce camp.</Cell><Cell>Il n'y a rien de tel dans ce camp.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Réglons qui marchera avec moi.</Cell><Cell>Réglons qui marchera avec moi.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Quand j'emmène des hommes hors du camp, je veux les bons dans mon dos.</Cell><Cell>Quand j'emmène des hommes hors du camp, je veux les bons dans mon dos.</Cell></Row>

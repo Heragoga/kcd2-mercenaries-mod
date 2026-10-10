@@ -1286,6 +1286,11 @@ function mercenaries:LogiBuySmithy()
     self:LogiRebuildCampForUpgrade()
 end
 function mercenaries:LogiBuyAlchemy()
+    -- Removed in 3.2.1 (mercenaries_alchemy.lua); the dialogue no longer offers it either.
+    if not self.CampAlchemyEnabled then
+        System.LogAlways("[Logistics] the alchemy bench is no longer offered")
+        return
+    end
     local L = self:LogiState()
     if L.hasAlchemy then Game.SendInfoText('merc_logi_upg_have', false, 0, 3); return end
     if not self:LogiSpend(self.UpgAlchemyCost) then return end

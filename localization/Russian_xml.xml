@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Частокол.</Cell><Cell>Частокол.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Ворота.</Cell><Cell>Ворота.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>Лавка торговца.</Cell><Cell>Лавка торговца.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>В этом лагере такого нет.</Cell><Cell>В этом лагере такого нет.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Решим, кто выступит со мной.</Cell><Cell>Решим, кто выступит со мной.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Когда я беру людей из лагеря, хочу, чтобы за спиной были нужные.</Cell><Cell>Когда я беру людей из лагеря, хочу, чтобы за спиной были нужные.</Cell></Row>

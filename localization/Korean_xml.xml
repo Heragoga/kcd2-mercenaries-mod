@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>목책.</Cell><Cell>목책.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>문.</Cell><Cell>문.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>상인의 노점.</Cell><Cell>상인의 노점.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>이 진영에는 그런 것이 없다.</Cell><Cell>이 진영에는 그런 것이 없다.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>누가 나와 함께 출정할지 정하자.</Cell><Cell>누가 나와 함께 출정할지 정하자.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>진영에서 사람을 데리고 나갈 때는, 제대로 된 자들을 곁에 두고 싶다.</Cell><Cell>진영에서 사람을 데리고 나갈 때는, 제대로 된 자들을 곁에 두고 싶다.</Cell></Row>

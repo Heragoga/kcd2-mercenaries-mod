@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>The palisade.</Cell><Cell>The palisade.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>The gates.</Cell><Cell>The gates.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>The trader's stall.</Cell><Cell>The trader's stall.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>There's nothing of the sort standing in this camp.</Cell><Cell>There's nothing of the sort standing in this camp.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Let's settle who marches out with me.</Cell><Cell>Let's settle who marches out with me.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>When I take men out of camp, I want the right sort at my back.</Cell><Cell>When I take men out of camp, I want the right sort at my back.</Cell></Row>

@@ -311,6 +311,18 @@ function mercenaries:SelfTestAutomated(S)
         for _, k in ipairs(self.TimerLatches or {}) do if k == "StaticArcherPinActive" then found = true end end
         check(S, "tower archers' drift pin re-arms after a load", found)
     end)
+
+    -- 19. The alchemy bench is gone (3.2.1): never built, not on the camp screen, not for sale.
+    pcall(function()
+        local listed = false
+        for _, imp in ipairs((self.CampAtlas or {}).improvements or {}) do
+            if imp.key == "alchemy" then listed = true end
+        end
+        local built = true
+        pcall(function() built = self:SpawnCampAlchemy({ x = 0, y = 0, z = 0 }) end)
+        check(S, "alchemy bench removed (no borrow, not listed)",
+              self.CampAlchemyEnabled == false and not listed and built == false)
+    end)
 end
 
 -- ==== visual steps ====

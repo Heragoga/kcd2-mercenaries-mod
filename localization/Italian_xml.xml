@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>La palizzata.</Cell><Cell>La palizzata.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>I cancelli.</Cell><Cell>I cancelli.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>La bancarella del mercante.</Cell><Cell>La bancarella del mercante.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Non c'è nulla del genere in questo campo.</Cell><Cell>Non c'è nulla del genere in questo campo.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Decidiamo chi marcia con me.</Cell><Cell>Decidiamo chi marcia con me.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Quando porto uomini fuori dal campo, voglio i giusti alle mie spalle.</Cell><Cell>Quando porto uomini fuori dal campo, voglio i giusti alle mie spalle.</Cell></Row>

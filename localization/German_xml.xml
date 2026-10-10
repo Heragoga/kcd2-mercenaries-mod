@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Die Palisade.</Cell><Cell>Die Palisade.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Die Tore.</Cell><Cell>Die Tore.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>Der Stand des Händlers.</Cell><Cell>Der Stand des Händlers.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Da steht nichts dergleichen in diesem Lager.</Cell><Cell>Da steht nichts dergleichen in diesem Lager.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Lass uns klären, wer mit mir auszieht.</Cell><Cell>Lass uns klären, wer mit mir auszieht.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Wenn ich Männer aus dem Lager führe, will ich die Richtigen im Rücken haben.</Cell><Cell>Wenn ich Männer aus dem Lager führe, will ich die Richtigen im Rücken haben.</Cell></Row>

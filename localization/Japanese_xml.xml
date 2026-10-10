@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>柵。</Cell><Cell>柵。</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>門。</Cell><Cell>門。</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>商人の露店。</Cell><Cell>商人の露店。</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>この野営地には、その手の物はない。</Cell><Cell>この野営地には、その手の物はない。</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>誰を連れて出るか、決めよう。</Cell><Cell>誰を連れて出るか、決めよう。</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>野営地から人を連れ出す時は、しかるべき者を後ろに置きたい。</Cell><Cell>野営地から人を連れ出す時は、しかるべき者を後ろに置きたい。</Cell></Row>

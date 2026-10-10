@@ -1513,12 +1513,6 @@
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_smithy" To="Exec" />
                 </EventFunction>
-                <EventFunction Name="exec_qm_alchemy" PositionY="120" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
-                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be74d" />
-                    <Constant Name="Amount" Value="1" />
-                    <Constant Name="ShowUINotification" Value="false" />
-                    <Edge From="quartermaster_dialog.quartermaster_alchemy" To="Exec" />
-                </EventFunction>
                 <EventFunction Name="exec_qm_practice" PositionY="160" PositionX="600" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92be75d" />
                     <Constant Name="Amount" Value="1" />
@@ -1616,6 +1610,12 @@
                     <Constant Name="Amount" Value="12" />
                     <Constant Name="ShowUINotification" Value="false" />
                     <Edge From="quartermaster_dialog.quartermaster_rm_trader" To="Exec" />
+                </EventFunction>
+                <EventFunction Name="exec_qm_rm_stonewall" PositionY="1220" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
+                    <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef1d" />
+                    <Constant Name="Amount" Value="13" />
+                    <Constant Name="ShowUINotification" Value="false" />
+                    <Edge From="quartermaster_dialog.quartermaster_rm_stonewall" To="Exec" />
                 </EventFunction>
                 <EventFunction Name="exec_trader_open" PositionY="1240" PositionX="900" MethodName="wh::entitymodule::CreatePlayerReward" DeclaringType="wh::entitymodule">
                     <Constant Name="ItemClass" Value="679a655e-189d-4519-b437-ccc4b92bef6d" />

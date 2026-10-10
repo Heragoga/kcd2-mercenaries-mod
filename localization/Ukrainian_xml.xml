@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Частокіл.</Cell><Cell>Частокіл.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Ворота.</Cell><Cell>Ворота.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>Ятка торговця.</Cell><Cell>Ятка торговця.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Нічого такого в цьому таборі немає.</Cell><Cell>Нічого такого в цьому таборі немає.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Вирішімо, хто вирушить зі мною.</Cell><Cell>Вирішімо, хто вирушить зі мною.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Коли беру людей із табору, хочу мати за спиною тих, кого треба.</Cell><Cell>Коли беру людей із табору, хочу мати за спиною тих, кого треба.</Cell></Row>

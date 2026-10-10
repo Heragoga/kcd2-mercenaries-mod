@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>Palisáda.</Cell><Cell>Palisáda.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Brány.</Cell><Cell>Brány.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>Obchodníkův stánek.</Cell><Cell>Obchodníkův stánek.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Nic takového v tomhle táboře nestojí.</Cell><Cell>Nic takového v tomhle táboře nestojí.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Ujasněme si, kdo se mnou vytáhne do pole.</Cell><Cell>Ujasněme si, kdo se mnou vytáhne do pole.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Když beru muže z tábora, chci mít za zády ty pravé.</Cell><Cell>Když beru muže z tábora, chci mít za zády ty pravé.</Cell></Row>

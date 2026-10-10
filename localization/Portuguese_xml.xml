@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>A paliçada.</Cell><Cell>A paliçada.</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>Os portões.</Cell><Cell>Os portões.</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>A banca do mercador.</Cell><Cell>A banca do mercador.</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>Não há nada do tipo neste acampamento.</Cell><Cell>Não há nada do tipo neste acampamento.</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>Vamos decidir quem marcha comigo.</Cell><Cell>Vamos decidir quem marcha comigo.</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>Quando levo homens para fora do acampamento, quero os certos ao meu lado.</Cell><Cell>Quando levo homens para fora do acampamento, quero os certos ao meu lado.</Cell></Row>

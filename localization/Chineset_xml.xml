@@ -1315,6 +1315,7 @@
   <Row><Cell>ui_qm_rm_wall</Cell><Cell>柵欄。</Cell><Cell>柵欄。</Cell></Row>
   <Row><Cell>ui_qm_rm_gate</Cell><Cell>大門。</Cell><Cell>大門。</Cell></Row>
   <Row><Cell>ui_qm_rm_trader</Cell><Cell>商人的攝子。</Cell><Cell>商人的攝子。</Cell></Row>
+  <Row><Cell>ui_qm_rm_stonewall</Cell><Cell>The stone wall.</Cell><Cell>The stone wall.</Cell></Row>
   <Row><Cell>merc_logi_upg_none</Cell><Cell>營地裡沒有這種東西。</Cell><Cell>營地裡沒有這種東西。</Cell></Row>
   <Row><Cell>ui_qm_comp</Cell><Cell>咱們定下誰跟我出征。</Cell><Cell>咱們定下誰跟我出征。</Cell></Row>
   <Row><Cell>merc_henry_qm_comp</Cell><Cell>我帶人出營時,身後得是靠得住的人。</Cell><Cell>我帶人出營時,身後得是靠得住的人。</Cell></Row>
