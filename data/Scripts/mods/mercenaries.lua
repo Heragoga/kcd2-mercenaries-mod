@@ -2248,7 +2248,7 @@ function mercenaries:OnGameplayStarted(actionName, eventName, argTable)
     -- Put a saved camp back up - after the cache above, since it hands out tents
     -- from ActiveMercs (see RestoreCampDelayed). The retry counter is per-load
     -- state and plain Lua, so it is reset here rather than trusted.
-    self._campRestoreTries = 0
+    self._campRestoreTries, self._campRegionWaits = 0, 0
     Script.SetTimerForFunction(4000, "mercenaries.RestoreCampDelayed")
     -- NO torture hook here. Phase B once armed itself from this event and auto-quit
     -- the USER'S game whenever their newest save carried a torture stamp (they hit

@@ -560,6 +560,10 @@ end
 
 function mercenaries:TravelPlaceAt(ent, pp)
     if not (ent and pp) then return false end
+    -- Never a body. A fallen man stays on the books while his corpse lies there (bodies keep
+    -- ten minutes now), so every crossing used to bring the dead along and lay them out
+    -- round the player at the far end. A man merely knocked out still comes.
+    if not self:IsAliveAndWell(ent, true) then return false end
     return self:MercPlaceAt(ent, self:TravelScatterSpot(pp))
 end
 
@@ -589,6 +593,7 @@ end
 
 function mercenaries:TravelTakesAlong(ent)
     if not (ent and ent.id) then return false end
+    if not self:IsAliveAndWell(ent, true) then return false end      -- see TravelPlaceAt
     if _G.MercenariesDismissed then return false end
     -- "Wait here" is squad-wide: if they are holding ground, nobody is dragged off it.
     if self.HoldActive or self.EscortEnt then return false end
@@ -601,7 +606,19 @@ function mercenaries:TravelTakesAlong(ent)
     return true
 end
 
+-- A crossing ends every fight. Claims, the alert, who was confirmed attacking whom and a
+-- called target were all carried to the far end, so a company that fast-travelled out of a
+-- brawl in Kuttenberg arrived in Old Kutna still at war and went for the first townsfolk it
+-- saw. Same wipe as a load (TargetingOnLoad keeps siege/encounter orders), at both ends.
+function mercenaries:TravelForgetFights(why)
+    pcall(function() if self.TargetingOnLoad then self:TargetingOnLoad() end end)
+    self.AttackerSeen = {}
+    pcall(function() if self.OrderFocusClear then self:OrderFocusClear("travel") end end)
+    twLog("combat state cleared (" .. tostring(why) .. ")")
+end
+
 function mercenaries:TravelBegin(why)
+    self:TravelForgetFights("crossing begins")
     -- Remember who was actually following, before the crossing moves anything.
     self.TravelWith = {}
     local n = 0
@@ -634,6 +651,7 @@ function mercenaries:TravelBegin(why)
 end
 
 function mercenaries:TravelEnd()
+    self:TravelForgetFights("crossing over")
     local pp
     pcall(function() pp = player:GetWorldPos() end)
     local moved, lost = 0, 0

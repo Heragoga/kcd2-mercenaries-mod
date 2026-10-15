@@ -263,19 +263,71 @@ function mercenaries.NoSaveSweepTick()
     pcall(function() mercenaries:NoSaveSweep() end)
 end
 
--- Called from the 5s low-priority loop; sweeps about once a minute. The scan is over a
--- dozen entity classes, so it is not something to do every tick.
-mercenaries.NoSaveSweepEveryTicks = 6
+-- THE STUTTER (3.2.2). The broad sweep used to run here every sixth low-priority tick -
+-- every ~30 s - and it is a WORLD scan: every NPC, BasicEntity, Light, TagPoint, ItemSlot,
+-- ParticleEffect and GeomEntity in the level, pulled into Lua and name-tested against two
+-- dozen prefixes. In Kuttenberg that is tens of thousands of entities and a frame hitch
+-- every half minute, with or without a single merc hired ("stuttering every 20-25 s since
+-- 3.2"). The 2026-09-13 build had no periodic sweep at all.
+--
+-- Now the mod's entities are flagged out of the save THE MOMENT THEY ARE SPAWNED (the
+-- System.SpawnEntity hook below, same classes, same names, same exclusions as the sweep),
+-- so nothing is left to find later. The broad sweep still runs once after every load
+-- (NoSaveSweepTick, for entities an older save carried) and on merc_nosave_sweep.
+-- 0 = never periodically; a positive number re-enables the old every-N-ticks sweep.
+mercenaries.NoSaveSweepEveryTicks = 0
 
 function mercenaries:NoSaveSweepMaybe()
     -- Cheap and always: two class lookups, and it is the only thing standing between a
     -- player and a save that will not load once the mod is uninstalled.
     pcall(function() self:NoSaveSweepFatal() end)
     if not self.RosterNoSave then return end
+    local every = self.NoSaveSweepEveryTicks or 0
+    if every <= 0 then return end
     self._noSaveTicks = (self._noSaveTicks or 0) + 1
-    if self._noSaveTicks < (self.NoSaveSweepEveryTicks or 6) then return end
+    if self._noSaveTicks < every then return end
     self._noSaveTicks = 0
     pcall(function() self:NoSaveSweep(true) end)
+end
+
+-- ==== flag at spawn ====
+-- Exactly the sweep's rule, applied to one entity as it is created instead of to the whole
+-- world later: one of the mod's own classes always; one of the scanned vanilla classes when
+-- the name is ours; never the save store or a legacy saver.
+local spawnScan, spawnOwn
+function mercenaries:NoSaveOnSpawn(p, e)
+    if type(p) ~= "table" or not e then return end
+    local cls = p.class
+    if not cls then return end
+    if not spawnScan then
+        -- Built once the class lists exist (mercenaries_commands.lua); never cached empty.
+        if not (self.UninstallScanClasses and self.UninstallOwnClasses and self.IsOurEntityName) then return end
+        spawnScan, spawnOwn = {}, {}
+        for _, c in ipairs(self.UninstallScanClasses or {}) do spawnScan[c] = true end
+        for _, c in ipairs(self.UninstallOwnClasses or {}) do spawnOwn[c] = true end
+    end
+    local own = spawnOwn[cls] and cls ~= "mercenaries_Store"
+    if not (own or spawnScan[cls]) then return end
+    if not (own or self.RosterNoSave) then return end
+    local name = tostring(p.name or "")
+    if name == self.StoreEntityName or cls == "mercenaries_Store" then return end
+    local pfx = self.SaverPrefix
+    if pfx and string.sub(name, 1, string.len(pfx)) == pfx then return end
+    if not (own or self:IsOurEntityName(name)) then return end
+    self:NoSaveEntity(e, own)
+end
+
+-- Wrapped once per Lua state (the flag lives on the table, which survives a load), and it
+-- chains to whatever was there, so another mod's wrapper keeps working.
+if not mercenaries._spawnHooked and System and System.SpawnEntity then
+    mercenaries._spawnHooked = true
+    local orig = System.SpawnEntity
+    mercenaries._origSpawnEntity = orig
+    System.SpawnEntity = function(p, ...)
+        local e = orig(p, ...)
+        if e then pcall(function() mercenaries:NoSaveOnSpawn(p, e) end) end
+        return e
+    end
 end
 
 -- The one way the mod should put anything in the world. Stamps the spawn properties

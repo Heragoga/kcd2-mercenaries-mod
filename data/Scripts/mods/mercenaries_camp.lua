@@ -4502,12 +4502,26 @@ function mercenaries.RestoreCampDelayed()
     -- A region crossing is still walking the company back into the world (docs/mercenaries/camp/regions.md).
     -- Pitching now would lay the camp out around whoever happens to be standing already and
     -- leave the rest of them outside it.
+    -- Bounded: a crossing that never finishes must not hold the camp back for good.
     if next(self.RegionSpawnQueue or {}) then
-        Script.SetTimerForFunction(1000, "mercenaries.RestoreCampDelayed")
+        self._campRegionWaits = (self._campRegionWaits or 0) + 1
+        if self._campRegionWaits <= 60 then
+            Script.SetTimerForFunction(1000, "mercenaries.RestoreCampDelayed")
+            return
+        end
+        System.LogAlways("[Camp] restore: the region crossing is still bringing men across after 60s - restoring the camp anyway")
+    end
+    self._campRegionWaits = 0
+    local o = self:LoadCampOrigin()
+    -- Every way out says why. "The camp was gone after a reload" (3.2 reports) could not be
+    -- traced, because this function used to return here without a word.
+    if not o then
+        local flag; pcall(function() flag = self:LoadString("MercCampActive") end)
+        System.LogAlways("[Camp] restore: no camp in this save (MercCampActive=" .. tostring(flag) .. ")")
         return
     end
-    local o = self:LoadCampOrigin()
-    if not o or self.CampActive or _G.MercenariesDismissed then return end
+    if self.CampActive then System.LogAlways("[Camp] restore: a camp is already standing"); return end
+    if _G.MercenariesDismissed then System.LogAlways("[Camp] restore: the company is dismissed - camp left down"); return end
     pcall(function() self:Recount() end)
     if not _G.MercCount or _G.MercCount <= 0 then
         self._campRestoreTries = (self._campRestoreTries or 0) + 1
@@ -5652,7 +5666,8 @@ function mercenaries:SpawnMercCamp(atOrigin, silent, allowSolo)
         -- sweep may be 30s away. Flag them out of the save now, or a save taken in that
         -- window carries the whole camp - which is what "white pyramids where the camp
         -- was" is once the mod is gone.
-        pcall(function() if self.NoSaveSweep then self:NoSaveSweep(true) end end)
+        -- A world scan (a hitch) - only needed when the spawn hook is not in place.
+        pcall(function() if self.NoSaveSweep and not self._spawnHooked then self:NoSaveSweep(true) end end)
         -- Nobody raids a camp that went up an hour ago (mercenaries_raids.lua). `fresh` is
         -- a NEW pitch; an origin without it is the saved anchor coming back after a load or
         -- an upgrade, which is the same camp and keeps its age. Same test as DefArmRestore

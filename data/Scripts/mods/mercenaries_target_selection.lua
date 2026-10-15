@@ -174,14 +174,29 @@ function mercenaries:AggressorConfirmSet(secs)
         .. tostring(self.AggressorConfirmSecs) .. "s before the squad will fight him")
 end
 
+-- A weapon IN HAND, not just a combat stance: IsWeaponDrawn also answers for bare fists,
+-- so a townsman squaring up to the player in a brawl read as armed and the company cut him
+-- down ("mercs attacked civilians"). Nothing in either hand is no weapon at all.
+function mercenaries:HoldsRealWeapon(ent)
+    if not (ent and ent.human) then return false end
+    local drawn = false
+    pcall(function() drawn = ent.human:IsWeaponDrawn() and true or false end)
+    if not drawn then return false end
+    local inHand
+    pcall(function() inHand = ent.human:GetItemInHand(0) end)
+    if inHand == nil then pcall(function() inHand = ent.human:GetItemInHand(1) end) end
+    return inHand ~= nil
+end
+
 function mercenaries:AggressorConfirmed(ent, wuid, victimWuidStr)
     if not ent then return false end
     if self:HostileKind(ent) == "hostile" then return true end
 
     local key = tostring(wuid) .. ">" .. tostring(victimWuidStr)
 
-    local armed = false
-    pcall(function() armed = ent.human and ent.human:IsWeaponDrawn() or false end)
+    -- Townsfolk and the watch: only someone with a real weapon in his hand can ever be
+    -- confirmed as fighting us. A brawler with his fists is left to the player.
+    local armed = self:HoldsRealWeapon(ent)
     if not armed then self:AggressorForget(key) return false end
 
     local fighting = false
@@ -295,6 +310,10 @@ function mercenaries:IsValidEnemy(ent, distanceRefEnt, playerWuid, skipRelations
     --     which is how the whole squad joins in rather than one man;
     --   * the player called him by name.
     if not allowProtected and self:IsProtectedNpc(ent) then return false end
+    -- ...and even when something does let a townsman through (he was confirmed fighting us,
+    -- he hit one of ours, the player called him), never while his hands are empty. The
+    -- company does not cut down an unarmed civilian, whatever started it.
+    if allowProtected and self:IsProtectedNpc(ent) and not self:HoldsRealWeapon(ent) then return false end
 
     -- Must be genuinely hostile: relationship to the player pinned at exactly -1
     -- (the faction-hostile floor). Neutral/unresolved (0, 0.5, nil) is not fair

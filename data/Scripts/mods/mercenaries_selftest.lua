@@ -323,6 +323,61 @@ function mercenaries:SelfTestAutomated(S)
         check(S, "alchemy bench removed (no borrow, not listed)",
               self.CampAlchemyEnabled == false and not listed and built == false)
     end)
+
+    -- 20. No world scan every half minute (the 3.2 stutter); the mod's things are flagged
+    --     out of the save as they spawn instead.
+    pcall(function()
+        local name = self.SelfTestPrefix .. "nosave_" .. tostring(math.random(10000, 99999))
+        local e
+        pcall(function()
+            e = System.SpawnEntity({ class = "BasicEntity", name = name, position = { x = 0, y = 0, z = -500 },
+                                     properties = { object_Model = "" } })
+        end)
+        local flagged = false
+        if e then
+            pcall(function() flagged = e:HasFlags(self.EntityFlagNoSave) and true or false end)
+            pcall(function() System.RemoveEntity(e.id) end)
+        end
+        local need = self.RosterNoSave ~= false
+        check(S, "no periodic world scan; spawns are kept out of saves at once",
+              (self.NoSaveSweepEveryTicks or 0) <= 0 and self._spawnHooked == true and (flagged or not need),
+              "flagged=" .. tostring(flagged))
+    end)
+
+    -- 21. A fast travel never brings the dead along.
+    pcall(function()
+        local realAlive, realPlace = self.IsAliveAndWell, self.MercPlaceAt
+        local placed = 0
+        self.IsAliveAndWell = function() return false end          -- every man is a corpse
+        self.MercPlaceAt = function() placed = placed + 1; return true end
+        local taken = self:TravelTakesAlong({ id = "corpse" })
+        local moved = self:TravelPlaceAt({ id = "corpse" }, { x = 0, y = 0, z = 0 })
+        self.IsAliveAndWell, self.MercPlaceAt = realAlive, realPlace
+        check(S, "fast travel leaves corpses where they fell", taken == false and moved == false and placed == 0)
+    end)
+
+    -- 22. A townsman with bare fists is never "armed"; one with a weapon in hand is.
+    pcall(function()
+        local fists = { human = { IsWeaponDrawn = function() return true end, GetItemInHand = function() return nil end } }
+        local sword = { human = { IsWeaponDrawn = function() return true end, GetItemInHand = function() return 12345 end } }
+        check(S, "unarmed townsfolk are never targets", self:HoldsRealWeapon(fists) == false and self:HoldsRealWeapon(sword) == true)
+    end)
+
+    -- 23. A crossing ends every fight.
+    pcall(function()
+        local saved = { self.MercTargetOf, self.EnemyAlerted, self.AttackerSeen }
+        self.MercTargetOf, self.EnemyAlerted, self.AttackerSeen = { a = "b" }, true, { c = 1 }
+        self:TravelForgetFights("selftest")
+        local cleared = next(self.MercTargetOf) == nil and self.EnemyAlerted == false and next(self.AttackerSeen) == nil
+        if not cleared then self.MercTargetOf, self.EnemyAlerted, self.AttackerSeen = saved[1], saved[2], saved[3] end
+        check(S, "fast travel leaves the fight behind", cleared)
+    end)
+
+    -- 24. Morale is easier to keep: fed & paid counts, gentler slide and tiredness.
+    pcall(function()
+        check(S, "morale: fed & paid +5/day, slide 2/day, tiredness 5/day",
+              self.MoraleFedPaidGain == 5 and self.MoraleDecayPerDay == 2 and self.MoraleTiredDrain == 5)
+    end)
 end
 
 -- ==== visual steps ====

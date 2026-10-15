@@ -193,7 +193,10 @@ function mercenaries:MonitorDistanceAndTeleport()
                     parked = self.InteriorParked[tostring(ent.this and ent.this.id or ent.id)] and true or false
                 end)
             end
-            if ent and ent.actor and not inCampProper and not shedding and not parked then
+            -- ...and never a body (dead, or knocked out on the ground): a corpse left behind
+            -- would otherwise be hauled after the player like a straggler.
+            local standing = self:IsAliveAndWell(ent, false)
+            if ent and ent.actor and standing and not inCampProper and not shedding and not parked then
                 -- Don't teleport a merc out of a fight mid-swing.
                 local inCombat = false
                 pcall(function() inCombat = ent.soul:HasScriptContext("crime_interruptAttack") end)

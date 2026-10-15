@@ -11,11 +11,16 @@ mercenaries.FeedRatio            = 8           -- mercs fed per food unit/day (h
 
 mercenaries.MoraleMin            = -100
 mercenaries.MoraleMax            = 100
-mercenaries.MoraleDecayPerDay    = 5           -- toward 0
+-- 3.2.2: easier to keep up. Fed and paid now counts for something, the slide toward 0 and
+-- the road's tiredness are gentler, and a camp lifts low morale at its own rate. Before, a
+-- fed, paid company with drink made +5/day and turned negative after three days out.
+mercenaries.MoraleDecayPerDay    = 2           -- toward 0 (was 5)
+mercenaries.MoraleFedPaidGain    = 5           -- /day while nobody is hungry and wages are paid
+mercenaries.MoraleCampRecovery   = 10          -- /day a camp lifts NEGATIVE morale back toward 0
 mercenaries.MoraleLowWarnAt      = -20         -- "morale is low" text warning below this
 mercenaries.MoraleDesertAt       = -70         -- mercs only start deserting below this (low-morale icon warns at -50 first)
 mercenaries.MoraleMutinyAt       = -90         -- desertions escalate to hostile mutiny below this
-mercenaries.MoraleTiredDrain     = 10          -- /day once out of camp > grace
+mercenaries.MoraleTiredDrain     = 5           -- /day once out of camp > grace (was 10)
 mercenaries.MoraleStarveDrain    = 5           -- /day while starving
 mercenaries.MoraleDrinkGain      = 10          -- /day while drink available
 mercenaries.MoraleInnGain        = 10          -- /day while the inn stands
@@ -574,10 +579,16 @@ function mercenaries:LogiMoraleTick(dt)
     if L.starving then rate = rate - self.MoraleStarveDrain; table.insert(why, "starving -" .. self.MoraleStarveDrain) end
     if L.drinkAvailable then rate = rate + self.MoraleDrinkGain; table.insert(why, "drink +" .. self.MoraleDrinkGain) end
     if L.innActive then rate = rate + self.MoraleInnGain; table.insert(why, "inn +" .. self.MoraleInnGain) end
+    if (not L.starving) and (not L.unpaid) and (self.MoraleFedPaidGain or 0) > 0 then
+        rate = rate + self.MoraleFedPaidGain; table.insert(why, "fed & paid +" .. self.MoraleFedPaidGain)
+    end
     if L.unpaid then rate = rate - self.MoraleWageDrain; table.insert(why, "unpaid -" .. self.MoraleWageDrain) end
     -- passive drift toward 0 (negative only recovers while camped)
     if L.morale > 0 then rate = rate - self.MoraleDecayPerDay; table.insert(why, "decay -" .. self.MoraleDecayPerDay)
-    elseif L.morale < 0 and inCamp then rate = rate + self.MoraleDecayPerDay; table.insert(why, "camp recovery +" .. self.MoraleDecayPerDay) end
+    elseif L.morale < 0 and inCamp then
+        local rec = self.MoraleCampRecovery or self.MoraleDecayPerDay
+        rate = rate + rec; table.insert(why, "camp recovery +" .. rec)
+    end
     self:LogiAddMorale(rate * (dt / self.SecondsPerDay), "drift/day: " .. (rate ~= 0 and table.concat(why, ", ") or "none"))
 
     -- Warnings on the way down.
